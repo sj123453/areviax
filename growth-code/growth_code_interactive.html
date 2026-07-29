@@ -1,0 +1,1823 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>The Growth Code — Areviax Interactive</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Fraunces:ital,opsz,wght@1,9..144,300;1,9..144,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0B1230;--bg2:#121B42;--panel:#182352;--panel2:#1B2758;
+  --blue:#3B5BFF;--blue-l:#5B7FFF;--cyan:#44CFFF;
+  --orange:#FF6B1A;--orange2:#FF8C47;
+  --white:#EEF0FF;--muted:#7B84B0;--muted2:#4A5070;
+  --border:rgba(59,91,255,.15);--border2:rgba(255,255,255,.06);
+  --green:#44D4FF;
+}
+html,body{height:100%;overflow:hidden}
+html{background:var(--bg);overscroll-behavior-y:none}
+    body{background:var(--bg);color:var(--white);font-family:'Outfit',sans-serif;font-weight:300;display:flex;flex-direction:column;cursor:none;overscroll-behavior-y:none}
+*{cursor:none!important}
+.page-gradient-bg{position:fixed;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(160deg,#1D2B63 0%,#0B1230 55%,#080C22 100%)}
+#cur-c{position:fixed;pointer-events:none;z-index:9999;transform:translate(-50%,-50%)}
+
+/* ── LAYOUT ── */
+.app{display:flex;height:100vh;overflow:hidden}
+
+/* SIDEBAR / CHAPTERS */
+.sidebar{
+  width:260px;flex-shrink:0;background:var(--bg2);
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;overflow:hidden;
+}
+.sb-top{padding:20px;border-bottom:1px solid var(--border)}
+.sb-back{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--muted);text-decoration:none;margin-bottom:14px;transition:color .2s}
+.sb-back:hover{color:var(--white)}
+.sb-book-title{font-weight:800;font-size:15px;letter-spacing:-.01em;line-height:1.2}
+.sb-book-sub{font-size:11px;color:var(--orange);letter-spacing:.08em;text-transform:uppercase;margin-top:4px}
+.sb-collection-tag{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:700;letter-spacing:.04em;color:var(--cyan);background:rgba(68,207,255,.1);border:1px solid rgba(68,207,255,.25);border-radius:5px;padding:5px 9px;margin-top:10px}
+
+/* progress bar */
+.sb-progress{padding:14px 20px;border-bottom:1px solid var(--border)}
+.sb-progress-label{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-bottom:6px;letter-spacing:.06em;text-transform:uppercase}
+.sb-progress-bar{height:3px;background:var(--border);border-radius:2px;overflow:hidden}
+.sb-progress-fill{height:100%;background:linear-gradient(to right,var(--orange),var(--orange2));border-radius:2px;transition:width .6s ease}
+
+/* chapter list */
+.chapter-list{flex:1;overflow-y:auto;padding:8px 0;scrollbar-width:none}
+.chapter-list::-webkit-scrollbar{display:none}
+.ch-item{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 20px;font-size:13px;
+  color:var(--muted);transition:color .2s,background .2s;
+  border-left:2px solid transparent;cursor:pointer;
+}
+.ch-item:hover{color:var(--white);background:rgba(59,91,255,.06)}
+.ch-item.active{color:var(--white);background:rgba(59,91,255,.1);border-left-color:var(--blue)}
+.ch-item.done{color:var(--muted)}
+.ch-item.done .ch-num{background:var(--green);color:var(--bg);border-color:var(--green)}
+.ch-num{
+  width:22px;height:22px;border-radius:50%;
+  background:transparent;border:1px solid var(--muted2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:9px;font-weight:700;font-family:'JetBrains Mono',monospace;
+  flex-shrink:0;transition:all .3s;
+}
+.ch-item.active .ch-num{background:var(--blue);border-color:var(--blue);color:white}
+.ch-title-text{flex:1;line-height:1.3}
+.ch-check{font-size:10px;color:var(--green);opacity:0;transition:opacity .3s}
+.ch-item.done .ch-check{opacity:1}
+
+/* XP badge sidebar bottom */
+.sb-bottom{
+  padding:14px 20px;border-top:1px solid var(--border);
+  display:flex;align-items:center;gap:10px;
+}
+.xp-orb{
+  width:36px;height:36px;border-radius:50%;flex-shrink:0;
+  background:linear-gradient(135deg,var(--orange),var(--orange2));
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:800;color:var(--bg);
+}
+.xp-info{flex:1}
+.xp-val{font-weight:700;font-size:14px}
+.xp-label{font-size:10px;color:var(--muted)}
+
+/* ── MAIN ── */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+
+/* mobile chapter strip — only shown when sidebar is hidden */
+.ch-strip{display:none;overflow-x:auto;gap:0;background:var(--bg2);border-bottom:1px solid var(--border);padding:0 14px;scrollbar-width:none;flex-shrink:0}
+.ch-strip::-webkit-scrollbar{display:none}
+.ch-tab{flex-shrink:0;padding:11px 14px;font-size:10.5px;font-weight:600;letter-spacing:.03em;color:var(--muted);border-bottom:2px solid transparent;cursor:pointer;transition:color .2s,border-color .2s;white-space:nowrap}
+.ch-tab:hover{color:var(--white)}
+.ch-tab.active{color:var(--white);border-bottom-color:var(--blue)}
+.ch-tab.done{color:var(--green)}
+.ch-tab.done::before{content:'✓ ';font-size:8px}
+
+@media(max-width:700px){
+  .sidebar{display:none}
+  .ch-strip{display:flex}
+  .topbar{padding:0 16px}
+  .reading-area{padding:24px 18px 60px!important}
+}
+
+/* TOP BAR */
+.topbar{
+  height:52px;flex-shrink:0;
+  background:var(--bg2);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 32px;
+}
+.tb-chapter{font-size:12px;font-weight:600;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.tb-nav{display:flex;gap:8px}
+.tb-btn{
+  display:flex;align-items:center;gap:6px;
+  font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;
+  padding:7px 16px;border:1px solid var(--border2);background:transparent;
+  color:var(--muted);transition:all .22s;font-family:'Outfit',sans-serif;
+}
+.tb-btn:hover{border-color:var(--border);color:var(--white)}
+.tb-btn.primary{background:var(--orange);border-color:var(--orange);color:var(--bg)}
+.tb-btn.primary:hover{background:var(--orange2)}
+
+/* READING AREA */
+.reading-area{
+  flex:1;overflow-y:auto;
+  scrollbar-width:thin;scrollbar-color:var(--border) transparent;
+}
+.reading-area::-webkit-scrollbar{width:3px}
+.reading-area::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+.chapter-page{
+  display:none;max-width:760px;margin:0 auto;
+  padding:48px 48px 80px;
+  animation:fadeIn .35s ease;
+}
+.chapter-page.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── TYPOGRAPHY ── */
+.ch-eyebrow{
+  font-size:10px;font-weight:700;letter-spacing:.28em;text-transform:uppercase;
+  color:var(--orange);margin-bottom:14px;
+  display:flex;align-items:center;gap:10px;
+}
+.ch-eyebrow::before{content:'';display:inline-block;width:18px;height:1.5px;background:var(--orange)}
+.ch-h1{
+  font-weight:900;font-size:clamp(32px,4vw,52px);
+  line-height:1.04;letter-spacing:-.025em;margin-bottom:8px;
+}
+.ch-h1 em{font-family:'Fraunces',serif;font-style:italic;font-weight:300;color:var(--blue-l)}
+.ch-subtitle{font-size:16px;color:var(--muted);line-height:1.6;margin-bottom:36px;font-style:italic}
+.ch-divider{height:1px;background:var(--border);margin:32px 0}
+.ch-lead{font-size:16px;line-height:1.85;color:rgba(238,240,255,.85);margin-bottom:24px}
+.ch-body{font-size:14.5px;line-height:1.85;color:rgba(238,240,255,.72);font-weight:400;margin-bottom:20px}
+.ch-h2{font-weight:700;font-size:20px;letter-spacing:-.01em;margin:32px 0 12px;color:var(--white)}
+.ch-h2 span{color:var(--orange)}
+.ch-h3{font-weight:600;font-size:15px;letter-spacing:.04em;text-transform:uppercase;color:var(--cyan);margin:24px 0 10px}
+
+/* ── CALLOUT ── */
+.callout{
+  background:rgba(29,43,99,.22);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border-left:3px solid var(--orange);
+  border:1px solid rgba(255,107,26,.2);border-left:3px solid var(--orange);
+  padding:18px 20px;margin:24px 0;border-radius:0 8px 8px 0;
+}
+.callout-title{font-size:10px;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:var(--orange);margin-bottom:8px}
+.callout p{font-size:13.5px;line-height:1.7;color:rgba(238,240,255,.8)}
+.callout.blue{border-left-color:var(--cyan);border-color:rgba(68,207,255,.15);border-left:3px solid var(--cyan)}
+.callout.blue .callout-title{color:var(--cyan)}
+.callout.green{border-left-color:var(--green);border-color:rgba(59,255,140,.15);border-left:3px solid var(--green)}
+.callout.green .callout-title{color:var(--green)}
+
+/* ── STAT ROW ── */
+.stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:24px 0}
+.stat-block{
+  background:rgba(29,43,99,.22);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border:1px solid var(--border2);
+  border-radius:8px;padding:16px;text-align:center;
+  position:relative;overflow:hidden;
+}
+.stat-block::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--accent,var(--blue))}
+.stat-block-val{font-weight:800;font-size:26px;letter-spacing:-.02em;color:var(--white);font-family:'JetBrains Mono',monospace}
+.stat-block-label{font-size:10px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-top:4px}
+
+/* ── COMPARISON TABLE ── */
+.comp-table{width:100%;margin:24px 0;border-collapse:collapse;font-size:13px}
+.comp-table th{background:var(--blue);color:white;padding:10px 14px;text-align:left;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase}
+.comp-table td{padding:9px 14px;border-bottom:1px solid var(--border2)}
+.comp-table tr:nth-child(even) td{background:rgba(15,20,40,.5)}
+.comp-table tr:nth-child(odd) td{background:var(--panel)}
+.comp-table td:first-child{font-weight:600;color:var(--white)}
+
+/* ── INTERACTIVE: HOOK BUILDER ── */
+.tool-card{
+  background:rgba(29,43,99,.22);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border:1px solid var(--border);
+  border-radius:10px;padding:24px;margin:28px 0;
+  position:relative;overflow:hidden;
+  box-shadow:0 20px 50px -20px rgba(0,0,0,.5);
+}
+.tool-card::before{
+  content:'⚡ INTERACTIVE TOOL';
+  position:absolute;top:0;right:0;
+  font-size:8px;font-weight:800;letter-spacing:.15em;
+  color:var(--bg);background:var(--cyan);
+  padding:4px 12px;
+}
+.tool-title{font-weight:700;font-size:16px;margin-bottom:6px}
+.tool-desc{font-size:12px;color:var(--muted);margin-bottom:18px;line-height:1.6}
+.tool-label{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px;margin-top:14px}
+.tool-input{
+  width:100%;background:var(--bg);border:1px solid var(--border);
+  color:var(--white);font-family:'Outfit',sans-serif;font-size:13px;
+  padding:10px 14px;border-radius:4px;transition:border-color .2s;
+}
+.tool-input:focus{outline:none;border-color:var(--blue)}
+.tool-select{
+  width:100%;background:var(--bg);border:1px solid var(--border);
+  color:var(--white);font-family:'Outfit',sans-serif;font-size:13px;
+  padding:10px 14px;border-radius:4px;
+}
+.tool-select option{background:var(--panel)}
+.tool-output{
+  background:var(--bg);border:1px solid rgba(68,207,255,.25);
+  padding:16px;margin-top:16px;border-radius:4px;
+  font-size:14px;line-height:1.7;color:var(--white);
+  min-height:60px;
+  border-left:3px solid var(--cyan);
+  display:none;
+}
+.tool-output.show{display:block;animation:fadeIn .3s ease}
+.tool-output-label{font-size:9px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--cyan);margin-bottom:8px}
+.tool-btn{
+  display:inline-flex;align-items:center;gap:7px;
+  font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  padding:10px 22px;background:var(--orange);border:none;
+  color:var(--bg);font-family:'Outfit',sans-serif;
+  margin-top:16px;clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,0 100%);
+  transition:background .2s,transform .18s;
+}
+.tool-btn:hover{background:var(--orange2);transform:translateY(-1px)}
+.tool-btn.blue-btn{background:var(--blue);color:white}
+.tool-btn.blue-btn:hover{background:var(--blue-l)}
+
+/* ── QUIZ ── */
+.quiz-card{
+  background:var(--panel);border:1px solid var(--border);
+  border-radius:6px;padding:24px;margin:28px 0;
+}
+.quiz-card::before{
+  content:'✦ KNOWLEDGE CHECK';
+  display:block;
+  font-size:8px;font-weight:800;letter-spacing:.15em;color:var(--bg);
+  background:var(--orange);padding:4px 12px;margin:-24px -24px 18px;
+}
+.quiz-question{font-weight:600;font-size:15px;margin-bottom:16px;line-height:1.5}
+.quiz-options{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
+.quiz-opt{
+  padding:12px 16px;background:var(--bg);border:1px solid var(--border2);
+  font-size:13px;color:var(--muted);cursor:pointer;transition:all .2s;
+  text-align:left;font-family:'Outfit',sans-serif;
+}
+.quiz-opt:hover{border-color:var(--border);color:var(--white);background:var(--panel2)}
+.quiz-opt.correct{background:rgba(59,255,140,.1);border-color:var(--green);color:var(--green)}
+.quiz-opt.wrong{background:rgba(255,59,59,.1);border-color:#ff3b3b;color:#ff3b3b}
+.quiz-result{
+  font-size:13px;padding:12px 16px;border-radius:4px;display:none;
+  line-height:1.6;
+}
+.quiz-result.show{display:block}
+.quiz-result.pass{background:rgba(59,255,140,.08);border:1px solid rgba(59,255,140,.2);color:var(--green)}
+.quiz-result.fail{background:rgba(255,107,26,.08);border:1px solid rgba(255,107,26,.2);color:var(--orange)}
+
+/* ── CHECKLIST ── */
+.checklist{margin:20px 0}
+.check-item{
+  display:flex;align-items:flex-start;gap:12px;
+  padding:10px 14px;background:var(--panel2);
+  border:1px solid var(--border2);border-radius:4px;
+  margin-bottom:6px;cursor:pointer;transition:border-color .2s;
+}
+.check-item:hover{border-color:var(--border)}
+.check-item.checked{opacity:.6}
+.check-item.checked .check-text{text-decoration:line-through;color:var(--muted)}
+.check-box{
+  width:18px;height:18px;border:1.5px solid var(--muted2);border-radius:3px;
+  flex-shrink:0;display:flex;align-items:center;justify-content:center;
+  transition:all .2s;margin-top:1px;
+}
+.check-item.checked .check-box{background:var(--green);border-color:var(--green)}
+.check-box svg{display:none;color:var(--bg)}
+.check-item.checked .check-box svg{display:block}
+.check-text{font-size:13px;line-height:1.5}
+
+/* ── PLATFORM CARD ── */
+.platform-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:20px 0}
+.platform-card{
+  background:var(--panel2);border:1px solid var(--border2);
+  padding:16px;border-radius:4px;
+  border-top:2px solid var(--accent);
+}
+.platform-name{font-weight:700;font-size:14px;margin-bottom:4px}
+.platform-stat{font-size:11px;color:var(--muted);margin-bottom:8px}
+.platform-bar-wrap{height:3px;background:var(--border);border-radius:2px;overflow:hidden;margin-bottom:6px}
+.platform-bar{height:100%;border-radius:2px}
+
+/* ── PERSONALISATION BANNER ── */
+.persona-banner{
+  background:linear-gradient(135deg,rgba(59,91,255,.12),rgba(255,107,26,.06));
+  border:1px solid var(--border);padding:16px 20px;
+  display:flex;align-items:center;gap:14px;margin-bottom:28px;
+  border-radius:4px;
+}
+.persona-icon{font-size:22px;flex-shrink:0}
+.persona-text{font-size:13px;color:var(--muted);line-height:1.55}
+.persona-name{font-weight:700;color:var(--white)}
+
+/* ── 90 DAY PLAN GENERATOR ── */
+.plan-week{
+  background:var(--panel2);border:1px solid var(--border2);
+  border-radius:4px;padding:14px 16px;margin-bottom:8px;
+  border-left:3px solid var(--accent,var(--blue));
+}
+.plan-week-label{font-size:10px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;margin-bottom:8px}
+.plan-week-tasks{list-style:none;display:flex;flex-direction:column;gap:5px}
+.plan-week-tasks li{font-size:12px;color:var(--muted);display:flex;align-items:flex-start;gap:8px;line-height:1.5}
+.plan-week-tasks li::before{content:'→';color:var(--orange);flex-shrink:0}
+
+/* ── CHAPTER COMPLETE ── */
+.ch-complete{
+  text-align:center;padding:40px 20px;
+  border:1px solid var(--border);background:var(--panel);
+  margin:32px 0;border-radius:6px;
+  display:none;
+}
+.ch-complete.show{display:block;animation:fadeIn .5s ease}
+.ch-complete-icon{font-size:48px;margin-bottom:16px}
+.ch-complete h3{font-weight:800;font-size:22px;margin-bottom:8px}
+.ch-complete p{font-size:14px;color:var(--muted);margin-bottom:20px}
+.xp-pop{
+  display:inline-flex;align-items:center;gap:8px;
+  font-size:13px;font-weight:700;
+  background:rgba(255,107,26,.15);border:1px solid rgba(255,107,26,.3);
+  color:var(--orange);padding:8px 18px;border-radius:20px;
+  margin-bottom:20px;
+}
+
+/* ── HOOK FORMULA CARDS ── */
+.hook-cards{display:flex;flex-direction:column;gap:10px;margin:20px 0}
+.hook-card{
+  background:var(--panel2);border:1px solid var(--border2);
+  padding:14px 18px;border-radius:4px;
+  border-left:3px solid var(--accent,var(--orange));
+}
+.hook-label{font-size:9px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;margin-bottom:6px}
+.hook-example{font-family:'Fraunces',serif;font-style:italic;font-size:14px;color:var(--white);margin-bottom:6px;line-height:1.5}
+.hook-why{font-size:12px;color:var(--muted);line-height:1.55}
+.trigger-tag{display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:700;letter-spacing:.06em;color:#FF9070;background:rgba(255,107,26,.08);border:1px solid rgba(255,107,26,.22);padding:4px 9px;border-radius:4px;margin-top:8px}
+.trigger-tag.t-cyan{color:#7DDDFF;background:rgba(68,207,255,.08);border-color:rgba(68,207,255,.22)}
+.trigger-tag.t-blue{color:#9AB0FF;background:rgba(91,127,255,.08);border-color:rgba(91,127,255,.22)}
+.trigger-tag.t-green{color:#7DFFB0;background:rgba(59,255,140,.08);border-color:rgba(59,255,140,.22)}
+.trigger-tag::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.9}
+.trigger-tag{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:700;letter-spacing:.05em;padding:4px 9px;border-radius:4px;margin-top:10px;background:rgba(255,107,26,.08);color:var(--orange);border:1px solid rgba(255,107,26,.2)}
+.trigger-tag.t-blue{background:rgba(91,127,255,.08);color:var(--blue-l);border-color:rgba(91,127,255,.2)}
+.trigger-tag.t-cyan{background:rgba(68,207,255,.08);color:var(--cyan);border-color:rgba(68,207,255,.2)}
+.trigger-tag.t-green{background:rgba(59,255,140,.08);color:var(--green);border-color:rgba(59,255,140,.2)}
+.trigger-tag::before{content:'▶';font-size:7px}
+
+/* ── TOAST ── */
+#toast{
+  position:fixed;bottom:24px;right:24px;z-index:1000;
+  background:var(--panel2);border:1px solid var(--border);
+  padding:12px 18px;display:flex;align-items:center;gap:10px;
+  font-size:13px;font-weight:500;
+  transform:translateY(60px);opacity:0;pointer-events:none;
+  transition:transform .35s cubic-bezier(.22,1,.36,1),opacity .35s;
+}
+#toast.show{transform:translateY(0);opacity:1}
+/* ── LICENSE WATERMARK ── */
+.license-watermark{
+  position:fixed;bottom:8px;right:10px;z-index:500;
+  font-size:9px;color:rgba(238,240,255,.18);
+  pointer-events:none;font-family:'JetBrains Mono',monospace;
+  letter-spacing:.02em;
+}
+</style>
+</head>
+<body>
+<div class="page-gradient-bg">
+  <div class="page-gradient-blob pgb1"></div>
+  <div class="page-gradient-blob pgb2"></div>
+  <div class="page-gradient-blob pgb3"></div>
+</div>
+<canvas id="cur-c" width="48" height="48"></canvas>
+<div id="toast">
+  <span id="toast-icon">⭐</span>
+  <span id="toast-msg">+XP earned</span>
+</div>
+
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sb-top">
+      <a href="https://areviax.netlify.app/" class="sb-back">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        Back to Areviax
+      </a>
+      <div class="sb-book-title">The Growth Code</div>
+      <div class="sb-book-sub">Interactive Edition</div>
+      <div class="sb-collection-tag">⚡ Interactive Ebook Collection</div>
+    </div>
+    <div class="sb-progress">
+      <div class="sb-progress-label">
+        <span>Progress</span>
+        <span id="progress-pct">0%</span>
+      </div>
+      <div class="sb-progress-bar"><div class="sb-progress-fill" id="progress-fill" style="width:0%"></div></div>
+    </div>
+    <div class="chapter-list" id="chapter-list">
+      <div class="ch-item active" onclick="goChapter(0)">
+        <div class="ch-num">0</div>
+        <div class="ch-title-text">Introduction</div>
+        <span class="ch-check">✓</span>
+      </div>
+      <div class="ch-item" onclick="goChapter(1)">
+        <div class="ch-num">1</div>
+        <div class="ch-title-text">The Algorithm Decoded</div>
+        <span class="ch-check">✓</span>
+      </div>
+      <div class="ch-item" onclick="goChapter(2)">
+        <div class="ch-num">2</div>
+        <div class="ch-title-text">Your Content System</div>
+        <span class="ch-check">✓</span>
+      </div>
+      <div class="ch-item" onclick="goChapter(3)">
+        <div class="ch-num">3</div>
+        <div class="ch-title-text">Hook Science</div>
+        <span class="ch-check">✓</span>
+      </div>
+      <div class="ch-item" onclick="goChapter(4)">
+        <div class="ch-num">4</div>
+        <div class="ch-title-text">The Growth Levers</div>
+        <span class="ch-check">✓</span>
+      </div>
+      <div class="ch-item" onclick="goChapter(5)">
+        <div class="ch-num">5</div>
+        <div class="ch-title-text">Audience & Community</div>
+        <span class="ch-check">✓</span>
+      </div>
+      <div class="ch-item" onclick="goChapter(6)">
+        <div class="ch-num">6</div>
+        <div class="ch-title-text">Monetisation</div>
+        <span class="ch-check">✓</span>
+      </div>
+      <div class="ch-item" onclick="goChapter(7)">
+        <div class="ch-num">7</div>
+        <div class="ch-title-text">Cross-Platform Strategy</div>
+        <span class="ch-check">✓</span>
+      </div>
+      <div class="ch-item" onclick="goChapter(8)">
+        <div class="ch-num">8</div>
+        <div class="ch-title-text">Your 90-Day Plan</div>
+        <span class="ch-check">✓</span>
+      </div>
+    </div>
+    <div class="sb-bottom">
+      <div class="xp-orb" id="xp-orb">0</div>
+      <div class="xp-info">
+        <div class="xp-val" id="xp-display">0 XP</div>
+        <div class="xp-label">earned this session</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <div class="tb-chapter" id="tb-chapter-label">Introduction</div>
+      <div class="tb-nav">
+        <button class="tb-btn" onclick="prevChapter()">← Prev</button>
+        <button class="tb-btn primary" onclick="nextChapter()" id="next-btn">Next →</button>
+      </div>
+    </div>
+
+    <div class="ch-strip">
+      <div class="ch-tab active" onclick="goChapter(0)">Intro</div>
+      <div class="ch-tab" onclick="goChapter(1)">Algorithm</div>
+      <div class="ch-tab" onclick="goChapter(2)">Content System</div>
+      <div class="ch-tab" onclick="goChapter(3)">Hook Science</div>
+      <div class="ch-tab" onclick="goChapter(4)">Growth Levers</div>
+      <div class="ch-tab" onclick="goChapter(5)">Community</div>
+      <div class="ch-tab" onclick="goChapter(6)">Monetisation</div>
+      <div class="ch-tab" onclick="goChapter(7)">Cross-Platform</div>
+      <div class="ch-tab" onclick="goChapter(8)">90-Day Plan</div>
+    </div>
+
+    <div class="reading-area" id="reading-area">
+
+      <!-- ══ CHAPTER 0: INTRO / PERSONALISATION ══ -->
+      <div class="chapter-page active" id="ch-0">
+        <div class="ch-eyebrow">Welcome</div>
+        <h1 class="ch-h1">This guide <em>responds</em><br>to you.</h1>
+        <p class="ch-subtitle">Answer a few questions below and every chapter adapts to your situation.</p>
+        <div class="ch-divider"></div>
+
+        <div class="tool-card" style="margin-top:0">
+          <div class="tool-title">Set up your profile</div>
+          <div class="tool-desc">Takes 60 seconds. Every tool, plan and example in this guide will be personalised to your answers.</div>
+
+          <label class="tool-label">Your name (so we can address you directly)</label>
+          <input type="text" class="tool-input" id="user-name" placeholder="e.g. Jordan">
+
+          <label class="tool-label">Your niche</label>
+          <select class="tool-select" id="user-niche">
+            <option value="">Select your niche...</option>
+            <option value="fitness">Fitness & Health</option>
+            <option value="sport">Sport & Athletics</option>
+            <option value="business">Business & Entrepreneurship</option>
+            <option value="moneymaking">Making Money & Side Hustles</option>
+            <option value="creator">Content Creation & Social Media</option>
+            <option value="lifestyle">Lifestyle & Mindset</option>
+            <option value="selfhelp">General Self-Help & Personal Growth</option>
+            <option value="tech">Tech & AI</option>
+            <option value="finance">Finance & Investing</option>
+            <option value="education">Education & Coaching</option>
+            <option value="other">Other</option>
+          </select>
+
+          <label class="tool-label">Your current follower count across platforms</label>
+          <select class="tool-select" id="user-followers">
+            <option value="new">Just starting (0–500)</option>
+            <option value="small">Small but growing (500–5K)</option>
+            <option value="mid" selected>Building momentum (5K–50K)</option>
+            <option value="large">Established (50K+)</option>
+          </select>
+
+          <label class="tool-label">Primary platform</label>
+          <select class="tool-select" id="user-platform">
+            <option value="tiktok">TikTok</option>
+            <option value="youtube">YouTube</option>
+            <option value="both">Both equally</option>
+            <option value="instagram">Instagram Reels</option>
+          </select>
+
+          <label class="tool-label">Your biggest challenge right now</label>
+          <select class="tool-select" id="user-challenge">
+            <option value="consistency">Staying consistent</option>
+            <option value="growth">Not growing fast enough</option>
+            <option value="monetise">Don't know how to monetise</option>
+            <option value="ideas">Running out of content ideas</option>
+            <option value="algorithm">Don't understand the algorithm</option>
+          </select>
+
+          <button class="tool-btn" onclick="setupProfile()">Start My Journey →</button>
+        </div>
+
+        <div class="persona-banner" id="persona-banner" style="display:none">
+          <div class="persona-icon">🧭</div>
+          <div class="persona-text">
+            Welcome, <span class="persona-name" id="banner-name">Creator</span>. 
+            Based on your answers this guide has been personalised for a <span class="persona-name" id="banner-niche">creator</span> 
+            focused on <span class="persona-name" id="banner-platform">TikTok</span>. 
+            Your biggest challenge — <span class="persona-name" id="banner-challenge">growth</span> — is addressed directly in every chapter.
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ CHAPTER 1: ALGORITHM ══ -->
+      <div class="chapter-page" id="ch-1">
+        <div class="ch-eyebrow">Chapter 01 — The Foundation</div>
+        <h1 class="ch-h1">The Algorithm <em>Decoded</em></h1>
+        <p class="ch-subtitle">How TikTok & YouTube actually decide who sees your content — and what that means for you.</p>
+        <div class="persona-banner" id="algo-banner" style="display:none">
+          <div class="persona-icon">🎯</div>
+          <div class="persona-text" id="algo-banner-text">Personalised note loading...</div>
+        </div>
+        <div class="ch-divider"></div>
+
+        <p class="ch-lead">Both platforms operate on the same core principle: keep people watching. Every algorithmic decision is in service of that goal. Your job is to make content that serves that goal while building your brand.</p>
+
+        <div class="stat-row">
+          <div class="stat-block" style="--accent:var(--orange)">
+            <div class="stat-block-val" style="color:var(--orange)">1.5s</div>
+            <div class="stat-block-label">Decision window on TikTok</div>
+          </div>
+          <div class="stat-block" style="--accent:var(--cyan)">
+            <div class="stat-block-val" style="color:var(--cyan)">80%</div>
+            <div class="stat-block-label">Watch time = strong signal</div>
+          </div>
+          <div class="stat-block" style="--accent:var(--green)">
+            <div class="stat-block-val" style="color:var(--green)">3–5×</div>
+            <div class="stat-block-label">Shares multiply reach</div>
+          </div>
+        </div>
+
+        <div class="ch-h2">The <span>Two Signals</span> That Matter Most</div>
+        <p class="ch-body">Most creators obsess over views and follower count. These are outputs. The algorithm responds to inputs — specifically watch time percentage and engagement quality. A video watched fully by 1,000 people will be pushed further than one watched halfway by 100,000.</p>
+
+        <div class="callout">
+          <div class="callout-title">The Metric Trap</div>
+          <p>Intermediate mistake: chasing view counts instead of watch-time percentage. A 45-second video watched fully beats a 10-minute video watched for 2 minutes — every time.</p>
+        </div>
+
+        <div class="ch-h2">How the <span>TikTok Algorithm</span> Actually Decides</div>
+        <p class="ch-body">Every video you post starts the same way: TikTok shows it to a small test batch first — usually somewhere in the low hundreds of people, often not even your own followers. It's watching exactly what that small group does in the first few seconds and minutes. If that batch responds well, the video gets pushed to a bigger batch. If that bigger batch also responds well, it gets pushed wider again. This repeats — each round is a fresh test, not a one-time judgement — which is why a video can sit flat for hours and then suddenly take off: it just cleared another round.</p>
+
+        <p class="ch-body">"Responds well" isn't one number — it's several signals stacked together, and they are not weighted equally. Roughly in order of how much they matter:</p>
+
+        <table class="comp-table">
+          <tr><th>Signal</th><th>What it tells the algorithm</th></tr>
+          <tr><td>Completion rate</td><td>Strongest signal by far. Finishing a video, especially a longer one, says the content earned every second, not just the first one.</td></tr>
+          <tr><td>Replays</td><td>Watching it twice is a stronger signal than watching it once — it's the clearest sign content is worth more attention, not just tolerable.</td></tr>
+          <tr><td>Shares</td><td>Sending a video to someone else is a bigger vote of confidence than any in-app reaction, because it costs the viewer real social capital if it's bad.</td></tr>
+          <tr><td>Comments</td><td>Stronger than a like because it takes more effort and keeps the viewer on the video longer while they type. Comments you personally reply to count for even more, since that extends the thread's time-on-video further.</td></tr>
+          <tr><td>Likes</td><td>The weakest of the meaningful signals — a single tap, easy to give, and the least differentiating. Useful in volume, but never treat like-count as your read on whether a video actually worked.</td></tr>
+          <tr><td>Follows from the video</td><td>A strong signal, but a lagging one — it tells you the video worked well enough to convert a stranger, which usually only shows up after the video has already been pushed a few rounds.</td></tr>
+        </table>
+
+        <div class="callout blue">
+          <div class="callout-title">What this means practically</div>
+          <p>Watch-time and replays are earned by the content itself — the hook, the pacing, the payoff. Comments are earned by giving people something to actually react to: an opinion, a question, a mild disagreement — not just information. Likes will follow all of the above; chasing likes directly, on their own, doesn't move any of the signals that actually control distribution.</p>
+        </div>
+
+        <div class="ch-h2">TikTok vs YouTube: <span>Key Differences</span></div>
+        <table class="comp-table">
+          <tr><th>Factor</th><th>TikTok</th><th>YouTube</th></tr>
+          <tr><td>Discovery Speed</td><td>Within 1–4 hours</td><td>Hours to weeks</td></tr>
+          <tr><td>Algorithm Driver</td><td>Watch % + shares</td><td>CTR + watch time (mins)</td></tr>
+          <tr><td>Content Shelf Life</td><td>24–72 hrs peak</td><td>Months to years</td></tr>
+          <tr><td>Ideal Length</td><td>30–90 seconds</td><td>8–20 minutes</td></tr>
+          <tr><td>SEO Weight</td><td>Low (trend-based)</td><td>Very high</td></tr>
+          <tr><td>Second Chance</td><td>Rare</td><td>Yes — old videos resurface</td></tr>
+        </table>
+
+        <div class="callout blue">
+          <div class="callout-title">Platform Pairing Strategy</div>
+          <p>Use TikTok for rapid audience building and testing. Use YouTube as your long-term SEO asset and higher-value monetisation channel. They amplify each other when used correctly.</p>
+        </div>
+
+        <div class="ch-h2">The <span>Psychology</span> Behind Every Like, Comment & Share</div>
+        <p class="ch-lead">Knowing what the algorithm measures only gets you halfway. The actual lever is upstream of that — what makes a person, mid-scroll, stop and engage at all. That decision happens in the viewer's brain before the algorithm ever gets involved. Understand that, and you can engineer for it on purpose instead of hoping for it.</p>
+
+        <p class="ch-body">Researchers Jonah Berger and Katherine Milkman studied thousands of New York Times articles to find out what actually made people share. The biggest predictor wasn't whether the content was positive or negative — it was <strong>emotional arousal</strong>. Content that made people feel awe, excitement, anger or anxiety got shared far more than content that made them feel sad, even though sadness is also a negative emotion. High-arousal emotion pushes people to act. Low-arousal emotion makes people sit still. If your hook doesn't activate <em>some</em> strong feeling in the first few seconds, you're asking the algorithm to push something inert.</p>
+
+        <div class="callout">
+          <div class="callout-title">The Four Triggers That Actually Drive Sharing</div>
+          <p><strong>Social currency</strong> — sharing it makes the person look smart, early, or in-the-know. <strong>High-arousal emotion</strong> — it makes them feel something strong enough to act on. <strong>Practical value</strong> — it's useful enough that sharing it helps someone they know. <strong>A story</strong> — information wrapped in narrative travels further than information alone. The strongest content usually hits at least two of these at once.</p>
+        </div>
+
+        <div style="background:rgba(29,43,99,.22);border:1px solid var(--border2,#22283A);border-radius:8px;padding:24px;margin:22px 0;display:flex;flex-direction:column;align-items:center;gap:6px;overflow-x:auto">
+          <div style="font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted,#8890A8);margin-bottom:8px">Simplified — where each trigger lands in the brain</div>
+          <svg width="660" height="480" viewBox="-70 -50 660 480" style="width:100%;max-width:660px;height:auto;display:block;margin:0 auto">
+            <!-- CEREBRUM: frontal + parietal + occipital lobes -->
+            <path d="M95,175
+              C68,168 50,145 48,115
+              C46,90 58,65 80,48
+              C92,30 112,18 135,14
+              C150,4 172,2 188,10
+              C205,1 228,3 240,14
+              C262,6 288,10 302,26
+              C322,24 342,34 352,52
+              C372,56 388,72 392,92
+              C404,100 410,116 405,132
+              C414,144 414,162 403,174
+              C406,190 398,206 384,213
+              C384,228 372,240 358,242
+              C354,254 342,262 328,260
+              C320,268 306,270 296,264
+              C282,270 266,266 258,256
+              C242,260 226,254 220,242
+              C204,244 190,234 188,220
+              C168,224 150,216 144,200
+              C126,202 108,194 95,175
+              Z"
+              fill="rgba(91,127,255,.07)" stroke="rgba(150,170,255,.45)" stroke-width="1.6"/>
+
+            <!-- Sylvian fissure notch separating temporal lobe -->
+            <path d="M120,168 C145,178 175,180 200,172 C225,182 250,184 270,176"
+              fill="none" stroke="rgba(150,170,255,.4)" stroke-width="1.4"/>
+
+            <!-- TEMPORAL LOBE -->
+            <path d="M120,168
+              C108,180 100,198 104,216
+              C100,232 110,248 126,254
+              C134,266 150,270 162,262
+              C176,268 192,262 198,250
+              C212,252 224,242 224,228
+              C228,216 222,202 210,196
+              C212,184 204,174 192,172
+              C180,180 162,182 148,176
+              C138,182 126,178 120,168
+              Z"
+              fill="rgba(91,127,255,.05)" stroke="rgba(150,170,255,.4)" stroke-width="1.4"/>
+
+            <!-- CEREBELLUM -->
+            <path d="M340,210
+              C358,204 378,210 388,226
+              C402,230 410,246 402,260
+              C408,274 398,288 382,290
+              C378,302 364,308 352,302
+              C340,308 326,302 322,290
+              C310,288 302,276 306,264
+              C296,254 298,238 310,228
+              C312,216 326,208 340,210
+              Z"
+              fill="rgba(91,127,255,.06)" stroke="rgba(150,170,255,.42)" stroke-width="1.4"/>
+            <!-- cerebellum folia (tight parallel lines = signature texture) -->
+            <g stroke="rgba(150,170,255,.32)" stroke-width="1" fill="none">
+              <path d="M318,232 C336,224 358,224 378,234"/>
+              <path d="M312,244 C334,234 360,234 384,246"/>
+              <path d="M310,257 C334,246 364,246 392,259"/>
+              <path d="M314,270 C338,260 366,260 392,272"/>
+              <path d="M322,282 C344,274 366,274 386,284"/>
+            </g>
+
+            <!-- BRAINSTEM -->
+            <path d="M300,250 C296,266 292,282 282,296 C278,306 280,316 286,322"
+              fill="none" stroke="rgba(150,170,255,.42)" stroke-width="3" stroke-linecap="round"/>
+
+            <!-- gyri/fold lines across cerebrum -->
+            <g stroke="rgba(150,170,255,.26)" stroke-width="1" fill="none">
+              <path d="M75,90 C86,80 100,82 108,92 C116,82 132,80 142,90"/>
+              <path d="M110,55 C122,45 138,47 146,58 C156,48 174,46 184,56"/>
+              <path d="M165,28 C178,18 196,20 204,32 C216,22 234,24 244,34"/>
+              <path d="M225,20 C238,12 256,14 264,26 C276,16 294,18 304,30"/>
+              <path d="M290,40 C302,32 318,34 326,44 C336,36 352,40 360,50"/>
+              <path d="M340,68 C352,62 366,64 372,74"/>
+              <path d="M365,95 C376,90 388,94 392,104"/>
+              <path d="M70,128 C82,120 96,122 102,132"/>
+              <path d="M384,128 C394,124 402,130 402,140"/>
+            </g>
+
+            <!-- Amygdala -> emotional arousal (orange) -->
+            <circle cx="178" cy="208" r="8" fill="#FF6B1A" opacity=".9"/>
+            <line x1="186" y1="210" x2="440" y2="150" stroke="#FF6B1A" stroke-width="1.2" opacity=".7"/>
+            <text x="444" y="147" fill="#FF6B1A" font-family="Outfit,sans-serif" font-size="15.5" font-weight="700">Amygdala</text>
+            <text x="444" y="162" fill="#FF6B1A" font-family="Outfit,sans-serif" font-size="12.5" opacity=".8">Emotional arousal</text>
+
+            <!-- Prefrontal cortex -> social currency (blue) -->
+            <circle cx="115" cy="60" r="8" fill="#5B7FFF" opacity=".9"/>
+            <line x1="108" y1="54" x2="14" y2="17" stroke="#5B7FFF" stroke-width="1.2" opacity=".7"/>
+            <text x="6" y="14" fill="#5B7FFF" font-family="Outfit,sans-serif" font-size="15.5" font-weight="700">Prefrontal Cortex</text>
+            <text x="6" y="29" fill="#5B7FFF" font-family="Outfit,sans-serif" font-size="12.5" opacity=".8">Social currency / status</text>
+
+            <!-- Nucleus accumbens -> curiosity/reward (cyan) -->
+            <circle cx="225" cy="155" r="8" fill="#44CFFF" opacity=".9"/>
+            <line x1="217" y1="160" x2="14" y2="219" stroke="#44CFFF" stroke-width="1.2" opacity=".7"/>
+            <text x="6" y="222" fill="#44CFFF" font-family="Outfit,sans-serif" font-size="15.5" font-weight="700">Reward Pathway</text>
+            <text x="6" y="237" fill="#44CFFF" font-family="Outfit,sans-serif" font-size="12.5" opacity=".8">Curiosity & anticipation</text>
+
+            <!-- Hippocampus -> story encoding (green), tucked near temporal lobe -->
+            <circle cx="180" cy="232" r="8" fill="#44D4FF" opacity=".9"/>
+            <line x1="186" y1="238" x2="108" y2="342" stroke="#44D4FF" stroke-width="1.2" opacity=".7"/>
+            <text x="100" y="346" fill="#44D4FF" font-family="Outfit,sans-serif" font-size="15.5" font-weight="700">Hippocampus</text>
+            <text x="100" y="361" fill="#44D4FF" font-family="Outfit,sans-serif" font-size="12.5" opacity=".8">Why stories stick</text>
+
+            <!-- Cerebellum label -->
+            <text x="355" y="332" fill="rgba(150,170,255,.7)" font-family="Outfit,sans-serif" font-size="12.5" text-anchor="middle" font-style="italic">Cerebellum</text>
+          </svg>
+          <p style="font-size:11px;color:var(--muted,#8890A8);text-align:center;max-width:380px;margin-top:6px;line-height:1.6">This is the short, simplified version — real brain activity during a "scroll-stop" moment is messier and more distributed than four neat regions. The point isn't precision, it's that these reactions are physical, automatic, and happen before conscious thought. You're not tricking anyone — you're giving their brain a reason to do what it already wants to do.</p>
+        </div>
+
+        <p class="ch-body">Comments work on a slightly different trigger: <strong>incompleteness</strong>. A statement that's slightly debatable, a question with no single right answer, or a take that's 90% right but missing something — these make people feel compelled to add their own view in the replies. That's why Lever 4 in Chapter 4 (Comment Seeding) works: you're not begging for comments, you're deliberately leaving room for one.</p>
+
+        <div class="ch-h2">Why This Is What <span>Actually</span> Pushes You to Others</div>
+        <p class="ch-body">Go back to the stats at the top of this chapter: TikTok decides within 1–4 hours whether to test your content on a wider audience, and that decision is based on watch time and engagement from the first batch of people who see it. This is the actual mechanism connecting psychology to reach — it isn't separate from what you just read, it's the next step in the same chain:</p>
+
+        <div class="callout blue">
+          <div class="callout-title">The Full Chain</div>
+          <p>Hook triggers high-arousal emotion or curiosity → viewer watches longer and is more likely to like, comment, or share → the platform reads those early signals as "people want more of this" → it tests your content on a second, larger batch of viewers → if that batch responds well too, it keeps expanding the audience. Every wider push starts as a small group of people reacting strongly in the first few minutes. Nothing goes wide that didn't first go deep with a small audience.</p>
+        </div>
+
+        <p class="ch-body">This is also why follower count is overrated for actually getting pushed out wide. The algorithm doesn't ask "does this creator have a big audience" — it asks "did this specific piece of content make a small audience react strongly." A creator with 200 followers can outperform one with 200,000 if their hook earns a stronger first reaction.</p>
+
+        <div class="ch-h3">Knowledge Check</div>
+        <div class="quiz-card">
+          <div class="quiz-question">Which metric does the TikTok algorithm weight most heavily when deciding whether to push a video to a wider audience?</div>
+          <div class="quiz-options">
+            <button class="quiz-opt" onclick="quiz(this,'wrong',0)">Total view count</button>
+            <button class="quiz-opt" onclick="quiz(this,'correct',0)">Watch time percentage + shares</button>
+            <button class="quiz-opt" onclick="quiz(this,'wrong',0)">Number of comments</button>
+            <button class="quiz-opt" onclick="quiz(this,'wrong',0)">Follower count of the creator</button>
+          </div>
+          <div class="quiz-result" id="quiz-result-0">
+            <span id="quiz-result-0-text"></span>
+          </div>
+        </div>
+
+        <div class="ch-complete" id="ch-complete-1">
+          <div class="ch-complete-icon">🧭</div>
+          <div class="xp-pop">+25 XP — Chapter Complete</div>
+          <h3>Algorithm: Unlocked</h3>
+          <p>You now understand what the platforms actually respond to. Most creators never get this far — they just post and hope.</p>
+          <button class="tool-btn" onclick="completeChapter(1)">Continue to Chapter 2 →</button>
+        </div>
+      </div>
+
+      <!-- ══ CHAPTER 2: CONTENT SYSTEM ══ -->
+      <div class="chapter-page" id="ch-2">
+        <div class="ch-eyebrow">Chapter 02 — Systems</div>
+        <h1 class="ch-h1">Your Content <em>Engine</em></h1>
+        <p class="ch-subtitle">Stop grinding. Start systematising. Here's how top creators post 5× a week without 5× the work.</p>
+        <div class="ch-divider"></div>
+
+        <p class="ch-lead">The biggest difference between creators who burn out at 10K and those who scale past 100K is systems. A content system means you never stare at a blank screen wondering what to post.</p>
+
+        <div class="ch-h2">The <span>Content Pyramid</span></div>
+        <p class="ch-body">Every piece of content you make sits in one of three tiers. Understanding this changes how you plan your week completely.</p>
+
+        <div class="platform-cards">
+          <div class="platform-card" style="--accent:var(--orange)">
+            <div class="platform-name" style="color:var(--orange)">Pillar Content</div>
+            <div class="platform-stat">2× per month</div>
+            <div class="platform-bar-wrap"><div class="platform-bar" style="width:25%;background:var(--orange)"></div></div>
+            <p style="font-size:12px;color:var(--muted);line-height:1.55">Deep, high-effort. Defines your authority. Long YouTube videos, comprehensive guides. Gets repurposed into everything else.</p>
+          </div>
+          <div class="platform-card" style="--accent:var(--blue-l)">
+            <div class="platform-name" style="color:var(--blue-l)">Strategic Content</div>
+            <div class="platform-stat">1–2× per week</div>
+            <div class="platform-bar-wrap"><div class="platform-bar" style="width:55%;background:var(--blue-l)"></div></div>
+            <p style="font-size:12px;color:var(--muted);line-height:1.55">Medium effort with specific growth objectives. Collab hooks, trending formats, SEO targets. The engine of your growth.</p>
+          </div>
+          <div class="platform-card" style="--accent:var(--cyan)">
+            <div class="platform-name" style="color:var(--cyan)">Consistent Content</div>
+            <div class="platform-stat">3–5× per week</div>
+            <div class="platform-bar-wrap"><div class="platform-bar" style="width:85%;background:var(--cyan)"></div></div>
+            <p style="font-size:12px;color:var(--muted);line-height:1.55">Quick, repeatable formats. Series, responses, hot takes. Keeps the algorithm fed and audience engaged.</p>
+          </div>
+          <div class="platform-card" style="--accent:var(--green)">
+            <div class="platform-name" style="color:var(--green)">The Repurpose Rule</div>
+            <div class="platform-stat">1 idea = 3+ pieces</div>
+            <div class="platform-bar-wrap"><div class="platform-bar" style="width:100%;background:var(--green)"></div></div>
+            <p style="font-size:12px;color:var(--muted);line-height:1.55">Clip your YouTube video into 3 TikToks. Turn your TikTok series into a YouTube deep-dive. This is how top creators post 5× without 5× the work.</p>
+          </div>
+        </div>
+
+        <!-- INTERACTIVE: Content Batch Planner -->
+        <div class="tool-card">
+          <div class="tool-title">Content Batch Planner</div>
+          <div class="tool-desc">Enter one content idea and this tool generates a full week of content from it using the repurpose rule.</div>
+          <label class="tool-label">Your pillar content idea</label>
+          <input type="text" class="tool-input" id="pillar-idea" placeholder="e.g. How I grew to 10K followers in 60 days">
+          <label class="tool-label">Your niche</label>
+          <input type="text" class="tool-input" id="batch-niche" placeholder="e.g. fitness, business, cooking...">
+          <button class="tool-btn" onclick="generateBatch()">Generate My Content Week →</button>
+          <div class="tool-output" id="batch-output"></div>
+        </div>
+
+        <div class="ch-h3">Weekly Checklist</div>
+        <div class="checklist">
+          <div class="check-item" onclick="toggleCheck(this,5)"><div class="check-box"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span class="check-text">Identify your one pillar topic for this week</span></div>
+          <div class="check-item" onclick="toggleCheck(this,5)"><div class="check-box"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span class="check-text">Plan 3 clips you'll extract from it for TikTok</span></div>
+          <div class="check-item" onclick="toggleCheck(this,5)"><div class="check-box"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span class="check-text">Schedule your batch filming session (block 2 hours)</span></div>
+          <div class="check-item" onclick="toggleCheck(this,5)"><div class="check-box"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span class="check-text">Identify 2 trending formats to apply your niche angle to</span></div>
+          <div class="check-item" onclick="toggleCheck(this,5)"><div class="check-box"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span class="check-text">Set your posting schedule (days + times) for the week</span></div>
+        </div>
+
+        <div class="ch-complete" id="ch-complete-2">
+          <div class="ch-complete-icon">⚙️</div>
+          <div class="xp-pop">+25 XP — Chapter Complete</div>
+          <h3>System: Built</h3>
+          <p>You now have the framework. Use the batch planner every Monday — you'll never stare at a blank screen again.</p>
+          <button class="tool-btn" onclick="completeChapter(2)">Continue to Chapter 3 →</button>
+        </div>
+      </div>
+
+      <!-- ══ CHAPTER 3: HOOKS ══ -->
+      <div class="chapter-page" id="ch-3">
+        <div class="ch-eyebrow">Chapter 03 — The Most Important Skill</div>
+        <h1 class="ch-h1">Hook <em>Science</em></h1>
+        <p class="ch-subtitle">The first 3 seconds make or break every single video. Here are the 5 formulas that work.</p>
+        <div class="ch-divider"></div>
+
+        <p class="ch-lead">On TikTok, 40% of people decide whether to scroll within 1.5 seconds. Mastering the hook is the single highest-leverage skill you can develop as a creator.</p>
+
+        <div class="ch-h2">The 5 <span>Hook Formulas</span></div>
+        <div class="hook-cards">
+          <div class="hook-card" style="--accent:var(--orange)">
+            <div class="hook-label" style="color:var(--orange)">01 — The Bold Claim</div>
+            <div class="hook-example">"Most people will never know this about growing on TikTok."</div>
+            <div class="hook-why">Opens a curiosity loop. The viewer needs to know if they're in the "most people" group — so they watch.</div>
+            <div class="trigger-tag t-cyan">Reward pathway · curiosity gap</div>
+          </div>
+          <div class="hook-card" style="--accent:var(--cyan)">
+            <div class="hook-label" style="color:var(--cyan)">02 — The Direct Result</div>
+            <div class="hook-example">"I went from 200 to 40,000 followers in 6 weeks. Here's the exact system."</div>
+            <div class="hook-why">Proof first. The transformation is stated immediately. No build-up, no mystery — just a result that makes people want the how.</div>
+            <div class="trigger-tag t-blue">Prefrontal cortex · social currency</div>
+          </div>
+          <div class="hook-card" style="--accent:var(--blue-l)">
+            <div class="hook-label" style="color:var(--blue-l)">03 — The Counter-Intuitive</div>
+            <div class="hook-example">"Posting every day is actually hurting your growth."</div>
+            <div class="hook-why">Challenges existing belief. Creates tension the viewer needs resolved before they can scroll away.</div>
+            <div class="trigger-tag">Amygdala · high-arousal emotion</div>
+          </div>
+          <div class="hook-card" style="--accent:var(--green)">
+            <div class="hook-label" style="color:var(--green)">04 — The Visual Hook</div>
+            <div class="hook-example">(Show the transformation, the result, the before/after — no words needed)</div>
+            <div class="hook-why">Let the visual do the work. People watch to understand how you got there.</div>
+            <div class="trigger-tag t-cyan">Reward pathway · curiosity gap</div>
+          </div>
+          <div class="hook-card" style="--accent:var(--orange2)">
+            <div class="hook-label" style="color:var(--orange2)">05 — The Direct Address</div>
+            <div class="hook-example">"If you're posting on TikTok and not doing this — stop right now."</div>
+            <div class="hook-why">Speaks to a specific person. Creates urgency and the sense of being personally called out.</div>
+            <div class="trigger-tag">Amygdala · urgency & relevance</div>
+          </div>
+        </div>
+
+        <!-- INTERACTIVE: Hook Builder -->
+        <div class="tool-card">
+          <div class="tool-title">Hook Builder</div>
+          <div class="tool-desc">Tell me your topic and your target audience. I'll generate a hook using each of the 5 formulas — personalised to your niche.</div>
+          <label class="tool-label">Your video topic</label>
+          <input type="text" class="tool-input" id="hook-topic" placeholder="e.g. how to build muscle as a beginner">
+          <label class="tool-label">Your target audience</label>
+          <input type="text" class="tool-input" id="hook-audience" placeholder="e.g. skinny guys who can't gain weight">
+          <label class="tool-label">Choose a hook formula</label>
+          <select class="tool-select" id="hook-formula">
+            <option value="bold">01 — Bold Claim</option>
+            <option value="result">02 — Direct Result</option>
+            <option value="counter">03 — Counter-Intuitive</option>
+            <option value="address">05 — Direct Address</option>
+          </select>
+          <button class="tool-btn" onclick="buildHook()">Generate My Hook →</button>
+          <div class="tool-output" id="hook-output"></div>
+        </div>
+
+        <div class="quiz-card">
+          <div class="quiz-question">A counter-intuitive hook works because it:</div>
+          <div class="quiz-options">
+            <button class="quiz-opt" onclick="quiz(this,'wrong',1)">Tells the viewer exactly what they'll learn</button>
+            <button class="quiz-opt" onclick="quiz(this,'correct',1)">Creates tension by challenging a belief they already hold</button>
+            <button class="quiz-opt" onclick="quiz(this,'wrong',1)">Shows a visual result in the first frame</button>
+            <button class="quiz-opt" onclick="quiz(this,'wrong',1)">Names the target audience directly</button>
+          </div>
+          <div class="quiz-result" id="quiz-result-1"></div>
+        </div>
+
+        <div class="ch-complete" id="ch-complete-3">
+          <div class="ch-complete-icon">🎣</div>
+          <div class="xp-pop">+25 XP — Chapter Complete</div>
+          <h3>Hooks: Mastered</h3>
+          <p>Save the Hook Builder. Use it every time you sit down to film — a strong hook is a multiplier on everything else.</p>
+          <button class="tool-btn" onclick="completeChapter(3)">Continue to Chapter 4 →</button>
+        </div>
+      </div>
+
+      <!-- ══ CHAPTER 4: GROWTH LEVERS ══ -->
+      <div class="chapter-page" id="ch-4">
+        <div class="ch-eyebrow">Chapter 04 — Acceleration</div>
+        <h1 class="ch-h1">The Growth <em>Levers</em></h1>
+        <p class="ch-subtitle">What actually moves the needle once your content quality is solid.</p>
+        <div class="ch-divider"></div>
+
+        <p class="ch-lead">Once content quality is consistent, growth comes from external signals — things that tell the algorithm your content deserves a wider audience. These are the levers most 10K–50K creators consistently underuse.</p>
+
+        <div class="ch-h2"><span>Lever 1:</span> Strategic Collaboration</div>
+        <p class="ch-body">Find creators 2–5× your size in an adjacent (not identical) niche. The goal is audience crossover, not competition. One good collaboration can deliver weeks of organic growth. On TikTok: stitch and duet. On YouTube: collab posts and joint videos.</p>
+        <div class="trigger-tag t-blue">Prefrontal cortex · social proof</div>
+
+        <div class="ch-h2" style="margin-top:24px"><span>Lever 2:</span> Trend Surfing (Done Right)</div>
+        <p class="ch-body">Act on trends within 6 hours on TikTok — after 24 hours it's too late. Add your niche angle to a trend instead of copying the format blindly. On YouTube, find trending search queries, not viral videos. Trend content builds reach. Niche content builds audience.</p>
+        <div class="trigger-tag">Amygdala · ride existing arousal</div>
+
+        <div class="callout">
+          <div class="callout-title">The 6-Hour Rule</div>
+          <p>When you see a trending sound or format, you have a 6-hour window to get traction from it. After that the algorithm has already pushed it to its ceiling. Speed beats perfection on trends.</p>
+        </div>
+
+        <div class="ch-h2"><span>Lever 3:</span> Platform SEO</div>
+        <p class="ch-body">YouTube is the world's second largest search engine. Put your keyword in the title, the first 25 words of your description, and your thumbnail text. On TikTok, keywords in captions now influence search discovery. Create content specifically targeting "how to" and "best way to" queries.</p>
+        <div class="trigger-tag t-green">Hippocampus · practical-value memory</div>
+
+        <div class="ch-h2" style="margin-top:24px"><span>Lever 4:</span> Comment Seeding</div>
+        <p class="ch-body">Post a question or opinion in your own comments immediately after upload. Reply to every comment in the first hour — this boosts early engagement signals significantly. More comments means more time spent on your video = better signals to the algorithm.</p>
+        <div class="trigger-tag t-cyan">Reward pathway · incompleteness compels replies</div>
+
+        <!-- INTERACTIVE: Collab Outreach Generator -->
+        <div class="tool-card">
+          <div class="tool-title">Collab Outreach Message Generator</div>
+          <div class="tool-desc">Fill in the details and get a personalised outreach message you can send to potential collaborators right now.</div>
+          <label class="tool-label">Your name / channel</label>
+          <input type="text" class="tool-input" id="collab-your-name" placeholder="e.g. Jordan — @jordanfitness">
+          <label class="tool-label">Their name / channel</label>
+          <input type="text" class="tool-input" id="collab-their-name" placeholder="e.g. @mikefitpro">
+          <label class="tool-label">What you'd create together</label>
+          <input type="text" class="tool-input" id="collab-idea" placeholder="e.g. a beginner workout series, a debate video...">
+          <label class="tool-label">What you bring to the table</label>
+          <input type="text" class="tool-input" id="collab-value" placeholder="e.g. 8K engaged followers, strong editing skills, unique angle on...">
+          <button class="tool-btn" onclick="generateCollab()">Generate Outreach Message →</button>
+          <div class="tool-output" id="collab-output"></div>
+        </div>
+
+        <div class="ch-complete" id="ch-complete-4">
+          <div class="ch-complete-icon">📈</div>
+          <div class="xp-pop">+25 XP — Chapter Complete</div>
+          <h3>Growth Levers: Activated</h3>
+          <p>Pick one lever to focus on this week. Don't try all four at once — master one, then add the next.</p>
+          <button class="tool-btn" onclick="completeChapter(4)">Continue to Chapter 5 →</button>
+        </div>
+      </div>
+
+      <!-- ══ CHAPTER 5: COMMUNITY ══ -->
+      <div class="chapter-page" id="ch-5">
+        <div class="ch-eyebrow">Chapter 05 — Retention</div>
+        <h1 class="ch-h1">Audience & <em>Community</em></h1>
+        <p class="ch-subtitle">Subscribers are vanity. Community is the asset that generates income.</p>
+        <div class="ch-divider"></div>
+
+        <p class="ch-lead">What separates creators who sell things from creators who just post content is community. Community is what turns a platform account into a brand, and a brand is what creates income that doesn't disappear the moment you stop posting.</p>
+
+        <div class="ch-h2">The <span>Community Framework</span></div>
+
+        <div class="platform-cards" style="grid-template-columns:1fr">
+          <div class="platform-card" style="--accent:var(--orange)">
+            <div class="platform-name" style="color:var(--orange)">01 — Give them an identity</div>
+            <p style="font-size:13px;color:var(--muted);margin-top:6px;line-height:1.6">Give your audience a name. People follow channels — they join movements. Named communities have higher engagement and loyalty. If you get the reference, you're one of us.</p>
+          </div>
+          <div class="platform-card" style="--accent:var(--blue-l)">
+            <div class="platform-name" style="color:var(--blue-l)">02 — Inside language</div>
+            <p style="font-size:13px;color:var(--muted);margin-top:6px;line-height:1.6">Develop recurring phrases, references, or formats your audience recognises and anticipates. Callbacks to older content, running jokes, series names.</p>
+          </div>
+          <div class="platform-card" style="--accent:var(--cyan)">
+            <div class="platform-name" style="color:var(--cyan)">03 — Direct dialogue</div>
+            <p style="font-size:13px;color:var(--muted);margin-top:6px;line-height:1.6">Ask questions in every video — actual questions you respond to in the comments. Call out commenters by name in follow-up videos. This signals to the algorithm and the audience that this is a real community.</p>
+          </div>
+          <div class="platform-card" style="--accent:var(--green)">
+            <div class="platform-name" style="color:var(--green)">04 — Exclusive value</div>
+            <p style="font-size:13px;color:var(--muted);margin-top:6px;line-height:1.6">Give your most engaged followers something extra — a free resource, early access, a group chat. This converts casual viewers into invested members who share your content unprompted.</p>
+          </div>
+        </div>
+
+        <!-- Community Identity Builder -->
+        <div class="tool-card">
+          <div class="tool-title">Community Identity Builder</div>
+          <div class="tool-desc">Answer these questions to define your community's identity — this becomes part of your brand.</div>
+          <label class="tool-label">What transformation do you help people make?</label>
+          <input type="text" class="tool-input" id="comm-transform" placeholder="e.g. from zero to first sale, skinny to strong, broke to building...">
+          <label class="tool-label">What does someone become when they follow you?</label>
+          <input type="text" class="tool-input" id="comm-become" placeholder="e.g. a builder, a warrior, an operator...">
+          <label class="tool-label">What do you stand against?</label>
+          <input type="text" class="tool-input" id="comm-against" placeholder="e.g. mediocrity, giving up, overcomplicated advice...">
+          <button class="tool-btn" onclick="buildIdentity()">Build My Community Identity →</button>
+          <div class="tool-output" id="identity-output"></div>
+        </div>
+
+        <div class="ch-complete" id="ch-complete-5">
+          <div class="ch-complete-icon">🤝</div>
+          <div class="xp-pop">+25 XP — Chapter Complete</div>
+          <h3>Community: Defined</h3>
+          <p>Save your community identity statement. It should inform every caption, every video, and every product you create.</p>
+          <button class="tool-btn" onclick="completeChapter(5)">Continue to Chapter 6 →</button>
+        </div>
+      </div>
+
+      <!-- ══ CHAPTER 6: MONETISATION ══ -->
+      <div class="chapter-page" id="ch-6">
+        <div class="ch-eyebrow">Chapter 06 — Income</div>
+        <h1 class="ch-h1">Monetisation <em>Blueprints</em></h1>
+        <p class="ch-subtitle">Every revenue stream ranked. Build the infrastructure now — before the audience arrives.</p>
+        <div class="ch-divider"></div>
+
+        <p class="ch-lead">Most creators wait until they're "big enough" to monetise. This is wrong. You should build your monetisation infrastructure now, so when the audience arrives, it flows into a system that was already waiting for them.</p>
+
+        <div class="ch-h2">Revenue <span>Ranked</span> by Effort vs Reward</div>
+
+        <div style="display:flex;flex-direction:column;gap:10px;margin:20px 0">
+          <div class="platform-card" style="--accent:var(--orange)">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start">
+              <div>
+                <div class="platform-name" style="color:var(--orange)">Digital Products — S-Tier</div>
+                <p style="font-size:12px;color:var(--muted);margin-top:5px;line-height:1.6">Highest margin. Sell once, deliver automatically. Ebooks, templates, courses. This is the Areviax model — own your income completely.</p>
+              </div>
+              <div style="text-align:right;flex-shrink:0;margin-left:12px">
+                <div style="font-size:10px;color:var(--muted)">Reward</div>
+                <div style="color:var(--orange)">★★★★★</div>
+                <div style="font-size:10px;color:var(--muted);margin-top:4px">Effort</div>
+                <div style="color:var(--muted)">★★☆☆☆</div>
+              </div>
+            </div>
+          </div>
+          <div class="platform-card" style="--accent:var(--blue-l)">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start">
+              <div>
+                <div class="platform-name" style="color:var(--blue-l)">Brand Deals — A-Tier</div>
+                <p style="font-size:12px;color:var(--muted);margin-top:5px;line-height:1.6">High pay per deal but requires trust. Best negotiated at 10K+ engaged followers rather than raw count.</p>
+              </div>
+              <div style="text-align:right;flex-shrink:0;margin-left:12px">
+                <div style="font-size:10px;color:var(--muted)">Reward</div>
+                <div style="color:var(--blue-l)">★★★★☆</div>
+                <div style="font-size:10px;color:var(--muted);margin-top:4px">Effort</div>
+                <div style="color:var(--muted)">★★★★☆</div>
+              </div>
+            </div>
+          </div>
+          <div class="platform-card" style="--accent:var(--cyan)">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start">
+              <div>
+                <div class="platform-name" style="color:var(--cyan)">Affiliate Marketing — A-Tier</div>
+                <p style="font-size:12px;color:var(--muted);margin-top:5px;line-height:1.6">Recommend products you genuinely use. Commission per sale. Works alongside digital products with minimal extra effort.</p>
+              </div>
+              <div style="text-align:right;flex-shrink:0;margin-left:12px">
+                <div style="font-size:10px;color:var(--muted)">Reward</div>
+                <div style="color:var(--cyan)">★★★★☆</div>
+                <div style="font-size:10px;color:var(--muted);margin-top:4px">Effort</div>
+                <div style="color:var(--muted)">★★☆☆☆</div>
+              </div>
+            </div>
+          </div>
+          <div class="platform-card" style="--accent:var(--muted)">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start">
+              <div>
+                <div class="platform-name" style="color:var(--muted)">Platform Ad Revenue — B-Tier</div>
+                <p style="font-size:12px;color:var(--muted);margin-top:5px;line-height:1.6">Passive but requires volume. YouTube pays £2–5 RPM typically. TikTok Creator Fund pays very little — use it last.</p>
+              </div>
+              <div style="text-align:right;flex-shrink:0;margin-left:12px">
+                <div style="font-size:10px;color:var(--muted)">Reward</div>
+                <div style="color:var(--muted)">★★★☆☆</div>
+                <div style="font-size:10px;color:var(--muted);margin-top:4px">Effort</div>
+                <div style="color:var(--muted)">★★★☆☆</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Monetisation readiness quiz -->
+        <div class="quiz-card">
+          <div class="quiz-question">You have 2,000 engaged followers on TikTok in the fitness niche. Which monetisation method should you set up first?</div>
+          <div class="quiz-options">
+            <button class="quiz-opt" onclick="quiz(this,'wrong',2)">Apply for brand deals immediately</button>
+            <button class="quiz-opt" onclick="quiz(this,'wrong',2)">Sign up for TikTok Creator Fund</button>
+            <button class="quiz-opt" onclick="quiz(this,'correct',2)">Create and sell a digital product (guide, template, plan)</button>
+            <button class="quiz-opt" onclick="quiz(this,'wrong',2)">Wait until you have 10K followers</button>
+          </div>
+          <div class="quiz-result" id="quiz-result-2"></div>
+        </div>
+
+        <div class="ch-complete" id="ch-complete-6">
+          <div class="ch-complete-icon">💰</div>
+          <div class="xp-pop">+25 XP — Chapter Complete</div>
+          <h3>Monetisation: Mapped</h3>
+          <p>You don't need a huge following. You need the right 100 people to see the right offer. The infrastructure comes first.</p>
+          <button class="tool-btn" onclick="completeChapter(6)">Continue to Chapter 7 →</button>
+        </div>
+      </div>
+
+      <!-- ══ CHAPTER 7: CROSS-PLATFORM ══ -->
+      <div class="chapter-page" id="ch-7">
+        <div class="ch-eyebrow">Chapter 07 — Strategy</div>
+        <h1 class="ch-h1">Cross-Platform <em>Strategy</em></h1>
+        <p class="ch-subtitle">How to run TikTok and YouTube together so they amplify each other instead of draining you.</p>
+        <div class="ch-divider"></div>
+
+        <p class="ch-lead">The creators growing fastest in 2026 are not choosing between TikTok and YouTube. They're using both platforms as parts of a single machine — TikTok for fast awareness, YouTube for deep trust and long-term income.</p>
+
+        <div class="ch-h2">The <span>Content Loop</span></div>
+        <div style="display:flex;flex-direction:column;gap:0;margin:20px 0">
+          <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;background:rgba(59,91,255,.08);border:1px solid var(--border)">
+            <div style="width:28px;height:28px;background:var(--blue);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;flex-shrink:0">1</div>
+            <div><div style="font-weight:600;font-size:13px;color:var(--white)">Create</div><div style="font-size:12px;color:var(--muted);margin-top:2px">Film one high-quality YouTube video on a topic you know well</div></div>
+          </div>
+          <div style="text-align:center;padding:4px 0;font-size:12px;color:var(--muted)">↓</div>
+          <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;background:rgba(255,107,26,.06);border:1px solid var(--border)">
+            <div style="width:28px;height:28px;background:var(--orange);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;flex-shrink:0;color:var(--bg)">2</div>
+            <div><div style="font-weight:600;font-size:13px;color:var(--white)">Clip</div><div style="font-size:12px;color:var(--muted);margin-top:2px">Extract 3–5 punchy 30–60 second clips for TikTok. Each should stand alone but tease the full video</div></div>
+          </div>
+          <div style="text-align:center;padding:4px 0;font-size:12px;color:var(--muted)">↓</div>
+          <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;background:rgba(59,91,255,.08);border:1px solid var(--border)">
+            <div style="width:28px;height:28px;background:var(--blue-l);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;flex-shrink:0">3</div>
+            <div><div style="font-weight:600;font-size:13px;color:var(--white)">Distribute</div><div style="font-size:12px;color:var(--muted);margin-top:2px">Post TikToks across the week. Include "full video on YouTube" in captions</div></div>
+          </div>
+          <div style="text-align:center;padding:4px 0;font-size:12px;color:var(--muted)">↓</div>
+          <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;background:rgba(68,207,255,.06);border:1px solid var(--border)">
+            <div style="width:28px;height:28px;background:var(--cyan);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;flex-shrink:0;color:var(--bg)">4</div>
+            <div><div style="font-weight:600;font-size:13px;color:var(--white)">Amplify</div><div style="font-size:12px;color:var(--muted);margin-top:2px">Use TikTok comments and questions to find your next YouTube topic</div></div>
+          </div>
+          <div style="text-align:center;padding:4px 0;font-size:12px;color:var(--muted)">↓</div>
+          <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;background:rgba(59,255,140,.05);border:1px solid var(--border)">
+            <div style="width:28px;height:28px;background:var(--green);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;flex-shrink:0;color:var(--bg)">5</div>
+            <div><div style="font-weight:600;font-size:13px;color:var(--white)">Monetise</div><div style="font-size:12px;color:var(--muted);margin-top:2px">YouTube earns ad revenue + affiliate clicks. TikTok drives product sales + email sign-ups</div></div>
+          </div>
+        </div>
+
+        <div class="ch-complete" id="ch-complete-7">
+          <div class="ch-complete-icon">🔄</div>
+          <div class="xp-pop">+25 XP — Chapter Complete</div>
+          <h3>Cross-Platform: Connected</h3>
+          <p>One video. Two platforms. Multiple revenue streams. The loop runs itself once it's built.</p>
+          <button class="tool-btn" onclick="completeChapter(7)">Continue to Your 90-Day Plan →</button>
+        </div>
+      </div>
+
+      <!-- ══ CHAPTER 8: 90 DAY PLAN ══ -->
+      <div class="chapter-page" id="ch-8">
+        <div class="ch-eyebrow">Chapter 08 — Execution</div>
+        <h1 class="ch-h1">Your Personal <em>90-Day Plan</em></h1>
+        <p class="ch-subtitle">Generated from your profile. This is your actual roadmap — not a generic framework.</p>
+        <div class="ch-divider"></div>
+
+        <div id="plan-placeholder">
+          <p class="ch-lead" style="text-align:center;padding:40px 0">Generate your personalised 90-day plan below based on your niche and platform.</p>
+        </div>
+
+        <div class="tool-card" id="plan-generator-card">
+          <div class="tool-title">90-Day Growth Plan Generator</div>
+          <div class="tool-desc">We'll use your profile to build a week-by-week plan specific to your niche, platform, and current situation.</div>
+          <label class="tool-label">Confirm your niche</label>
+          <input type="text" class="tool-input" id="plan-niche-input" placeholder="e.g. fitness for beginners, business coaching...">
+          <label class="tool-label">Your current weekly posting frequency</label>
+          <select class="tool-select" id="plan-posting">
+            <option value="0">Not posting yet</option>
+            <option value="1">1–2 times per week</option>
+            <option value="3" selected>3–4 times per week</option>
+            <option value="5">5+ times per week</option>
+          </select>
+          <label class="tool-label">Your 90-day goal</label>
+          <select class="tool-select" id="plan-goal-type">
+            <option value="grow">Grow my audience to next milestone</option>
+            <option value="monetise">Make my first digital product sale</option>
+            <option value="brand">Build a recognisable brand</option>
+            <option value="system">Build a consistent content system</option>
+          </select>
+          <button class="tool-btn" onclick="generatePlan()" id="gen-plan-btn">Generate My 90-Day Plan →</button>
+        </div>
+
+        <div id="plan-output" style="display:none"></div>
+
+        <div class="ch-complete" id="ch-complete-8" style="display:none">
+          <div class="ch-complete-icon">🏆</div>
+          <div class="xp-pop" id="final-xp-pop">+50 XP — Course Complete!</div>
+          <h3 id="final-complete-h3">Growth Code: Complete</h3>
+          <p id="final-complete-p">You've finished the Growth Code. You have the system, the tools and the plan. The only variable left is execution.</p>
+          <div style="margin-top:20px;padding:20px;background:var(--panel2);border:1px solid var(--border)">
+            <div style="font-size:11px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px">Your Session Summary</div>
+            <div style="font-size:24px;font-weight:800;color:var(--orange)" id="final-xp-total">0 XP earned</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:4px">Chapters completed · Tools used · Quizzes passed</div>
+          </div>
+          <button class="tool-btn" style="margin-top:16px" onclick="window.location.href='../index.html'">Back to Areviax →</button>
+        </div>
+      </div>
+
+    </div><!-- /reading-area -->
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<script>
+// ── STATE ──
+const GC_SK='arx_gc_v1';
+let gcSaved={};
+try{ gcSaved=JSON.parse(localStorage.getItem(GC_SK))||{}; }catch(e){ gcSaved={}; }
+let xp=gcSaved.xp||0, currentChapter=0, completedChapters=new Set(gcSaved.completedChapters||[]),
+  userName=gcSaved.userName||'', userNiche=gcSaved.userNiche||'', userPlatform=gcSaved.userPlatform||'',
+  userChallenge=gcSaved.userChallenge||'', userFollowers=gcSaved.userFollowers||'';
+
+function saveGCState(){
+  localStorage.setItem(GC_SK, JSON.stringify({
+    xp, completedChapters:[...completedChapters], userName, userNiche, userPlatform, userChallenge, userFollowers
+  }));
+}
+const TOTAL_CHAPTERS=9;
+
+// ── CURSOR ──
+const cc=document.getElementById('cur-c'), cctx=cc.getContext('2d');
+const CS=48,C2=24; let mx=C2,my=C2,cx=C2,cy=C2,ang=0,hov=false;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY});
+document.querySelectorAll('a,button,.ch-item,.quiz-opt,.check-item').forEach(el=>{
+  el.addEventListener('mouseenter',()=>hov=true);
+  el.addEventListener('mouseleave',()=>hov=false);
+});
+(function cl(){
+  cx+=(mx-cx)*.14; cy+=(my-cy)*.14;
+  ang+=hov?.07:.022;
+  const col=hov?'#FF6B1A':'#44CFFF',r=hov?15:11,arm=hov?8:6,gap=4;
+  cctx.clearRect(0,0,CS,CS);
+  cctx.save(); cctx.translate(C2,C2); cctx.rotate(ang);
+  cctx.strokeStyle=col; cctx.lineWidth=hov?2:1.5; cctx.globalAlpha=.9; cctx.lineCap='round';
+  [[0,-1],[0,1],[-1,0],[1,0]].forEach(([dx,dy])=>{
+    cctx.beginPath(); cctx.moveTo(dx*gap,dy*gap); cctx.lineTo(dx*(gap+arm),dy*(gap+arm)); cctx.stroke();
+  });
+  cctx.globalAlpha=hov?.6:.4; cctx.lineWidth=1;
+  for(let i=0;i<4;i++){cctx.beginPath();cctx.arc(0,0,r,i*Math.PI/2+.35,i*Math.PI/2+Math.PI/2-.35);cctx.stroke()}
+  cctx.globalAlpha=1; cctx.fillStyle=col; cctx.shadowColor=col; cctx.shadowBlur=hov?10:6;
+  cctx.beginPath(); cctx.arc(0,0,hov?3:2,0,Math.PI*2); cctx.fill(); cctx.shadowBlur=0;
+  cctx.restore();
+  cc.style.left=cx+'px'; cc.style.top=cy+'px';
+  requestAnimationFrame(cl);
+})();
+
+// ── XP ──
+function addXP(amount,label=''){
+  xp+=amount;
+  document.getElementById('xp-display').textContent=xp+' XP';
+  document.getElementById('xp-orb').textContent=xp;
+  toast('⭐',`+${amount} XP${label?' — '+label:''}`);
+  saveGCState();
+}
+
+// ── TOAST ──
+function toast(icon,msg){
+  const t=document.getElementById('toast');
+  document.getElementById('toast-icon').textContent=icon;
+  document.getElementById('toast-msg').textContent=msg;
+  t.classList.add('show');
+  clearTimeout(t._t);
+  t._t=setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+// ── NAVIGATION ──
+function goChapter(n){
+  document.querySelectorAll('.chapter-page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.ch-item').forEach((item,i)=>{
+    item.classList.toggle('active',i===n);
+  });
+  document.querySelectorAll('.ch-tab').forEach((t,i)=>{
+    t.classList.toggle('active',i===n);
+  });
+  document.getElementById('ch-'+n).classList.add('active');
+  document.getElementById('reading-area').scrollTop=0;
+  currentChapter=n;
+  const labels=['Introduction','Ch.1 — Algorithm','Ch.2 — Content System','Ch.3 — Hook Science','Ch.4 — Growth Levers','Ch.5 — Community','Ch.6 — Monetisation','Ch.7 — Cross-Platform','Ch.8 — 90-Day Plan'];
+  document.getElementById('tb-chapter-label').textContent=labels[n]||'';
+  updatePersonaBanners();
+}
+
+function nextChapter(){
+  if(currentChapter<8) goChapter(currentChapter+1);
+}
+function prevChapter(){
+  if(currentChapter>0) goChapter(currentChapter-1);
+}
+
+function completeChapter(n){
+  completedChapters.add(n);
+  const items=document.querySelectorAll('.ch-item');
+  if(items[n]) items[n].classList.add('done');
+  const tabs=document.querySelectorAll('.ch-tab');
+  if(tabs[n]) tabs[n].classList.add('done');
+  updateProgress();
+  saveGCState();
+  if(n<8) goChapter(n+1);
+}
+
+function updateProgress(){
+  const pct=Math.round(completedChapters.size/8*100);
+  document.getElementById('progress-fill').style.width=pct+'%';
+  document.getElementById('progress-pct').textContent=pct+'%';
+}
+
+// ── PROFILE SETUP ──
+function setupProfile(silent){
+  const name=document.getElementById('user-name').value.trim()||'Creator';
+  const niche=document.getElementById('user-niche').value;
+  const followers=document.getElementById('user-followers').value;
+  const platform=document.getElementById('user-platform').value;
+  const challenge=document.getElementById('user-challenge').value;
+  if(!niche){ if(!silent) toast('⚠️','Please select your niche first'); return }
+  userName=name; userNiche=niche; userFollowers=followers; userPlatform=platform; userChallenge=challenge;
+  // Show banner
+  const nicheLabels={fitness:'Fitness & Health',business:'Business',creator:'Content Creation',lifestyle:'Lifestyle & Mindset',tech:'Tech & AI',finance:'Finance',education:'Education & Coaching',other:'your niche'};
+  const challengeLabels={consistency:'staying consistent',growth:'growing faster',monetise:'monetising your audience',ideas:'coming up with content ideas',algorithm:'understanding the algorithm'};
+  const platformLabels={tiktok:'TikTok',youtube:'YouTube',both:'TikTok & YouTube',instagram:'Instagram Reels'};
+  document.getElementById('banner-name').textContent=name;
+  document.getElementById('banner-niche').textContent=nicheLabels[niche]||niche;
+  document.getElementById('banner-platform').textContent=platformLabels[platform]||platform;
+  document.getElementById('banner-challenge').textContent=challengeLabels[challenge]||challenge;
+  document.getElementById('persona-banner').style.display='flex';
+  // Pre-fill plan
+  document.getElementById('plan-niche-input').value=nicheLabels[niche]||niche;
+  if(!silent){
+    addXP(10,'Profile set up');
+    toast('🧭',`Welcome ${name}! Your guide is personalised.`);
+  }
+  updatePersonaBanners();
+  if(!silent) saveGCState();
+}
+
+function updatePersonaBanners(){
+  if(!userName) return;
+  const algoBanner=document.getElementById('algo-banner');
+  if(algoBanner && currentChapter===1){
+    const tips={
+      tiktok:'As a TikTok-first creator, watch-time percentage is your #1 metric. Aim for above 60% retention and the algorithm will do the rest.',
+      youtube:'As a YouTube-first creator, your thumbnail CTR and average view duration are everything. A 5% CTR is good — 8%+ is excellent.',
+      both:'Running both platforms: use TikTok analytics to identify your best-performing topics, then build YouTube videos around them.',
+      instagram:'On Reels, the first frame is your thumbnail. The algorithm heavily weights saves and shares over likes.'
+    };
+    document.getElementById('algo-banner-text').textContent=
+      `${userName}, here's what this means for you specifically: ${tips[userPlatform]||tips.tiktok}`;
+    algoBanner.style.display='flex';
+  }
+}
+
+// ── QUIZ ──
+function quiz(btn, type, idx){
+  const parent=btn.closest('.quiz-card');
+  if(parent.dataset.answered) return;
+  parent.dataset.answered=true;
+  parent.querySelectorAll('.quiz-opt').forEach(o=>o.style.pointerEvents='none');
+  btn.classList.add(type);
+  const resultEl=document.getElementById('quiz-result-'+idx);
+  if(resultEl){
+    if(type==='correct'){
+      resultEl.className='quiz-result pass show';
+      resultEl.textContent='✓ Correct! '+['Watch-time percentage and shares are the algorithm\'s two strongest trust signals — everything else follows from these.','A counter-intuitive hook creates a knowledge gap. The viewer believes X is true — you\'ve just told them it might not be. They have to keep watching to resolve the tension.','Exactly right. Digital products have near-zero delivery cost, work while you sleep, and don\'t require a large audience to be profitable.'][idx];
+      addXP(15,'Quiz correct');
+      // show chapter complete
+      const cc=document.getElementById('ch-complete-'+(currentChapter));
+      if(cc) cc.classList.add('show');
+    } else {
+      resultEl.className='quiz-result fail show';
+      resultEl.textContent='Not quite. Reread the section above and try again — understanding this deeply is worth more than getting it right first time.';
+      parent.dataset.answered='';
+      btn.classList.remove('wrong');
+      btn.style.pointerEvents='auto';
+      setTimeout(()=>{btn.classList.remove('wrong');},1000);
+    }
+  }
+}
+
+// ── CHECK ITEMS ──
+function toggleCheck(el, xpVal){
+  el.classList.toggle('checked');
+  if(el.classList.contains('checked')) addXP(xpVal,'Checklist item');
+}
+
+// ── NICHE DETECTION — matches free-typed niche text to a real category, even
+// with typos, synonyms, or phrasing like "fitness for beginners". Falls back
+// to null (generic content) for anything genuinely unrecognized, rather than
+// forcing a wrong match. ──
+const NICHE_KEYWORDS={
+  fitness:['fitness','gym','workout','training','muscle','bodybuilding','health','strength','weightloss','weight loss','exercise','personal training','fitnes','ftness','fitness coach'],
+  sport:['sport','sports','athlete','athletics','football','soccer','basketball','tennis','golf','rugby','cricket','swimming','running','track and field','team sport','sports coach','sports coaching'],
+  business:['business','entrepreneur','startup','marketing','sales','consulting','agency','busines','bussiness','biz'],
+  moneymaking:['money making','make money','making money','side hustle','side hustles','passive income','extra income','earn money','online income','make extra money'],
+  creator:['creator','content','youtube','tiktok','influencer','content creation','social media','creater','contnet','creaotr'],
+  lifestyle:['lifestyle','mindset','motivation','wellness','lifstyle','life style'],
+  selfhelp:['self help','self-help','selfhelp','self improvement','self-improvement','selfimprovement','personal growth','personal development','life advice'],
+  tech:['tech','ai','software','coding','programming','saas','artificial intelligence','app','techy','developer'],
+  finance:['finance','investing','crypto','personal finance','budgeting','financial','finence','fianance'],
+  education:['education','coaching','teaching','course','tutor','edu','educaton','coach']
+};
+function levenshtein(a,b){
+  const m=a.length,n=b.length;
+  const dp=[];
+  for(let i=0;i<=m;i++){dp[i]=[i];}
+  for(let j=0;j<=n;j++){dp[0][j]=j;}
+  for(let i=1;i<=m;i++)for(let j=1;j<=n;j++){
+    dp[i][j]=a[i-1]===b[j-1]?dp[i-1][j-1]:1+Math.min(dp[i-1][j-1],dp[i-1][j],dp[i][j-1]);
+  }
+  return dp[m][n];
+}
+function detectNiche(input){
+  if(!input)return null;
+  const clean=input.toLowerCase().trim();
+  if(NICHE_KEYWORDS[clean])return clean;
+  for(const [category,keywords] of Object.entries(NICHE_KEYWORDS)){
+    for(const kw of keywords){
+      if(clean.includes(kw))return category;
+    }
+  }
+  // Typo fallback — catches misspellings not in the keyword list above by
+  // checking edit-distance against each whole word the person typed.
+  const words=clean.split(/\s+/);
+  for(const [category,keywords] of Object.entries(NICHE_KEYWORDS)){
+    for(const kw of keywords){
+      if(kw.includes(' '))continue; // only compare single-word keywords for typo distance
+      for(const w of words){
+        if(w.length>=4&&levenshtein(w,kw)<=2)return category;
+      }
+    }
+  }
+  return null;
+}
+
+// Genuinely different example content per detected niche — not just the word
+// swapped into the same sentence.
+const NICHE_MISTAKE_HOOKS={
+  fitness:"chasing views instead of watch-time",
+  sport:"showing highlight reels instead of the actual skill breakdown",
+  business:"talking about their product before proving the problem",
+  moneymaking:"promising a number before showing any real proof",
+  creator:"posting inconsistently instead of showing up daily",
+  lifestyle:"giving advice before earning any credibility",
+  selfhelp:"giving generic advice that could apply to literally anyone",
+  tech:"explaining the how before the why",
+  finance:"giving generic tips instead of a specific number",
+  education:"teaching everything at once instead of one clear win"
+};
+
+// Niche-specific craft guidance — what actually earns trust in each space,
+// not just the raw topic word swapped into the same sentence. Used by the
+// Hook Builder and Collab Outreach tools so their advice is calibrated to
+// how that specific audience actually reads a claim.
+const NICHE_HOOK_PROOF={
+  fitness:'Fitness audiences trust specifics. Naming the actual mechanism — progressive overload, protein timing — lands harder than a vague "train hard" claim ever will.',
+  sport:'Show, don\'t hype. A hook that references a specific technique, drill, or in-game moment beats general talk about winning or effort every time in this space.',
+  business:'Business audiences default to skeptical. A concrete number or timeframe does more convincing than any adjective you could reach for.',
+  moneymaking:'This audience has seen every "make money online" claim already, which means easy and passive read as red flags rather than benefits. A specific, checkable method is what actually earns attention here.',
+  creator:'Creator audiences have sat through every generic growth tip that exists. Naming the actual platform mechanic — watch time, hook rate, the algorithm itself — signals you know how it works, not just that you post.',
+  lifestyle:'Frame this as who someone becomes, not just what they do differently. Lifestyle audiences respond to identity first, instructions second.',
+  selfhelp:'Generic advice is invisible here — people are numb to it. Name a specific, recognisable situation instead of a broad statement that could apply to literally anyone.',
+  tech:'Technical people discount hype almost instantly. Lead with the specific tool, framework, or metric; let enthusiasm come second.',
+  finance:'"Financial freedom" reads as a scam signal to this audience by default. One specific, checkable number will always outperform it.',
+  education:'Name the exact point of confusion someone is stuck on. That lands harder than any version of a generic "learn X" promise.'
+};
+
+// ── CONTENT BATCH GENERATOR ──
+function generateBatch(){
+  const idea=document.getElementById('pillar-idea').value.trim();
+  const nicheRaw=document.getElementById('batch-niche').value.trim()||userNiche||'your niche';
+  const detected=detectNiche(nicheRaw);
+  const niche=nicheRaw;
+  const mistakeAngle=detected?NICHE_MISTAKE_HOOKS[detected]:'chasing the wrong metric entirely';
+  if(!idea){toast('⚠️','Enter your pillar content idea first');return}
+  const out=document.getElementById('batch-output');
+  out.className='tool-output show';
+  out.innerHTML=`<div class="tool-output-label">Your Content Week — Based on: "${idea}"</div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-top:6px">
+      <div style="padding:10px 12px;background:rgba(59,91,255,.08);border-left:2px solid var(--orange);font-size:13px">
+        <div style="font-weight:600;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--orange);margin-bottom:4px">📹 YouTube (Mon)</div>
+        Full video: "${idea}" — In-depth walkthrough, 10–15 mins
+      </div>
+      <div style="padding:10px 12px;background:rgba(59,91,255,.08);border-left:2px solid var(--cyan);font-size:13px">
+        <div style="font-weight:600;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--cyan);margin-bottom:4px">📱 TikTok Clip 1 (Tue)</div>
+        Hook: "The biggest mistake ${niche} creators make is ${mistakeAngle}..." — 30s clip from the YouTube intro
+      </div>
+      <div style="padding:10px 12px;background:rgba(59,91,255,.08);border-left:2px solid var(--cyan);font-size:13px">
+        <div style="font-weight:600;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--cyan);margin-bottom:4px">📱 TikTok Clip 2 (Thu)</div>
+        Counter-intuitive angle: the unexpected lesson from "${idea}" — 45s clip, midpoint takeaway
+      </div>
+      <div style="padding:10px 12px;background:rgba(59,91,255,.08);border-left:2px solid var(--cyan);font-size:13px">
+        <div style="font-weight:600;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--cyan);margin-bottom:4px">📱 TikTok Clip 3 (Sat)</div>
+        Result hook: "Here's what happened when I did this for 30 days" — 60s, closing takeaway with CTA to YouTube
+      </div>
+      <div style="padding:10px 12px;background:rgba(59,91,255,.08);border-left:2px solid var(--blue-l);font-size:13px">
+        <div style="font-weight:600;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--blue-l);margin-bottom:4px">📧 Community (Fri)</div>
+        Caption question on your best clip: "What's your #1 struggle with ${niche}?" — seed your own comment
+      </div>
+    </div>`;
+  addXP(10,'Content week generated');
+}
+
+// ── HOOK BUILDER ──
+function buildHook(){
+  const topic=document.getElementById('hook-topic').value.trim();
+  const audience=document.getElementById('hook-audience').value.trim();
+  const formula=document.getElementById('hook-formula').value;
+  if(!topic||!audience){toast('⚠️','Fill in both fields first');return}
+  const hooks={
+    bold:`"Most ${audience} will never realise this about ${topic}."`,
+    result:`"I used this exact method for ${topic} and the results were impossible to ignore. Here's what nobody tells you."`,
+    counter:`"Everything you've been told about ${topic} is backwards — and it's the reason you're not seeing results."`,
+    address:`"If you're ${audience} and you're not doing this with ${topic} — stop what you're doing right now."`
+  };
+  const why={
+    bold:'Opens a curiosity gap. The viewer needs to know if they\'re in the "most people" group — so they keep watching.',
+    result:'Proof before explanation. The result is stated first, making the how irresistible.',
+    counter:'Creates cognitive tension. The viewer believes something is true. You\'ve just told them it might not be. They can\'t scroll away without resolving that.',
+    address:'Direct, urgent, personal. It feels like you\'re speaking specifically to them.'
+  };
+  // Detect the niche from what was actually typed (topic first, then audience,
+  // then the profile niche as a fallback) so the craft advice underneath the
+  // hook is calibrated to this specific space, not generic hook theory.
+  const detected=detectNiche(topic)||detectNiche(audience)||(userNiche?detectNiche(userNiche):null);
+  const nicheTip=detected?NICHE_HOOK_PROOF[detected]:null;
+  const out=document.getElementById('hook-output');
+  out.className='tool-output show';
+  out.innerHTML=`<div class="tool-output-label">Your Hook</div>
+    <div style="font-family:'Fraunces',serif;font-style:italic;font-size:18px;line-height:1.5;margin-bottom:12px;color:var(--white)">${hooks[formula]}</div>
+    <div style="font-size:12px;color:var(--muted);border-top:1px solid var(--border);padding-top:10px;line-height:1.6"><span style="color:var(--cyan);font-weight:600">Why it works: </span>${why[formula]}</div>
+    ${nicheTip?`<div style="font-size:12px;color:var(--muted);border-top:1px solid var(--border);margin-top:10px;padding-top:10px;line-height:1.6"><span style="color:var(--orange);font-weight:600">For ${topic}: </span>${nicheTip}</div>`:''}`;
+  addXP(10,'Hook generated');
+}
+
+const NICHE_COLLAB_ANGLE={
+  fitness:'Split by specialty, not fame. A lifter paired with a nutrition-focused creator covers the same audience from two different angles — that converts better than two people saying the same thing.',
+  sport:'Don\'t just match by sport, match by role. A technical-skills creator and a mindset/performance creator can both cover the same sport without ever repeating each other.',
+  business:'Make sure you\'re not competing for the same offer. Pair complementary stages instead — a lead-gen creator with a closing/sales creator, for instance — rather than two people selling the same type of product.',
+  moneymaking:'Two creators promoting identical income methods reads as suspicious, not credible. Cover different methods instead, and the collab does real work for both audiences.',
+  creator:'This only works as a genuine swap. You each need to bring an audience the other doesn\'t already have — plain cross-promotion between similar accounts does nothing.',
+  lifestyle:'Check that the "why" behind both accounts actually lines up before you pitch the "what." Lifestyle collabs need a shared belief underneath them, not just an overlapping audience.',
+  selfhelp:'Two people giving the same generic advice adds nothing that one of them wouldn\'t already provide alone. Look for a genuinely distinct lived angle before you reach out.',
+  tech:'Pair people who own different layers of the same problem — the one who explains concepts alongside the one who actually ships the build. That combination is what makes a technical collab worth watching.',
+  finance:'This is the most skeptical space for unexplained partnerships, so lead with why your audiences already trust each of you individually. Visible trust-transfer is what makes a finance collab land.',
+  education:'Beginner-to-intermediate handoffs perform especially well here. Cover different skill levels of the same topic rather than teaching the same lesson twice.'
+};
+
+// ── COLLAB OUTREACH ──
+function generateCollab(){
+  const myName=document.getElementById('collab-your-name').value.trim();
+  const theirName=document.getElementById('collab-their-name').value.trim();
+  const idea=document.getElementById('collab-idea').value.trim();
+  const value=document.getElementById('collab-value').value.trim();
+  if(!myName||!theirName){toast('⚠️','Fill in the names first');return}
+  const detected=detectNiche(idea)||(userNiche?detectNiche(userNiche):null);
+  const angleTip=detected?NICHE_COLLAB_ANGLE[detected]:null;
+  const out=document.getElementById('collab-output');
+  out.className='tool-output show';
+  out.innerHTML=`<div class="tool-output-label">Outreach Message — Ready to Send</div>
+    <div style="font-size:13px;line-height:1.8;color:rgba(238,240,255,.85);white-space:pre-line">Hey ${theirName},
+
+I've been watching your content for a while — the way you approach ${idea||'your content'} is really different from anyone else in the space.
+
+I'm ${myName} — I make content on ${userNiche||'a similar topic'} and I think our audiences would overlap really well without us competing directly.
+
+I had an idea for ${idea||'a collaboration'} that I think could genuinely perform well for both of us. My angle would be ${value||'bringing a unique perspective to the topic'}.
+
+Would you be open to a quick chat about it?
+
+No pressure either way — just thought it was worth putting out there.
+
+${myName.split('—')[0].trim()}</div>
+    ${angleTip?`<div style="font-size:12px;color:var(--muted);border-top:1px solid var(--border);margin-top:12px;padding-top:10px;line-height:1.6"><span style="color:var(--orange);font-weight:600">Before you send it: </span>${angleTip}</div>`:''}`;
+  addXP(10,'Outreach message generated');
+}
+
+// ── COMMUNITY IDENTITY ──
+function buildIdentity(){
+  const transform=document.getElementById('comm-transform').value.trim();
+  const become=document.getElementById('comm-become').value.trim();
+  const against=document.getElementById('comm-against').value.trim();
+  if(!transform){toast('⚠️','Fill in the transformation field');return}
+  const name=userName||'Creator';
+  const out=document.getElementById('identity-output');
+  out.className='tool-output show';
+  out.innerHTML=`<div class="tool-output-label">Your Community Identity</div>
+    <div style="font-size:15px;font-family:'Fraunces',serif;font-style:italic;line-height:1.7;color:var(--white);margin-bottom:14px">
+      "${name}'s community is for people who are done with ${against||'the ordinary'} and are ready to become ${become||'something more'}. We help you make the shift from ${transform||'where you are to where you want to be'}."
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px;font-size:12px;color:var(--muted)">
+      <div><span style="color:var(--orange);font-weight:600">Community name ideas: </span>The ${become||'Builder'}s · ${name}'s Inner Circle · The ${become||'Growth'} Collective</div>
+      <div><span style="color:var(--cyan);font-weight:600">Recurring phrase: </span>"We don't ${against?.split(' ').slice(0,2).join(' ')||'settle'}. We ${become||'build'}."</div>
+      <div><span style="color:var(--green);font-weight:600">Bio hook: </span>Helping you go from ${transform?.split(' to ')[0]||'where you are'} to ${transform?.split(' to ')[1]||'where you want to be'}.</div>
+    </div>`;
+  addXP(10,'Community identity built');
+}
+
+// ── 90-DAY PLAN GENERATOR ──
+function generatePlan(){
+  const niche=document.getElementById('plan-niche-input').value.trim()||userNiche||'your niche';
+  const posting=document.getElementById('plan-posting').value;
+  const goalType=document.getElementById('plan-goal-type').value;
+  const name=userName||'You';
+  const platform=userPlatform||'tiktok';
+  const platformLabel=platform==='youtube'?'YouTube':(platform==='both'?'TikTok & YouTube':'TikTok');
+  const followerStage=userFollowers||'mid';
+  const challenge=userChallenge||'consistency';
+
+  // ── Grouped diagnosis — follower stage + stated challenge together produce
+  // one specific opening read on where this person actually is, not a generic
+  // template. Same challenge means something different at 200 followers than
+  // at 60K, so these are cross-referenced rather than handled independently. ──
+  const STAGE_CONTEXT={
+    new:'starting from zero',
+    small:'past the hardest part — you have real signal to work from',
+    mid:'building real momentum',
+    large:'past the growth question — the game changes to monetisation and brand'
+  };
+  const CHALLENGE_DIAGNOSIS={
+    consistency:{
+      new:`At this stage, inconsistency isn't a discipline problem — it's that you haven't built a system yet. The fix in Phase 1 isn't "try harder," it's removing every decision you have to make before you can hit publish.`,
+      small:`You've proven you can post — the gaps are usually a scheduling problem now, not a motivation one. Phase 1 focuses on batching so a bad week doesn't break your streak.`,
+      mid:`At 5K–50K, inconsistency almost always means you're still creating each post from scratch. Phase 1 builds you a repeatable format so "what do I post today" stops being a daily decision.`,
+      large:`Consistency issues this late usually mean burnout, not a lack of systems. Phase 1 is about sustainable output, not maximum output.`
+    },
+    growth:{
+      new:`Growth feels slow because the algorithm has almost no data on you yet. Phase 1 prioritises volume and hook-testing over polish — you need signal before you need quality.`,
+      small:`You likely have 1–2 posts that outperformed the rest. Phase 1 starts by dissecting exactly why, instead of guessing at new content.`,
+      mid:`At this size, growth usually stalls because content has gotten safer, not worse. Phase 1 pushes you back toward the sharper hooks that got you here.`,
+      large:`Growth naturally slows at scale — that's normal, not a sign something's broken. Phase 1 shifts the target metric from followers to depth (saves, shares, watch time).`
+    },
+    monetise:{
+      new:`It's genuinely too early to monetise seriously — Phase 1 focuses on audience and proof instead, so Phase 3 has something real to sell into.`,
+      small:`You likely have enough trust for a small, cheap offer already. Phase 1 starts validating what that could be.`,
+      mid:`You have enough audience to monetise now — the usual blocker at this stage is not knowing what to sell. Phase 1 identifies your specific offer.`,
+      large:`At this size, the risk is leaving money on the table. Phase 1 audits which existing content already gets "how do I buy this" comments — that's your offer.`
+    },
+    ideas:{
+      new:`Running out of ideas this early usually means you're trying to cover your whole niche at once. Phase 1 narrows you to 2–3 pillars so ideas come from depth, not breadth.`,
+      small:`Phase 1 builds a running idea-capture system — most creators lose ideas by not writing them down the moment they appear, not by running out of them.`,
+      mid:`At this stage it's rarely a creativity problem — it's that your content pillars have gotten too broad again. Phase 1 re-narrows them.`,
+      large:`With an established audience, your best idea source is literally their comments and DMs. Phase 1 mines your last 30 days of comments for recurring questions.`
+    },
+    algorithm:{
+      new:`With almost no post history, there's no algorithm pattern to read yet. Phase 1 is about generating enough data points to actually have something to analyse.`,
+      small:`You have enough posts now to see a real pattern. Phase 1 starts with an honest audit of what actually performed, not what you assumed would.`,
+      mid:`Most "algorithm confusion" at this stage is really a hook problem in disguise. Phase 1 focuses there first.`,
+      large:`At this size you have enough data to stop guessing entirely. Phase 1 is a proper analytics audit, not more content.`
+    }
+  };
+  const diagnosis=(CHALLENGE_DIAGNOSIS[challenge]&&CHALLENGE_DIAGNOSIS[challenge][followerStage])||`Every stage needs a different starting move — Phase 1 below is built around where you actually are right now.`;
+
+  const CHALLENGE_FIRST_TASK={
+    consistency:`Build a "no-decision" posting system: pick your exact days/times for the next 30 days right now, and pre-write 5 post ideas so day-of only requires filming, not thinking`,
+    growth:`Pull your last 10 posts and rank them by watch-time %, not views — identify the single hook style that outperformed, and rebuild your next 5 posts around that same hook pattern`,
+    monetise:`Search your own comments/DMs from the last 60 days for anything resembling "how do I..." or "can you help me with..." — that recurring question is your first product`,
+    ideas:`Narrow to exactly 2–3 content pillars for ${niche} and write down 10 post ideas per pillar right now, before doing anything else — most "no ideas" problems are actually "too broad a lane" problems`,
+    algorithm:`Stop reading about the algorithm and instead audit your own last 15 posts — sort by watch-time %, and treat whatever's common across your top 3 as your real answer, not a blog post`
+  };
+  const firstTask=CHALLENGE_FIRST_TASK[challenge]||`Audit your existing content — identify your top 3 performing posts and understand exactly why they worked`;
+
+  const goalLabels={grow:'grow your audience',monetise:'make your first product sale',brand:'build a recognisable brand',system:'build a consistent content system'};
+  const out=document.getElementById('plan-output');
+  out.style.display='block';
+  document.getElementById('plan-generator-card').style.display='none';
+
+  const phases=[
+    {label:'DAYS 1–30 · FOUNDATION',col:'var(--orange)',tasks:[
+      firstTask,
+      `Define your 2–3 content pillars for ${niche}`,
+      `Set up / optimise your ${platformLabel} profile — bio, link, profile image that reflects your brand`,
+      `Build your content calendar using the pyramid system from Chapter 2`,
+      posting==='0'?`Start posting — commit to 4× per week minimum on ${platformLabel}`:`Increase to ${parseInt(posting)+2}× per week with intention — quality over volume`,
+      `Engage in comments for 20 minutes after every post — reply to everyone`,
+    ]},
+    {label:'DAYS 31–60 · ACCELERATION',col:'var(--blue-l)',tasks:[
+      `Identify 5 potential collaboration partners in adjacent niches — reach out to 2`,
+      goalType==='monetise'?`Launch your first digital product in ${niche} — the outline, not the final version`:`Create a free lead magnet in ${niche} — start building your email list`,
+      `A/B test hooks and thumbnails — track which performs best over 2 weeks`,
+      `Establish your full repurpose workflow: one ${platform==='youtube'?'YouTube video into 3 TikToks':'TikTok series into one YouTube video'} every week`,
+      `Start your community identity — give your audience a name, use it in every post`,
+      `Hit your first monetisation milestone — apply for ${platform==='youtube'?'YouTube Partner Programme':'TikTok Creator Fund'} if eligible`,
+    ]},
+    {label:'DAYS 61–90 · MONETISE',col:'var(--green)',tasks:[
+      goalType==='monetise'?`Launch your digital product. Use 2 ${platformLabel} posts and 1 longer video to promote it`:`Promote your lead magnet in every video description and pinned comment`,
+      `Apply for 2 brand partnership opportunities in ${niche}`,
+      `Set up affiliate links for 2–3 products you genuinely use and recommend`,
+      `Review your analytics — double down on the top 20% of content types, stop the bottom 30%`,
+      `Build a simple 3-email welcome sequence for new subscribers`,
+      `Set your 90–180 day goals based on real data — not assumptions`,
+    ]},
+  ];
+
+  out.innerHTML=`<div style="margin-bottom:20px">
+    <div style="font-size:12px;color:var(--muted);margin-bottom:8px">Generated for <span style="color:var(--white);font-weight:600">${name}</span> · ${niche} · Goal: ${goalLabels[goalType]}</div>
+    <div style="background:rgba(59,91,255,.06);border:1px solid var(--border);border-left:3px solid var(--blue-l);border-radius:0 8px 8px 0;padding:14px 16px;font-size:13px;line-height:1.7;color:rgba(238,240,255,.85)">
+      <div style="font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--blue-l);margin-bottom:6px">Your specific starting point</div>
+      You're ${STAGE_CONTEXT[followerStage]}. ${diagnosis}
+    </div>
+  </div>` + phases.map(p=>`
+    <div class="plan-week" style="--accent:${p.col}">
+      <div class="plan-week-label" style="color:${p.col}">${p.label}</div>
+      <ul class="plan-week-tasks">
+        ${p.tasks.map(t=>`<li>${t}</li>`).join('')}
+      </ul>
+    </div>`).join('');
+
+  // Show final complete
+  const finalComplete=document.getElementById('ch-complete-8');
+  finalComplete.style.display='block';
+  finalComplete.classList.add('show');
+  document.getElementById('final-xp-total').textContent=`${xp+50} XP earned`;
+  addXP(50,'90-Day Plan generated');
+  completedChapters.add(8);
+  document.querySelectorAll('.ch-item')[8]?.classList.add('done');
+  updateProgress();
+}
+
+// ── INIT ──
+function restoreGCState(){
+  document.getElementById('xp-display').textContent=xp+' XP';
+  document.getElementById('xp-orb').textContent=xp;
+  completedChapters.forEach(n=>{
+    const items=document.querySelectorAll('.ch-item');
+    if(items[n]) items[n].classList.add('done');
+    const tabs=document.querySelectorAll('.ch-tab');
+    if(tabs[n]) tabs[n].classList.add('done');
+  });
+  if(userName){
+    document.getElementById('user-name').value=userName;
+    document.getElementById('user-niche').value=userNiche;
+    document.getElementById('user-followers').value=userFollowers;
+    document.getElementById('user-platform').value=userPlatform;
+    document.getElementById('user-challenge').value=userChallenge;
+    setupProfile(true);
+  }
+  updateProgress();
+}
+goChapter(0);
+restoreGCState();
+</script>
+
+<script>
+// ── MOBILE: hide canvas cursor on touch devices ──
+(function(){
+  const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+  const curEl = document.getElementById('cur-c') || document.getElementById('cur-canvas');
+  if(isTouchDevice && curEl){
+    curEl.style.display = 'none';
+    document.body.style.cursor = 'auto';
+    document.querySelectorAll('*').forEach(el => el.style.cursor = '');
+  }
+})();
+</script>
+
+<script>
+// ── LICENSE WATERMARK ──
+// Identifies the buyer on their own copy as a deterrent against reselling/resharing.
+// Reads buyer info from the URL if a checkout flow ever appends it (?name=...&email=...);
+// falls back to a generic licensed-copy notice if no buyer data is present yet.
+(function(){
+  const params = new URLSearchParams(window.location.search);
+  const buyerName = params.get('name');
+  const buyerEmail = params.get('email');
+  const identifier = buyerEmail || buyerName || 'Licensed copy — do not redistribute';
+  const wm = document.createElement('div');
+  wm.className = 'license-watermark';
+  wm.textContent = identifier;
+  document.body.appendChild(wm);
+  const hidden = document.createElement('span');
+  hidden.style.cssText = 'position:absolute;width:1px;height:1px;overflow:hidden;opacity:0;pointer-events:none';
+  hidden.textContent = 'Areviax licensed copy: ' + identifier;
+  document.body.appendChild(hidden);
+})();
+</script>
+</body>
+</html>

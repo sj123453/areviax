@@ -1,0 +1,1503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>The Income Playbook — Areviax Interactive</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Fraunces:ital,opsz,wght@1,9..144,300;1,9..144,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0B1230;--bg2:#121B42;--panel:#182352;--panel2:#1B2758;
+  --blue:#3B5BFF;--blue-l:#5B7FFF;--cyan:#44CFFF;
+  --orange:#FF6B1A;--orange2:#FF8C47;
+  --white:#EEF0FF;--muted:#7B84B0;--muted2:#4A5070;
+  --border:rgba(59,91,255,.15);--border2:rgba(255,255,255,.06);
+  --green:#44D4FF;
+}
+html,body{height:100%;overflow:hidden}
+html{background:var(--bg);overscroll-behavior-y:none}
+    body{background:var(--bg);color:var(--white);font-family:'Outfit',sans-serif;font-weight:300;display:flex;flex-direction:column;cursor:none;overscroll-behavior-y:none}
+*{cursor:none!important}
+.page-gradient-bg{position:fixed;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(160deg,#1D2B63 0%,#0B1230 55%,#080C22 100%)}
+#cur-c{position:fixed;pointer-events:none;z-index:9999;transform:translate(-50%,-50%)}
+
+/* ── LAYOUT ── */
+.app{display:flex;height:100vh;overflow:hidden}
+
+/* SIDEBAR / CHAPTERS */
+.sidebar{
+  width:260px;flex-shrink:0;background:var(--bg2);
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;overflow:hidden;
+}
+.sb-top{padding:20px;border-bottom:1px solid var(--border)}
+.sb-back{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--muted);text-decoration:none;margin-bottom:14px;transition:color .2s}
+.sb-back:hover{color:var(--white)}
+.sb-book-title{font-weight:800;font-size:15px;letter-spacing:-.01em;line-height:1.2}
+.sb-book-sub{font-size:11px;color:var(--orange);letter-spacing:.08em;text-transform:uppercase;margin-top:4px}
+.sb-collection-tag{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:700;letter-spacing:.04em;color:var(--cyan);background:rgba(68,207,255,.1);border:1px solid rgba(68,207,255,.25);border-radius:5px;padding:5px 9px;margin-top:10px}
+
+/* progress bar */
+.sb-progress{padding:14px 20px;border-bottom:1px solid var(--border)}
+.sb-progress-label{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-bottom:6px;letter-spacing:.06em;text-transform:uppercase}
+.sb-progress-bar{height:3px;background:var(--border);border-radius:2px;overflow:hidden}
+.sb-progress-fill{height:100%;background:linear-gradient(to right,var(--orange),var(--orange2));border-radius:2px;transition:width .6s ease}
+
+/* chapter list */
+.chapter-list{flex:1;overflow-y:auto;padding:8px 0;scrollbar-width:none}
+.chapter-list::-webkit-scrollbar{display:none}
+.ch-item{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 20px;font-size:13px;
+  color:var(--muted);transition:color .2s,background .2s;
+  border-left:2px solid transparent;cursor:pointer;
+}
+.ch-item:hover{color:var(--white);background:rgba(59,91,255,.06)}
+.ch-item.active{color:var(--white);background:rgba(59,91,255,.1);border-left-color:var(--blue)}
+.ch-item.done{color:var(--muted)}
+.ch-item.done .ch-num{background:var(--green);color:var(--bg);border-color:var(--green)}
+.ch-num{
+  width:22px;height:22px;border-radius:50%;
+  background:transparent;border:1px solid var(--muted2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:9px;font-weight:700;font-family:'JetBrains Mono',monospace;
+  flex-shrink:0;transition:all .3s;
+}
+.ch-item.active .ch-num{background:var(--blue);border-color:var(--blue);color:white}
+.ch-title-text{flex:1;line-height:1.3}
+.ch-check{font-size:10px;color:var(--green);opacity:0;transition:opacity .3s}
+.ch-item.done .ch-check{opacity:1}
+
+/* XP badge sidebar bottom */
+.sb-bottom{
+  padding:14px 20px;border-top:1px solid var(--border);
+  display:flex;align-items:center;gap:10px;
+}
+.xp-orb{
+  width:36px;height:36px;border-radius:50%;flex-shrink:0;
+  background:linear-gradient(135deg,var(--orange),var(--orange2));
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:800;color:var(--bg);
+}
+.xp-info{flex:1}
+.xp-val{font-weight:700;font-size:14px}
+.xp-label{font-size:10px;color:var(--muted)}
+
+/* ── MAIN ── */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+
+/* mobile chapter strip — only shown when sidebar is hidden */
+.ch-strip{display:none;overflow-x:auto;gap:0;background:var(--bg2);border-bottom:1px solid var(--border);padding:0 14px;scrollbar-width:none;flex-shrink:0}
+.ch-strip::-webkit-scrollbar{display:none}
+.ch-tab{flex-shrink:0;padding:11px 14px;font-size:10.5px;font-weight:600;letter-spacing:.03em;color:var(--muted);border-bottom:2px solid transparent;cursor:pointer;transition:color .2s,border-color .2s;white-space:nowrap}
+.ch-tab:hover{color:var(--white)}
+.ch-tab.active{color:var(--white);border-bottom-color:var(--blue)}
+.ch-tab.done{color:var(--green)}
+.ch-tab.done::before{content:'¹3 ';font-size:8px}
+
+@media(max-width:700px){
+  .sidebar{display:none}
+  .ch-strip{display:flex}
+  .topbar{padding:0 16px}
+  .reading-area{padding:24px 18px 60px!important}
+}
+
+/* TOP BAR */
+.topbar{
+  height:52px;flex-shrink:0;
+  background:var(--bg2);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 32px;
+}
+.tb-chapter{font-size:12px;font-weight:600;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.tb-nav{display:flex;gap:8px}
+.tb-btn{
+  display:flex;align-items:center;gap:6px;
+  font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;
+  padding:7px 16px;border:1px solid var(--border2);background:transparent;
+  color:var(--muted);transition:all .22s;font-family:'Outfit',sans-serif;
+}
+.tb-btn:hover{border-color:var(--border);color:var(--white)}
+.tb-btn.primary{background:var(--orange);border-color:var(--orange);color:var(--bg)}
+.tb-btn.primary:hover{background:var(--orange2)}
+
+/* READING AREA */
+.reading-area{
+  flex:1;overflow-y:auto;
+  scrollbar-width:thin;scrollbar-color:var(--border) transparent;
+}
+.reading-area::-webkit-scrollbar{width:3px}
+.reading-area::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+.chapter-page{
+  display:none;max-width:760px;margin:0 auto;
+  padding:48px 48px 80px;
+  animation:fadeIn .35s ease;
+}
+.chapter-page.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── TYPOGRAPHY ── */
+.ch-eyebrow{
+  font-size:10px;font-weight:700;letter-spacing:.28em;text-transform:uppercase;
+  color:var(--orange);margin-bottom:14px;
+  display:flex;align-items:center;gap:10px;
+}
+.ch-eyebrow::before{content:'';display:inline-block;width:18px;height:1.5px;background:var(--orange)}
+.ch-h1{
+  font-weight:900;font-size:clamp(32px,4vw,52px);
+  line-height:1.04;letter-spacing:-.025em;margin-bottom:8px;
+}
+.ch-h1 em{font-family:'Fraunces',serif;font-style:italic;font-weight:300;color:var(--blue-l)}
+.ch-subtitle{font-size:16px;color:var(--muted);line-height:1.6;margin-bottom:36px;font-style:italic}
+.ch-divider{height:1px;background:var(--border);margin:32px 0}
+.ch-lead{font-size:16px;line-height:1.85;color:rgba(238,240,255,.85);margin-bottom:24px}
+.ch-body{font-size:14.5px;line-height:1.85;color:rgba(238,240,255,.72);font-weight:400;margin-bottom:20px}
+.ch-h2{font-weight:700;font-size:20px;letter-spacing:-.01em;margin:32px 0 12px;color:var(--white)}
+.ch-h2 span{color:var(--orange)}
+.ch-h3{font-weight:600;font-size:15px;letter-spacing:.04em;text-transform:uppercase;color:var(--cyan);margin:24px 0 10px}
+
+/* ── CALLOUT ── */
+.callout{
+  background:rgba(29,43,99,.22);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border-left:3px solid var(--orange);
+  border:1px solid rgba(255,107,26,.2);border-left:3px solid var(--orange);
+  padding:18px 20px;margin:24px 0;border-radius:0 8px 8px 0;
+}
+.callout-title{font-size:10px;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:var(--orange);margin-bottom:8px}
+.callout p{font-size:13.5px;line-height:1.7;color:rgba(238,240,255,.8)}
+.callout.blue{border-left-color:var(--cyan);border-color:rgba(68,207,255,.15);border-left:3px solid var(--cyan)}
+.callout.blue .callout-title{color:var(--cyan)}
+.callout.green{border-left-color:var(--green);border-color:rgba(59,255,140,.15);border-left:3px solid var(--green)}
+.callout.green .callout-title{color:var(--green)}
+
+/* ── STAT ROW ── */
+.stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:24px 0}
+.stat-block{
+  background:rgba(29,43,99,.22);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border:1px solid var(--border2);
+  border-radius:8px;padding:16px;text-align:center;
+  position:relative;overflow:hidden;
+}
+.stat-block::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--accent,var(--blue))}
+.stat-block-val{font-weight:800;font-size:26px;letter-spacing:-.02em;color:var(--white);font-family:'JetBrains Mono',monospace}
+.stat-block-label{font-size:10px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-top:4px}
+
+/* ── COMPARISON TABLE ── */
+.comp-table{width:100%;margin:24px 0;border-collapse:collapse;font-size:13px}
+.comp-table th{background:var(--blue);color:white;padding:10px 14px;text-align:left;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase}
+.comp-table td{padding:9px 14px;border-bottom:1px solid var(--border2)}
+.comp-table tr:nth-child(even) td{background:rgba(15,20,40,.5)}
+.comp-table tr:nth-child(odd) td{background:var(--panel)}
+.comp-table td:first-child{font-weight:600;color:var(--white)}
+
+/* ── INTERACTIVE: HOOK BUILDER ── */
+.tool-card{
+  background:rgba(29,43,99,.22);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border:1px solid var(--border);
+  border-radius:10px;padding:24px;margin:28px 0;
+  position:relative;overflow:hidden;
+  box-shadow:0 20px 50px -20px rgba(0,0,0,.5);
+}
+.tool-card::before{
+  content:'⚡ INTERACTIVE TOOL';
+  position:absolute;top:0;right:0;
+  font-size:8px;font-weight:800;letter-spacing:.15em;
+  color:var(--bg);background:var(--cyan);
+  padding:4px 12px;
+}
+.tool-title{font-weight:700;font-size:16px;margin-bottom:6px}
+.tool-desc{font-size:12px;color:var(--muted);margin-bottom:18px;line-height:1.6}
+.tool-label{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px;margin-top:14px}
+.tool-input{
+  width:100%;background:var(--bg);border:1px solid var(--border);
+  color:var(--white);font-family:'Outfit',sans-serif;font-size:13px;
+  padding:10px 14px;border-radius:4px;transition:border-color .2s;
+}
+.tool-input:focus{outline:none;border-color:var(--blue)}
+.tool-select{
+  width:100%;background:var(--bg);border:1px solid var(--border);
+  color:var(--white);font-family:'Outfit',sans-serif;font-size:13px;
+  padding:10px 14px;border-radius:4px;
+}
+.tool-select option{background:var(--panel)}
+.tool-output{
+  background:var(--bg);border:1px solid rgba(68,207,255,.25);
+  padding:16px;margin-top:16px;border-radius:4px;
+  font-size:14px;line-height:1.7;color:var(--white);
+  min-height:60px;
+  border-left:3px solid var(--cyan);
+  display:none;
+}
+.tool-output.show{display:block;animation:fadeIn .3s ease}
+.tool-output-label{font-size:9px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--cyan);margin-bottom:8px}
+.tool-btn{
+  display:inline-flex;align-items:center;gap:7px;
+  font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  padding:10px 22px;background:var(--orange);border:none;
+  color:var(--bg);font-family:'Outfit',sans-serif;
+  margin-top:16px;clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,0 100%);
+  transition:background .2s,transform .18s;
+}
+.tool-btn:hover{background:var(--orange2);transform:translateY(-1px)}
+.tool-btn.blue-btn{background:var(--blue);color:white}
+.tool-btn.blue-btn:hover{background:var(--blue-l)}
+
+/* ── QUIZ ── */
+.quiz-card{
+  background:var(--panel);border:1px solid var(--border);
+  border-radius:6px;padding:24px;margin:28px 0;
+}
+.quiz-card::before{
+  content:'✦ KNOWLEDGE CHECK';
+  display:block;
+  font-size:8px;font-weight:800;letter-spacing:.15em;color:var(--bg);
+  background:var(--orange);padding:4px 12px;margin:-24px -24px 18px;
+}
+.quiz-question{font-weight:600;font-size:15px;margin-bottom:16px;line-height:1.5}
+.quiz-options{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
+.quiz-opt{
+  padding:12px 16px;background:var(--bg);border:1px solid var(--border2);
+  font-size:13px;color:var(--muted);cursor:pointer;transition:all .2s;
+  text-align:left;font-family:'Outfit',sans-serif;
+}
+.quiz-opt:hover{border-color:var(--border);color:var(--white);background:var(--panel2)}
+.quiz-opt.correct{background:rgba(59,255,140,.1);border-color:var(--green);color:var(--green)}
+.quiz-opt.wrong{background:rgba(255,59,59,.1);border-color:#ff3b3b;color:#ff3b3b}
+.quiz-result{
+  font-size:13px;padding:12px 16px;border-radius:4px;display:none;
+  line-height:1.6;
+}
+.quiz-result.show{display:block}
+.quiz-result.pass{background:rgba(59,255,140,.08);border:1px solid rgba(59,255,140,.2);color:var(--green)}
+.quiz-result.fail{background:rgba(255,107,26,.08);border:1px solid rgba(255,107,26,.2);color:var(--orange)}
+
+/* ── CHECKLIST ── */
+.checklist{margin:20px 0}
+.check-item{
+  display:flex;align-items:flex-start;gap:12px;
+  padding:10px 14px;background:var(--panel2);
+  border:1px solid var(--border2);border-radius:4px;
+  margin-bottom:6px;cursor:pointer;transition:border-color .2s;
+}
+.check-item:hover{border-color:var(--border)}
+.check-item.checked{opacity:.6}
+.check-item.checked .check-text{text-decoration:line-through;color:var(--muted)}
+.check-box{
+  width:18px;height:18px;border:1.5px solid var(--muted2);border-radius:3px;
+  flex-shrink:0;display:flex;align-items:center;justify-content:center;
+  transition:all .2s;margin-top:1px;
+}
+.check-item.checked .check-box{background:var(--green);border-color:var(--green)}
+.check-box svg{display:none;color:var(--bg)}
+.check-item.checked .check-box svg{display:block}
+.check-text{font-size:13px;line-height:1.5}
+
+/* ── PLATFORM CARD ── */
+.platform-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:20px 0}
+.platform-card{
+  background:var(--panel2);border:1px solid var(--border2);
+  padding:16px;border-radius:4px;
+  border-top:2px solid var(--accent);
+}
+.platform-name{font-weight:700;font-size:14px;margin-bottom:4px}
+.platform-stat{font-size:11px;color:var(--muted);margin-bottom:8px}
+.platform-bar-wrap{height:3px;background:var(--border);border-radius:2px;overflow:hidden;margin-bottom:6px}
+.platform-bar{height:100%;border-radius:2px}
+
+/* ── PERSONALISATION BANNER ── */
+.persona-banner{
+  background:linear-gradient(135deg,rgba(59,91,255,.12),rgba(255,107,26,.06));
+  border:1px solid var(--border);padding:16px 20px;
+  display:flex;align-items:center;gap:14px;margin-bottom:28px;
+  border-radius:4px;
+}
+.persona-icon{font-size:22px;flex-shrink:0}
+.persona-text{font-size:13px;color:var(--muted);line-height:1.55}
+.persona-name{font-weight:700;color:var(--white)}
+
+/* ── 90 DAY PLAN GENERATOR ── */
+.plan-week{
+  background:var(--panel2);border:1px solid var(--border2);
+  border-radius:4px;padding:14px 16px;margin-bottom:8px;
+  border-left:3px solid var(--accent,var(--blue));
+}
+.plan-week-label{font-size:10px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;margin-bottom:8px}
+.plan-week-tasks{list-style:none;display:flex;flex-direction:column;gap:5px}
+.plan-week-tasks li{font-size:12px;color:var(--muted);display:flex;align-items:flex-start;gap:8px;line-height:1.5}
+.plan-week-tasks li::before{content:'→';color:var(--orange);flex-shrink:0}
+
+/* ── CHAPTER COMPLETE ── */
+.ch-complete{
+  text-align:center;padding:40px 20px;
+  border:1px solid var(--border);background:var(--panel);
+  margin:32px 0;border-radius:6px;
+  display:none;
+}
+.ch-complete.show{display:block;animation:fadeIn .5s ease}
+.ch-complete-icon{font-size:48px;margin-bottom:16px}
+.ch-complete h3{font-weight:800;font-size:22px;margin-bottom:8px}
+.ch-complete p{font-size:14px;color:var(--muted);margin-bottom:20px}
+.xp-pop{
+  display:inline-flex;align-items:center;gap:8px;
+  font-size:13px;font-weight:700;
+  background:rgba(255,107,26,.15);border:1px solid rgba(255,107,26,.3);
+  color:var(--orange);padding:8px 18px;border-radius:20px;
+  margin-bottom:20px;
+}
+
+/* ── HOOK FORMULA CARDS ── */
+.hook-cards{display:flex;flex-direction:column;gap:10px;margin:20px 0}
+.hook-card{
+  background:var(--panel2);border:1px solid var(--border2);
+  padding:14px 18px;border-radius:4px;
+  border-left:3px solid var(--accent,var(--orange));
+}
+.hook-label{font-size:9px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;margin-bottom:6px}
+.hook-example{font-family:'Fraunces',serif;font-style:italic;font-size:14px;color:var(--white);margin-bottom:6px;line-height:1.5}
+.hook-why{font-size:12px;color:var(--muted);line-height:1.55}
+.trigger-tag{display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:700;letter-spacing:.06em;color:#FF9070;background:rgba(255,107,26,.08);border:1px solid rgba(255,107,26,.22);padding:4px 9px;border-radius:4px;margin-top:8px}
+.trigger-tag.t-cyan{color:#7DDDFF;background:rgba(68,207,255,.08);border-color:rgba(68,207,255,.22)}
+.trigger-tag.t-blue{color:#9AB0FF;background:rgba(91,127,255,.08);border-color:rgba(91,127,255,.22)}
+.trigger-tag.t-green{color:#7DFFB0;background:rgba(59,255,140,.08);border-color:rgba(59,255,140,.22)}
+.trigger-tag::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.9}
+.trigger-tag{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:700;letter-spacing:.05em;padding:4px 9px;border-radius:4px;margin-top:10px;background:rgba(255,107,26,.08);color:var(--orange);border:1px solid rgba(255,107,26,.2)}
+.trigger-tag.t-blue{background:rgba(91,127,255,.08);color:var(--blue-l);border-color:rgba(91,127,255,.2)}
+.trigger-tag.t-cyan{background:rgba(68,207,255,.08);color:var(--cyan);border-color:rgba(68,207,255,.2)}
+.trigger-tag.t-green{background:rgba(59,255,140,.08);color:var(--green);border-color:rgba(59,255,140,.2)}
+.trigger-tag::before{content:'▶';font-size:7px}
+
+/* ── TOAST ── */
+#toast{
+  position:fixed;bottom:24px;right:24px;z-index:1000;
+  background:var(--panel2);border:1px solid var(--border);
+  padding:12px 18px;display:flex;align-items:center;gap:10px;
+  font-size:13px;font-weight:500;
+  transform:translateY(60px);opacity:0;pointer-events:none;
+  transition:transform .35s cubic-bezier(.22,1,.36,1),opacity .35s;
+}
+#toast.show{transform:translateY(0);opacity:1}
+/* ── LICENSE WATERMARK ── */
+.license-watermark{
+  position:fixed;bottom:8px;right:10px;z-index:500;
+  font-size:9px;color:rgba(238,240,255,.18);
+  pointer-events:none;font-family:'JetBrains Mono',monospace;
+  letter-spacing:.02em;
+}
+</style>
+</head>
+<body>
+<div class="page-gradient-bg">
+  <div class="page-gradient-blob pgb1"></div>
+  <div class="page-gradient-blob pgb2"></div>
+  <div class="page-gradient-blob pgb3"></div>
+</div>
+<canvas id="cur-c" width="48" height="48"></canvas>
+<div id="toast">
+  <span id="toast-icon">⭐</span>
+  <span id="toast-msg">+XP earned</span>
+</div>
+
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sb-top">
+      <a href="https://areviax.netlify.app/" class="sb-back">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        Back to Areviax
+      </a>
+      <div class="sb-book-title">The Income Playbook</div>
+      <div class="sb-book-sub">Interactive Edition</div>
+      <div class="sb-collection-tag">⚡ Interactive Ebook Collection</div>
+    </div>
+    <div class="sb-progress">
+      <div class="sb-progress-label">
+        <span>Progress</span>
+        <span id="progress-pct">0%</span>
+      </div>
+      <div class="sb-progress-bar"><div class="sb-progress-fill" id="progress-fill" style="width:0%"></div></div>
+    </div>
+    <div class="chapter-list" id="chapter-list">
+      <div class="ch-item active" onclick="goChapter(0)">
+        <div class="ch-num">0</div>
+        <div class="ch-title-text">Introduction</div>
+        <span class="ch-check">✓</span>
+      </div>
+      <div class="ch-item" onclick="goChapter(1)">
+        <div class="ch-num">1</div>
+        <div class="ch-title-text">Idea in 48 Hours</div>
+        <span class="ch-check">✓</span>
+      </div>
+      <div class="ch-item" onclick="goChapter(2)">
+        <div class="ch-num">2</div>
+        <div class="ch-title-text">The 30-Day Roadmap</div>
+        <span class="ch-check">✓</span>
+      </div>
+      <div class="ch-item" onclick="goChapter(3)">
+        <div class="ch-num">3</div>
+        <div class="ch-title-text">Price to Convert</div>
+        <span class="ch-check">✓</span>
+      </div>
+      <div class="ch-item" onclick="goChapter(4)">
+        <div class="ch-num">4</div>
+        <div class="ch-title-text">Cold-Traffic Sales Pages</div>
+        <span class="ch-check">✓</span>
+      </div>
+      <div class="ch-item" onclick="goChapter(5)">
+        <div class="ch-num">5</div>
+        <div class="ch-title-text">Launch Templates</div>
+        <span class="ch-check">✓</span>
+      </div>
+      <div class="ch-item" onclick="goChapter(6)">
+        <div class="ch-num">6</div>
+        <div class="ch-title-text">Getting Your First Sale</div>
+        <span class="ch-check">✓</span>
+      </div>
+      <div class="ch-item" onclick="goChapter(7)">
+        <div class="ch-num">7</div>
+        <div class="ch-title-text">Why First Sales Stall</div>
+        <span class="ch-check">✓</span>
+      </div>
+      <div class="ch-item" onclick="goChapter(8)">
+        <div class="ch-num">8</div>
+        <div class="ch-title-text">Your 30-Day Sprint</div>
+        <span class="ch-check">✓</span>
+      </div>
+    </div>
+    <div class="sb-bottom">
+      <div class="xp-orb" id="xp-orb">0</div>
+      <div class="xp-info">
+        <div class="xp-val" id="xp-display">0 XP</div>
+        <div class="xp-label">earned this session</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <div class="tb-chapter" id="tb-chapter-label">Introduction</div>
+      <div class="tb-nav">
+        <button class="tb-btn" onclick="prevChapter()">← Prev</button>
+        <button class="tb-btn primary" onclick="nextChapter()" id="next-btn">Next →</button>
+      </div>
+    </div>
+
+    <div class="ch-strip">
+      <div class="ch-tab active" onclick="goChapter(0)">Intro</div>
+      <div class="ch-tab" onclick="goChapter(1)">48-Hour Idea</div>
+      <div class="ch-tab" onclick="goChapter(2)">30-Day Roadmap</div>
+      <div class="ch-tab" onclick="goChapter(3)">Price to Convert</div>
+      <div class="ch-tab" onclick="goChapter(4)">Cold-Traffic Pages</div>
+      <div class="ch-tab" onclick="goChapter(5)">Launch Templates</div>
+      <div class="ch-tab" onclick="goChapter(6)">First Sale</div>
+      <div class="ch-tab" onclick="goChapter(7)">Why It Stalls</div>
+      <div class="ch-tab" onclick="goChapter(8)">30-Day Sprint</div>
+    </div>
+
+    <div class="reading-area" id="reading-area">
+
+      <!-- ══ CHAPTER 0: INTRO / PERSONALISATION ══ -->
+      <div class="chapter-page active" id="ch-0">
+        <div class="ch-eyebrow">Welcome</div>
+        <h1 class="ch-h1">This guide <em>responds</em><br>to you.</h1>
+        <p class="ch-subtitle">Answer a few questions below and every chapter adapts to your situation.</p>
+        <div class="ch-divider"></div>
+
+        <div class="tool-card" style="margin-top:0">
+          <div class="tool-title">Set up your profile</div>
+          <div class="tool-desc">Takes 60 seconds. Every tool, plan and example in this guide will be personalised to your answers.</div>
+
+          <label class="tool-label">Your name (so we can address you directly)</label>
+          <input type="text" class="tool-input" id="user-name" placeholder="e.g. Jordan">
+
+          <label class="tool-label">Your area of expertise</label>
+          <select class="tool-select" id="user-niche">
+            <option value="">Select your area...</option>
+            <option value="fitness">Fitness & Health</option>
+            <option value="business">Business & Entrepreneurship</option>
+            <option value="creator">Content Creation & Social Media</option>
+            <option value="lifestyle">Lifestyle & Mindset</option>
+            <option value="tech">Tech & AI</option>
+            <option value="finance">Finance & Investing</option>
+            <option value="education">Education & Coaching</option>
+            <option value="other">Other</option>
+          </select>
+
+          <label class="tool-label">Your current audience size (across all platforms)</label>
+          <select class="tool-select" id="user-followers">
+            <option value="new">No audience yet (0–500)</option>
+            <option value="small">Small but real (500–5K)</option>
+            <option value="mid" selected>Building momentum (5K–50K)</option>
+            <option value="large">Established (50K+)</option>
+          </select>
+
+          <label class="tool-label">Where are you right now?</label>
+          <select class="tool-select" id="user-platform">
+            <option value="idea">I have an idea but haven't started</option>
+            <option value="building">I'm building it right now</option>
+            <option value="built">It's built but I haven't launched</option>
+            <option value="launched">I launched but haven't made a sale</option>
+          </select>
+
+          <label class="tool-label">Your biggest blocker right now</label>
+          <select class="tool-select" id="user-challenge">
+            <option value="idea">Don't know what to actually build</option>
+            <option value="pricing">Scared to charge money for it</option>
+            <option value="traffic">Don't know how to get anyone to see it</option>
+            <option value="perfectionism">Keep tweaking instead of launching</option>
+            <option value="tech">Overwhelmed by the tech/setup side</option>
+          </select>
+
+          <button class="tool-btn" onclick="setupProfile()">Start My Journey →</button>
+        </div>
+
+        <div class="persona-banner" id="persona-banner" style="display:none">
+          <div class="persona-icon">🧭</div>
+          <div class="persona-text">
+            Welcome, <span class="persona-name" id="banner-name">Creator</span>. 
+            Based on your answers this guide has been personalised for a <span class="persona-name" id="banner-niche">creator</span> 
+            currently at the stage of <span class="persona-name" id="banner-platform">having an idea</span>. 
+            Your biggest blocker — <span class="persona-name" id="banner-challenge">knowing what to build</span> — is addressed directly in every chapter.
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ CHAPTER 1: VALIDATE BEFORE YOU BUILD ══ -->
+      <div class="chapter-page" id="ch-1">
+        <div class="ch-eyebrow">Chapter 01 — Speed Over Perfect</div>
+        <h1 class="ch-h1">Find a Winning Idea in <em>48 Hours</em></h1>
+        <p class="ch-subtitle">Not the perfect idea. The fastest provable one.</p>
+        <div class="persona-banner" id="algo-banner" style="display:none">
+          <div class="persona-icon">🎯</div>
+          <div class="persona-text" id="algo-banner-text">Personalised note loading...</div>
+        </div>
+        <div class="ch-divider"></div>
+
+        <p class="ch-lead">This isn't the chapter for finding your life's mission. It's for finding the narrowest, fastest thing you can sell this month to prove the whole system works. You can build the bigger, more ambitious version later — with real money and real customer feedback behind it instead of guesswork.</p>
+
+        <div class="stat-row">
+          <div class="stat-block" style="--accent:var(--orange)">
+            <div class="stat-block-val" style="color:var(--orange)">48h</div>
+            <div class="stat-block-label">Time limit — forces decisiveness</div>
+          </div>
+          <div class="stat-block" style="--accent:var(--cyan)">
+            <div class="stat-block-val" style="color:var(--cyan)">1</div>
+            <div class="stat-block-label">Problem — not five</div>
+          </div>
+          <div class="stat-block" style="--accent:var(--green)">
+            <div class="stat-block-val" style="color:var(--green)">3</div>
+            <div class="stat-block-label">Places all good ideas hide</div>
+          </div>
+        </div>
+
+        <div class="ch-h2">Hour 1–12: <span>Mine What You Already Know</span></div>
+        <p class="ch-body">Open your DMs, comments, and any messages from the last 3 months. Search for the same question being asked more than once. That repeated question is your idea — you don't need to invent one, you need to notice the one that's already been asked of you for free.</p>
+
+        <table class="comp-table">
+          <tr><th>Where to Look</th><th>What You're Hunting For</th></tr>
+          <tr><td>Your own comments/DMs</td><td>A question asked more than once, in different words</td></tr>
+          <tr><td>Competitor reviews (1-3 star)</td><td>What people wished the product also did</td></tr>
+          <tr><td>Reddit / niche Facebook groups</td><td>Posts that get "same!!" replies — shared frustration</td></tr>
+        </table>
+
+        <div class="ch-h2">Hour 12–36: <span>Narrow It Brutally</span></div>
+        <p class="ch-body">Take whatever you found and cut it down until it's almost embarrassingly specific. "Help people get fit" is not an idea — it's a category. "A 4-week plan for skinny guys who can't gain weight no matter what they eat" is an idea. Specific sells; vague doesn't, because vague convinces no one that you understand their exact situation.</p>
+
+        <div class="callout">
+          <div class="callout-title">The Embarrassingly Specific Test</div>
+          <p>If your idea could describe ten different products, it's too broad. If a stranger reading the description would say "wait, that's exactly me" — you've narrowed it enough. Narrow ideas convert better than broad ones because the person reading it feels personally seen, not generically advertised to.</p>
+        </div>
+
+        <div class="ch-h2">Hour 36–48: <span>Sanity Check, Then Commit</span></div>
+        <p class="ch-body">Post about the problem (not the solution yet) and watch the reaction. Message 3-5 people directly and ask if they've struggled with this. If at least one says "I'd pay for that right now" unprompted — you have enough to move. Waiting for total certainty here just delays the only thing that actually proves an idea: a real launch.</p>
+
+        <!-- INTERACTIVE: 48-Hour Idea Sprint -->
+        <div class="tool-card">
+          <div class="tool-title">48-Hour Idea Sprint</div>
+          <div class="tool-desc">Work through this in order. Each answer narrows the last one — don't skip ahead.</div>
+          <label class="tool-label">What question have people asked you more than once?</label>
+          <input type="text" class="tool-input" id="idea-q" placeholder="e.g. how do I actually gain weight when nothing works">
+          <label class="tool-label">Who specifically asked it? (be narrow — not "everyone")</label>
+          <input type="text" class="tool-input" id="idea-who" placeholder="e.g. skinny guys in their late teens/early 20s">
+          <label class="tool-label">What's the one outcome they actually want?</label>
+          <input type="text" class="tool-input" id="idea-outcome" placeholder="e.g. visibly bigger in 8-12 weeks without confusing advice">
+          <button class="tool-btn" onclick="sprintIdea()">Sharpen My Idea →</button>
+          <div class="tool-output" id="idea-output"></div>
+        </div>
+
+        <div class="ch-h3">Knowledge Check</div>
+        <div class="quiz-card">
+          <div class="quiz-question">Why does "embarrassingly specific" outperform "broad and inclusive" for a first product?</div>
+          <div class="quiz-options">
+            <button class="quiz-opt" onclick="quiz(this,'wrong',0)">Specific products are always cheaper to make</button>
+            <button class="quiz-opt" onclick="quiz(this,'correct',0)">A specific description makes the right reader feel personally understood, which broad descriptions can't do</button>
+            <button class="quiz-opt" onclick="quiz(this,'wrong',0)">Broad products are illegal to sell without a licence</button>
+            <button class="quiz-opt" onclick="quiz(this,'wrong',0)">It isn't true — broader is always better</button>
+          </div>
+          <div class="quiz-result" id="quiz-result-0">
+            <span id="quiz-result-0-text"></span>
+          </div>
+        </div>
+
+        <div class="ch-complete" id="ch-complete-1">
+          <div class="ch-complete-icon">⚡</div>
+          <div class="xp-pop">+25 XP — Chapter Complete</div>
+          <h3>Idea: Locked</h3>
+          <p>You have a narrow, specific idea backed by a real repeated question. That's a far stronger starting point than most people ever bother to get.</p>
+          <button class="tool-btn" onclick="completeChapter(1)">Continue to Chapter 2 →</button>
+        </div>
+      </div>
+
+      <!-- ══ CHAPTER 2: THE 30-DAY ROADMAP ══ -->
+      <div class="chapter-page" id="ch-2">
+        <div class="ch-eyebrow">Chapter 02 — The Map</div>
+        <h1 class="ch-h1">The 30-Day <em>Roadmap</em></h1>
+        <p class="ch-subtitle">Every chapter after this one fills in one week of this map. Read this first so nothing feels random.</p>
+        <div class="ch-divider"></div>
+
+        <p class="ch-lead">A deadline changes behaviour. Parkinson's Law states that work expands to fill the time available for it — give yourself 6 months to launch and it will somehow take 6 months. Give yourself 30 days and a clear map for each week, and the same work compresses to fit. This chapter is that map.</p>
+
+        <div class="ch-h2">The <span>Four Weeks</span></div>
+        <div style="display:flex;flex-direction:column;gap:0;margin:20px 0">
+          <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;background:rgba(255,107,26,.08);border:1px solid var(--border)">
+            <div style="width:28px;height:28px;background:var(--orange);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;flex-shrink:0;color:var(--bg)">1</div>
+            <div><div style="font-weight:600;font-size:13px;color:var(--white)">Idea & Build</div><div style="font-size:12px;color:var(--muted);margin-top:2px">Find the narrow idea (Ch.1), then build the simplest version that delivers the core outcome.</div></div>
+          </div>
+          <div style="text-align:center;padding:4px 0;font-size:12px;color:var(--muted)">↓</div>
+          <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;background:rgba(59,91,255,.08);border:1px solid var(--border)">
+            <div style="width:28px;height:28px;background:var(--blue-l);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;flex-shrink:0">2</div>
+            <div><div style="font-weight:600;font-size:13px;color:var(--white)">Price & Page</div><div style="font-size:12px;color:var(--muted);margin-top:2px">Set your price (Ch.3) and write the sales page built for people who've never heard of you (Ch.4).</div></div>
+          </div>
+          <div style="text-align:center;padding:4px 0;font-size:12px;color:var(--muted)">↓</div>
+          <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;background:rgba(68,207,255,.06);border:1px solid var(--border)">
+            <div style="width:28px;height:28px;background:var(--cyan);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;flex-shrink:0;color:var(--bg)">3</div>
+            <div><div style="font-weight:600;font-size:13px;color:var(--white)">Launch</div><div style="font-size:12px;color:var(--muted);margin-top:2px">Run the ready-made launch templates (Ch.5) — copy, adapt, post. No blank page.</div></div>
+          </div>
+          <div style="text-align:center;padding:4px 0;font-size:12px;color:var(--muted)">↓</div>
+          <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;background:rgba(59,255,140,.05);border:1px solid var(--border)">
+            <div style="width:28px;height:28px;background:var(--green);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;flex-shrink:0;color:var(--bg)">4</div>
+            <div><div style="font-weight:600;font-size:13px;color:var(--white)">First Sale Push</div><div style="font-size:12px;color:var(--muted);margin-top:2px">Targeted tactics to convert the interest you've built into an actual first payment (Ch.6).</div></div>
+          </div>
+        </div>
+
+        <div class="callout blue">
+          <div class="callout-title">This Is a Floor, Not a Ceiling</div>
+          <p>30 days is the structure that forces momentum — it isn't a guarantee you'll have a sale on day 30 exactly. Some people sell on day 12. Some need 45. What matters is that you're moving through a sequence instead of drifting with no map, which is how most first attempts quietly die.</p>
+        </div>
+
+        <div class="ch-h3">Set Your Start Date</div>
+        <div class="checklist">
+          <div class="check-item" onclick="toggleCheck(this,5)"><div class="check-box"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span class="check-text">I've picked a specific day-30 calendar date, not just "next month"</span></div>
+          <div class="check-item" onclick="toggleCheck(this,5)"><div class="check-box"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span class="check-text">I've told at least one other person my deadline, for real accountability</span></div>
+          <div class="check-item" onclick="toggleCheck(this,5)"><div class="check-box"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span class="check-text">I understand which week I'm in starts with which chapter</span></div>
+        </div>
+
+        <div class="ch-complete" id="ch-complete-2">
+          <div class="ch-complete-icon">🗺️</div>
+          <div class="xp-pop">+25 XP — Chapter Complete</div>
+          <h3>Map: Set</h3>
+          <p>You know exactly where this is going. Every remaining chapter just fills in one week of detail.</p>
+          <button class="tool-btn" onclick="completeChapter(2)">Continue to Chapter 3 →</button>
+        </div>
+      </div>
+
+      <!-- ══ CHAPTER 3: PRICE TO CONVERT ══ -->
+      <div class="chapter-page" id="ch-3">
+        <div class="ch-eyebrow">Chapter 03 — Remove the Risk</div>
+        <h1 class="ch-h1">Price to <em>Convert</em></h1>
+        <p class="ch-subtitle">For a first sale specifically, the question isn't "what's it worth" — it's "what removes the last reason to say no."</p>
+        <div class="ch-divider"></div>
+
+        <p class="ch-lead">A stranger with zero reviews and no track record is asking for trust they haven't earned yet. The price has to do some of that trust-building work for them. This chapter isn't full pricing theory — it's the specific tactical call for a first product from an unknown seller.</p>
+
+        <div class="ch-h2">The <span>Low-Risk Entry Price</span></div>
+        <p class="ch-body">For a genuinely first product from someone with no track record, price low enough that saying yes barely registers as a decision — typically under £20-30. This isn't permanent; it's a deliberate trust-building entry point. Once you have reviews, results, and a track record, your next product can charge what it's actually worth. The first one's job is different: prove the system works and create a customer, not maximise revenue per sale.</p>
+
+        <div class="callout">
+          <div class="callout-title">Free Is Not a Strategy</div>
+          <p>Giving the product away for free feels safer, but it attracts the wrong evidence. Free downloads measure curiosity, not commitment — most free downloads never get opened. A £9-19 product measures something free never can: whether a stranger will actually pull out a card. That's the real first-sale evidence you need, and free can't give it to you.</p>
+        </div>
+
+        <div class="ch-h2">The <span>Two-Price Test</span></div>
+        <p class="ch-body">If you genuinely can't decide between two prices, don't agonise — run both. Offer it at price A for the first 48 hours of your launch window, then price B for the next 48. Whichever converts more sales (not just clicks) is your answer for next time. This removes guesswork from a decision people usually just argue with themselves about for days.</p>
+
+        <!-- INTERACTIVE: Price Positioning Tool -->
+        <div class="tool-card">
+          <div class="tool-title">Price Positioning Tool</div>
+          <div class="tool-desc">Answer honestly and get a realistic entry price for your first sale — not a generic "charge what you're worth" non-answer.</div>
+          <label class="tool-label">What's the closest alternative someone could pay for instead? (a course, a freelancer, a tool)</label>
+          <input type="text" class="tool-input" id="price-alt" placeholder="e.g. a freelancer charges £300 for this">
+          <label class="tool-label">Roughly what would that alternative cost?</label>
+          <input type="number" class="tool-input" id="price-alt-cost" placeholder="e.g. 300">
+          <label class="tool-label">How much time or money does your product save versus that alternative?</label>
+          <select class="tool-select" id="price-savings">
+            <option value="huge">Massively less — it's a fraction of the cost/time</option>
+            <option value="some">Somewhat less — still meaningfully cheaper</option>
+            <option value="similar">About the same, just more convenient</option>
+          </select>
+          <button class="tool-btn" onclick="calcPrice()">Get My Price Range →</button>
+          <div class="tool-output" id="price-output"></div>
+        </div>
+
+        <div class="quiz-card">
+          <div class="quiz-question">Why is "make it free" a weaker first-product strategy than a small price like £9-19?</div>
+          <div class="quiz-options">
+            <button class="quiz-opt" onclick="quiz(this,'wrong',1)">Free products are against most platforms' terms of service</button>
+            <button class="quiz-opt" onclick="quiz(this,'correct',1)">Free measures curiosity, not commitment — a real payment is the only proof someone actually wants it</button>
+            <button class="quiz-opt" onclick="quiz(this,'wrong',1)">Free products can't be delivered automatically</button>
+            <button class="quiz-opt" onclick="quiz(this,'wrong',1)">It isn't weaker — free always converts better in every case</button>
+          </div>
+          <div class="quiz-result" id="quiz-result-1"></div>
+        </div>
+
+        <div class="ch-complete" id="ch-complete-3">
+          <div class="ch-complete-icon">💰</div>
+          <div class="xp-pop">+25 XP — Chapter Complete</div>
+          <h3>Price: Set</h3>
+          <p>You have a number that removes the risk for a stranger, not one that tries to extract maximum value from your very first customer.</p>
+          <button class="tool-btn" onclick="completeChapter(3)">Continue to Chapter 4 →</button>
+        </div>
+      </div>
+
+      <!-- ══ CHAPTER 4: COLD-TRAFFIC SALES PAGES ══ -->
+      <div class="chapter-page" id="ch-4">
+        <div class="ch-eyebrow">Chapter 04 — Strangers, Not Fans</div>
+        <h1 class="ch-h1">Cold-Traffic <em>Sales Pages</em></h1>
+        <p class="ch-subtitle">A page written for people who already trust you fails completely on someone seeing your name for the first time.</p>
+        <div class="ch-divider"></div>
+
+        <p class="ch-lead">If your only traffic source right now is your own small following, most of this still applies — but the real test is whether the page works on someone who has never seen you before. Cold traffic has zero accumulated trust, no context, and will leave in seconds if the page assumes otherwise.</p>
+
+        <div class="ch-h2">What <span>Changes</span> for a Stranger</div>
+        <table class="comp-table">
+          <tr><th>Warm Audience Page</th><th>Cold Traffic Page Needs</th></tr>
+          <tr><td>Can reference "as you know..."</td><td>Must explain everything from zero, no assumed context</td></tr>
+          <tr><td>Trust is already built in</td><td>Needs proof elements immediately — credentials, results, specifics</td></tr>
+          <tr><td>Personality alone can carry it</td><td>Needs the offer itself to do more of the convincing</td></tr>
+          <tr><td>Casual tone works fine</td><td>Every claim needs to survive a skeptical first read</td></tr>
+        </table>
+
+        <div class="ch-h2">The <span>First Viewport Test</span></div>
+        <p class="ch-body">Whatever's visible before any scrolling has to answer three questions instantly: what is this, who is it for, and why should I believe you. If a cold visitor can't answer all three within about 5 seconds, they're gone — and unlike a warm follower, they have no existing reason to stick around and figure it out.</p>
+
+        <div class="callout">
+          <div class="callout-title">Borrowed Credibility</div>
+          <p>You don't need your own track record yet if you can borrow someone else's. Cite a study, a well-known expert's idea, or a recognisable framework that supports your approach. "Based on the same principle [known expert] uses for X" lends credibility a brand-new seller doesn't have on their own — used honestly, this isn't deceptive, it's just accurate context.</p>
+        </div>
+
+        <div class="ch-h2">Kill the <span>Obvious Objections</span></div>
+        <p class="ch-body">A stranger's unspoken objections are predictable: "is this a scam," "will this actually work for someone like me," "what if I don't like it." Address these directly rather than hoping they don't think of them — a visible refund policy, a specific (not vague) description of who it's for, and at least one piece of real proof all reduce the friction a cold visitor feels before paying.</p>
+
+        <!-- Reuse the Sales Page Copy Generator with a cold-traffic framing -->
+        <div class="tool-card">
+          <div class="tool-title">Sales Page Copy Generator</div>
+          <div class="tool-desc">Fill in the basics and get a first-draft outline written for someone who's never heard of you — not a finished page, but enough to stop staring at a blank screen.</div>
+          <label class="tool-label">What's the product?</label>
+          <input type="text" class="tool-input" id="sp-product" placeholder="e.g. a 12-week mass gain plan">
+          <label class="tool-label">What problem does it solve?</label>
+          <input type="text" class="tool-input" id="sp-problem" placeholder="e.g. struggling to gain weight no matter what they eat">
+          <label class="tool-label">Who is it for?</label>
+          <input type="text" class="tool-input" id="sp-audience" placeholder="e.g. naturally skinny guys in their 20s">
+          <label class="tool-label">Price</label>
+          <input type="text" class="tool-input" id="sp-price" placeholder="e.g. £19">
+          <button class="tool-btn" onclick="generateSalesPage()">Generate My Outline →</button>
+          <div class="tool-output" id="salespage-output"></div>
+        </div>
+
+        <div class="ch-complete" id="ch-complete-4">
+          <div class="ch-complete-icon">📄</div>
+          <div class="xp-pop">+25 XP — Chapter Complete</div>
+          <h3>Cold Page: Built</h3>
+          <p>Your page now does the convincing work a stranger needs, instead of assuming trust that isn't there yet.</p>
+          <button class="tool-btn" onclick="completeChapter(4)">Continue to Chapter 5 →</button>
+        </div>
+      </div>
+
+      <!-- ══ CHAPTER 5: LAUNCH TEMPLATES ══ -->
+      <div class="chapter-page" id="ch-5">
+        <div class="ch-eyebrow">Chapter 05 — Copy, Adapt, Post</div>
+        <h1 class="ch-h1">Launch <em>Templates</em></h1>
+        <p class="ch-subtitle">Ready-to-use scripts for each day. Fill in the brackets and post — don't write these from scratch.</p>
+        <div class="ch-divider"></div>
+
+        <p class="ch-lead">The 30-day map already told you what each day is for. This chapter gives you the actual words. Adapt the tone to sound like you, but don't reinvent the structure — it's built from the launch sequence logic, just pre-written so you're not staring at a blank caption box during the week that matters most.</p>
+
+        <div class="hook-cards">
+          <div class="hook-card" style="--accent:var(--orange)">
+            <div class="hook-label" style="color:var(--orange)">Day 1-2 Template — The Problem</div>
+            <div class="hook-example">"Anyone else struggle with [problem]? I spent [time period] trying to figure this out before realising [key insight]."</div>
+          </div>
+          <div class="hook-card" style="--accent:var(--blue-l)">
+            <div class="hook-label" style="color:var(--blue-l)">Day 3 Template — Announcement</div>
+            <div class="hook-example">"I've been working on something for [audience] who deal with [problem]. It's called [product name] and it's almost ready. Want early access? Comment 'me' and I'll send you the link first."</div>
+          </div>
+          <div class="hook-card" style="--accent:var(--cyan)">
+            <div class="hook-label" style="color:var(--cyan)">Day 4-5 Template — Proof</div>
+            <div class="hook-example">"Here's exactly what's inside [product name] — [list 2-3 specifics]. Built this from [your experience/research], not just theory."</div>
+          </div>
+          <div class="hook-card" style="--accent:var(--green)">
+            <div class="hook-label" style="color:var(--green)">Day 6 Template — Cart Open</div>
+            <div class="hook-example">"[Product name] is live. [One-sentence description]. £[price] — [bonus/deadline if you're using one]. Link in bio."</div>
+          </div>
+          <div class="hook-card" style="--accent:var(--orange2)">
+            <div class="hook-label" style="color:var(--orange2)">Day 7 Template — Last Call</div>
+            <div class="hook-example">"Last call — [bonus/discount] ends tonight. If you've been on the fence about [problem], this is the moment. Link in bio."</div>
+          </div>
+        </div>
+
+        <div class="ch-h2">The <span>Direct Message Template</span></div>
+        <p class="ch-body">For anyone who showed real interest before launch — replied to a story, commented, or asked when it's ready — a personal DM converts far better than hoping they see your public post:</p>
+        <div class="callout blue">
+          <p style="font-style:italic">"Hey [name] — remember when you asked about [problem]? Just launched [product name], thought of you specifically. Here's the link: [link]"</p>
+        </div>
+
+        <div class="ch-h3">Before You Post Any of These</div>
+        <div class="checklist">
+          <div class="check-item" onclick="toggleCheck(this,5)"><div class="check-box"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span class="check-text">I've replaced every bracket with my real specifics — no template should go out untouched</span></div>
+          <div class="check-item" onclick="toggleCheck(this,5)"><div class="check-box"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span class="check-text">The link actually works — I've tested it myself, on my phone, today</span></div>
+          <div class="check-item" onclick="toggleCheck(this,5)"><div class="check-box"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span class="check-text">I've scheduled or blocked time for each of the 7 days, not just day 6</span></div>
+        </div>
+
+        <div class="ch-complete" id="ch-complete-5">
+          <div class="ch-complete-icon">📋</div>
+          <div class="xp-pop">+25 XP — Chapter Complete</div>
+          <h3>Templates: Ready</h3>
+          <p>You have the actual words for every day, not just the strategy. That's the difference between knowing what to do and actually doing it on time.</p>
+          <button class="tool-btn" onclick="completeChapter(5)">Continue to Chapter 6 →</button>
+        </div>
+      </div>
+
+      <!-- ══ CHAPTER 6: GETTING YOUR FIRST SALE ══ -->
+      <div class="chapter-page" id="ch-6">
+        <div class="ch-eyebrow">Chapter 06 — The Final Push</div>
+        <h1 class="ch-h1">Getting Your <em>First Sale</em></h1>
+        <p class="ch-subtitle">Interest doesn't pay your bills. This chapter is about converting interest into an actual payment.</p>
+        <div class="ch-divider"></div>
+
+        <p class="ch-lead">Plenty of people get likes, comments and "this looks great!" without a single sale. That gap between interest and payment is where most first attempts stall. Closing it isn't about being pushier — it's about removing the specific small frictions that let an interested person quietly never get around to it.</p>
+
+        <div class="ch-h2">Why <span>"I'll Buy It Later"</span> Usually Means Never</div>
+        <p class="ch-body">"Later" isn't a real plan in someone else's head — it's a polite way of not deciding now. The fix isn't pressure, it's making "now" easy and obvious: a working link in the first comment, a direct message instead of hoping they find it, a clear deadline that gives "later" an actual expiry.</p>
+
+        <div class="callout">
+          <div class="callout-title">Personal Outreach Beats Public Posting</div>
+          <p>A public post reaches everyone equally — interested and indifferent alike. A direct message to the 5-10 people who showed real signal earlier (commented, asked questions, reacted to your story) reaches exactly the people most likely to actually buy. Personal outreach feels like more effort because it is — and it converts far better because of it.</p>
+        </div>
+
+        <!-- INTERACTIVE: Launch Calendar Generator -->
+        <div class="tool-card">
+          <div class="tool-title">Launch Calendar Generator</div>
+          <div class="tool-desc">Pick your cart-open date and get a day-by-day posting plan mapped backwards from it, synced to the templates in Chapter 5.</div>
+          <label class="tool-label">What date do you want the cart to open?</label>
+          <input type="date" class="tool-input" id="launch-date">
+          <label class="tool-label">What's the product?</label>
+          <input type="text" class="tool-input" id="launch-product" placeholder="e.g. The Income Playbook">
+          <button class="tool-btn" onclick="generateLaunchCalendar()">Generate My 7-Day Plan →</button>
+          <div class="tool-output" id="launchcal-output"></div>
+        </div>
+
+        <!-- First sale readiness quiz -->
+        <div class="quiz-card">
+          <div class="quiz-question">Someone has interacted positively with 3 of your launch posts but hasn't bought. What's the highest-leverage next move?</div>
+          <div class="quiz-options">
+            <button class="quiz-opt" onclick="quiz(this,'wrong',2)">Post about the launch one more time publicly and hope they see it</button>
+            <button class="quiz-opt" onclick="quiz(this,'wrong',2)">Lower the price for everyone to remove their hesitation</button>
+            <button class="quiz-opt" onclick="quiz(this,'correct',2)">Message them directly — they've already shown real signal, a public post won't reach them any harder</button>
+            <button class="quiz-opt" onclick="quiz(this,'wrong',2)">Assume they're not interested and move on</button>
+          </div>
+          <div class="quiz-result" id="quiz-result-2"></div>
+        </div>
+
+        <div class="ch-complete" id="ch-complete-6">
+          <div class="ch-complete-icon">🎯</div>
+          <div class="xp-pop">+25 XP — Chapter Complete</div>
+          <h3>First Sale: In Reach</h3>
+          <p>You now have a calendar and a closing tactic, not just a hope that things work out. That gap between interest and payment is closeable — most people just never deliberately close it.</p>
+          <button class="tool-btn" onclick="completeChapter(6)">Continue to Chapter 7 →</button>
+        </div>
+      </div>
+
+      <!-- ══ CHAPTER 7: WHY FIRST SALES STALL ══ -->
+      <div class="chapter-page" id="ch-7">
+        <div class="ch-eyebrow">Chapter 07 — Diagnose, Don't Guess</div>
+        <h1 class="ch-h1">Why First Sales <em>Stall</em></h1>
+        <p class="ch-subtitle">A launch can run perfectly and still produce zero sales. Here's how to tell exactly why.</p>
+        <div class="ch-divider"></div>
+
+        <p class="ch-lead">"Nobody bought" isn't one problem — it's usually one of several specific problems, each with a completely different fix. Diagnosing which one happened matters more than just trying harder next time with the same approach.</p>
+
+        <div class="ch-h2">The <span>Failure Points</span> — And What To Actually Do About Each One</div>
+
+        <div style="background:rgba(29,43,99,.22);border:1px solid rgba(255,107,26,.25);border-radius:8px;padding:16px 18px;margin-bottom:12px">
+          <div style="font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--orange);margin-bottom:5px">Nobody clicked the link at all</div>
+          <div style="font-size:12.5px;color:rgba(238,240,255,.75);margin-bottom:9px">Traffic problem — wrong audience, or the post never got real reach.</div>
+          <div style="font-size:12.5px;color:rgba(238,240,255,.92);line-height:1.6"><strong style="color:var(--orange)">Do this:</strong> Check impressions, not just clicks. Low impressions means the post itself didn't get pushed — the hook needs work (Ch.3), not the offer. Decent impressions but near-zero clicks means the caption never made anyone want to leave the app — rewrite the call-to-action to be specific about what's waiting on the other side.</div>
+        </div>
+
+        <div style="background:rgba(29,43,99,.22);border:1px solid rgba(68,207,255,.25);border-radius:8px;padding:16px 18px;margin-bottom:12px">
+          <div style="font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--cyan);margin-bottom:5px">People clicked, then bounced within seconds</div>
+          <div style="font-size:12.5px;color:rgba(238,240,255,.75);margin-bottom:9px">Headline-match problem — what they clicked on and what they landed on don't feel like the same promise.</div>
+          <div style="font-size:12.5px;color:rgba(238,240,255,.92);line-height:1.6"><strong style="color:var(--cyan)">Do this:</strong> Put your post copy and your page headline side by side. If they don't use close to the same words for the same promise, that gap is the bounce. Rewrite the headline to mirror the exact thing the post promised — not a rephrased or "improved" version of it.</div>
+        </div>
+
+        <div style="background:rgba(29,43,99,.22);border:1px solid rgba(91,127,255,.25);border-radius:8px;padding:16px 18px;margin-bottom:12px">
+          <div style="font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--blue-l);margin-bottom:5px">People read the whole page, still didn't buy</div>
+          <div style="font-size:12.5px;color:rgba(238,240,255,.75);margin-bottom:9px">Trust/proof problem — the cold-traffic trust test from Ch.4 wasn't actually passed.</div>
+          <div style="font-size:12.5px;color:rgba(238,240,255,.92);line-height:1.6"><strong style="color:var(--blue-l)">Do this:</strong> Find the first place on the page you make a claim with no specific number, screenshot, or named result backing it up — that's almost always where a full reader quietly decides not to buy. Add one concrete piece of proof there before touching anything else on the page.</div>
+        </div>
+
+        <div style="background:rgba(29,43,99,.22);border:1px solid rgba(59,255,140,.25);border-radius:8px;padding:16px 18px;margin-bottom:12px">
+          <div style="font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--green);margin-bottom:5px">People said "interested" but didn't follow through</div>
+          <div style="font-size:12.5px;color:rgba(238,240,255,.75);margin-bottom:9px">Urgency problem — "later" had no real deadline attached to it.</div>
+          <div style="font-size:12.5px;color:rgba(238,240,255,.92);line-height:1.6"><strong style="color:var(--green)">Do this:</strong> Message them directly with an actual date, not a vague nudge — "cart closes Friday, want me to hold your spot?" A specific real deadline converts interest into a decision; a general reminder just gets scrolled past a second time.</div>
+        </div>
+
+        <div style="background:rgba(29,43,99,.22);border:1px solid rgba(255,140,71,.3);border-radius:8px;padding:16px 18px;margin-bottom:12px">
+          <div style="font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#FF8C47;margin-bottom:5px">People asked questions, then went quiet</div>
+          <div style="font-size:12.5px;color:rgba(238,240,255,.75);margin-bottom:9px">Price or fit problem — the offer didn't clearly solve their specific version of the problem.</div>
+          <div style="font-size:12.5px;color:rgba(238,240,255,.92);line-height:1.6"><strong style="color:#FF8C47">Do this:</strong> Re-read your own answer to their question — did it actually address what they asked, or just restate the sales page? If it was a real answer and they still went quiet, ask directly: "is it the price, or does this not quite fit what you need?" Most people won't volunteer that on their own, but will answer if asked.</div>
+        </div>
+
+        <div style="background:rgba(29,43,99,.22);border:1px solid rgba(185,140,255,.3);border-radius:8px;padding:16px 18px;margin-bottom:20px">
+          <div style="font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#B98CFF;margin-bottom:5px">People bought, then asked for a refund or seemed confused</div>
+          <div style="font-size:12.5px;color:rgba(238,240,255,.75);margin-bottom:9px">Delivery-mismatch problem — what arrived didn't match what the page promised, or nobody told them what happens next.</div>
+          <div style="font-size:12.5px;color:rgba(238,240,255,.92);line-height:1.6"><strong style="color:#B98CFF">Do this:</strong> Compare your sales page's exact wording against what a buyer actually receives — line by line, not from memory. Then add a short "here's what happens next" message immediately after purchase; most post-purchase confusion is really just silence at the one moment someone most wants reassurance.</div>
+        </div>
+
+        <div style="background:rgba(29,43,99,.22);border:1px solid var(--border2,#22283A);border-radius:8px;padding:24px;margin:22px 0;overflow-x:auto">
+          <div style="font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted,#8890A8);margin-bottom:16px;text-align:center">The funnel — where each failure point actually sits</div>
+          <svg width="480" height="320" viewBox="0 0 480 320" style="width:100%;max-width:480px;height:auto;display:block;margin:0 auto">
+            <!-- funnel trapezoid segments, narrowing top to bottom -->
+            <polygon points="40,20 440,20 380,80 100,80" fill="rgba(255,107,26,.18)" stroke="#FF6B1A" stroke-width="1.3"/>
+            <text x="240" y="46" font-family="Outfit,sans-serif" font-size="16.5" font-weight="800" fill="white" text-anchor="middle">SAW THE POST</text>
+            <text x="240" y="64" font-family="Outfit,sans-serif" font-size="12.5" fill="rgba(255,255,255,.7)" text-anchor="middle">everyone who scrolled past it</text>
+
+            <polygon points="100,84 380,84 330,144 150,144" fill="rgba(68,207,255,.18)" stroke="#44CFFF" stroke-width="1.3"/>
+            <text x="240" y="110" font-family="Outfit,sans-serif" font-size="16.5" font-weight="800" fill="white" text-anchor="middle">CLICKED THE LINK</text>
+            <text x="240" y="128" font-family="Outfit,sans-serif" font-size="12.5" fill="rgba(255,255,255,.7)" text-anchor="middle">drop here = traffic problem</text>
+
+            <polygon points="150,148 330,148 290,208 190,208" fill="rgba(91,127,255,.18)" stroke="#5B7FFF" stroke-width="1.3"/>
+            <text x="240" y="174" font-family="Outfit,sans-serif" font-size="16.5" font-weight="800" fill="white" text-anchor="middle">READ THE PAGE</text>
+            <text x="240" y="192" font-family="Outfit,sans-serif" font-size="9.5" fill="rgba(255,255,255,.7)" text-anchor="middle">drop here = page/trust problem</text>
+
+            <polygon points="190,212 290,212 270,260 210,260" fill="rgba(59,255,140,.18)" stroke="#44D4FF" stroke-width="1.3"/>
+            <text x="240" y="230" font-family="Outfit,sans-serif" font-size="12" font-weight="800" fill="white" text-anchor="middle">SHOWED INTEREST</text>
+            <text x="240" y="246" font-family="Outfit,sans-serif" font-size="9" fill="rgba(255,255,255,.7)" text-anchor="middle">drop here = urgency problem</text>
+
+            <polygon points="210,264 270,264 258,300 222,300" fill="rgba(255,140,71,.25)" stroke="#FF8C47" stroke-width="1.5"/>
+            <text x="240" y="286" font-family="Outfit,sans-serif" font-size="11" font-weight="800" fill="white" text-anchor="middle">BOUGHT</text>
+          </svg>
+          <p style="font-size:11px;color:var(--muted,#8890A8);text-align:center;max-width:400px;margin:14px auto 0;line-height:1.6">Knowing which level of the funnel people are dropping out at narrows down which failure point applies — and rules the others out.</p>
+        </div>
+
+        <div class="callout">
+          <div class="callout-title">Check Your Actual Numbers Before Diagnosing</div>
+          <p>If you have any analytics at all (link clicks, page views), check them before guessing. Zero clicks and 50 clicks-zero-sales are completely different problems requiring opposite fixes — one needs more/better traffic, the other needs a better page or offer. Diagnosing blind wastes the next attempt on the wrong fix.</p>
+        </div>
+
+        <div class="callout blue">
+          <div class="callout-title">One Quiet Launch Is Data, Not a Verdict</div>
+          <p>Most products that eventually sell well had an unremarkable first attempt. Find which failure point applied, fix that one thing specifically, and run the sequence again — a second attempt with one specific fix outperforms a first attempt repeated identically.</p>
+        </div>
+
+        <div class="ch-complete" id="ch-complete-7">
+          <div class="ch-complete-icon">🔍</div>
+          <div class="xp-pop">+25 XP — Chapter Complete</div>
+          <h3>Diagnosis: Ready</h3>
+          <p>If your first attempt stalls, you now know exactly where to look instead of just feeling discouraged and unsure what to change.</p>
+          <button class="tool-btn" onclick="completeChapter(7)">Continue to Your 30-Day Sprint →</button>
+        </div>
+      </div>
+
+      <!-- ══ CHAPTER 8: YOUR 30-DAY SPRINT ══ -->
+      <div class="chapter-page" id="ch-8">
+        <div class="ch-eyebrow">Chapter 08 — Execution</div>
+        <h1 class="ch-h1">Your <em>30-Day Sprint</em></h1>
+        <p class="ch-subtitle">Generated from your profile. This is your actual roadmap — not a generic framework.</p>
+        <div class="ch-divider"></div>
+
+        <div id="plan-placeholder">
+          <p class="ch-lead" style="text-align:center;padding:40px 0">Generate your personalised 30-day sprint below based on your profile and current stage.</p>
+        </div>
+
+        <div class="tool-card" id="plan-generator-card">
+          <div class="tool-title">30-Day Sprint Generator</div>
+          <div class="tool-desc">We'll use your profile to build a week-by-week sprint specific to your niche, current stage, and biggest blocker.</div>
+          <label class="tool-label">Confirm your area</label>
+          <input type="text" class="tool-input" id="plan-niche-input" placeholder="e.g. fitness for beginners, business coaching...">
+          <label class="tool-label">What format are you building?</label>
+          <select class="tool-select" id="plan-posting">
+            <option value="ebook">Ebook / written guide</option>
+            <option value="template">Template / toolkit</option>
+            <option value="course">Mini-course / video series</option>
+            <option value="coaching">Coaching / community</option>
+          </select>
+          <label class="tool-label">Your goal for the next 30 days</label>
+          <select class="tool-select" id="plan-goal-type">
+            <option value="validate">Validate the idea before building</option>
+            <option value="build">Finish building what I've started</option>
+            <option value="launch">Launch what's already built</option>
+            <option value="firstsale">Get my first sale</option>
+          </select>
+          <button class="tool-btn" onclick="generatePlan()" id="gen-plan-btn">Generate My 30-Day Sprint →</button>
+        </div>
+
+        <div id="plan-output" style="display:none"></div>
+
+        <div class="ch-complete" id="ch-complete-8" style="display:none">
+          <div class="ch-complete-icon">🏆</div>
+          <div class="xp-pop" id="final-xp-pop">+50 XP — Course Complete!</div>
+          <h3 id="final-complete-h3">Income Playbook: Complete</h3>
+          <p id="final-complete-p">You've finished the playbook. You have the idea, the price, the cold-traffic page, the templates and the diagnosis tools. The only variable left is execution.</p>
+          <div style="margin-top:20px;padding:20px;background:var(--panel2);border:1px solid var(--border)">
+            <div style="font-size:11px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px">Your Session Summary</div>
+            <div style="font-size:24px;font-weight:800;color:var(--orange)" id="final-xp-total">0 XP earned</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:4px">Chapters completed · Tools used · Quizzes passed</div>
+          </div>
+          <div style="background:linear-gradient(135deg,rgba(68,207,255,.07),rgba(59,91,255,.05));border:1px solid rgba(68,207,255,.2);padding:20px;text-align:center;margin-top:16px;border-radius:6px">
+            <div style="font-size:26px;margin-bottom:6px">📣</div>
+            <div style="font-weight:800;font-size:15px;margin-bottom:5px">Got your first sale? Now get a bigger audience to sell to.</div>
+            <div style="font-size:12px;color:var(--muted);max-width:400px;margin:0 auto 12px">The Income Playbook gets you to your first sale with whoever's already watching. The Growth Code is how you grow who's watching in the first place — so the next launch reaches more people from day one.</div>
+            <a href="../growth-code/growth_code_interactive.html" style="display:inline-flex;align-items:center;gap:8px;background:var(--cyan);color:#07090F;font-weight:700;font-size:13px;padding:11px 20px;border-radius:6px;text-decoration:none">Open The Growth Code →</a>
+          </div>
+          <button class="tool-btn" style="margin-top:16px" onclick="window.location.href='../index.html'">Back to Areviax →</button>
+        </div>
+      </div>
+
+    </div><!-- /reading-area -->
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<script>
+// ── STATE ──
+const IPB_SK='arx_ipb_v1';
+let ipbSaved={};
+try{ ipbSaved=JSON.parse(localStorage.getItem(IPB_SK))||{}; }catch(e){ ipbSaved={}; }
+let xp=ipbSaved.xp||0, currentChapter=0, completedChapters=new Set(ipbSaved.completedChapters||[]),
+  userName=ipbSaved.userName||'', userNiche=ipbSaved.userNiche||'', userPlatform=ipbSaved.userPlatform||'',
+  userChallenge=ipbSaved.userChallenge||'', userFollowers=ipbSaved.userFollowers||'';
+
+function saveIPBState(){
+  localStorage.setItem(IPB_SK, JSON.stringify({
+    xp, completedChapters:[...completedChapters], userName, userNiche, userPlatform, userChallenge, userFollowers
+  }));
+}
+const TOTAL_CHAPTERS=9;
+
+// ── CURSOR ──
+const cc=document.getElementById('cur-c'), cctx=cc.getContext('2d');
+const CS=48,C2=24; let mx=C2,my=C2,cx=C2,cy=C2,ang=0,hov=false;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY});
+document.querySelectorAll('a,button,.ch-item,.quiz-opt,.check-item').forEach(el=>{
+  el.addEventListener('mouseenter',()=>hov=true);
+  el.addEventListener('mouseleave',()=>hov=false);
+});
+(function cl(){
+  cx+=(mx-cx)*.14; cy+=(my-cy)*.14;
+  ang+=hov?.07:.022;
+  const col=hov?'#FF6B1A':'#44CFFF',r=hov?15:11,arm=hov?8:6,gap=4;
+  cctx.clearRect(0,0,CS,CS);
+  cctx.save(); cctx.translate(C2,C2); cctx.rotate(ang);
+  cctx.strokeStyle=col; cctx.lineWidth=hov?2:1.5; cctx.globalAlpha=.9; cctx.lineCap='round';
+  [[0,-1],[0,1],[-1,0],[1,0]].forEach(([dx,dy])=>{
+    cctx.beginPath(); cctx.moveTo(dx*gap,dy*gap); cctx.lineTo(dx*(gap+arm),dy*(gap+arm)); cctx.stroke();
+  });
+  cctx.globalAlpha=hov?.6:.4; cctx.lineWidth=1;
+  for(let i=0;i<4;i++){cctx.beginPath();cctx.arc(0,0,r,i*Math.PI/2+.35,i*Math.PI/2+Math.PI/2-.35);cctx.stroke()}
+  cctx.globalAlpha=1; cctx.fillStyle=col; cctx.shadowColor=col; cctx.shadowBlur=hov?10:6;
+  cctx.beginPath(); cctx.arc(0,0,hov?3:2,0,Math.PI*2); cctx.fill(); cctx.shadowBlur=0;
+  cctx.restore();
+  cc.style.left=cx+'px'; cc.style.top=cy+'px';
+  requestAnimationFrame(cl);
+})();
+
+// ── XP ──
+function addXP(amount,label=''){
+  xp+=amount;
+  document.getElementById('xp-display').textContent=xp+' XP';
+  document.getElementById('xp-orb').textContent=xp;
+  toast('⭐',`+${amount} XP${label?' — '+label:''}`);
+  saveIPBState();
+}
+
+// ── TOAST ──
+function toast(icon,msg){
+  const t=document.getElementById('toast');
+  document.getElementById('toast-icon').textContent=icon;
+  document.getElementById('toast-msg').textContent=msg;
+  t.classList.add('show');
+  clearTimeout(t._t);
+  t._t=setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+// ── NAVIGATION ──
+function goChapter(n){
+  document.querySelectorAll('.chapter-page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.ch-item').forEach((item,i)=>{
+    item.classList.toggle('active',i===n);
+  });
+  document.querySelectorAll('.ch-tab').forEach((t,i)=>{
+    t.classList.toggle('active',i===n);
+  });
+  document.getElementById('ch-'+n).classList.add('active');
+  document.getElementById('reading-area').scrollTop=0;
+  currentChapter=n;
+  const labels=['Introduction','Ch.1 — 48-Hour Idea','Ch.2 — 30-Day Map','Ch.3 — Pricing','Ch.4 — Cold Traffic Pages','Ch.5 — Launch Templates','Ch.6 — First Sale','Ch.7 — Why It Stalls','Ch.8 — Your Sprint'];
+  document.getElementById('tb-chapter-label').textContent=labels[n]||'';
+  updatePersonaBanners();
+}
+
+function nextChapter(){
+  if(currentChapter<8) goChapter(currentChapter+1);
+}
+function prevChapter(){
+  if(currentChapter>0) goChapter(currentChapter-1);
+}
+
+function completeChapter(n){
+  completedChapters.add(n);
+  const items=document.querySelectorAll('.ch-item');
+  if(items[n]) items[n].classList.add('done');
+  const tabs=document.querySelectorAll('.ch-tab');
+  if(tabs[n]) tabs[n].classList.add('done');
+  updateProgress();
+  saveIPBState();
+  if(n<8) goChapter(n+1);
+}
+
+function updateProgress(){
+  const pct=Math.round(completedChapters.size/8*100);
+  document.getElementById('progress-fill').style.width=pct+'%';
+  document.getElementById('progress-pct').textContent=pct+'%';
+}
+
+// ── PROFILE SETUP ──
+function setupProfile(silent){
+  const name=document.getElementById('user-name').value.trim()||'Creator';
+  const niche=document.getElementById('user-niche').value;
+  const followers=document.getElementById('user-followers').value;
+  const platform=document.getElementById('user-platform').value;
+  const challenge=document.getElementById('user-challenge').value;
+  if(!niche){ if(!silent) toast('⚠️','Please select your area of expertise first'); return }
+  userName=name; userNiche=niche; userFollowers=followers; userPlatform=platform; userChallenge=challenge;
+  // Show banner
+  const nicheLabels={fitness:'Fitness & Health',business:'Business',creator:'Content Creation',lifestyle:'Lifestyle & Mindset',tech:'Tech & AI',finance:'Finance',education:'Education & Coaching',other:'your niche'};
+  const challengeLabels={idea:'knowing what to build',pricing:'charging confidently',traffic:'getting people to see it',perfectionism:'actually shipping',tech:'the tech and setup side'};
+  const platformLabels={idea:'having an idea but not starting',building:'building it right now',built:'having it built but not launched',launched:'having launched without a sale yet'};
+  document.getElementById('banner-name').textContent=name;
+  document.getElementById('banner-niche').textContent=nicheLabels[niche]||niche;
+  document.getElementById('banner-platform').textContent=platformLabels[platform]||platform;
+  document.getElementById('banner-challenge').textContent=challengeLabels[challenge]||challenge;
+  document.getElementById('persona-banner').style.display='flex';
+  // Pre-fill plan
+  document.getElementById('plan-niche-input').value=nicheLabels[niche]||niche;
+  if(!silent){
+    addXP(10,'Profile set up');
+    toast('🧭',`Welcome ${name}! Your guide is personalised.`);
+  }
+  updatePersonaBanners();
+  if(!silent) saveIPBState();
+}
+
+function updatePersonaBanners(){
+  if(!userName) return;
+  const algoBanner=document.getElementById('algo-banner');
+  if(algoBanner && currentChapter===1){
+    const tips={
+      idea:`${userName}, since you don't have a starting idea yet — pay close attention to the validation framework below. Most people skip straight to building and pay for it later with a product nobody wants.`,
+      building:`${userName}, you're already building — good. Use this chapter to sanity-check the idea against real demand before you sink more hours in.`,
+      built:`${userName}, you've built something but haven't launched. That's the riskiest place to sit — every day it's not live is a day you're not learning. Validation now tells you whether to launch as-is or adjust first.`,
+      launched:`${userName}, you've launched without a sale — that's almost always a validation or positioning problem, not a marketing problem. Work through this chapter properly before you spend on traffic.`
+    };
+    document.getElementById('algo-banner-text').textContent=tips[userPlatform]||tips.idea;
+    algoBanner.style.display='flex';
+  }
+}
+
+// ── QUIZ ──
+function quiz(btn, type, idx){
+  const parent=btn.closest('.quiz-card');
+  if(parent.dataset.answered) return;
+  parent.dataset.answered=true;
+  parent.querySelectorAll('.quiz-opt').forEach(o=>o.style.pointerEvents='none');
+  btn.classList.add(type);
+  const resultEl=document.getElementById('quiz-result-'+idx);
+  if(resultEl){
+    if(type==='correct'){
+      resultEl.className='quiz-result pass show';
+      resultEl.textContent='✓ Correct! '+['A specific description makes the right reader feel personally understood — something a broad, generic one can never do, no matter how inclusive it sounds.','A real payment is the only proof of commitment free downloads can\'t give you — most free downloads are never even opened.','Someone who already showed real signal is far easier to convert with a direct message than hoping they notice yet another public post.'][idx];
+      addXP(15,'Quiz correct');
+      // show chapter complete
+      const cc=document.getElementById('ch-complete-'+(currentChapter));
+      if(cc) cc.classList.add('show');
+    } else {
+      resultEl.className='quiz-result fail show';
+      resultEl.textContent='Not quite. Reread the section above and try again — understanding this deeply is worth more than getting it right first time.';
+      parent.dataset.answered='';
+      btn.classList.remove('wrong');
+      btn.style.pointerEvents='auto';
+      setTimeout(()=>{btn.classList.remove('wrong');},1000);
+    }
+  }
+}
+
+// ── CHECK ITEMS ──
+function toggleCheck(el, xpVal){
+  el.classList.toggle('checked');
+  if(el.classList.contains('checked')) addXP(xpVal,'Checklist item');
+}
+
+// ── CONTENT BATCH GENERATOR ──
+const NARROW_EXAMPLE={
+  health:'e.g. "busy mums over 40" instead of "people who want to lose weight"',
+  money:'e.g. "freelancers who just lost their biggest client" instead of "people who need more money"',
+  time:'e.g. "parents working from home with kids under 5" instead of "busy people"',
+  confidence:'e.g. "graduates going into their first interview" instead of "people who lack confidence"',
+  skill:'e.g. "complete beginners who\'ve never touched a spreadsheet" instead of "people who want to learn Excel"',
+  business:'e.g. "coaches with under 1,000 followers who\'ve never sold anything" instead of "small business owners"'
+};
+function sprintIdea(){
+  const q=document.getElementById('idea-q').value.trim();
+  const who=document.getElementById('idea-who').value.trim();
+  const outcome=document.getElementById('idea-outcome').value.trim();
+  if(!q||!who){toast('⚠️','Fill in at least the question and who asked it');return}
+  const cat=detectProblemCategory(q)||detectProblemCategory(who);
+  const narrowTip=cat?NARROW_EXAMPLE[cat]:null;
+  const out=document.getElementById('idea-output');
+  out.className='tool-output show';
+  out.innerHTML=`<div class="tool-output-label">Your Sharpened Idea</div>
+    <div style="font-family:'Fraunces',serif;font-style:italic;font-size:16px;line-height:1.6;margin-bottom:12px;color:var(--white)">
+      "A product for ${who||'a specific group'} who keep asking '${q}' — built to get them to ${outcome||'a clear outcome'}."
+    </div>
+    <div style="font-size:12px;color:var(--muted);line-height:1.6">Run the embarrassingly specific test on this: would a stranger reading it say "wait, that's exactly me"? If yes, move straight to Chapter 2. If it still feels generic, narrow ${who||'the audience'} further — by age, by specific situation, by what they've already tried and failed at${narrowTip?` (${narrowTip})`:''}.</div>`;
+  addXP(10,'Idea sharpened');
+}
+
+// ── PRICE POSITIONING ──
+function calcPrice(){
+  const altCost=parseFloat(document.getElementById('price-alt-cost').value)||0;
+  const savings=document.getElementById('price-savings').value;
+  const out=document.getElementById('price-output');
+  out.className='tool-output show';
+  if(!altCost){
+    out.innerHTML=`<div class="tool-output-label">Need one more number</div><div style="font-size:13px;color:var(--muted)">Fill in roughly what the alternative costs — even a rough guess gives a far better anchor than guessing your price from nothing.</div>`;
+    return;
+  }
+  let low,high;
+  if(savings==='huge'){ low=Math.round(altCost*0.05); high=Math.round(altCost*0.15); }
+  else if(savings==='some'){ low=Math.round(altCost*0.15); high=Math.round(altCost*0.35); }
+  else { low=Math.round(altCost*0.3); high=Math.round(altCost*0.5); }
+  low=Math.max(7,low); high=Math.max(low+5,high);
+  out.innerHTML=`<div class="tool-output-label">Suggested Price Range</div>
+    <div style="font-size:24px;font-weight:800;color:var(--green);margin:8px 0">£${low} – £${high}</div>
+    <div style="font-size:13px;color:var(--muted);line-height:1.6">Based on the alternative costing roughly £${altCost}. Price toward the top of this range if your audience already trusts you; toward the bottom for a first product to an audience that doesn't know you yet.</div>
+    <div style="font-size:12px;color:var(--muted);margin-top:12px;padding-top:10px;border-top:1px solid var(--border);line-height:1.6">Pick a number from this range now and move on — you have 30 days, not 30 days to deliberate over pricing. Your first 5 sales will tell you far more about whether it's right than any more time spent thinking about it.</div>`;
+  addXP(10,'Price calculated');
+}
+
+// Detects what kind of problem was actually typed so the Amplify/Transformation
+// sections speak to real, category-specific stakes instead of one generic
+// instruction that works equally poorly for every product.
+const PROBLEM_CATEGORY_KEYWORDS={
+  health:['weight','fat','muscle','diet','fitness','tired','energy','sleep','health','pain','gym'],
+  money:['money','income','debt','broke','afford','budget','financ','save','earn','pay'],
+  time:['time','busy','overwhelm','procrastinat','productiv','organiz','schedule','burnout'],
+  confidence:['confiden','anxious','anxiety','shy','scared','fear','insecur','self-esteem','self esteem'],
+  skill:['learn','skill','knowledge','understand','confus','beginner','stuck','how to'],
+  business:['customer','client','sales','grow','scale','launch','audience','leads','revenue']
+};
+function detectProblemCategory(text){
+  if(!text)return null;
+  const clean=text.toLowerCase();
+  for(const [cat,kws] of Object.entries(PROBLEM_CATEGORY_KEYWORDS)){
+    for(const kw of kws){ if(clean.includes(kw))return cat; }
+  }
+  return null;
+}
+const PROBLEM_STAKES={
+  health:'this tends to quietly get worse for years while still feeling "manageable" the whole time — that\'s usually how it works, not a sudden collapse.',
+  money:'this compounds. The same gap in 12 months is a much harder number to close than it is today — waiting doesn\'t freeze it, it grows it.',
+  time:'the real issue was never being busy — it\'s the same finite hours going to the wrong things, on repeat, for as long as nothing changes.',
+  confidence:'left unaddressed, this rarely fixes itself with time alone. It tends to generalise instead, showing up in more situations rather than fewer.',
+  skill:'without a specific fix, this gap doesn\'t close by accident. It\'s usually still there, in the same form, a year from now.',
+  business:'the same gap keeps capping results at roughly the same ceiling until something structural actually changes — this was never a one-off dip.'
+};
+
+// ── SALES PAGE GENERATOR ──
+function generateSalesPage(){
+  const product=document.getElementById('sp-product').value.trim();
+  const problem=document.getElementById('sp-problem').value.trim();
+  const audience=document.getElementById('sp-audience').value.trim();
+  const price=document.getElementById('sp-price').value.trim()||'£19';
+  if(!product||!problem){toast('⚠️','Fill in the product and problem first');return}
+  const problemCat=detectProblemCategory(problem);
+  const amplifyLine=problemCat
+    ? `Specifically for "${problem}" — ${PROBLEM_STAKES[problemCat]}`
+    : 'Describe what staying stuck on this actually costs them over the next 6-12 months if nothing changes.';
+  const out=document.getElementById('salespage-output');
+  out.className='tool-output show';
+  out.innerHTML=`<div class="tool-output-label">Sales Page Outline — PASTOR Structure</div>
+    <div style="font-size:13px;line-height:1.8;color:rgba(238,240,255,.85)">
+    <strong style="color:var(--orange)">Headline:</strong> For ${audience||'people like you'} who are ${problem}.<br><br>
+    <strong style="color:var(--orange)">Problem:</strong> Open by naming "${problem}" in plain language — make them feel understood before you mention the product at all.<br><br>
+    <strong style="color:var(--cyan)">Amplify:</strong> ${amplifyLine}<br><br>
+    <strong style="color:var(--blue-l)">Solution:</strong> Introduce ${product} as the direct fix — what it is, in one sentence a stranger would understand.<br><br>
+    <strong style="color:var(--green)">Transformation:</strong> Describe the after-state. If you have testimonials, this is where they go. If not, describe your own results getting here.<br><br>
+    <strong style="color:var(--orange2)">Offer:</strong> ${product} — ${price}. List exactly what's included, no vague bullet points.<br><br>
+    <strong style="color:var(--blue)">Response:</strong> One button. "Get ${product} Now →". Nothing else competing for the click.
+    </div>
+    <div style="font-size:12px;color:var(--muted);margin-top:12px;padding-top:10px;border-top:1px solid var(--border);line-height:1.6"><strong style="color:var(--white)">This is a first draft, not a final page.</strong> With 30 days on the clock, a rough page that's live today beats a polished one that's still being tweaked next week — you can improve the wording after ${product} has actually made a sale, not before.</div>`;
+  addXP(10,'Sales page outlined');
+}
+
+// ── LAUNCH CALENDAR ──
+function generateLaunchCalendar(){
+  const dateVal=document.getElementById('launch-date').value;
+  const product=document.getElementById('launch-product').value.trim()||'your product';
+  if(!dateVal){toast('⚠️','Pick a cart-open date first');return}
+  const cartDate=new Date(dateVal+'T00:00:00');
+  const days=['Day 1-2: The Problem','Day 3: The Announcement','Day 4-5: Proof & Behind the Scenes','Day 6: Cart Opens','Day 7: Last Call'];
+  const offsets=[-6,-4,-3,0,1];
+  const out=document.getElementById('launchcal-output');
+  out.className='tool-output show';
+  let rows='';
+  days.forEach((label,i)=>{
+    const d=new Date(cartDate); d.setDate(d.getDate()+offsets[i]);
+    const dateStr=d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});
+    rows+=`<div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border)"><span style="font-size:12px;color:var(--white)">${label}</span><span style="font-size:12px;color:var(--cyan);font-weight:600">${dateStr}</span></div>`;
+  });
+  out.innerHTML=`<div class="tool-output-label">Launch Calendar for ${product}</div><div style="margin-top:6px">${rows}</div>
+    <div style="font-size:12px;color:var(--muted);margin-top:12px;padding-top:10px;border-top:1px solid var(--border);line-height:1.6">This is your one and only run at this specific launch — screenshot it, pin it somewhere you'll actually see it daily, and treat Day 6 as a hard deadline, not a rough target.</div>`;
+  addXP(10,'Launch calendar generated');
+}
+
+// ── LAUNCH PLAN GENERATOR ──
+function generatePlan(){
+  const niche=document.getElementById('plan-niche-input').value.trim()||userNiche||'your area';
+  const format=document.getElementById('plan-posting').value;
+  const goalType=document.getElementById('plan-goal-type').value;
+  const name=userName||'You';
+  const formatLabels={ebook:'ebook',template:'template/toolkit',course:'mini-course',coaching:'coaching offer'};
+  const formatLabel=formatLabels[format]||'product';
+
+  const goalLabels={validate:'validate the idea',build:'finish building it',launch:'launch what\'s built',firstsale:'get the first sale'};
+  const out=document.getElementById('plan-output');
+  out.style.display='block';
+  document.getElementById('plan-generator-card').style.display='none';
+
+  const phases=[
+    {label:'WEEK 1 · IDEA & SCOPE',col:'var(--orange)',tasks:[
+      `Run the 48-Hour Idea Sprint from Chapter 1 honestly — narrow it until it's embarrassingly specific`,
+      `Talk to 5 real people about the problem ${niche} solves for them — not the product, the problem`,
+      `Write the one-sentence description of your ${formatLabel} a stranger would understand`,
+      goalType==='validate'?`Open a waitlist or pre-sale before building anything further`:`Confirm scope — decide what's explicitly NOT included so it can't creep`,
+      `Set a real launch date and tell at least one other person, for accountability`,
+    ]},
+    {label:'WEEK 2 · BUILD & PRICE',col:'var(--blue-l)',tasks:[
+      `Block dedicated time — building in scraps of spare time is how products stall for months`,
+      `Build the core ${formatLabel} content first, polish second — a finished rough version beats an unfinished polished one`,
+      `Write your cold-traffic sales page from Chapter 4 — assume the reader has never heard of you`,
+      `Set your price using the Price Positioning Tool from Chapter 3 — don't guess`,
+      `Set up automatic delivery (Gumroad/Lemon Squeezy/Stripe) so you never manually send a file`,
+    ]},
+    {label:'WEEK 3 · LAUNCH',col:'var(--green)',tasks:[
+      `Run the 7-day launch templates from Chapter 5 — problem, announce, proof, cart open, last call`,
+      `Post about the launch more than once — most of your audience misses the first mention`,
+      goalType==='firstsale'?`Personally message 5-10 people who showed real interest earlier and let them know it's live (Ch.6)`:`Review the failure points from Chapter 7 before you go live, one more time`,
+      `Write your FAQ before the questions start coming in, not after`,
+      `Track what's working daily — don't wait until the week ends to course-correct`,
+    ]},
+    {label:'WEEK 4 · DIAGNOSE & PUSH',col:'var(--cyan)',tasks:[
+      `Check your actual numbers — clicks vs sales — before diagnosing anything (Ch.7)`,
+      `Ask your first 3-5 customers for honest feedback, good or bad`,
+      `Fix the single biggest gap before running another launch push`,
+      `If it's selling: message everyone who showed earlier interest but hasn't bought yet`,
+      `If it's quiet: pick which failure point applied and fix that one thing specifically`,
+    ]},
+  ];
+
+  out.innerHTML=`<div style="margin-bottom:20px">
+    <div style="font-size:12px;color:var(--muted);margin-bottom:8px">Generated for <span style="color:var(--white);font-weight:600">${name}</span> · ${niche} · ${formatLabel} · Goal: ${goalLabels[goalType]}</div>
+  </div>` + phases.map(p=>`
+    <div class="plan-week" style="--accent:${p.col}">
+      <div class="plan-week-label" style="color:${p.col}">${p.label}</div>
+      <ul class="plan-week-tasks">
+        ${p.tasks.map(t=>`<li>${t}</li>`).join('')}
+      </ul>
+    </div>`).join('');
+
+  // Show final complete
+  const finalComplete=document.getElementById('ch-complete-8');
+  finalComplete.style.display='block';
+  finalComplete.classList.add('show');
+  document.getElementById('final-xp-total').textContent=`${xp+50} XP earned`;
+  addXP(50,'30-Day Sprint generated');
+  completedChapters.add(8);
+  document.querySelectorAll('.ch-item')[8]?.classList.add('done');
+  updateProgress();
+}
+
+// ── INIT ──
+function restoreIPBState(){
+  document.getElementById('xp-display').textContent=xp+' XP';
+  document.getElementById('xp-orb').textContent=xp;
+  completedChapters.forEach(n=>{
+    const items=document.querySelectorAll('.ch-item');
+    if(items[n]) items[n].classList.add('done');
+    const tabs=document.querySelectorAll('.ch-tab');
+    if(tabs[n]) tabs[n].classList.add('done');
+  });
+  if(userName){
+    document.getElementById('user-name').value=userName;
+    document.getElementById('user-niche').value=userNiche;
+    document.getElementById('user-followers').value=userFollowers;
+    document.getElementById('user-platform').value=userPlatform;
+    document.getElementById('user-challenge').value=userChallenge;
+    setupProfile(true);
+  }
+  updateProgress();
+}
+goChapter(0);
+restoreIPBState();
+</script>
+
+<script>
+// ── MOBILE: hide canvas cursor on touch devices ──
+(function(){
+  const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+  const curEl = document.getElementById('cur-c') || document.getElementById('cur-canvas');
+  if(isTouchDevice && curEl){
+    curEl.style.display = 'none';
+    document.body.style.cursor = 'auto';
+    document.querySelectorAll('*').forEach(el => el.style.cursor = '');
+  }
+})();
+</script>
+
+<script>
+// ── LICENSE WATERMARK ──
+// Identifies the buyer on their own copy as a deterrent against reselling/resharing.
+// Reads buyer info from the URL if a checkout flow ever appends it (?name=...&email=...);
+// falls back to a generic licensed-copy notice if no buyer data is present yet.
+(function(){
+  const params = new URLSearchParams(window.location.search);
+  const buyerName = params.get('name');
+  const buyerEmail = params.get('email');
+  const identifier = buyerEmail || buyerName || 'Licensed copy — do not redistribute';
+  const wm = document.createElement('div');
+  wm.className = 'license-watermark';
+  wm.textContent = identifier;
+  document.body.appendChild(wm);
+  const hidden = document.createElement('span');
+  hidden.style.cssText = 'position:absolute;width:1px;height:1px;overflow:hidden;opacity:0;pointer-events:none';
+  hidden.textContent = 'Areviax licensed copy: ' + identifier;
+  document.body.appendChild(hidden);
+})();
+</script>
+</body>
+</html>

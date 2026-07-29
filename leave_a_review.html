@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Leave a Review — Areviax</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#07090F; --bg2:#0C0F1E; --panel:#0F1428;
+  --blue:#3B5BFF; --cyan:#44CFFF; --orange:#FF6B1A;
+  --white:#EEF0FF; --muted:#7B84B0;
+  --border:rgba(59,91,255,.16); --border2:rgba(255,255,255,.06);
+}
+body{background:var(--bg);color:var(--white);font-family:'Outfit',sans-serif;font-weight:300;line-height:1.6;min-height:100vh}
+.wrap{max-width:640px;margin:0 auto;padding:48px 24px 100px}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--muted);text-decoration:none;margin-bottom:28px}
+.back-link:hover{color:var(--white)}
+.eyebrow{font-size:10px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--cyan);margin-bottom:14px}
+h1{font-weight:800;font-size:30px;letter-spacing:-.02em;margin-bottom:10px}
+.sub{font-size:14px;color:var(--muted);margin-bottom:32px;max-width:520px}
+.prize-banner{
+  background:linear-gradient(135deg,rgba(255,107,26,.1),rgba(59,91,255,.05));
+  border:1px solid var(--border);border-radius:14px;padding:20px 22px;margin-bottom:32px;
+}
+.prize-banner-title{font-size:15px;font-weight:700;margin-bottom:6px;color:var(--orange)}
+.prize-banner-text{font-size:13px;color:rgba(238,240,255,.85);line-height:1.6}
+.tabs{display:flex;gap:4px;margin-bottom:24px;border-bottom:1px solid var(--border2)}
+.tab{
+  flex:1;background:none;border:none;color:var(--muted);font-size:13px;font-weight:600;
+  padding:14px 0;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;font-family:inherit;
+}
+.tab.active{color:var(--cyan);border-bottom-color:var(--cyan)}
+.panel{display:none}
+.panel.active{display:block}
+.field-label{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px;margin-top:16px}
+.field-label:first-of-type{margin-top:0}
+.text-input,.text-area,.select-input{
+  width:100%;background:var(--panel);border:1px solid var(--border2);border-radius:9px;
+  padding:12px 14px;color:var(--white);font-size:14px;font-family:inherit;
+}
+.text-area{resize:vertical;min-height:100px}
+.text-input:focus,.text-area:focus,.select-input:focus{outline:none;border-color:var(--cyan)}
+.star-pick{display:flex;gap:8px;margin-top:4px}
+.star-btn{
+  width:38px;height:38px;border-radius:8px;background:var(--panel);border:1px solid var(--border2);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--muted);
+}
+.star-btn.selected{background:rgba(255,193,7,.12);border-color:#FFC107;color:#FFC107}
+.submit-btn{
+  width:100%;margin-top:22px;padding:14px 0;background:var(--cyan);color:var(--bg);
+  font-weight:700;font-size:13.5px;border-radius:10px;border:none;cursor:pointer;
+}
+.success-msg{display:none;text-align:center;padding:30px 0}
+.success-msg.show{display:block}
+.success-icon{font-size:36px;margin-bottom:14px}
+.success-title{font-size:17px;font-weight:700;margin-bottom:8px}
+.success-text{font-size:13px;color:var(--muted);line-height:1.6}
+.free-entry-link{display:block;text-align:center;font-size:12px;color:var(--muted);margin-top:18px;text-decoration:underline;cursor:pointer}
+.free-entry-link:hover{color:var(--white)}
+.terms-toggle{font-size:11.5px;color:var(--muted);text-align:center;margin-top:36px;cursor:pointer;text-decoration:underline}
+.terms-toggle:hover{color:var(--white)}
+.terms-box{display:none;margin-top:18px;padding:18px 20px;background:var(--panel);border:1px solid var(--border2);border-radius:10px;font-size:12px;color:rgba(238,240,255,.78);line-height:1.65}
+.terms-box.show{display:block}
+.terms-box h3{font-size:12.5px;font-weight:700;color:var(--white);margin:14px 0 6px}
+.terms-box h3:first-child{margin-top:0}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <a href="https://areviax.netlify.app/" class="back-link">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    Back to Areviax
+  </a>
+
+  <div class="eyebrow">Customer Reviews</div>
+  <h1>Tell us what you think</h1>
+  <p class="sub">Whether you loved it, had mixed feelings, or think something could be better — we'd genuinely like to know. Every review, regardless of rating, gets you entered into our monthly draw.</p>
+
+  <div class="prize-banner">
+    <div class="prize-banner-title">🎁 This Month's Draw</div>
+    <div class="prize-banner-text">One winner picked at random each month wins their choice of any single Areviax product, free. Leave a review below to enter — or use the free entry option if you'd rather not write a review. Either way, you're in with the same chance of winning.</div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchPanel(this,'panel-review')">Leave a Review</button>
+    <button class="tab" onclick="switchPanel(this,'panel-free-entry')">Free Entry (No Review Needed)</button>
+  </div>
+
+  <div class="panel active" id="panel-review">
+    <form id="review-form" action="https://formspree.io/f/YOUR_FORM_ID" method="POST" onsubmit="return prepReviewSubmit(event)">
+      <input type="hidden" name="_subject" value="New Areviax review submission">
+      <label class="field-label">Your rating</label>
+      <div class="star-pick" id="star-pick">
+        <button type="button" class="star-btn" data-val="1" onclick="pickStar(this)">★</button>
+        <button type="button" class="star-btn" data-val="2" onclick="pickStar(this)">★</button>
+        <button type="button" class="star-btn" data-val="3" onclick="pickStar(this)">★</button>
+        <button type="button" class="star-btn" data-val="4" onclick="pickStar(this)">★</button>
+        <button type="button" class="star-btn" data-val="5" onclick="pickStar(this)">★</button>
+      </div>
+      <input type="hidden" name="rating" id="rating-hidden" value="">
+
+      <label class="field-label">Which product?</label>
+      <select class="select-input" name="product" id="review-product" required>
+        <option value="">Select a product...</option>
+        <option value="growth">The Growth Code</option>
+        <option value="income">The Income Playbook</option>
+        <option value="digital">Digital Product Blueprint</option>
+        <option value="mass">The Mass Blueprint</option>
+        <option value="ai">AI Prompt Mastery</option>
+        <option value="massapp">Physique System</option>
+        <option value="app">Areviax OS</option>
+        <option value="bundle">Mastermind Bundle</option>
+      </select>
+
+      <label class="field-label">Your review</label>
+      <textarea class="text-area" name="review" id="review-text" placeholder="What was your honest experience? Both what worked and what didn't." required></textarea>
+
+      <label class="field-label">Your name or @handle</label>
+      <input type="text" class="text-input" name="name" id="review-name" placeholder="e.g. Sam, or @yourtiktok" required>
+
+      <label class="field-label">Email (for the draw, and so we can follow up — never published)</label>
+      <input type="email" class="text-input" name="email" id="review-email" placeholder="you@example.com" required>
+
+      <button type="submit" class="submit-btn">Submit Review</button>
+    </form>
+
+    <div class="success-msg" id="review-success">
+      <div class="success-icon">✓</div>
+      <div class="success-title">Thank you — genuinely.</div>
+      <div class="success-text">Your review has been submitted for approval and you're entered into this month's draw. Reviews are checked before they go live on the site, so it may take a day or two to appear.</div>
+    </div>
+  </div>
+
+  <div class="panel" id="panel-free-entry">
+    <p style="font-size:13px;color:rgba(238,240,255,.85);margin-bottom:18px">No review required for this option — just fill in your details below for the same draw, the same odds, no purchase or review necessary.</p>
+    <form id="free-entry-form" action="https://formspree.io/f/YOUR_FORM_ID" method="POST" onsubmit="return prepFreeEntrySubmit(event)">
+      <input type="hidden" name="_subject" value="New Areviax free draw entry">
+      <input type="hidden" name="type" value="free_entry">
+      <label class="field-label">Your name</label>
+      <input type="text" class="text-input" name="name" id="entry-name" placeholder="Your name" required>
+
+      <label class="field-label">Email</label>
+      <input type="email" class="text-input" name="email" id="entry-email" placeholder="you@example.com" required>
+
+      <button type="submit" class="submit-btn">Enter the Draw</button>
+    </form>
+
+    <div class="success-msg" id="entry-success">
+      <div class="success-icon">✓</div>
+      <div class="success-title">You're entered.</div>
+      <div class="success-text">Good luck — winners are picked at random and notified by email at the end of each month.</div>
+    </div>
+  </div>
+
+  <div class="terms-toggle" onclick="toggleTerms()">View full prize draw terms</div>
+  <div class="terms-box" id="terms-box">
+    <h3>No Purchase Necessary</h3>
+    <p>Entry to this draw is free. Leaving a review is one way to enter, but is never required — the Free Entry option above offers exactly the same odds of winning with no review, purchase, or payment of any kind.</p>
+    <h3>How Winners Are Chosen</h3>
+    <p>One winner is selected entirely at random from all valid entries (review submissions and free entries combined, weighted equally) received during the calendar month. The draw is not based on review content, star rating, or product purchased.</p>
+    <h3>The Prize</h3>
+    <p>The winner may choose any one Areviax digital product or one month of any Areviax subscription, provided free of charge. The prize is non-transferable and has no cash alternative.</p>
+    <h3>Eligibility</h3>
+    <p>Open to entrants aged 16 or over. One entry per person per month, regardless of how many reviews or entries are submitted. Areviax staff and their immediate family are not eligible.</p>
+    <h3>Winner Notification</h3>
+    <p>The winner is contacted by the email address provided within 7 days of the month's end. If unclaimed after 14 days, a new winner is drawn.</p>
+    <h3>Data</h3>
+    <p>Your email is used only to run this draw and contact you if you win. See our <a href="legal.html#privacy" style="color:var(--cyan)">Privacy Policy</a> for full details.</p>
+    <h3>Governing Law</h3>
+    <p>This promotion is governed by the laws of England and Wales.</p>
+  </div>
+
+</div>
+<script>
+function switchPanel(btn,id){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(id).classList.add('active');
+}
+let selectedStars = 0;
+function pickStar(btn){
+  selectedStars = parseInt(btn.dataset.val);
+  document.querySelectorAll('.star-btn').forEach(b=>{
+    b.classList.toggle('selected', parseInt(b.dataset.val) <= selectedStars);
+  });
+}
+function toggleTerms(){
+  document.getElementById('terms-box').classList.toggle('show');
+}
+
+// Submissions go to Formspree, which forwards them to your email inbox for review —
+// nothing publishes to the live site automatically; you decide what goes up after
+// reading each one. Replace YOUR_FORM_ID in both <form> action attributes above
+// with your real Formspree form ID before this goes live (formspree.io, free plan
+// covers up to 50 submissions/month).
+function prepReviewSubmit(e){
+  if(selectedStars === 0){ alert('Please select a star rating.'); e.preventDefault(); return false; }
+  document.getElementById('rating-hidden').value = selectedStars;
+  e.preventDefault();
+  const form = e.target;
+  fetch(form.action, {
+    method: 'POST',
+    body: new FormData(form),
+    headers: { 'Accept': 'application/json' }
+  }).then(response => {
+    if(response.ok){
+      form.style.display = 'none';
+      document.getElementById('review-success').classList.add('show');
+    } else {
+      alert('Something went wrong submitting your review — please try again, or check the form is connected to a real Formspree endpoint.');
+    }
+  }).catch(() => {
+    alert('Could not reach the submission service. Please check your connection and try again.');
+  });
+  return false;
+}
+function prepFreeEntrySubmit(e){
+  e.preventDefault();
+  const form = e.target;
+  fetch(form.action, {
+    method: 'POST',
+    body: new FormData(form),
+    headers: { 'Accept': 'application/json' }
+  }).then(response => {
+    if(response.ok){
+      form.style.display = 'none';
+      document.getElementById('entry-success').classList.add('show');
+    } else {
+      alert('Something went wrong submitting your entry — please try again.');
+    }
+  }).catch(() => {
+    alert('Could not reach the submission service. Please check your connection and try again.');
+  });
+  return false;
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>The Mass Blueprint — Areviax Interactive</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Fraunces:ital,opsz,wght@1,9..144,300&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0B1230;--bg2:#121B42;--panel:#182352;--panel2:#1B2758;--blue:#3B5BFF;--blue-l:#5B7FFF;--cyan:#44CFFF;--orange:#FF6B1A;--orange2:#FF8C47;--green:#44D4FF;--yellow:#FFD700;--red:#FF4455;--white:#EEF0FF;--muted:#6B7299;--muted2:#3A4060;--border:rgba(59,91,255,.13);--border2:rgba(255,255,255,.05)}
+html{scroll-behavior:smooth;background:var(--bg);overscroll-behavior-y:none}
+body{background:var(--bg);color:var(--white);font-family:'Outfit',sans-serif;font-weight:300;min-height:100vh;cursor:none;overscroll-behavior-y:none}
+*{cursor:none!important}
+#cur-c{position:fixed;pointer-events:none;z-index:9999;transform:translate(-50%,-50%)}
+.top-nav{position:sticky;top:0;z-index:100;background:rgba(7,9,15,.94);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 32px;height:52px}
+.nav-logo{display:flex;align-items:center;gap:9px;text-decoration:none}
+.nav-logo-text{font-weight:800;font-size:14px;letter-spacing:.1em;text-transform:uppercase;color:var(--white)}
+.nav-prog-wrap{display:flex;align-items:center;gap:10px;flex:1;max-width:300px;margin:0 28px}
+.nav-prog-bar{flex:1;height:3px;background:var(--border);border-radius:2px;overflow:hidden}
+.nav-prog-fill{height:100%;background:linear-gradient(to right,var(--blue),var(--cyan));border-radius:2px;transition:width .5s}
+.nav-prog-lbl{font-size:10px;color:var(--muted);white-space:nowrap}
+.nav-right{display:flex;align-items:center;gap:10px}
+.nav-xp{font-size:11px;font-weight:600;color:var(--orange);background:rgba(255,107,26,.1);border:1px solid rgba(255,107,26,.2);padding:4px 12px}
+.nav-back{font-size:11px;color:var(--muted);text-decoration:none;transition:color .2s}.nav-back:hover{color:var(--white)}
+.ch-strip{display:flex;overflow-x:auto;gap:0;background:var(--bg2);border-bottom:1px solid var(--border);padding:0 24px;scrollbar-width:none}
+.ch-strip::-webkit-scrollbar{display:none}
+.ch-tab{flex-shrink:0;padding:11px 16px;font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);border-bottom:2px solid transparent;cursor:pointer;transition:color .2s,border-color .2s;white-space:nowrap}
+.ch-tab:hover{color:var(--white)}.ch-tab.active{color:var(--white);border-bottom-color:var(--blue)}.ch-tab.done{color:var(--green)}.ch-tab.done::before{content:'✓ ';font-size:8px}
+.layout{display:flex;min-height:calc(100vh - 92px)}
+.sidebar{width:196px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--border);position:sticky;top:92px;height:calc(100vh - 92px);overflow-y:auto;padding:10px 0;scrollbar-width:none}
+.sidebar::-webkit-scrollbar{display:none}
+.sb-ch{display:flex;align-items:center;gap:8px;padding:9px 16px;font-size:12px;color:var(--muted);cursor:pointer;border-left:2px solid transparent;transition:all .2s}
+.sb-ch:hover{color:var(--white);background:rgba(59,91,255,.06)}.sb-ch.active{color:var(--white);background:rgba(59,91,255,.1);border-left-color:var(--blue)}.sb-ch.done{color:var(--muted2)}
+.sb-ch-num{width:20px;height:20px;border-radius:50%;border:1px solid var(--muted2);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0;transition:all .3s}
+.sb-ch.active .sb-ch-num{background:var(--blue);border-color:var(--blue);color:var(--bg)}.sb-ch.done .sb-ch-num{background:var(--green);color:var(--bg);border-color:var(--green)}
+.reading{flex:1;padding:44px 52px 80px;max-width:740px}
+.ch-page{display:none}.ch-page.active{display:block;animation:fadeIn .3s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.eyebrow{font-size:10px;font-weight:700;letter-spacing:.28em;text-transform:uppercase;color:var(--blue-l);margin-bottom:11px;display:flex;align-items:center;gap:9px}
+.eyebrow::before{content:'';width:16px;height:1.5px;background:var(--blue-l);display:inline-block}
+h1.h1{font-weight:900;font-size:clamp(28px,3.8vw,46px);line-height:1.04;letter-spacing:-.025em;margin-bottom:7px}
+h1.h1 em{font-family:'Fraunces',serif;font-style:italic;font-weight:300;color:var(--blue-l)}
+.intro{font-size:14px;color:var(--muted);line-height:1.75;margin-bottom:28px;font-style:italic}
+.divider{height:1px;background:var(--border);margin:24px 0}
+.lead{font-size:15px;line-height:1.85;color:rgba(238,240,255,.88);margin-bottom:18px}
+.body{font-size:13.5px;line-height:1.85;color:rgba(238,240,255,.72);font-weight:400;margin-bottom:16px}
+h2.h2{font-weight:700;font-size:17px;letter-spacing:-.01em;margin:26px 0 9px;color:var(--white)}
+h2.h2 span{color:var(--orange)}
+h3.h3{font-size:10px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--cyan);margin:20px 0 9px}
+.callout{border-left:3px solid var(--orange);border:1px solid rgba(255,107,26,.16);border-left:3px solid var(--orange);background:rgba(29,43,99,.22);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);padding:14px 16px;margin:18px 0;border-radius:0 8px 8px 0}
+.callout.green{border-left-color:var(--blue-l);border-color:rgba(91,127,255,.13);background:rgba(91,127,255,.03)}.callout.blue{border-left-color:var(--cyan);border-color:rgba(68,207,255,.13);background:rgba(68,207,255,.03)}
+.callout-title{font-size:9px;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:var(--orange);margin-bottom:5px}
+.callout.green .callout-title{color:var(--blue-l)}.callout.blue .callout-title{color:var(--cyan)}
+.callout p{font-size:12.5px;color:rgba(238,240,255,.8);line-height:1.68}
+.diagram-card{background:rgba(29,43,99,.22);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--border2);border-radius:8px;padding:22px;margin:20px 0;position:relative;overflow:hidden}
+.diagram-card::before{content:'DIAGRAM';position:absolute;top:0;right:0;font-size:8px;font-weight:800;letter-spacing:.14em;color:var(--bg);background:var(--blue);padding:4px 10px}
+.diagram-title{font-size:12px;font-weight:700;color:var(--white);margin-bottom:3px}
+.diagram-sub{font-size:11px;color:var(--muted);margin-bottom:14px}
+.tool-card{background:rgba(29,43,99,.22);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--border);border-radius:8px;padding:20px;margin:20px 0;position:relative;overflow:hidden}
+.tool-card::before{content:'⚡ INTERACTIVE';position:absolute;top:0;right:0;font-size:8px;font-weight:800;letter-spacing:.14em;color:var(--bg);background:var(--cyan);padding:4px 10px}
+.tool-title{font-size:13px;font-weight:700;margin-bottom:3px}.tool-desc{font-size:11px;color:var(--muted);margin-bottom:14px;line-height:1.6}
+label.lbl{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:5px;margin-top:11px}
+input[type=text],input[type=number],select{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--white);font-family:'Outfit',sans-serif;font-size:12px;padding:9px 11px;border-radius:4px;transition:border-color .2s}
+input:focus,select:focus{outline:none;border-color:var(--blue-l)}
+select option{background:var(--panel)}
+.output-box{background:var(--bg);border:1px solid rgba(91,127,255,.2);border-left:3px solid var(--blue-l);padding:14px;margin-top:12px;border-radius:0 4px 4px 0;display:none;animation:fadeIn .3s ease}
+.output-box.show{display:block}
+.output-label{font-size:9px;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:var(--blue-l);margin-bottom:7px}
+.quiz{background:rgba(29,43,99,.22);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--border2);border-radius:8px;padding:20px;margin:20px 0}
+.quiz::before{content:'✦ CHECK YOUR UNDERSTANDING';display:block;font-size:8px;font-weight:800;letter-spacing:.14em;color:var(--bg);background:var(--orange);padding:4px 10px;margin:-20px -20px 14px}
+.quiz-q{font-weight:600;font-size:13px;margin-bottom:12px;line-height:1.5;color:var(--white)}
+.quiz-opts{display:flex;flex-direction:column;gap:6px}
+.quiz-opt{padding:10px 14px;background:var(--bg);border:1px solid var(--border2);font-size:12px;color:var(--muted);cursor:pointer;transition:all .2s;text-align:left;font-family:'Outfit',sans-serif;border-radius:3px}
+.quiz-opt:hover:not([disabled]){border-color:var(--border);color:var(--white)}
+.quiz-opt.correct{background:rgba(59,255,140,.08);border-color:var(--green);color:var(--green)}
+.quiz-opt.wrong{background:rgba(255,68,85,.08);border-color:var(--red);color:var(--red)}
+.quiz-fb{font-size:12px;padding:9px 13px;margin-top:9px;border-radius:3px;display:none;line-height:1.6}
+.quiz-fb.show{display:block}.quiz-fb.pass{background:rgba(59,255,140,.07);border:1px solid rgba(59,255,140,.16);color:var(--green)}.quiz-fb.fail{background:rgba(255,107,26,.07);border:1px solid rgba(255,107,26,.16);color:var(--orange)}
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:18px 0}
+.stat-b{background:var(--panel2);border:1px solid var(--border2);padding:13px;border-radius:4px;text-align:center;position:relative;overflow:hidden}
+.stat-b::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--c,var(--blue-l))}
+.stat-b-val{font-weight:800;font-size:20px;letter-spacing:-.02em;color:var(--c,var(--blue-l))}
+.stat-b-lbl{font-size:9px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-top:3px}
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0}
+.info-block{background:var(--panel2);border:1px solid var(--border2);padding:13px;border-radius:4px;border-left:3px solid var(--c,var(--blue))}
+.info-block-title{font-size:10px;font-weight:700;color:var(--c,var(--blue-l));margin-bottom:5px}
+.info-block-body{font-size:11px;color:var(--muted);line-height:1.65}
+.ch-complete{background:var(--panel);border:1px solid rgba(59,255,140,.18);padding:28px;text-align:center;margin:28px 0;border-radius:6px;display:none}
+.ch-complete.show{display:block;animation:fadeIn .5s ease}
+.ch-complete-icon{font-size:38px;margin-bottom:10px}
+.xp-pill{display:inline-flex;align-items:center;gap:6px;background:rgba(255,107,26,.1);border:1px solid rgba(255,107,26,.22);color:var(--orange);font-size:11px;font-weight:700;padding:5px 14px;border-radius:20px;margin-bottom:12px}
+.ch-complete h3{font-weight:800;font-size:18px;margin-bottom:5px}.ch-complete p{font-size:12px;color:var(--muted);margin-bottom:16px}
+.btn{display:inline-flex;align-items:center;gap:7px;font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:10px 22px;border:none;cursor:pointer;transition:all .2s;font-family:'Outfit',sans-serif;clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,0 100%)}
+.btn-green{background:var(--blue);color:white}.btn-green:hover{background:var(--blue-l);transform:translateY(-1px)}
+.btn-orange{background:var(--orange);color:var(--bg)}.btn-orange:hover{background:var(--orange2)}
+#toast{position:fixed;bottom:20px;right:20px;z-index:1000;background:var(--panel2);border:1px solid var(--border);padding:10px 15px;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:500;transform:translateY(60px);opacity:0;pointer-events:none;transition:transform .35s cubic-bezier(.22,1,.36,1),opacity .35s;border-radius:4px}
+#toast.show{transform:translateY(0);opacity:1}
+@media(max-width:700px){.sidebar{display:none}.reading{padding:24px 18px 60px}.stats-row{grid-template-columns:1fr 1fr}.info-grid{grid-template-columns:1fr}.top-nav{padding:0 14px}.nav-prog-wrap{display:none}.ch-strip{padding:0 14px}}
+/* ── LICENSE WATERMARK ── */
+.license-watermark{
+  position:fixed;bottom:8px;right:10px;z-index:500;
+  font-size:9px;color:rgba(238,240,255,.18);
+  pointer-events:none;font-family:'JetBrains Mono',monospace;
+  letter-spacing:.02em;
+}
+</style>
+</head>
+<body>
+<div style="position:fixed;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(160deg,#1D2B63 0%,#0B1230 55%,#080C22 100%)"></div>
+<canvas id="cur-c" width="48" height="48"></canvas>
+<div id="toast"><span id="ti">⭐</span><span id="tm">+XP</span></div>
+
+<nav class="top-nav">
+  <a href="https://areviax.netlify.app/" class="nav-logo">
+    <svg width="26" height="26" viewBox="0 0 100 100" fill="none"><defs><radialGradient id="ng" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#1B2A6B"/><stop offset="100%" stop-color="#06080F"/></radialGradient></defs><circle cx="50" cy="50" r="48" fill="url(#ng)" stroke="#2A3F99" stroke-width="1"/><path d="M50 14C50 14 45 42 18 50C45 58 50 86 50 86C50 86 55 58 82 50C55 42 50 14 50 14Z" fill="#2C4FCC" opacity=".8"/><path d="M50 22C50 22 47 44 28 50C47 56 50 78 50 78C50 78 53 56 72 50C53 44 50 22 50 22Z" fill="#4A6AFF" opacity=".95"/><circle cx="50" cy="50" r="4" fill="#44CFFF"/></svg>
+    <span class="nav-logo-text">AREVIAX</span>
+  </a>
+  <div class="nav-prog-wrap">
+    <div class="nav-prog-bar"><div class="nav-prog-fill" id="prog-fill" style="width:0%"></div></div>
+    <div class="nav-prog-lbl" id="prog-lbl">0 / 6 lessons</div>
+  </div>
+  <div class="nav-right">
+    <div class="nav-xp" id="xp-disp">0 XP</div>
+    <a href="https://areviax.netlify.app/" class="nav-back">← Back</a>
+  </div>
+</nav>
+
+<div class="ch-strip">
+  <div class="ch-tab active" onclick="goChapter(0)" id="tab-0">Intro</div>
+  <div class="ch-tab" onclick="goChapter(1)" id="tab-1">Why You're Not Growing</div>
+  <div class="ch-tab" onclick="goChapter(2)" id="tab-2">Protein & Muscle Science</div>
+  <div class="ch-tab" onclick="goChapter(3)" id="tab-3">Training Science</div>
+  <div class="ch-tab" onclick="goChapter(4)" id="tab-4">Recovery</div>
+  <div class="ch-tab" onclick="goChapter(5)" id="tab-5">Supplements</div>
+  <div class="ch-tab" onclick="goChapter(6)" id="tab-6">Make Your Plan</div>
+</div>
+
+<div class="layout">
+  <div class="sidebar">
+    <div class="sb-ch active" onclick="goChapter(0)" id="sb-0"><div class="sb-ch-num">0</div>Introduction</div>
+    <div class="sb-ch" onclick="goChapter(1)" id="sb-1"><div class="sb-ch-num">1</div>Why Not Growing</div>
+    <div class="sb-ch" onclick="goChapter(2)" id="sb-2"><div class="sb-ch-num">2</div>Protein & Muscle</div>
+    <div class="sb-ch" onclick="goChapter(3)" id="sb-3"><div class="sb-ch-num">3</div>Training Science</div>
+    <div class="sb-ch" onclick="goChapter(4)" id="sb-4"><div class="sb-ch-num">4</div>Recovery</div>
+    <div class="sb-ch" onclick="goChapter(5)" id="sb-5"><div class="sb-ch-num">5</div>Supplements</div>
+    <div class="sb-ch" onclick="goChapter(6)" id="sb-6"><div class="sb-ch-num">✦</div>Make Your Plan</div>
+  </div>
+
+  <div class="reading" id="reading">
+
+    <!-- CH 0 -->
+    <div class="ch-page active" id="ch-0">
+      <div class="eyebrow">Welcome</div>
+      <h1 class="h1">The Mass <em>Blueprint</em></h1>
+      <p class="intro">The no-nonsense guide to building serious size — built around what the science actually says, not gym folklore.</p>
+      <div class="divider"></div>
+      <p class="lead">This isn't a book of workout plans you could find anywhere. It's an explanation of <em>why your body builds muscle</em> — so you understand the principles, not just the rules.</p>
+      <p class="body">By the end you will have calculated your exact calorie and protein targets, understand how progressive overload works at a cellular level, and built a personalised 12-week plan.</p>
+      <div class="info-grid">
+        <div class="info-block" style="--c:var(--green)"><div class="info-block-title">Who this is for</div><div class="info-block-body">Naturally thin people who struggle to gain weight. Anyone who has trained without seeing results. Anyone who wants to understand the real science.</div></div>
+        <div class="info-block" style="--c:var(--orange)"><div class="info-block-title">What you'll build</div><div class="info-block-body">Your exact calorie target. Your protein goal. A personalised 4-day programme. A 12-week progression plan tailored to your body.</div></div>
+      </div>
+      <div class="tool-card" style="margin-top:8px">
+        <div class="tool-title">Set up your profile — takes 30 seconds</div>
+        <div class="tool-desc">Your stats personalise everything that follows.</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div><label class="lbl">Your name</label><input type="text" id="p-name" placeholder="e.g. Jordan"></div>
+          <div><label class="lbl">Bodyweight (lbs)</label><input type="number" id="p-weight" placeholder="e.g. 145"></div>
+          <div><label class="lbl">Experience</label><select id="p-exp"><option value="beginner">Beginner — under 1 year</option><option value="intermediate" selected>Intermediate — 1–3 years</option></select></div>
+          <div><label class="lbl">Goal</label><select id="p-goal"><option value="bulk">Bulk — maximise muscle</option><option value="lean">Lean bulk — slow and clean</option></select></div>
+        </div>
+        <button class="btn btn-green" style="margin-top:12px;font-size:10px;padding:8px 18px" onclick="saveProfile()">Save & Begin →</button>
+        <div class="output-box" id="profile-out"></div>
+      </div>
+      <div class="ch-complete" id="cc-0">
+        <div class="ch-complete-icon">📖</div><div class="xp-pill">+10 XP</div>
+        <h3>Profile saved</h3><p>Your guide is now personalised. Let's start with the most important question.</p>
+        <button class="btn btn-green" onclick="completeAndNext(0)">Start Lesson 1 →</button>
+      </div>
+    </div>
+
+    <!-- CH 1 -->
+    <div class="ch-page" id="ch-1">
+      <div class="eyebrow">Lesson 01</div>
+      <h1 class="h1">Why You're <em>Not Growing</em></h1>
+      <p class="intro">There are exactly four reasons skinny people stay skinny. Understanding them removes the mystery — and the excuses.</p>
+      <div id="ch1-banner" class="callout green" style="display:none;margin-bottom:20px"><div class="callout-title">Personalised for you</div><p id="ch1-banner-text"></p></div>
+      <div class="divider"></div>
+      <p class="lead">Before you change anything, you need to understand what's actually happening. Blaming genetics or a "fast metabolism" is satisfying but useless. Here is what is really going on.</p>
+      <h2 class="h2">Reason 1: <span>You're Not Eating Enough</span></h2>
+      <p class="body">Studies consistently show that naturally thin people underestimate their calorie intake by 30–50%. You think you eat a lot. You almost certainly don't — not by the numbers required to build muscle. This is not a willpower problem. It is a perception problem.</p>
+      <div class="diagram-card">
+        <div class="diagram-title">Energy Balance for Muscle Growth</div>
+        <div class="diagram-sub">Why a calorie surplus is non-negotiable</div>
+        <canvas id="d-energy" width="600" height="190" style="width:100%;height:auto"></canvas>
+        <p style="font-size:11px;color:var(--muted);margin-top:8px;line-height:1.6">Without a surplus, available energy goes to maintaining existing tissue — not building new muscle. Your body prioritises survival over growth.</p>
+      </div>
+      <h2 class="h2">Reason 2: <span>Not Enough Protein</span></h2>
+      <p class="body">Your body builds muscle from amino acids in dietary protein. If you're not hitting 0.8–1g per pound of bodyweight daily, you don't have enough raw materials. Training harder won't fix this. Only protein fixes this.</p>
+      <h2 class="h2">Reason 3: <span>Inconsistent Training</span></h2>
+      <p class="body">Your body only adapts to stress applied repeatedly over time. Going hard for 2 weeks then taking a week off resets your progress. Sporadic effort produces sporadic — or zero — results.</p>
+      <h2 class="h2">Reason 4: <span>Poor Recovery</span></h2>
+      <p class="body">Muscle is not built in the gym. It is built while you sleep. You break tissue down during training — you build it back bigger during rest. Training hard on 5–6 hours sleep means you are working against yourself.</p>
+      <div class="callout"><div class="callout-title">The Fast Metabolism Myth</div><p>"I have a fast metabolism" means "I burn more calories than average." This is a problem with a solution: eat more. It is not a life sentence. It is a number problem.</p></div>
+      <div class="tool-card">
+        <div class="tool-title">Self-Diagnosis Tool</div><div class="tool-desc">Identify your biggest lever honestly.</div>
+        <label class="lbl">Do you track your calories?</label><select id="d-track"><option value="no">No — I estimate</option><option value="sometimes">Sometimes</option><option value="yes">Yes, consistently</option></select>
+        <label class="lbl">Average sleep hours?</label><select id="d-sleep"><option value="low">Under 6 hours</option><option value="ok">6–7 hours</option><option value="good">7.5–9 hours</option></select>
+        <label class="lbl">Training consistency?</label><select id="d-consist"><option value="low">Miss sessions often</option><option value="med">Usually 3–4×/week</option><option value="high">Rarely miss a session</option></select>
+        <button class="btn btn-orange" style="font-size:10px;padding:8px 18px;margin-top:12px" onclick="diagnose()">Identify My Biggest Problem →</button>
+        <div class="output-box" id="diag-out"></div>
+      </div>
+      <div class="quiz"><div class="quiz-q">Studies show naturally thin people underestimate daily calorie intake by approximately:</div>
+        <div class="quiz-opts">
+          <button class="quiz-opt" onclick="quiz(this,'wrong',0)">5–10%</button>
+          <button class="quiz-opt" onclick="quiz(this,'correct',0)">30–50%</button>
+          <button class="quiz-opt" onclick="quiz(this,'wrong',0)">10–20%</button>
+          <button class="quiz-opt" onclick="quiz(this,'wrong',0)">Over 60%</button>
+        </div><div class="quiz-fb" id="qf-0"></div>
+      </div>
+      <div class="ch-complete" id="cc-1">
+        <div class="ch-complete-icon">💡</div><div class="xp-pill">+25 XP</div>
+        <h3>Reason identified</h3><p>You know your biggest lever. Next: the protein and muscle science that explains the why.</p>
+        <button class="btn btn-green" onclick="completeAndNext(1)">Continue to Protein →</button>
+      </div>
+    </div>
+
+    <!-- CH 2 -->
+    <div class="ch-page" id="ch-2">
+      <div class="eyebrow">Lesson 02</div>
+      <h1 class="h1">Protein & <em>Muscle Science</em></h1>
+      <p class="intro">What actually happens inside your muscle cells when you eat and train — and why protein is the single most important variable.</p>
+      <div class="divider"></div>
+      <p class="lead">Muscle hypertrophy is the process of muscle fibres repairing themselves larger after damage from training. This entire process runs on amino acids from dietary protein.</p>
+      <h2 class="h2">How <span>Muscle Growth Works</span></h2>
+      <p class="body">When you lift weights you create micro-tears in muscle fibres. Your body sends satellite cells to the damaged area. These fuse with the existing fibres, depositing new contractile proteins (actin and myosin) that make the fibre thicker and stronger. Without sufficient amino acids present in the bloodstream at the time of repair, the process stalls — or produces smaller, weaker fibres.</p>
+      <div class="diagram-card">
+        <div class="diagram-title">Muscle Protein Synthesis — The Growth Cycle</div>
+        <div class="diagram-sub">From training stimulus to new muscle tissue — and why timing matters</div>
+        <canvas id="d-mps" width="600" height="210" style="width:100%;height:auto"></canvas>
+        <p style="font-size:11px;color:var(--muted);margin-top:8px;line-height:1.6">MPS remains elevated for 24–48 hours after training. This is your anabolic window — not 30 minutes post-workout, but a full 48 hours of elevated protein demand.</p>
+      </div>
+      <div class="stats-row">
+        <div class="stat-b" style="--c:var(--blue-l)"><div class="stat-b-val">0.8–1g</div><div class="stat-b-lbl">per lb BW / day</div></div>
+        <div class="stat-b" style="--c:var(--cyan)"><div class="stat-b-val">4–5</div><div class="stat-b-lbl">protein meals / day</div></div>
+        <div class="stat-b" style="--c:var(--green)"><div class="stat-b-val">30–40g</div><div class="stat-b-lbl">protein per meal</div></div>
+      </div>
+      <div class="diagram-card">
+        <div class="diagram-title">Protein Distribution Through the Day</div>
+        <div class="diagram-sub">Why spreading protein across meals outperforms front-loading it</div>
+        <canvas id="d-ptiming" width="600" height="175" style="width:100%;height:auto"></canvas>
+      </div>
+      <div class="tool-card">
+        <div class="tool-title">Your Personal Targets</div><div class="tool-desc">Calculated from your profile.</div>
+        <div id="targets-needs-profile" style="font-size:12px;color:var(--muted)">Save your profile in the Introduction to see your personalised targets here.</div>
+        <div class="output-box" id="targets-out"></div>
+      </div>
+      <div class="callout green"><div class="callout-title">The Hard Gainer Rule</div><p>If not gaining 0.5–1 lb/week after 2 weeks of tracking — add 200 kcal. Your metabolism adapts upward. Keep pushing the number until the scale moves.</p></div>
+      <div class="quiz"><div class="quiz-q">Muscle Protein Synthesis remains elevated for how long after a training session?</div>
+        <div class="quiz-opts">
+          <button class="quiz-opt" onclick="quiz(this,'wrong',1)">30–60 minutes (the anabolic window)</button>
+          <button class="quiz-opt" onclick="quiz(this,'wrong',1)">3–6 hours</button>
+          <button class="quiz-opt" onclick="quiz(this,'correct',1)">24–48 hours</button>
+          <button class="quiz-opt" onclick="quiz(this,'wrong',1)">Only during the session itself</button>
+        </div><div class="quiz-fb" id="qf-1"></div>
+      </div>
+      <div class="ch-complete" id="cc-2">
+        <div class="ch-complete-icon">🥩</div><div class="xp-pill">+25 XP</div>
+        <h3>Nutrition: Understood</h3><p>You know what your body does with protein and why the numbers matter. Next: how training actually triggers growth.</p>
+        <button class="btn btn-green" onclick="completeAndNext(2)">Continue to Training →</button>
+      </div>
+    </div>
+
+    <!-- CH 3 -->
+    <div class="ch-page" id="ch-3">
+      <div class="eyebrow">Lesson 03</div>
+      <h1 class="h1">Training <em>Science</em></h1>
+      <p class="intro">Progressive overload is the only rule that matters. Here is what it means at a cellular level — and why most programmes fail hard gainers.</p>
+      <div class="divider"></div>
+      <p class="lead">Your body builds muscle in response to one thing: a stimulus it cannot currently handle comfortably. When you expose muscles to more tension than they are used to, adaptation begins. Remove that stimulus and adaptation stops.</p>
+      <h2 class="h2">The Science of <span>Progressive Overload</span></h2>
+      <p class="body">Progressive overload is the gradual increase of stress placed on the body during training. Mechanically, increased tension activates mTOR — the primary signalling pathway for muscle protein synthesis. More tension (more weight, more reps, more sets) = more mTOR activation = more MPS = more muscle. The key word is gradual. Add the smallest meaningful increment every session you are capable of completing all your reps.</p>
+      <div class="diagram-card">
+        <div class="diagram-title">The Progressive Overload Curve</div>
+        <div class="diagram-sub">How consistent small increments compound into significant results over 12 weeks</div>
+        <canvas id="d-overload" width="600" height="195" style="width:100%;height:auto"></canvas>
+        <p style="font-size:11px;color:var(--muted);margin-top:8px;line-height:1.6">The blue line shows consistent small weekly increments. Orange shows the inconsistent pattern — effort followed by missed sessions. The compound effect of consistency is profound.</p>
+      </div>
+      <div class="info-grid">
+        <div class="info-block" style="--c:var(--red)"><div class="info-block-title">What fails natural hard gainers</div><div class="info-block-body">6-day body part splits · Excessive volume per session · No deload weeks · Following influencer programmes designed for enhanced athletes</div></div>
+        <div class="info-block" style="--c:var(--green)"><div class="info-block-title">What works</div><div class="info-block-body">3–4 day Upper/Lower or Full Body splits · Compound movements first · 10–20 sets per muscle group per week · Mandatory deload every 6–8 weeks</div></div>
+      </div>
+      <div class="diagram-card">
+        <div class="diagram-title">Rep Range & Muscle Fibre Recruitment</div>
+        <div class="diagram-sub">Different rep ranges train different fibre types — all contribute to hypertrophy</div>
+        <canvas id="d-reps" width="600" height="155" style="width:100%;height:auto"></canvas>
+        <p style="font-size:11px;color:var(--muted);margin-top:8px;line-height:1.6">The 6–12 rep range is the hypertrophy sweet spot. Heavy enough to recruit high-threshold motor units, light enough to accumulate sufficient volume. Vary rep ranges across your programme for complete development.</p>
+      </div>
+      <div class="callout blue"><div class="callout-title">The Two-Rep Rule</div><p>End every working set 1–2 reps before failure (RIR — Reps in Reserve). The last rep is hard but form is intact. Training to true failure every set accumulates too much fatigue for natural lifters and impairs recovery.</p></div>
+      <div class="quiz"><div class="quiz-q">The primary signalling pathway that triggers muscle growth in response to mechanical tension is:</div>
+        <div class="quiz-opts">
+          <button class="quiz-opt" onclick="quiz(this,'wrong',2)">IGF-1 pathway</button>
+          <button class="quiz-opt" onclick="quiz(this,'correct',2)">mTOR (mechanistic Target of Rapamycin)</button>
+          <button class="quiz-opt" onclick="quiz(this,'wrong',2)">Cortisol cascade</button>
+          <button class="quiz-opt" onclick="quiz(this,'wrong',2)">The anabolic window response</button>
+        </div><div class="quiz-fb" id="qf-2"></div>
+      </div>
+      <div class="ch-complete" id="cc-3">
+        <div class="ch-complete-icon">🏋️</div><div class="xp-pill">+25 XP</div>
+        <h3>Training: Understood</h3><p>You know why progressive overload works and why most programmes are wrong for natural hard gainers.</p>
+        <button class="btn btn-green" onclick="completeAndNext(3)">Continue to Recovery →</button>
+      </div>
+    </div>
+
+    <!-- CH 4 -->
+    <div class="ch-page" id="ch-4">
+      <div class="eyebrow">Lesson 04</div>
+      <h1 class="h1">Recovery: The <em>Hidden Variable</em></h1>
+      <p class="intro">The gym breaks you down. Sleep builds you back up. Most hard gainers are sabotaging their results in the 23 hours they are not training.</p>
+      <div class="divider"></div>
+      <p class="lead">You do not build muscle in the gym. You create the conditions for muscle growth in the gym. The actual construction happens while you rest — and the quality of that rest determines how much training effort converts into muscle.</p>
+      <h2 class="h2">Sleep & <span>Hormonal Cascade</span></h2>
+      <p class="body">During slow-wave (deep) sleep the pituitary gland releases the majority of daily Human Growth Hormone. HGH drives protein synthesis and cellular repair. Cutting sleep short — even by 1–2 hours — measurably reduces HGH output. The result: less repair, less growth, and more muscle breakdown via elevated cortisol.</p>
+      <div class="diagram-card">
+        <div class="diagram-title">HGH Release Across a Full Night's Sleep</div>
+        <div class="diagram-sub">Why the last 90 minutes of sleep matter as much as the first</div>
+        <canvas id="d-sleep" width="600" height="175" style="width:100%;height:auto"></canvas>
+        <p style="font-size:11px;color:var(--muted);margin-top:8px;line-height:1.6">Cutting to 6 hours loses the final recovery cycles. These are not just "nice to have" — they are when a significant portion of daily growth hormone is released.</p>
+      </div>
+      <div class="stats-row">
+        <div class="stat-b" style="--c:var(--blue-l)"><div class="stat-b-val">7.5–9h</div><div class="stat-b-lbl">optimal sleep target</div></div>
+        <div class="stat-b" style="--c:var(--red)"><div class="stat-b-val">−30%</div><div class="stat-b-lbl">testosterone at 5h sleep</div></div>
+        <div class="stat-b" style="--c:var(--green)"><div class="stat-b-val">6–8 wks</div><div class="stat-b-lbl">deload frequency</div></div>
+      </div>
+      <div class="callout green"><div class="callout-title">The Deload is Mandatory</div><p>Every 6–8 weeks, reduce training weight by 40% for one week. Keep the movements. This is not laziness — it is the week your nervous system fully recovers and your body supercompensates. The week after a proper deload you will almost always hit a new personal record.</p></div>
+      <div class="quiz"><div class="quiz-q">The majority of daily Human Growth Hormone is released during:</div>
+        <div class="quiz-opts">
+          <button class="quiz-opt" onclick="quiz(this,'wrong',3)">After eating a high-protein meal</button>
+          <button class="quiz-opt" onclick="quiz(this,'wrong',3)">Immediately post-workout</button>
+          <button class="quiz-opt" onclick="quiz(this,'correct',3)">Slow-wave (deep) sleep</button>
+          <button class="quiz-opt" onclick="quiz(this,'wrong',3)">First 30 minutes after waking</button>
+        </div><div class="quiz-fb" id="qf-3"></div>
+      </div>
+      <div class="ch-complete" id="cc-4">
+        <div class="ch-complete-icon">😴</div><div class="xp-pill">+25 XP</div>
+        <h3>Recovery: Optimised</h3><p>Sleep is your most powerful anabolic tool. One more lesson before you build your plan.</p>
+        <button class="btn btn-green" onclick="completeAndNext(4)">Continue to Supplements →</button>
+      </div>
+    </div>
+
+    <!-- CH 5 -->
+    <div class="ch-page" id="ch-5">
+      <div class="eyebrow">Lesson 05</div>
+      <h1 class="h1">Supplements: <em>Truth vs Hype</em></h1>
+      <p class="intro">The supplement industry is worth billions because it is very good at selling hope. Here is what actually works and what is a waste of money.</p>
+      <div class="divider"></div>
+      <p class="lead">Supplements are 5% of the equation at best. Food, training, and sleep are the other 95%. That said, a few compounds have genuine research-backed benefit worth knowing about.</p>
+      <div style="display:flex;flex-direction:column;gap:9px;margin:18px 0">
+        <div class="info-block" style="--c:var(--green);padding:15px 16px"><div class="info-block-title" style="font-size:11px">✓ CREATINE MONOHYDRATE — Buy This</div><div class="info-block-body">The most researched supplement in existence. Increases phosphocreatine stores, regenerating ATP faster between sets — directly boosting strength 5–15%. 3–5g daily. No loading phase. Cheap. Works for ~70% of people. No meaningful downsides.</div></div>
+        <div class="info-block" style="--c:var(--blue-l);padding:15px 16px"><div class="info-block-title" style="font-size:11px">✓ WHEY PROTEIN — Useful if needed</div><div class="info-block-body">Not magic — it is food. ~25g protein per scoop. Useful if struggling to hit protein targets through whole foods. The body does not distinguish between chicken protein and whey protein. If you are already hitting targets through food, you do not need it.</div></div>
+        <div class="info-block" style="--c:var(--orange);padding:15px 16px"><div class="info-block-title" style="font-size:11px">↗ VITAMIN D3 + K2 — If deficient</div><div class="info-block-body">Most people in northern climates are deficient. Low vitamin D is directly linked to lower testosterone. 2,000–4,000 IU D3 + 100mcg K2 daily. Test your levels if possible.</div></div>
+        <div class="info-block" style="--c:var(--red);padding:15px 16px"><div class="info-block-title" style="font-size:11px">✗ MASS GAINERS — Skip</div><div class="info-block-body">Expensive sugar. Calories mostly from refined carbohydrates. Make your own instead: oats + whole milk + banana + whey + peanut butter. Same effect, better ingredients, fraction of the cost.</div></div>
+        <div class="info-block" style="--c:var(--red);padding:15px 16px"><div class="info-block-title" style="font-size:11px">✗ BCAAs — Waste of money</div><div class="info-block-body">Completely redundant if hitting protein targets. The amino acids are already in your food. You are paying significant money for something you are already getting.</div></div>
+      </div>
+      <div class="quiz"><div class="quiz-q">Which supplement has the strongest research evidence for increasing muscle strength in natural lifters?</div>
+        <div class="quiz-opts">
+          <button class="quiz-opt" onclick="quiz(this,'wrong',4)">BCAAs</button>
+          <button class="quiz-opt" onclick="quiz(this,'wrong',4)">Mass gainers</button>
+          <button class="quiz-opt" onclick="quiz(this,'correct',4)">Creatine monohydrate</button>
+          <button class="quiz-opt" onclick="quiz(this,'wrong',4)">Pre-workout stimulants</button>
+        </div><div class="quiz-fb" id="qf-4"></div>
+      </div>
+      <div class="ch-complete" id="cc-5">
+        <div class="ch-complete-icon">💊</div><div class="xp-pill">+25 XP</div>
+        <h3>5 lessons complete. One thing left.</h3><p>You have the knowledge. Now we build your personalised plan.</p>
+        <button class="btn btn-green" onclick="completeAndNext(5)">Build My Plan →</button>
+      </div>
+    </div>
+
+    <!-- CH 6: MAKE YOUR PLAN -->
+    <div class="ch-page" id="ch-6">
+      <div class="eyebrow">Make Your Plan</div>
+      <h1 class="h1">Your Personal <em>Mass Blueprint</em></h1>
+      <p class="intro">All five lessons, applied to your stats. Your nutrition targets, training programme, and 12-week progression plan.</p>
+      <div class="divider"></div>
+      <div id="plan-no-profile" style="padding:28px;text-align:center;background:var(--panel);border:1px solid var(--border2);border-radius:6px">
+        <div style="font-size:30px;margin-bottom:10px">⚙️</div>
+        <div style="font-weight:700;font-size:15px;margin-bottom:7px">Set up your profile first</div>
+        <div style="font-size:12px;color:var(--muted)">Go back to the Introduction and save your profile — then your full plan will appear here.</div>
+      </div>
+      <div id="plan-content" style="display:none">
+        <h2 class="h2"><span>Your Nutrition Targets</span></h2>
+        <div id="plan-nutrition"></div>
+        <h2 class="h2" style="margin-top:28px"><span>Your 4-Day Programme</span></h2>
+        <p class="body">Upper/Lower split — the most effective structure for natural hard gainers. Train Mon / Tue / Thu / Fri. Rest Wed / Sat / Sun.</p>
+        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin:14px 0" id="plan-week"></div>
+        <div id="plan-sessions" style="display:flex;flex-direction:column;gap:9px;margin-top:14px"></div>
+        <h2 class="h2" style="margin-top:28px"><span>12-Week Progression Plan</span></h2>
+        <div id="plan-phases" style="display:flex;flex-direction:column;gap:8px;margin-top:12px"></div>
+        <h2 class="h2" style="margin-top:28px"><span>Daily Non-Negotiables</span></h2>
+        <div id="plan-checklist" style="display:flex;flex-direction:column;gap:6px;margin-top:10px"></div>
+        <div id="plan-final" style="background:linear-gradient(135deg,rgba(59,255,140,.05),rgba(59,91,255,.05));border:1px solid rgba(59,255,140,.15);padding:24px;text-align:center;margin-top:28px;border-radius:6px">
+          <div style="font-size:36px;margin-bottom:10px">🏆</div>
+          <div style="font-weight:800;font-size:18px;margin-bottom:6px" id="plan-final-title">Your blueprint is ready.</div>
+          <div style="font-size:12px;color:var(--muted);max-width:420px;margin:0 auto 16px">You have the science, the targets, and the plan. The only gap between where you are and where you want to be is action.</div>
+          <div style="font-weight:800;font-size:22px;color:var(--orange)" id="plan-final-xp">0 XP earned</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:3px">Total this session</div>
+        </div>
+        <div style="background:linear-gradient(135deg,rgba(59,91,255,.08),rgba(68,207,255,.05));border:1px solid rgba(68,207,255,.2);padding:24px;text-align:center;margin-top:16px;border-radius:6px">
+          <div style="font-size:30px;margin-bottom:8px">📲</div>
+          <div style="font-weight:800;font-size:16px;margin-bottom:6px">Want this plan tracked for you, every day?</div>
+          <div style="font-size:12px;color:var(--muted);max-width:440px;margin:0 auto 16px">The Mass App takes everything in this blueprint — your training split, nutrition targets, and progression plan — and turns it into a daily tool: log workouts, track macros, and watch your progress add up automatically.</div>
+          <a href="../mass-app/areviax_mass_app (4).html" style="display:inline-flex;align-items:center;gap:8px;background:var(--cyan);color:#07090F;font-weight:700;font-size:13px;padding:12px 22px;border-radius:6px;text-decoration:none">Open the Mass App →</a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// cursor
+const cc=document.getElementById('cur-c'),cctx=cc.getContext('2d');
+const CS=48,C2=24;let mx=C2,my=C2,cx=C2,cy=C2,ang=0,hov=false;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY});
+document.querySelectorAll('a,button,.quiz-opt,.sb-ch,.ch-tab').forEach(el=>{el.addEventListener('mouseenter',()=>hov=true);el.addEventListener('mouseleave',()=>hov=false)});
+(function cl(){cx+=(mx-cx)*.14;cy+=(my-cy)*.14;ang+=hov?.07:.022;const col=hov?'#FF6B1A':'#44CFFF',r=hov?15:11,arm=hov?8:6,gap=4;cctx.clearRect(0,0,CS,CS);cctx.save();cctx.translate(C2,C2);cctx.rotate(ang);cctx.strokeStyle=col;cctx.lineWidth=hov?2:1.5;cctx.globalAlpha=.9;cctx.lineCap='round';[[0,-1],[0,1],[-1,0],[1,0]].forEach(([dx,dy])=>{cctx.beginPath();cctx.moveTo(dx*gap,dy*gap);cctx.lineTo(dx*(gap+arm),dy*(gap+arm));cctx.stroke()});cctx.globalAlpha=hov?.6:.4;cctx.lineWidth=1;for(let i=0;i<4;i++){cctx.beginPath();cctx.arc(0,0,r,i*Math.PI/2+.35,i*Math.PI/2+Math.PI/2-.35);cctx.stroke()}cctx.globalAlpha=1;cctx.fillStyle=col;cctx.shadowColor=col;cctx.shadowBlur=hov?10:6;cctx.beginPath();cctx.arc(0,0,hov?3:2,0,Math.PI*2);cctx.fill();cctx.shadowBlur=0;cctx.restore();cc.style.left=cx+'px';cc.style.top=cy+'px';requestAnimationFrame(cl)})();
+
+let xp=0,done=new Set(),profile=null;
+function toast(icon,msg){const t=document.getElementById('toast');document.getElementById('ti').textContent=icon;document.getElementById('tm').textContent=msg;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),3000)}
+function addXP(n,l=''){xp+=n;document.getElementById('xp-disp').textContent=xp+' XP';toast('⭐',`+${n} XP${l?' — '+l:''}`)}
+function goChapter(n){
+  document.querySelectorAll('.ch-page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('ch-'+n).classList.add('active');
+  document.querySelectorAll('.ch-tab').forEach((t,i)=>t.classList.toggle('active',i===n));
+  document.querySelectorAll('.sb-ch').forEach((s,i)=>s.classList.toggle('active',i===n));
+  document.getElementById('reading').scrollTo(0,0);
+  if(n===2)setTimeout(populateTargets,80);
+  if(n===6)setTimeout(buildPlan,80);
+  updateProg();
+  // Draw diagrams for this chapter after it becomes visible
+  setTimeout(()=>{
+    if(n===1){drawEnergy();drawSleep();}
+    if(n===2){drawMPS();drawPTiming();}
+    if(n===3){drawOverload();drawReps();}
+  },50);
+}
+function completeAndNext(n){done.add(n);const t=document.getElementById('tab-'+n);if(t){t.classList.add('done');t.classList.remove('active')}const s=document.getElementById('sb-'+n);if(s)s.classList.add('done');updateProg();goChapter(n+1)}
+function updateProg(){const p=Math.round(done.size/6*100);document.getElementById('prog-fill').style.width=p+'%';document.getElementById('prog-lbl').textContent=`${done.size} / 6 lessons`}
+
+function saveProfile(){
+  const name=document.getElementById('p-name').value.trim()||'Lifter';
+  const weight=parseFloat(document.getElementById('p-weight').value)||145;
+  const exp=document.getElementById('p-exp').value;const goal=document.getElementById('p-goal').value;
+  const mult=goal==='bulk'?19:18;const cals=Math.round(weight*mult);const protein=Math.round(weight);const fats=Math.round(cals*.25/9);const carbs=Math.round((cals-protein*4-fats*9)/4);
+  profile={name,weight,exp,goal,cals,protein,fats,carbs};
+  const out=document.getElementById('profile-out');out.className='output-box show';
+  out.innerHTML=`<div class="output-label">Profile Saved</div><div style="font-size:12px;line-height:1.85">Welcome, <strong>${name}</strong>. Based on <strong>${weight} lbs</strong>:<br>Calories: <strong style="color:var(--green)">${cals.toLocaleString()} kcal/day</strong> &nbsp;·&nbsp; Protein: <strong style="color:var(--blue-l)">${protein}g</strong> &nbsp;·&nbsp; Carbs: <strong style="color:var(--cyan)">${carbs}g</strong> &nbsp;·&nbsp; Fats: <strong style="color:var(--yellow)">${fats}g</strong></div>`;
+  document.getElementById('cc-0').classList.add('show');
+  const b=document.getElementById('ch1-banner');b.style.display='';
+  document.getElementById('ch1-banner-text').textContent=`${name}, at ${weight} lbs you need ${cals.toLocaleString()} calories and ${protein}g protein daily. If you haven't been tracking, this is almost certainly where the problem is.`;
+  addXP(10,'Profile saved');
+}
+
+function diagnose(){
+  const track=document.getElementById('d-track').value,sleep=document.getElementById('d-sleep').value,consist=document.getElementById('d-consist').value;
+  const issues=[];
+  if(track!=='yes')issues.push({label:'Nutrition — not tracking',detail:'You are almost certainly eating less than you think. Track for 2 full weeks before changing anything else.',col:'var(--orange)'});
+  if(sleep==='low')issues.push({label:'Recovery — poor sleep',detail:'Under 6 hours actively suppresses HGH and elevates cortisol. Fix this before optimising anything else.',col:'var(--red)'});
+  if(consist==='low')issues.push({label:'Training — inconsistency',detail:'Your body only adapts to stress applied repeatedly. Missing sessions breaks the adaptation cycle.',col:'var(--blue-l)'});
+  if(issues.length===0)issues.push({label:'Fundamentals are solid',detail:'Your biggest lever is probably fine-tuning: progressive overload tracking, precise calorie management, deload weeks.',col:'var(--green)'});
+  const out=document.getElementById('diag-out');out.className='output-box show';
+  out.innerHTML=`<div class="output-label">Your Priority Levers</div>`+issues.map(i=>`<div style="padding:9px 12px;background:var(--bg);border-left:2px solid ${i.col};margin-bottom:7px;border-radius:0 3px 3px 0"><div style="font-weight:700;font-size:11px;color:${i.col};margin-bottom:3px">${i.label}</div><div style="font-size:11px;color:var(--muted);line-height:1.6">${i.detail}</div></div>`).join('');
+  addXP(10,'Self-diagnosis');document.getElementById('cc-1').classList.add('show');
+}
+
+function populateTargets(){
+  if(!profile){document.getElementById('targets-needs-profile').style.display='';document.getElementById('targets-out').style.display='none';return}
+  document.getElementById('targets-needs-profile').style.display='none';
+  const out=document.getElementById('targets-out');out.className='output-box show';
+  out.innerHTML=`<div class="output-label">Your Daily Targets — ${profile.name}</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:7px">${[['Calories',profile.cals.toLocaleString(),'kcal/day','var(--green)',`${profile.weight}lbs × ${profile.goal==='bulk'?19:18}`],['Protein',profile.protein+'g','per day','var(--blue-l)',`${profile.weight} × 1g/lb`],['Carbs',profile.carbs+'g','per day','var(--cyan)','~50% remaining cals'],['Fats',profile.fats+'g','per day','var(--yellow)','~25% total cals']].map(([n,v,s,c,note])=>`<div style="background:var(--panel2);border:1px solid var(--border2);padding:12px;border-radius:4px;border-top:2px solid ${c}"><div style="font-weight:800;font-size:20px;color:${c}">${v}</div><div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-top:2px">${n} ${s}</div><div style="font-size:10px;color:var(--muted2);margin-top:4px">${note}</div></div>`).join('')}</div>`;
+}
+
+function quiz(btn,type,idx){
+  const p=btn.closest('.quiz');if(p.dataset.answered)return;p.dataset.answered=true;
+  p.querySelectorAll('.quiz-opt').forEach(o=>{o.disabled=true;o.style.pointerEvents='none'});
+  btn.classList.add(type);const fb=document.getElementById('qf-'+idx);
+  const msgs=['Correct. Studies consistently show 30–50% underestimation — this is why tracking is essential before making any other change.','Correct. The 30-minute anabolic window myth has been debunked. MPS stays elevated for 24–48 hours, making consistent protein intake throughout the day far more important than timing.','Correct. mTOR is the master regulator of MPS. Mechanical tension from progressive overload is the primary activator.','Correct. Slow-wave sleep is when the pituitary releases the bulk of daily HGH — which is why 7.5–9 hours is non-negotiable for hard gainers.','Correct. Creatine has hundreds of studies behind it with consistent evidence for strength and muscle gains in natural lifters.'];
+  if(type==='correct'){fb.className='quiz-fb pass show';fb.textContent='✓ '+msgs[idx];const cc=document.getElementById('cc-'+(idx+1));if(cc)cc.classList.add('show');addXP(15,'Quiz correct')}
+  else{fb.className='quiz-fb fail show';fb.textContent='Not quite — re-read the section above. The answer is there.';p.dataset.answered='';btn.classList.remove('wrong');btn.style.pointerEvents='auto';btn.disabled=false;setTimeout(()=>btn.classList.remove('wrong'),700)}
+}
+
+function buildPlan(){
+  if(!profile){document.getElementById('plan-no-profile').style.display='';document.getElementById('plan-content').style.display='none';return}
+  document.getElementById('plan-no-profile').style.display='none';document.getElementById('plan-content').style.display='';
+  document.getElementById('plan-nutrition').innerHTML=`<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin-top:10px">${[['Calories',profile.cals.toLocaleString(),'kcal','var(--green)'],['Protein',profile.protein+'g','daily','var(--blue-l)'],['Carbs',profile.carbs+'g','daily','var(--cyan)'],['Fats',profile.fats+'g','daily','var(--yellow)']].map(([n,v,s,c])=>`<div style="background:var(--panel2);border:1px solid var(--border2);padding:12px;text-align:center;border-radius:4px;border-top:2px solid ${c}"><div style="font-weight:800;font-size:18px;color:${c}">${v}</div><div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-top:2px">${n} / ${s}</div></div>`).join('')}</div>`;
+  const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'],sched=['Upper A','Lower A',null,'Upper B','Lower B',null,null];
+  document.getElementById('plan-week').innerHTML=days.map((d,i)=>`<div style="background:${sched[i]?'rgba(59,255,140,.07)':'var(--panel2)'};border:1px solid ${sched[i]?'rgba(59,255,140,.18)':'var(--border2)'};padding:9px 5px;text-align:center;border-radius:4px"><div style="font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:${sched[i]?'var(--green)':'var(--muted2)'}">${d}</div><div style="font-size:10px;font-weight:600;color:${sched[i]?'var(--white)':'var(--muted2)'};margin-top:3px">${sched[i]||'Rest'}</div></div>`).join('');
+  const sessions=[{name:'Upper A',focus:'Chest · Shoulders · Triceps',exercises:[['Bench Press','4×6–8'],['Incline DB Press','3×8–10'],['Overhead Press','4×6–8'],['Lateral Raises','3×12–15'],['Tricep Pushdown','3×10–12']]},{name:'Lower A',focus:'Quads · Glutes · Calves',exercises:[['Back Squat','4×6–8'],['Romanian Deadlift','3×8–10'],['Leg Press','3×10–12'],['Walking Lunges','3×10ea'],['Calf Raises','4×15–20']]},{name:'Upper B',focus:'Back · Biceps · Rear Delts',exercises:[['Barbell Row','4×6–8'],['Pull-ups / Lat Pulldown','4×6–10'],['Face Pulls','3×15–20'],['Barbell Curl','3×8–10'],['Hammer Curl','3×10–12']]},{name:'Lower B',focus:'Hamstrings · Quads · Abs',exercises:[['Deadlift','4×5–6'],['Hack Squat','3×8–10'],['Leg Extension','3×12–15'],['Leg Curl','3×8–10'],['Ab Wheel','3×8–12']]}];
+  document.getElementById('plan-sessions').innerHTML=sessions.map(s=>`<div style="background:var(--panel2);border:1px solid var(--border2);padding:14px;border-radius:4px"><div style="font-weight:700;font-size:13px;margin-bottom:2px">${s.name}</div><div style="font-size:10px;color:var(--muted);margin-bottom:9px">${s.focus}</div>${s.exercises.map(([n,sr])=>`<div style="display:flex;justify-content:space-between;font-size:11px;padding:4px 0;border-bottom:1px solid var(--border2)"><span style="color:var(--muted)">${n}</span><span style="font-family:'JetBrains Mono',monospace;color:var(--white)">${sr}</span></div>`).join('')}</div>`).join('');
+  const phases=[{label:'Weeks 1–4 · Foundation',col:'var(--orange)',tasks:['Focus on movement quality — use lighter weight until form is solid','Track every session: exercise, weight, sets, reps. No data = no progress','Hit '+profile.cals.toLocaleString()+' kcal and '+profile.protein+'g protein every day','Target: gain 0.5–1 lb per week. Weigh every morning, take weekly average']},{label:'Weeks 5–8 · Progressive Load',col:'var(--blue-l)',tasks:['Add weight every session you complete all reps with good form','Start 5g creatine monohydrate daily — non-negotiable','If weight gain has stalled for 2 weeks: add 200 kcal','Deload in week 8 — 40% less weight, same movements. Mandatory.']},{label:'Weeks 9–12 · Intensity',col:'var(--green)',tasks:['Add one extra set to your weakest compound lifts','Protein targets are non-negotiable this phase — this is where visible change accelerates','Take progress photos in week 9 and week 12 and compare to your start','Plan your next 12-week block based on real data from this one']}];
+  document.getElementById('plan-phases').innerHTML=phases.map(p=>`<div style="background:var(--panel2);border:1px solid var(--border2);border-left:3px solid ${p.col};padding:13px 15px;border-radius:0 4px 4px 0"><div style="font-size:10px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:${p.col};margin-bottom:9px">${p.label}</div>${p.tasks.map(t=>`<div style="display:flex;gap:9px;font-size:11px;color:var(--muted);padding:3px 0;line-height:1.55"><span style="color:${p.col};flex-shrink:0">→</span>${t}</div>`).join('')}</div>`).join('');
+  const checks=[`Hit ${profile.cals.toLocaleString()} kcal`,`Hit ${profile.protein}g protein across 4–5 meals`,'Train as scheduled — no negotiating with rest days','Sleep 7.5–9 hours — the most important non-training variable','5g creatine monohydrate daily with water','Weigh every morning, track weekly average'];
+  document.getElementById('plan-checklist').innerHTML=checks.map(c=>`<div style="display:flex;align-items:center;gap:11px;padding:9px 13px;background:var(--panel2);border:1px solid var(--border2);border-radius:4px"><div style="width:5px;height:5px;border-radius:50%;background:var(--green);flex-shrink:0"></div><span style="font-size:12px;color:var(--muted)">${c}</span></div>`).join('');
+  document.getElementById('plan-final-title').textContent=`${profile.name}, your blueprint is ready.`;
+  document.getElementById('plan-final-xp').textContent=`${xp+50} XP earned this session`;
+  addXP(50,'Plan complete');
+}
+
+// diagrams
+const muted='#6B7299',white='#EEF0FF',blue='#3B5BFF',cyan='#44CFFF',orange='#FF6B1A',green='#44D4FF',red='#FF4455',border='rgba(59,91,255,.13)';
+
+// ── HiDPI canvas setup — canvases were drawing at a fixed logical resolution
+// then getting stretched by CSS to fill their container, which looks blurry/
+// soft on any retina display (virtually all modern phones). This renders the
+// backing store at the actual device pixel ratio while every existing draw
+// call below keeps using the same logical 0–600-ish coordinates unchanged. ──
+function setupHiDPICanvas(id,logicalW,logicalH){
+  const c=document.getElementById(id);
+  if(!c||!c.getContext)return null;
+  const dpr=window.devicePixelRatio||1;
+  c.width=logicalW*dpr;
+  c.height=logicalH*dpr;
+  const ctx=c.getContext('2d');
+  ctx.scale(dpr,dpr);
+  return ctx;
+}
+function drawEnergy(){
+  const ctx=setupHiDPICanvas('d-energy',600,190);if(!ctx)return;
+  ctx.clearRect(0,0,600,190);
+  const cols=[{label:'Deficit',sub:'No growth',col:red,h:70},{label:'Maintenance',sub:'Baseline',col:muted,h:100},{label:'Surplus',sub:'Growth possible ✓',col:green,h:140}];
+  const bw=120,gap=40,sx=90,baseY=160;
+  cols.forEach((col,i)=>{const x=sx+i*(bw+gap);ctx.fillStyle=col.col+'22';ctx.fillRect(x,baseY-col.h,bw,col.h);ctx.strokeStyle=col.col;ctx.lineWidth=1;ctx.strokeRect(x,baseY-col.h,bw,col.h);ctx.fillStyle=col.col;ctx.font='bold 13px Outfit, sans-serif';ctx.textAlign='center';ctx.fillText(col.label,x+bw/2,baseY-col.h-8);ctx.fillStyle=muted;ctx.font='12px Outfit, sans-serif';ctx.fillText(col.sub,x+bw/2,baseY+14)});
+  ctx.strokeStyle=border;ctx.lineWidth=1;ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(40,baseY);ctx.lineTo(560,baseY);ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle=muted;ctx.font='12px Outfit, sans-serif';ctx.textAlign='left';ctx.fillText('Energy availability →',44,baseY+14);
+}
+
+function drawMPS(){
+  const ctx=setupHiDPICanvas('d-mps',600,210);if(!ctx)return;
+  ctx.clearRect(0,0,600,210);
+  const pts=[{x:70,y:185},{x:140,y:60},{x:260,y:80},{x:420,y:130},{x:560,y:185}];
+  const grad=ctx.createLinearGradient(0,55,0,190);grad.addColorStop(0,green+'44');grad.addColorStop(1,green+'00');
+  ctx.beginPath();ctx.moveTo(pts[0].x,pts[0].y);pts.forEach(p=>ctx.lineTo(p.x,p.y));ctx.lineTo(pts[pts.length-1].x,190);ctx.lineTo(pts[0].x,190);ctx.closePath();ctx.fillStyle=grad;ctx.fill();
+  ctx.beginPath();pts.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.strokeStyle=green;ctx.lineWidth=2;ctx.stroke();
+  const labels=['Training\nstimulus','MPS peak\n0–2h','Still elevated\n24h','Declining\n36h','Baseline\n48h'];const cols=[orange,green,cyan,blue,muted];
+  pts.forEach((p,i)=>{ctx.beginPath();ctx.arc(p.x,p.y,4,0,Math.PI*2);ctx.fillStyle=cols[i];ctx.fill();ctx.fillStyle=white;ctx.font='11px Outfit, sans-serif';ctx.textAlign='center';labels[i].split('\n').forEach((l,j)=>ctx.fillText(l,p.x,p.y-12-j*11))});
+  ctx.fillStyle=muted;ctx.font='12px Outfit, sans-serif';ctx.textAlign='center';ctx.fillText('Time after training session',300,205);
+  ctx.save();ctx.translate(14,105);ctx.rotate(-Math.PI/2);ctx.fillText('MPS level',0,0);ctx.restore();
+}
+
+function drawPTiming(){
+  const ctx=setupHiDPICanvas('d-ptiming',600,175);if(!ctx)return;
+  ctx.clearRect(0,0,600,175);
+  const meals=[80,200,320,450];
+  // Row 1 — front-loaded
+  ctx.fillStyle=red+'18';ctx.strokeStyle=red;ctx.lineWidth=1;
+  [[80,80],[20,80],[20,80],[20,80]].forEach(([h,x],i)=>{ctx.fillRect(meals[i]-20,40-h,40,h);ctx.strokeRect(meals[i]-20,40-h,40,h)});
+  ctx.fillStyle=red;ctx.font='bold 12px Outfit, sans-serif';ctx.textAlign='left';ctx.fillText('Front-loaded — less MPS spikes',20,22);
+  ['150g','20g','20g','20g'].forEach((l,i)=>{ctx.fillStyle=muted;ctx.font='11px Outfit, sans-serif';ctx.textAlign='center';ctx.fillText(l,meals[i],52)});
+  // Row 2 — even
+  ctx.fillStyle=green+'18';ctx.strokeStyle=green;ctx.lineWidth=1;
+  [[40,40],[40,40],[38,38],[38,38]].forEach(([h],i)=>{ctx.fillRect(meals[i]-20,115-h,40,h);ctx.strokeRect(meals[i]-20,115-h,40,h)});
+  ctx.fillStyle=green;ctx.font='bold 12px Outfit, sans-serif';ctx.textAlign='left';ctx.fillText('Distributed evenly — optimal ✓',20,96);
+  ['40g','40g','38g','38g'].forEach((l,i)=>{ctx.fillStyle=muted;ctx.font='11px Outfit, sans-serif';ctx.textAlign='center';ctx.fillText(l,meals[i],128)});
+  ['Breakfast','Lunch','Dinner','Supper'].forEach((l,i)=>{ctx.fillStyle=muted;ctx.font='11px Outfit, sans-serif';ctx.textAlign='center';ctx.fillText(l,meals[i],170)});
+}
+
+function drawOverload(){
+  const ctx=setupHiDPICanvas('d-overload',600,195);if(!ctx)return;
+  ctx.clearRect(0,0,600,195);
+  const W=12,pw=(600-100)/W,baseY=170;
+  // Grid
+  ctx.strokeStyle=border;ctx.lineWidth=.4;
+  for(let i=0;i<=W;i++){ctx.beginPath();ctx.moveTo(60+i*pw,20);ctx.lineTo(60+i*pw,baseY);ctx.stroke()}
+  // Consistent — blue
+  const cons=Array.from({length:W+1},(_,i)=>({x:60+i*pw,y:baseY-Math.pow(i,1.35)*4.5}));
+  ctx.beginPath();cons.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.strokeStyle=blue;ctx.lineWidth=2.5;ctx.setLineDash([]);ctx.stroke();
+  // Inconsistent — orange
+  let oy=baseY;const incons=[];
+  for(let i=0;i<=W;i++){if(i%3===1&&i>0)oy=Math.min(baseY,oy+12);else oy=Math.max(baseY-120,oy-5);incons.push({x:60+i*pw,y:oy})}
+  ctx.beginPath();incons.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.strokeStyle=orange;ctx.lineWidth=2;ctx.setLineDash([6,4]);ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle=blue;ctx.font='bold 12px Outfit, sans-serif';ctx.textAlign='left';ctx.fillText('Consistent progression',70,cons[W].y-8);
+  ctx.fillStyle=orange;ctx.fillText('Inconsistent training',240,incons[W].y+15);
+  ctx.fillStyle=muted;ctx.font='11px Outfit, sans-serif';ctx.textAlign='center';
+  ['Week 1','Week 6','Week 12'].forEach((l,i)=>ctx.fillText(l,60+[0,5,11][i]*pw,baseY+13));
+  ctx.save();ctx.translate(14,baseY/2);ctx.rotate(-Math.PI/2);ctx.fillStyle=muted;ctx.font='12px Outfit, sans-serif';ctx.fillText('Strength',0,0);ctx.restore();
+}
+
+function drawReps(){
+  const ctx=setupHiDPICanvas('d-reps',600,155);if(!ctx)return;
+  ctx.clearRect(0,0,600,155);
+  const ranges=[{label:'1–5 reps',sub:'Strength',h:60,col:red},{label:'6–12 reps',sub:'Hypertrophy ★',h:115,col:green,hi:true},{label:'13–20+ reps',sub:'Endurance',h:70,col:blue}];
+  const bw=130,gap=40,sx=80,baseY=130;
+  ranges.forEach((r,i)=>{const x=sx+i*(bw+gap);ctx.fillStyle=r.col+(r.hi?'30':'18');ctx.fillRect(x,baseY-r.h,bw,r.h);ctx.strokeStyle=r.col;ctx.lineWidth=r.hi?2:1;ctx.strokeRect(x,baseY-r.h,bw,r.h);ctx.fillStyle=r.col;ctx.font=`${r.hi?'bold ':''}13px Outfit, sans-serif`;ctx.textAlign='center';ctx.fillText(r.label,x+bw/2,baseY-r.h-9);ctx.fillStyle=muted;ctx.font='12px Outfit, sans-serif';ctx.fillText(r.sub,x+bw/2,baseY+14)});
+  ctx.strokeStyle=border;ctx.lineWidth=1;ctx.setLineDash([3,4]);ctx.beginPath();ctx.moveTo(40,baseY);ctx.lineTo(560,baseY);ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle=muted;ctx.font='12px Outfit, sans-serif';ctx.textAlign='left';ctx.fillText('Muscle growth potential',42,baseY-4);
+}
+
+function drawSleep(){
+  const ctx=setupHiDPICanvas('d-sleep',600,175);if(!ctx)return;
+  ctx.clearRect(0,0,600,175);
+  const hrs=['9pm','10pm','11pm','12am','1am','2am','3am','4am','5am','6am'];
+  const pw2=(600-80)/(hrs.length-1);
+  const hgh=[{x:80,y:160},{x:80+pw2*.4,y:75},{x:80+pw2*1,y:160},{x:80+pw2*1.5,y:90},{x:80+pw2*2,y:160},{x:80+pw2*2.5,y:65},{x:80+pw2*3,y:160},{x:80+pw2*3.5,y:110},{x:80+pw2*4,y:160},{x:80+pw2*4.5,y:130},{x:80+pw2*5,y:160},{x:80+pw2*5.5,y:115},{x:80+pw2*6,y:160},{x:80+pw2*6.5,y:135},{x:80+pw2*7,y:160},{x:80+pw2*7.5,y:140},{x:80+pw2*8,y:155},{x:80+pw2*9,y:160}];
+  const grad=ctx.createLinearGradient(0,60,0,160);grad.addColorStop(0,cyan+'44');grad.addColorStop(1,cyan+'00');
+  ctx.beginPath();ctx.moveTo(hgh[0].x,hgh[0].y);hgh.forEach(p=>ctx.lineTo(p.x,p.y));ctx.lineTo(hgh[hgh.length-1].x,163);ctx.lineTo(80,163);ctx.closePath();ctx.fillStyle=grad;ctx.fill();
+  ctx.beginPath();hgh.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.strokeStyle=cyan;ctx.lineWidth=1.5;ctx.stroke();
+  const cutX=80+pw2*5;
+  ctx.strokeStyle=red;ctx.lineWidth=1.5;ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(cutX,18);ctx.lineTo(cutX,162);ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle=red;ctx.font='bold 12px Outfit, sans-serif';ctx.textAlign='center';ctx.fillText('6h sleep cut-off',cutX,14);
+  ctx.fillText('⚠ lose this growth',cutX+75,95);
+  hrs.forEach((h,i)=>{ctx.fillStyle=muted;ctx.font='11px Outfit, sans-serif';ctx.textAlign='center';ctx.fillText(h,80+i*pw2,170)});
+  ctx.save();ctx.translate(12,100);ctx.rotate(-Math.PI/2);ctx.fillStyle=muted;ctx.font='12px Outfit, sans-serif';ctx.fillText('HGH level',0,0);ctx.restore();
+}
+
+window.addEventListener('load',()=>{
+  // Only draw diagrams for the initially visible chapter (ch-0 has none)
+  // They'll be drawn lazily as chapters are opened
+  setTimeout(()=>{
+    // Pre-draw ch-1 diagrams since user will see ch-0 first then navigate there
+  },200);
+});
+window.addEventListener('resize',()=>{
+  const active=document.querySelector('.ch-page.active');
+  if(!active)return;
+  const id=active.id;
+  if(id==='ch-1'){drawEnergy();drawSleep();}
+  else if(id==='ch-2'){drawMPS();drawPTiming();}
+  else if(id==='ch-3'){drawOverload();drawReps();}
+});
+
+(function(){const isTD=('ontouchstart' in window)||(navigator.maxTouchPoints>0);const el=document.getElementById('cur-c');if(isTD&&el){el.style.display='none';document.body.style.cursor='auto'}})();
+
+// ── LICENSE WATERMARK ──
+// Identifies the buyer on their own copy as a deterrent against reselling/resharing —
+// this doesn't prevent copying (nothing can, for a plain HTML file), but it means
+// anyone who reposts this publicly has their own name or email sitting in the page.
+// Reads buyer info from the URL if a checkout flow ever appends it (?name=...&email=...);
+// falls back to a generic licensed-copy notice if no buyer data is present yet.
+(function(){
+  const params = new URLSearchParams(window.location.search);
+  const buyerName = params.get('name');
+  const buyerEmail = params.get('email');
+  const identifier = buyerEmail || buyerName || 'Licensed copy — do not redistribute';
+  const wm = document.createElement('div');
+  wm.className = 'license-watermark';
+  wm.textContent = identifier;
+  document.body.appendChild(wm);
+  // Also embed it as a hidden, non-visible text node in the page itself, so it
+  // survives a screenshot crop of just the visible corner watermark.
+  const hidden = document.createElement('span');
+  hidden.style.cssText = 'position:absolute;width:1px;height:1px;overflow:hidden;opacity:0;pointer-events:none';
+  hidden.textContent = 'Areviax licensed copy: ' + identifier;
+  document.body.appendChild(hidden);
+})();
+
+// ── REVIEW PROMPT ──
+// Fires only after someone reaches chapter 6 (the final chapter, where their
+// personalised plan gets built) — reaching the actual end of the book is a
+// genuine signal of real engagement, unlike a popup timed to page-load or
+// time-on-site, which would ask people who haven't necessarily used anything.
+(function(){
+  const style = document.createElement('style');
+  style.textContent = `
+    #review-prompt{
+      position:fixed;bottom:24px;right:24px;z-index:9999;max-width:320px;
+      background:var(--panel);border:1px solid var(--border);border-radius:8px;
+      padding:20px;box-shadow:0 20px 50px -12px rgba(0,0,0,.6);
+      transform:translateY(20px);opacity:0;pointer-events:none;
+      transition:transform .5s cubic-bezier(.22,1,.36,1),opacity .5s;
+    }
+    #review-prompt.show{transform:translateY(0);opacity:1;pointer-events:auto}
+    #review-prompt .rp-title{font-size:14px;font-weight:700;margin-bottom:6px;color:var(--white)}
+    #review-prompt .rp-text{font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:14px}
+    #review-prompt .rp-btns{display:flex;gap:8px}
+    #review-prompt .rp-btn{flex:1;text-align:center;font-size:11px;font-weight:700;letter-spacing:.04em;
+      padding:9px 0;border-radius:5px;cursor:pointer;text-decoration:none;}
+    #review-prompt .rp-btn-primary{background:var(--green);color:var(--bg)}
+    #review-prompt .rp-btn-secondary{background:none;color:var(--muted);border:1px solid var(--border2)}
+  `;
+  document.head.appendChild(style);
+
+  const banner = document.createElement('div');
+  banner.id = 'review-prompt';
+  banner.innerHTML = `
+    <div class="rp-title">Finished the plan?</div>
+    <div class="rp-text">If this helped, a quick review genuinely helps other hard gainers find it — and gets you into this month's prize draw.</div>
+    <div class="rp-btns">
+      <a href="https://areviax.netlify.app/leave_a_review.html" target="_blank" class="rp-btn rp-btn-primary">Leave a review</a>
+      <span class="rp-btn rp-btn-secondary" onclick="document.getElementById('review-prompt').classList.remove('show')">Not now</span>
+    </div>
+  `;
+  document.body.appendChild(banner);
+
+  // Hook into the existing goChapter function without replacing its original
+  // behaviour — this only adds the popup trigger on top of what's already there.
+  const originalGoChapter = window.goChapter;
+  window.goChapter = function(n){
+    originalGoChapter(n);
+    if(n === 6){
+      const alreadyShown = localStorage.getItem('areviax_mb_review_shown');
+      if(!alreadyShown){
+        setTimeout(() => {
+          document.getElementById('review-prompt').classList.add('show');
+          localStorage.setItem('areviax_mb_review_shown', 'true');
+        }, 6000); // wait a few seconds so they see their actual plan first
+      }
+    }
+  };
+})();
+</script>
+</body>
+</html>

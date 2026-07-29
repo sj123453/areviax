@@ -1,0 +1,1356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>AI Prompt Mastery — Areviax Interactive</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Fraunces:ital,opsz,wght@1,9..144,300;1,9..144,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0B1230;--bg2:#121B42;--panel:#182352;--panel2:#1B2758;
+  --blue:#3B5BFF;--blue-l:#5B7FFF;--cyan:#44CFFF;
+  --orange:#FF6B1A;--orange2:#FF8C47;
+  --white:#EEF0FF;--muted:#7B84B0;--muted2:#4A5070;
+  --border:rgba(59,91,255,.15);--border2:rgba(255,255,255,.06);
+  --green:#44D4FF;
+}
+html,body{height:100%;overflow:hidden}
+html{background:var(--bg);overscroll-behavior-y:none}
+    body{background:var(--bg);color:var(--white);font-family:'Outfit',sans-serif;font-weight:300;display:flex;flex-direction:column;cursor:none;overscroll-behavior-y:none}
+*{cursor:none!important}
+.page-gradient-bg{position:fixed;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(160deg,#1D2B63 0%,#0B1230 55%,#080C22 100%)}
+#cur-c{position:fixed;pointer-events:none;z-index:9999;transform:translate(-50%,-50%)}
+
+/* ── LAYOUT ── */
+.app{display:flex;height:100vh;overflow:hidden}
+
+/* SIDEBAR / CHAPTERS */
+.sidebar{
+  width:260px;flex-shrink:0;background:var(--bg2);
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;overflow:hidden;
+}
+.sb-top{padding:20px;border-bottom:1px solid var(--border)}
+.sb-back{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--muted);text-decoration:none;margin-bottom:14px;transition:color .2s}
+.sb-back:hover{color:var(--white)}
+.sb-book-title{font-weight:800;font-size:15px;letter-spacing:-.01em;line-height:1.2}
+.sb-book-sub{font-size:11px;color:var(--orange);letter-spacing:.08em;text-transform:uppercase;margin-top:4px}
+.sb-collection-tag{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:700;letter-spacing:.04em;color:var(--cyan);background:rgba(68,207,255,.1);border:1px solid rgba(68,207,255,.25);border-radius:5px;padding:5px 9px;margin-top:10px}
+
+/* progress bar */
+.sb-progress{padding:14px 20px;border-bottom:1px solid var(--border)}
+.sb-progress-label{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-bottom:6px;letter-spacing:.06em;text-transform:uppercase}
+.sb-progress-bar{height:3px;background:var(--border);border-radius:2px;overflow:hidden}
+.sb-progress-fill{height:100%;background:linear-gradient(to right,var(--orange),var(--orange2));border-radius:2px;transition:width .6s ease}
+
+/* chapter list */
+.chapter-list{flex:1;overflow-y:auto;padding:8px 0;scrollbar-width:none}
+.chapter-list::-webkit-scrollbar{display:none}
+.ch-item{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 20px;font-size:13px;
+  color:var(--muted);transition:color .2s,background .2s;
+  border-left:2px solid transparent;cursor:pointer;
+}
+.ch-item:hover{color:var(--white);background:rgba(59,91,255,.06)}
+.ch-item.active{color:var(--white);background:rgba(59,91,255,.1);border-left-color:var(--blue)}
+.ch-item.done{color:var(--muted)}
+.ch-item.done .ch-num{background:var(--green);color:var(--bg);border-color:var(--green)}
+.ch-num{
+  width:22px;height:22px;border-radius:50%;
+  background:transparent;border:1px solid var(--muted2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:9px;font-weight:700;font-family:'JetBrains Mono',monospace;
+  flex-shrink:0;transition:all .3s;
+}
+.ch-item.active .ch-num{background:var(--blue);border-color:var(--blue);color:white}
+.ch-title-text{flex:1;line-height:1.3}
+.ch-check{font-size:10px;color:var(--green);opacity:0;transition:opacity .3s}
+.ch-item.done .ch-check{opacity:1}
+
+/* XP badge sidebar bottom */
+.sb-bottom{
+  padding:14px 20px;border-top:1px solid var(--border);
+  display:flex;align-items:center;gap:10px;
+}
+.xp-orb{
+  width:36px;height:36px;border-radius:50%;flex-shrink:0;
+  background:linear-gradient(135deg,var(--orange),var(--orange2));
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:800;color:var(--bg);
+}
+.xp-info{flex:1}
+.xp-val{font-weight:700;font-size:14px}
+.xp-label{font-size:10px;color:var(--muted)}
+
+/* ── MAIN ── */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+
+/* mobile chapter strip — only shown when sidebar is hidden */
+.ch-strip{display:none;overflow-x:auto;gap:0;background:var(--bg2);border-bottom:1px solid var(--border);padding:0 14px;scrollbar-width:none;flex-shrink:0}
+.ch-strip::-webkit-scrollbar{display:none}
+.ch-tab{flex-shrink:0;padding:11px 14px;font-size:10.5px;font-weight:600;letter-spacing:.03em;color:var(--muted);border-bottom:2px solid transparent;cursor:pointer;transition:color .2s,border-color .2s;white-space:nowrap}
+.ch-tab:hover{color:var(--white)}
+.ch-tab.active{color:var(--white);border-bottom-color:var(--blue)}
+.ch-tab.done{color:var(--green)}
+.ch-tab.done::before{content:'¹3 ';font-size:8px}
+
+@media(max-width:700px){
+  .sidebar{display:none}
+  .ch-strip{display:flex}
+  .topbar{padding:0 16px}
+  .reading-area{padding:24px 18px 60px!important}
+}
+
+/* TOP BAR */
+.topbar{
+  height:52px;flex-shrink:0;
+  background:var(--bg2);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 32px;
+}
+.tb-chapter{font-size:12px;font-weight:600;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.tb-nav{display:flex;gap:8px}
+.tb-btn{
+  display:flex;align-items:center;gap:6px;
+  font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;
+  padding:7px 16px;border:1px solid var(--border2);background:transparent;
+  color:var(--muted);transition:all .22s;font-family:'Outfit',sans-serif;
+}
+.tb-btn:hover{border-color:var(--border);color:var(--white)}
+.tb-btn.primary{background:var(--orange);border-color:var(--orange);color:var(--bg)}
+.tb-btn.primary:hover{background:var(--orange2)}
+
+/* READING AREA */
+.reading-area{
+  flex:1;overflow-y:auto;
+  scrollbar-width:thin;scrollbar-color:var(--border) transparent;
+}
+.reading-area::-webkit-scrollbar{width:3px}
+.reading-area::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+.chapter-page{
+  display:none;max-width:760px;margin:0 auto;
+  padding:48px 48px 80px;
+  animation:fadeIn .35s ease;
+}
+.chapter-page.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── TYPOGRAPHY ── */
+.ch-eyebrow{
+  font-size:10px;font-weight:700;letter-spacing:.28em;text-transform:uppercase;
+  color:var(--orange);margin-bottom:14px;
+  display:flex;align-items:center;gap:10px;
+}
+.ch-eyebrow::before{content:'';display:inline-block;width:18px;height:1.5px;background:var(--orange)}
+.ch-h1{
+  font-weight:900;font-size:clamp(32px,4vw,52px);
+  line-height:1.04;letter-spacing:-.025em;margin-bottom:8px;
+}
+.ch-h1 em{font-family:'Fraunces',serif;font-style:italic;font-weight:300;color:var(--blue-l)}
+.ch-subtitle{font-size:16px;color:var(--muted);line-height:1.6;margin-bottom:36px;font-style:italic}
+.ch-divider{height:1px;background:var(--border);margin:32px 0}
+.ch-lead{font-size:16px;line-height:1.85;color:rgba(238,240,255,.85);margin-bottom:24px}
+.ch-body{font-size:14.5px;line-height:1.85;color:rgba(238,240,255,.72);font-weight:400;margin-bottom:20px}
+.ch-h2{font-weight:700;font-size:20px;letter-spacing:-.01em;margin:32px 0 12px;color:var(--white)}
+.ch-h2 span{color:var(--orange)}
+.ch-h3{font-weight:600;font-size:15px;letter-spacing:.04em;text-transform:uppercase;color:var(--cyan);margin:24px 0 10px}
+
+/* ── CALLOUT ── */
+.callout{
+  background:rgba(29,43,99,.22);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border-left:3px solid var(--orange);
+  border:1px solid rgba(255,107,26,.2);border-left:3px solid var(--orange);
+  padding:18px 20px;margin:24px 0;border-radius:0 8px 8px 0;
+}
+.callout-title{font-size:10px;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:var(--orange);margin-bottom:8px}
+.callout p{font-size:13.5px;line-height:1.7;color:rgba(238,240,255,.8)}
+.callout.blue{border-left-color:var(--cyan);border-color:rgba(68,207,255,.15);border-left:3px solid var(--cyan)}
+.callout.blue .callout-title{color:var(--cyan)}
+.callout.green{border-left-color:var(--green);border-color:rgba(59,255,140,.15);border-left:3px solid var(--green)}
+.callout.green .callout-title{color:var(--green)}
+
+/* ── STAT ROW ── */
+.stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:24px 0}
+.stat-block{
+  background:rgba(29,43,99,.22);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border:1px solid var(--border2);
+  border-radius:8px;padding:16px;text-align:center;
+  position:relative;overflow:hidden;
+}
+.stat-block::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--accent,var(--blue))}
+.stat-block-val{font-weight:800;font-size:26px;letter-spacing:-.02em;color:var(--white);font-family:'JetBrains Mono',monospace}
+.stat-block-label{font-size:10px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-top:4px}
+
+/* ── COMPARISON TABLE ── */
+.comp-table{width:100%;margin:24px 0;border-collapse:collapse;font-size:13px}
+.comp-table th{background:var(--blue);color:white;padding:10px 14px;text-align:left;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase}
+.comp-table td{padding:9px 14px;border-bottom:1px solid var(--border2)}
+.comp-table tr:nth-child(even) td{background:rgba(15,20,40,.5)}
+.comp-table tr:nth-child(odd) td{background:var(--panel)}
+.comp-table td:first-child{font-weight:600;color:var(--white)}
+
+/* ── INTERACTIVE: HOOK BUILDER ── */
+.tool-card{
+  background:rgba(29,43,99,.22);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border:1px solid var(--border);
+  border-radius:10px;padding:24px;margin:28px 0;
+  position:relative;overflow:hidden;
+  box-shadow:0 20px 50px -20px rgba(0,0,0,.5);
+}
+.tool-card::before{
+  content:'⚡ INTERACTIVE TOOL';
+  position:absolute;top:0;right:0;
+  font-size:8px;font-weight:800;letter-spacing:.15em;
+  color:var(--bg);background:var(--cyan);
+  padding:4px 12px;
+}
+.tool-title{font-weight:700;font-size:16px;margin-bottom:6px}
+.tool-desc{font-size:12px;color:var(--muted);margin-bottom:18px;line-height:1.6}
+.tool-label{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px;margin-top:14px}
+.tool-input{
+  width:100%;background:var(--bg);border:1px solid var(--border);
+  color:var(--white);font-family:'Outfit',sans-serif;font-size:13px;
+  padding:10px 14px;border-radius:4px;transition:border-color .2s;
+}
+.tool-input:focus{outline:none;border-color:var(--blue)}
+.tool-select{
+  width:100%;background:var(--bg);border:1px solid var(--border);
+  color:var(--white);font-family:'Outfit',sans-serif;font-size:13px;
+  padding:10px 14px;border-radius:4px;
+}
+.tool-select option{background:var(--panel)}
+.tool-output{
+  background:var(--bg);border:1px solid rgba(68,207,255,.25);
+  padding:16px;margin-top:16px;border-radius:4px;
+  font-size:14px;line-height:1.7;color:var(--white);
+  min-height:60px;
+  border-left:3px solid var(--cyan);
+  display:none;
+}
+.tool-output.show{display:block;animation:fadeIn .3s ease}
+.tool-output-label{font-size:9px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--cyan);margin-bottom:8px}
+.tool-btn{
+  display:inline-flex;align-items:center;gap:7px;
+  font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  padding:10px 22px;background:var(--orange);border:none;
+  color:var(--bg);font-family:'Outfit',sans-serif;
+  margin-top:16px;clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,0 100%);
+  transition:background .2s,transform .18s;
+}
+.tool-btn:hover{background:var(--orange2);transform:translateY(-1px)}
+.tool-btn.blue-btn{background:var(--blue);color:white}
+.tool-btn.blue-btn:hover{background:var(--blue-l)}
+
+/* ── QUIZ ── */
+.quiz-card{
+  background:var(--panel);border:1px solid var(--border);
+  border-radius:6px;padding:24px;margin:28px 0;
+}
+.quiz-card::before{
+  content:'✦ KNOWLEDGE CHECK';
+  display:block;
+  font-size:8px;font-weight:800;letter-spacing:.15em;color:var(--bg);
+  background:var(--orange);padding:4px 12px;margin:-24px -24px 18px;
+}
+.quiz-question{font-weight:600;font-size:15px;margin-bottom:16px;line-height:1.5}
+.quiz-options{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
+.quiz-opt{
+  padding:12px 16px;background:var(--bg);border:1px solid var(--border2);
+  font-size:13px;color:var(--muted);cursor:pointer;transition:all .2s;
+  text-align:left;font-family:'Outfit',sans-serif;
+}
+.quiz-opt:hover{border-color:var(--border);color:var(--white);background:var(--panel2)}
+.quiz-opt.correct{background:rgba(59,255,140,.1);border-color:var(--green);color:var(--green)}
+.quiz-opt.wrong{background:rgba(255,59,59,.1);border-color:#ff3b3b;color:#ff3b3b}
+.quiz-result{
+  font-size:13px;padding:12px 16px;border-radius:4px;display:none;
+  line-height:1.6;
+}
+.quiz-result.show{display:block}
+.quiz-result.pass{background:rgba(59,255,140,.08);border:1px solid rgba(59,255,140,.2);color:var(--green)}
+.quiz-result.fail{background:rgba(255,107,26,.08);border:1px solid rgba(255,107,26,.2);color:var(--orange)}
+
+/* ── CHECKLIST ── */
+.checklist{margin:20px 0}
+.check-item{
+  display:flex;align-items:flex-start;gap:12px;
+  padding:10px 14px;background:var(--panel2);
+  border:1px solid var(--border2);border-radius:4px;
+  margin-bottom:6px;cursor:pointer;transition:border-color .2s;
+}
+.check-item:hover{border-color:var(--border)}
+.check-item.checked{opacity:.6}
+.check-item.checked .check-text{text-decoration:line-through;color:var(--muted)}
+.check-box{
+  width:18px;height:18px;border:1.5px solid var(--muted2);border-radius:3px;
+  flex-shrink:0;display:flex;align-items:center;justify-content:center;
+  transition:all .2s;margin-top:1px;
+}
+.check-item.checked .check-box{background:var(--green);border-color:var(--green)}
+.check-box svg{display:none;color:var(--bg)}
+.check-item.checked .check-box svg{display:block}
+.check-text{font-size:13px;line-height:1.5}
+
+/* ── PLATFORM CARD ── */
+.platform-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:20px 0}
+.platform-card{
+  background:var(--panel2);border:1px solid var(--border2);
+  padding:16px;border-radius:4px;
+  border-top:2px solid var(--accent);
+}
+.platform-name{font-weight:700;font-size:14px;margin-bottom:4px}
+.platform-stat{font-size:11px;color:var(--muted);margin-bottom:8px}
+.platform-bar-wrap{height:3px;background:var(--border);border-radius:2px;overflow:hidden;margin-bottom:6px}
+.platform-bar{height:100%;border-radius:2px}
+
+/* ── PERSONALISATION BANNER ── */
+.persona-banner{
+  background:linear-gradient(135deg,rgba(59,91,255,.12),rgba(255,107,26,.06));
+  border:1px solid var(--border);padding:16px 20px;
+  display:flex;align-items:center;gap:14px;margin-bottom:28px;
+  border-radius:4px;
+}
+.persona-icon{font-size:22px;flex-shrink:0}
+.persona-text{font-size:13px;color:var(--muted);line-height:1.55}
+.persona-name{font-weight:700;color:var(--white)}
+
+/* ── 90 DAY PLAN GENERATOR ── */
+.plan-week{
+  background:var(--panel2);border:1px solid var(--border2);
+  border-radius:4px;padding:14px 16px;margin-bottom:8px;
+  border-left:3px solid var(--accent,var(--blue));
+}
+.plan-week-label{font-size:10px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;margin-bottom:8px}
+.plan-week-tasks{list-style:none;display:flex;flex-direction:column;gap:5px}
+.plan-week-tasks li{font-size:12px;color:var(--muted);display:flex;align-items:flex-start;gap:8px;line-height:1.5}
+.plan-week-tasks li::before{content:'→';color:var(--orange);flex-shrink:0}
+
+/* ── CHAPTER COMPLETE ── */
+.ch-complete{
+  text-align:center;padding:40px 20px;
+  border:1px solid var(--border);background:var(--panel);
+  margin:32px 0;border-radius:6px;
+  display:none;
+}
+.ch-complete.show{display:block;animation:fadeIn .5s ease}
+.ch-complete-icon{font-size:48px;margin-bottom:16px}
+.ch-complete h3{font-weight:800;font-size:22px;margin-bottom:8px}
+.ch-complete p{font-size:14px;color:var(--muted);margin-bottom:20px}
+.xp-pop{
+  display:inline-flex;align-items:center;gap:8px;
+  font-size:13px;font-weight:700;
+  background:rgba(255,107,26,.15);border:1px solid rgba(255,107,26,.3);
+  color:var(--orange);padding:8px 18px;border-radius:20px;
+  margin-bottom:20px;
+}
+
+/* ── HOOK FORMULA CARDS ── */
+.hook-cards{display:flex;flex-direction:column;gap:10px;margin:20px 0}
+.hook-card{
+  background:var(--panel2);border:1px solid var(--border2);
+  padding:14px 18px;border-radius:4px;
+  border-left:3px solid var(--accent,var(--orange));
+}
+.hook-label{font-size:9px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;margin-bottom:6px}
+.hook-example{font-family:'Fraunces',serif;font-style:italic;font-size:14px;color:var(--white);margin-bottom:6px;line-height:1.5}
+.hook-why{font-size:12px;color:var(--muted);line-height:1.55}
+.trigger-tag{display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:700;letter-spacing:.06em;color:#FF9070;background:rgba(255,107,26,.08);border:1px solid rgba(255,107,26,.22);padding:4px 9px;border-radius:4px;margin-top:8px}
+.trigger-tag.t-cyan{color:#7DDDFF;background:rgba(68,207,255,.08);border-color:rgba(68,207,255,.22)}
+.trigger-tag.t-blue{color:#9AB0FF;background:rgba(91,127,255,.08);border-color:rgba(91,127,255,.22)}
+.trigger-tag.t-green{color:#7DFFB0;background:rgba(59,255,140,.08);border-color:rgba(59,255,140,.22)}
+.trigger-tag::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.9}
+.trigger-tag{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:700;letter-spacing:.05em;padding:4px 9px;border-radius:4px;margin-top:10px;background:rgba(255,107,26,.08);color:var(--orange);border:1px solid rgba(255,107,26,.2)}
+.trigger-tag.t-blue{background:rgba(91,127,255,.08);color:var(--blue-l);border-color:rgba(91,127,255,.2)}
+.trigger-tag.t-cyan{background:rgba(68,207,255,.08);color:var(--cyan);border-color:rgba(68,207,255,.2)}
+.trigger-tag.t-green{background:rgba(59,255,140,.08);color:var(--green);border-color:rgba(59,255,140,.2)}
+.trigger-tag::before{content:'▶';font-size:7px}
+
+/* ── TOAST ── */
+#toast{
+  position:fixed;bottom:24px;right:24px;z-index:1000;
+  background:var(--panel2);border:1px solid var(--border);
+  padding:12px 18px;display:flex;align-items:center;gap:10px;
+  font-size:13px;font-weight:500;
+  transform:translateY(60px);opacity:0;pointer-events:none;
+  transition:transform .35s cubic-bezier(.22,1,.36,1),opacity .35s;
+}
+#toast.show{transform:translateY(0);opacity:1}
+/* ── LICENSE WATERMARK ── */
+.license-watermark{
+  position:fixed;bottom:8px;right:10px;z-index:500;
+  font-size:9px;color:rgba(238,240,255,.18);
+  pointer-events:none;font-family:'JetBrains Mono',monospace;
+  letter-spacing:.02em;
+}
+</style>
+</head>
+<body>
+<div class="page-gradient-bg">
+  <div class="page-gradient-blob pgb1"></div>
+  <div class="page-gradient-blob pgb2"></div>
+  <div class="page-gradient-blob pgb3"></div>
+</div>
+<canvas id="cur-c" width="48" height="48"></canvas>
+<div id="toast">
+  <span id="toast-icon">⭐</span>
+  <span id="toast-msg">+XP earned</span>
+</div>
+
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sb-top">
+      <a href="https://areviax.netlify.app/" class="sb-back">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        Back to Areviax
+      </a>
+      <div class="sb-book-title">AI Prompt Mastery</div>
+      <div class="sb-book-sub">Interactive Edition</div>
+      <div class="sb-collection-tag">⚡ Interactive Ebook Collection</div>
+    </div>
+    <div class="sb-progress">
+      <div class="sb-progress-label">
+        <span>Progress</span>
+        <span id="progress-pct">0%</span>
+      </div>
+      <div class="sb-progress-bar"><div class="sb-progress-fill" id="progress-fill" style="width:0%"></div></div>
+    </div>
+    <div class="chapter-list" id="chapter-list">
+      <div class="ch-item active" onclick="goChapter(0)">
+        <div class="ch-num">0</div>
+        <div class="ch-title-text">Introduction</div>
+        <span class="ch-check">✓</span>
+      </div>
+      <div class="ch-item" onclick="goChapter(1)">
+        <div class="ch-num">1</div>
+        <div class="ch-title-text">Prompt Anatomy</div>
+        <span class="ch-check">✓</span>
+      </div>
+      <div class="ch-item" onclick="goChapter(2)">
+        <div class="ch-num">2</div>
+        <div class="ch-title-text">Context & Examples</div>
+        <span class="ch-check">✓</span>
+      </div>
+      <div class="ch-item" onclick="goChapter(3)">
+        <div class="ch-num">3</div>
+        <div class="ch-title-text">Content Creation Prompts</div>
+        <span class="ch-check">✓</span>
+      </div>
+      <div class="ch-item" onclick="goChapter(4)">
+        <div class="ch-num">4</div>
+        <div class="ch-title-text">Business & Productivity</div>
+        <span class="ch-check">✓</span>
+      </div>
+      <div class="ch-item" onclick="goChapter(5)">
+        <div class="ch-num">5</div>
+        <div class="ch-title-text">Prompt Chaining</div>
+        <span class="ch-check">✓</span>
+      </div>
+      <div class="ch-item" onclick="goChapter(6)">
+        <div class="ch-num">6</div>
+        <div class="ch-title-text">Advanced Techniques</div>
+        <span class="ch-check">✓</span>
+      </div>
+      <div class="ch-item" onclick="goChapter(7)">
+        <div class="ch-num">7</div>
+        <div class="ch-title-text">Common Mistakes</div>
+        <span class="ch-check">✓</span>
+      </div>
+      <div class="ch-item" onclick="goChapter(8)">
+        <div class="ch-num">8</div>
+        <div class="ch-title-text">Your Prompt Library</div>
+        <span class="ch-check">✓</span>
+      </div>
+    </div>
+    <div class="sb-bottom">
+      <div class="xp-orb" id="xp-orb">0</div>
+      <div class="xp-info">
+        <div class="xp-val" id="xp-display">0 XP</div>
+        <div class="xp-label">earned this session</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <div class="tb-chapter" id="tb-chapter-label">Introduction</div>
+      <div class="tb-nav">
+        <button class="tb-btn" onclick="prevChapter()">← Prev</button>
+        <button class="tb-btn primary" onclick="nextChapter()" id="next-btn">Next →</button>
+      </div>
+    </div>
+
+    <div class="ch-strip">
+      <div class="ch-tab active" onclick="goChapter(0)">Intro</div>
+      <div class="ch-tab" onclick="goChapter(1)">Anatomy</div>
+      <div class="ch-tab" onclick="goChapter(2)">Context & Examples</div>
+      <div class="ch-tab" onclick="goChapter(3)">Content Prompts</div>
+      <div class="ch-tab" onclick="goChapter(4)">Business Prompts</div>
+      <div class="ch-tab" onclick="goChapter(5)">Chaining</div>
+      <div class="ch-tab" onclick="goChapter(6)">Advanced</div>
+      <div class="ch-tab" onclick="goChapter(7)">Mistakes</div>
+      <div class="ch-tab" onclick="goChapter(8)">Prompt Library</div>
+    </div>
+
+    <div class="reading-area" id="reading-area">
+
+      <!-- ══ CHAPTER 0: INTRO / PERSONALISATION ══ -->
+      <div class="chapter-page active" id="ch-0">
+        <div class="ch-eyebrow">Welcome</div>
+        <h1 class="ch-h1">This guide <em>responds</em><br>to you.</h1>
+        <p class="ch-subtitle">Answer a few questions below and every chapter adapts to your situation.</p>
+        <div class="ch-divider"></div>
+
+        <div class="tool-card" style="margin-top:0">
+          <div class="tool-title">Set up your profile</div>
+          <div class="tool-desc">Takes 60 seconds. Every tool, plan and example in this guide will be personalised to your answers.</div>
+
+          <label class="tool-label">Your name (so we can address you directly)</label>
+          <input type="text" class="tool-input" id="user-name" placeholder="e.g. Jordan">
+
+          <label class="tool-label">Your area of expertise</label>
+          <select class="tool-select" id="user-niche">
+            <option value="">Select your area...</option>
+            <option value="fitness">Fitness & Health</option>
+            <option value="business">Business & Entrepreneurship</option>
+            <option value="creator">Content Creation & Social Media</option>
+            <option value="lifestyle">Lifestyle & Mindset</option>
+            <option value="tech">Tech & AI</option>
+            <option value="finance">Finance & Investing</option>
+            <option value="education">Education & Coaching</option>
+            <option value="other">Other</option>
+          </select>
+
+          <label class="tool-label">Which AI tool do you use most?</label>
+          <select class="tool-select" id="user-platform">
+            <option value="chatgpt">ChatGPT</option>
+            <option value="claude">Claude</option>
+            <option value="gemini">Gemini</option>
+            <option value="mix">A mix of different tools</option>
+          </select>
+
+          <label class="tool-label">Your biggest frustration with AI right now</label>
+          <select class="tool-select" id="user-challenge">
+            <option value="vague">Output feels generic — could've been written for anyone</option>
+            <option value="instructions">It ignores half of what I actually asked for</option>
+            <option value="slow">Takes forever — endless back and forth to get something usable</option>
+            <option value="unsure">Don't know what it's actually good for in my work</option>
+            <option value="tech">Overwhelmed by all the "tips and tricks" out there</option>
+          </select>
+
+          <button class="tool-btn" onclick="setupProfile()">Start My Journey →</button>
+        </div>
+
+        <div class="persona-banner" id="persona-banner" style="display:none">
+          <div class="persona-icon">🧭</div>
+          <div class="persona-text">
+            Welcome, <span class="persona-name" id="banner-name">Creator</span>. 
+            Based on your answers this guide has been personalised for a <span class="persona-name" id="banner-niche">creator</span> 
+            using <span class="persona-name" id="banner-platform">ChatGPT</span> mostly. 
+            Your biggest frustration — <span class="persona-name" id="banner-challenge">generic output</span> — is addressed directly in every chapter.
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ CHAPTER 1: PROMPT ANATOMY ══ -->
+      <div class="chapter-page" id="ch-1">
+        <div class="ch-eyebrow">Chapter 01 — The Foundation</div>
+        <h1 class="ch-h1">The Prompt <em>Anatomy</em> Framework</h1>
+        <p class="ch-subtitle">Every prompt that actually works has the same five parts. Most people only ever use one.</p>
+        <div class="persona-banner" id="algo-banner" style="display:none">
+          <div class="persona-icon">🎯</div>
+          <div class="persona-text" id="algo-banner-text">Personalised note loading...</div>
+        </div>
+        <div class="ch-divider"></div>
+
+        <p class="ch-lead">"Write me a caption" gets a generic caption, because that's all the AI has to work with. The model isn't being lazy — it's filling in every gap you left with its single most statistically average guess. Give it more of the five parts below and the gaps close, and the output stops being average.</p>
+
+        <div class="ch-h2">The <span>Five Parts</span></div>
+        <div class="hook-cards">
+          <div class="hook-card" style="--accent:var(--orange)">
+            <div class="hook-label" style="color:var(--orange)">1 — Task</div>
+            <div class="hook-example">What you actually want done, stated as a clear instruction, not a vague topic.</div>
+            <div class="hook-why">"Write about productivity" is a topic. "Write a 200-word Instagram caption about why multitasking hurts productivity" is a task.</div>
+          </div>
+          <div class="hook-card" style="--accent:var(--cyan)">
+            <div class="hook-label" style="color:var(--cyan)">2 — Context</div>
+            <div class="hook-example">The background the model needs that it can't otherwise guess — who it's for, what's already been tried, what matters here.</div>
+            <div class="hook-why">Without context the model defaults to the most generic, average version of an answer. Context narrows it toward your specific situation.</div>
+          </div>
+          <div class="hook-card" style="--accent:var(--blue-l)">
+            <div class="hook-label" style="color:var(--blue-l)">3 — Format</div>
+            <div class="hook-example">How you want the output structured — a list, a table, a script with timestamps, a specific word count.</div>
+            <div class="hook-why">Without a format instruction you get whatever shape the model defaults to, which is rarely the shape you actually need to use.</div>
+          </div>
+          <div class="hook-card" style="--accent:var(--green)">
+            <div class="hook-label" style="color:var(--green)">4 — Constraints</div>
+            <div class="hook-example">Tone, length, things to explicitly avoid. "Casual, not corporate" or "no emojis, no exclamation marks."</div>
+            <div class="hook-why">Constraints remove options just as effectively as instructions add them — telling it what NOT to do is just as useful as telling it what to do.</div>
+          </div>
+          <div class="hook-card" style="--accent:var(--orange2)">
+            <div class="hook-label" style="color:var(--orange2)">5 — Examples</div>
+            <div class="hook-example">A sample of the style or structure you want, even just one or two lines.</div>
+            <div class="hook-why">Showing beats describing. "Write it like this: [example]" works more reliably than trying to describe a style in the abstract.</div>
+          </div>
+        </div>
+
+        <div style="background:rgba(29,43,99,.22);border:1px solid var(--border2,#22283A);border-radius:8px;padding:24px;margin:22px 0;overflow-x:auto">
+          <div style="font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted,#8890A8);margin-bottom:16px;text-align:center">Anatomy of a real prompt, labeled</div>
+          <svg width="740" height="300" viewBox="0 0 740 300" style="width:100%;max-width:740px;height:auto;display:block;margin:0 auto">
+            <!-- the actual prompt text, broken into colored spans by part -->
+            <text x="20" y="40" font-family="JetBrains Mono,monospace" font-size="19" fill="#FF6B1A" font-weight="700">Write</text>
+            <text x="72" y="40" font-family="JetBrains Mono,monospace" font-size="19" fill="#FF6B1A" font-weight="700">a TikTok caption about morning routines,</text>
+            <text x="20" y="68" font-family="JetBrains Mono,monospace" font-size="19" fill="#44CFFF" font-weight="700">for my fitness audience of mostly beginners,</text>
+            <text x="20" y="96" font-family="JetBrains Mono,monospace" font-size="19" fill="#5B7FFF" font-weight="700">under 150 characters with one hook line + one CTA,</text>
+            <text x="20" y="124" font-family="JetBrains Mono,monospace" font-size="19" fill="#44D4FF" font-weight="700">casual tone, no emojis,</text>
+            <text x="20" y="152" font-family="JetBrains Mono,monospace" font-size="19" fill="#FF8C47" font-weight="700">matching this style: "Most people train hard. Few recover hard."</text>
+
+            <!-- connector lines down to labels -->
+            <line x1="60" y1="50" x2="60" y2="190" stroke="#FF6B1A" stroke-width="1.2" opacity=".5"/>
+            <line x1="300" y1="78" x2="300" y2="190" stroke="#44CFFF" stroke-width="1.2" opacity=".5"/>
+            <line x1="200" y1="106" x2="160" y2="220" stroke="#5B7FFF" stroke-width="1.2" opacity=".5"/>
+            <line x1="160" y1="134" x2="380" y2="220" stroke="#44D4FF" stroke-width="1.2" opacity=".5"/>
+            <line x1="350" y1="162" x2="500" y2="190" stroke="#FF8C47" stroke-width="1.2" opacity=".5"/>
+
+            <!-- labels -->
+            <rect x="20" y="192" width="80" height="26" rx="4" fill="rgba(255,107,26,.12)" stroke="#FF6B1A" stroke-width="1"/>
+            <text x="60" y="209" font-family="Outfit,sans-serif" font-size="14.5" font-weight="700" fill="#FF6B1A" text-anchor="middle">TASK</text>
+
+            <rect x="260" y="192" width="80" height="26" rx="4" fill="rgba(68,207,255,.12)" stroke="#44CFFF" stroke-width="1"/>
+            <text x="300" y="209" font-family="Outfit,sans-serif" font-size="14.5" font-weight="700" fill="#44CFFF" text-anchor="middle">CONTEXT</text>
+
+            <rect x="120" y="222" width="80" height="26" rx="4" fill="rgba(91,127,255,.12)" stroke="#5B7FFF" stroke-width="1"/>
+            <text x="160" y="239" font-family="Outfit,sans-serif" font-size="14.5" font-weight="700" fill="#5B7FFF" text-anchor="middle">FORMAT</text>
+
+            <rect x="340" y="222" width="90" height="26" rx="4" fill="rgba(59,255,140,.12)" stroke="#44D4FF" stroke-width="1"/>
+            <text x="385" y="239" font-family="Outfit,sans-serif" font-size="14.5" font-weight="700" fill="#44D4FF" text-anchor="middle">CONSTRAINTS</text>
+
+            <rect x="460" y="192" width="90" height="26" rx="4" fill="rgba(255,140,71,.12)" stroke="#FF8C47" stroke-width="1"/>
+            <text x="505" y="209" font-family="Outfit,sans-serif" font-size="14.5" font-weight="700" fill="#FF8C47" text-anchor="middle">EXAMPLE</text>
+          </svg>
+          <p style="font-size:11px;color:var(--muted,#8890A8);text-align:center;max-width:460px;margin:14px auto 0;line-height:1.6">Same prompt, all five parts present. Notice how little of it is the actual "task" — most of what makes a prompt strong is everything around it.</p>
+        </div>
+
+        <div class="callout">
+          <div class="callout-title">You Don't Need All Five Every Time</div>
+          <p>A quick throwaway question doesn't need a full five-part prompt. This framework is for the prompts that actually matter — the ones you'll reuse, the ones going into real work, the ones where "good enough" output isn't good enough. Match the effort to the stakes.</p>
+        </div>
+
+        <!-- INTERACTIVE: Prompt Builder -->
+        <div class="tool-card">
+          <div class="tool-title">Five-Part Prompt Builder</div>
+          <div class="tool-desc">Fill in what you have. Leave the rest blank if you don't need it — the tool will build a clean prompt from whatever you provide.</div>
+          <label class="tool-label">Task — what do you want done?</label>
+          <input type="text" class="tool-input" id="pb-task" placeholder="e.g. write a TikTok caption">
+          <label class="tool-label">Context — relevant background</label>
+          <input type="text" class="tool-input" id="pb-context" placeholder="e.g. for a fitness account targeting beginners">
+          <label class="tool-label">Format — how should it be structured?</label>
+          <input type="text" class="tool-input" id="pb-format" placeholder="e.g. under 150 characters, one hook line + one CTA">
+          <label class="tool-label">Constraints — tone or things to avoid</label>
+          <input type="text" class="tool-input" id="pb-constraints" placeholder="e.g. casual tone, no emojis">
+          <button class="tool-btn" onclick="buildPrompt()">Build My Prompt →</button>
+          <div class="tool-output" id="prompt-output"></div>
+        </div>
+
+        <div class="ch-h3">Knowledge Check</div>
+        <div class="quiz-card">
+          <div class="quiz-question">Why does a vague prompt like "write about productivity" produce generic output?</div>
+          <div class="quiz-options">
+            <button class="quiz-opt" onclick="quiz(this,'wrong',0)">The AI model doesn't understand the topic of productivity</button>
+            <button class="quiz-opt" onclick="quiz(this,'correct',0)">With no context or constraints given, the model fills the gaps with its single most statistically average guess</button>
+            <button class="quiz-opt" onclick="quiz(this,'wrong',0)">Productivity is too complex a topic for AI to handle well</button>
+            <button class="quiz-opt" onclick="quiz(this,'wrong',0)">You need to use a paid AI tool to get specific output</button>
+          </div>
+          <div class="quiz-result" id="quiz-result-0">
+            <span id="quiz-result-0-text"></span>
+          </div>
+        </div>
+
+        <div class="ch-complete" id="ch-complete-1">
+          <div class="ch-complete-icon">🧱</div>
+          <div class="xp-pop">+25 XP — Chapter Complete</div>
+          <h3>Anatomy: Unlocked</h3>
+          <p>You now know exactly what makes a prompt specific instead of generic. Every chapter after this one builds on these five parts.</p>
+          <button class="tool-btn" onclick="completeChapter(1)">Continue to Chapter 2 →</button>
+        </div>
+      </div>
+
+      <!-- ══ CHAPTER 2: CONTEXT & EXAMPLES ══ -->
+      <div class="chapter-page" id="ch-2">
+        <div class="ch-eyebrow">Chapter 02 — Show, Don't Just Tell</div>
+        <h1 class="ch-h1">Context & <em>Examples</em></h1>
+        <p class="ch-subtitle">The two parts of the anatomy that do the most work, and the two most people skip entirely.</p>
+        <div class="ch-divider"></div>
+
+        <p class="ch-lead">Of the five parts from Chapter 1, context and examples are where the real quality jump happens. Task, format and constraints tell the model what to do — context and examples teach it how to think about your specific situation.</p>
+
+        <div class="ch-h2">Good Context vs <span>Padding</span></div>
+        <p class="ch-body">Context isn't "write a lot of background" — it's the specific facts the model couldn't otherwise guess. Padding is generic scene-setting that doesn't change the output at all.</p>
+
+        <table class="comp-table">
+          <tr><th>Padding (skip this)</th><th>Real Context (include this)</th></tr>
+          <tr><td>"I run a business and want to grow it"</td><td>"I sell £19 fitness ebooks to an Instagram audience of 4K, mostly men 18-25"</td></tr>
+          <tr><td>"I'm not very good at writing"</td><td>"My usual tone is casual and direct, similar to how I'd text a friend"</td></tr>
+          <tr><td>"This is important to me"</td><td>"This goes out to 2,000 email subscribers tomorrow morning"</td></tr>
+        </table>
+
+        <div class="ch-h2">Few-Shot Prompting: <span>The Single Best Upgrade</span></div>
+        <p class="ch-body">"Few-shot" just means giving one or two examples instead of zero. It's the single highest-leverage change you can make to almost any prompt. Instead of describing a tone in the abstract ("make it punchy"), paste one sentence that already has the tone you want and say "match this style." Models are far better at matching a pattern they can see than guessing at an adjective.</p>
+
+        <div class="callout blue">
+          <div class="callout-title">Zero-Shot vs Few-Shot</div>
+          <p><strong>Zero-shot:</strong> "Write a punchy hook for a fitness video." <strong>Few-shot:</strong> "Write a hook in this style: 'Most people will never know this about gaining muscle.' Same energy, new topic: morning routines." The second version gives the model something concrete to pattern-match against, instead of an abstract adjective to interpret.</p>
+        </div>
+
+        <!-- INTERACTIVE: Context Upgrade Tool -->
+        <div class="tool-card">
+          <div class="tool-title">Context Upgrade Tool</div>
+          <div class="tool-desc">Paste a vague prompt and a few specifics about your situation — get back a version with real context added in.</div>
+          <label class="tool-label">Your current (vague) prompt</label>
+          <input type="text" class="tool-input" id="ctx-prompt" placeholder="e.g. write me a caption about discipline">
+          <label class="tool-label">Who's the audience?</label>
+          <input type="text" class="tool-input" id="ctx-audience" placeholder="e.g. my fitness TikTok followers, mostly beginners">
+          <label class="tool-label">What's your usual tone?</label>
+          <input type="text" class="tool-input" id="ctx-tone" placeholder="e.g. direct and a bit blunt, no fluff">
+          <button class="tool-btn" onclick="upgradeContext()">Upgrade My Prompt →</button>
+          <div class="tool-output" id="context-output"></div>
+        </div>
+
+        <div class="ch-complete" id="ch-complete-2">
+          <div class="ch-complete-icon">📐</div>
+          <div class="xp-pop">+25 XP — Chapter Complete</div>
+          <h3>Context: Mastered</h3>
+          <p>You now know the difference between padding and real context — and that one good example beats a paragraph of description.</p>
+          <button class="tool-btn" onclick="completeChapter(2)">Continue to Chapter 3 →</button>
+        </div>
+      </div>
+
+      <!-- ══ CHAPTER 3: CONTENT CREATION PROMPTS ══ -->
+      <div class="chapter-page" id="ch-3">
+        <div class="ch-eyebrow">Chapter 03 — Ready to Use</div>
+        <h1 class="ch-h1">Content Creation <em>Prompts</em></h1>
+        <p class="ch-subtitle">Templates for TikTok, YouTube and email — fill in the brackets and go.</p>
+        <div class="ch-divider"></div>
+
+        <p class="ch-lead">These templates already have the five anatomy parts built in. Swap the brackets for your specifics and you'll get a far stronger first draft than typing a bare request from scratch.</p>
+
+        <div class="hook-cards">
+          <div class="hook-card" style="--accent:var(--orange)">
+            <div class="hook-label" style="color:var(--orange)">TikTok Hook Generator</div>
+            <div class="hook-example">"Give me 5 hook lines for a TikTok about [topic], for an audience of [audience]. Match this energy: '[paste an example hook you like]'. Under 12 words each."</div>
+          </div>
+          <div class="hook-card" style="--accent:var(--cyan)">
+            <div class="hook-label" style="color:var(--cyan)">YouTube Script Outline</div>
+            <div class="hook-example">"Outline a [length]-minute YouTube video about [topic] for [audience]. Structure: hook, problem, 3 main points, summary, CTA. Tone: [your tone]."</div>
+          </div>
+          <div class="hook-card" style="--accent:var(--blue-l)">
+            <div class="hook-label" style="color:var(--blue-l)">Email Subject Lines</div>
+            <div class="hook-example">"Write 8 subject lines for an email about [topic/offer]. Mix curiosity and direct-benefit styles. No clickbait that the email doesn't deliver on. Under 50 characters."</div>
+          </div>
+          <div class="hook-card" style="--accent:var(--green)">
+            <div class="hook-label" style="color:var(--green)">Caption + Hashtag Pack</div>
+            <div class="hook-example">"Write a caption for [platform] about [post topic], [length] max, [tone]. Then add 8 relevant hashtags mixing broad and niche."</div>
+          </div>
+        </div>
+
+        <div class="callout">
+          <div class="callout-title">Always Treat Output as a Draft</div>
+          <p>Even a perfectly-prompted output is a strong first draft, not a finished post. The model doesn't know your exact voice the way you do — read everything before posting, and trim anything that doesn't sound like you'd actually say it.</p>
+        </div>
+
+        <div class="ch-h3">Build Your Own</div>
+        <div class="checklist">
+          <div class="check-item" onclick="toggleCheck(this,5)"><div class="check-box"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span class="check-text">I've saved at least 2 of these templates somewhere I'll actually find them again</span></div>
+          <div class="check-item" onclick="toggleCheck(this,5)"><div class="check-box"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span class="check-text">I've tried one with a real example pasted in, not just a description</span></div>
+          <div class="check-item" onclick="toggleCheck(this,5)"><div class="check-box"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span class="check-text">I've edited the output to sound like me before considering it finished</span></div>
+        </div>
+
+        <div class="ch-complete" id="ch-complete-3">
+          <div class="ch-complete-icon">🎬</div>
+          <div class="xp-pop">+25 XP — Chapter Complete</div>
+          <h3>Content Prompts: Ready</h3>
+          <p>You now have reusable templates for the content you make most often, instead of starting from a blank prompt box every time.</p>
+          <button class="tool-btn" onclick="completeChapter(3)">Continue to Chapter 4 →</button>
+        </div>
+      </div>
+
+      <!-- ══ CHAPTER 4: BUSINESS & PRODUCTIVITY ══ -->
+      <div class="chapter-page" id="ch-4">
+        <div class="ch-eyebrow">Chapter 04 — Beyond Content</div>
+        <h1 class="ch-h1">Business & <em>Productivity</em> Prompts</h1>
+        <p class="ch-subtitle">AI isn't just for captions. These prompts handle the unglamorous admin that eats your week.</p>
+        <div class="ch-divider"></div>
+
+        <p class="ch-lead">Content prompts get all the attention, but the bigger time savings often live in the boring tasks — emails, summaries, structuring messy notes into something usable. These are genuinely high-leverage uses most people never try.</p>
+
+        <div class="hook-cards">
+          <div class="hook-card" style="--accent:var(--orange)">
+            <div class="hook-label" style="color:var(--orange)">Email Draft</div>
+            <div class="hook-example">"Draft a reply to this email: [paste email]. I want to say [your key points] but keep it professional and under 100 words."</div>
+          </div>
+          <div class="hook-card" style="--accent:var(--cyan)">
+            <div class="hook-label" style="color:var(--cyan)">Meeting Notes → Action Items</div>
+            <div class="hook-example">"Here are my messy meeting notes: [paste notes]. Turn this into a clean list of action items with who's responsible for each."</div>
+          </div>
+          <div class="hook-card" style="--accent:var(--blue-l)">
+            <div class="hook-label" style="color:var(--blue-l)">Decision Helper</div>
+            <div class="hook-example">"I'm deciding between [option A] and [option B] for [context]. List the real trade-offs of each — don't just tell me which one to pick."</div>
+          </div>
+          <div class="hook-card" style="--accent:var(--green)">
+            <div class="hook-label" style="color:var(--green)">Document Summariser</div>
+            <div class="hook-example">"Summarise this in 5 bullet points, focused specifically on [what you actually need from it]: [paste document]."</div>
+          </div>
+        </div>
+
+        <div class="callout blue">
+          <div class="callout-title">Ask It to Push Back</div>
+          <p>A genuinely underused trick: ask the model to challenge your plan instead of just executing it. "Here's my plan: [plan]. What's the strongest argument against this?" surfaces blind spots a pure "do this for me" prompt never will, because agreement is the model's default mode unless you specifically ask for the opposite.</p>
+        </div>
+
+        <div class="ch-h3">Try It This Week</div>
+        <div class="checklist">
+          <div class="check-item" onclick="toggleCheck(this,5)"><div class="check-box"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span class="check-text">Draft one real reply email using the template above</span></div>
+          <div class="check-item" onclick="toggleCheck(this,5)"><div class="check-box"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span class="check-text">Ask it to push back on one real decision you're currently weighing</span></div>
+          <div class="check-item" onclick="toggleCheck(this,5)"><div class="check-box"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span class="check-text">Turn one set of messy notes into a clean action list</span></div>
+        </div>
+
+        <div class="ch-complete" id="ch-complete-4">
+          <div class="ch-complete-icon">📋</div>
+          <div class="xp-pop">+25 XP — Chapter Complete</div>
+          <h3>Productivity: Unlocked</h3>
+          <p>You now have prompts for the admin work that eats real hours, not just the content work that gets the attention.</p>
+          <button class="tool-btn" onclick="completeChapter(4)">Continue to Chapter 5 →</button>
+        </div>
+      </div>
+
+      <!-- ══ CHAPTER 5: PROMPT CHAINING ══ -->
+      <div class="chapter-page" id="ch-5">
+        <div class="ch-eyebrow">Chapter 05 — Breaking It Down</div>
+        <h1 class="ch-h1">Prompt <em>Chaining</em></h1>
+        <p class="ch-subtitle">One giant prompt for a complex task usually fails. A chain of smaller ones usually works.</p>
+        <div class="ch-divider"></div>
+
+        <p class="ch-lead">Asking for a complete, polished, ready-to-publish product in one shot for anything genuinely complex usually produces something shallow across the board rather than strong anywhere. Breaking the task into stages, reviewing each before moving on, consistently produces better results than one giant ask.</p>
+
+        <div class="ch-h2">A Real <span>Chain Example</span></div>
+        <p class="ch-body">Say you want a full email newsletter. Instead of "write me a newsletter about X," chain it:</p>
+        <div style="display:flex;flex-direction:column;gap:0;margin:20px 0">
+          <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;background:rgba(255,107,26,.08);border:1px solid var(--border)">
+            <div style="width:28px;height:28px;background:var(--orange);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;flex-shrink:0;color:var(--bg)">1</div>
+            <div><div style="font-weight:600;font-size:13px;color:var(--white)">Brainstorm</div><div style="font-size:12px;color:var(--muted);margin-top:2px">"Give me 5 angles for a newsletter about [topic]." Pick the best one.</div></div>
+          </div>
+          <div style="text-align:center;padding:4px 0;font-size:12px;color:var(--muted)">↓</div>
+          <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;background:rgba(59,91,255,.08);border:1px solid var(--border)">
+            <div style="width:28px;height:28px;background:var(--blue-l);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;flex-shrink:0">2</div>
+            <div><div style="font-weight:600;font-size:13px;color:var(--white)">Outline</div><div style="font-size:12px;color:var(--muted);margin-top:2px">"Outline that angle as 4 sections." Check the structure works before writing a word of final copy.</div></div>
+          </div>
+          <div style="text-align:center;padding:4px 0;font-size:12px;color:var(--muted)">↓</div>
+          <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;background:rgba(68,207,255,.06);border:1px solid var(--border)">
+            <div style="width:28px;height:28px;background:var(--cyan);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;flex-shrink:0;color:var(--bg)">3</div>
+            <div><div style="font-weight:600;font-size:13px;color:var(--white)">Draft</div><div style="font-size:12px;color:var(--muted);margin-top:2px">"Write section 1 in full." One section at a time, not the whole thing at once.</div></div>
+          </div>
+          <div style="text-align:center;padding:4px 0;font-size:12px;color:var(--muted)">↓</div>
+          <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;background:rgba(59,255,140,.05);border:1px solid var(--border)">
+            <div style="width:28px;height:28px;background:var(--green);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;flex-shrink:0;color:var(--bg)">4</div>
+            <div><div style="font-weight:600;font-size:13px;color:var(--white)">Tighten</div><div style="font-size:12px;color:var(--muted);margin-top:2px">"Cut this by a third without losing the key point." A separate edit pass catches what a single draft pass misses.</div></div>
+          </div>
+        </div>
+
+        <div class="callout blue">
+          <div class="callout-title">Why This Actually Works Better</div>
+          <p>Each step has a narrow, achievable job instead of one prompt trying to handle ideation, structure, writing and editing simultaneously. You also get a checkpoint after every stage to redirect before errors compound into the final draft — catching a bad outline before writing is far cheaper than rewriting a bad full draft.</p>
+        </div>
+
+        <div class="ch-h3">Knowledge Check</div>
+        <div class="quiz-card">
+          <div class="quiz-question">Why does chaining a complex task into stages usually beat one giant prompt?</div>
+          <div class="quiz-options">
+            <button class="quiz-opt" onclick="quiz(this,'wrong',1)">It uses fewer AI credits or tokens overall</button>
+            <button class="quiz-opt" onclick="quiz(this,'correct',1)">Each stage gets a narrow, achievable job, and you can catch problems at a checkpoint instead of compounding errors into the final output</button>
+            <button class="quiz-opt" onclick="quiz(this,'wrong',1)">Giant prompts are against most AI tools' usage policies</button>
+            <button class="quiz-opt" onclick="quiz(this,'wrong',1)">It isn't actually better — it's just a personal preference</button>
+          </div>
+          <div class="quiz-result" id="quiz-result-1"></div>
+        </div>
+
+        <div class="ch-complete" id="ch-complete-5">
+          <div class="ch-complete-icon">🔗</div>
+          <div class="xp-pop">+25 XP — Chapter Complete</div>
+          <h3>Chaining: Unlocked</h3>
+          <p>You now know how to break a big task into stages that actually compound into something good, instead of one prompt trying to do everything at once.</p>
+          <button class="tool-btn" onclick="completeChapter(5)">Continue to Chapter 6 →</button>
+        </div>
+      </div>
+
+      <!-- ══ CHAPTER 6: ADVANCED TECHNIQUES ══ -->
+      <div class="chapter-page" id="ch-6">
+        <div class="ch-eyebrow">Chapter 06 — Level Up</div>
+        <h1 class="ch-h1">Advanced <em>Techniques</em></h1>
+        <p class="ch-subtitle">Three techniques that separate people who get good output from people who get great output.</p>
+        <div class="ch-divider"></div>
+
+        <p class="ch-lead">Everything so far works for the vast majority of everyday prompts. These three techniques are for when you need the model to actually reason carefully, not just pattern-match to a quick answer.</p>
+
+        <div class="hook-cards">
+          <div class="hook-card" style="--accent:var(--orange)">
+            <div class="hook-label" style="color:var(--orange)">Role Framing</div>
+            <div class="hook-example">"Act as a skeptical editor reviewing this for a major publication" produces sharper, more critical feedback than just "review this."</div>
+            <div class="hook-why">A role narrows the model toward a specific lens and standard, rather than a generic helpful-assistant default.</div>
+          </div>
+          <div class="hook-card" style="--accent:var(--cyan)">
+            <div class="hook-label" style="color:var(--cyan)">Step-by-Step Reasoning</div>
+            <div class="hook-example">"Think through this step by step before giving your final answer" measurably improves accuracy on anything involving logic, maths, or multi-part decisions.</div>
+            <div class="hook-why">Forcing visible intermediate steps catches errors that jumping straight to a conclusion would silently produce.</div>
+          </div>
+          <div class="hook-card" style="--accent:var(--blue-l)">
+            <div class="hook-label" style="color:var(--blue-l)">Self-Critique Pass</div>
+            <div class="hook-example">"Now review your own answer above. What's the weakest part of it?" — then ask it to revise based on its own critique.</div>
+            <div class="hook-why">A model reviewing its own prior output with fresh framing often catches issues it didn't flag the first time round.</div>
+          </div>
+        </div>
+
+        <div class="callout blue">
+          <div class="callout-title">These Are Tools, Not Magic Words</div>
+          <p>None of these techniques guarantee a perfect answer — they shift the odds. Use them for the prompts that actually matter (the ones in Chapter 1's "match effort to stakes" rule), not as a ritual on every single message. Overusing technique on trivial requests just slows you down for no real benefit.</p>
+        </div>
+
+        <div class="ch-h3">Try Each One Once</div>
+        <div class="checklist">
+          <div class="check-item" onclick="toggleCheck(this,5)"><div class="check-box"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span class="check-text">Tried role framing on a real task this week</span></div>
+          <div class="check-item" onclick="toggleCheck(this,5)"><div class="check-box"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span class="check-text">Asked for step-by-step reasoning on something with real logic involved</span></div>
+          <div class="check-item" onclick="toggleCheck(this,5)"><div class="check-box"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span class="check-text">Ran a self-critique pass on something before finalising it</span></div>
+        </div>
+
+        <div class="ch-complete" id="ch-complete-6">
+          <div class="ch-complete-icon">🎓</div>
+          <div class="xp-pop">+25 XP — Chapter Complete</div>
+          <h3>Advanced: Unlocked</h3>
+          <p>You now have techniques for when "good enough" genuinely isn't good enough, on top of everything that already handles the everyday cases.</p>
+          <button class="tool-btn" onclick="completeChapter(6)">Continue to Chapter 7 →</button>
+        </div>
+      </div>
+
+      <!-- ══ CHAPTER 7: COMMON MISTAKES ══ -->
+      <div class="chapter-page" id="ch-7">
+        <div class="ch-eyebrow">Chapter 07 — Learn From Others</div>
+        <h1 class="ch-h1">Common <em>Mistakes</em></h1>
+        <p class="ch-subtitle">The same four habits explain most disappointing AI output.</p>
+        <div class="ch-divider"></div>
+
+        <p class="ch-lead">"AI isn't very good" is usually "the prompt didn't give it enough to work with" in disguise. These four habits cause most of the frustration people blame on the tool itself.</p>
+
+        <div class="ch-h2">The <span>Four Habits to Break</span></div>
+        <table class="comp-table">
+          <tr><th>The Habit</th><th>What Goes Wrong</th></tr>
+          <tr><td>One-shot expectations</td><td>Expecting a perfect result first try on a complex task — refine instead of restarting</td></tr>
+          <tr><td>No context given</td><td>The model fills gaps with generic averages, producing generic output</td></tr>
+          <tr><td>Vague feedback when refining</td><td>"Make it better" gives the model nothing concrete to change — say specifically what's wrong</td></tr>
+          <tr><td>Accepting the first draft</td><td>Treating output as finished instead of as a strong starting point to edit</td></tr>
+        </table>
+
+        <div class="callout">
+          <div class="callout-title">"Make It Better" vs Specific Feedback</div>
+          <p>"Make it better" gives the model nothing to actually act on differently. "This is too formal — make it sound like I'm texting a friend, and cut the second paragraph entirely" gives it concrete, actionable direction. Specific feedback when refining matters as much as a good initial prompt.</p>
+        </div>
+
+        <div class="callout blue">
+          <div class="callout-title">A Disappointing First Output Is Information</div>
+          <p>If the result misses the mark, that's a signal about what was missing from the prompt — usually context, a format instruction, or an example — not proof the tool can't help with this. Add the missing piece and try again rather than concluding it doesn't work for this kind of task.</p>
+        </div>
+
+        <div class="ch-complete" id="ch-complete-7">
+          <div class="ch-complete-icon">🛑</div>
+          <div class="xp-pop">+25 XP — Chapter Complete</div>
+          <h3>Mistakes: Mapped</h3>
+          <p>You now know the four habits that explain most disappointing output. Most people blame the tool instead of fixing the prompt — you don't have to.</p>
+          <button class="tool-btn" onclick="completeChapter(7)">Continue to Your Prompt Library →</button>
+        </div>
+      </div>
+
+      <!-- ══ CHAPTER 8: YOUR PROMPT LIBRARY ══ -->
+      <div class="chapter-page" id="ch-8">
+        <div class="ch-eyebrow">Chapter 08 — Execution</div>
+        <h1 class="ch-h1">Your <em>Prompt Library</em></h1>
+        <p class="ch-subtitle">Generated from your profile. A personal starter kit, not a generic list.</p>
+        <div class="ch-divider"></div>
+
+        <div id="plan-placeholder">
+          <p class="ch-lead" style="text-align:center;padding:40px 0">Generate your personalised starter prompt library below based on your profile.</p>
+        </div>
+
+        <div class="tool-card" id="plan-generator-card">
+          <div class="tool-title">Prompt Library Generator</div>
+          <div class="tool-desc">We'll use your profile to build a small starter set of prompts specific to your niche and what frustrates you most right now.</div>
+          <label class="tool-label">Confirm your area</label>
+          <input type="text" class="tool-input" id="plan-niche-input" placeholder="e.g. fitness content, business coaching...">
+          <label class="tool-label">What do you want prompts for most?</label>
+          <select class="tool-select" id="plan-posting">
+            <option value="content">Content creation (captions, scripts, hooks)</option>
+            <option value="business">Business & admin (emails, summaries, planning)</option>
+            <option value="both">A mix of both</option>
+          </select>
+          <button class="tool-btn" onclick="generateLibrary()" id="gen-plan-btn">Generate My Prompt Library →</button>
+        </div>
+
+        <div id="plan-output" style="display:none"></div>
+
+        <div class="ch-complete" id="ch-complete-8" style="display:none">
+          <div class="ch-complete-icon">🏆</div>
+          <div class="xp-pop" id="final-xp-pop">+50 XP — Course Complete!</div>
+          <h3 id="final-complete-h3">AI Prompt Mastery: Complete</h3>
+          <p id="final-complete-p">You've finished the book. You have the anatomy framework, context and examples, ready templates, chaining, and the advanced techniques. The only variable left is actually using them.</p>
+          <div style="margin-top:20px;padding:20px;background:var(--panel2);border:1px solid var(--border)">
+            <div style="font-size:11px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px">Your Session Summary</div>
+            <div style="font-size:24px;font-weight:800;color:var(--orange)" id="final-xp-total">0 XP earned</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:4px">Chapters completed · Tools used · Quizzes passed</div>
+          </div>
+          <div style="background:linear-gradient(135deg,rgba(68,207,255,.07),rgba(59,91,255,.05));border:1px solid rgba(68,207,255,.2);padding:20px;text-align:center;margin-top:16px;border-radius:6px">
+            <div style="font-size:26px;margin-bottom:6px">🚀</div>
+            <div style="font-weight:800;font-size:15px;margin-bottom:5px">Now put these prompts to work growing an audience.</div>
+            <div style="font-size:12px;color:var(--muted);max-width:400px;margin:0 auto 12px">The Growth Code teaches the strategy — hooks, algorithm mechanics, content systems. These prompts are how you execute that strategy faster, without staring at a blank caption box.</div>
+            <a href="../growth-code/growth_code_interactive.html" style="display:inline-flex;align-items:center;gap:8px;background:var(--cyan);color:#07090F;font-weight:700;font-size:13px;padding:11px 20px;border-radius:6px;text-decoration:none">Open The Growth Code →</a>
+          </div>
+          <button class="tool-btn" style="margin-top:16px" onclick="window.location.href='../index.html'">Back to Areviax →</button>
+        </div>
+      </div>
+
+    </div><!-- /reading-area -->
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<script>
+// ── STATE ──
+const APM_SK='arx_apm_v1';
+let apmSaved={};
+try{ apmSaved=JSON.parse(localStorage.getItem(APM_SK))||{}; }catch(e){ apmSaved={}; }
+let xp=apmSaved.xp||0, currentChapter=0, completedChapters=new Set(apmSaved.completedChapters||[]),
+  userName=apmSaved.userName||'', userNiche=apmSaved.userNiche||'', userPlatform=apmSaved.userPlatform||'',
+  userChallenge=apmSaved.userChallenge||'';
+
+function saveAPMState(){
+  localStorage.setItem(APM_SK, JSON.stringify({
+    xp, completedChapters:[...completedChapters], userName, userNiche, userPlatform, userChallenge
+  }));
+}
+const TOTAL_CHAPTERS=9;
+
+// ── CURSOR ──
+const cc=document.getElementById('cur-c'), cctx=cc.getContext('2d');
+const CS=48,C2=24; let mx=C2,my=C2,cx=C2,cy=C2,ang=0,hov=false;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY});
+document.querySelectorAll('a,button,.ch-item,.quiz-opt,.check-item').forEach(el=>{
+  el.addEventListener('mouseenter',()=>hov=true);
+  el.addEventListener('mouseleave',()=>hov=false);
+});
+(function cl(){
+  cx+=(mx-cx)*.14; cy+=(my-cy)*.14;
+  ang+=hov?.07:.022;
+  const col=hov?'#FF6B1A':'#44CFFF',r=hov?15:11,arm=hov?8:6,gap=4;
+  cctx.clearRect(0,0,CS,CS);
+  cctx.save(); cctx.translate(C2,C2); cctx.rotate(ang);
+  cctx.strokeStyle=col; cctx.lineWidth=hov?2:1.5; cctx.globalAlpha=.9; cctx.lineCap='round';
+  [[0,-1],[0,1],[-1,0],[1,0]].forEach(([dx,dy])=>{
+    cctx.beginPath(); cctx.moveTo(dx*gap,dy*gap); cctx.lineTo(dx*(gap+arm),dy*(gap+arm)); cctx.stroke();
+  });
+  cctx.globalAlpha=hov?.6:.4; cctx.lineWidth=1;
+  for(let i=0;i<4;i++){cctx.beginPath();cctx.arc(0,0,r,i*Math.PI/2+.35,i*Math.PI/2+Math.PI/2-.35);cctx.stroke()}
+  cctx.globalAlpha=1; cctx.fillStyle=col; cctx.shadowColor=col; cctx.shadowBlur=hov?10:6;
+  cctx.beginPath(); cctx.arc(0,0,hov?3:2,0,Math.PI*2); cctx.fill(); cctx.shadowBlur=0;
+  cctx.restore();
+  cc.style.left=cx+'px'; cc.style.top=cy+'px';
+  requestAnimationFrame(cl);
+})();
+
+// ── XP ──
+function addXP(amount,label=''){
+  xp+=amount;
+  document.getElementById('xp-display').textContent=xp+' XP';
+  document.getElementById('xp-orb').textContent=xp;
+  toast('⭐',`+${amount} XP${label?' — '+label:''}`);
+  saveAPMState();
+}
+
+// ── TOAST ──
+function toast(icon,msg){
+  const t=document.getElementById('toast');
+  document.getElementById('toast-icon').textContent=icon;
+  document.getElementById('toast-msg').textContent=msg;
+  t.classList.add('show');
+  clearTimeout(t._t);
+  t._t=setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+// ── NAVIGATION ──
+function goChapter(n){
+  document.querySelectorAll('.chapter-page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.ch-item').forEach((item,i)=>{
+    item.classList.toggle('active',i===n);
+  });
+  document.querySelectorAll('.ch-tab').forEach((t,i)=>{
+    t.classList.toggle('active',i===n);
+  });
+  document.getElementById('ch-'+n).classList.add('active');
+  document.getElementById('reading-area').scrollTop=0;
+  currentChapter=n;
+  const labels=['Introduction','Ch.1 — Anatomy','Ch.2 — Context','Ch.3 — Content Prompts','Ch.4 — Business Prompts','Ch.5 — Chaining','Ch.6 — Advanced','Ch.7 — Mistakes','Ch.8 — Your Library'];
+  document.getElementById('tb-chapter-label').textContent=labels[n]||'';
+  updatePersonaBanners();
+}
+
+function nextChapter(){
+  if(currentChapter<8) goChapter(currentChapter+1);
+}
+function prevChapter(){
+  if(currentChapter>0) goChapter(currentChapter-1);
+}
+
+function completeChapter(n){
+  completedChapters.add(n);
+  const items=document.querySelectorAll('.ch-item');
+  if(items[n]) items[n].classList.add('done');
+  const tabs=document.querySelectorAll('.ch-tab');
+  if(tabs[n]) tabs[n].classList.add('done');
+  updateProgress();
+  saveAPMState();
+  if(n<8) goChapter(n+1);
+}
+
+function updateProgress(){
+  const pct=Math.round(completedChapters.size/8*100);
+  document.getElementById('progress-fill').style.width=pct+'%';
+  document.getElementById('progress-pct').textContent=pct+'%';
+}
+
+// ── PROFILE SETUP ──
+function setupProfile(silent){
+  const name=document.getElementById('user-name').value.trim()||'Creator';
+  const niche=document.getElementById('user-niche').value;
+  const platform=document.getElementById('user-platform').value;
+  const challenge=document.getElementById('user-challenge').value;
+  if(!niche){ if(!silent) toast('⚠️','Please select your area of expertise first'); return }
+  userName=name; userNiche=niche; userPlatform=platform; userChallenge=challenge;
+  // Show banner
+  const nicheLabels={fitness:'Fitness & Health',business:'Business',creator:'Content Creation',lifestyle:'Lifestyle & Mindset',tech:'Tech & AI',finance:'Finance',education:'Education & Coaching',other:'your niche'};
+  const challengeLabels={vague:'generic, anyone-could-have-written-this output',instructions:'it ignoring half of what you asked',slow:'too much back and forth to get something usable',unsure:'knowing what it\'s actually good for',tech:'cutting through all the conflicting advice'};
+  const platformLabels={chatgpt:'ChatGPT',claude:'Claude',gemini:'Gemini',mix:'a mix of tools'};
+  document.getElementById('banner-name').textContent=name;
+  document.getElementById('banner-niche').textContent=nicheLabels[niche]||niche;
+  document.getElementById('banner-platform').textContent=platformLabels[platform]||platform;
+  document.getElementById('banner-challenge').textContent=challengeLabels[challenge]||challenge;
+  document.getElementById('persona-banner').style.display='flex';
+  // Pre-fill plan
+  document.getElementById('plan-niche-input').value=nicheLabels[niche]||niche;
+  if(!silent){
+    addXP(10,'Profile set up');
+    toast('🧭',`Welcome ${name}! Your guide is personalised.`);
+  }
+  updatePersonaBanners();
+  if(!silent) saveAPMState();
+}
+
+function updatePersonaBanners(){
+  if(!userName) return;
+  const algoBanner=document.getElementById('algo-banner');
+  if(algoBanner && currentChapter===1){
+    const tips={
+      chatgpt:`${userName}, in ChatGPT specifically, custom instructions (Settings → Custom Instructions) let you set your context once instead of repeating it every chat — worth setting up before you go further.`,
+      claude:`${userName}, in Claude specifically, Projects let you set persistent context and instructions once for a whole body of work, rather than re-explaining yourself every conversation.`,
+      gemini:`${userName}, Gemini integrates directly with Google Workspace — for tasks touching Docs, Sheets, or Gmail, that integration often beats switching tools entirely.`,
+      mix:`${userName}, using a mix of tools is fine — the prompting principles in this book are deliberately tool-agnostic and transfer across all of them.`
+    };
+    document.getElementById('algo-banner-text').textContent=tips[userPlatform]||tips.chatgpt;
+    algoBanner.style.display='flex';
+  }
+}
+
+// ── QUIZ ──
+function quiz(btn, type, idx){
+  const parent=btn.closest('.quiz-card');
+  if(parent.dataset.answered) return;
+  parent.dataset.answered=true;
+  parent.querySelectorAll('.quiz-opt').forEach(o=>o.style.pointerEvents='none');
+  btn.classList.add(type);
+  const resultEl=document.getElementById('quiz-result-'+idx);
+  if(resultEl){
+    if(type==='correct'){
+      resultEl.className='quiz-result pass show';
+      resultEl.textContent='✓ Correct! '+['With no context or constraints given, the model fills every gap with its single most statistically average guess — that\'s what makes it feel generic.','Each stage gets one narrow job, and you get a checkpoint to catch problems before they compound into the final output — something one giant prompt can\'t give you.'][idx];
+      addXP(15,'Quiz correct');
+      // show chapter complete
+      const cc=document.getElementById('ch-complete-'+(currentChapter));
+      if(cc) cc.classList.add('show');
+    } else {
+      resultEl.className='quiz-result fail show';
+      resultEl.textContent='Not quite. Reread the section above and try again — understanding this deeply is worth more than getting it right first time.';
+      parent.dataset.answered='';
+      btn.classList.remove('wrong');
+      btn.style.pointerEvents='auto';
+      setTimeout(()=>{btn.classList.remove('wrong');},1000);
+    }
+  }
+}
+
+// ── CHECK ITEMS ──
+function toggleCheck(el, xpVal){
+  el.classList.toggle('checked');
+  if(el.classList.contains('checked')) addXP(xpVal,'Checklist item');
+}
+
+// ── CONTENT BATCH GENERATOR ──
+function buildPrompt(){
+  const task=document.getElementById('pb-task').value.trim();
+  const context=document.getElementById('pb-context').value.trim();
+  const format=document.getElementById('pb-format').value.trim();
+  const constraints=document.getElementById('pb-constraints').value.trim();
+  if(!task){toast('⚠️','Fill in at least the task');return}
+  let prompt=`Task: ${task}.`;
+  if(context) prompt+=`\n\nContext: ${context}.`;
+  if(format) prompt+=`\n\nFormat: ${format}.`;
+  if(constraints) prompt+=`\n\nTone/constraints: ${constraints}.`;
+  prompt+=`\n\nIf anything above is ambiguous or you'd need to guess to proceed, ask one clarifying question first instead of assuming.`;
+  const out=document.getElementById('prompt-output');
+  out.className='tool-output show';
+  out.innerHTML=`<div class="tool-output-label">Your Built Prompt</div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.7;color:var(--white);background:var(--panel2);padding:14px;border-radius:6px;border:1px solid var(--border);white-space:pre-wrap">${prompt}</div>
+    <div style="font-size:12px;color:var(--muted);margin-top:10px;line-height:1.6">Labeled sections beat one run-on sentence — the model doesn't have to guess where "task" ends and "context" begins. Paste this as-is, or add a one-line example of the style you want for an even stronger result (Chapter 2 covers exactly this).</div>`;
+  addXP(10,'Prompt built');
+}
+
+// ── CONTEXT UPGRADE ──
+function upgradeContext(){
+  const prompt=document.getElementById('ctx-prompt').value.trim();
+  const audience=document.getElementById('ctx-audience').value.trim();
+  const tone=document.getElementById('ctx-tone').value.trim();
+  if(!prompt){toast('⚠️','Paste your current prompt first');return}
+  let upgraded=`Task: ${prompt}.`;
+  if(audience) upgraded+=`\n\nAudience: ${audience}.`;
+  if(tone) upgraded+=`\n\nTone: ${tone}.`;
+  upgraded+=`\n\nMatch this example if I give you one — ask me for it if I haven't, rather than guessing at the style.`;
+  const out=document.getElementById('context-output');
+  out.className='tool-output show';
+  out.innerHTML=`<div class="tool-output-label">Your Upgraded Prompt</div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.7;color:var(--white);background:var(--panel2);padding:14px;border-radius:6px;border:1px solid var(--border);white-space:pre-wrap">${upgraded}</div>
+    <div style="font-size:12px;color:var(--muted);margin-top:10px;line-height:1.6">This still isn't maxed out — pasting one real example of output you liked (few-shot, from this chapter) will push it further than any amount of added description.</div>`;
+  addXP(10,'Context upgraded');
+}
+
+// ── LAUNCH PLAN GENERATOR ──
+const TOOL_TIP={
+  chatgpt:'ChatGPT holds custom instructions across every chat if you set them in Settings — put your recurring context (your niche, your tone, your audience) there once instead of retyping it into every single prompt.',
+  claude:'Claude follows structure especially well — wrapping longer context in simple XML-style tags (e.g. <context>...</context>) tends to get more consistent results than the same information as one paragraph.',
+  gemini:'Gemini responds well to being told to reason step-by-step before answering — for anything with a right/wrong answer, explicitly ask it to "think through this step by step, then give your final answer" rather than jumping straight to the output.',
+  mix:'Since you\'re moving between tools, keep one master version of your prompt with the labelled sections from this book — the labels themselves (Task/Context/Format) transfer cleanly across ChatGPT, Claude and Gemini even when each tool has its own quirks.'
+};
+function generateLibrary(){
+  const niche=document.getElementById('plan-niche-input').value.trim()||userNiche||'your area';
+  const focus=document.getElementById('plan-posting').value;
+  const name=userName||'You';
+  const tool=userPlatform||'chatgpt';
+  const toolLabels={chatgpt:'ChatGPT',claude:'Claude',gemini:'Gemini',mix:'your AI tools'};
+  const toolLabel=toolLabels[tool]||'ChatGPT';
+  const toolTip=TOOL_TIP[tool]||TOOL_TIP.chatgpt;
+
+  const out=document.getElementById('plan-output');
+  out.style.display='block';
+  document.getElementById('plan-generator-card').style.display='none';
+
+  const contentPrompts=[
+    `"Give me 5 hook lines for a [topic] post about ${niche}, matching this energy: '[paste a hook you like]'. Under 12 words each."`,
+    `"Outline a 60-second script about ${niche} for beginners. Structure: hook, problem, 1 key insight, CTA."`,
+    `"Write a caption for ${niche} content, casual tone, under 150 characters, then add 8 hashtags mixing broad and niche."`,
+  ];
+  const businessPrompts=[
+    `"Draft a reply to this message about ${niche}: [paste it]. I want to say [key points], professional, under 100 words."`,
+    `"Here's my plan for ${niche} this month: [plan]. What's the strongest argument against this approach?"`,
+    `"Summarise this in 5 bullets focused on what I need for ${niche}: [paste document]."`,
+  ];
+  let prompts = focus==='content'?contentPrompts:focus==='business'?businessPrompts:[...contentPrompts.slice(0,2),...businessPrompts.slice(0,2)];
+
+  out.innerHTML=`<div style="margin-bottom:20px">
+    <div style="font-size:12px;color:var(--muted);margin-bottom:8px">Generated for <span style="color:var(--white);font-weight:600">${name}</span> · ${niche} · built for ${toolLabel}</div>
+  </div>
+  <div class="plan-week" style="--accent:var(--cyan)">
+    <div class="plan-week-label" style="color:var(--cyan)">YOUR STARTER LIBRARY</div>
+    <ul class="plan-week-tasks">
+      ${prompts.map(p=>`<li style="font-family:'JetBrains Mono',monospace;font-size:12px">${p}</li>`).join('')}
+    </ul>
+  </div>
+  <div style="font-size:12px;color:var(--muted);margin-top:14px;padding-top:12px;border-top:1px solid var(--border);line-height:1.6"><strong style="color:var(--white)">Specific to ${toolLabel}: </strong>${toolTip}</div>
+  <p style="font-size:12px;color:var(--muted);margin-top:14px;line-height:1.6">Save these somewhere you'll actually find them again. Swap the brackets for your real specifics every time — never paste these in untouched.</p>`;
+
+  // Show final complete
+  const finalComplete=document.getElementById('ch-complete-8');
+  finalComplete.style.display='block';
+  finalComplete.classList.add('show');
+  document.getElementById('final-xp-total').textContent=`${xp+50} XP earned`;
+  addXP(50,'Prompt Library generated');
+  completedChapters.add(8);
+  document.querySelectorAll('.ch-item')[8]?.classList.add('done');
+  updateProgress();
+}
+
+// ── INIT ──
+function restoreAPMState(){
+  document.getElementById('xp-display').textContent=xp+' XP';
+  document.getElementById('xp-orb').textContent=xp;
+  completedChapters.forEach(n=>{
+    const items=document.querySelectorAll('.ch-item');
+    if(items[n]) items[n].classList.add('done');
+    const tabs=document.querySelectorAll('.ch-tab');
+    if(tabs[n]) tabs[n].classList.add('done');
+  });
+  if(userName){
+    document.getElementById('user-name').value=userName;
+    document.getElementById('user-niche').value=userNiche;
+    document.getElementById('user-platform').value=userPlatform;
+    document.getElementById('user-challenge').value=userChallenge;
+    setupProfile(true);
+  }
+  updateProgress();
+}
+goChapter(0);
+restoreAPMState();
+</script>
+
+<script>
+// ── MOBILE: hide canvas cursor on touch devices ──
+(function(){
+  const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+  const curEl = document.getElementById('cur-c') || document.getElementById('cur-canvas');
+  if(isTouchDevice && curEl){
+    curEl.style.display = 'none';
+    document.body.style.cursor = 'auto';
+    document.querySelectorAll('*').forEach(el => el.style.cursor = '');
+  }
+})();
+</script>
+
+<script>
+// ── LICENSE WATERMARK ──
+// Identifies the buyer on their own copy as a deterrent against reselling/resharing.
+// Reads buyer info from the URL if a checkout flow ever appends it (?name=...&email=...);
+// falls back to a generic licensed-copy notice if no buyer data is present yet.
+(function(){
+  const params = new URLSearchParams(window.location.search);
+  const buyerName = params.get('name');
+  const buyerEmail = params.get('email');
+  const identifier = buyerEmail || buyerName || 'Licensed copy — do not redistribute';
+  const wm = document.createElement('div');
+  wm.className = 'license-watermark';
+  wm.textContent = identifier;
+  document.body.appendChild(wm);
+  const hidden = document.createElement('span');
+  hidden.style.cssText = 'position:absolute;width:1px;height:1px;overflow:hidden;opacity:0;pointer-events:none';
+  hidden.textContent = 'Areviax licensed copy: ' + identifier;
+  document.body.appendChild(hidden);
+})();
+</script>
+</body>
+</html>

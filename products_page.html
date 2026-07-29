@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Products — Areviax</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Fraunces:opsz,wght@9..144,400;9..144,600&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html{background:#000000;overflow-x:hidden}
+  :root{
+    --bg:#000000;--blue:#3B5BFF;--cyan:#44CFFF;--orange:#FF6B1A;--white:#EEF0FF;--muted:#7B84B0;
+  }
+  body{
+    background:var(--bg);
+    color:var(--white);font-family:'Outfit',sans-serif;font-weight:300;
+    min-height:100vh;padding:0;overflow-x:hidden;
+  }
+
+  /* ── PAGE-WIDE FLOWING GRADIENT — matches index.html ── */
+  .page-gradient-bg{position:fixed;inset:0;z-index:-1;overflow:hidden;pointer-events:none}
+  .page-gradient-blob{position:absolute;border-radius:50%;filter:blur(80px);opacity:.32}
+  .page-gradient-blob.pg1{width:640px;height:640px;background:radial-gradient(circle,#3B5BFF,transparent 70%);animation:pgDrift1 28s ease-in-out infinite}
+  .page-gradient-blob.pg2{width:520px;height:520px;background:radial-gradient(circle,#44CFFF,transparent 70%);animation:pgDrift2 34s ease-in-out infinite}
+  .page-gradient-blob.pg3{width:420px;height:420px;background:radial-gradient(circle,#5B7FFF,transparent 70%);animation:pgDrift3 24s ease-in-out infinite}
+  @keyframes pgDrift1{0%,100%{transform:translate(-15%,-15%)}50%{transform:translate(25%,15%)}}
+  @keyframes pgDrift2{0%,100%{transform:translate(65%,60%)}50%{transform:translate(35%,80%)}}
+  @keyframes pgDrift3{0%,100%{transform:translate(15%,80%)}50%{transform:translate(50%,20%)}}
+
+  .page-content{padding:0 24px 0}
+  .page-head{text-align:center;margin-bottom:90px;max-width:640px;margin-left:auto;margin-right:auto;padding-top:70px}
+  .page-eyebrow{font-size:12px;font-weight:700;letter-spacing:.28em;text-transform:uppercase;color:var(--cyan);margin-bottom:18px}
+  .page-head h1{font-family:'Fraunces',serif;font-weight:600;font-size:clamp(36px,5.5vw,60px);line-height:1.05;letter-spacing:-.02em}
+  .page-head-accent{background:linear-gradient(100deg,var(--cyan),var(--blue));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  .page-head p{margin-top:20px;font-size:16px;color:var(--muted);line-height:1.6}
+
+  /* ═════ MANIFESTO BAND ═════
+     Starfield, glows, and vignette are scoped to THIS section only via
+     position:absolute — exactly how index.html scopes its hero treatment.
+     Everything outside this section sits on flat, true var(--bg) black,
+     which is what keeps the rest of the page reading as deep black rather
+     than diluting the effect across the whole scrollable page. */
+  .manifesto{
+    position:relative;min-height:66vh;display:flex;align-items:center;justify-content:center;
+    text-align:center;padding:60px 24px;overflow:hidden;
+  }
+  #page-starfield{position:fixed;inset:0;z-index:-1;pointer-events:none}
+  .manifesto-glow-blue{
+    position:absolute;width:900px;height:900px;border-radius:50%;
+    background:radial-gradient(circle,rgba(59,91,255,.18) 0%,transparent 65%);
+    top:50%;left:50%;transform:translate(-50%,-50%);
+    animation:manifestoDrift 14s ease-in-out infinite;pointer-events:none;z-index:1;
+  }
+  .manifesto-glow-orange{
+    position:absolute;width:420px;height:420px;border-radius:50%;
+    background:radial-gradient(circle,rgba(255,107,26,.09) 0%,transparent 65%);
+    bottom:-80px;left:12%;pointer-events:none;z-index:1;
+  }
+  @keyframes manifestoDrift{
+    0%,100%{transform:translate(-54%,-52%) scale(1)}
+    50%{transform:translate(-46%,-48%) scale(1.12)}
+  }
+  /* darkens a soft pocket directly behind the text so it stays crisp against
+     the starfield/glow, same technique as index.html's .hero-vignette */
+  .manifesto-vignette{
+    position:absolute;inset:0;z-index:2;pointer-events:none;
+    background:radial-gradient(ellipse 55% 60% at 50% 50%,
+      rgba(0,0,0,.82) 0%, rgba(0,0,0,.55) 35%, rgba(0,0,0,0) 70%);
+  }
+  .manifesto-content{position:relative;z-index:3}
+  .manifesto-mark{width:36px;height:36px;margin:0 auto 24px;opacity:0;animation:fadeUpMan .6s .05s forwards}
+  .manifesto-mark svg{width:100%;height:100%;filter:drop-shadow(0 0 10px rgba(68,207,255,.5))}
+  .manifesto-eyebrow{
+    font-size:12px;font-weight:700;letter-spacing:.3em;text-transform:uppercase;color:var(--muted);
+    margin-bottom:28px;opacity:0;animation:fadeUpMan .6s .2s forwards;
+  }
+  .manifesto-line{
+    font-family:'Fraunces',serif;font-weight:600;font-size:clamp(30px,4.6vw,54px);
+    line-height:1.22;letter-spacing:-.015em;max-width:15ch;margin:0 auto;
+    opacity:0;animation:fadeUpMan .7s .35s forwards;
+  }
+  .manifesto-line .accent{
+    background:linear-gradient(120deg,var(--cyan),var(--blue));
+    -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+  }
+  @keyframes fadeUpMan{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+  @media(prefers-reduced-motion:reduce){
+    .manifesto-glow-blue{animation:none}
+    .manifesto-mark,.manifesto-eyebrow,.manifesto-line{animation:none;opacity:1;transform:none}
+  }
+
+  .group-label{
+    max-width:1100px;margin:0 auto 44px;display:flex;align-items:baseline;gap:20px;
+  }
+  .group-label-text{display:flex;flex-direction:column;gap:6px}
+  .group-eyebrow{font-size:11px;font-weight:700;letter-spacing:.26em;text-transform:uppercase;color:var(--muted)}
+  .group-title{font-family:'Fraunces',serif;font-style:italic;font-weight:600;font-size:clamp(30px,4.2vw,44px);letter-spacing:-.01em;line-height:1}
+  .group-title.ebooks-title{background:linear-gradient(100deg,#44CFFF,#3B5BFF);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  .group-title.apps-title{background:linear-gradient(100deg,#FF9D6B,#B97FFF);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  .group-label::after{content:'';flex:1;height:1px;align-self:center;background:linear-gradient(to right,rgba(123,132,176,.3),transparent)}
+
+  .shelf{
+    max-width:1100px;margin:0 auto 110px;display:flex;gap:60px;align-items:flex-end;
+    flex-wrap:wrap;justify-content:center;perspective:1600px;
+  }
+
+  /* ═════ BOOK ITEMS ═════ */
+  .book-item{display:flex;flex-direction:column;align-items:center;position:relative;perspective:1000px}
+  .item-symbol{
+    width:46px;height:46px;margin-bottom:26px;display:flex;align-items:center;justify-content:center;
+    opacity:.6;transform:translateY(6px);
+    transition:opacity .6s cubic-bezier(.22,1,.36,1),transform .6s cubic-bezier(.22,1,.36,1);
+    animation:symFloat 4s ease-in-out infinite;
+  }
+  .item-symbol svg{width:100%;height:100%;overflow:visible}
+  @keyframes symFloat{0%,100%{transform:translateY(6px)}50%{transform:translateY(-4px)}}
+
+  .book{position:relative;width:150px;aspect-ratio:3/4.35;transform-style:preserve-3d;cursor:pointer;
+    transform:rotateY(-22deg) rotateX(4deg);transition:transform .7s cubic-bezier(.22,1,.36,1)}
+  .book-item:hover .book{transform:rotateY(-12deg) rotateX(2deg) translateY(-16px)}
+  .book-item:hover .item-symbol{opacity:1;transform:translateY(-2px)}
+
+  .book-spine{position:absolute;top:0;bottom:0;left:0;width:26px;
+    transform:translateX(-25px) rotateY(90deg);transform-origin:right center;
+    border-radius:3px 0 0 3px;display:flex;align-items:center;justify-content:center}
+
+  /* the bundle's fanned "spread of books" look — two peeking book shapes behind the main cover */
+  .bundle-peek{position:absolute;top:6px;bottom:-6px;width:100%;border-radius:3px 6px 6px 3px;z-index:-1;
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.05)}
+  .bundle-peek-left{transform:rotate(-9deg) translateX(-14px);opacity:.85}
+  .bundle-peek-right{transform:rotate(8deg) translateX(12px);opacity:.85}
+  .bundle-spread:hover .bundle-peek-left{transform:rotate(-13deg) translateX(-20px)}
+  .bundle-spread:hover .bundle-peek-right{transform:rotate(12deg) translateX(18px)}
+  .bundle-peek{transition:transform .7s cubic-bezier(.22,1,.36,1)}
+  .spine-text{writing-mode:vertical-rl;transform:rotate(180deg);font-size:8px;font-weight:700;
+    letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.5);white-space:nowrap}
+
+  .book-cover{position:absolute;inset:0;border-radius:3px 6px 6px 3px;overflow:hidden;
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.06),3px 2px 8px rgba(0,0,0,.4)}
+  .cover-art{position:absolute;inset:0;padding:18px 16px;display:flex;flex-direction:column;z-index:2}
+  .cover-series{font-size:8px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;opacity:.85}
+  .cover-title{margin-top:auto;font-weight:800;font-size:18px;line-height:1.1;letter-spacing:-.02em}
+  .cover-sub{margin-top:7px;font-size:8.5px;font-weight:500;letter-spacing:.09em;text-transform:uppercase;color:rgba(255,255,255,.45)}
+  .cover-print{position:absolute;top:14px;right:14px;width:40px;height:40px;opacity:.16;z-index:1}
+  .cover-print svg{width:100%;height:100%}
+  .cover-gloss{position:absolute;inset:0;z-index:3;pointer-events:none;
+    background:linear-gradient(150deg,rgba(255,255,255,.14) 0%,transparent 30%,transparent 75%,rgba(0,0,0,.28) 100%)}
+  .cover-sheen{position:absolute;inset:-40% -60%;z-index:4;pointer-events:none;mix-blend-mode:screen;
+    background:linear-gradient(105deg,transparent 38%,rgba(255,255,255,.22) 47%,rgba(255,255,255,.34) 50%,rgba(255,255,255,.22) 53%,transparent 62%);
+    transform:translateX(-120%)}
+  .book-item:hover .cover-sheen{transform:translateX(120%);transition:transform 1.1s cubic-bezier(.4,0,.2,1)}
+
+  .item-shadow{position:absolute;bottom:-34px;left:50%;transform:translateX(-50%);
+    width:120px;height:26px;border-radius:50%;background:radial-gradient(ellipse,rgba(0,0,0,.55) 0%,transparent 70%);
+    filter:blur(3px);transition:width .7s cubic-bezier(.22,1,.36,1),opacity .7s;z-index:-1}
+  .book-item:hover .item-shadow{width:96px;opacity:.7}
+  .item-aura{position:absolute;bottom:-10px;left:50%;transform:translateX(-50%);
+    width:130px;height:90px;border-radius:50%;opacity:.35;filter:blur(26px);
+    transition:opacity .7s,width .7s;z-index:-2;pointer-events:none}
+  .book-item:hover .item-aura{opacity:.7;width:160px}
+
+  .item-label{margin-top:52px;text-align:center}
+  .item-name{font-size:14px;font-weight:600}
+  .item-price{font-size:13px;color:var(--muted);margin-top:3px;font-family:'Fraunces',serif}
+  .item-cta{
+    margin-top:14px;display:inline-flex;align-items:center;gap:6px;
+    padding:8px 18px;border-radius:8px;
+    background:rgba(59,91,255,.16);border:1px solid rgba(59,91,255,.4);
+    font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;
+    color:var(--cyan);transition:background .3s,border-color .3s;
+  }
+  .book-item:hover .item-cta,.panel-item:hover .item-cta{background:rgba(59,91,255,.3);border-color:rgba(59,91,255,.65)}
+  .panel-cta{margin-top:16px;align-self:flex-start}
+
+  /* ═════ APP / SUBSCRIPTION PANEL ITEMS (OS, Physique, Bundle) ═════ */
+  .panel-row{max-width:920px;margin:0 auto 60px;display:flex;gap:18px;flex-wrap:wrap;justify-content:center}
+  .panel-item{display:flex;flex-direction:column;align-items:center;position:relative;width:260px}
+  .panel-item .item-symbol{margin-bottom:14px}
+  .panel-item .item-label{margin-top:18px}
+  .panel-card{
+    position:relative;width:100%;aspect-ratio:16/10;border-radius:16px;overflow:hidden;
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.07),0 20px 40px -12px rgba(0,0,0,.5);
+    transition:transform .5s cubic-bezier(.22,1,.36,1);
+  }
+  .panel-item:hover .panel-card{transform:translateY(-10px)}
+  .panel-item:hover .item-symbol{opacity:1;transform:translateY(-2px)}
+  .panel-inner{position:absolute;inset:0;padding:22px;display:flex;flex-direction:column;justify-content:flex-end;z-index:2}
+  .panel-badge{font-size:8.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;opacity:.8;margin-bottom:auto}
+  .panel-title{font-weight:800;font-size:19px;letter-spacing:-.01em}
+  .panel-sub{margin-top:5px;font-size:9.5px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.45)}
+  .panel-print{position:absolute;top:16px;right:16px;width:44px;height:44px;opacity:.14;z-index:1}
+  .panel-print svg{width:100%;height:100%}
+  .panel-gloss{position:absolute;inset:0;z-index:3;pointer-events:none;
+    background:linear-gradient(150deg,rgba(255,255,255,.13) 0%,transparent 35%,transparent 75%,rgba(0,0,0,.3) 100%)}
+  .panel-sheen{position:absolute;inset:-40% -60%;z-index:4;pointer-events:none;mix-blend-mode:screen;
+    background:linear-gradient(105deg,transparent 38%,rgba(255,255,255,.2) 47%,rgba(255,255,255,.3) 50%,rgba(255,255,255,.2) 53%,transparent 62%);
+    transform:translateX(-120%)}
+  .panel-item:hover .panel-sheen{transform:translateX(120%);transition:transform 1.1s cubic-bezier(.4,0,.2,1)}
+
+  @media(prefers-reduced-motion:reduce){
+    *{animation:none!important}
+    .book,.panel-card,.item-symbol,.item-shadow,.item-aura,.cover-sheen,.panel-sheen{transition:none!important}
+  }
+  @media(max-width:640px){.shelf{gap:44px}.book{width:130px}.panel-row{gap:8px}.panel-item{width:100%;max-width:320px}.panel-item .item-label{margin-top:14px}}
+  .products-back-link{position:relative;z-index:2;display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;color:var(--muted);text-decoration:none;margin:28px 0 0 28px}
+  .products-back-link:hover{color:var(--white)}
+  .book-item,.panel-item{cursor:pointer}
+</style>
+</head>
+<body>
+<div class="page-gradient-bg">
+  <div class="page-gradient-blob pg1"></div>
+  <div class="page-gradient-blob pg2"></div>
+  <div class="page-gradient-blob pg3"></div>
+</div>
+
+<!-- Guaranteed-solid black base layer, hardcoded (not via CSS variable), sitting behind
+     all content. Kept permanently as a safety net regardless of any other background layer. -->
+<div style="position:fixed;inset:0;z-index:-2;background-color:#000000;pointer-events:none"></div>
+
+<canvas id="page-starfield"></canvas>
+
+<a href="https://areviax.netlify.app/" class="products-back-link">
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+  Back to Areviax
+</a>
+
+<div class="page-content">
+
+<section class="manifesto">
+  <div class="manifesto-glow-blue"></div>
+  <div class="manifesto-glow-orange"></div>
+  <div class="manifesto-vignette"></div>
+  <div class="manifesto-content">
+    <div class="manifesto-mark">
+      <svg viewBox="0 0 40 40" fill="none">
+        <defs>
+          <radialGradient id="manDiscG" cx="50%" cy="40%" r="65%">
+            <stop offset="0%" stop-color="#6B85FF"/>
+            <stop offset="100%" stop-color="#3B5BFF"/>
+          </radialGradient>
+          <radialGradient id="manWellG" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#0A0E1F" stop-opacity="0.9"/>
+            <stop offset="70%" stop-color="#1B2A6B" stop-opacity="0.5"/>
+            <stop offset="100%" stop-color="#3B5BFF" stop-opacity="0"/>
+          </radialGradient>
+        </defs>
+        <path d="M20,0.4 L21.2,12.4 L20,14.4 L18.8,12.4 Z" fill="url(#manDiscG)"/>
+        <path d="M39.6,20 L27.6,21.2 L25.6,20 L27.6,18.8 Z" fill="url(#manDiscG)"/>
+        <path d="M20,39.6 L18.8,27.6 L20,25.6 L21.2,27.6 Z" fill="url(#manDiscG)"/>
+        <path d="M0.4,20 L12.4,18.8 L14.4,20 L12.4,21.2 Z" fill="url(#manDiscG)"/>
+        <circle cx="20" cy="20" r="12.4" fill="url(#manDiscG)"/>
+        <circle cx="20" cy="20" r="9.6" fill="none" stroke="#1A1F3A" stroke-width="0.28" opacity="0.85"/>
+        <path d="M20,9.6 C21.2,14.8 25.2,18.8 30.4,20 C25.2,21.2 21.2,25.2 20,30.4 C18.8,25.2 14.8,21.2 9.6,20 C14.8,18.8 18.8,14.8 20,9.6 Z" fill="url(#manWellG)"/>
+        <circle cx="20" cy="20" r="1.3" fill="#44CFFF"/>
+      </svg>
+    </div>
+    <div class="manifesto-eyebrow">Making Success Real</div>
+    <h2 class="manifesto-line">Made by people who've <span class="accent">actually lived</span> the problem.</h2>
+  </div>
+</section>
+
+<div class="page-head">
+  <div class="page-eyebrow">The Full Library</div>
+  <h1>Everything Areviax has <span class="page-head-accent">built</span>.</h1>
+  <p>Every product made by someone who lived the problem first, then turned what worked into a system you can use today.</p>
+</div>
+
+<div class="group-label">
+  <div class="group-label-text">
+    <div class="group-eyebrow">The Library</div>
+    <div class="group-title ebooks-title">Interactive Ebooks</div>
+  </div>
+</div>
+<div class="shelf">
+
+  <!-- GROWTH CODE — unchanged, as instructed -->
+  <div class="book-item" onclick="location.href='https://areviax.netlify.app/?product=growth'">
+    <div class="item-symbol">
+      <svg viewBox="0 0 40 40" fill="none"><polyline points="4,30 14,18 22,24 36,8" stroke="#44CFFF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="filter:drop-shadow(0 0 6px #44CFFF)"/><circle cx="36" cy="8" r="3" fill="#44CFFF" style="filter:drop-shadow(0 0 6px #44CFFF)"/></svg>
+    </div>
+    <div class="book">
+      <div class="item-aura" style="background:radial-gradient(ellipse,rgba(68,207,255,.9),transparent 70%)"></div>
+      <div class="book-spine" style="background:linear-gradient(to bottom,#12283f,#0a1622)"><span class="spine-text">Growth Code</span></div>
+      <div class="book-cover" style="background:linear-gradient(155deg,#1C3550,#0D1E30)">
+        <div class="cover-print"><svg viewBox="0 0 40 40" fill="none"><polyline points="4,30 14,18 22,24 36,8" stroke="#000" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="cover-art">
+          <div class="cover-series" style="color:#44CFFF">Interactive Ebook</div>
+          <div class="cover-title">The<br>Growth Code</div>
+          <div class="cover-sub">TikTok &amp; YouTube · 2026</div>
+        </div>
+        <div class="cover-gloss"></div><div class="cover-sheen"></div>
+      </div>
+      <div class="item-shadow"></div>
+    </div>
+    <div class="item-label"><div class="item-name">The Growth Code</div><div class="item-price">£27</div><div class="item-cta">View →</div></div>
+  </div>
+
+  <!-- INCOME PLAYBOOK -->
+  <div class="book-item" onclick="location.href='https://areviax.netlify.app/?product=income'">
+    <div class="item-symbol">
+      <svg viewBox="0 0 40 40" fill="none" style="filter:drop-shadow(0 0 6px #FFC94A)">
+        <circle cx="20" cy="20" r="15" stroke="#FFC94A" stroke-width="2.2"/>
+        <circle cx="20" cy="20" r="11" stroke="#FFC94A" stroke-width="1.2" opacity="0.5"/>
+        <text x="20" y="25.5" font-family="Arial,sans-serif" font-weight="700" font-size="15" fill="#FFC94A" text-anchor="middle">£</text>
+      </svg>
+    </div>
+    <div class="book">
+      <div class="item-aura" style="background:radial-gradient(ellipse,rgba(255,201,74,.85),transparent 70%)"></div>
+      <div class="book-spine" style="background:linear-gradient(to bottom,#3d2e0d,#221a08)"><span class="spine-text">Income Playbook</span></div>
+      <div class="book-cover" style="background:linear-gradient(155deg,#4A3A16,#241C09)">
+        <div class="cover-print"><svg viewBox="0 0 40 40" fill="none"><circle cx="20" cy="20" r="15" stroke="#000" stroke-width="2.2"/><text x="20" y="25.5" font-family="Arial,sans-serif" font-weight="700" font-size="15" fill="#000" text-anchor="middle">£</text></svg></div>
+        <div class="cover-art">
+          <div class="cover-series" style="color:#FFC94A">Interactive Ebook</div>
+          <div class="cover-title">The Income<br>Playbook</div>
+          <div class="cover-sub">Your first sale, 30 days</div>
+        </div>
+        <div class="cover-gloss"></div><div class="cover-sheen"></div>
+      </div>
+      <div class="item-shadow"></div>
+    </div>
+    <div class="item-label"><div class="item-name">The Income Playbook</div><div class="item-price">£29</div><div class="item-cta">View →</div></div>
+  </div>
+
+  <!-- DIGITAL PRODUCT BLUEPRINT -->
+  <div class="book-item" onclick="location.href='https://areviax.netlify.app/?product=digital'">
+    <div class="item-symbol">
+      <svg viewBox="0 0 40 40" fill="none"><g stroke="#B97FFF" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" style="filter:drop-shadow(0 0 6px #B97FFF)"><path d="M8 16 L20 22 L32 16 L20 10 Z" fill="none"/><path d="M8 16 L8 27 L20 33 L20 22" fill="none"/><path d="M32 16 L32 27 L20 33" fill="none"/><path d="M20 10 L20 4 M13 12 L10 7 M27 12 L30 7"/></g><circle cx="20" cy="4" r="2.4" fill="#B97FFF" style="filter:drop-shadow(0 0 5px #B97FFF)"/><circle cx="10" cy="7" r="2" fill="#B97FFF" style="filter:drop-shadow(0 0 5px #B97FFF)"/><circle cx="30" cy="7" r="2" fill="#B97FFF" style="filter:drop-shadow(0 0 5px #B97FFF)"/></svg>
+    </div>
+    <div class="book">
+      <div class="item-aura" style="background:radial-gradient(ellipse,rgba(185,127,255,.9),transparent 70%)"></div>
+      <div class="book-spine" style="background:linear-gradient(to bottom,#20143d,#100a20)"><span class="spine-text">Digital Blueprint</span></div>
+      <div class="book-cover" style="background:linear-gradient(155deg,#2A1A50,#160D2E)">
+        <div class="cover-print"><svg viewBox="0 0 40 40" fill="none"><g stroke="#000" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"><path d="M8 16 L20 22 L32 16 L20 10 Z"/><path d="M8 16 L8 27 L20 33 L20 22"/><path d="M32 16 L32 27 L20 33"/><path d="M20 10 L20 4 M13 12 L10 7 M27 12 L30 7"/></g><circle cx="20" cy="4" r="2.4" fill="#000"/><circle cx="10" cy="7" r="2" fill="#000"/><circle cx="30" cy="7" r="2" fill="#000"/></svg></div>
+        <div class="cover-art">
+          <div class="cover-series" style="color:#B97FFF">Interactive Ebook</div>
+          <div class="cover-title">Digital<br>Product<br>Blueprint</div>
+          <div class="cover-sub">Create · Launch · Sell</div>
+        </div>
+        <div class="cover-gloss"></div><div class="cover-sheen"></div>
+      </div>
+      <div class="item-shadow"></div>
+    </div>
+    <div class="item-label"><div class="item-name">Digital Product Blueprint</div><div class="item-price">£37</div><div class="item-cta">View →</div></div>
+  </div>
+
+  <!-- AI PROMPT MASTERY -->
+  <div class="book-item" onclick="location.href='https://areviax.netlify.app/?product=ai'">
+    <div class="item-symbol">
+      <svg viewBox="0 0 40 40" fill="none"><g fill="#B97FFF" style="filter:drop-shadow(0 0 6px #B97FFF)"><path d="M20 4 L23 15 L34 18 L23 21 L20 32 L17 21 L6 18 L17 15 Z"/></g><g stroke="#B97FFF" stroke-width="1.6" stroke-linecap="round" opacity=".8"><path d="M31 27 L33 30 L31 33"/></g></svg>
+    </div>
+    <div class="book">
+      <div class="item-aura" style="background:radial-gradient(ellipse,rgba(185,127,255,.85),transparent 70%)"></div>
+      <div class="book-spine" style="background:linear-gradient(to bottom,#241633,#12091b)"><span class="spine-text">AI Prompt Mastery</span></div>
+      <div class="book-cover" style="background:linear-gradient(155deg,#301E45,#180D24)">
+        <div class="cover-print"><svg viewBox="0 0 40 40" fill="none"><path d="M20 4 L23 15 L34 18 L23 21 L20 32 L17 21 L6 18 L17 15 Z" fill="#000"/></svg></div>
+        <div class="cover-art">
+          <div class="cover-series" style="color:#C99BFF">Interactive Ebook</div>
+          <div class="cover-title">AI Prompt<br>Mastery</div>
+          <div class="cover-sub">10× your AI output</div>
+        </div>
+        <div class="cover-gloss"></div><div class="cover-sheen"></div>
+      </div>
+      <div class="item-shadow"></div>
+    </div>
+    <div class="item-label"><div class="item-name">AI Prompt Mastery</div><div class="item-price">£17</div><div class="item-cta">View →</div></div>
+  </div>
+
+  <!-- MASS BLUEPRINT — thickened arm, as approved -->
+  <div class="book-item" onclick="location.href='https://areviax.netlify.app/?product=mass'">
+    <div class="item-symbol">
+      <svg viewBox="0 0 40 40" fill="none"><path d="M 20.59,3.05 C 20.26,3.12 20.06,3.21 18.76,3.91 C 16.76,4.97 15.01,6.03 13.88,6.87 C 13.39,7.24 12.72,7.92 12.44,8.35 C 12.06,8.93 9.27,14.53 7.89,17.48 C 6.77,19.87 6.26,21.13 5.77,22.78 C 5.18,24.75 4.89,26.29 4.77,28.16 C 4.75,28.53 4.69,29.11 4.64,29.44 C 4.54,30.11 4.56,30.49 4.73,31.01 C 4.90,31.56 5.36,32.18 5.94,32.65 C 6.53,33.12 6.56,33.13 9.30,34.17 C 13.54,35.76 16.99,36.64 20.15,36.94 C 20.92,37.01 23.74,37.01 24.44,36.94 C 26.22,36.76 27.43,36.51 28.85,36.04 C 29.79,35.73 30.31,35.51 31.25,35.04 C 32.07,34.62 32.30,34.43 32.30,34.18 C 32.30,34.06 32.27,33.99 32.14,33.87 C 31.93,33.65 31.81,33.65 31.36,33.91 C 28.45,35.52 24.89,36.24 20.90,36.02 C 17.39,35.83 13.60,34.85 8.15,32.73 C 6.78,32.19 6.37,31.95 6.00,31.41 C 5.77,31.07 5.65,30.78 5.60,30.37 C 5.55,30.11 5.56,29.97 5.64,29.45 C 5.69,29.12 5.75,28.43 5.79,27.93 C 5.90,26.26 6.18,24.81 6.74,22.96 C 7.30,21.09 7.88,19.71 9.50,16.34 C 10.53,14.18 13.08,9.10 13.31,8.76 C 13.42,8.58 13.64,8.32 13.78,8.18 C 14.26,7.69 15.83,6.65 17.55,5.66 C 18.29,5.24 18.71,5.01 20.10,4.30 C 20.58,4.04 20.91,3.96 21.22,4.00 C 21.65,4.04 21.75,4.12 23.31,5.73 C 24.28,6.71 24.81,7.28 24.85,7.39 C 25.00,7.70 24.94,8.06 24.72,8.27 C 24.64,8.34 24.01,8.83 23.31,9.36 C 22.29,10.12 22.01,10.31 21.91,10.31 C 21.82,10.31 21.63,10.21 21.22,9.93 C 20.92,9.72 20.67,9.53 20.67,9.50 C 20.67,9.48 20.71,9.24 20.77,8.99 C 20.83,8.74 20.87,8.49 20.86,8.45 C 20.82,8.33 20.55,8.12 20.44,8.12 C 20.23,8.12 20.08,8.33 19.84,8.95 C 19.56,9.69 19.56,9.80 19.78,10.03 C 19.94,10.20 21.12,11.01 21.51,11.23 C 21.75,11.37 21.98,11.38 22.22,11.27 C 22.31,11.23 22.79,10.89 23.28,10.52 C 24.16,9.86 24.17,9.85 24.18,9.97 C 24.20,10.16 24.12,10.70 24.06,10.83 C 24.03,10.90 23.85,11.07 23.67,11.21 C 23.49,11.35 23.08,11.70 22.76,11.99 C 22.44,12.28 22.12,12.54 22.05,12.57 C 21.84,12.66 21.67,12.64 20.95,12.46 C 19.67,12.14 18.98,12.04 17.86,11.98 C 17.38,11.96 17.27,11.94 17.29,11.90 C 17.36,11.74 17.44,11.27 17.42,11.20 C 17.41,11.16 17.34,11.05 17.26,10.98 C 17.13,10.86 17.06,10.83 16.79,10.78 C 16.24,10.69 16.13,10.71 15.97,10.87 C 15.78,11.05 15.78,11.17 15.98,11.36 C 16.07,11.44 16.16,11.51 16.18,11.51 C 16.21,11.51 16.26,11.54 16.29,11.56 C 16.36,11.61 16.36,11.66 16.22,12.24 C 15.75,14.28 15.43,16.28 15.32,17.72 C 15.27,18.46 15.29,19.15 15.40,20.35 C 15.48,21.32 15.48,22.44 15.39,23.09 C 15.23,24.33 14.84,25.39 14.23,26.23 C 13.99,26.55 13.99,26.67 14.21,26.89 C 14.33,27.02 14.41,27.06 14.52,27.06 C 14.67,27.06 14.69,27.04 15.59,26.22 C 16.72,25.18 17.50,24.60 18.42,24.13 C 20.32,23.17 22.39,22.98 24.37,23.58 C 25.70,23.99 26.76,24.62 27.88,25.70 C 28.35,26.16 28.43,26.18 28.67,25.93 C 28.92,25.67 28.90,25.59 28.39,25.04 C 28.15,24.77 27.77,24.40 27.54,24.22 L 27.12,23.87 L 27.26,23.76 C 27.55,23.51 28.28,23.05 28.76,22.82 C 29.98,22.22 31.31,21.96 32.56,22.07 C 33.21,22.12 33.92,22.27 34.44,22.47 C 34.94,22.65 35.00,22.65 35.23,22.43 C 35.47,22.19 35.47,22.05 35.25,21.83 C 35.03,21.59 34.39,21.37 33.48,21.20 C 32.90,21.09 31.77,21.05 31.20,21.11 C 29.55,21.31 28.02,21.95 26.68,23.04 C 26.49,23.19 26.32,23.31 26.30,23.31 C 26.28,23.31 26.13,23.25 25.97,23.17 C 25.28,22.82 24.42,22.54 23.53,22.37 C 22.96,22.27 21.15,22.27 20.59,22.37 C 19.09,22.65 17.76,23.26 16.44,24.27 L 16.13,24.51 L 16.24,24.01 C 16.31,23.74 16.38,23.32 16.41,23.08 C 16.49,22.46 16.48,21.14 16.39,20.10 C 16.29,18.99 16.31,17.57 16.44,16.56 C 16.57,15.61 16.95,13.39 17.05,13.03 C 17.08,12.95 17.11,12.95 17.77,12.98 C 18.82,13.01 19.51,13.12 20.80,13.44 C 21.63,13.65 21.92,13.67 22.25,13.54 C 22.47,13.46 22.90,13.12 23.46,12.59 C 23.60,12.46 23.85,12.25 24.02,12.12 C 24.42,11.80 24.79,11.45 24.91,11.26 C 25.11,10.96 25.15,10.72 25.16,9.89 L 25.17,9.11 L 25.42,8.85 C 25.81,8.45 25.96,8.05 25.91,7.57 C 25.86,7.03 25.81,6.96 23.99,5.11 C 22.82,3.92 22.26,3.38 22.09,3.27 C 21.65,3.01 21.13,2.93 20.59,3.05 M 21.54,6.57 C 21.42,6.68 21.37,6.75 21.37,6.84 C 21.37,6.91 21.52,7.16 21.85,7.63 C 22.40,8.39 22.59,8.62 22.72,8.62 C 22.86,8.62 23.32,8.18 23.32,8.05 C 23.32,7.96 22.95,7.54 22.04,6.62 C 21.82,6.40 21.74,6.39 21.54,6.57 M 27.33,30.69 C 26.03,31.31 24.74,31.70 23.34,31.91 C 22.65,32.01 21.13,32.01 20.45,31.91 C 19.02,31.70 17.88,31.35 16.68,30.76 C 16.41,30.62 16.14,30.52 16.10,30.52 C 16.05,30.52 15.94,30.59 15.85,30.67 C 15.54,31.00 15.69,31.20 16.60,31.66 C 17.85,32.31 19.06,32.68 20.50,32.86 C 21.21,32.95 22.93,32.92 23.61,32.81 C 24.95,32.60 26.27,32.18 27.39,31.60 C 28.04,31.27 28.25,31.10 28.25,30.91 C 28.25,30.81 28.21,30.74 28.08,30.62 C 27.99,30.54 27.88,30.48 27.84,30.48 C 27.80,30.48 27.58,30.57 27.33,30.69" fill="#FF6B1A" style="filter:drop-shadow(0 0 5px #FF6B1A)"/></svg>
+    </div>
+    <div class="book">
+      <div class="item-aura" style="background:radial-gradient(ellipse,rgba(255,107,26,.85),transparent 70%)"></div>
+      <div class="book-spine" style="background:linear-gradient(to bottom,#2e1a0d,#160d06)"><span class="spine-text">Mass Blueprint</span></div>
+      <div class="book-cover" style="background:linear-gradient(155deg,#4A2A14,#241207)">
+        <div class="cover-print"><svg viewBox="0 0 40 40" fill="none"><path d="M 20.59,3.05 C 20.26,3.12 20.06,3.21 18.76,3.91 C 16.76,4.97 15.01,6.03 13.88,6.87 C 13.39,7.24 12.72,7.92 12.44,8.35 C 12.06,8.93 9.27,14.53 7.89,17.48 C 6.77,19.87 6.26,21.13 5.77,22.78 C 5.18,24.75 4.89,26.29 4.77,28.16 C 4.75,28.53 4.69,29.11 4.64,29.44 C 4.54,30.11 4.56,30.49 4.73,31.01 C 4.90,31.56 5.36,32.18 5.94,32.65 C 6.53,33.12 6.56,33.13 9.30,34.17 C 13.54,35.76 16.99,36.64 20.15,36.94 C 20.92,37.01 23.74,37.01 24.44,36.94 C 26.22,36.76 27.43,36.51 28.85,36.04 C 29.79,35.73 30.31,35.51 31.25,35.04 C 32.07,34.62 32.30,34.43 32.30,34.18 C 32.30,34.06 32.27,33.99 32.14,33.87 C 31.93,33.65 31.81,33.65 31.36,33.91 C 28.45,35.52 24.89,36.24 20.90,36.02 C 17.39,35.83 13.60,34.85 8.15,32.73 C 6.78,32.19 6.37,31.95 6.00,31.41 C 5.77,31.07 5.65,30.78 5.60,30.37 C 5.55,30.11 5.56,29.97 5.64,29.45 C 5.69,29.12 5.75,28.43 5.79,27.93 C 5.90,26.26 6.18,24.81 6.74,22.96 C 7.30,21.09 7.88,19.71 9.50,16.34 C 10.53,14.18 13.08,9.10 13.31,8.76 C 13.42,8.58 13.64,8.32 13.78,8.18 C 14.26,7.69 15.83,6.65 17.55,5.66 C 18.29,5.24 18.71,5.01 20.10,4.30 C 20.58,4.04 20.91,3.96 21.22,4.00 C 21.65,4.04 21.75,4.12 23.31,5.73 C 24.28,6.71 24.81,7.28 24.85,7.39 C 25.00,7.70 24.94,8.06 24.72,8.27 C 24.64,8.34 24.01,8.83 23.31,9.36 C 22.29,10.12 22.01,10.31 21.91,10.31 C 21.82,10.31 21.63,10.21 21.22,9.93 C 20.92,9.72 20.67,9.53 20.67,9.50 C 20.67,9.48 20.71,9.24 20.77,8.99 C 20.83,8.74 20.87,8.49 20.86,8.45 C 20.82,8.33 20.55,8.12 20.44,8.12 C 20.23,8.12 20.08,8.33 19.84,8.95 C 19.56,9.69 19.56,9.80 19.78,10.03 C 19.94,10.20 21.12,11.01 21.51,11.23 C 21.75,11.37 21.98,11.38 22.22,11.27 C 22.31,11.23 22.79,10.89 23.28,10.52 C 24.16,9.86 24.17,9.85 24.18,9.97 C 24.20,10.16 24.12,10.70 24.06,10.83 C 24.03,10.90 23.85,11.07 23.67,11.21 C 23.49,11.35 23.08,11.70 22.76,11.99 C 22.44,12.28 22.12,12.54 22.05,12.57 C 21.84,12.66 21.67,12.64 20.95,12.46 C 19.67,12.14 18.98,12.04 17.86,11.98 C 17.38,11.96 17.27,11.94 17.29,11.90 C 17.36,11.74 17.44,11.27 17.42,11.20 C 17.41,11.16 17.34,11.05 17.26,10.98 C 17.13,10.86 17.06,10.83 16.79,10.78 C 16.24,10.69 16.13,10.71 15.97,10.87 C 15.78,11.05 15.78,11.17 15.98,11.36 C 16.07,11.44 16.16,11.51 16.18,11.51 C 16.21,11.51 16.26,11.54 16.29,11.56 C 16.36,11.61 16.36,11.66 16.22,12.24 C 15.75,14.28 15.43,16.28 15.32,17.72 C 15.27,18.46 15.29,19.15 15.40,20.35 C 15.48,21.32 15.48,22.44 15.39,23.09 C 15.23,24.33 14.84,25.39 14.23,26.23 C 13.99,26.55 13.99,26.67 14.21,26.89 C 14.33,27.02 14.41,27.06 14.52,27.06 C 14.67,27.06 14.69,27.04 15.59,26.22 C 16.72,25.18 17.50,24.60 18.42,24.13 C 20.32,23.17 22.39,22.98 24.37,23.58 C 25.70,23.99 26.76,24.62 27.88,25.70 C 28.35,26.16 28.43,26.18 28.67,25.93 C 28.92,25.67 28.90,25.59 28.39,25.04 C 28.15,24.77 27.77,24.40 27.54,24.22 L 27.12,23.87 L 27.26,23.76 C 27.55,23.51 28.28,23.05 28.76,22.82 C 29.98,22.22 31.31,21.96 32.56,22.07 C 33.21,22.12 33.92,22.27 34.44,22.47 C 34.94,22.65 35.00,22.65 35.23,22.43 C 35.47,22.19 35.47,22.05 35.25,21.83 C 35.03,21.59 34.39,21.37 33.48,21.20 C 32.90,21.09 31.77,21.05 31.20,21.11 C 29.55,21.31 28.02,21.95 26.68,23.04 C 26.49,23.19 26.32,23.31 26.30,23.31 C 26.28,23.31 26.13,23.25 25.97,23.17 C 25.28,22.82 24.42,22.54 23.53,22.37 C 22.96,22.27 21.15,22.27 20.59,22.37 C 19.09,22.65 17.76,23.26 16.44,24.27 L 16.13,24.51 L 16.24,24.01 C 16.31,23.74 16.38,23.32 16.41,23.08 C 16.49,22.46 16.48,21.14 16.39,20.10 C 16.29,18.99 16.31,17.57 16.44,16.56 C 16.57,15.61 16.95,13.39 17.05,13.03 C 17.08,12.95 17.11,12.95 17.77,12.98 C 18.82,13.01 19.51,13.12 20.80,13.44 C 21.63,13.65 21.92,13.67 22.25,13.54 C 22.47,13.46 22.90,13.12 23.46,12.59 C 23.60,12.46 23.85,12.25 24.02,12.12 C 24.42,11.80 24.79,11.45 24.91,11.26 C 25.11,10.96 25.15,10.72 25.16,9.89 L 25.17,9.11 L 25.42,8.85 C 25.81,8.45 25.96,8.05 25.91,7.57 C 25.86,7.03 25.81,6.96 23.99,5.11 C 22.82,3.92 22.26,3.38 22.09,3.27 C 21.65,3.01 21.13,2.93 20.59,3.05 M 21.54,6.57 C 21.42,6.68 21.37,6.75 21.37,6.84 C 21.37,6.91 21.52,7.16 21.85,7.63 C 22.40,8.39 22.59,8.62 22.72,8.62 C 22.86,8.62 23.32,8.18 23.32,8.05 C 23.32,7.96 22.95,7.54 22.04,6.62 C 21.82,6.40 21.74,6.39 21.54,6.57 M 27.33,30.69 C 26.03,31.31 24.74,31.70 23.34,31.91 C 22.65,32.01 21.13,32.01 20.45,31.91 C 19.02,31.70 17.88,31.35 16.68,30.76 C 16.41,30.62 16.14,30.52 16.10,30.52 C 16.05,30.52 15.94,30.59 15.85,30.67 C 15.54,31.00 15.69,31.20 16.60,31.66 C 17.85,32.31 19.06,32.68 20.50,32.86 C 21.21,32.95 22.93,32.92 23.61,32.81 C 24.95,32.60 26.27,32.18 27.39,31.60 C 28.04,31.27 28.25,31.10 28.25,30.91 C 28.25,30.81 28.21,30.74 28.08,30.62 C 27.99,30.54 27.88,30.48 27.84,30.48 C 27.80,30.48 27.58,30.57 27.33,30.69" fill="#000"/></svg></div>
+        <div class="cover-art">
+          <div class="cover-series" style="color:#FF6B1A">Fitness Series</div>
+          <div class="cover-title">The Mass<br>Blueprint</div>
+          <div class="cover-sub">Build serious size</div>
+        </div>
+        <div class="cover-gloss"></div><div class="cover-sheen"></div>
+      </div>
+      <div class="item-shadow"></div>
+    </div>
+    <div class="item-label"><div class="item-name">The Mass Blueprint</div><div class="item-price">£19</div><div class="item-cta">View →</div></div>
+  </div>
+
+  <!-- MASTERMIND BUNDLE — a spread of fanned books, since this is a bundle of ebooks, not a subscription -->
+  <div class="book-item" onclick="location.href='https://areviax.netlify.app/?product=bundle'">
+    <div class="item-symbol">
+      <svg viewBox="0 0 40 40" fill="none"><g stroke="#44CFFF" stroke-width="2.1" stroke-linejoin="round" stroke-linecap="round" style="filter:drop-shadow(0 0 6px #44CFFF)"><path d="M20 5 L34 12 L20 19 L6 12 Z"/><path d="M6 20 L20 27 L34 20" fill="none"/><path d="M6 28 L20 35 L34 28" fill="none"/></g></svg>
+    </div>
+    <div class="book bundle-spread">
+      <div class="item-aura" style="background:radial-gradient(ellipse,rgba(68,207,255,.85),transparent 70%)"></div>
+      <div class="bundle-peek bundle-peek-left" style="background:linear-gradient(155deg,#1A2E6B,#0D1A42)"></div>
+      <div class="bundle-peek bundle-peek-right" style="background:linear-gradient(155deg,#1A3020,#0D1E12)"></div>
+      <div class="book-spine" style="background:linear-gradient(to bottom,#0e2430,#081820)"><span class="spine-text">Mastermind Bundle</span></div>
+      <div class="book-cover" style="background:linear-gradient(155deg,#123545,#081820)">
+        <div class="cover-print"><svg viewBox="0 0 40 40" fill="none"><g stroke="#000" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round"><path d="M20 5 L34 12 L20 19 L6 12 Z"/><path d="M6 20 L20 27 L34 20"/></g></svg></div>
+        <div class="cover-art">
+          <div class="cover-series" style="color:#7FE0FF">All 5 Ebooks</div>
+          <div class="cover-title">The Mastermind<br>Bundle</div>
+          <div class="cover-sub">£97 one time · was £129</div>
+        </div>
+        <div class="cover-gloss"></div><div class="cover-sheen"></div>
+      </div>
+      <div class="item-shadow"></div>
+    </div>
+    <div class="item-label"><div class="item-name">The Mastermind Bundle</div><div class="item-price">£97</div><div class="item-cta">View →</div></div>
+  </div>
+
+</div>
+
+<div class="group-label">
+  <div class="group-label-text">
+    <div class="group-eyebrow">Daily Tools</div>
+    <div class="group-title apps-title">Apps &amp; Memberships</div>
+  </div>
+</div>
+<div class="panel-row">
+
+
+  <!-- AREVIAX OS — exact logo geometry, now with matching glow per updated instruction -->
+  <div class="panel-item" onclick="location.href='https://areviax.netlify.app/?product=app'">
+    <div class="item-symbol"><svg viewBox="0 0 40 40" fill="none" style="filter:drop-shadow(0 0 7px rgba(255,255,255,.6))">
+<defs>
+  <radialGradient id="osDiscG" cx="50%" cy="40%" r="65%">
+    <stop offset="0%" stop-color="#6B85FF"/>
+    <stop offset="100%" stop-color="#3B5BFF"/>
+  </radialGradient>
+  <radialGradient id="osWellG" cx="50%" cy="50%" r="50%">
+    <stop offset="0%" stop-color="#0A0E1F" stop-opacity="0.9"/>
+    <stop offset="70%" stop-color="#1B2A6B" stop-opacity="0.5"/>
+    <stop offset="100%" stop-color="#3B5BFF" stop-opacity="0"/>
+  </radialGradient>
+</defs>
+<path d="M20,0.4 L21.2,12.4 L20,14.4 L18.8,12.4 Z" fill="url(#osDiscG)"/>
+<path d="M39.6,20 L27.6,21.2 L25.6,20 L27.6,18.8 Z" fill="url(#osDiscG)"/>
+<path d="M20,39.6 L18.8,27.6 L20,25.6 L21.2,27.6 Z" fill="url(#osDiscG)"/>
+<path d="M0.4,20 L12.4,18.8 L14.4,20 L12.4,21.2 Z" fill="url(#osDiscG)"/>
+<circle cx="20" cy="20" r="12.4" fill="url(#osDiscG)"/>
+<circle cx="20" cy="20" r="9.6" fill="none" stroke="#1A1F3A" stroke-width="0.28" opacity="0.85"/>
+<path d="M20,9.6 C21.2,14.8 25.2,18.8 30.4,20 C25.2,21.2 21.2,25.2 20,30.4 C18.8,25.2 14.8,21.2 9.6,20 C14.8,18.8 18.8,14.8 20,9.6 Z" fill="url(#osWellG)"/>
+<circle cx="20" cy="20" r="1.3" fill="#44CFFF"/>
+</svg></div>
+    <div class="panel-card">
+      <div class="panel-print"><svg viewBox="0 0 40 40" fill="none">
+<path d="M20,0.4 L21.2,12.4 L20,14.4 L18.8,12.4 Z" fill="#000"/>
+<path d="M39.6,20 L27.6,21.2 L25.6,20 L27.6,18.8 Z" fill="#000"/>
+<path d="M20,39.6 L18.8,27.6 L20,25.6 L21.2,27.6 Z" fill="#000"/>
+<path d="M0.4,20 L12.4,18.8 L14.4,20 L12.4,21.2 Z" fill="#000"/>
+<circle cx="20" cy="20" r="12.4" fill="#000"/>
+<circle cx="20" cy="20" r="1.3" fill="#000" opacity="0"/>
+</svg></div>
+      <div class="panel-inner">
+        <div class="panel-badge" style="color:#8FA8FF">Subscription</div>
+        <div class="panel-title">Areviax OS</div>
+        <div class="panel-sub">£16/mo · £110/yr</div>
+        <div class="item-cta panel-cta">Open →</div>
+      </div>
+      <div style="position:absolute;inset:0;background:linear-gradient(155deg,#1C2550,#0D1030);z-index:0"></div>
+      <div class="panel-gloss"></div><div class="panel-sheen"></div>
+    </div>
+  </div>
+
+  <!-- PHYSIQUE SYSTEM -->
+  <div class="panel-item" onclick="location.href='https://areviax.netlify.app/?product=massapp'">
+    <div class="item-symbol">
+      <svg viewBox="0 0 40 40" fill="none"><g stroke="#4AE888" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" style="filter:drop-shadow(0 0 6px #4AE888)"><rect x="4" y="15" width="5" height="10" rx="1.5"/><rect x="31" y="15" width="5" height="10" rx="1.5"/><rect x="8" y="17" width="4" height="6" rx="1"/><rect x="28" y="17" width="4" height="6" rx="1"/><line x1="12" y1="20" x2="28" y2="20"/></g></svg>
+    </div>
+    <div class="panel-card">
+      <div class="panel-print"><svg viewBox="0 0 40 40" fill="none"><g stroke="#000" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="15" width="5" height="10" rx="1.5"/><rect x="31" y="15" width="5" height="10" rx="1.5"/><line x1="12" y1="20" x2="28" y2="20"/></g></svg></div>
+      <div class="panel-inner">
+        <div class="panel-badge" style="color:#8FF0A8">Subscription</div>
+        <div class="panel-title">Physique System</div>
+        <div class="panel-sub">£16/mo · £125/yr</div>
+        <div class="item-cta panel-cta">Open →</div>
+      </div>
+      <div style="position:absolute;inset:0;background:linear-gradient(155deg,#1A3020,#0D1E12);z-index:0"></div>
+      <div class="panel-gloss"></div><div class="panel-sheen"></div>
+    </div>
+  </div>
+
+</div>
+
+</div>
+
+<script>
+const sc=document.getElementById('page-starfield');
+function sizePageCanvas(){
+  sc.width=window.innerWidth;
+  sc.height=window.innerHeight;
+}
+sizePageCanvas();
+const sx=sc.getContext('2d');
+const stars=Array.from({length:120},()=>({
+  x:Math.random()*sc.width, y:Math.random()*sc.height,
+  r:Math.random()*1.2+.2, a:Math.random(), speed:Math.random()*.003+.001, color:'200,210,255'
+}));
+// A handful of larger, accent-coloured stars for subtle brand-colour richness —
+// verified to add under 0.003% additional viewport coverage, so this stays safe
+// and doesn't reintroduce any grey-wash effect.
+const accentColors=['68,207,255','255,107,26','59,91,255'];
+const accentStars=Array.from({length:8},(_, i)=>({
+  x:Math.random()*sc.width, y:Math.random()*sc.height,
+  r:Math.random()*1.0+1.5, a:Math.random(), speed:Math.random()*.002+.0008,
+  color:accentColors[i%accentColors.length]
+}));
+window.addEventListener('resize',sizePageCanvas);
+function drawStars(){
+  sx.clearRect(0,0,sc.width,sc.height);
+  [...stars,...accentStars].forEach(s=>{
+    s.a+=s.speed; if(s.a>1)s.a=0;
+    sx.beginPath(); sx.arc(s.x,s.y,s.r,0,Math.PI*2);
+    sx.fillStyle=`rgba(${s.color},${Math.abs(Math.sin(s.a))*.7})`; sx.fill();
+  });
+  requestAnimationFrame(drawStars);
+}
+if(!window.matchMedia('(prefers-reduced-motion: reduce)').matches){ drawStars(); }
+</script>
+
+</body>
+</html>

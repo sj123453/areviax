@@ -1,0 +1,1612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Digital Product Blueprint — Areviax Interactive</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Fraunces:ital,opsz,wght@1,9..144,300;1,9..144,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0B1230;--bg2:#121B42;--panel:#182352;--panel2:#1B2758;
+  --blue:#3B5BFF;--blue-l:#5B7FFF;--cyan:#44CFFF;
+  --orange:#FF6B1A;--orange2:#FF8C47;
+  --white:#EEF0FF;--muted:#7B84B0;--muted2:#4A5070;
+  --border:rgba(59,91,255,.15);--border2:rgba(255,255,255,.06);
+  --green:#44D4FF;
+}
+html,body{height:100%;overflow:hidden}
+html{background:var(--bg);overscroll-behavior-y:none}
+    body{background:var(--bg);color:var(--white);font-family:'Outfit',sans-serif;font-weight:300;display:flex;flex-direction:column;cursor:none;overscroll-behavior-y:none}
+*{cursor:none!important}
+.page-gradient-bg{position:fixed;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(160deg,#1D2B63 0%,#0B1230 55%,#080C22 100%)}
+#cur-c{position:fixed;pointer-events:none;z-index:9999;transform:translate(-50%,-50%)}
+
+/* ── LAYOUT ── */
+.app{display:flex;height:100vh;overflow:hidden}
+
+/* SIDEBAR / CHAPTERS */
+.sidebar{
+  width:260px;flex-shrink:0;background:var(--bg2);
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;overflow:hidden;
+}
+.sb-top{padding:20px;border-bottom:1px solid var(--border)}
+.sb-back{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--muted);text-decoration:none;margin-bottom:14px;transition:color .2s}
+.sb-back:hover{color:var(--white)}
+.sb-book-title{font-weight:800;font-size:15px;letter-spacing:-.01em;line-height:1.2}
+.sb-book-sub{font-size:11px;color:var(--orange);letter-spacing:.08em;text-transform:uppercase;margin-top:4px}
+.sb-collection-tag{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:700;letter-spacing:.04em;color:var(--cyan);background:rgba(68,207,255,.1);border:1px solid rgba(68,207,255,.25);border-radius:5px;padding:5px 9px;margin-top:10px}
+
+/* progress bar */
+.sb-progress{padding:14px 20px;border-bottom:1px solid var(--border)}
+.sb-progress-label{display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-bottom:6px;letter-spacing:.06em;text-transform:uppercase}
+.sb-progress-bar{height:3px;background:var(--border);border-radius:2px;overflow:hidden}
+.sb-progress-fill{height:100%;background:linear-gradient(to right,var(--orange),var(--orange2));border-radius:2px;transition:width .6s ease}
+
+/* chapter list */
+.chapter-list{flex:1;overflow-y:auto;padding:8px 0;scrollbar-width:none}
+.chapter-list::-webkit-scrollbar{display:none}
+.ch-item{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 20px;font-size:13px;
+  color:var(--muted);transition:color .2s,background .2s;
+  border-left:2px solid transparent;cursor:pointer;
+}
+.ch-item:hover{color:var(--white);background:rgba(59,91,255,.06)}
+.ch-item.active{color:var(--white);background:rgba(59,91,255,.1);border-left-color:var(--blue)}
+.ch-item.done{color:var(--muted)}
+.ch-item.done .ch-num{background:var(--green);color:var(--bg);border-color:var(--green)}
+.ch-num{
+  width:22px;height:22px;border-radius:50%;
+  background:transparent;border:1px solid var(--muted2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:9px;font-weight:700;font-family:'JetBrains Mono',monospace;
+  flex-shrink:0;transition:all .3s;
+}
+.ch-item.active .ch-num{background:var(--blue);border-color:var(--blue);color:white}
+.ch-title-text{flex:1;line-height:1.3}
+.ch-check{font-size:10px;color:var(--green);opacity:0;transition:opacity .3s}
+.ch-item.done .ch-check{opacity:1}
+
+/* XP badge sidebar bottom */
+.sb-bottom{
+  padding:14px 20px;border-top:1px solid var(--border);
+  display:flex;align-items:center;gap:10px;
+}
+.xp-orb{
+  width:36px;height:36px;border-radius:50%;flex-shrink:0;
+  background:linear-gradient(135deg,var(--orange),var(--orange2));
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:800;color:var(--bg);
+}
+.xp-info{flex:1}
+.xp-val{font-weight:700;font-size:14px}
+.xp-label{font-size:10px;color:var(--muted)}
+
+/* ── MAIN ── */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+
+/* mobile chapter strip — only shown when sidebar is hidden */
+.ch-strip{display:none;overflow-x:auto;gap:0;background:var(--bg2);border-bottom:1px solid var(--border);padding:0 14px;scrollbar-width:none;flex-shrink:0}
+.ch-strip::-webkit-scrollbar{display:none}
+.ch-tab{flex-shrink:0;padding:11px 14px;font-size:10.5px;font-weight:600;letter-spacing:.03em;color:var(--muted);border-bottom:2px solid transparent;cursor:pointer;transition:color .2s,border-color .2s;white-space:nowrap}
+.ch-tab:hover{color:var(--white)}
+.ch-tab.active{color:var(--white);border-bottom-color:var(--blue)}
+.ch-tab.done{color:var(--green)}
+.ch-tab.done::before{content:'¹3 ';font-size:8px}
+
+@media(max-width:700px){
+  .sidebar{display:none}
+  .ch-strip{display:flex}
+  .topbar{padding:0 16px}
+  .reading-area{padding:24px 18px 60px!important}
+}
+
+/* TOP BAR */
+.topbar{
+  height:52px;flex-shrink:0;
+  background:var(--bg2);border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 32px;
+}
+.tb-chapter{font-size:12px;font-weight:600;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.tb-nav{display:flex;gap:8px}
+.tb-btn{
+  display:flex;align-items:center;gap:6px;
+  font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;
+  padding:7px 16px;border:1px solid var(--border2);background:transparent;
+  color:var(--muted);transition:all .22s;font-family:'Outfit',sans-serif;
+}
+.tb-btn:hover{border-color:var(--border);color:var(--white)}
+.tb-btn.primary{background:var(--orange);border-color:var(--orange);color:var(--bg)}
+.tb-btn.primary:hover{background:var(--orange2)}
+
+/* READING AREA */
+.reading-area{
+  flex:1;overflow-y:auto;
+  scrollbar-width:thin;scrollbar-color:var(--border) transparent;
+}
+.reading-area::-webkit-scrollbar{width:3px}
+.reading-area::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+.chapter-page{
+  display:none;max-width:760px;margin:0 auto;
+  padding:48px 48px 80px;
+  animation:fadeIn .35s ease;
+}
+.chapter-page.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── TYPOGRAPHY ── */
+.ch-eyebrow{
+  font-size:10px;font-weight:700;letter-spacing:.28em;text-transform:uppercase;
+  color:var(--orange);margin-bottom:14px;
+  display:flex;align-items:center;gap:10px;
+}
+.ch-eyebrow::before{content:'';display:inline-block;width:18px;height:1.5px;background:var(--orange)}
+.ch-h1{
+  font-weight:900;font-size:clamp(32px,4vw,52px);
+  line-height:1.04;letter-spacing:-.025em;margin-bottom:8px;
+}
+.ch-h1 em{font-family:'Fraunces',serif;font-style:italic;font-weight:300;color:var(--blue-l)}
+.ch-subtitle{font-size:16px;color:var(--muted);line-height:1.6;margin-bottom:36px;font-style:italic}
+.ch-divider{height:1px;background:var(--border);margin:32px 0}
+.ch-lead{font-size:16px;line-height:1.85;color:rgba(238,240,255,.85);margin-bottom:24px}
+.ch-body{font-size:14.5px;line-height:1.85;color:rgba(238,240,255,.72);font-weight:400;margin-bottom:20px}
+.ch-h2{font-weight:700;font-size:20px;letter-spacing:-.01em;margin:32px 0 12px;color:var(--white)}
+.ch-h2 span{color:var(--orange)}
+.ch-h3{font-weight:600;font-size:15px;letter-spacing:.04em;text-transform:uppercase;color:var(--cyan);margin:24px 0 10px}
+
+/* ── CALLOUT ── */
+.callout{
+  background:rgba(29,43,99,.22);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border-left:3px solid var(--orange);
+  border:1px solid rgba(255,107,26,.2);border-left:3px solid var(--orange);
+  padding:18px 20px;margin:24px 0;border-radius:0 8px 8px 0;
+}
+.callout-title{font-size:10px;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:var(--orange);margin-bottom:8px}
+.callout p{font-size:13.5px;line-height:1.7;color:rgba(238,240,255,.8)}
+.callout.blue{border-left-color:var(--cyan);border-color:rgba(68,207,255,.15);border-left:3px solid var(--cyan)}
+.callout.blue .callout-title{color:var(--cyan)}
+.callout.green{border-left-color:var(--green);border-color:rgba(59,255,140,.15);border-left:3px solid var(--green)}
+.callout.green .callout-title{color:var(--green)}
+
+/* ── STAT ROW ── */
+.stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:24px 0}
+.stat-block{
+  background:rgba(29,43,99,.22);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border:1px solid var(--border2);
+  border-radius:8px;padding:16px;text-align:center;
+  position:relative;overflow:hidden;
+}
+.stat-block::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--accent,var(--blue))}
+.stat-block-val{font-weight:800;font-size:26px;letter-spacing:-.02em;color:var(--white);font-family:'JetBrains Mono',monospace}
+.stat-block-label{font-size:10px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-top:4px}
+
+/* ── COMPARISON TABLE ── */
+.comp-table{width:100%;margin:24px 0;border-collapse:collapse;font-size:13px}
+.comp-table th{background:var(--blue);color:white;padding:10px 14px;text-align:left;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase}
+.comp-table td{padding:9px 14px;border-bottom:1px solid var(--border2)}
+.comp-table tr:nth-child(even) td{background:rgba(15,20,40,.5)}
+.comp-table tr:nth-child(odd) td{background:var(--panel)}
+.comp-table td:first-child{font-weight:600;color:var(--white)}
+
+/* ── INTERACTIVE: HOOK BUILDER ── */
+.tool-card{
+  background:rgba(29,43,99,.22);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border:1px solid var(--border);
+  border-radius:10px;padding:24px;margin:28px 0;
+  position:relative;overflow:hidden;
+  box-shadow:0 20px 50px -20px rgba(0,0,0,.5);
+}
+.tool-card::before{
+  content:'⚡ INTERACTIVE TOOL';
+  position:absolute;top:0;right:0;
+  font-size:8px;font-weight:800;letter-spacing:.15em;
+  color:var(--bg);background:var(--cyan);
+  padding:4px 12px;
+}
+.tool-title{font-weight:700;font-size:16px;margin-bottom:6px}
+.tool-desc{font-size:12px;color:var(--muted);margin-bottom:18px;line-height:1.6}
+.tool-label{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px;margin-top:14px}
+.tool-input{
+  width:100%;background:var(--bg);border:1px solid var(--border);
+  color:var(--white);font-family:'Outfit',sans-serif;font-size:13px;
+  padding:10px 14px;border-radius:4px;transition:border-color .2s;
+}
+.tool-input:focus{outline:none;border-color:var(--blue)}
+.tool-select{
+  width:100%;background:var(--bg);border:1px solid var(--border);
+  color:var(--white);font-family:'Outfit',sans-serif;font-size:13px;
+  padding:10px 14px;border-radius:4px;
+}
+.tool-select option{background:var(--panel)}
+.tool-output{
+  background:var(--bg);border:1px solid rgba(68,207,255,.25);
+  padding:16px;margin-top:16px;border-radius:4px;
+  font-size:14px;line-height:1.7;color:var(--white);
+  min-height:60px;
+  border-left:3px solid var(--cyan);
+  display:none;
+}
+.tool-output.show{display:block;animation:fadeIn .3s ease}
+.tool-output-label{font-size:9px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--cyan);margin-bottom:8px}
+.tool-btn{
+  display:inline-flex;align-items:center;gap:7px;
+  font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  padding:10px 22px;background:var(--orange);border:none;
+  color:var(--bg);font-family:'Outfit',sans-serif;
+  margin-top:16px;clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,0 100%);
+  transition:background .2s,transform .18s;
+}
+.tool-btn:hover{background:var(--orange2);transform:translateY(-1px)}
+.tool-btn.blue-btn{background:var(--blue);color:white}
+.tool-btn.blue-btn:hover{background:var(--blue-l)}
+
+/* ── QUIZ ── */
+.quiz-card{
+  background:var(--panel);border:1px solid var(--border);
+  border-radius:6px;padding:24px;margin:28px 0;
+}
+.quiz-card::before{
+  content:'✦ KNOWLEDGE CHECK';
+  display:block;
+  font-size:8px;font-weight:800;letter-spacing:.15em;color:var(--bg);
+  background:var(--orange);padding:4px 12px;margin:-24px -24px 18px;
+}
+.quiz-question{font-weight:600;font-size:15px;margin-bottom:16px;line-height:1.5}
+.quiz-options{display:flex;flex-direction:column;gap:8px;margin-bottom:16px}
+.quiz-opt{
+  padding:12px 16px;background:var(--bg);border:1px solid var(--border2);
+  font-size:13px;color:var(--muted);cursor:pointer;transition:all .2s;
+  text-align:left;font-family:'Outfit',sans-serif;
+}
+.quiz-opt:hover{border-color:var(--border);color:var(--white);background:var(--panel2)}
+.quiz-opt.correct{background:rgba(59,255,140,.1);border-color:var(--green);color:var(--green)}
+.quiz-opt.wrong{background:rgba(255,59,59,.1);border-color:#ff3b3b;color:#ff3b3b}
+.quiz-result{
+  font-size:13px;padding:12px 16px;border-radius:4px;display:none;
+  line-height:1.6;
+}
+.quiz-result.show{display:block}
+.quiz-result.pass{background:rgba(59,255,140,.08);border:1px solid rgba(59,255,140,.2);color:var(--green)}
+.quiz-result.fail{background:rgba(255,107,26,.08);border:1px solid rgba(255,107,26,.2);color:var(--orange)}
+
+/* ── CHECKLIST ── */
+.checklist{margin:20px 0}
+.check-item{
+  display:flex;align-items:flex-start;gap:12px;
+  padding:10px 14px;background:var(--panel2);
+  border:1px solid var(--border2);border-radius:4px;
+  margin-bottom:6px;cursor:pointer;transition:border-color .2s;
+}
+.check-item:hover{border-color:var(--border)}
+.check-item.checked{opacity:.6}
+.check-item.checked .check-text{text-decoration:line-through;color:var(--muted)}
+.check-box{
+  width:18px;height:18px;border:1.5px solid var(--muted2);border-radius:3px;
+  flex-shrink:0;display:flex;align-items:center;justify-content:center;
+  transition:all .2s;margin-top:1px;
+}
+.check-item.checked .check-box{background:var(--green);border-color:var(--green)}
+.check-box svg{display:none;color:var(--bg)}
+.check-item.checked .check-box svg{display:block}
+.check-text{font-size:13px;line-height:1.5}
+
+/* ── PLATFORM CARD ── */
+.platform-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:20px 0}
+.platform-card{
+  background:var(--panel2);border:1px solid var(--border2);
+  padding:16px;border-radius:4px;
+  border-top:2px solid var(--accent);
+}
+.platform-name{font-weight:700;font-size:14px;margin-bottom:4px}
+.platform-stat{font-size:11px;color:var(--muted);margin-bottom:8px}
+.platform-bar-wrap{height:3px;background:var(--border);border-radius:2px;overflow:hidden;margin-bottom:6px}
+.platform-bar{height:100%;border-radius:2px}
+
+/* ── PERSONALISATION BANNER ── */
+.persona-banner{
+  background:linear-gradient(135deg,rgba(59,91,255,.12),rgba(255,107,26,.06));
+  border:1px solid var(--border);padding:16px 20px;
+  display:flex;align-items:center;gap:14px;margin-bottom:28px;
+  border-radius:4px;
+}
+.persona-icon{font-size:22px;flex-shrink:0}
+.persona-text{font-size:13px;color:var(--muted);line-height:1.55}
+.persona-name{font-weight:700;color:var(--white)}
+
+/* ── 90 DAY PLAN GENERATOR ── */
+.plan-week{
+  background:var(--panel2);border:1px solid var(--border2);
+  border-radius:4px;padding:14px 16px;margin-bottom:8px;
+  border-left:3px solid var(--accent,var(--blue));
+}
+.plan-week-label{font-size:10px;font-weight:700;letter-spacing:.15em;text-transform:uppercase;margin-bottom:8px}
+.plan-week-tasks{list-style:none;display:flex;flex-direction:column;gap:5px}
+.plan-week-tasks li{font-size:12px;color:var(--muted);display:flex;align-items:flex-start;gap:8px;line-height:1.5}
+.plan-week-tasks li::before{content:'→';color:var(--orange);flex-shrink:0}
+
+/* ── CHAPTER COMPLETE ── */
+.ch-complete{
+  text-align:center;padding:40px 20px;
+  border:1px solid var(--border);background:var(--panel);
+  margin:32px 0;border-radius:6px;
+  display:none;
+}
+.ch-complete.show{display:block;animation:fadeIn .5s ease}
+.ch-complete-icon{font-size:48px;margin-bottom:16px}
+.ch-complete h3{font-weight:800;font-size:22px;margin-bottom:8px}
+.ch-complete p{font-size:14px;color:var(--muted);margin-bottom:20px}
+.xp-pop{
+  display:inline-flex;align-items:center;gap:8px;
+  font-size:13px;font-weight:700;
+  background:rgba(255,107,26,.15);border:1px solid rgba(255,107,26,.3);
+  color:var(--orange);padding:8px 18px;border-radius:20px;
+  margin-bottom:20px;
+}
+
+/* ── HOOK FORMULA CARDS ── */
+.hook-cards{display:flex;flex-direction:column;gap:10px;margin:20px 0}
+.hook-card{
+  background:var(--panel2);border:1px solid var(--border2);
+  padding:14px 18px;border-radius:4px;
+  border-left:3px solid var(--accent,var(--orange));
+}
+.hook-label{font-size:9px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;margin-bottom:6px}
+.hook-example{font-family:'Fraunces',serif;font-style:italic;font-size:14px;color:var(--white);margin-bottom:6px;line-height:1.5}
+.hook-why{font-size:12px;color:var(--muted);line-height:1.55}
+.trigger-tag{display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:700;letter-spacing:.06em;color:#FF9070;background:rgba(255,107,26,.08);border:1px solid rgba(255,107,26,.22);padding:4px 9px;border-radius:4px;margin-top:8px}
+.trigger-tag.t-cyan{color:#7DDDFF;background:rgba(68,207,255,.08);border-color:rgba(68,207,255,.22)}
+.trigger-tag.t-blue{color:#9AB0FF;background:rgba(91,127,255,.08);border-color:rgba(91,127,255,.22)}
+.trigger-tag.t-green{color:#7DFFB0;background:rgba(59,255,140,.08);border-color:rgba(59,255,140,.22)}
+.trigger-tag::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.9}
+.trigger-tag{display:inline-flex;align-items:center;gap:5px;font-size:10px;font-weight:700;letter-spacing:.05em;padding:4px 9px;border-radius:4px;margin-top:10px;background:rgba(255,107,26,.08);color:var(--orange);border:1px solid rgba(255,107,26,.2)}
+.trigger-tag.t-blue{background:rgba(91,127,255,.08);color:var(--blue-l);border-color:rgba(91,127,255,.2)}
+.trigger-tag.t-cyan{background:rgba(68,207,255,.08);color:var(--cyan);border-color:rgba(68,207,255,.2)}
+.trigger-tag.t-green{background:rgba(59,255,140,.08);color:var(--green);border-color:rgba(59,255,140,.2)}
+.trigger-tag::before{content:'▶';font-size:7px}
+
+/* ── TOAST ── */
+#toast{
+  position:fixed;bottom:24px;right:24px;z-index:1000;
+  background:var(--panel2);border:1px solid var(--border);
+  padding:12px 18px;display:flex;align-items:center;gap:10px;
+  font-size:13px;font-weight:500;
+  transform:translateY(60px);opacity:0;pointer-events:none;
+  transition:transform .35s cubic-bezier(.22,1,.36,1),opacity .35s;
+}
+#toast.show{transform:translateY(0);opacity:1}
+/* ── LICENSE WATERMARK ── */
+.license-watermark{
+  position:fixed;bottom:8px;right:10px;z-index:500;
+  font-size:9px;color:rgba(238,240,255,.18);
+  pointer-events:none;font-family:'JetBrains Mono',monospace;
+  letter-spacing:.02em;
+}
+</style>
+</head>
+<body>
+<div class="page-gradient-bg">
+  <div class="page-gradient-blob pgb1"></div>
+  <div class="page-gradient-blob pgb2"></div>
+  <div class="page-gradient-blob pgb3"></div>
+</div>
+<canvas id="cur-c" width="48" height="48"></canvas>
+<div id="toast">
+  <span id="toast-icon">⭐</span>
+  <span id="toast-msg">+XP earned</span>
+</div>
+
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sb-top">
+      <a href="https://areviax.netlify.app/" class="sb-back">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        Back to Areviax
+      </a>
+      <div class="sb-book-title">Digital Product Blueprint</div>
+      <div class="sb-book-sub">Interactive Edition</div>
+      <div class="sb-collection-tag">⚡ Interactive Ebook Collection</div>
+    </div>
+    <div class="sb-progress">
+      <div class="sb-progress-label">
+        <span>Progress</span>
+        <span id="progress-pct">0%</span>
+      </div>
+      <div class="sb-progress-bar"><div class="sb-progress-fill" id="progress-fill" style="width:0%"></div></div>
+    </div>
+    <div class="chapter-list" id="chapter-list">
+      <div class="ch-item active" onclick="goChapter(0)">
+        <div class="ch-num">0</div>
+        <div class="ch-title-text">Introduction</div>
+        <span class="ch-check">✓</span>
+      </div>
+      <div class="ch-item" onclick="goChapter(1)">
+        <div class="ch-num">1</div>
+        <div class="ch-title-text">Validate Before You Build</div>
+        <span class="ch-check">✓</span>
+      </div>
+      <div class="ch-item" onclick="goChapter(2)">
+        <div class="ch-num">2</div>
+        <div class="ch-title-text">The 4 Product Formats</div>
+        <span class="ch-check">✓</span>
+      </div>
+      <div class="ch-item" onclick="goChapter(3)">
+        <div class="ch-num">3</div>
+        <div class="ch-title-text">Pricing Psychology</div>
+        <span class="ch-check">✓</span>
+      </div>
+      <div class="ch-item" onclick="goChapter(4)">
+        <div class="ch-num">4</div>
+        <div class="ch-title-text">Sales Page Frameworks</div>
+        <span class="ch-check">✓</span>
+      </div>
+      <div class="ch-item" onclick="goChapter(5)">
+        <div class="ch-num">5</div>
+        <div class="ch-title-text">The 7-Day Launch Sequence</div>
+        <span class="ch-check">✓</span>
+      </div>
+      <div class="ch-item" onclick="goChapter(6)">
+        <div class="ch-num">6</div>
+        <div class="ch-title-text">Scale & Automate</div>
+        <span class="ch-check">✓</span>
+      </div>
+      <div class="ch-item" onclick="goChapter(7)">
+        <div class="ch-num">7</div>
+        <div class="ch-title-text">Launches That Fail</div>
+        <span class="ch-check">✓</span>
+      </div>
+      <div class="ch-item" onclick="goChapter(8)">
+        <div class="ch-num">8</div>
+        <div class="ch-title-text">Your Launch Plan</div>
+        <span class="ch-check">✓</span>
+      </div>
+    </div>
+    <div class="sb-bottom">
+      <div class="xp-orb" id="xp-orb">0</div>
+      <div class="xp-info">
+        <div class="xp-val" id="xp-display">0 XP</div>
+        <div class="xp-label">earned this session</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <div class="tb-chapter" id="tb-chapter-label">Introduction</div>
+      <div class="tb-nav">
+        <button class="tb-btn" onclick="prevChapter()">← Prev</button>
+        <button class="tb-btn primary" onclick="nextChapter()" id="next-btn">Next →</button>
+      </div>
+    </div>
+
+    <div class="ch-strip">
+      <div class="ch-tab active" onclick="goChapter(0)">Intro</div>
+      <div class="ch-tab" onclick="goChapter(1)">Validate</div>
+      <div class="ch-tab" onclick="goChapter(2)">Formats</div>
+      <div class="ch-tab" onclick="goChapter(3)">Pricing</div>
+      <div class="ch-tab" onclick="goChapter(4)">Sales Pages</div>
+      <div class="ch-tab" onclick="goChapter(5)">Launch Sequence</div>
+      <div class="ch-tab" onclick="goChapter(6)">Scale & Automate</div>
+      <div class="ch-tab" onclick="goChapter(7)">Common Mistakes</div>
+      <div class="ch-tab" onclick="goChapter(8)">Launch Plan</div>
+    </div>
+
+    <div class="reading-area" id="reading-area">
+
+      <!-- ══ CHAPTER 0: INTRO / PERSONALISATION ══ -->
+      <div class="chapter-page active" id="ch-0">
+        <div class="ch-eyebrow">Welcome</div>
+        <h1 class="ch-h1">This guide <em>responds</em><br>to you.</h1>
+        <p class="ch-subtitle">Answer a few questions below and every chapter adapts to your situation.</p>
+        <div class="ch-divider"></div>
+
+        <div class="tool-card" style="margin-top:0">
+          <div class="tool-title">Set up your profile</div>
+          <div class="tool-desc">Takes 60 seconds. Every tool, plan and example in this guide will be personalised to your answers.</div>
+
+          <label class="tool-label">Your name (so we can address you directly)</label>
+          <input type="text" class="tool-input" id="user-name" placeholder="e.g. Jordan">
+
+          <label class="tool-label">Your area of expertise</label>
+          <select class="tool-select" id="user-niche">
+            <option value="">Select your area...</option>
+            <option value="fitness">Fitness & Health</option>
+            <option value="business">Business & Entrepreneurship</option>
+            <option value="creator">Content Creation & Social Media</option>
+            <option value="lifestyle">Lifestyle & Mindset</option>
+            <option value="tech">Tech & AI</option>
+            <option value="finance">Finance & Investing</option>
+            <option value="education">Education & Coaching</option>
+            <option value="other">Other</option>
+          </select>
+
+          <label class="tool-label">Your current audience size (across all platforms)</label>
+          <select class="tool-select" id="user-followers">
+            <option value="new">No audience yet (0–500)</option>
+            <option value="small">Small but real (500–5K)</option>
+            <option value="mid" selected>Building momentum (5K–50K)</option>
+            <option value="large">Established (50K+)</option>
+          </select>
+
+          <label class="tool-label">Where are you right now?</label>
+          <select class="tool-select" id="user-platform">
+            <option value="idea">I have an idea but haven't started</option>
+            <option value="building">I'm building it right now</option>
+            <option value="built">It's built but I haven't launched</option>
+            <option value="launched">I launched but haven't made a sale</option>
+          </select>
+
+          <label class="tool-label">Your biggest blocker right now</label>
+          <select class="tool-select" id="user-challenge">
+            <option value="idea">Don't know what to actually build</option>
+            <option value="pricing">Scared to charge money for it</option>
+            <option value="traffic">Don't know how to get anyone to see it</option>
+            <option value="perfectionism">Keep tweaking instead of launching</option>
+            <option value="tech">Overwhelmed by the tech/setup side</option>
+          </select>
+
+          <button class="tool-btn" onclick="setupProfile()">Start My Journey →</button>
+        </div>
+
+        <div class="persona-banner" id="persona-banner" style="display:none">
+          <div class="persona-icon">🧭</div>
+          <div class="persona-text">
+            Welcome, <span class="persona-name" id="banner-name">Creator</span>. 
+            Based on your answers this guide has been personalised for a <span class="persona-name" id="banner-niche">creator</span> 
+            currently at the stage of <span class="persona-name" id="banner-platform">having an idea</span>. 
+            Your biggest blocker — <span class="persona-name" id="banner-challenge">knowing what to build</span> — is addressed directly in every chapter.
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ CHAPTER 1: VALIDATE BEFORE YOU BUILD ══ -->
+      <div class="chapter-page" id="ch-1">
+        <div class="ch-eyebrow">Chapter 01 — The Foundation</div>
+        <h1 class="ch-h1">Validate <em>Before</em> You Build</h1>
+        <p class="ch-subtitle">The single biggest reason digital products fail to sell isn't marketing. It's building something nobody asked for.</p>
+        <div class="persona-banner" id="algo-banner" style="display:none">
+          <div class="persona-icon">🎯</div>
+          <div class="persona-text" id="algo-banner-text">Personalised note loading...</div>
+        </div>
+        <div class="ch-divider"></div>
+
+        <p class="ch-lead">Most first products fail silently. Not because the launch was bad — because nobody actually wanted the thing in the first place, and no amount of marketing fixes that. Validation isn't a formality before the "real work" starts. It is the real work. Everything downstream — pricing, sales copy, traffic — only works on something people already want.</p>
+
+        <div class="stat-row">
+          <div class="stat-block" style="--accent:var(--orange)">
+            <div class="stat-block-val" style="color:var(--orange)">42%</div>
+            <div class="stat-block-label">Of startups fail from no market need*</div>
+          </div>
+          <div class="stat-block" style="--accent:var(--cyan)">
+            <div class="stat-block-val" style="color:var(--cyan)">0</div>
+            <div class="stat-block-label">Hours of building required to validate</div>
+          </div>
+          <div class="stat-block" style="--accent:var(--green)">
+            <div class="stat-block-val" style="color:var(--green)">1</div>
+            <div class="stat-block-label">Real signal that matters: a payment</div>
+          </div>
+        </div>
+        <p style="font-size:10px;color:var(--muted);margin-top:-8px">*CB Insights' analysis of startup post-mortems — the single most common cause of failure, ahead of running out of cash or losing to competitors.</p>
+
+        <div class="ch-h2">The <span>Mom Test</span></div>
+        <p class="ch-body">Author Rob Fitzpatrick coined this idea: if you ask your mum "would you buy a product that does X?", she'll say yes — because she loves you and wants to be supportive. Hypothetical questions get hypothetical answers, and hypothetical answers are worthless. The fix is to ask about <strong>past behaviour</strong>, not future intentions. Not "would you use this" but "tell me about the last time you tried to solve this problem" — and then actually listen for whether they spent money or serious time on a fix already.</p>
+
+        <div class="callout">
+          <div class="callout-title">The Validation Trap</div>
+          <p>"I asked 20 people and they all said they'd buy it" is not validation — it's the single most common false signal in this entire process. People are polite. They are not lying to be cruel; they're being kind, and kindness is exactly what makes this data useless. The only question that can't be answered politely is "can I take £5 from you right now."</p>
+        </div>
+
+        <div class="ch-h2">Weak Signal vs <span>Strong Signal</span></div>
+        <table class="comp-table">
+          <tr><th>Weak Signal (ignore this)</th><th>Strong Signal (trust this)</th></tr>
+          <tr><td>"That sounds cool"</td><td>"Where do I pay?"</td></tr>
+          <tr><td>A poll where most people vote yes</td><td>People asking the same question unprompted, repeatedly</td></tr>
+          <tr><td>Friends saying they'd buy it</td><td>Strangers messaging asking when it's ready</td></tr>
+          <tr><td>"I'd definitely use that"</td><td>Someone paying a deposit before it exists</td></tr>
+          <tr><td>High likes on a post about the idea</td><td>People trying to solve it themselves with messy workarounds</td></tr>
+        </table>
+
+        <div class="callout blue">
+          <div class="callout-title">Pre-Sell Before You Build</div>
+          <p>The fastest, cheapest validation available to anyone with even a small audience: announce the product, describe exactly what it'll include, and open a waitlist or a discounted pre-sale before a single page exists. If 10 people pay £10 to get early access, you have real evidence. If nobody does, you've saved yourself weeks of building something for an audience of zero. This single tactic prevents more wasted effort than any other piece of advice in this guide.</p>
+        </div>
+
+        <div class="ch-h2">Where to Find <span>Real Demand Signals</span></div>
+        <p class="ch-body">You don't need a survey — you need to look at evidence that already exists. Check your own comments and DMs for the same question being asked repeatedly. Search your topic on TikTok and read what people are complaining they can't find. Look in Reddit or Facebook groups for your niche and notice which questions get asked weekly. Check if competitors exist — competition is a good sign, not a bad one, it means the market already pays for solutions. The absence of any competitor selling anything in your space is a red flag, not a blue ocean.</p>
+
+        <!-- INTERACTIVE: Idea Validation Scorer -->
+        <div class="tool-card">
+          <div class="tool-title">Idea Validation Scorer</div>
+          <div class="tool-desc">Answer honestly about your product idea. This isn't about getting a high score — it's about seeing exactly where your evidence is thin before you spend a single hour building.</div>
+          <label class="tool-label" style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" id="val-1" style="width:16px;height:16px"> People have asked me a version of this question more than once, unprompted</label>
+          <label class="tool-label" style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" id="val-2" style="width:16px;height:16px"> I've seen people paying for worse or more expensive versions of this already</label>
+          <label class="tool-label" style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" id="val-3" style="width:16px;height:16px"> At least one stranger (not friends/family) has said they'd pay for this</label>
+          <label class="tool-label" style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" id="val-4" style="width:16px;height:16px"> I could describe this product in one sentence a stranger would understand</label>
+          <label class="tool-label" style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" id="val-5" style="width:16px;height:16px"> I know roughly how many people in my audience this problem actually affects</label>
+          <button class="tool-btn" onclick="scoreValidation()">Score My Idea →</button>
+          <div class="tool-output" id="validation-output"></div>
+        </div>
+
+        <div class="ch-h3">Knowledge Check</div>
+        <div class="quiz-card">
+          <div class="quiz-question">Someone says "I'd definitely buy that" when you describe your idea. What's the strongest next move?</div>
+          <div class="quiz-options">
+            <button class="quiz-opt" onclick="quiz(this,'wrong',0)">Thank them and start building immediately</button>
+            <button class="quiz-opt" onclick="quiz(this,'wrong',0)">Ask 10 more people the same question to confirm</button>
+            <button class="quiz-opt" onclick="quiz(this,'correct',0)">Ask if they'll pay a small deposit right now to reserve early access</button>
+            <button class="quiz-opt" onclick="quiz(this,'wrong',0)">Add them to a list and follow up after launch</button>
+          </div>
+          <div class="quiz-result" id="quiz-result-0">
+            <span id="quiz-result-0-text"></span>
+          </div>
+        </div>
+
+        <div class="ch-complete" id="ch-complete-1">
+          <div class="ch-complete-icon">🧭</div>
+          <div class="xp-pop">+25 XP — Chapter Complete</div>
+          <h3>Validation: Unlocked</h3>
+          <p>You now know the difference between polite encouragement and real demand. Most people never separate the two — they build on the first and wonder why nobody buys.</p>
+          <button class="tool-btn" onclick="completeChapter(1)">Continue to Chapter 2 →</button>
+        </div>
+      </div>
+
+      <!-- ══ CHAPTER 2: PRODUCT FORMATS ══ -->
+      <div class="chapter-page" id="ch-2">
+        <div class="ch-eyebrow">Chapter 02 — The Build</div>
+        <h1 class="ch-h1">The 4 Product <em>Formats</em></h1>
+        <p class="ch-subtitle">Pick the wrong format and you'll spend months building something that should have taken a weekend.</p>
+        <div class="ch-divider"></div>
+
+        <p class="ch-lead">Beginners default to whatever format feels most impressive — usually a full video course — without checking whether it actually fits their situation. The right format is the one you can finish and that matches how your specific audience wants to consume it. Impressive and finished beats ambitious and abandoned every time.</p>
+
+        <div class="ch-h2">The <span>Four Formats</span></div>
+        <div class="platform-cards">
+          <div class="platform-card" style="--accent:var(--orange)">
+            <div class="platform-name" style="color:var(--orange)">Ebook / Written Guide</div>
+            <div class="platform-stat">Fastest to build</div>
+            <div class="platform-bar-wrap"><div class="platform-bar" style="width:90%;background:var(--orange)"></div></div>
+            <p style="font-size:12px;color:var(--muted);line-height:1.55">Lowest barrier to start. No filming, no editing. Best when your value is the information itself, not the demonstration of a physical skill.</p>
+          </div>
+          <div class="platform-card" style="--accent:var(--blue-l)">
+            <div class="platform-name" style="color:var(--blue-l)">Template / Toolkit</div>
+            <div class="platform-stat">Highest perceived value</div>
+            <div class="platform-bar-wrap"><div class="platform-bar" style="width:70%;background:var(--blue-l)"></div></div>
+            <p style="font-size:12px;color:var(--muted);line-height:1.55">Spreadsheets, swipe files, planners. People pay for the time saved, not the content. Works well even with a tiny audience.</p>
+          </div>
+          <div class="platform-card" style="--accent:var(--cyan)">
+            <div class="platform-name" style="color:var(--cyan)">Mini-Course / Video Series</div>
+            <div class="platform-stat">Highest price ceiling</div>
+            <div class="platform-bar-wrap"><div class="platform-bar" style="width:45%;background:var(--cyan)"></div></div>
+            <p style="font-size:12px;color:var(--muted);line-height:1.55">Best when watching you demonstrate something builds trust a written guide can't. Slower to make, but commands a higher price.</p>
+          </div>
+          <div class="platform-card" style="--accent:var(--green)">
+            <div class="platform-name" style="color:var(--green)">Community / Coaching</div>
+            <div class="platform-stat">Most ongoing effort</div>
+            <div class="platform-bar-wrap"><div class="platform-bar" style="width:30%;background:var(--green)"></div></div>
+            <p style="font-size:12px;color:var(--muted);line-height:1.55">Highest revenue per customer, but doesn't scale without your ongoing time. Best as a second product after a self-serve one proves demand.</p>
+          </div>
+        </div>
+
+        <div class="callout">
+          <div class="callout-title">The First-Product Rule</div>
+          <p>Your first product should be the format you can finish in under two weeks, not the one with the highest price ceiling. A finished £19 ebook earning real sales beats an unfinished £200 course earning nothing. You can always build the bigger version once you know people actually want it — that's what your first product is for.</p>
+        </div>
+
+        <!-- INTERACTIVE: Format Picker -->
+        <div class="tool-card">
+          <div class="tool-title">Which Format Actually Fits You</div>
+          <div class="tool-desc">Answer three quick questions and get a straight recommendation for your first product.</div>
+          <label class="tool-label">How much time can you realistically put in before launch?</label>
+          <select class="tool-select" id="fmt-time">
+            <option value="low">A weekend or two</option>
+            <option value="mid">2-4 weeks</option>
+            <option value="high">A month or more</option>
+          </select>
+          <label class="tool-label">Would showing your face/voice build more trust, or is the information enough on its own?</label>
+          <select class="tool-select" id="fmt-trust">
+            <option value="info">The information speaks for itself</option>
+            <option value="demo">People need to see me do it</option>
+          </select>
+          <label class="tool-label">Is the core value "save me time" or "teach me something new"?</label>
+          <select class="tool-select" id="fmt-value">
+            <option value="time">Save them time / give them a ready-made system</option>
+            <option value="teach">Teach a new skill or framework</option>
+          </select>
+          <button class="tool-btn" onclick="pickFormat()">Get My Format →</button>
+          <div class="tool-output" id="format-output"></div>
+        </div>
+
+        <div class="ch-h3">Before You Start Building</div>
+        <div class="checklist">
+          <div class="check-item" onclick="toggleCheck(this,5)"><div class="check-box"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span class="check-text">I've picked one format and committed to it — no format-hopping mid-build</span></div>
+          <div class="check-item" onclick="toggleCheck(this,5)"><div class="check-box"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span class="check-text">I've written a one-sentence description of exactly what's included</span></div>
+          <div class="check-item" onclick="toggleCheck(this,5)"><div class="check-box"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span class="check-text">I've set a real deadline and told someone else about it, for accountability</span></div>
+          <div class="check-item" onclick="toggleCheck(this,5)"><div class="check-box"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span class="check-text">I've decided what's explicitly NOT included, so scope can't creep</span></div>
+        </div>
+
+        <div class="ch-complete" id="ch-complete-2">
+          <div class="ch-complete-icon">⚙️</div>
+          <div class="xp-pop">+25 XP — Chapter Complete</div>
+          <h3>Format: Locked In</h3>
+          <p>You've picked a format that fits your actual situation, not your ego. That's the decision that determines whether you finish or stall.</p>
+          <button class="tool-btn" onclick="completeChapter(2)">Continue to Chapter 3 →</button>
+        </div>
+      </div>
+
+      <!-- ══ CHAPTER 3: PRICING ══ -->
+      <div class="chapter-page" id="ch-3">
+        <div class="ch-eyebrow">Chapter 03 — The Most Important Skill</div>
+        <h1 class="ch-h1">Pricing <em>Psychology</em></h1>
+        <p class="ch-subtitle">The number you pick changes who buys, how they perceive the product, and how much you actually keep.</p>
+        <div class="ch-divider"></div>
+
+        <p class="ch-lead">Most first-time sellers underprice out of fear, then wonder why the business doesn't feel worth the effort. Price isn't just a cost to the buyer — it's a signal. Too low and people assume low quality before they've even opened it. The right price isn't the lowest one; it's the one that matches what you're actually solving.</p>
+
+        <div class="ch-h2">The <span>Anchoring Effect</span></div>
+        <p class="ch-body">The first number a person sees changes how every number after it feels. Show "$197 $47" and £47 feels like a steal. Show "£47" alone with nothing to compare it to, and the same exact price feels arbitrary or even expensive. This is why showing a struck-through "was" price works — not as a trick, but because price is never evaluated in isolation, only in comparison.</p>
+
+        <div class="hook-cards">
+          <div class="hook-card" style="--accent:var(--orange)">
+            <div class="hook-label" style="color:var(--orange)">Cost-Based Pricing (avoid this)</div>
+            <div class="hook-example">"It took me 10 hours to make, so I'll charge £10/hour = £100"</div>
+            <div class="hook-why">Ignores the actual value to the buyer entirely. A 10-minute template that saves someone 5 hours is worth more than a 10-hour video nobody needed.</div>
+          </div>
+          <div class="hook-card" style="--accent:var(--cyan)">
+            <div class="hook-label" style="color:var(--cyan)">Value-Based Pricing (use this)</div>
+            <div class="hook-example">"This saves 5 hours of work, or solves a problem costing them £200+ elsewhere"</div>
+            <div class="hook-why">Price reflects the outcome, not your effort. The buyer doesn't know or care how long it took you to build.</div>
+          </div>
+          <div class="hook-card" style="--accent:var(--blue-l)">
+            <div class="hook-label" style="color:var(--blue-l)">Charm Pricing</div>
+            <div class="hook-example">"£19 instead of £20"</div>
+            <div class="hook-why">The left digit is what registers first. £19 reads as "under twenty," £20 reads as "twenty plus." Small effect, consistently measurable across pricing research.</div>
+          </div>
+          <div class="hook-card" style="--accent:var(--green)">
+            <div class="hook-label" style="color:var(--green)">Tiered Pricing</div>
+            <div class="hook-example">Basic / Standard / Premium</div>
+            <div class="hook-why">A middle option makes the top option look reasonable by comparison, and gives price-sensitive buyers a way in without you discounting your main offer.</div>
+          </div>
+        </div>
+
+        <div class="callout">
+          <div class="callout-title">The Too-Cheap Trap</div>
+          <p>Pricing too low doesn't just cost you money — it actively damages how the product is perceived and who buys it. A £3 product attracts people who churn through cheap things without ever using them, then leave bad reviews for products they never opened. A £30 product attracts people who are committed enough to actually engage. Cheap doesn't mean more sales; it often means worse customers and lower completion rates.</p>
+        </div>
+
+        <!-- INTERACTIVE: Price Positioning Tool -->
+        <div class="tool-card">
+          <div class="tool-title">Price Positioning Tool</div>
+          <div class="tool-desc">Answer honestly and get a realistic price range for your specific product — not a generic "charge what you're worth" non-answer.</div>
+          <label class="tool-label">What's the closest alternative someone could pay for instead? (a course, a freelancer, a tool)</label>
+          <input type="text" class="tool-input" id="price-alt" placeholder="e.g. a freelancer charges £300 for this">
+          <label class="tool-label">Roughly what would that alternative cost?</label>
+          <input type="number" class="tool-input" id="price-alt-cost" placeholder="e.g. 300">
+          <label class="tool-label">How much time or money does your product save versus that alternative?</label>
+          <select class="tool-select" id="price-savings">
+            <option value="huge">Massively less — it's a fraction of the cost/time</option>
+            <option value="some">Somewhat less — still meaningfully cheaper</option>
+            <option value="similar">About the same, just more convenient</option>
+          </select>
+          <button class="tool-btn" onclick="calcPrice()">Get My Price Range →</button>
+          <div class="tool-output" id="price-output"></div>
+        </div>
+
+        <div class="quiz-card">
+          <div class="quiz-question">Why does charm pricing (£19 vs £20) actually work?</div>
+          <div class="quiz-options">
+            <button class="quiz-opt" onclick="quiz(this,'wrong',1)">It's a legal requirement for online sales</button>
+            <button class="quiz-opt" onclick="quiz(this,'correct',1)">People register the left-most digit first, so £19 reads as "under twenty"</button>
+            <button class="quiz-opt" onclick="quiz(this,'wrong',1)">It makes the seller seem more trustworthy</button>
+            <button class="quiz-opt" onclick="quiz(this,'wrong',1)">It only works for physical products, not digital ones</button>
+          </div>
+          <div class="quiz-result" id="quiz-result-1"></div>
+        </div>
+
+        <div class="ch-complete" id="ch-complete-3">
+          <div class="ch-complete-icon">💰</div>
+          <div class="xp-pop">+25 XP — Chapter Complete</div>
+          <h3>Pricing: Locked In</h3>
+          <p>You now price based on value delivered, not hours spent. That single shift changes the entire economics of your product.</p>
+          <button class="tool-btn" onclick="completeChapter(3)">Continue to Chapter 4 →</button>
+        </div>
+      </div>
+
+      <!-- ══ CHAPTER 4: SALES PAGES ══ -->
+      <div class="chapter-page" id="ch-4">
+        <div class="ch-eyebrow">Chapter 04 — Conversion</div>
+        <h1 class="ch-h1">Sales Page <em>Frameworks</em></h1>
+        <p class="ch-subtitle">A sales page isn't decoration — it's the difference between a visitor and a customer.</p>
+        <div class="ch-divider"></div>
+
+        <p class="ch-lead">Most first sales pages either say too little ("Buy my ebook!") or too much (a wall of text nobody reads). A good sales page follows a structure that answers the visitor's unspoken questions in the order they actually ask them — before they bounce.</p>
+
+        <div class="ch-h2">The <span>PASTOR Structure</span></div>
+        <p class="ch-body">A reliable framework you can follow top to bottom for almost any digital product page.</p>
+
+        <div class="hook-cards">
+          <div class="hook-card" style="--accent:var(--orange)">
+            <div class="hook-label" style="color:var(--orange)">P — Problem</div>
+            <div class="hook-example">Name the exact problem your visitor has, in their own words, before they finish reading the headline.</div>
+          </div>
+          <div class="hook-card" style="--accent:var(--cyan)">
+            <div class="hook-label" style="color:var(--cyan)">A — Amplify</div>
+            <div class="hook-example">Show what happens if this problem stays unsolved. Not to scare them — to make the cost of inaction concrete.</div>
+          </div>
+          <div class="hook-card" style="--accent:var(--blue-l)">
+            <div class="hook-label" style="color:var(--blue-l)">S — Story / Solution</div>
+            <div class="hook-example">How you solved this (for yourself or others), and how the product packages that solution.</div>
+          </div>
+          <div class="hook-card" style="--accent:var(--green)">
+            <div class="hook-label" style="color:var(--green)">T — Transformation / Testimony</div>
+            <div class="hook-example">Proof it works — testimonials, results, or a clear before/after if you don't have customers yet.</div>
+          </div>
+          <div class="hook-card" style="--accent:var(--orange2)">
+            <div class="hook-label" style="color:var(--orange2)">O — Offer</div>
+            <div class="hook-example">Exactly what's included, the price, and what makes this specific offer worth acting on now.</div>
+          </div>
+          <div class="hook-card" style="--accent:var(--blue)">
+            <div class="hook-label" style="color:var(--blue)">R — Response</div>
+            <div class="hook-example">One clear call to action. Not three competing buttons — one single next step.</div>
+          </div>
+        </div>
+
+        <div style="background:rgba(29,43,99,.22);border:1px solid var(--border2,#22283A);border-radius:8px;padding:24px;margin:22px 0;overflow-x:auto">
+          <div style="font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted,#8890A8);margin-bottom:16px;text-align:center">PASTOR as an actual page, top to bottom</div>
+          <svg width="360" height="460" viewBox="0 0 360 460" style="width:100%;max-width:360px;height:auto;display:block;margin:0 auto">
+            <!-- page frame -->
+            <rect x="4" y="4" width="352" height="452" rx="10" fill="rgba(255,255,255,.02)" stroke="rgba(150,170,255,.3)" stroke-width="1.5"/>
+            <!-- browser-bar hint -->
+            <circle cx="22" cy="20" r="4" fill="#FF6B6B" opacity=".5"/>
+            <circle cx="36" cy="20" r="4" fill="#FFD166" opacity=".5"/>
+            <circle cx="50" cy="20" r="4" fill="#44D4FF" opacity=".5"/>
+
+            <!-- P: Problem -->
+            <rect x="16" y="36" width="328" height="56" rx="5" fill="rgba(255,107,26,.1)" stroke="#FF6B1A" stroke-width="1.2"/>
+            <text x="30" y="58" font-family="Outfit,sans-serif" font-size="15.5" font-weight="800" fill="#FF6B1A">P — PROBLEM</text>
+            <text x="30" y="76" font-family="Outfit,sans-serif" font-size="12.5" fill="rgba(238,240,255,.6)">"Still struggling to gain weight, even</text>
+            <text x="30" y="88" font-family="Outfit,sans-serif" font-size="12.5" fill="rgba(238,240,255,.6)">eating everything in sight?"</text>
+
+            <!-- A: Amplify -->
+            <rect x="16" y="100" width="328" height="48" rx="5" fill="rgba(68,207,255,.1)" stroke="#44CFFF" stroke-width="1.2"/>
+            <text x="30" y="122" font-family="Outfit,sans-serif" font-size="15.5" font-weight="800" fill="#44CFFF">A — AMPLIFY</text>
+            <text x="30" y="140" font-family="Outfit,sans-serif" font-size="12.5" fill="rgba(238,240,255,.6)">What another year of this costs you</text>
+
+            <!-- S: Solution -->
+            <rect x="16" y="156" width="328" height="56" rx="5" fill="rgba(91,127,255,.1)" stroke="#5B7FFF" stroke-width="1.2"/>
+            <text x="30" y="178" font-family="Outfit,sans-serif" font-size="15.5" font-weight="800" fill="#5B7FFF">S — SOLUTION</text>
+            <text x="30" y="196" font-family="Outfit,sans-serif" font-size="12.5" fill="rgba(238,240,255,.6)">Introduce the product as the direct</text>
+            <text x="30" y="208" font-family="Outfit,sans-serif" font-size="12.5" fill="rgba(238,240,255,.6)">fix, in one plain sentence</text>
+
+            <!-- T: Transformation -->
+            <rect x="16" y="220" width="328" height="56" rx="5" fill="rgba(59,255,140,.1)" stroke="#44D4FF" stroke-width="1.2"/>
+            <text x="30" y="242" font-family="Outfit,sans-serif" font-size="15.5" font-weight="800" fill="#44D4FF">T — TRANSFORMATION</text>
+            <text x="30" y="260" font-family="Outfit,sans-serif" font-size="12.5" fill="rgba(238,240,255,.6)">Proof, testimonials, or your own</text>
+            <text x="30" y="272" font-family="Outfit,sans-serif" font-size="12.5" fill="rgba(238,240,255,.6)">before/after if you're just starting</text>
+
+            <!-- O: Offer -->
+            <rect x="16" y="284" width="328" height="64" rx="5" fill="rgba(255,140,71,.1)" stroke="#FF8C47" stroke-width="1.2"/>
+            <text x="30" y="306" font-family="Outfit,sans-serif" font-size="15.5" font-weight="800" fill="#FF8C47">O — OFFER</text>
+            <text x="30" y="324" font-family="Outfit,sans-serif" font-size="12.5" fill="rgba(238,240,255,.6)">Exactly what's included, the price,</text>
+            <text x="30" y="336" font-family="Outfit,sans-serif" font-size="12.5" fill="rgba(238,240,255,.6)">why act now</text>
+
+            <!-- R: Response -->
+            <rect x="16" y="356" width="328" height="80" rx="6" fill="#3B5BFF" opacity=".85"/>
+            <text x="180" y="392" font-family="Outfit,sans-serif" font-size="16.5" font-weight="800" fill="white" text-anchor="middle">R — GET INSTANT ACCESS →</text>
+            <text x="180" y="412" font-family="Outfit,sans-serif" font-size="12" fill="rgba(255,255,255,.7)" text-anchor="middle">one button. nothing competing with it.</text>
+          </svg>
+          <p style="font-size:11px;color:var(--muted,#8890A8);text-align:center;max-width:380px;margin:14px auto 0;line-height:1.6">Six sections, one path down the page, one button at the bottom. No sidebar of other products, no second CTA competing for the click.</p>
+        </div>
+
+        <div class="callout">
+          <div class="callout-title">The One-CTA Rule</div>
+          <p>Every additional choice on a sales page reduces conversions. One product, one price, one button. If you're tempted to add "or check out my other stuff" links, remove them — every exit you offer is one less person who buys the thing they came for.</p>
+        </div>
+
+        <div class="ch-h2">Don't Forget the <span>Thank-You Page</span></div>
+        <p class="ch-body">The page someone sees immediately after paying is the highest-trust moment you'll ever have with them — they just proved they trust you with their money. This is the single best place to offer a complementary product (an upsell) or ask for the testimonial you'll need for the next version of your sales page. Most sellers waste this page on a generic "thanks, check your email" — a real missed opportunity.</p>
+
+        <!-- INTERACTIVE: Sales Page Copy Generator -->
+        <div class="tool-card">
+          <div class="tool-title">Sales Page Copy Generator</div>
+          <div class="tool-desc">Fill in the basics and get a first-draft PASTOR-structured outline you can refine, not a finished page — but enough to stop staring at a blank screen.</div>
+          <label class="tool-label">What's the product?</label>
+          <input type="text" class="tool-input" id="sp-product" placeholder="e.g. a 12-week mass gain plan">
+          <label class="tool-label">What problem does it solve?</label>
+          <input type="text" class="tool-input" id="sp-problem" placeholder="e.g. struggling to gain weight no matter what they eat">
+          <label class="tool-label">Who is it for?</label>
+          <input type="text" class="tool-input" id="sp-audience" placeholder="e.g. naturally skinny guys in their 20s">
+          <label class="tool-label">Price</label>
+          <input type="text" class="tool-input" id="sp-price" placeholder="e.g. £19">
+          <button class="tool-btn" onclick="generateSalesPage()">Generate My Outline →</button>
+          <div class="tool-output" id="salespage-output"></div>
+        </div>
+
+        <div class="ch-complete" id="ch-complete-4">
+          <div class="ch-complete-icon">📄</div>
+          <div class="xp-pop">+25 XP — Chapter Complete</div>
+          <h3>Sales Page: Structured</h3>
+          <p>You now have a repeatable framework instead of a blank page. Use it for every product you ever launch, not just this one.</p>
+          <button class="tool-btn" onclick="completeChapter(4)">Continue to Chapter 5 →</button>
+        </div>
+      </div>
+
+      <!-- ══ CHAPTER 5: LAUNCH SEQUENCE ══ -->
+      <div class="chapter-page" id="ch-5">
+        <div class="ch-eyebrow">Chapter 05 — Going Live</div>
+        <h1 class="ch-h1">The 7-Day <em>Launch Sequence</em></h1>
+        <p class="ch-subtitle">A launch is an event, not a button you press. Events create urgency. Silent availability doesn't.</p>
+        <div class="ch-divider"></div>
+
+        <p class="ch-lead">"I'll just put it up and see what happens" is the single most common reason a good product makes no sales in its first week. People don't buy because something exists — they buy because something is happening right now and they don't want to miss it. A launch sequence manufactures that "right now" feeling on purpose.</p>
+
+        <div class="ch-h2">The <span>7-Day Sequence</span></div>
+        <div class="platform-cards" style="grid-template-columns:1fr">
+          <div class="platform-card" style="--accent:var(--orange)">
+            <div class="platform-name" style="color:var(--orange)">Days 1–2 — The Problem</div>
+            <p style="font-size:13px;color:var(--muted);margin-top:6px;line-height:1.6">Post content about the problem your product solves — no mention of the product yet. This warms up the exact pain point so the offer lands on receptive ground.</p>
+          </div>
+          <div class="platform-card" style="--accent:var(--blue-l)">
+            <div class="platform-name" style="color:var(--blue-l)">Day 3 — The Announcement</div>
+            <p style="font-size:13px;color:var(--muted);margin-top:6px;line-height:1.6">Announce what you've built and why. Open a waitlist or early-access list if you haven't already — this is your last chance to capture interest before the cart opens.</p>
+          </div>
+          <div class="platform-card" style="--accent:var(--cyan)">
+            <div class="platform-name" style="color:var(--cyan)">Days 4–5 — Proof & Behind the Scenes</div>
+            <p style="font-size:13px;color:var(--muted);margin-top:6px;line-height:1.6">Show the product itself — screenshots, a walkthrough, what's inside. Share any early access feedback. This is where scepticism turns into intent.</p>
+          </div>
+          <div class="platform-card" style="--accent:var(--green)">
+            <div class="platform-name" style="color:var(--green)">Day 6 — Cart Opens</div>
+            <p style="font-size:13px;color:var(--muted);margin-top:6px;line-height:1.6">The link goes live. State clearly what's included, the price, and — if you're using one — the deadline or bonus that disappears. Post about it more than once; most people don't see the first post.</p>
+          </div>
+          <div class="platform-card" style="--accent:var(--orange2)">
+            <div class="platform-name" style="color:var(--orange2)">Day 7 — Last Call</div>
+            <p style="font-size:13px;color:var(--muted);margin-top:6px;line-height:1.6">Final reminder before any launch bonus or discount ends. This single day often outsells the rest of the week combined — genuine deadlines work because most people act at the deadline, not before it.</p>
+          </div>
+        </div>
+
+        <div class="callout">
+          <div class="callout-title">Real Urgency, Not Fake Urgency</div>
+          <p>A countdown timer that resets every time someone visits the page is a well-known trust-destroyer once spotted, and it gets spotted. If you set a deadline, honour it — close the cart or remove the bonus when you said you would. One genuinely-enforced deadline builds more long-term trust (and repeat customers) than ten fake ones ever will.</p>
+        </div>
+
+        <!-- INTERACTIVE: Launch Calendar Generator -->
+        <div class="tool-card">
+          <div class="tool-title">Launch Calendar Generator</div>
+          <div class="tool-desc">Pick your cart-open date and get a day-by-day posting plan mapped backwards from it.</div>
+          <label class="tool-label">What date do you want the cart to open?</label>
+          <input type="date" class="tool-input" id="launch-date">
+          <label class="tool-label">What's the product?</label>
+          <input type="text" class="tool-input" id="launch-product" placeholder="e.g. Digital Product Blueprint">
+          <button class="tool-btn" onclick="generateLaunchCalendar()">Generate My 7-Day Plan →</button>
+          <div class="tool-output" id="launchcal-output"></div>
+        </div>
+
+        <div class="ch-complete" id="ch-complete-5">
+          <div class="ch-complete-icon">🚀</div>
+          <div class="xp-pop">+25 XP — Chapter Complete</div>
+          <h3>Launch Sequence: Mapped</h3>
+          <p>You now have a real calendar instead of a vague plan to "launch sometime soon." Vague plans don't have deadlines — calendars do.</p>
+          <button class="tool-btn" onclick="completeChapter(5)">Continue to Chapter 6 →</button>
+        </div>
+      </div>
+
+      <!-- ══ CHAPTER 6: SCALE & AUTOMATE ══ -->
+      <div class="chapter-page" id="ch-6">
+        <div class="ch-eyebrow">Chapter 06 — Beyond the First Sale</div>
+        <h1 class="ch-h1">Scale & <em>Automate</em></h1>
+        <p class="ch-subtitle">The goal isn't one sale. It's a system that keeps selling while you sleep.</p>
+        <div class="ch-divider"></div>
+
+        <p class="ch-lead">A digital product's biggest advantage over almost any other business model is that delivery costs nothing once it's built. The same file can be sold once or ten thousand times for the same effort. But that only happens if you build the boring automated infrastructure around the product — most people stop the moment the first sale comes in and never get to feel that advantage.</p>
+
+        <div class="ch-h2">The <span>Automation Stack</span></div>
+        <div style="display:flex;flex-direction:column;gap:10px;margin:20px 0">
+          <div class="platform-card" style="--accent:var(--orange)">
+            <div class="platform-name" style="color:var(--orange)">Automatic Delivery</div>
+            <p style="font-size:12px;color:var(--muted);margin-top:5px;line-height:1.6">Use a platform (Gumroad, Lemon Squeezy, Stripe) that emails the product the second payment clears. You should never personally send a single file after a sale.</p>
+          </div>
+          <div class="platform-card" style="--accent:var(--blue-l)">
+            <div class="platform-name" style="color:var(--blue-l)">FAQ Before You Need It</div>
+            <p style="font-size:12px;color:var(--muted);margin-top:5px;line-height:1.6">Write answers to the 5 questions you'd expect before you launch, not after the 20th identical DM. A pinned FAQ page eliminates most support load instantly.</p>
+          </div>
+          <div class="platform-card" style="--accent:var(--cyan)">
+            <div class="platform-name" style="color:var(--cyan)">The Upsell Ladder</div>
+            <p style="font-size:12px;color:var(--muted);margin-top:5px;line-height:1.6">Once your first product sells consistently, build a second, higher-priced product for people who finished the first and want more. This is far easier than finding new customers from scratch — they already trust you.</p>
+          </div>
+          <div class="platform-card" style="--accent:var(--green)">
+            <div class="platform-name" style="color:var(--green)">Reuse the Template</div>
+            <p style="font-size:12px;color:var(--muted);margin-top:5px;line-height:1.6">Your sales page structure, launch sequence, and FAQ format all work again for the next product. The first one is the slowest because you're building the system, not just the product.</p>
+          </div>
+        </div>
+
+        <div class="callout blue">
+          <div class="callout-title">Audience Size Is Not the Bottleneck You Think It Is</div>
+          <p>A 2% conversion rate on 500 engaged people is 10 sales. The same conversion rate on 5,000 disengaged people is 100 sales in theory, but disengaged audiences convert far below 2% in practice. A smaller, more trusting audience reliably outsells a larger indifferent one. Fix the offer and the trust before assuming you simply need more followers.</p>
+        </div>
+
+        <!-- Monetisation readiness quiz -->
+        <div class="quiz-card">
+          <div class="quiz-question">You're getting consistent sales on your first £19 product. What's the highest-leverage next move?</div>
+          <div class="quiz-options">
+            <button class="quiz-opt" onclick="quiz(this,'wrong',2)">Lower the price to get even more volume</button>
+            <button class="quiz-opt" onclick="quiz(this,'wrong',2)">Start an entirely new product in a different niche</button>
+            <button class="quiz-opt" onclick="quiz(this,'correct',2)">Build a higher-priced product for customers who already trust you</button>
+            <button class="quiz-opt" onclick="quiz(this,'wrong',2)">Pause and wait for a bigger audience before doing anything else</button>
+          </div>
+          <div class="quiz-result" id="quiz-result-2"></div>
+        </div>
+
+        <div class="ch-complete" id="ch-complete-6">
+          <div class="ch-complete-icon">⚙️</div>
+          <div class="xp-pop">+25 XP — Chapter Complete</div>
+          <h3>Automation: Mapped</h3>
+          <p>You now have a system, not just a single product. Systems compound — single products don't.</p>
+          <button class="tool-btn" onclick="completeChapter(6)">Continue to Chapter 7 →</button>
+        </div>
+      </div>
+
+      <!-- ══ CHAPTER 7: LAUNCHES THAT FAIL ══ -->
+      <div class="chapter-page" id="ch-7">
+        <div class="ch-eyebrow">Chapter 07 — Learn From Others' Mistakes</div>
+        <h1 class="ch-h1">Launches That <em>Fail</em></h1>
+        <p class="ch-subtitle">The five mistakes that kill a launch before it's even had a fair chance.</p>
+        <div class="ch-divider"></div>
+
+        <p class="ch-lead">Most launch failures aren't mysterious — they're the same five mistakes repeating across thousands of first-time sellers. Recognising them in advance is the cheapest insurance you can buy against wasting weeks of work.</p>
+
+        <div class="ch-h2">The <span>5 Launch Killers</span></div>
+        <div style="display:flex;flex-direction:column;gap:0;margin:20px 0">
+          <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;background:rgba(232,49,74,.08);border:1px solid var(--border)">
+            <div style="width:28px;height:28px;background:#E8314A;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;flex-shrink:0">1</div>
+            <div><div style="font-weight:600;font-size:13px;color:var(--white)">Silent launch</div><div style="font-size:12px;color:var(--muted);margin-top:2px">Posting the link once with no build-up and expecting people to notice. Most of your audience misses any single post.</div></div>
+          </div>
+          <div style="text-align:center;padding:4px 0;font-size:12px;color:var(--muted)">↓</div>
+          <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;background:rgba(255,107,26,.06);border:1px solid var(--border)">
+            <div style="width:28px;height:28px;background:var(--orange);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;flex-shrink:0;color:var(--bg)">2</div>
+            <div><div style="font-weight:600;font-size:13px;color:var(--white)">Building before validating</div><div style="font-size:12px;color:var(--muted);margin-top:2px">Spending weeks perfecting a product nobody asked to exist. Covered fully in Chapter 1 — go back if you skipped it.</div></div>
+          </div>
+          <div style="text-align:center;padding:4px 0;font-size:12px;color:var(--muted)">↓</div>
+          <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;background:rgba(59,91,255,.08);border:1px solid var(--border)">
+            <div style="width:28px;height:28px;background:var(--blue-l);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;flex-shrink:0">3</div>
+            <div><div style="font-weight:600;font-size:13px;color:var(--white)">Vague positioning</div><div style="font-size:12px;color:var(--muted);margin-top:2px">A product description so broad it means nothing to anyone specific. "Helps you grow" beats no one; "helps skinny guys gain 8kg in 12 weeks" beats the right someone.</div></div>
+          </div>
+          <div style="text-align:center;padding:4px 0;font-size:12px;color:var(--muted)">↓</div>
+          <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;background:rgba(68,207,255,.06);border:1px solid var(--border)">
+            <div style="width:28px;height:28px;background:var(--cyan);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;flex-shrink:0;color:var(--bg)">4</div>
+            <div><div style="font-weight:600;font-size:13px;color:var(--white)">No clear single CTA</div><div style="font-size:12px;color:var(--muted);margin-top:2px">Multiple links, multiple options, multiple "or check this out too" — every extra choice loses buyers, not gains them.</div></div>
+          </div>
+          <div style="text-align:center;padding:4px 0;font-size:12px;color:var(--muted)">↓</div>
+          <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;background:rgba(59,255,140,.05);border:1px solid var(--border)">
+            <div style="width:28px;height:28px;background:var(--green);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:11px;flex-shrink:0;color:var(--bg)">5</div>
+            <div><div style="font-weight:600;font-size:13px;color:var(--white)">Giving up after one quiet week</div><div style="font-size:12px;color:var(--muted);margin-top:2px">Most products that eventually sell well had a flat first attempt. The system gets better with iteration — the first launch is a data point, not a verdict.</div></div>
+          </div>
+        </div>
+
+        <div class="callout">
+          <div class="callout-title">A Quiet Launch Is Information, Not a Failure</div>
+          <p>If your launch underperforms, the instinct is to take it personally. Don't. Look at which of the five killers above applied, fix that one thing specifically, and run it again. A launch that taught you exactly what to fix is more valuable long-term than a lucky first launch that taught you nothing.</p>
+        </div>
+
+        <div class="ch-complete" id="ch-complete-7">
+          <div class="ch-complete-icon">🛑</div>
+          <div class="xp-pop">+25 XP — Chapter Complete</div>
+          <h3>Mistakes: Mapped</h3>
+          <p>You now know what to watch for. Most people learn this the expensive way — you just got it for free.</p>
+          <button class="tool-btn" onclick="completeChapter(7)">Continue to Your Launch Plan →</button>
+        </div>
+      </div>
+
+      <!-- ══ CHAPTER 8: YOUR LAUNCH PLAN ══ -->
+      <div class="chapter-page" id="ch-8">
+        <div class="ch-eyebrow">Chapter 08 — Execution</div>
+        <h1 class="ch-h1">Your <em>Launch Plan</em></h1>
+        <p class="ch-subtitle">Generated from your profile. This is your actual roadmap — not a generic framework.</p>
+        <div class="ch-divider"></div>
+
+        <div id="plan-placeholder">
+          <p class="ch-lead" style="text-align:center;padding:40px 0">Generate your personalised launch plan below based on your profile and current stage.</p>
+        </div>
+
+        <div class="tool-card" id="plan-generator-card">
+          <div class="tool-title">Launch Plan Generator</div>
+          <div class="tool-desc">We'll use your profile to build a roadmap specific to your niche, current stage, and biggest blocker.</div>
+          <label class="tool-label">Confirm your area</label>
+          <input type="text" class="tool-input" id="plan-niche-input" placeholder="e.g. fitness for beginners, business coaching...">
+          <label class="tool-label">What format are you building?</label>
+          <select class="tool-select" id="plan-posting">
+            <option value="ebook">Ebook / written guide</option>
+            <option value="template">Template / toolkit</option>
+            <option value="course">Mini-course / video series</option>
+            <option value="coaching">Coaching / community</option>
+          </select>
+          <label class="tool-label">Your goal for the next 30 days</label>
+          <select class="tool-select" id="plan-goal-type">
+            <option value="validate">Validate the idea before building</option>
+            <option value="build">Finish building what I've started</option>
+            <option value="launch">Launch what's already built</option>
+            <option value="firstsale">Get my first sale</option>
+          </select>
+          <button class="tool-btn" onclick="generatePlan()" id="gen-plan-btn">Generate My Launch Plan →</button>
+        </div>
+
+        <div id="plan-output" style="display:none"></div>
+
+        <div class="ch-complete" id="ch-complete-8" style="display:none">
+          <div class="ch-complete-icon">🏆</div>
+          <div class="xp-pop" id="final-xp-pop">+50 XP — Course Complete!</div>
+          <h3 id="final-complete-h3">Digital Product Blueprint: Complete</h3>
+          <p id="final-complete-p">You've finished the blueprint. You have the validation method, the format, the pricing, the sales page and the launch sequence. The only variable left is execution.</p>
+          <div style="margin-top:20px;padding:20px;background:var(--panel2);border:1px solid var(--border)">
+            <div style="font-size:11px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px">Your Session Summary</div>
+            <div style="font-size:24px;font-weight:800;color:var(--orange)" id="final-xp-total">0 XP earned</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:4px">Chapters completed · Tools used · Quizzes passed</div>
+          </div>
+          <div style="background:linear-gradient(135deg,rgba(255,107,26,.07),rgba(59,91,255,.05));border:1px solid rgba(255,107,26,.2);padding:20px;text-align:center;margin-top:16px;border-radius:6px">
+            <div style="font-size:26px;margin-bottom:6px">📈</div>
+            <div style="font-weight:800;font-size:15px;margin-bottom:5px">Built it. Now sell it properly.</div>
+            <div style="font-size:12px;color:var(--muted);max-width:400px;margin:0 auto 12px">The Income Playbook picks up exactly where this leaves off — a focused, 30-day system to get from "it's live" to your first real sale.</div>
+            <a href="../income-playbook/income_playbook_interactive.html" style="display:inline-flex;align-items:center;gap:8px;background:var(--orange);color:#07090F;font-weight:700;font-size:13px;padding:11px 20px;border-radius:6px;text-decoration:none">Open the Income Playbook →</a>
+          </div>
+          <button class="tool-btn" style="margin-top:16px" onclick="window.location.href='../index.html'">Back to Areviax →</button>
+        </div>
+      </div>
+
+    </div><!-- /reading-area -->
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<script>
+// ── STATE ──
+const DPB_SK='arx_dpb_v1';
+let dpbSaved={};
+try{ dpbSaved=JSON.parse(localStorage.getItem(DPB_SK))||{}; }catch(e){ dpbSaved={}; }
+let xp=dpbSaved.xp||0, currentChapter=0, completedChapters=new Set(dpbSaved.completedChapters||[]),
+  userName=dpbSaved.userName||'', userNiche=dpbSaved.userNiche||'', userPlatform=dpbSaved.userPlatform||'',
+  userChallenge=dpbSaved.userChallenge||'', userFollowers=dpbSaved.userFollowers||'';
+
+function saveDPBState(){
+  localStorage.setItem(DPB_SK, JSON.stringify({
+    xp, completedChapters:[...completedChapters], userName, userNiche, userPlatform, userChallenge, userFollowers
+  }));
+}
+const TOTAL_CHAPTERS=9;
+
+// ── CURSOR ──
+const cc=document.getElementById('cur-c'), cctx=cc.getContext('2d');
+const CS=48,C2=24; let mx=C2,my=C2,cx=C2,cy=C2,ang=0,hov=false;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY});
+document.querySelectorAll('a,button,.ch-item,.quiz-opt,.check-item').forEach(el=>{
+  el.addEventListener('mouseenter',()=>hov=true);
+  el.addEventListener('mouseleave',()=>hov=false);
+});
+(function cl(){
+  cx+=(mx-cx)*.14; cy+=(my-cy)*.14;
+  ang+=hov?.07:.022;
+  const col=hov?'#FF6B1A':'#44CFFF',r=hov?15:11,arm=hov?8:6,gap=4;
+  cctx.clearRect(0,0,CS,CS);
+  cctx.save(); cctx.translate(C2,C2); cctx.rotate(ang);
+  cctx.strokeStyle=col; cctx.lineWidth=hov?2:1.5; cctx.globalAlpha=.9; cctx.lineCap='round';
+  [[0,-1],[0,1],[-1,0],[1,0]].forEach(([dx,dy])=>{
+    cctx.beginPath(); cctx.moveTo(dx*gap,dy*gap); cctx.lineTo(dx*(gap+arm),dy*(gap+arm)); cctx.stroke();
+  });
+  cctx.globalAlpha=hov?.6:.4; cctx.lineWidth=1;
+  for(let i=0;i<4;i++){cctx.beginPath();cctx.arc(0,0,r,i*Math.PI/2+.35,i*Math.PI/2+Math.PI/2-.35);cctx.stroke()}
+  cctx.globalAlpha=1; cctx.fillStyle=col; cctx.shadowColor=col; cctx.shadowBlur=hov?10:6;
+  cctx.beginPath(); cctx.arc(0,0,hov?3:2,0,Math.PI*2); cctx.fill(); cctx.shadowBlur=0;
+  cctx.restore();
+  cc.style.left=cx+'px'; cc.style.top=cy+'px';
+  requestAnimationFrame(cl);
+})();
+
+// ── XP ──
+function addXP(amount,label=''){
+  xp+=amount;
+  document.getElementById('xp-display').textContent=xp+' XP';
+  document.getElementById('xp-orb').textContent=xp;
+  toast('⭐',`+${amount} XP${label?' — '+label:''}`);
+  saveDPBState();
+}
+
+// ── TOAST ──
+function toast(icon,msg){
+  const t=document.getElementById('toast');
+  document.getElementById('toast-icon').textContent=icon;
+  document.getElementById('toast-msg').textContent=msg;
+  t.classList.add('show');
+  clearTimeout(t._t);
+  t._t=setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+// ── NAVIGATION ──
+function goChapter(n){
+  document.querySelectorAll('.chapter-page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.ch-item').forEach((item,i)=>{
+    item.classList.toggle('active',i===n);
+  });
+  document.querySelectorAll('.ch-tab').forEach((t,i)=>{
+    t.classList.toggle('active',i===n);
+  });
+  document.getElementById('ch-'+n).classList.add('active');
+  document.getElementById('reading-area').scrollTop=0;
+  currentChapter=n;
+  const labels=['Introduction','Ch.1 — Validation','Ch.2 — Formats','Ch.3 — Pricing','Ch.4 — Sales Pages','Ch.5 — Launch Sequence','Ch.6 — Scale & Automate','Ch.7 — Common Mistakes','Ch.8 — Your Launch Plan'];
+  document.getElementById('tb-chapter-label').textContent=labels[n]||'';
+  updatePersonaBanners();
+}
+
+function nextChapter(){
+  if(currentChapter<8) goChapter(currentChapter+1);
+}
+function prevChapter(){
+  if(currentChapter>0) goChapter(currentChapter-1);
+}
+
+function completeChapter(n){
+  completedChapters.add(n);
+  const items=document.querySelectorAll('.ch-item');
+  if(items[n]) items[n].classList.add('done');
+  const tabs=document.querySelectorAll('.ch-tab');
+  if(tabs[n]) tabs[n].classList.add('done');
+  updateProgress();
+  saveDPBState();
+  if(n<8) goChapter(n+1);
+}
+
+function updateProgress(){
+  const pct=Math.round(completedChapters.size/8*100);
+  document.getElementById('progress-fill').style.width=pct+'%';
+  document.getElementById('progress-pct').textContent=pct+'%';
+}
+
+// ── PROFILE SETUP ──
+function setupProfile(silent){
+  const name=document.getElementById('user-name').value.trim()||'Creator';
+  const niche=document.getElementById('user-niche').value;
+  const followers=document.getElementById('user-followers').value;
+  const platform=document.getElementById('user-platform').value;
+  const challenge=document.getElementById('user-challenge').value;
+  if(!niche){ if(!silent) toast('⚠️','Please select your area of expertise first'); return }
+  userName=name; userNiche=niche; userFollowers=followers; userPlatform=platform; userChallenge=challenge;
+  // Show banner
+  const nicheLabels={fitness:'Fitness & Health',business:'Business',creator:'Content Creation',lifestyle:'Lifestyle & Mindset',tech:'Tech & AI',finance:'Finance',education:'Education & Coaching',other:'your niche'};
+  const challengeLabels={idea:'knowing what to build',pricing:'charging confidently',traffic:'getting people to see it',perfectionism:'actually shipping',tech:'the tech and setup side'};
+  const platformLabels={idea:'having an idea but not starting',building:'building it right now',built:'having it built but not launched',launched:'having launched without a sale yet'};
+  document.getElementById('banner-name').textContent=name;
+  document.getElementById('banner-niche').textContent=nicheLabels[niche]||niche;
+  document.getElementById('banner-platform').textContent=platformLabels[platform]||platform;
+  document.getElementById('banner-challenge').textContent=challengeLabels[challenge]||challenge;
+  document.getElementById('persona-banner').style.display='flex';
+  // Pre-fill plan
+  document.getElementById('plan-niche-input').value=nicheLabels[niche]||niche;
+  if(!silent){
+    addXP(10,'Profile set up');
+    toast('🧭',`Welcome ${name}! Your guide is personalised.`);
+  }
+  updatePersonaBanners();
+  if(!silent) saveDPBState();
+}
+
+function updatePersonaBanners(){
+  if(!userName) return;
+  const algoBanner=document.getElementById('algo-banner');
+  if(algoBanner && currentChapter===1){
+    const tips={
+      idea:`${userName}, since you don't have a starting idea yet — pay close attention to the validation framework below. Most people skip straight to building and pay for it later with a product nobody wants.`,
+      building:`${userName}, you're already building — good. Use this chapter to sanity-check the idea against real demand before you sink more hours in.`,
+      built:`${userName}, you've built something but haven't launched. That's the riskiest place to sit — every day it's not live is a day you're not learning. Validation now tells you whether to launch as-is or adjust first.`,
+      launched:`${userName}, you've launched without a sale — that's almost always a validation or positioning problem, not a marketing problem. Work through this chapter properly before you spend on traffic.`
+    };
+    document.getElementById('algo-banner-text').textContent=tips[userPlatform]||tips.idea;
+    algoBanner.style.display='flex';
+  }
+}
+
+// ── QUIZ ──
+function quiz(btn, type, idx){
+  const parent=btn.closest('.quiz-card');
+  if(parent.dataset.answered) return;
+  parent.dataset.answered=true;
+  parent.querySelectorAll('.quiz-opt').forEach(o=>o.style.pointerEvents='none');
+  btn.classList.add(type);
+  const resultEl=document.getElementById('quiz-result-'+idx);
+  if(resultEl){
+    if(type==='correct'){
+      resultEl.className='quiz-result pass show';
+      resultEl.textContent='✓ Correct! '+['A real payment is the only signal that can\'t be explained away by politeness — everything else (likes, sounding interested, a yes to a hypothetical) can.','Charm pricing works because of left-digit anchoring, not legal rules or trust — it\'s a small, well-documented and consistently measurable bias.','A product that\'s already selling has earned trust. A higher-priced offer to that same warm audience converts far better than starting from zero with a new audience.'][idx];
+      addXP(15,'Quiz correct');
+      // show chapter complete
+      const cc=document.getElementById('ch-complete-'+(currentChapter));
+      if(cc) cc.classList.add('show');
+    } else {
+      resultEl.className='quiz-result fail show';
+      resultEl.textContent='Not quite. Reread the section above and try again — understanding this deeply is worth more than getting it right first time.';
+      parent.dataset.answered='';
+      btn.classList.remove('wrong');
+      btn.style.pointerEvents='auto';
+      setTimeout(()=>{btn.classList.remove('wrong');},1000);
+    }
+  }
+}
+
+// ── CHECK ITEMS ──
+function toggleCheck(el, xpVal){
+  el.classList.toggle('checked');
+  if(el.classList.contains('checked')) addXP(xpVal,'Checklist item');
+}
+
+// ── CONTENT BATCH GENERATOR ──
+function scoreValidation(){
+  const checks=[1,2,3,4,5].map(n=>document.getElementById('val-'+n).checked);
+  const score=checks.filter(Boolean).length;
+  const out=document.getElementById('validation-output');
+  out.className='tool-output show';
+  let verdict,color,advice;
+  if(score>=4){
+    verdict='Strong evidence — you have a real signal here.'; color='var(--green)';
+    advice='Move to pre-selling. Open a waitlist or a discounted early-access offer before you finish building. The evidence says people want this — now prove it with a payment.';
+  } else if(score>=2){
+    verdict='Mixed evidence — worth one more validation pass before building.'; color='var(--orange)';
+    advice='Go find the missing signals specifically. If you\'re short on strangers confirming interest, post about the problem (not the product) and watch what people say in the replies.';
+  } else {
+    verdict='Weak evidence — this is still a guess, not a validated idea.'; color='#E8314A';
+    advice='Don\'t build yet. Spend a week just talking to people about the problem itself. You\'re not ready to build until at least 3 of these 5 boxes are genuinely true.';
+  }
+  out.innerHTML=`<div class="tool-output-label">Validation Score: ${score}/5</div>
+    <div style="font-size:15px;font-weight:700;color:${color};margin:8px 0">${verdict}</div>
+    <div style="font-size:13px;color:var(--muted);line-height:1.6">${advice}</div>`;
+  addXP(10,'Idea scored');
+}
+
+// ── FORMAT PICKER ──
+function pickFormat(){
+  const time=document.getElementById('fmt-time').value;
+  const trust=document.getElementById('fmt-trust').value;
+  const value=document.getElementById('fmt-value').value;
+  let format,reason;
+  if(time==='low' && value==='time'){
+    format='Template / Toolkit'; reason='You have limited time and your value is saving people time — a template is the fastest format to finish and matches exactly what you\'re offering.';
+  } else if(trust==='demo'){
+    format='Mini-Course / Video Series'; reason='You said people need to see you do it — that trust can\'t be built through text alone. A short video series is worth the extra build time here.';
+  } else if(value==='teach' && time!=='low'){
+    format='Ebook / Written Guide'; reason='You\'re teaching a framework and have reasonable time — a well-structured written guide delivers this cleanly without the overhead of filming and editing.';
+  } else {
+    format='Ebook / Written Guide'; reason='Given your time and goals, the written guide is the fastest path to a finished, sellable product. You can always build a video version later once this one proves demand.';
+  }
+  const out=document.getElementById('format-output');
+  out.className='tool-output show';
+  out.innerHTML=`<div class="tool-output-label">Recommended Format</div>
+    <div style="font-size:18px;font-weight:800;color:var(--cyan);margin-bottom:10px">${format}</div>
+    <div style="font-size:13px;color:var(--muted);line-height:1.6">${reason}</div>`;
+  addXP(10,'Format picked');
+}
+
+// ── PRICE POSITIONING ──
+function calcPrice(){
+  const altCost=parseFloat(document.getElementById('price-alt-cost').value)||0;
+  const savings=document.getElementById('price-savings').value;
+  const out=document.getElementById('price-output');
+  out.className='tool-output show';
+  if(!altCost){
+    out.innerHTML=`<div class="tool-output-label">Need one more number</div><div style="font-size:13px;color:var(--muted)">Fill in roughly what the alternative costs — even a rough guess gives a far better anchor than guessing your price from nothing.</div>`;
+    return;
+  }
+  let low,high;
+  if(savings==='huge'){ low=Math.round(altCost*0.05); high=Math.round(altCost*0.15); }
+  else if(savings==='some'){ low=Math.round(altCost*0.15); high=Math.round(altCost*0.35); }
+  else { low=Math.round(altCost*0.3); high=Math.round(altCost*0.5); }
+  low=Math.max(7,low); high=Math.max(low+5,high);
+  out.innerHTML=`<div class="tool-output-label">Suggested Price Range</div>
+    <div style="font-size:24px;font-weight:800;color:var(--green);margin:8px 0">£${low} – £${high}</div>
+    <div style="font-size:13px;color:var(--muted);line-height:1.6">Based on the alternative costing roughly £${altCost}. Price toward the top of this range if your audience already trusts you; toward the bottom for a first product to an audience that doesn't know you yet.</div>
+    <div style="font-size:12px;color:var(--muted);margin-top:12px;padding-top:10px;border-top:1px solid var(--border);line-height:1.6">This is a single-product anchor, not a ceiling. Once this product is selling, the pricing psychology principle in this chapter still applies at the next stage: a tiered version (this product + a higher-priced bundle or 1:1 add-on) often lifts average order value more than raising the base price ever would.</div>`;
+  addXP(10,'Price calculated');
+}
+
+// Detects what kind of problem was actually typed so the Amplify section
+// speaks to real, category-specific stakes instead of one generic
+// instruction that works equally poorly for every product.
+const PROBLEM_CATEGORY_KEYWORDS={
+  health:['weight','fat','muscle','diet','fitness','tired','energy','sleep','health','pain','gym'],
+  money:['money','income','debt','broke','afford','budget','financ','save','earn','pay'],
+  time:['time','busy','overwhelm','procrastinat','productiv','organiz','schedule','burnout'],
+  confidence:['confiden','anxious','anxiety','shy','scared','fear','insecur','self-esteem','self esteem'],
+  skill:['learn','skill','knowledge','understand','confus','beginner','stuck','how to'],
+  business:['customer','client','sales','grow','scale','launch','audience','leads','revenue']
+};
+function detectProblemCategory(text){
+  if(!text)return null;
+  const clean=text.toLowerCase();
+  for(const [cat,kws] of Object.entries(PROBLEM_CATEGORY_KEYWORDS)){
+    for(const kw of kws){ if(clean.includes(kw))return cat; }
+  }
+  return null;
+}
+const PROBLEM_STAKES={
+  health:'this tends to quietly get worse for years while still feeling "manageable" the whole time — that\'s usually how it works, not a sudden collapse.',
+  money:'this compounds. The same gap in 12 months is a much harder number to close than it is today — waiting doesn\'t freeze it, it grows it.',
+  time:'the real issue was never being busy — it\'s the same finite hours going to the wrong things, on repeat, for as long as nothing changes.',
+  confidence:'left unaddressed, this rarely fixes itself with time alone. It tends to generalise instead, showing up in more situations rather than fewer.',
+  skill:'without a specific fix, this gap doesn\'t close by accident. It\'s usually still there, in the same form, a year from now.',
+  business:'the same gap keeps capping results at roughly the same ceiling until something structural actually changes — this was never a one-off dip.'
+};
+
+// ── SALES PAGE GENERATOR ──
+function generateSalesPage(){
+  const product=document.getElementById('sp-product').value.trim();
+  const problem=document.getElementById('sp-problem').value.trim();
+  const audience=document.getElementById('sp-audience').value.trim();
+  const price=document.getElementById('sp-price').value.trim()||'£19';
+  if(!product||!problem){toast('⚠️','Fill in the product and problem first');return}
+  const problemCat=detectProblemCategory(problem);
+  const amplifyLine=problemCat
+    ? `Specifically for "${problem}" — ${PROBLEM_STAKES[problemCat]}`
+    : 'Describe what staying stuck on this actually costs them over the next 6-12 months if nothing changes.';
+  const out=document.getElementById('salespage-output');
+  out.className='tool-output show';
+  out.innerHTML=`<div class="tool-output-label">Sales Page Outline — PASTOR Structure</div>
+    <div style="font-size:13px;line-height:1.8;color:rgba(238,240,255,.85)">
+    <strong style="color:var(--orange)">Headline:</strong> For ${audience||'people like you'} who are ${problem}.<br><br>
+    <strong style="color:var(--orange)">Problem:</strong> Open by naming "${problem}" in plain language — make them feel understood before you mention the product at all.<br><br>
+    <strong style="color:var(--cyan)">Amplify:</strong> ${amplifyLine}<br><br>
+    <strong style="color:var(--blue-l)">Solution:</strong> Introduce ${product} as the direct fix — what it is, in one sentence a stranger would understand.<br><br>
+    <strong style="color:var(--green)">Transformation:</strong> Describe the after-state. If you have testimonials, this is where they go. If not, describe your own results getting here.<br><br>
+    <strong style="color:var(--orange2)">Offer:</strong> ${product} — ${price}. List exactly what's included, no vague bullet points.<br><br>
+    <strong style="color:var(--blue)">Response:</strong> One button. "Get ${product} Now →". Nothing else competing for the click.
+    </div>
+    <div style="font-size:12px;color:var(--muted);margin-top:12px;padding-top:10px;border-top:1px solid var(--border);line-height:1.6"><strong style="color:var(--white)">Don't forget the thank-you page.</strong> The sale isn't the end of the funnel — a simple thank-you page for ${product} that delivers access instantly and sets expectations ("check your email, here's what happens next") is what stops a first buyer feeling like their money vanished into silence.</div>`;
+  addXP(10,'Sales page outlined');
+}
+
+// ── LAUNCH CALENDAR ──
+function generateLaunchCalendar(){
+  const dateVal=document.getElementById('launch-date').value;
+  const product=document.getElementById('launch-product').value.trim()||'your product';
+  if(!dateVal){toast('⚠️','Pick a cart-open date first');return}
+  const cartDate=new Date(dateVal+'T00:00:00');
+  const days=['Day 1-2: The Problem','Day 3: The Announcement','Day 4-5: Proof & Behind the Scenes','Day 6: Cart Opens','Day 7: Last Call'];
+  const offsets=[-6,-4,-3,0,1];
+  const out=document.getElementById('launchcal-output');
+  out.className='tool-output show';
+  let rows='';
+  days.forEach((label,i)=>{
+    const d=new Date(cartDate); d.setDate(d.getDate()+offsets[i]);
+    const dateStr=d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});
+    rows+=`<div style="display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border)"><span style="font-size:12px;color:var(--white)">${label}</span><span style="font-size:12px;color:var(--cyan);font-weight:600">${dateStr}</span></div>`;
+  });
+  out.innerHTML=`<div class="tool-output-label">7-Day Launch Sequence for ${product}</div><div style="margin-top:6px">${rows}</div>
+    <div style="font-size:12px;color:var(--muted);margin-top:12px;padding-top:10px;border-top:1px solid var(--border);line-height:1.6">This first run-through is the manual version. Once ${product} has sold a handful of times off this exact sequence, that's your cue to automate it — an email sequence or scheduled posts that fire on these same offsets without you rebuilding it from scratch for every future launch.</div>`;
+  addXP(10,'Launch calendar generated');
+}
+
+// ── LAUNCH PLAN GENERATOR ──
+function generatePlan(){
+  const niche=document.getElementById('plan-niche-input').value.trim()||userNiche||'your area';
+  const format=document.getElementById('plan-posting').value;
+  const goalType=document.getElementById('plan-goal-type').value;
+  const name=userName||'You';
+  const formatLabels={ebook:'ebook',template:'template/toolkit',course:'mini-course',coaching:'coaching offer'};
+  const formatLabel=formatLabels[format]||'product';
+
+  const goalLabels={validate:'validate the idea',build:'finish building it',launch:'launch what\'s built',firstsale:'get the first sale'};
+  const out=document.getElementById('plan-output');
+  out.style.display='block';
+  document.getElementById('plan-generator-card').style.display='none';
+
+  const phases=[
+    {label:'WEEK 1 · VALIDATE & SCOPE',col:'var(--orange)',tasks:[
+      `Run the Idea Validation Scorer from Chapter 1 honestly — don't skip the weak signals`,
+      `Talk to 5 real people about the problem ${niche} solves for them — not the product, the problem`,
+      `Write the one-sentence description of your ${formatLabel} a stranger would understand`,
+      goalType==='validate'?`Open a waitlist or pre-sale before building anything further`:`Confirm scope — decide what's explicitly NOT included so it can't creep`,
+      `Set a real launch date and tell at least one other person, for accountability`,
+    ]},
+    {label:'WEEK 2 · BUILD',col:'var(--blue-l)',tasks:[
+      `Block dedicated time — building in scraps of spare time is how products stall for months`,
+      `Build the core ${formatLabel} content first, polish second — a finished rough version beats an unfinished polished one`,
+      `Write your sales page using the PASTOR structure from Chapter 4`,
+      `Set your price using the Price Positioning Tool from Chapter 3 — don't guess`,
+      `Set up automatic delivery (Gumroad/Lemon Squeezy/Stripe) so you never manually send a file`,
+    ]},
+    {label:'WEEK 3 · LAUNCH',col:'var(--green)',tasks:[
+      `Run the 7-day launch sequence from Chapter 5 — problem, announce, proof, cart open, last call`,
+      `Post about the launch more than once — most of your audience misses the first mention`,
+      goalType==='firstsale'?`Personally message 5-10 people who showed real interest earlier and let them know it's live`:`Review the 5 launch killers from Chapter 7 before you go live, one more time`,
+      `Write your FAQ before the questions start coming in, not after`,
+      `Track what's working daily — don't wait until the week ends to course-correct`,
+    ]},
+    {label:'WEEK 4 · REVIEW & NEXT STEP',col:'var(--cyan)',tasks:[
+      `Review actual sales against your original validation evidence — what matched, what didn't`,
+      `Ask your first 3-5 customers for honest feedback, good or bad`,
+      `Fix the single biggest gap before running another launch push`,
+      `If it's selling: start scoping the upsell ladder product from Chapter 6`,
+      `If it's quiet: pick which of the 5 launch killers applied and fix that one thing specifically`,
+    ]},
+  ];
+
+  out.innerHTML=`<div style="margin-bottom:20px">
+    <div style="font-size:12px;color:var(--muted);margin-bottom:8px">Generated for <span style="color:var(--white);font-weight:600">${name}</span> · ${niche} · ${formatLabel} · Goal: ${goalLabels[goalType]}</div>
+  </div>` + phases.map(p=>`
+    <div class="plan-week" style="--accent:${p.col}">
+      <div class="plan-week-label" style="color:${p.col}">${p.label}</div>
+      <ul class="plan-week-tasks">
+        ${p.tasks.map(t=>`<li>${t}</li>`).join('')}
+      </ul>
+    </div>`).join('');
+
+  // Show final complete
+  const finalComplete=document.getElementById('ch-complete-8');
+  finalComplete.style.display='block';
+  finalComplete.classList.add('show');
+  document.getElementById('final-xp-total').textContent=`${xp+50} XP earned`;
+  addXP(50,'Launch Plan generated');
+  completedChapters.add(8);
+  document.querySelectorAll('.ch-item')[8]?.classList.add('done');
+  updateProgress();
+}
+
+// ── INIT ──
+function restoreDPBState(){
+  document.getElementById('xp-display').textContent=xp+' XP';
+  document.getElementById('xp-orb').textContent=xp;
+  completedChapters.forEach(n=>{
+    const items=document.querySelectorAll('.ch-item');
+    if(items[n]) items[n].classList.add('done');
+    const tabs=document.querySelectorAll('.ch-tab');
+    if(tabs[n]) tabs[n].classList.add('done');
+  });
+  if(userName){
+    document.getElementById('user-name').value=userName;
+    document.getElementById('user-niche').value=userNiche;
+    document.getElementById('user-followers').value=userFollowers;
+    document.getElementById('user-platform').value=userPlatform;
+    document.getElementById('user-challenge').value=userChallenge;
+    setupProfile(true);
+  }
+  updateProgress();
+}
+goChapter(0);
+restoreDPBState();
+</script>
+
+<script>
+// ── MOBILE: hide canvas cursor on touch devices ──
+(function(){
+  const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+  const curEl = document.getElementById('cur-c') || document.getElementById('cur-canvas');
+  if(isTouchDevice && curEl){
+    curEl.style.display = 'none';
+    document.body.style.cursor = 'auto';
+    document.querySelectorAll('*').forEach(el => el.style.cursor = '');
+  }
+})();
+</script>
+
+<script>
+// ── LICENSE WATERMARK ──
+// Identifies the buyer on their own copy as a deterrent against reselling/resharing.
+// Reads buyer info from the URL if a checkout flow ever appends it (?name=...&email=...);
+// falls back to a generic licensed-copy notice if no buyer data is present yet.
+(function(){
+  const params = new URLSearchParams(window.location.search);
+  const buyerName = params.get('name');
+  const buyerEmail = params.get('email');
+  const identifier = buyerEmail || buyerName || 'Licensed copy — do not redistribute';
+  const wm = document.createElement('div');
+  wm.className = 'license-watermark';
+  wm.textContent = identifier;
+  document.body.appendChild(wm);
+  const hidden = document.createElement('span');
+  hidden.style.cssText = 'position:absolute;width:1px;height:1px;overflow:hidden;opacity:0;pointer-events:none';
+  hidden.textContent = 'Areviax licensed copy: ' + identifier;
+  document.body.appendChild(hidden);
+})();
+</script>
+</body>
+</html>
