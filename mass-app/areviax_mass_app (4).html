@@ -4419,22 +4419,31 @@ function getFig(key,compact){
 // falls back to the old SVG-ellipse card thumbnail (getFig) below, since
 // it's the only version that exists for those muscle groups so far.
 const THUMB_PANELS={
+  P01:'images/muscle_thumb/P01.png',
+  P02:'images/muscle_thumb/P02.png',
+  P04:'images/muscle_thumb/P04.png',
+  P05:'images/muscle_thumb/P05.png',
+  P06:'images/muscle_thumb/P06.png',
   P08:'images/muscle_thumb/P08.png',
+  P09:'images/muscle_thumb/P09.png',
+  P11:'images/muscle_thumb/P11.png',
+  P13:'images/muscle_thumb/P13.png',
   P14:'images/muscle_thumb/P14.png',
-  P26:'images/muscle_thumb/P26.png',
+  P15:'images/muscle_thumb/P15.png',
   P16:'images/muscle_thumb/P16.png',
+  P17:'images/muscle_thumb/P17.png',
   P18:'images/muscle_thumb/P18.png',
-  P27:'images/muscle_thumb/P27.png',
+  P19:'images/muscle_thumb/P19.png',
+  P20:'images/muscle_thumb/P20.png',
   P23:'images/muscle_thumb/P23.png',
   P24:'images/muscle_thumb/P24.png',
-  P02:'images/muscle_thumb/P02.png',
-  P11:'images/muscle_thumb/P11.png',
-  P20:'images/muscle_thumb/P20.png'
+  P25:'images/muscle_thumb/P25.png',
+  P26:'images/muscle_thumb/P26.png',
+  P27:'images/muscle_thumb/P27.png'
 };
-// P09 excluded — that source asset has a broken wireframe/skeleton overlay
-// not present on any other panel. Falls back to the plain SVG figure
-// (getFig) below until a clean replacement is uploaded.
-const CARD_THUMB_V3_PANELS=new Set(['P02','P08','P11','P14','P16','P18','P20','P23','P24','P26','P27']);
+// P10 (lats), P21 (core) still pending clean art — those exercises fall
+// back to the plain SVG figure (getFig) below until it's uploaded.
+const CARD_THUMB_V3_PANELS=new Set(['P01','P02','P04','P05','P06','P08','P09','P11','P13','P14','P15','P16','P17','P18','P19','P20','P23','P24','P25','P26','P27']);
 function getCardThumb(ex,compact){
   const panelId=panelForExercise(ex);
   const src=(panelId&&CARD_THUMB_V3_PANELS.has(panelId))?THUMB_PANELS[panelId]:null;
