@@ -1518,7 +1518,16 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px" id="cardio-activity-chips"></div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
       <div><label style="font-size:10px;color:var(--muted);display:block;margin-bottom:3px">Duration (mins)</label><input type="number" id="cardio-duration" placeholder="30" min="1"></div>
-      <div><label style="font-size:10px;color:var(--muted);display:block;margin-bottom:3px">Distance (km, optional)</label><input type="number" id="cardio-distance" placeholder="5" min="0" step="0.1"></div>
+      <div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
+          <label style="font-size:10px;color:var(--muted)">Distance (optional)</label>
+          <div style="display:flex;gap:4px" id="cardio-distance-unit-toggle">
+            <button type="button" class="equip-chip active" data-u="km" onclick="setCardioDistanceUnit('km')" style="padding:2px 8px;font-size:9px">km</button>
+            <button type="button" class="equip-chip" data-u="mi" onclick="setCardioDistanceUnit('mi')" style="padding:2px 8px;font-size:9px">mi</button>
+          </div>
+        </div>
+        <input type="number" id="cardio-distance" placeholder="5" min="0" step="0.1">
+      </div>
     </div>
     <div style="margin-bottom:12px">
       <label style="font-size:10px;color:var(--muted);display:block;margin-bottom:5px">Intensity</label>
@@ -6032,7 +6041,27 @@ function estimateCardioCalories(activity,intensity,durationMin){
 }
 let cardioSelectedActivity = CARDIO_ACTIVITIES[0];
 let cardioSelectedIntensity = 'Moderate';
-let cardioLog = []; // [{activity, duration, distance, intensity, date}] — restored from localStorage at init below
+// Display/input preference only, same pattern as weightUnit/heightUnit —
+// each logged entry carries its own unit so switching this later never
+// reinterprets a number that's already been saved.
+let cardioDistanceUnit = 'km';
+let cardioLog = []; // [{activity, duration, distance, unit, intensity, date}] — restored from localStorage at init below
+
+function setCardioDistanceUnit(u){
+  const inp=document.getElementById('cardio-distance');
+  if(inp&&inp.value){
+    const cur=parseFloat(inp.value);
+    if(!isNaN(cur)){
+      // convert whatever's currently typed from the OLD unit into the NEW one, so switching doesn't just blank/misinterpret it
+      if(cardioDistanceUnit==='km'&&u==='mi')inp.value=Math.round(cur*0.621371*100)/100;
+      else if(cardioDistanceUnit==='mi'&&u==='km')inp.value=Math.round(cur/0.621371*100)/100;
+    }
+  }
+  cardioDistanceUnit=u;
+  const t=document.getElementById('cardio-distance-unit-toggle');
+  if(t)t.querySelectorAll('.equip-chip').forEach(b=>b.classList.toggle('active',b.dataset.u===u));
+  saveToStorage();
+}
 
 function renderCardioChips(){
   const actWrap = document.getElementById('cardio-activity-chips');
@@ -6043,6 +6072,8 @@ function renderCardioChips(){
   if(intWrap){
     intWrap.innerHTML = CARDIO_INTENSITIES.map(i=>`<span onclick="selectCardioIntensity('${i}')" class="equip-chip ${cardioSelectedIntensity===i?'active':''}" style="cursor:pointer;flex:1;text-align:center;font-size:11px;padding:6px 8px">${i}</span>`).join('');
   }
+  const distToggle = document.getElementById('cardio-distance-unit-toggle');
+  if(distToggle)distToggle.querySelectorAll('.equip-chip').forEach(b=>b.classList.toggle('active',b.dataset.u===cardioDistanceUnit));
 }
 function selectCardioActivity(a){ cardioSelectedActivity=a; renderCardioChips(); }
 function selectCardioIntensity(i){ cardioSelectedIntensity=i; renderCardioChips(); }
@@ -6060,6 +6091,7 @@ function logCardioSession(){
   cardioLog.unshift({
     activity: cardioSelectedActivity,
     duration, distance,
+    unit: cardioDistanceUnit,
     intensity: cardioSelectedIntensity,
     caloriesBurned,
     date: new Date().toISOString().slice(0,10),
@@ -6092,7 +6124,7 @@ function renderCardioHistory(){
   if(!cardioLog.length){ wrap.innerHTML=''; return; }
   wrap.innerHTML = cardioLog.slice(0,5).map((c,i)=>`
     <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:var(--panel2);border-radius:6px;font-size:11px">
-      <span>${c.activity} · ${c.duration}min${c.distance?' · '+c.distance+'km':''} · ${c.intensity}${c.caloriesBurned?' · ~'+c.caloriesBurned+' cal':''}</span>
+      <span>${c.activity} · ${c.duration}min${c.distance?' · '+c.distance+(c.unit||'km'):''} · ${c.intensity}${c.caloriesBurned?' · ~'+c.caloriesBurned+' cal':''}</span>
       <span onclick="deleteCardioEntry(${i})" style="color:var(--muted);cursor:pointer;padding:0 4px">✕</span>
     </div>`).join('');
 }
@@ -10782,6 +10814,7 @@ function saveToStorage(){
     localStorage.setItem('arx_plannedSessionType', plannedSessionType);
     localStorage.setItem('arx_sessionHistory', JSON.stringify(sessionHistory));
     localStorage.setItem('arx_cardioLog', JSON.stringify(cardioLog));
+    localStorage.setItem('arx_cardioDistanceUnit', cardioDistanceUnit);
     localStorage.setItem('arx_injuryWarningsDisabled', injuryWarningsDisabled);
     localStorage.setItem('arx_reducedSetsMode', reducedSetsMode);
     localStorage.setItem('arx_bestStreak', bestStreak);
@@ -10860,6 +10893,7 @@ function loadFromStorage(){
     if(sh){try{sessionHistory=JSON.parse(sh);}catch(e){sessionHistory=[];}}
     const cl=localStorage.getItem('arx_cardioLog');
     if(cl){try{cardioLog=JSON.parse(cl);}catch(e){cardioLog=[];}}
+    cardioDistanceUnit=localStorage.getItem('arx_cardioDistanceUnit')||'km';
     injuryWarningsDisabled=localStorage.getItem('arx_injuryWarningsDisabled')==='true';
     reducedSetsMode=localStorage.getItem('arx_reducedSetsMode')==='true';
     bestStreak=parseInt(localStorage.getItem('arx_bestStreak')||'0');
