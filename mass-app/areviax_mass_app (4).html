@@ -306,10 +306,32 @@ input,input:focus,input:active,
 .em-cals{font-size:10px;color:var(--orange);margin-top:2px}
 
 /* PROGRESS */
-.pr-item{display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(255,255,255,.03);border:1.5px solid rgba(255,255,255,.06);border-radius:8px;margin-bottom:6px}
-.pr-lift{font-size:12px;font-weight:600;flex:1}
-.pr-val{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:14px;color:var(--yellow)}
-.pr-new{font-size:8px;font-weight:800;background:rgba(255,215,0,.15);color:var(--yellow);border:1.5px solid rgba(255,215,0,.2);padding:2px 5px;border-radius:8px}
+.pr-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pr-card{position:relative;background:var(--panel2);border:1.5px solid var(--border2);border-radius:12px;padding:14px 10px;text-align:center;overflow:hidden}
+.pr-card.hit{border-color:rgba(255,215,0,.35);background:linear-gradient(160deg,rgba(255,215,0,.09),rgba(255,90,0,.02))}
+.pr-card.hit::before{content:'';position:absolute;top:-40%;left:50%;transform:translateX(-50%);width:150%;height:150%;background:radial-gradient(circle,rgba(255,215,0,.16),transparent 65%);pointer-events:none}
+.pr-card-icon{font-size:19px;margin-bottom:5px;position:relative}
+.pr-card-name{font-size:9.5px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;position:relative}
+.pr-card-val{font-family:'JetBrains Mono',monospace;font-weight:800;font-size:22px;color:var(--yellow);position:relative;line-height:1}
+.pr-card-val span{font-size:11px;font-weight:600;margin-left:1px;color:rgba(255,215,0,.7)}
+.pr-card.empty .pr-card-val{color:var(--muted2);font-size:15px}
+.pr-card-sub{font-size:9px;color:var(--muted);margin-top:3px;font-family:'JetBrains Mono',monospace;position:relative}
+.pr-card-badge{display:inline-block;margin-top:8px;font-size:8px;font-weight:800;background:rgba(255,215,0,.15);color:var(--yellow);border:1.5px solid rgba(255,215,0,.28);padding:2px 8px;border-radius:10px;letter-spacing:.05em;position:relative}
+.pr-card-empty{margin-top:8px;font-size:8.5px;color:var(--muted2);position:relative}
+
+.stat-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.stat-row-icon{font-size:13px;width:18px;text-align:center;flex-shrink:0}
+.stat-row-label{width:56px;font-size:10px;font-weight:700;color:rgba(238,240,255,.6);flex-shrink:0}
+.stat-bar-wrap{flex:1;height:8px;background:rgba(255,255,255,.06);border-radius:5px;overflow:hidden}
+.stat-bar-fill{height:100%;border-radius:5px;transition:width .5s cubic-bezier(.16,1,.3,1)}
+.stat-row-val{font-family:'JetBrains Mono',monospace;font-size:10px;width:34px;text-align:right;flex-shrink:0;font-weight:700}
+
+.tonnage-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.tonnage-rank{width:20px;height:20px;border-radius:50%;background:rgba(255,90,0,.1);border:1.5px solid rgba(255,90,0,.25);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;color:var(--orange);flex-shrink:0}
+.tonnage-rank.top{background:linear-gradient(135deg,#FF8C47,#FF5A00);color:#2B0E00;border-color:transparent;box-shadow:0 0 10px rgba(255,90,0,.55)}
+.tonnage-body{flex:1;min-width:0}
+.tonnage-bar-wrap{height:8px;background:var(--border2);border-radius:5px;overflow:hidden;margin-top:4px}
+.tonnage-bar-fill{height:100%;border-radius:5px}
 
 
 /* SCHED */
@@ -5924,18 +5946,23 @@ function renderConsistency(){
   const nutriDays=proteinHitDates.filter(inLast7).length;
   const sleepDays=sleepLog.filter(e=>inLast7(e.date)).length;
   const rows=[
-    {label:'Training',val:trainDays,max:target,col:'#FF5A00'},
-    {label:'Nutrition',val:nutriDays,max:7,col:'#8E8E93'},
-    {label:'Sleep',val:sleepDays,max:7,col:'#8E8E93'}
+    {label:'Training',icon:'🏋️',val:trainDays,max:target},
+    {label:'Nutrition',icon:'🍽',val:nutriDays,max:7},
+    {label:'Sleep',icon:'😴',val:sleepDays,max:7}
   ];
-  wrap.innerHTML=rows.map(r=>`
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-      <div style="width:64px;font-size:10px;font-weight:700;color:rgba(238,240,255,.6);flex-shrink:0">${r.label}</div>
-      <div style="flex:1;height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden">
-        <div style="height:100%;width:${Math.min(100,r.val/r.max*100)}%;background:${r.col};border-radius:3px;transition:width .4s"></div>
-      </div>
-      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:${r.col};width:34px;text-align:right;flex-shrink:0">${r.val}/${r.max}</div>
-    </div>`).join('');
+  // Color reflects how each row is actually doing, not a fixed palette —
+  // hit the target and it glows green, close but short stays orange,
+  // well behind stays muted, so the row itself carries the verdict.
+  wrap.innerHTML=rows.map(r=>{
+    const pct=Math.min(100,r.val/r.max*100);
+    const col=pct>=100?'#4ADE80':pct>=50?'#FF7A2E':'#8E8E93';
+    return `<div class="stat-row">
+      <div class="stat-row-icon">${r.icon}</div>
+      <div class="stat-row-label">${r.label}</div>
+      <div class="stat-bar-wrap"><div class="stat-bar-fill" style="width:${pct}%;background:${col};box-shadow:${pct>=100?'0 0 8px rgba(74,222,128,.5)':'none'}"></div></div>
+      <div class="stat-row-val" style="color:${col}">${r.val}/${r.max}</div>
+    </div>`;
+  }).join('');
 }
 
 // Weekly training-volume trend — same tonnageLog already powering the
@@ -7531,17 +7558,19 @@ function renderTonnageBreakdown(){
   });
   const sorted=Object.entries(byMuscle).sort((a,b)=>b[1]-a[1]);
   const maxVal=sorted[0][1];
-  wrap.innerHTML=`<div style="font-size:10px;color:var(--muted);line-height:1.5;margin-bottom:12px">Tonnage is total weight moved — useful for spotting overload trends, but it can be inflated by light junk volume. <strong style="color:rgba(238,240,255,.8)">Sets/week</strong> is shown alongside it since research generally treats real working sets per muscle as the more reliable driver of growth.</div>`+
-  sorted.map(([muscle,val])=>{
+  wrap.innerHTML=`<div style="font-size:10px;color:var(--muted);line-height:1.5;margin-bottom:14px">Tonnage is total weight moved — useful for spotting overload trends, but it can be inflated by light junk volume. <strong style="color:rgba(238,240,255,.8)">Sets/week</strong> is shown alongside it since research generally treats real working sets per muscle as the more reliable driver of growth.</div>`+
+  sorted.map(([muscle,val],i)=>{
     const pct=Math.max(4,Math.round(val/maxVal*100));
     const sets=setsByMuscle[muscle]||0;
-    return `<div style="margin-bottom:10px">
-      <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px">
-        <span style="color:var(--white);font-weight:600;text-transform:capitalize">${muscle}</span>
-        <span style="color:var(--muted)"><strong style="color:rgba(238,240,255,.8);font-family:'JetBrains Mono',monospace">${sets}</strong> sets · <span style="font-family:'JetBrains Mono',monospace">${Math.round(val).toLocaleString()}kg</span></span>
-      </div>
-      <div style="height:8px;background:var(--border2);border-radius:4px;overflow:hidden">
-        <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,#FF5A00,#FF5A00);border-radius:4px"></div>
+    const isTop=i===0;
+    return `<div class="tonnage-row">
+      <div class="tonnage-rank ${isTop?'top':''}">${i+1}</div>
+      <div class="tonnage-body">
+        <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:2px">
+          <span style="color:var(--white);font-weight:700;text-transform:capitalize">${muscle}</span>
+          <span style="color:var(--muted)"><strong style="color:rgba(238,240,255,.85);font-family:'JetBrains Mono',monospace">${sets}</strong> sets · <span style="font-family:'JetBrains Mono',monospace">${Math.round(val).toLocaleString()}kg</span></span>
+        </div>
+        <div class="tonnage-bar-wrap"><div class="tonnage-bar-fill" style="width:${pct}%;background:${isTop?'linear-gradient(90deg,#FF8C47,#FF5A00)':'linear-gradient(90deg,#FF5A0099,#FF5A0066)'};${isTop?'box-shadow:0 0 8px rgba(255,90,0,.5)':''}"></div></div>
       </div>
     </div>`;
   }).join('');
@@ -10092,6 +10121,11 @@ const SHAKE_ADDIN_TYPES=[
   {name:'Mixed berries (handful)',cals:35,prot:0.5,carbs:8,fats:0.2},
 ];
 let shakeBuilderState={protein:1,liquid:1,addins:[]};
+// Anything added via the "add any ingredient" search — reuses FOODS_DB and
+// the same parseAmount() free-text parsing Smart Log already uses, so
+// building a shake isn't limited to the six quick-pick chip categories.
+let shakeBuilderCustomIngredients=[];
+let shakeIngredientSearchFood=null;
 
 function getShakeGlassSVG(color,size){
   const w=size||56,h=Math.round(w*66/56);
@@ -10199,7 +10233,7 @@ function computeShakeBuilderTotals(){
   const p=SHAKE_PROTEIN_TYPES[shakeBuilderState.protein]||SHAKE_PROTEIN_TYPES[0];
   const l=SHAKE_LIQUID_TYPES[shakeBuilderState.liquid]||SHAKE_LIQUID_TYPES[0];
   const addinItems=shakeBuilderState.addins.map(i=>SHAKE_ADDIN_TYPES[i]).filter(Boolean);
-  const all=[p,l,...addinItems];
+  const all=[p,l,...addinItems,...shakeBuilderCustomIngredients];
   return all.reduce((acc,x)=>({
     cals:Math.round(acc.cals+x.cals),
     prot:Math.round((acc.prot+x.prot)*10)/10,
@@ -10215,6 +10249,7 @@ function shakeBuilderIngredientList(){
   if(p&&p.name!=='No protein powder')list.push(p.name);
   if(l)list.push(l.name);
   addinItems.forEach(a=>list.push(a.name));
+  shakeBuilderCustomIngredients.forEach(c=>list.push(c.label));
   return list.length?list:['Water'];
 }
 function renderShakeBuilder(){
@@ -10234,6 +10269,21 @@ function renderShakeBuilder(){
     <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">
       ${SHAKE_ADDIN_TYPES.map((a,i)=>`<div class="equip-chip${shakeBuilderState.addins.includes(i)?' active':''}" onclick="toggleShakeBuilderAddin(${i})">${a.name}</div>`).join('')}
     </div>
+    <div style="font-size:10.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Add anything else</div>
+    <div style="position:relative;margin-bottom:8px">
+      <input type="text" id="shake-ing-search" placeholder="Search the food database..." oninput="renderShakeIngredientSearch(this.value)" autocomplete="off" style="width:100%">
+      <div id="shake-ing-results" class="smartlog-results" style="display:none"></div>
+    </div>
+    <div id="shake-ing-amount-wrap" style="display:none;margin-bottom:8px">
+      <input type="text" id="shake-ing-amount" placeholder="e.g. 40g, 1 scoop, 2 tbsp" oninput="updateShakeIngredientPreview()" autocomplete="off" style="width:100%">
+      <div id="shake-ing-preview" style="margin-top:8px"></div>
+    </div>
+    ${shakeBuilderCustomIngredients.length?`<div style="display:flex;flex-direction:column;gap:6px;margin-bottom:12px">
+      ${shakeBuilderCustomIngredients.map((c,i)=>`<div style="display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,.03);border-radius:6px;padding:7px 10px;font-size:11px">
+        <span>${c.label} <span style="color:var(--muted)">· ${c.cals} kcal</span></span>
+        <span onclick="removeShakeCustomIngredient(${i})" style="color:var(--muted);cursor:pointer;padding:0 4px">✕</span>
+      </div>`).join('')}
+    </div>`:''}
     <div style="display:flex;justify-content:space-between;align-items:center;padding:10px;background:rgba(255,90,0,.06);border:1.5px solid rgba(255,90,0,.15);border-radius:6px;margin-bottom:10px">
       <span style="font-size:13px;font-weight:800">${totals.cals} kcal</span>
       <span style="font-size:10.5px;color:var(--muted)">${totals.prot}g protein · ${totals.carbs}g carbs · ${totals.fats}g fats</span>
@@ -10248,6 +10298,61 @@ function setShakeBuilderLiquid(i){shakeBuilderState.liquid=i;renderShakeBuilder(
 function toggleShakeBuilderAddin(i){
   const idx=shakeBuilderState.addins.indexOf(i);
   if(idx===-1)shakeBuilderState.addins.push(i);else shakeBuilderState.addins.splice(idx,1);
+  renderShakeBuilder();
+}
+function renderShakeIngredientSearch(query){
+  const results=document.getElementById('shake-ing-results');
+  if(!results)return;
+  if(!query||query.length<2){results.innerHTML='';results.style.display='none';return;}
+  const q=query.toLowerCase();
+  const matches=FOODS_DB.filter(f=>f.name.toLowerCase().includes(q)).slice(0,8);
+  if(!matches.length){results.innerHTML='<div class="smartlog-noresult">No match — try a simpler term.</div>';results.style.display='block';return;}
+  results.innerHTML=matches.map(f=>`<div class="smartlog-result" onclick="selectShakeIngredientFood(${FOODS_DB.indexOf(f)})">${f.name}<span>${f.cals} kcal/100${f.isLiquid?'ml':'g'}</span></div>`).join('');
+  results.style.display='block';
+}
+function selectShakeIngredientFood(idx){
+  shakeIngredientSearchFood=FOODS_DB[idx];
+  if(!shakeIngredientSearchFood)return;
+  const input=document.getElementById('shake-ing-search');
+  if(input)input.value=shakeIngredientSearchFood.name;
+  const results=document.getElementById('shake-ing-results');
+  if(results){results.innerHTML='';results.style.display='none';}
+  const amountWrap=document.getElementById('shake-ing-amount-wrap');
+  if(amountWrap)amountWrap.style.display='block';
+  const amountInput=document.getElementById('shake-ing-amount');
+  if(amountInput){amountInput.value='';amountInput.focus();}
+  const preview=document.getElementById('shake-ing-preview');
+  if(preview)preview.innerHTML='';
+}
+function updateShakeIngredientPreview(){
+  const preview=document.getElementById('shake-ing-preview');
+  if(!preview||!shakeIngredientSearchFood)return;
+  const amountInput=document.getElementById('shake-ing-amount');
+  const raw=amountInput?amountInput.value:'';
+  const grams=parseAmount(raw,shakeIngredientSearchFood);
+  if(!raw){preview.innerHTML='';return;}
+  if(grams===null){preview.innerHTML='<div class="smartlog-empty">Try a number + g, or a word like scoop / tbsp / handful.</div>';return;}
+  const ratio=grams/100;
+  const cals=Math.round(shakeIngredientSearchFood.cals*ratio);
+  const prot=Math.round(shakeIngredientSearchFood.prot*ratio*10)/10;
+  const carbs=Math.round(shakeIngredientSearchFood.carbs*ratio*10)/10;
+  const fats=Math.round(shakeIngredientSearchFood.fats*ratio*10)/10;
+  preview.innerHTML=`<div style="font-size:11px;color:var(--muted);margin-bottom:6px">~${Math.round(grams)}${shakeIngredientSearchFood.isLiquid?'ml':'g'} · ${cals} kcal · ${prot}g protein</div>
+    <button class="btn btn-g btn-sm" style="width:100%;justify-content:center" onclick="addShakeIngredientToBuild(${cals},${prot},${carbs},${fats},${Math.round(grams)})">+ Add to shake</button>`;
+}
+function addShakeIngredientToBuild(cals,prot,carbs,fats,grams){
+  if(!shakeIngredientSearchFood)return;
+  const unit=shakeIngredientSearchFood.isLiquid?'ml':'g';
+  shakeBuilderCustomIngredients.push({
+    label:`${shakeIngredientSearchFood.name} (${grams}${unit})`,
+    cals,prot,carbs,fats
+  });
+  shakeIngredientSearchFood=null;
+  const input=document.getElementById('shake-ing-search');if(input)input.value='';
+  renderShakeBuilder();
+}
+function removeShakeCustomIngredient(i){
+  shakeBuilderCustomIngredients.splice(i,1);
   renderShakeBuilder();
 }
 function logShakeBuilderNow(){
@@ -10580,11 +10685,28 @@ function renderProgress(){
     const flagNote=flagged.length?`<div style="font-size:10.5px;color:var(--orange);margin-top:8px;padding-top:8px;border-top:1px solid var(--border2)">⚠ ${flagged.length} log${flagged.length>1?'s':''} (e.g. ${flagged[0].w}lbs on ${flagged[0].date}) looked like too large a jump to be real week-to-week change, so ${flagged.length>1?'they were':'it was'} left out of this calculation. If that's a mistake, delete it from the history above.</div>`:'';
     pred.innerHTML=`<div style="font-weight:800;font-size:22px;color:var(--green)">${in12} lbs</div><div style="font-size:11px;color:var(--muted);margin-top:3px;margin-bottom:10px">Predicted weight in 12 weeks</div><div style="font-size:11px;line-height:1.7">${rate>=0?'Gaining':'Losing'} ${rateAbs.toFixed(2)} lbs/week. ${verdict}</div>${flagNote}`;
   }
-  // PRs
+  // PRs — card grid instead of a flat list, with an icon per lift and the
+  // rep count from lastPerformance shown alongside the weight where known.
   const prEl=document.getElementById('pr-list');
   if(!prEl)return;
-  const prData=[{n:'Bench Press',k:'Bench Press'},{n:'Back Squat',k:'Barbell Back Squat'},{n:'Deadlift',k:'Conventional Deadlift'},{n:'Overhead Press',k:'Overhead Press'},{n:'Barbell Row',k:'Barbell Row'}];
-  prEl.innerHTML=prData.map(p=>`<div class="pr-item"><div class="pr-lift">${p.n}</div><div class="pr-val">${prs[p.k]?prs[p.k]+'kg':'—'}</div>${prs[p.k]?'<span class="pr-new">🏆 PR</span>':'<span style="font-size:10px;color:var(--muted2)">Log a session</span>'}</div>`).join('');
+  const prData=[
+    {n:'Bench Press',k:'Bench Press',icon:'🏋️'},
+    {n:'Back Squat',k:'Barbell Back Squat',icon:'🦵'},
+    {n:'Deadlift',k:'Conventional Deadlift',icon:'⚡'},
+    {n:'Overhead Press',k:'Overhead Press',icon:'💪'},
+    {n:'Barbell Row',k:'Barbell Row',icon:'🎯'},
+  ];
+  prEl.innerHTML=`<div class="pr-grid">`+prData.map(p=>{
+    const hit=prs[p.k];
+    const perf=lastPerformance[p.k];
+    return `<div class="pr-card ${hit?'hit':'empty'}">
+      <div class="pr-card-icon">${p.icon}</div>
+      <div class="pr-card-name">${p.n}</div>
+      <div class="pr-card-val">${hit?hit:'—'}${hit?'<span>kg</span>':''}</div>
+      ${hit&&perf&&perf.reps&&perf.weight===hit?`<div class="pr-card-sub">${perf.weight}kg × ${perf.reps}</div>`:''}
+      ${hit?'<div class="pr-card-badge">🏆 PR</div>':'<div class="pr-card-empty">Log a session</div>'}
+    </div>`;
+  }).join('')+`</div>`;
   // Compare
   if(weightLog.length>=2){
     const cb=document.getElementById('compare-body');if(cb)cb.innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div style="background:var(--panel2);border:1.5px solid var(--border2);padding:10px;border-radius:4px;text-align:center"><div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em">Day 1</div><div style="font-weight:800;font-size:20px;margin-top:3px">${weightLog[0].w} lbs</div></div><div style="background:var(--panel2);border:1.5px solid rgba(255,90,0,.2);padding:10px;border-radius:4px;text-align:center"><div style="font-size:9px;color:var(--green);text-transform:uppercase;letter-spacing:.08em">Today</div><div style="font-weight:800;font-size:20px;margin-top:3px;color:var(--green)">${weightLog[weightLog.length-1].w} lbs</div><div style="font-size:11px;color:var(--green);margin-top:3px">+${(weightLog[weightLog.length-1].w-weightLog[0].w).toFixed(1)} lbs</div></div></div>`;
