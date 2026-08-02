@@ -1892,6 +1892,14 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
         <button class="equip-chip mealplan-effort-btn" data-effort="some-effort" onclick="setMealPlanEffort('some-effort',this)">I've got time to cook</button>
       </div>
 
+      <div class="lbl">How many meals a day?</div>
+      <div style="display:flex;gap:6px;margin-bottom:6px;flex-wrap:wrap">
+        <button class="equip-chip mealplan-freq-btn" data-freq="few" onclick="setMealPlanFrequency('few',this)">Fewer &amp; bigger</button>
+        <button class="equip-chip mealplan-freq-btn active" data-freq="balanced" onclick="setMealPlanFrequency('balanced',this)">Balanced</button>
+        <button class="equip-chip mealplan-freq-btn" data-freq="many" onclick="setMealPlanFrequency('many',this)">More &amp; smaller</button>
+      </div>
+      <div style="font-size:10.5px;color:var(--muted);margin-bottom:16px;line-height:1.5">Same daily target, packed into 3, 4, or up to 6 sittings — pick whichever fits how you actually like to eat.</div>
+
       <button onclick="generateMealPlan()" style="width:100%;background:linear-gradient(135deg,#FF5A00,#FF7A2E);border:none;border-radius:12px;padding:20px;color:#2B0E00;font-family:'Outfit',sans-serif;font-size:16px;font-weight:900;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;box-shadow:0 10px 28px -10px rgba(255,90,0,.5);transition:all .2s">🍽 Generate Plan</button>
     </div>
 
@@ -6806,7 +6814,33 @@ function switchNutTab(tab,el){
 // the same 4 meals. Each meal card is collapsed by default, showing just the
 // name and its calories/protein — expands to show ingredients, cooking
 // steps, and the specific reason that meal was picked.
-let mealPlanDays=1,mealPlanEffort='any',generatedMealPlan=[];
+let mealPlanDays=1,mealPlanEffort='any',mealPlanFrequency='balanced',generatedMealPlan=[];
+
+// Recipes have fixed macros, so "fewer, bigger meals" is implemented as
+// fewer base slots with each picked recipe's portion scaled up (labeled
+// on the card so it's obviously a bigger serving, not a different dish);
+// "more, smaller meals" is the reverse — more slots, each scaled down.
+const MEAL_FREQUENCY_CONFIG={
+  few:{slots:['breakfast','lunch','dinner'],scale:1.4},
+  balanced:{slots:['breakfast','lunch','dinner','snack'],scale:1},
+  many:{slots:['breakfast','snack','lunch','snack','dinner','snack'],scale:0.75},
+};
+function setMealPlanFrequency(freq,el){
+  mealPlanFrequency=freq;
+  document.querySelectorAll('.mealplan-freq-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+}
+function scaleMeal(recipe,factor){
+  if(factor===1)return {...recipe};
+  return {
+    ...recipe,
+    cals:Math.round(recipe.cals*factor),
+    prot:Math.round(recipe.prot*factor*10)/10,
+    carbs:Math.round(recipe.carbs*factor*10)/10,
+    fats:Math.round(recipe.fats*factor*10)/10,
+    portionScale:Math.round(factor*100)/100
+  };
+}
 
 // ── BUILD MY OWN — full agency over meal planning, not just the generator.
 // Scoped to one real day at a time (a 30-day manual build isn't realistic
@@ -6897,16 +6931,17 @@ function pickMealForSlot(type,usedNames){
 function generateMealPlan(){
   const targetCals=profile.cals||2800;
   const targetProt=profile.protein||160;
+  const freqConfig=MEAL_FREQUENCY_CONFIG[mealPlanFrequency]||MEAL_FREQUENCY_CONFIG.balanced;
   generatedMealPlan=[];
   const usedByType={breakfast:[],lunch:[],dinner:[],snack:[]};
   for(let d=0;d<mealPlanDays;d++){
-    const meals=['breakfast','lunch','dinner','snack'].map(type=>{
+    const meals=freqConfig.slots.map(type=>{
       const pick=pickMealForSlot(type,usedByType[type]);
       usedByType[type].push(pick.name);
       // Reset the used-list once every recipe in that category has been used,
       // so a 14-day plan can start reusing good meals rather than degrade.
       if(usedByType[type].length>=RECIPES_DB.filter(r=>r.type===type).length)usedByType[type]=[];
-      return pick;
+      return scaleMeal(pick,freqConfig.scale);
     });
     // Four fixed meals often land well short of a real bulking target (which
     // can run 2800-3500+ kcal). Sam's rule: if this is going to miss the
@@ -6920,8 +6955,9 @@ function generateMealPlan(){
       const extra=pickMealForSlot('snack',usedByType.snack);
       usedByType.snack.push(extra.name);
       if(usedByType.snack.length>=RECIPES_DB.filter(r=>r.type==='snack').length)usedByType.snack=[];
-      meals.push({...extra,type:'extra snack'});
-      runningCals+=extra.cals;
+      const scaledExtra=scaleMeal(extra,freqConfig.scale);
+      meals.push({...scaledExtra,type:'extra snack'});
+      runningCals+=scaledExtra.cals;
       boosterCount++;
     }
     const dayTotals=meals.reduce((acc,m)=>({cals:acc.cals+m.cals,prot:acc.prot+m.prot,carbs:acc.carbs+m.carbs,fats:acc.fats+m.fats}),{cals:0,prot:0,carbs:0,fats:0});
@@ -6954,7 +6990,7 @@ function renderMealPlan(targetCals,targetProt){
           <div class="mealplan-card-head" onclick="toggleMealCard(${di},${mi})">
             <div>
               <div style="font-size:9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--nutri)">${m.type} ${m.effort?`· ${m.effort==='no-cook'?'No cook':m.effort==='quick'?'Quick':'Some effort'}`:''}</div>
-              <div style="font-size:13.5px;font-weight:700;margin-top:2px">${m.name}</div>
+              <div style="font-size:13.5px;font-weight:700;margin-top:2px">${m.name}${m.portionScale&&m.portionScale!==1?` <span style="font-size:10px;font-weight:700;color:#44CFFF">${m.portionScale}×</span>`:''}</div>
             </div>
             <div style="text-align:right;flex-shrink:0">
               <div style="font-size:12px;font-weight:800">${m.cals} kcal</div>
@@ -6966,6 +7002,7 @@ function renderMealPlan(targetCals,targetProt){
             <ul style="margin:0 0 12px;padding-left:18px;font-size:12px;color:rgba(238,240,255,.75);line-height:1.7">
               ${m.ingredients.map(ing=>`<li>${ing}</li>`).join('')}
             </ul>
+            ${m.portionScale&&m.portionScale!==1?`<div style="font-size:10.5px;color:var(--muted);margin:-4px 0 12px;font-style:italic">Scaled to a ${m.portionScale}× portion for the meal count you picked — increase each ingredient above by roughly this much.</div>`:''}
             ${m.steps?`<div style="font-size:10.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:6px">How to cook it</div>
             <ol style="margin:0 0 12px;padding-left:18px;font-size:12px;color:rgba(238,240,255,.75);line-height:1.7">
               ${m.steps.map(s=>`<li>${s}</li>`).join('')}
@@ -6975,7 +7012,10 @@ function renderMealPlan(targetCals,targetProt){
             <div style="display:flex;gap:12px;margin-top:10px;font-size:10.5px;color:var(--muted)">
               <span>${m.carbs}g carbs</span><span>${m.fats}g fats</span>
             </div>
-            <button class="btn btn-ghost btn-sm" style="width:100%;margin-top:12px" onclick="event.stopPropagation();toggleMealSwapPanel(${di},${mi})">🔄 Swap this meal</button>
+            <div style="display:flex;gap:8px;margin-top:12px">
+              <button class="btn btn-ghost btn-sm" style="flex:1" onclick="event.stopPropagation();toggleMealSwapPanel(${di},${mi})">🔄 Swap this meal</button>
+              <button class="btn btn-ghost btn-sm" style="flex:1;color:#E8314A;border-color:rgba(232,49,74,.3)" onclick="event.stopPropagation();removeMealFromDay(${di},${mi})">🗑️ Remove</button>
+            </div>
             <div class="swap-panel" id="meal-swap-panel-${di}-${mi}"></div>
           </div>
         </div>`).join('')}
@@ -7007,6 +7047,16 @@ function addMealToDay(di,recipeName){
   day.totals=day.meals.reduce((acc,m)=>({cals:acc.cals+m.cals,prot:acc.prot+m.prot,carbs:acc.carbs+m.carbs,fats:acc.fats+m.fats}),{cals:0,prot:0,carbs:0,fats:0});
   renderMealPlan(profile.cals||2800,profile.protein||160);
   toast('➕',`Added ${recipe.name}`);
+}
+function removeMealFromDay(di,mi){
+  const day=generatedMealPlan[di];
+  if(!day||!day.meals[mi])return;
+  if(day.meals.length<=1){toast('⚠️','A day needs at least one meal');return;}
+  const removed=day.meals[mi];
+  day.meals.splice(mi,1);
+  day.totals=day.meals.reduce((acc,m)=>({cals:acc.cals+m.cals,prot:acc.prot+m.prot,carbs:acc.carbs+m.carbs,fats:acc.fats+m.fats}),{cals:0,prot:0,carbs:0,fats:0});
+  renderMealPlan(profile.cals||2800,profile.protein||160);
+  toast('🗑️',`Removed ${removed.name}`);
 }
 function closeMealPlanOutput(){
   generatedMealPlan=[];
@@ -9983,6 +10033,34 @@ const SHAKE_TYPES=[
   {name:'Casein (bedtime)',color:'#F2EAD8',ingredients:['1 scoop casein protein','250ml whole milk'],cals:118,prot:14,carbs:6.2,fats:4.5},
   {name:'Mass Gainer',color:'#3E2A1C',ingredients:['1 scoop mass gainer powder','250ml whole milk'],cals:230,prot:16,carbs:34,fats:4},
 ];
+// User-built shakes saved as reusable templates — same shape as SHAKE_TYPES
+// plus a marker so the detail panel knows it can offer a delete action.
+let customShakeTemplates=[];
+const CUSTOM_SHAKE_COLORS=['#EDE3D3','#5A3A28','#B9812E','#F0DE8A','#F2EAD8','#3E2A1C','#8A9B6E','#6E7FA1'];
+
+const SHAKE_PROTEIN_TYPES=[
+  {name:'No protein powder',cals:0,prot:0,carbs:0,fats:0},
+  {name:'Whey (1 scoop)',cals:120,prot:24,carbs:3,fats:1.5},
+  {name:'Casein (1 scoop)',cals:115,prot:24,carbs:3,fats:1},
+  {name:'Plant protein (1 scoop)',cals:110,prot:21,carbs:4,fats:1.5},
+  {name:'Mass gainer (1 scoop)',cals:220,prot:20,carbs:34,fats:2.5},
+];
+const SHAKE_LIQUID_TYPES=[
+  {name:'Water',cals:0,prot:0,carbs:0,fats:0},
+  {name:'Whole milk (250ml)',cals:150,prot:8,carbs:12,fats:8},
+  {name:'Skimmed milk (250ml)',cals:87,prot:8.5,carbs:12.5,fats:0.2},
+  {name:'Almond milk (250ml)',cals:33,prot:1,carbs:0.8,fats:2.8},
+  {name:'Oat milk (250ml)',cals:120,prot:3,carbs:16,fats:5},
+];
+const SHAKE_ADDIN_TYPES=[
+  {name:'Banana',cals:105,prot:1.3,carbs:27,fats:0.4},
+  {name:'Peanut butter (1 tbsp)',cals:95,prot:4,carbs:3,fats:8},
+  {name:'Honey (1 tbsp)',cals:64,prot:0,carbs:17,fats:0},
+  {name:'Oats (40g)',cals:150,prot:5,carbs:27,fats:3},
+  {name:'Mixed berries (handful)',cals:35,prot:0.5,carbs:8,fats:0.2},
+];
+let shakeBuilderState={protein:1,liquid:1,addins:[]};
+
 function getShakeGlassSVG(color,size){
   const w=size||56,h=Math.round(w*66/56);
   return `<svg width="${w}" height="${h}" viewBox="0 0 60 70">
@@ -9995,18 +10073,33 @@ function toggleShakeTypes(){
   const panel=document.getElementById('shake-types-panel');
   if(!panel)return;
   const opening=panel.style.display==='none';
-  if(opening&&!panel.dataset.built){
-    panel.innerHTML=`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
-      ${SHAKE_TYPES.map((s,i)=>`<div class="shake-type-card" onclick="toggleShakeRecipe(${i})">
-        ${getShakeGlassSVG(s.color,40)}
-        <div style="font-size:10px;font-weight:700;margin-top:4px">${s.name}</div>
-        <div style="font-size:9px;color:var(--muted)">${s.cals} kcal · ${s.prot}g</div>
-      </div>`).join('')}
-    </div>
-    <div id="shake-recipe-detail" style="margin-top:10px"></div>`;
-    panel.dataset.built='1';
-  }
+  // Always rebuild rather than caching — a newly-saved custom template
+  // needs to show up next time this panel opens.
+  if(opening)renderShakeTypesPanel();
   panel.style.display=opening?'block':'none';
+}
+function renderShakeTypesPanel(){
+  const panel=document.getElementById('shake-types-panel');
+  if(!panel)return;
+  panel.innerHTML=`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+    ${SHAKE_TYPES.map((s,i)=>`<div class="shake-type-card" onclick="toggleShakeRecipe(${i})">
+      ${getShakeGlassSVG(s.color,40)}
+      <div style="font-size:10px;font-weight:700;margin-top:4px">${s.name}</div>
+      <div style="font-size:9px;color:var(--muted)">${s.cals} kcal · ${s.prot}g</div>
+    </div>`).join('')}
+    ${customShakeTemplates.map((s,i)=>`<div class="shake-type-card" onclick="toggleCustomShakeRecipe(${i})">
+      ${getShakeGlassSVG(s.color,40)}
+      <div style="font-size:10px;font-weight:700;margin-top:4px">${s.name} <span style="color:#44CFFF">★</span></div>
+      <div style="font-size:9px;color:var(--muted)">${s.cals} kcal · ${s.prot}g</div>
+    </div>`).join('')}
+    <div class="shake-type-card" style="border-style:dashed" onclick="toggleShakeBuilder()">
+      <div style="font-size:22px;line-height:40px">🛠</div>
+      <div style="font-size:10px;font-weight:700;margin-top:4px">Build your own</div>
+      <div style="font-size:9px;color:var(--muted)">Custom mix</div>
+    </div>
+  </div>
+  <div id="shake-recipe-detail" style="margin-top:10px"></div>
+  <div id="shake-builder-panel" style="display:none;margin-top:10px"></div>`;
 }
 function toggleShakeRecipe(i){
   const s=SHAKE_TYPES[i];
@@ -10029,6 +10122,123 @@ function logSpecificShake(i){
   logItem(s.name+' shake', s.cals, s.prot);
   toast('🥤',`${s.name} logged — ${s.cals} kcal, ${s.prot}g protein`);
   saveToStorage();
+}
+function toggleCustomShakeRecipe(i){
+  const s=customShakeTemplates[i];
+  if(!s)return;
+  const detail=document.getElementById('shake-recipe-detail');
+  if(!detail)return;
+  detail.innerHTML=`<div style="background:var(--panel2);border:1.5px solid var(--border2);border-radius:10px;padding:12px">
+    <div style="display:flex;gap:12px;align-items:center">
+      ${getShakeGlassSVG(s.color,44)}
+      <div style="flex:1">
+        <div style="font-size:12.5px;font-weight:800">${s.name} <span style="color:#44CFFF;font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase">Custom</span></div>
+        <div style="font-size:10px;color:var(--muted);margin-bottom:6px">${s.cals} kcal · ${s.prot}g protein · ${s.carbs}g carbs · ${s.fats}g fats</div>
+        <div style="font-size:10.5px;color:rgba(238,240,255,.75)">${s.ingredients.join(' · ')}</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:10px">
+      <button onclick="logCustomShake(${i})" style="flex:1;background:linear-gradient(135deg,#FF5A00,#FF7A2E);border:none;border-radius:8px;padding:10px;color:#2B0E00;font-family:'Outfit',sans-serif;font-size:12px;font-weight:800;cursor:pointer">Log this shake</button>
+      <button onclick="deleteCustomShake(${i})" style="background:rgba(232,49,74,.12);border:1.5px solid rgba(232,49,74,.3);border-radius:8px;padding:10px 14px;color:#E8314A;font-size:12px;font-weight:700;cursor:pointer">Delete</button>
+    </div>
+  </div>`;
+}
+function logCustomShake(i){
+  const s=customShakeTemplates[i];
+  if(!s)return;
+  logItem(s.name+' shake', s.cals, s.prot);
+  toast('🥤',`${s.name} logged — ${s.cals} kcal, ${s.prot}g protein`);
+  saveToStorage();
+}
+function deleteCustomShake(i){
+  if(!customShakeTemplates[i])return;
+  customShakeTemplates.splice(i,1);
+  saveToStorage();
+  renderShakeTypesPanel();
+}
+function toggleShakeBuilder(){
+  const panel=document.getElementById('shake-builder-panel');
+  if(!panel)return;
+  const opening=panel.style.display==='none';
+  if(opening)renderShakeBuilder();
+  panel.style.display=opening?'block':'none';
+}
+function computeShakeBuilderTotals(){
+  const p=SHAKE_PROTEIN_TYPES[shakeBuilderState.protein]||SHAKE_PROTEIN_TYPES[0];
+  const l=SHAKE_LIQUID_TYPES[shakeBuilderState.liquid]||SHAKE_LIQUID_TYPES[0];
+  const addinItems=shakeBuilderState.addins.map(i=>SHAKE_ADDIN_TYPES[i]).filter(Boolean);
+  const all=[p,l,...addinItems];
+  return all.reduce((acc,x)=>({
+    cals:Math.round(acc.cals+x.cals),
+    prot:Math.round((acc.prot+x.prot)*10)/10,
+    carbs:Math.round((acc.carbs+x.carbs)*10)/10,
+    fats:Math.round((acc.fats+x.fats)*10)/10
+  }),{cals:0,prot:0,carbs:0,fats:0});
+}
+function shakeBuilderIngredientList(){
+  const p=SHAKE_PROTEIN_TYPES[shakeBuilderState.protein];
+  const l=SHAKE_LIQUID_TYPES[shakeBuilderState.liquid];
+  const addinItems=shakeBuilderState.addins.map(i=>SHAKE_ADDIN_TYPES[i]).filter(Boolean);
+  const list=[];
+  if(p&&p.name!=='No protein powder')list.push(p.name);
+  if(l)list.push(l.name);
+  addinItems.forEach(a=>list.push(a.name));
+  return list.length?list:['Water'];
+}
+function renderShakeBuilder(){
+  const panel=document.getElementById('shake-builder-panel');
+  if(!panel)return;
+  const totals=computeShakeBuilderTotals();
+  panel.innerHTML=`<div style="background:var(--panel2);border:1.5px solid var(--border2);border-radius:10px;padding:12px">
+    <div style="font-size:10.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Protein</div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">
+      ${SHAKE_PROTEIN_TYPES.map((p,i)=>`<div class="equip-chip${shakeBuilderState.protein===i?' active':''}" onclick="setShakeBuilderProtein(${i})">${p.name}</div>`).join('')}
+    </div>
+    <div style="font-size:10.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Liquid</div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">
+      ${SHAKE_LIQUID_TYPES.map((l,i)=>`<div class="equip-chip${shakeBuilderState.liquid===i?' active':''}" onclick="setShakeBuilderLiquid(${i})">${l.name}</div>`).join('')}
+    </div>
+    <div style="font-size:10.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Add-ins (optional)</div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">
+      ${SHAKE_ADDIN_TYPES.map((a,i)=>`<div class="equip-chip${shakeBuilderState.addins.includes(i)?' active':''}" onclick="toggleShakeBuilderAddin(${i})">${a.name}</div>`).join('')}
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:10px;background:rgba(255,90,0,.06);border:1.5px solid rgba(255,90,0,.15);border-radius:6px;margin-bottom:10px">
+      <span style="font-size:13px;font-weight:800">${totals.cals} kcal</span>
+      <span style="font-size:10.5px;color:var(--muted)">${totals.prot}g protein · ${totals.carbs}g carbs · ${totals.fats}g fats</span>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button onclick="logShakeBuilderNow()" style="flex:1;background:linear-gradient(135deg,#FF5A00,#FF7A2E);border:none;border-radius:8px;padding:10px;color:#2B0E00;font-family:'Outfit',sans-serif;font-size:12px;font-weight:800;cursor:pointer">Log now</button>
+      <button onclick="saveShakeBuilderTemplate()" style="flex:1;background:rgba(68,207,255,.1);border:1.5px solid rgba(68,207,255,.3);border-radius:8px;padding:10px;color:#44CFFF;font-size:12px;font-weight:800;cursor:pointer">💾 Save as template</button>
+    </div>`;
+}
+function setShakeBuilderProtein(i){shakeBuilderState.protein=i;renderShakeBuilder();}
+function setShakeBuilderLiquid(i){shakeBuilderState.liquid=i;renderShakeBuilder();}
+function toggleShakeBuilderAddin(i){
+  const idx=shakeBuilderState.addins.indexOf(i);
+  if(idx===-1)shakeBuilderState.addins.push(i);else shakeBuilderState.addins.splice(idx,1);
+  renderShakeBuilder();
+}
+function logShakeBuilderNow(){
+  const totals=computeShakeBuilderTotals();
+  if(totals.cals<=0){toast('⚠️','Pick at least one ingredient');return;}
+  logItem('Custom Shake', totals.cals, totals.prot);
+  toast('🥤',`Custom shake logged — ${totals.cals} kcal, ${totals.prot}g protein`);
+  saveToStorage();
+}
+function saveShakeBuilderTemplate(){
+  const totals=computeShakeBuilderTotals();
+  if(totals.cals<=0){toast('⚠️','Pick at least one ingredient first');return;}
+  const name=(prompt('Name this shake:','My Shake '+(customShakeTemplates.length+1))||'').trim();
+  if(!name)return;
+  customShakeTemplates.push({
+    name:name.slice(0,30),
+    color:CUSTOM_SHAKE_COLORS[customShakeTemplates.length%CUSTOM_SHAKE_COLORS.length],
+    ingredients:shakeBuilderIngredientList(),
+    cals:totals.cals,prot:totals.prot,carbs:totals.carbs,fats:totals.fats
+  });
+  saveToStorage();
+  toast('💾','Saved as a template');
+  renderShakeTypesPanel();
 }
 function logEmergencyShake(){
   const glass=document.getElementById('shake-glass-main');
@@ -10589,6 +10799,7 @@ function saveToStorage(){
     localStorage.setItem('arx_questClaimed', JSON.stringify(questClaimed));
     localStorage.setItem('arx_proteinHitDates', JSON.stringify(proteinHitDates));
     localStorage.setItem('arx_customWorkouts', JSON.stringify(customWorkouts));
+    localStorage.setItem('arx_customShakeTemplates', JSON.stringify(customShakeTemplates));
     localStorage.setItem('arx_lastSessionDate', lastSessionDate);
     localStorage.setItem('arx_lastActiveDate', lastActiveDate);
     localStorage.setItem('arx_compassWeekStart', compassWeekStart);
@@ -10674,6 +10885,8 @@ function loadFromStorage(){
     if(phd){proteinHitDates=JSON.parse(phd)}
     const cw=localStorage.getItem('arx_customWorkouts');
     if(cw){customWorkouts=JSON.parse(cw)}
+    const cst=localStorage.getItem('arx_customShakeTemplates');
+    if(cst){try{customShakeTemplates=JSON.parse(cst);}catch(e){customShakeTemplates=[];}}
     lastSessionDate=localStorage.getItem('arx_lastSessionDate')||'';
     lastActiveDate=localStorage.getItem('arx_lastActiveDate')||'';
     compassWeekStart=localStorage.getItem('arx_compassWeekStart')||'';
