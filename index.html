@@ -2571,16 +2571,53 @@ function addToCartFromModal(){
     if(btn){
       const original = btn.textContent;
       btn.textContent = 'Added ✓';
+      sparkBurst(btn);
       setTimeout(()=>{ btn.textContent = original; }, 1400);
     }
   }catch(err){
-    // If this fires, it proves the error genuinely comes from this exact code —
-    // a local try/catch always sees full detail for same-origin code, unlike
-    // the page-level error listener, which only shows masked detail for errors
-    // from outside this page's own script (typically third-party/in-app-browser
-    // code). Showing it directly here removes any ambiguity either way.
-    alert('CART BUG FOUND: ' + err.message + '\\n' + (err.stack || 'no stack'));
+    // Logged with full detail for debugging (same-origin code always gets
+    // the real message+stack here, unlike the page-level error listener,
+    // which only sees masked detail for errors from outside this page's
+    // own script). Kept off-screen — a customer seeing a raw stack trace
+    // is worse than the button silently not confirming.
+    console.error('CART BUG:', err.message, err.stack || '(no stack)');
   }
+}
+// Small self-cleaning particle burst fired from a button's own position —
+// no canvas needs to exist in the markup ahead of time.
+function sparkBurst(fromEl){
+  const r = fromEl.getBoundingClientRect();
+  const cx = r.left + r.width/2, cy = r.top + r.height/2;
+  const canvas = document.createElement('canvas');
+  canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+  canvas.style.cssText = 'position:fixed;inset:0;z-index:9999;pointer-events:none';
+  document.body.appendChild(canvas);
+  const ctx = canvas.getContext('2d');
+  const particles = [];
+  for(let i=0;i<28;i++){
+    const ang = Math.random()*Math.PI*2, speed = 1.8+Math.random()*4;
+    particles.push({
+      x:cx, y:cy, vx:Math.cos(ang)*speed, vy:Math.sin(ang)*speed-1,
+      life:1, size:1.6+Math.random()*2.4,
+      col: Math.random()<0.7 ? '255,90,0' : '255,210,77'
+    });
+  }
+  function frame(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    let alive=false;
+    particles.forEach(p=>{
+      if(p.life<=0) return;
+      alive=true;
+      p.x+=p.vx; p.y+=p.vy; p.vy+=0.12; p.life-=0.022;
+      ctx.globalAlpha=Math.max(p.life,0);
+      ctx.fillStyle='rgba('+p.col+',1)';
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.size,0,Math.PI*2); ctx.fill();
+    });
+    ctx.globalAlpha=1;
+    if(alive) requestAnimationFrame(frame);
+    else canvas.remove();
+  }
+  requestAnimationFrame(frame);
 }
 function addToCart(id){
   const p = PRODUCTS[id]; if(!p) return;
