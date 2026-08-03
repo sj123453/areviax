@@ -73,13 +73,13 @@ input,input:focus,input:active,
    and the side glows at .4 opacity made orange the dominant colour on
    every page rather than an accent. Bigger blur + lower opacity blends
    them into the background instead of sitting on top of it. */
-.main-gradient-blob{position:absolute;border-radius:50%;filter:blur(120px);opacity:.08}
+.main-gradient-blob{position:absolute;border-radius:50%;filter:blur(120px);opacity:.11}
 .main-gradient-blob.mgb1{width:380px;height:380px;background:radial-gradient(circle,#FF5A00,transparent 70%);animation:mgDrift1 26s ease-in-out infinite}
 .main-gradient-blob.mgb2{width:300px;height:300px;background:radial-gradient(circle,#2BBFE0,transparent 70%);animation:mgDrift2 30s ease-in-out infinite}
 .main-gradient-blob.mgb3{width:240px;height:240px;background:radial-gradient(circle,#188CB0,transparent 70%);animation:mgDrift3 23s ease-in-out infinite}
 .main-gradient-bg .side-glow{position:absolute;top:0;bottom:0;width:460px;filter:blur(90px)}
-.main-gradient-bg .side-glow.left{left:-120px;background:radial-gradient(ellipse 55% 100% at 30% 50%,rgba(255,90,0,.16),transparent 70%)}
-.main-gradient-bg .side-glow.right{right:-120px;background:radial-gradient(ellipse 55% 100% at 70% 50%,rgba(255,90,0,.16),transparent 70%)}
+.main-gradient-bg .side-glow.left{left:-120px;background:radial-gradient(ellipse 55% 100% at 30% 50%,rgba(255,90,0,.2),transparent 70%)}
+.main-gradient-bg .side-glow.right{right:-120px;background:radial-gradient(ellipse 55% 100% at 70% 50%,rgba(255,90,0,.2),transparent 70%)}
 @keyframes mgDrift1{0%,100%{transform:translate(-10%,-10%)}50%{transform:translate(60%,40%)}}
 @keyframes mgDrift2{0%,100%{transform:translate(70%,60%)}50%{transform:translate(20%,10%)}}
 @keyframes mgDrift3{0%,100%{transform:translate(30%,80%)}50%{transform:translate(60%,20%)}}
@@ -1398,11 +1398,13 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     <span onclick="dismissWalkTip()" style="cursor:pointer;color:var(--muted);font-size:15px;padding:0 2px 0 8px">✕</span>
   </div>
 
-  <!-- NAME + DATE — two lines, nothing else -->
-  <div style="margin-bottom:14px">
-    <div style="font-size:11px;color:rgba(255,90,0,.85);letter-spacing:.22em;text-transform:uppercase;font-weight:700;margin-bottom:5px" id="dash-greeting">Good morning</div>
-    <div style="font-size:42px;font-weight:900;letter-spacing:-.02em;color:var(--white);line-height:1" id="dash-name">Athlete</div>
-    <div style="font-size:11px;color:var(--muted);margin-top:7px" id="dash-date"></div>
+  <!-- NAME + DATE — given a card treatment (gradient + border) instead of
+       sitting as bare text, so it reads as part of the same visual system
+       as the Today/Quote cards below rather than floating alone at the top. -->
+  <div style="background:linear-gradient(135deg,rgba(255,90,0,.11),rgba(255,255,255,.015));border:1.5px solid rgba(255,90,0,.18);border-radius:16px;padding:18px 20px;margin-bottom:12px">
+    <div style="font-size:11px;color:rgba(255,90,0,.85);letter-spacing:.22em;text-transform:uppercase;font-weight:700;margin-bottom:6px" id="dash-greeting">Good morning</div>
+    <div style="font-size:44px;font-weight:900;letter-spacing:-.02em;color:var(--white);line-height:1" id="dash-name">Athlete</div>
+    <div style="font-size:11px;color:var(--muted);margin-top:8px" id="dash-date"></div>
   </div>
 
   <!-- TODAY — a quick link to today's session, not the main event anymore.
@@ -1425,7 +1427,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        bigger type, and a quote-mark watermark instead of nearly-invisible
        white-on-black. -->
   <div style="background:linear-gradient(135deg,rgba(255,90,0,.09),rgba(255,255,255,.02));border:1.5px solid rgba(255,90,0,.28);border-radius:16px;padding:20px;margin-bottom:12px;position:relative;overflow:hidden">
-    <div style="position:absolute;top:-14px;left:14px;font-size:60px;font-family:Georgia,serif;color:rgba(255,90,0,.14);line-height:1;pointer-events:none">&ldquo;</div>
+    <div style="position:absolute;top:2px;left:14px;font-size:60px;font-family:Georgia,serif;color:rgba(255,90,0,.14);line-height:1;pointer-events:none">&ldquo;</div>
     <div style="font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,122,46,.7);margin-bottom:12px;font-weight:700;position:relative">Today's Perspective</div>
     <div style="font-size:17px;color:var(--white);line-height:1.45;font-style:italic;font-weight:600;margin-bottom:10px;position:relative" id="dash-quote-text">—</div>
     <div style="font-size:11px;color:rgba(255,122,46,.8);font-weight:700;position:relative">— Areviax</div>
