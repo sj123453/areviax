@@ -68,13 +68,18 @@ input,input:focus,input:active,
 /* ── ANIMATED GRADIENT BACKGROUND — matches OS/index.html, using
    Physique System's green identity instead of OS's blue/cyan ── */
 .main-gradient-bg{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0}
-.main-gradient-blob{position:absolute;border-radius:50%;filter:blur(90px);opacity:.15}
-.main-gradient-blob.mgb1{width:380px;height:380px;background:radial-gradient(circle,#FF5A00,transparent 70%);animation:mgDrift1 22s ease-in-out infinite}
-.main-gradient-blob.mgb2{width:300px;height:300px;background:radial-gradient(circle,#2BBFE0,transparent 70%);animation:mgDrift2 26s ease-in-out infinite}
-.main-gradient-blob.mgb3{width:240px;height:240px;background:radial-gradient(circle,#188CB0,transparent 70%);animation:mgDrift3 19s ease-in-out infinite}
-.main-gradient-bg .side-glow{position:absolute;top:0;bottom:0;width:460px;filter:blur(70px)}
-.main-gradient-bg .side-glow.left{left:-120px;background:radial-gradient(ellipse 55% 100% at 30% 50%,rgba(255,90,0,.4),transparent 70%)}
-.main-gradient-bg .side-glow.right{right:-120px;background:radial-gradient(ellipse 55% 100% at 70% 50%,rgba(255,90,0,.4),transparent 70%)}
+/* Blobs were opaque and small enough relative to their blur radius that
+   they read as distinct drifting "islands" rather than an ambient wash,
+   and the side glows at .4 opacity made orange the dominant colour on
+   every page rather than an accent. Bigger blur + lower opacity blends
+   them into the background instead of sitting on top of it. */
+.main-gradient-blob{position:absolute;border-radius:50%;filter:blur(120px);opacity:.08}
+.main-gradient-blob.mgb1{width:380px;height:380px;background:radial-gradient(circle,#FF5A00,transparent 70%);animation:mgDrift1 26s ease-in-out infinite}
+.main-gradient-blob.mgb2{width:300px;height:300px;background:radial-gradient(circle,#2BBFE0,transparent 70%);animation:mgDrift2 30s ease-in-out infinite}
+.main-gradient-blob.mgb3{width:240px;height:240px;background:radial-gradient(circle,#188CB0,transparent 70%);animation:mgDrift3 23s ease-in-out infinite}
+.main-gradient-bg .side-glow{position:absolute;top:0;bottom:0;width:460px;filter:blur(90px)}
+.main-gradient-bg .side-glow.left{left:-120px;background:radial-gradient(ellipse 55% 100% at 30% 50%,rgba(255,90,0,.16),transparent 70%)}
+.main-gradient-bg .side-glow.right{right:-120px;background:radial-gradient(ellipse 55% 100% at 70% 50%,rgba(255,90,0,.16),transparent 70%)}
 @keyframes mgDrift1{0%,100%{transform:translate(-10%,-10%)}50%{transform:translate(60%,40%)}}
 @keyframes mgDrift2{0%,100%{transform:translate(70%,60%)}50%{transform:translate(20%,10%)}}
 @keyframes mgDrift3{0%,100%{transform:translate(30%,80%)}50%{transform:translate(60%,20%)}}
@@ -1400,19 +1405,30 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     <div style="font-size:11px;color:var(--muted);margin-top:7px" id="dash-date"></div>
   </div>
 
-  <!-- TODAY — the one thing you're actually here to do, now the first thing you see -->
-  <div style="background:#0B0B0B;border:1.5px solid rgba(255,90,0,.22);border-radius:16px;padding:18px;margin-bottom:12px;box-shadow:0 0 40px -14px rgba(255,90,0,.25)">
-    <div style="font-size:9px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:rgba(255,90,0,.5);margin-bottom:6px">Today</div>
-    <div style="font-size:17px;font-weight:800;color:var(--white);margin-bottom:12px;line-height:1.2" id="d-next-full">Upper Body Push — Day 1</div>
-    <button onclick="showPage('workout')" style="width:100%;background:linear-gradient(135deg,#FF5A00,#FF5A00);border:none;border-radius:9px;padding:13px;color:#031018;font-family:'Outfit',sans-serif;font-size:13px;font-weight:900;letter-spacing:.07em;text-transform:uppercase;cursor:pointer;box-shadow:0 6px 24px -8px rgba(255,90,0,.5);transition:all .25s">▶ Start Session</button>
-    <div id="dash-nutrition-pulse" onclick="showPage('nutrition')" style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.06);font-size:11.5px;color:var(--muted);cursor:pointer"></div>
+  <!-- TODAY — a quick link to today's session, not the main event anymore.
+       Shrunk from a full-width glowing CTA to a compact row: useful when
+       you want it, easy to skim past when the quote below is what you
+       actually came here to read. -->
+  <div style="background:#0B0B0B;border:1.5px solid rgba(255,90,0,.14);border-radius:12px;padding:12px 14px;margin-bottom:12px">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+      <div style="min-width:0">
+        <div style="font-size:8px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,90,0,.4);margin-bottom:3px">Today</div>
+        <div style="font-size:13px;font-weight:700;color:var(--white);line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="d-next-full">Upper Body Push — Day 1</div>
+      </div>
+      <button onclick="showPage('workout')" style="flex-shrink:0;background:rgba(255,90,0,.1);border:1.5px solid rgba(255,90,0,.32);border-radius:7px;padding:8px 14px;color:var(--orange);font-family:'Outfit',sans-serif;font-size:11px;font-weight:800;letter-spacing:.03em;text-transform:uppercase;cursor:pointer;white-space:nowrap">▶ Start</button>
+    </div>
+    <div id="dash-nutrition-pulse" onclick="showPage('nutrition')" style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.06);font-size:11px;color:var(--muted);cursor:pointer"></div>
   </div>
 
-  <!-- QUOTE CARD — same pattern Sam liked from OS's dashboard -->
-  <div style="background:rgba(255,255,255,.02);border:1.5px solid rgba(255,255,255,.08);border-radius:16px;padding:16px;margin-bottom:12px">
-    <div style="font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:rgba(238,240,255,.5);margin-bottom:10px">Today's Perspective</div>
-    <div style="font-size:13.5px;color:rgba(238,240,255,.85);line-height:1.5;font-style:italic;margin-bottom:8px" id="dash-quote-text">—</div>
-    <div style="font-size:10.5px;color:rgba(255,90,0,.7);font-weight:700">Areviax</div>
+  <!-- QUOTE CARD — this is the one meant to actually land, so it gets the
+       visual weight the Today card used to have: a real border colour,
+       bigger type, and a quote-mark watermark instead of nearly-invisible
+       white-on-black. -->
+  <div style="background:linear-gradient(135deg,rgba(255,90,0,.09),rgba(255,255,255,.02));border:1.5px solid rgba(255,90,0,.28);border-radius:16px;padding:20px;margin-bottom:12px;position:relative;overflow:hidden">
+    <div style="position:absolute;top:-14px;left:14px;font-size:60px;font-family:Georgia,serif;color:rgba(255,90,0,.14);line-height:1;pointer-events:none">&ldquo;</div>
+    <div style="font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,122,46,.7);margin-bottom:12px;font-weight:700;position:relative">Today's Perspective</div>
+    <div style="font-size:17px;color:var(--white);line-height:1.45;font-style:italic;font-weight:600;margin-bottom:10px;position:relative" id="dash-quote-text">—</div>
+    <div style="font-size:11px;color:rgba(255,122,46,.8);font-weight:700;position:relative">— Areviax</div>
   </div>
 
   <!-- COMPASS + STREAK + CALORIES/PROTEIN — sits directly on the page now.
