@@ -1765,6 +1765,7 @@ textarea{resize:vertical;min-height:72px}
         <div class="tabs">
           <button class="tab active" onclick="switchTab(this,'mind-checkin')">Check-In</button>
           <button class="tab" onclick="switchTab(this,'mind-meditate')">Meditate</button>
+          <button class="tab" onclick="switchTab(this,'mind-sleep')">Sleep Sounds</button>
         </div>
 
         <div id="mind-checkin" class="tab-panel">
@@ -1878,6 +1879,50 @@ textarea{resize:vertical;min-height:72px}
             <div class="mind-timer-controls">
               <button class="glow-btn" id="med-start-btn" onclick="toggleMeditation()">Begin</button>
               <button class="glow-btn" onclick="resetMeditation()" style="opacity:.7">Reset</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- SLEEP SOUNDS — same procedurally-synthesized sounds the
+             meditation soundscape uses, but as their own thing: pick a
+             sound and press play, no breathing orb or timer required.
+             Previously these sounds only ever played if a meditation
+             session was actively running. -->
+        <div id="mind-sleep" class="tab-panel" style="display:none">
+          <div class="mind-hero" style="padding:20px 20px 16px">
+            <h2>Sleep Sounds</h2>
+            <p>Pick a sound and press play — no timer or breathing session needed.</p>
+          </div>
+          <div class="card">
+            <div class="card-header"><span class="card-title">Sound</span></div>
+            <div class="med-sound-grid">
+              <div class="med-sound-btn active" data-sound="rain" onclick="selectSleepSoundOS('rain',this)">
+                <span class="med-sound-icon">🌧️</span>
+                <span class="med-sound-label">Rain</span>
+              </div>
+              <div class="med-sound-btn" data-sound="ocean" onclick="selectSleepSoundOS('ocean',this)">
+                <span class="med-sound-icon">🌊</span>
+                <span class="med-sound-label">Ocean</span>
+              </div>
+              <div class="med-sound-btn" data-sound="drone" onclick="selectSleepSoundOS('drone',this)">
+                <span class="med-sound-icon">✨</span>
+                <span class="med-sound-label">Deep Focus</span>
+              </div>
+              <div class="med-sound-btn" data-sound="spa" onclick="selectSleepSoundOS('spa',this)">
+                <span class="med-sound-icon">🎐</span>
+                <span class="med-sound-label">Spa</span>
+              </div>
+              <div class="med-sound-btn" data-sound="white" onclick="selectSleepSoundOS('white',this)">
+                <span class="med-sound-icon">📻</span>
+                <span class="med-sound-label">White Noise</span>
+              </div>
+              <div class="med-sound-btn" data-sound="brown" onclick="selectSleepSoundOS('brown',this)">
+                <span class="med-sound-icon">🟤</span>
+                <span class="med-sound-label">Brown Noise</span>
+              </div>
+            </div>
+            <div class="mind-timer-controls">
+              <button class="glow-btn" id="sleep-sound-play-btn" onclick="toggleSleepSoundOS()">▶ Play</button>
             </div>
           </div>
         </div>
@@ -5011,9 +5056,34 @@ function startMedSound(type){
 
 function setMedSound(type){
   medCurrentSound = type;
-  document.querySelectorAll('.med-sound-btn').forEach(b => b.classList.remove('active'));
-  document.querySelector(`.med-sound-btn[data-sound="${type}"]`)?.classList.add('active');
+  document.querySelectorAll('#mind-meditate .med-sound-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector(`#mind-meditate .med-sound-btn[data-sound="${type}"]`)?.classList.add('active');
   if(medRunning) startMedSound(type); // only actually play if a session is active
+}
+
+// Standalone sleep-sound player — reuses the same startMedSound()/
+// stopMedSound() engine the meditation soundscape uses, but plays
+// immediately on its own rather than only while a meditation session
+// (breathing orb + timer) is running.
+let sleepSoundOSPlaying = false;
+let sleepSoundOSSelected = 'rain';
+function selectSleepSoundOS(type, el){
+  sleepSoundOSSelected = type;
+  document.querySelectorAll('#mind-sleep .med-sound-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  if(sleepSoundOSPlaying) startMedSound(type);
+}
+function toggleSleepSoundOS(){
+  const btn = document.getElementById('sleep-sound-play-btn');
+  if(sleepSoundOSPlaying){
+    stopMedSound();
+    sleepSoundOSPlaying = false;
+    if(btn) btn.textContent = '▶ Play';
+  }else{
+    startMedSound(sleepSoundOSSelected);
+    sleepSoundOSPlaying = true;
+    if(btn) btn.textContent = '⏸ Stop';
+  }
 }
 
 // CSS-only fullscreen (not the native Fullscreen API — iOS Safari doesn't

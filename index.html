@@ -353,11 +353,18 @@
       .stage{gap:26px;min-height:660px;padding:90px 40px 0}
       .book-3d{transform:perspective(600px) rotateY(-8deg) scale(1.18);transform-origin:bottom center}
       .pillar-item:hover .book-3d{transform:perspective(600px) rotateY(-4deg) scale(1.2)}
+      /* the book scales up here but the pillar sat under it didn't, which
+         re-opened the same width mismatch specifically on desktop —
+         scaling the pillar to match keeps the two reading as one object */
+      .pillar{width:130px}
+      .book-wide + .pillar,.pillar-tall{width:165px}
     }
     @media(min-width:1700px){
       .stage{gap:30px;min-height:720px}
       .book-3d{transform:perspective(600px) rotateY(-8deg) scale(1.32)}
       .pillar-item:hover .book-3d{transform:perspective(600px) rotateY(-4deg) scale(1.34)}
+      .pillar{width:145px}
+      .book-wide + .pillar,.pillar-tall{width:185px}
     }
 
     .book-face{
@@ -428,8 +435,11 @@
        so it meets the book edge instead of butting a hard corner into it,
        and softened/widened the base into an actual floor glow instead of a
        hairline. */
+    /* Width now matches .book-3d (110px) / .book-wide (140px) exactly —
+       it was 20px narrower than the book sitting on it, which is what
+       made the two look mismatched rather than like one object. */
     .pillar{
-      width:90px;
+      width:110px;
       height:var(--ph,100px);
       position:relative;
       margin-top:-2px;
@@ -441,7 +451,7 @@
       border-radius:5px 5px 0 0;
       transition:height .4s cubic-bezier(.22,1,.36,1);
     }
-    .book-wide + .pillar,.pillar-tall{width:120px}
+    .book-wide + .pillar,.pillar-tall{width:140px}
     /* pillar top edge glow */
     .pillar::before{
       content:'';position:absolute;top:0;left:-1px;right:-1px;height:2px;
@@ -2172,23 +2182,30 @@ function drawIntroCompass(progress) {
   iCtx.beginPath(); iCtx.arc(IC,IC,r,0,Math.PI*2);
   iCtx.strokeStyle='rgba(255,140,60,.8)'; iCtx.lineWidth=.8; iCtx.stroke();
 
-  function iPetal(ang,len,wf,col,alpha){
-    const a=ang*Math.PI/180, p2=(ang+90)*Math.PI/180;
-    const tx=IC+Math.cos(a)*len, ty=IC+Math.sin(a)*len, w=len*wf;
-    const lx=IC+Math.cos(p2)*w, ly=IC+Math.sin(p2)*w;
-    const ex=IC-Math.cos(p2)*w, ey=IC-Math.sin(p2)*w;
-    iCtx.beginPath(); iCtx.moveTo(tx,ty); iCtx.lineTo(lx,ly);
-    iCtx.lineTo(IC-Math.cos(a)*len*.12,IC-Math.sin(a)*len*.12);
-    iCtx.lineTo(ex,ey); iCtx.closePath();
-    iCtx.fillStyle=col; iCtx.globalAlpha=alpha*Math.min(progress,1); iCtx.fill();
+  // Same 8-point rose geometry as the hero compass, scaled to this canvas.
+  function iRoseSpike(ang,len,bulgeR,hw,lightCol,darkCol){
+    const a=ang*Math.PI/180;
+    const dx=Math.cos(a), dy=Math.sin(a), px=-dy, py=dx;
+    const backR=r*.06;
+    const tip={x:IC+dx*len,y:IC+dy*len};
+    const back={x:IC+dx*backR,y:IC+dy*backR};
+    const midX=IC+dx*bulgeR, midY=IC+dy*bulgeR;
+    const midLeft={x:midX+px*hw,y:midY+py*hw};
+    const midRight={x:midX-px*hw,y:midY-py*hw};
+    const a2=alphaMul*Math.min(progress,1);
+    iCtx.globalAlpha=a2*.92;
+    iCtx.beginPath();iCtx.moveTo(back.x,back.y);iCtx.lineTo(midLeft.x,midLeft.y);iCtx.lineTo(tip.x,tip.y);iCtx.closePath();
+    iCtx.fillStyle=darkCol;iCtx.fill();
+    iCtx.beginPath();iCtx.moveTo(back.x,back.y);iCtx.lineTo(tip.x,tip.y);iCtx.lineTo(midRight.x,midRight.y);iCtx.closePath();
+    iCtx.fillStyle=lightCol;iCtx.fill();
   }
   const rot = introAngle;
-  iPetal(90+rot, r*.88,.18,'#B8390A',.75); iPetal(270+rot,r*.88,.18,'#B8390A',.75);
-  iPetal(0+rot,  r*.88,.18,'#B8390A',.75); iPetal(180+rot,r*.88,.18,'#B8390A',.75);
-  iPetal(90+rot, r*.76,.14,'#FF5A00',.65); iPetal(270+rot,r*.76,.14,'#FF5A00',.65);
-  iPetal(0+rot,  r*.76,.14,'#FF5A00',.65); iPetal(180+rot,r*.76,.14,'#FF5A00',.65);
-  iPetal(45+rot, r*.55,.09,'#FFB380',.45); iPetal(135+rot,r*.55,.09,'#FFB380',.45);
-  iPetal(225+rot,r*.55,.09,'#FFB380',.45); iPetal(315+rot,r*.55,.09,'#FFB380',.45);
+  const alphaMul = 1;
+  const iRoseDirs=[0,45,90,135,180,225,270,315];
+  iRoseDirs.forEach((a,i)=>{
+    const isLong=i%2===0;
+    iRoseSpike(a+rot, isLong?r*.88:r*.5, isLong?r*.34:r*.28, isLong?r*.07:r*.055, '#FF8C47','#B8390A');
+  });
 
   // centre
   iCtx.globalAlpha=Math.min(progress,1);
@@ -2397,21 +2414,30 @@ function drawHeroCompass(){
     ctx.fillStyle=`rgba(255,235,220,${tw})`; ctx.fill();
   });
 
-  // ── the compass star — bold, opaque, high-contrast ──
-  function petal(ang,len,wf,col,alpha){
-    const a=ang*Math.PI/180, p2=(ang+90)*Math.PI/180;
-    const tx=CX+Math.cos(a)*len, ty=CY+Math.sin(a)*len, w=len*wf;
-    const lx=CX+Math.cos(p2)*w, ly=CY+Math.sin(p2)*w;
-    const ex=CX-Math.cos(p2)*w, ey=CY-Math.sin(p2)*w;
-    ctx.beginPath(); ctx.moveTo(tx,ty); ctx.lineTo(lx,ly);
-    ctx.lineTo(CX-Math.cos(a)*len*.12,CY-Math.sin(a)*len*.12);
-    ctx.lineTo(ex,ey); ctx.closePath();
-    ctx.fillStyle=col; ctx.globalAlpha=alpha; ctx.fill();
+  // ── the compass star — proper 8-point rose (long N/E/S/W spikes, short
+  //    diagonals, two-tone shaded flanks) instead of a 4-point sparkle,
+  //    matching the needle design finalized for the Mass App dashboard ──
+  function roseSpike(ang,len,bulgeR,hw,lightCol,darkCol){
+    const a=ang*Math.PI/180;
+    const dx=Math.cos(a), dy=Math.sin(a), px=-dy, py=dx;
+    const backR=R*.05;
+    const tip={x:CX+dx*len,y:CY+dy*len};
+    const back={x:CX+dx*backR,y:CY+dy*backR};
+    const midX=CX+dx*bulgeR, midY=CY+dy*bulgeR;
+    const midLeft={x:midX+px*hw,y:midY+py*hw};
+    const midRight={x:midX-px*hw,y:midY-py*hw};
+    ctx.globalAlpha=.92;
+    ctx.beginPath();ctx.moveTo(back.x,back.y);ctx.lineTo(midLeft.x,midLeft.y);ctx.lineTo(tip.x,tip.y);ctx.closePath();
+    ctx.fillStyle=darkCol;ctx.fill();
+    ctx.beginPath();ctx.moveTo(back.x,back.y);ctx.lineTo(tip.x,tip.y);ctx.lineTo(midRight.x,midRight.y);ctx.closePath();
+    ctx.fillStyle=lightCol;ctx.fill();
   }
   const ro=angle;
-  for(const a of [90,270,0,180]) petal(a+ro,R*.88,.18,'#B8390A',.92);
-  for(const a of [90,270,0,180]) petal(a+ro,R*.76,.14,'#FF5A00',.88);
-  for(const a of [45,135,225,315]) petal(a+ro*1.5,R*.55,.09,'#FF9A52',.7);
+  const roseDirs=[0,45,90,135,180,225,270,315];
+  roseDirs.forEach((a,i)=>{
+    const isLong=i%2===0;
+    roseSpike(a+ro, isLong?R*.88:R*.5, isLong?R*.34:R*.28, isLong?R*.07:R*.055, '#FF8C47','#B8390A');
+  });
   ctx.globalAlpha=1;
 
   // ── orbiting markers — bright, sharp, glowing ──
