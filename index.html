@@ -217,6 +217,11 @@
 
     .book{position:relative;z-index:2;width:128px;aspect-ratio:3/4.35;transform-style:preserve-3d;cursor:pointer;
       transform:translateZ(15px) rotateY(-22deg) rotateX(4deg);transition:transform .7s cubic-bezier(.22,1,.36,1)}
+    /* gap so the pillar capital below has room to render without covering
+       the book's own cover text (see .pillar::before) — scoped to the
+       shelf's .book-item only, not the CTA fanned book stack which reuses
+       .book without a pillar underneath */
+    .book-item .book{margin-bottom:20px}
     .book-item:hover .book{transform:translateZ(15px) rotateY(-12deg) rotateX(2deg) translateY(-14px)}
     .book-item:hover .item-symbol{opacity:1;transform:translateY(-2px)}
 
@@ -358,6 +363,7 @@
          scaling the pillar to match keeps the two reading as one object */
       .pillar{width:130px}
       .book-wide + .pillar,.pillar-tall{width:165px}
+      .pillar::before{top:-24px;height:31px}
     }
     @media(min-width:1700px){
       .stage{gap:30px;min-height:720px}
@@ -365,6 +371,7 @@
       .pillar-item:hover .book-3d{transform:perspective(600px) rotateY(-4deg) scale(1.34)}
       .pillar{width:145px}
       .book-wide + .pillar,.pillar-tall{width:185px}
+      .pillar::before{top:-26px;height:34px}
     }
 
     .book-face{
@@ -442,22 +449,34 @@
       width:110px;
       height:var(--ph,100px);
       position:relative;
+      z-index:3;
       margin-top:-2px;
       background:
+        repeating-linear-gradient(90deg,rgba(0,0,0,.32) 0px,rgba(0,0,0,.32) 2px,transparent 2px,transparent 13px),
         linear-gradient(90deg,transparent 0%,rgba(255,255,255,.06) 16%,transparent 32%,transparent 68%,rgba(255,255,255,.04) 84%,transparent 100%),
         linear-gradient(to bottom,var(--pc,rgba(255,90,0,.16)) 0%,rgba(0,0,0,.5) 55%,rgba(0,0,0,.86) 100%);
       border-left:1px solid var(--pb,rgba(255,90,0,.2));
       border-right:1px solid var(--pb,rgba(255,90,0,.2));
       border-radius:5px 5px 0 0;
-      transition:height .4s cubic-bezier(.22,1,.36,1);
+      transition:height .4s cubic-bezier(.22,1,.36,1),width .4s cubic-bezier(.22,1,.36,1);
     }
     .book-wide + .pillar,.pillar-tall{width:140px}
-    /* pillar top edge glow */
+    /* pillar capital — a small classical Ionic-style cap (abacus slab +
+       flared echinus + volute bosses) instead of a flat glowing edge, so the
+       shaft actually reads as a column rather than a plain rectangle. Drawn
+       as a single SVG silhouette and tinted per-product via mask + the
+       existing --pb accent color. */
     .pillar::before{
-      content:'';position:absolute;top:0;left:-1px;right:-1px;height:2px;
-      background:var(--pb,rgba(255,90,0,.4));
-      border-radius:2px 2px 0 0;
-      box-shadow:0 0 14px 1px var(--pb,rgba(255,90,0,.45));
+      content:'';position:absolute;top:-20px;left:50%;
+      width:134%;height:26px;
+      transform:translateX(-50%);
+      background-color:var(--pb,rgba(255,90,0,.4));
+      -webkit-mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%20200%2080%27%3E%3Cpath%20d%3D%27M0%2C0%20H200%20V14%20C200%2C30%20178%2C26%20166%2C50%20L166%2C66%20H34%20L34%2C50%20C22%2C26%200%2C30%200%2C14%20Z%27%2F%3E%3Ccircle%20cx%3D%2715%27%20cy%3D%2722%27%20r%3D%279%27%2F%3E%3Ccircle%20cx%3D%27185%27%20cy%3D%2722%27%20r%3D%279%27%2F%3E%3C%2Fsvg%3E");
+      mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%20200%2080%27%3E%3Cpath%20d%3D%27M0%2C0%20H200%20V14%20C200%2C30%20178%2C26%20166%2C50%20L166%2C66%20H34%20L34%2C50%20C22%2C26%200%2C30%200%2C14%20Z%27%2F%3E%3Ccircle%20cx%3D%2715%27%20cy%3D%2722%27%20r%3D%279%27%2F%3E%3Ccircle%20cx%3D%27185%27%20cy%3D%2722%27%20r%3D%279%27%2F%3E%3C%2Fsvg%3E");
+      -webkit-mask-size:100% 100%;mask-size:100% 100%;
+      -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;
+      -webkit-mask-position:center;mask-position:center;
+      filter:drop-shadow(0 0 9px var(--pb,rgba(255,90,0,.5)));
     }
     /* pillar base platform — wider, blurred, so it reads as a floor pool of
        light instead of a ruled-off line */
