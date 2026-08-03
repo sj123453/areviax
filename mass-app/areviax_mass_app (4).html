@@ -2231,6 +2231,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       <button class="equip-chip" data-sound="brown" onclick="selectSleepSound('brown',this)">🟤 Brown noise</button>
       <button class="equip-chip" data-sound="white" onclick="selectSleepSound('white',this)">⚪ White noise</button>
       <button class="equip-chip" data-sound="ocean" onclick="selectSleepSound('ocean',this)">🌊 Ocean</button>
+      <button class="equip-chip" data-sound="spa" onclick="selectSleepSound('spa',this)">🌸 Spa music</button>
     </div>
     <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px" id="timer-chips">
       <button class="equip-chip active" data-mins="0" onclick="selectSleepTimer(0,this)">No timer</button>
@@ -9060,7 +9061,8 @@ const SPA_CHORDS = [
 ];
 let ambSpaTimeout = null;
 let ambSpaChordIdx = 0;
-function startSpaMusic(ctx, masterGain, nodes){
+function startSpaMusic(ctx, masterGain, nodes, isActive){
+  isActive = isActive || (()=>ambPlaying);
   const delay = ctx.createDelay(1.0);
   delay.delayTime.value = 0.45;
   const feedback = ctx.createGain(); feedback.gain.value = 0.32;
@@ -9075,7 +9077,7 @@ function startSpaMusic(ctx, masterGain, nodes){
 
   ambSpaChordIdx = 0;
   function playChord(){
-    if(!ambPlaying) return;
+    if(!isActive()) return;
     const freqs = SPA_CHORDS[ambSpaChordIdx % SPA_CHORDS.length];
     const chordGain = ctx.createGain();
     chordGain.gain.setValueAtTime(0, ctx.currentTime);
@@ -9869,7 +9871,7 @@ function startSleepAudioNodes(){
       bgAudio.play().catch(()=>{}); // best-effort; some browsers need a user gesture, which toggleSleepSound() already provides
     }
     if('mediaSession' in navigator){
-      const soundLabels={rain:'Rain',white:'White Noise',brown:'Brown Noise',ocean:'Ocean',
+      const soundLabels={rain:'Rain',white:'White Noise',brown:'Brown Noise',ocean:'Ocean',spa:'Spa Music',
         'focus-flow':'Focus Flow','focus-deep':'Deep Focus'};
       navigator.mediaSession.metadata=new MediaMetadata({
         title:(soundLabels[selectedSound]||'Sleep Sound')+' — Areviax',
@@ -9925,6 +9927,8 @@ function startSleepAudioNodes(){
     const lfo2Gain=ctx.createGain();lfo2Gain.gain.value=gain.gain.value*0.25;
     lfo2.connect(lfo2Gain);lfo2Gain.connect(gain.gain);lfo2.start();
     sleepActiveNodes.push(lfo1,lfo1Gain,lfo2,lfo2Gain);
+  }else if(selectedSound==='spa'){
+    startSpaMusic(ctx, gain, sleepActiveNodes, ()=>soundPlaying);
   }else if(selectedSound==='focus-flow'){
     // Gym focus: brighter filtered noise with a steady, subtle rhythmic pulse
     // (like a calm heartbeat pace) — energising rather than sedating.
@@ -9978,7 +9982,7 @@ function toggleSleepSound(){
     clearInterval(sleepTimerInterval);sleepTimerInterval=null;sleepTimerEndsAt=null;
     if(remEl)remEl.textContent='—';
   }else{
-    startSleepAudioNodes();soundPlaying=true;
+    soundPlaying=true;startSleepAudioNodes();
     if(btn)btn.textContent='⏸ Pause';
     if(selectedTimerMins>0){
       sleepTimerEndsAt=Date.now()+selectedTimerMins*60000;
