@@ -1635,11 +1635,16 @@ window.addEventListener('error', function(e){
    client sent (product turns, headline/blurb slides in, ambient bg mark
    behind everything). Namespaced with sc- prefix since .book-face etc
    are already used elsewhere on the page for a different, flat card. ═══ */
-.sc-compass-wrap{position:fixed;top:-17vw;right:-17vw;width:60vw;height:60vw;max-width:740px;max-height:740px;min-width:320px;min-height:320px;z-index:0;pointer-events:none;opacity:.16;filter:drop-shadow(0 0 50px rgba(255,90,0,.14))}
+.sc-compass-wrap{
+  position:fixed;top:-17vw;right:-17vw;width:60vw;height:60vw;max-width:740px;max-height:740px;min-width:320px;min-height:320px;z-index:0;pointer-events:none;opacity:.16;
+  filter:drop-shadow(0 0 50px rgba(255,90,0,.14));
+  -webkit-mask-image:radial-gradient(circle at 50% 50%,#000 42%,transparent 74%);
+  mask-image:radial-gradient(circle at 50% 50%,#000 42%,transparent 74%);
+}
 #sc-compass-rose{width:100%;height:100%;transform-origin:50% 50%}
 
 .sc-wrap{position:relative}
-.sc-section{position:relative;height:210vh;padding:0}
+.sc-section{position:relative;height:320vh;padding:0}
 .sc-stage{
   position:relative;height:100vh;display:flex;align-items:center;justify-content:center;gap:7vw;
   overflow:hidden;perspective:1400px;flex-wrap:wrap;padding:0 6vw;
@@ -1659,6 +1664,12 @@ window.addEventListener('error', function(e){
 .sc-mount.sc-visible::after{opacity:.7}
 .sc-cube{width:100%;height:100%;position:relative;transform-style:preserve-3d;will-change:transform;cursor:pointer;opacity:0;transition:opacity .5s ease}
 .sc-mount.sc-visible .sc-cube{opacity:1}
+.sc-satellites{position:absolute;inset:0;pointer-events:none;z-index:1}
+.sc-sat{
+  position:absolute;left:50%;top:50%;width:44px;height:64px;margin:-32px 0 0 -22px;
+  border-radius:3px;box-shadow:0 10px 20px rgba(0,0,0,.55);
+  opacity:0;transform:translate(0,0) scale(.25) rotate(0deg);
+}
 .sc-face{position:absolute;inset:0;backface-visibility:hidden;border-radius:4px;overflow:hidden}
 .sc-face.sc-front{transform-origin:left center;display:flex;flex-direction:column;justify-content:space-between;padding:22px 18px}
 .sc-face.sc-back{transform:rotateY(180deg) translateZ(calc(var(--d) / 2));background:#0d0b09;padding:22px 18px;display:flex;flex-direction:column;justify-content:space-between}
@@ -1757,6 +1768,13 @@ window.addEventListener('error', function(e){
     <div class="sc-stage">
       <div class="sc-rail"><div class="sc-fill" id="sc-rail1"></div></div>
       <div class="sc-mount" style="--sc-glow:rgba(68,207,255,.4)">
+        <div class="sc-satellites" id="sc-sat1">
+          <div class="sc-sat" style="background:linear-gradient(155deg,#6FE8A0,#1A3020)" data-tx="-150" data-ty="-64" data-rot="-16"></div>
+          <div class="sc-sat" style="background:linear-gradient(155deg,#44CFFF,#0d2e35)" data-tx="150" data-ty="-64" data-rot="16"></div>
+          <div class="sc-sat" style="background:linear-gradient(155deg,#FFC94A,#3d2e0d)" data-tx="-162" data-ty="70" data-rot="-11"></div>
+          <div class="sc-sat" style="background:linear-gradient(155deg,#FF6FA5,#331624)" data-tx="162" data-ty="70" data-rot="11"></div>
+          <div class="sc-sat" style="background:linear-gradient(155deg,#B98CFF,#20143d)" data-tx="0" data-ty="-128" data-rot="0"></div>
+        </div>
         <div class="sc-cube" id="sc-cube1" onclick="openModal('bundle')">
           <div class="sc-face sc-front" style="background:linear-gradient(155deg,#0A2E3D,#051A22)">
             <div class="sc-cover-tag" style="color:#8FE0FF">Complete Collection</div>
@@ -1859,11 +1877,13 @@ window.addEventListener('error', function(e){
       const copy = document.getElementById('sc-copy'+i);
       const rail = document.getElementById('sc-rail'+i);
       const front = cube.querySelector('.sc-front');
+      const sats = section.querySelectorAll('.sc-sat');
 
       ScrollTrigger.matchMedia({
         "(min-width: 821px)": function(){
           gsap.set(cube, {scale:.8});
           gsap.set(front, {z:44, transformOrigin:'left center'});
+          if(sats.length) gsap.set(sats, {x:0, y:0, scale:.25, opacity:0, rotate:0});
           // The spin allocates LESS scroll-time to the angles where the
           // book shows its spine/page edge (~90°/~270°) and MORE to the
           // angles where a cover is actually readable — so a book that
@@ -1880,24 +1900,38 @@ window.addEventListener('error', function(e){
               onUpdate: self => { if(rail) rail.style.height = (self.progress*100)+'%'; }
             }
           })
-          .fromTo(cube, {rotateY:-20, rotateX:0, scale:.8}, {rotateY:70, rotateX:6, scale:.92, duration:0.20, ease:'power1.out'}, 0)
-          .to(cube, {rotateY:140, rotateX:10, duration:0.08, ease:'power1.in'}, 0.20)
-          .to(cube, {rotateY:220, rotateX:8, duration:0.18, ease:'sine.inOut'}, 0.28)
-          .to(cube, {rotateY:300, rotateX:4, duration:0.08, ease:'power1.in'}, 0.46)
-          .to(cube, {rotateY:360, rotateX:0, scale:1, duration:0.06, ease:'power2.out'}, 0.54)
-          .fromTo(front, {rotationY:0, z:44, rotateX:0}, {rotationY:-38, z:34, rotateX:3, duration:0.22, ease:'power2.out'}, 0.60)
-          .fromTo(copyKids, {opacity:0, x:-40}, {opacity:1, x:0, duration:0.22, ease:'power3.out', stagger:0.03}, 0.64)
-          .to(copyKids, {opacity:0.25, x:40, duration:0.10, ease:'power1.in', stagger:0.02}, 1.0);
+          // Full cycle: spin 360° (whipping through the edge-on angles),
+          // settle flat, open the cover as the copy writes itself in,
+          // hold there long enough to actually read it, then close the
+          // cover again and fade the copy out — ending back at the same
+          // flat, closed look it started at.
+          .fromTo(cube, {rotateY:-20, rotateX:0, scale:.8}, {rotateY:70, rotateX:6, scale:.92, duration:0.16, ease:'power1.out'}, 0)
+          .to(cube, {rotateY:140, rotateX:10, duration:0.06, ease:'power1.in'}, 0.16)
+          .to(cube, {rotateY:220, rotateX:8, duration:0.13, ease:'sine.inOut'}, 0.22)
+          .to(cube, {rotateY:300, rotateX:4, duration:0.06, ease:'power1.in'}, 0.35)
+          .to(cube, {rotateY:360, rotateX:0, scale:1, duration:0.06, ease:'power2.out'}, 0.41)
+          .fromTo(front, {rotationY:0, z:44, rotateX:0}, {rotationY:-38, z:34, rotateX:3, duration:0.16, ease:'power2.out'}, 0.47)
+          // Bundle only: the other four products fan out from behind the
+          // cube as it opens (standing in for "all five products, one
+          // price"), then draw back in as it closes — the other two
+          // sections have no .sc-sat elements, so these are silent no-ops.
+          .to(sats, {x:(i,el)=>+el.dataset.tx, y:(i,el)=>+el.dataset.ty, rotate:(i,el)=>+el.dataset.rot, scale:1, opacity:1, duration:0.16, stagger:0.025, ease:'back.out(1.6)'}, 0.50)
+          .fromTo(copyKids, {opacity:0, x:-40}, {opacity:1, x:0, duration:0.18, ease:'power3.out', stagger:0.025}, 0.52)
+          .to(copyKids, {opacity:0, x:-30, duration:0.08, ease:'power1.in', stagger:0.015}, 0.84)
+          .to(sats, {x:0, y:0, rotate:0, scale:.25, opacity:0, duration:0.10, stagger:0.015, ease:'power1.in'}, 0.84)
+          .to(front, {rotationY:0, z:44, rotateX:0, duration:0.10, ease:'power2.inOut'}, 0.88);
         },
         "(max-width: 820px)": function(){
           gsap.set(cube, {rotateY:-85, scale:.85});
           gsap.set(front, {z:32, transformOrigin:'left center'});
           gsap.set(copy, {opacity:0, x:-30});
           gsap.timeline({
-            scrollTrigger:{ trigger:section, start:'top 80%', end:'top 20%', scrub:0.35, invalidateOnRefresh: true }
-          }).to(cube, {rotateY:20, scale:1, duration:0.6, ease:'power1.inOut'}, 0)
-            .fromTo(front, {rotationY:0, z:32}, {rotationY:-38, z:24, duration:0.24, ease:'power2.out'}, 0.6)
-            .to(copy, {opacity:1, x:0, duration:0.3, ease:'power3.out'}, 0.65);
+            scrollTrigger:{ trigger:section, start:'top 85%', end:'top -60%', scrub:0.35, invalidateOnRefresh: true }
+          }).to(cube, {rotateY:0, scale:1, duration:0.35, ease:'power1.inOut'}, 0)
+            .fromTo(front, {rotationY:0, z:32}, {rotationY:-38, z:24, duration:0.16, ease:'power2.out'}, 0.35)
+            .to(copy, {opacity:1, x:0, duration:0.18, ease:'power3.out'}, 0.40)
+            .to(copy, {opacity:0, x:-20, duration:0.12, ease:'power1.in'}, 0.80)
+            .to(front, {rotationY:0, z:32, duration:0.14, ease:'power2.inOut'}, 0.84);
         }
       });
     });
