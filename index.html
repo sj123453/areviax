@@ -449,11 +449,18 @@
     /* Width now matches .book-3d (110px) / .book-wide (140px) exactly —
        it was 20px narrower than the book sitting on it, which is what
        made the two look mismatched rather than like one object. */
+    /* .pillar-wrap sizes itself exactly to .pillar (no padding/border of
+       its own), so .pillar-cap/.pillar-base — real sibling elements now,
+       not .pillar::before/::after — position and size themselves against
+       it with the exact same numbers the old pseudo-elements used. That's
+       what lets .pillar itself carry a mask-image (the tapered shaft
+       below) without clipping the overflowing cap/base: masking a parent
+       clips its pseudo-element children, but not its element siblings. */
+    .pillar-wrap{position:relative;z-index:3}
     .pillar{
       width:56px;
       height:var(--ph,100px);
       position:relative;
-      z-index:3;
       margin-top:-2px;
       background:
         repeating-linear-gradient(90deg,rgba(0,0,0,.32) 0px,rgba(0,0,0,.32) 2px,transparent 2px,transparent 13px),
@@ -461,17 +468,22 @@
         linear-gradient(to bottom,var(--pc,rgba(255,90,0,.16)) 0%,rgba(0,0,0,.5) 55%,rgba(0,0,0,.86) 100%);
       border-left:1px solid var(--pb,rgba(255,90,0,.2));
       border-right:1px solid var(--pb,rgba(255,90,0,.2));
-      border-radius:5px 5px 0 0;
       transition:height .4s cubic-bezier(.22,1,.36,1),width .4s cubic-bezier(.22,1,.36,1);
+      /* tapered "hourglass" shaft — wider where it meets the capital and
+         base, pinched in the middle — instead of a flat rectangle. */
+      -webkit-mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%20100%20300%27%3E%3Cpath%20d%3D%27M0%2C0%20L100%2C0%20C100%2C55%2076%2C95%2062%2C150%20C48%2C205%2080%2C245%2090%2C300%20L10%2C300%20C20%2C245%2052%2C205%2038%2C150%20C24%2C95%200%2C55%200%2C0%20Z%27%2F%3E%3C%2Fsvg%3E");
+      mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%20100%20300%27%3E%3Cpath%20d%3D%27M0%2C0%20L100%2C0%20C100%2C55%2076%2C95%2062%2C150%20C48%2C205%2080%2C245%2090%2C300%20L10%2C300%20C20%2C245%2052%2C205%2038%2C150%20C24%2C95%200%2C55%200%2C0%20Z%27%2F%3E%3C%2Fsvg%3E");
+      -webkit-mask-size:100% 100%;mask-size:100% 100%;
+      -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;
     }
-    .book-wide + .pillar,.pillar-tall{width:71px}
+    .book-wide + .pillar-wrap .pillar,.pillar-wrap.pillar-tall .pillar{width:71px}
     /* pillar capital — a classical Ionic cap: abacus slab, bead-and-reel
        astragal, a draped echinus cushion, and two scroll volutes (drawn as
        an Archimedean spiral stroke, mirrored left/right) — instead of a
        flat glowing edge, so the shaft reads as an actual column. Drawn as
        a single SVG silhouette and tinted per-product via mask + the
        existing --pb accent color. */
-    .pillar::before{
+    .pillar-cap{
       content:'';position:absolute;top:-36px;left:50%;
       width:230%;height:44px;
       transform:translateX(-50%);
@@ -486,7 +498,7 @@
     /* pillar base — a matching plinth + torus molding so the column has a
        foot to stand on instead of just fading into a floor glow. Same mask
        technique as the capital, mirrored (flares down instead of up). */
-    .pillar::after{
+    .pillar-base{
       content:'';position:absolute;bottom:-16px;left:50%;
       width:230%;height:26px;
       transform:translateX(-50%);
@@ -498,7 +510,7 @@
       -webkit-mask-position:center;mask-position:center;
       filter:drop-shadow(0 0 8px var(--pb,rgba(255,90,0,.45)));
     }
-    .pillar-tall{height:var(--ph)!important}
+    .pillar-wrap.pillar-tall .pillar{height:var(--ph)!important}
 
     /* base light under pillar */
     .pillar-item::after{
@@ -1552,7 +1564,11 @@ window.addEventListener('error', function(e){
           </div>
           <div class="item-shadow"></div>
         </div>
-        <div class="pillar" style="--pc:rgba(74,232,136,.12);--pb:rgba(74,232,136,.4);--ph:180px"></div>
+        <div class="pillar-wrap">
+          <div class="pillar-cap" style="--pb:rgba(74,232,136,.4)"></div>
+          <div class="pillar" style="--pc:rgba(74,232,136,.12);--pb:rgba(74,232,136,.4);--ph:180px"></div>
+          <div class="pillar-base" style="--pb:rgba(74,232,136,.4)"></div>
+        </div>
         <div class="item-label">
           <div class="item-name">Physique System</div>
           <div class="item-price">£16/mo</div>
@@ -1577,7 +1593,11 @@ window.addEventListener('error', function(e){
           </div>
           <div class="item-shadow"></div>
         </div>
-          <div class="pillar" style="--pc:rgba(68,207,255,.12);--pb:rgba(68,207,255,.4);--ph:260px"></div>
+          <div class="pillar-wrap">
+            <div class="pillar-cap" style="--pb:rgba(68,207,255,.4)"></div>
+            <div class="pillar" style="--pc:rgba(68,207,255,.12);--pb:rgba(68,207,255,.4);--ph:260px"></div>
+            <div class="pillar-base" style="--pb:rgba(68,207,255,.4)"></div>
+          </div>
         <div class="item-label">
           <div class="item-name">The Mastermind Bundle</div>
           <div class="item-price">£97</div>
@@ -1618,7 +1638,11 @@ window.addEventListener('error', function(e){
           </div>
           <div class="item-shadow"></div>
         </div>
-        <div class="pillar" style="--pc:rgba(255,178,128,.12);--pb:rgba(255,178,128,.4);--ph:180px"></div>
+        <div class="pillar-wrap">
+          <div class="pillar-cap" style="--pb:rgba(255,178,128,.4)"></div>
+          <div class="pillar" style="--pc:rgba(255,178,128,.12);--pb:rgba(255,178,128,.4);--ph:180px"></div>
+          <div class="pillar-base" style="--pb:rgba(255,178,128,.4)"></div>
+        </div>
         <div class="item-label">
           <div class="item-name">Areviax OS</div>
           <div class="item-price">£16/mo</div>
