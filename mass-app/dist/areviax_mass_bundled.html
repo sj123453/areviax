@@ -1522,17 +1522,6 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     <div id="vol-daily-labels" style="display:flex;gap:6px;font-size:8px;color:var(--muted)"></div>
   </div>
 
-  <div id="vol-trend-card" style="display:none;background:#0B0B0B;border:1px solid rgba(255,90,0,.08);border-radius:16px;padding:16px;margin-bottom:16px">
-    <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px">
-      <div style="display:flex;align-items:center;gap:6px">
-        <span style="font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,90,0,.75)">Volume &middot; last 8 weeks</span>
-      </div>
-      <div style="font-size:11px;font-weight:800" id="vol-trend-pct"></div>
-    </div>
-    <div id="vol-trend-chart" style="display:flex;align-items:flex-end;gap:6px;height:56px;margin-bottom:7px"></div>
-    <div id="vol-trend-labels" style="display:flex;gap:6px;font-size:8px;color:var(--muted)"></div>
-  </div>
-
   <div style="display:flex;justify-content:center;margin-bottom:16px;font-size:10.5px;color:var(--muted)">
     <span><strong style="color:rgba(238,240,255,.85)" id="d-sessions-brief">0/0</strong> sessions this week</span>
   </div>
@@ -2085,6 +2074,21 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
   <div class="card" style="margin-bottom:20px">
     <div class="ch"><span class="ct">This week's tonnage by muscle</span></div>
     <div id="tonnage-breakdown"></div>
+  </div>
+
+  <!-- VOLUME TREND — moved here from Home, which already has the
+       per-day "this week" chart; the 8-week trend is a longer-horizon
+       view that fits better alongside tonnage on the page dedicated to
+       tracking progress over time. -->
+  <div id="vol-trend-card" style="display:none;background:#0B0B0B;border:1px solid rgba(255,90,0,.08);border-radius:16px;padding:16px;margin-bottom:20px">
+    <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px">
+      <div style="display:flex;align-items:center;gap:6px">
+        <span style="font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,90,0,.75)">Volume &middot; last 8 weeks</span>
+      </div>
+      <div style="font-size:11px;font-weight:800" id="vol-trend-pct"></div>
+    </div>
+    <div id="vol-trend-chart" style="display:flex;align-items:flex-end;gap:6px;height:56px;margin-bottom:7px"></div>
+    <div id="vol-trend-labels" style="display:flex;gap:6px;font-size:8px;color:var(--muted)"></div>
   </div>
 
   <!-- WEIGHT — one independent section -->
@@ -10836,6 +10840,7 @@ function renderProgress(){
   renderPhotoGallery();
   renderMeasurements();
   renderTonnageBreakdown();
+  try{renderVolumeTrend();}catch(e){console.error('renderVolumeTrend:',e.message);}
   hist.innerHTML=weightLog.slice(-5).reverse().map((e,i)=>{
     const realIdx=weightLog.length-1-i;
     return `<div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;padding:4px 0;border-bottom:1.5px solid var(--border2)"><span style="color:var(--muted)">${e.date}</span><span style="display:flex;align-items:center;gap:8px"><span style="font-family:'JetBrains Mono',monospace;font-weight:600">${e.w} lbs</span>${i===0&&weightLog.length>1?`<span style="color:${e.w>weightLog[weightLog.length-2].w?'var(--green)':'var(--red)'};font-size:10px">${e.w>weightLog[weightLog.length-2].w?'↑':'↓'}${Math.abs(e.w-(weightLog[weightLog.length-2]?.w||e.w)).toFixed(1)}</span>`:''}<button onclick="deleteWeightEntry(${realIdx})" title="Remove this entry" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;line-height:1;padding:2px 4px">×</button></span></div>`;
