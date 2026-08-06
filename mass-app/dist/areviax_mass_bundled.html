@@ -3464,6 +3464,7 @@ let customSessionExs=[];
 let plannedSessionExs=[],plannedSessionType='upper-push',plannedSessionName='',builderMode='auto';
 let sessionHistory=[]; // past sessions — each {date,name,type,exs} — lets a session be reloaded into the builder
 let lastSessionDate='';
+let autoCountedDate=''; // date sessThisWeek/compassPts/totalSess were last auto-counted from a logged set — separate from lastSessionDate so the "already trained today, log anyway?" prompt still only fires on a genuine second explicit completion, not on the first logSet() of a normal session
 let lastEmergencyWorkoutDate='';
 let lastMissedCheckinDate='';
 let lastBadDayCheckinDate='';
@@ -7964,6 +7965,28 @@ function pickSwap(i,name){
   toast('🔄','Swapped in '+replacement.name);
 }
 
+// Counts today toward sessThisWeek/compassPts/totalSess/trainingCompletedDates
+// as soon as a real set is logged, instead of only when "Complete session" is
+// explicitly tapped. Tonnage was already being saved per set regardless of
+// that button, so a session that got logged but never formally "completed"
+// (closed the app, navigated away) was silently missing from the weekly
+// count despite the tonnage proving the work happened. Idempotent per
+// calendar day via autoCountedDate, which is deliberately separate from
+// lastSessionDate — lastSessionDate is only set by completeSession() itself,
+// so the "you already trained today, log anyway?" prompt still only fires
+// on a genuine second explicit completion, not on a session's first set.
+function markTrainedToday(){
+  const today=localDateKey(new Date());
+  if(autoCountedDate===today)return;
+  checkCompassWeek(); // must run first so a new week resets sessThisWeek before incrementing
+  autoCountedDate=today;
+  sessThisWeek++;
+  compassPts=Math.min(7,compassPts+1);
+  totalSess++;
+  if(!trainingCompletedDates.includes(today))trainingCompletedDates.push(today);
+  weekCompletedDays[today]=true;
+}
+
 function logSet(ei,si,name,muscle){
   const w=parseFloat(document.getElementById('sw-'+ei).value)||0;
   const r=parseInt(document.getElementById('sr-'+ei).value)||0;
@@ -7971,6 +7994,7 @@ function logSet(ei,si,name,muscle){
   if(chip.classList.contains('done'))return;
   chip.classList.add('done');
   chip.textContent=w>0?`✓ ${w}×${r}`:'✓';
+  markTrainedToday();
   totalVolume+=w*r;
   if(w>0&&muscle){
     const today=new Date().toISOString().slice(0,10);
@@ -8066,7 +8090,7 @@ function checkScheduleWeek(){
 function completeSession(nameOverride){
   clearInterval(timerInt);timerOn=false;
 
-  const today=new Date().toISOString().slice(0,10);
+  const today=localDateKey(new Date());
   const alreadyTrainedToday=(lastSessionDate===today);
   const todaysWorkoutName=nameOverride||document.getElementById('d-next-full')?.textContent||'a session';
 
@@ -8074,7 +8098,6 @@ function completeSession(nameOverride){
     sessionHistory.unshift({date:today,name:todaysWorkoutName,type:plannedSessionType,exs:plannedSessionExs});
     if(sessionHistory.length>15)sessionHistory.length=15; // keep the list manageable
   }
-  if(!trainingCompletedDates.includes(today))trainingCompletedDates.push(today);
   trainingTimeLog.push(new Date().getHours());
   liveSessionProgress={};
 
@@ -8082,22 +8105,18 @@ function completeSession(nameOverride){
     const already=lastSessionWorkoutName||'a session';
     const proceed=confirm('You already logged "'+already+'" today.\n\nTraining again so soon adds fatigue without extra growth, and won\'t add to your streak or weekly compass (those only move once per day) — but it will still count toward your total sessions and XP.\n\nLog it anyway?');
     if(!proceed)return; // abort — no changes made, timer already cleared above is fine since they paused
+    totalSess++; // an extra explicit completion same day still counts toward the lifetime total/XP, matching the dialog text — sessThisWeek/compassPts don't move again since markTrainedToday() below is skipped
+  }else{
+    // Covers both: sets were already logged this session (markTrainedToday
+    // already ran from logSet, so this is a no-op) and completion paths
+    // that never call logSet at all, e.g. the emergency/rescue session.
+    markTrainedToday();
   }
 
   lastSessionWorkoutName=todaysWorkoutName;
-  checkCompassWeek(); // must run before incrementing, so a new week resets sessThisWeek first
+  lastSessionDate=today;
   checkScheduleWeek();
   weekCompletedDays[today]=true;
-  totalSess++;
-
-  if(!alreadyTrainedToday){
-    // Weekly compass count only moves once per day, matching what the
-    // "already trained today" confirm dialog above tells the user.
-    sessThisWeek++;
-    // Streak is now driven centrally by addXP (any XP-earning activity counts as "showing up")
-    compassPts=Math.min(7,compassPts+1);
-    lastSessionDate=today;
-  }
 
   // Set greeting + date
   updateGreeting();
@@ -11120,6 +11139,7 @@ function saveToStorage(){
     localStorage.setItem('arx_customWorkouts', JSON.stringify(customWorkouts));
     localStorage.setItem('arx_customShakeTemplates', JSON.stringify(customShakeTemplates));
     localStorage.setItem('arx_lastSessionDate', lastSessionDate);
+    localStorage.setItem('arx_autoCountedDate', autoCountedDate);
     localStorage.setItem('arx_lastActiveDate', lastActiveDate);
     localStorage.setItem('arx_compassWeekStart', compassWeekStart);
     localStorage.setItem('arx_lastEmergencyWorkoutDate', lastEmergencyWorkoutDate);
@@ -11208,6 +11228,7 @@ function loadFromStorage(){
     const cst=localStorage.getItem('arx_customShakeTemplates');
     if(cst){try{customShakeTemplates=JSON.parse(cst);}catch(e){customShakeTemplates=[];}}
     lastSessionDate=localStorage.getItem('arx_lastSessionDate')||'';
+    autoCountedDate=localStorage.getItem('arx_autoCountedDate')||'';
     lastActiveDate=localStorage.getItem('arx_lastActiveDate')||'';
     compassWeekStart=localStorage.getItem('arx_compassWeekStart')||'';
     lastEmergencyWorkoutDate=localStorage.getItem('arx_lastEmergencyWorkoutDate')||'';
