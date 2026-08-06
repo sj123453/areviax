@@ -4716,7 +4716,7 @@ function renderProfile(){
   const pt=document.getElementById('profile-tenure');
   if(pt)pt.textContent=tenureText();
   const pjd=document.getElementById('profile-joindate');
-  if(pjd)pjd.textContent=joinDate?('Joined '+new Date(joinDate).toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'})):'';
+  if(pjd)pjd.textContent=joinDate?('Joined '+parseLocalDate(joinDate).toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'})):'';
   const pr=document.getElementById('profile-plaque-rank');
   if(pr){pr.textContent=unranked?'UNRANKED':r.name+' LIFTER';pr.style.color=unranked?'#8a8a94':r.col;}
   const pct2=document.getElementById('profile-pct');
@@ -4850,7 +4850,7 @@ function shareAchievement(){
 
 function checkAnniversary(){
   if(!joinDate)return;
-  const join=new Date(joinDate);
+  const join=parseLocalDate(joinDate);
   const now=new Date();
   const yearsElapsed=Math.floor((now-join)/(365.25*24*60*60*1000));
   if(yearsElapsed>=1&&yearsElapsed>lastAnniversaryYear){
@@ -4862,7 +4862,7 @@ function checkAnniversary(){
 
 function tenureText(){
   if(!joinDate)return '';
-  const join=new Date(joinDate);
+  const join=parseLocalDate(joinDate);
   const now=new Date();
   const days=Math.floor((now-join)/(24*60*60*1000));
   if(days<1)return 'Joined today';
@@ -5045,7 +5045,7 @@ function saveSettings(){
 function toggleEmergencyWorkout(){
   const panel=document.getElementById('emergency-workout-panel');
   if(!panel)return;
-  const today=new Date().toISOString().slice(0,10);
+  const today=localDateKey(new Date());
   const btn=document.getElementById('emergency-workout-btn');
   if(btn){
     if(lastEmergencyWorkoutDate===today){
@@ -5060,7 +5060,7 @@ function toggleEmergencyWorkout(){
 }
 
 function completeEmergencyWorkout(){
-  const today=new Date().toISOString().slice(0,10);
+  const today=localDateKey(new Date());
   if(lastEmergencyWorkoutDate===today){
     toast('⚡','Already used your rescue session today — one per day, so it stays a genuine fallback, not a shortcut.');
     return;
@@ -5095,7 +5095,7 @@ function checkBackupReminder(){
     shouldShow=true;
     message='You\'ve logged '+totalSess+' sessions and never backed up. Takes 5 seconds — don\'t risk losing it.';
   }else if(lastBackupDate){
-    const daysSince=Math.floor((today-new Date(lastBackupDate))/(1000*60*60*24));
+    const daysSince=Math.floor((today-parseLocalDate(lastBackupDate))/(1000*60*60*24));
     if(daysSince>=14){
       shouldShow=true;
       message='It\'s been '+daysSince+' days since your last backup. Quick refresh?';
@@ -5113,7 +5113,7 @@ function dismissBackupReminder(){
   // Snooze rather than silence forever — re-checked next time the conditions
   // are met again (e.g. another 14 days pass), not just closed for good.
   hideBackupReminder();
-  lastBackupDate=lastBackupDate||new Date().toISOString().slice(0,10);
+  lastBackupDate=lastBackupDate||localDateKey(new Date());
   saveToStorage();
 }
 
@@ -5143,7 +5143,7 @@ function addProgressPhoto(input){
   const file=input.files[0];
   if(!file)return;
   compressImage(file,560,0.72,function(dataUrl){
-    photoLog.push({date:new Date().toISOString().slice(0,10),dataUrl,weight:profile.weight||null});
+    photoLog.push({date:localDateKey(new Date()),dataUrl,weight:profile.weight||null});
     saveToStorage();
     renderPhotoGallery();
     toast('📸','Progress photo saved');
@@ -5159,7 +5159,7 @@ function deleteProgressPhoto(idx){
 }
 
 function fmtPhotoDate(d){
-  return new Date(d).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+  return parseLocalDate(d).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
 }
 
 function renderPhotoGallery(){
@@ -5247,7 +5247,7 @@ function applyBackupData(data){
   todayLog=data.todayLog||[];
   nutritionLogDate=data.nutritionLogDate||'';
   sleepLog=data.sleepLog||[];
-  lastBackupDate=new Date().toISOString().slice(0,10);
+  lastBackupDate=localDateKey(new Date());
   saveToStorage();
 }
 
@@ -5257,12 +5257,12 @@ function exportData(){
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');
   a.href=url;
-  a.download='areviax-backup-'+new Date().toISOString().slice(0,10)+'.json';
+  a.download='areviax-backup-'+localDateKey(new Date())+'.json';
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
-  lastBackupDate=new Date().toISOString().slice(0,10);
+  lastBackupDate=localDateKey(new Date());
   saveToStorage();
   hideBackupReminder();
   toast('💾','Backup downloaded');
@@ -5665,7 +5665,7 @@ function claimQuest(claimKey,xpAmt){
 }
 function checkProteinQuest(){
   checkQuestWeek();
-  const today=new Date().toISOString().slice(0,10);
+  const today=localDateKey(new Date());
   if(profile.protein>0&&dayMacros.prot>=profile.protein&&!proteinHitDates.includes(today)){
     proteinHitDates.push(today);
     questProgress.proteinDays=(questProgress.proteinDays||0)+1;
@@ -5710,7 +5710,7 @@ function checkStreakAtRisk(){
   const banner=document.getElementById('streak-risk-banner');
   const textEl=document.getElementById('streak-risk-text');
   if(!banner||!textEl)return;
-  const today=new Date().toISOString().slice(0,10);
+  const today=localDateKey(new Date());
   const hour=new Date().getHours();
   const alreadyActiveToday=(lastActiveDate===today);
   if(streak>0&&!alreadyActiveToday&&hour>=18){
@@ -5758,20 +5758,20 @@ function checkSleepReminder(){
 function checkSittingJobTip(){
   const card=document.getElementById('walk-tip-card');
   if(!card)return;
-  const today=new Date().toISOString().slice(0,10);
+  const today=localDateKey(new Date());
   const dismissedToday=(profile.walkTipDismissed===today);
   card.style.display=(profile.activity==='sedentary'&&!dismissedToday)?'flex':'none';
 }
 function dismissWalkTip(){
-  profile.walkTipDismissed=new Date().toISOString().slice(0,10);
+  profile.walkTipDismissed=localDateKey(new Date());
   checkSittingJobTip();
 }
 function updateStreakFromActivity(){
-  const today=new Date().toISOString().slice(0,10);
+  const today=localDateKey(new Date());
   if(lastActiveDate===today) return; // already counted today, don't double-increment
   if(!activeDates.includes(today))activeDates.push(today);
   const yesterday=new Date();yesterday.setDate(yesterday.getDate()-1);
-  const yStr=yesterday.toISOString().slice(0,10);
+  const yStr=localDateKey(yesterday);
   streak=(lastActiveDate===yStr)?streak+1:1;
   lastActiveDate=today;
   const sv=document.getElementById('streak-val');if(sv)sv.textContent=streak;
@@ -6008,7 +6008,7 @@ function finishOnboarding(){
   }
   const obEl=document.getElementById('onboarding');if(obEl)obEl.style.display='none';
   const maEl=document.getElementById('main-app');if(maEl)maEl.style.display='flex';
-  if(!joinDate)joinDate=new Date().toISOString().slice(0,10); // set once, on first real use
+  if(!joinDate)joinDate=localDateKey(new Date()); // set once, on first real use
   initApp();
   saveToStorage();
 }
@@ -6018,7 +6018,7 @@ function renderConsistency(){
   if(!wrap)return;
   const today=new Date();
   const sevenDaysAgo=new Date(today);sevenDaysAgo.setDate(today.getDate()-6);
-  const inLast7=d=>{const dt=new Date(d);return dt>=sevenDaysAgo&&dt<=today;};
+  const inLast7=d=>{const dt=parseLocalDate(d);return dt>=sevenDaysAgo&&dt<=today;};
   const target=profile.days||4;
   const trainDays=Math.min(sessThisWeek,target);
   const nutriDays=proteinHitDates.filter(inLast7).length;
@@ -6047,6 +6047,14 @@ function renderConsistency(){
 // the UTC-shift bug .toISOString().slice(0,10) has near midnight.
 function localDateKey(d){
   return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+// Inverse of localDateKey — parses a 'YYYY-MM-DD' string as local midnight
+// instead of new Date(str), which parses date-only strings as UTC midnight
+// and can land on the previous local calendar day for negative-UTC-offset
+// timezones once read back through .getDate()/.getDay().
+function parseLocalDate(str){
+  const [y,m,d]=str.split('-').map(Number);
+  return new Date(y,m-1,d);
 }
 
 // Per-day breakdown of the current Monday-start week — same tonnageLog as
@@ -6255,7 +6263,7 @@ function logCardioSession(){
     unit: cardioDistanceUnit,
     intensity: cardioSelectedIntensity,
     caloriesBurned,
-    date: new Date().toISOString().slice(0,10),
+    date: localDateKey(new Date()),
     time: new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}),
   });
   durEl.value=''; distEl.value='';
@@ -6268,7 +6276,7 @@ function logCardioSession(){
 }
 function deleteCardioEntry(idx){
   const entry=cardioLog[idx];
-  if(entry&&entry.caloriesBurned&&entry.date===new Date().toISOString().slice(0,10)){
+  if(entry&&entry.caloriesBurned&&entry.date===localDateKey(new Date())){
     // only reverse the calorie adjustment if it's still today's entry —
     // an old day's dayMacros no longer exists to correct, same reasoning
     // deleteLoggedItem() uses for food entries
@@ -6312,7 +6320,7 @@ function renderDashNutritionPulse(){
 function initApp(){
   if(typeof profile==='undefined')return;
   if(!document.getElementById('dash-name'))return;
-  if(!joinDate)joinDate=new Date().toISOString().slice(0,10);
+  if(!joinDate)joinDate=localDateKey(new Date());
   checkCompassWeek(); // resets sessThisWeek/compassPts if a new week has started since last open
   const dca=document.getElementById('d-cals');if(dca)dca.textContent=profile.cals.toLocaleString();
   const dcs=document.getElementById('d-cals-sub');if(dcs)dcs.textContent=profile.weight+'lbs × '+(profile.goal==='bulk'?19:18);
@@ -7704,7 +7712,7 @@ function renderTonnageBreakdown(){
   const wrap=document.getElementById('tonnage-breakdown');
   if(!wrap)return;
   const weekAgo=new Date();weekAgo.setDate(weekAgo.getDate()-7);
-  const recent=tonnageLog.filter(e=>new Date(e.date)>=weekAgo);
+  const recent=tonnageLog.filter(e=>parseLocalDate(e.date)>=weekAgo);
   if(!recent.length){
     wrap.innerHTML='<div style="font-size:11.5px;color:var(--muted);padding:8px 0">Log some sets this week and your per-muscle tonnage will show up here.</div>';
     return;
@@ -7744,7 +7752,7 @@ function renderSessionHistory(){
     return;
   }
   list.innerHTML=sessionHistory.slice(0,6).map((s,i)=>{
-    const d=new Date(s.date);
+    const d=parseLocalDate(s.date);
     const dLabel=d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});
     return `<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 12px;background:rgba(255,255,255,.03);border:1.5px solid var(--border2);border-radius:8px">
       <div style="min-width:0"><div style="font-size:12px;font-weight:700;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${s.name}</div><div style="font-size:10px;color:var(--muted)">${dLabel} · ${s.exs.length} exercises</div></div>
@@ -7771,7 +7779,7 @@ function buildSession(){
   const cont=document.getElementById('sess-exercises');if(!cont)return;
   cont.innerHTML=exs.map((e,i)=>{
     const sug=suggestNextWeight(e);
-    const saved=liveSessionProgress[e.name]&&liveSessionProgress[e.name].date===new Date().toISOString().slice(0,10)?liveSessionProgress[e.name]:null;
+    const saved=liveSessionProgress[e.name]&&liveSessionProgress[e.name].date===localDateKey(new Date())?liveSessionProgress[e.name]:null;
     return `
     <div class="ex-card" id="sex-${i}">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:9px">
@@ -7997,19 +8005,19 @@ function logSet(ei,si,name,muscle){
   markTrainedToday();
   totalVolume+=w*r;
   if(w>0&&muscle){
-    const today=new Date().toISOString().slice(0,10);
+    const today=localDateKey(new Date());
     muscle.split('+').map(m=>m.trim()).filter(Boolean).forEach(m=>{
       tonnageLog.push({date:today,muscle:m,tonnage:w*r});
     });
     if(tonnageLog.length>2000)tonnageLog=tonnageLog.slice(-2000); // cap growth, keep it from growing forever
   }
-  if(!liveSessionProgress[name])liveSessionProgress[name]={weight:w,reps:r,doneSets:[],date:new Date().toISOString().slice(0,10)};
+  if(!liveSessionProgress[name])liveSessionProgress[name]={weight:w,reps:r,doneSets:[],date:localDateKey(new Date())};
   liveSessionProgress[name].weight=w;
   liveSessionProgress[name].reps=r;
-  liveSessionProgress[name].date=new Date().toISOString().slice(0,10);
+  liveSessionProgress[name].date=localDateKey(new Date());
   if(!liveSessionProgress[name].doneSets.includes(si))liveSessionProgress[name].doneSets.push(si);
   if(w>0){
-    const today=new Date().toISOString().slice(0,10);
+    const today=localDateKey(new Date());
     const prevBest=lastPerformance[name];
     if(!prevBest||prevBest.date!==today||w>=prevBest.weight){
       lastPerformance[name]={weight:w,reps:r,date:today};
@@ -8495,7 +8503,7 @@ const FEEDER_QUESTS=[
   {task:'Add an extra scoop of rice to your biggest meal today',cals:'~150 kcal',window:'with dinner'},
 ];
 function getTodaysFeederQuest(){
-  const today=new Date().toISOString().slice(0,10);
+  const today=localDateKey(new Date());
   let seed=0;for(let i=0;i<today.length;i++)seed+=today.charCodeAt(i);
   return {...FEEDER_QUESTS[seed%FEEDER_QUESTS.length],date:today};
 }
@@ -8772,8 +8780,8 @@ function generateAssessment(){
 
   const today=new Date();
   const weekAgo=new Date();weekAgo.setDate(weekAgo.getDate()-7);
-  const proteinDaysThisWeek=proteinHitDates.filter(d=>new Date(d)>=weekAgo).length;
-  const sleepThisWeek=sleepLog.filter(e=>new Date(e.date)>=weekAgo);
+  const proteinDaysThisWeek=proteinHitDates.filter(d=>parseLocalDate(d)>=weekAgo).length;
+  const sleepThisWeek=sleepLog.filter(e=>parseLocalDate(e.date)>=weekAgo);
   const avgSleep=sleepThisWeek.length?sleepThisWeek.reduce((a,e)=>a+e.hours,0)/sleepThisWeek.length:null;
 
   const parts=[];
@@ -8834,7 +8842,7 @@ function viewAssessment(){
 // during deep sleep, so it should actually let people track it. ──
 function getYesterdayDate(){
   const d=new Date();d.setDate(d.getDate()-1);
-  return d.toISOString().slice(0,10);
+  return localDateKey(d);
 }
 function toggleYesterdaySleep(){
   const wrap=document.getElementById('yesterday-wrap');
@@ -8847,7 +8855,7 @@ function logSleep(dateOverride){
   if(!input)return;
   const hours=parseFloat(input.value);
   if(!hours||hours<=0||hours>16){toast('⚠️','Enter a realistic number of hours (e.g. 7.5)');return;}
-  const targetDate=dateOverride||new Date().toISOString().slice(0,10);
+  const targetDate=dateOverride||localDateKey(new Date());
   const existingIdx=sleepLog.findIndex(e=>e.date===targetDate);
   if(existingIdx>=0)sleepLog[existingIdx].hours=hours;
   else sleepLog.push({date:targetDate,hours});
@@ -8870,7 +8878,7 @@ function renderSleepChart(container){
     container.innerHTML='<div style="font-size:11px;color:var(--muted);padding:12px 0;line-height:1.6">A couple more nights logged and you\'ll start seeing your real pattern here.</div>';
     return;
   }
-  const pts=sleepLog.slice(-8).map(e=>({...e,_d:new Date(e.date)})).sort((a,b)=>a._d-b._d);
+  const pts=sleepLog.slice(-8).map(e=>({...e,_d:parseLocalDate(e.date)})).sort((a,b)=>a._d-b._d);
   const W=300,H=110,padL=22,padR=10,padT=10,padB=20;
   const plotW=W-padL-padR,plotH=H-padT-padB;
   const min=0,max=10,target=8;
@@ -8921,7 +8929,7 @@ function renderSleepLog(){
   const debtEl=document.getElementById('sleep-debt');
   if(debtEl){
     const cutoff=new Date();cutoff.setDate(cutoff.getDate()-6);
-    const recentEntries=sleepLog.filter(e=>new Date(e.date)>=cutoff);
+    const recentEntries=sleepLog.filter(e=>parseLocalDate(e.date)>=cutoff);
     if(recentEntries.length<2){
       debtEl.textContent='Log a few more nights to see your weekly sleep debt.';
     }else{
@@ -9666,13 +9674,13 @@ function renderConsistencyHeatmap(){
   // here yet".
   let days=91;
   if(joinDate){
-    const daysSinceJoin=Math.floor((today-new Date(joinDate))/86400000)+1;
+    const daysSinceJoin=Math.floor((today-parseLocalDate(joinDate))/86400000)+1;
     days=Math.max(1,Math.min(91,daysSinceJoin));
   }
   const cells=[];
   for(let i=days-1;i>=0;i--){
     const d=new Date(today);d.setDate(today.getDate()-i);
-    const dStr=d.toISOString().slice(0,10);
+    const dStr=localDateKey(d);
     cells.push({date:dStr,active:activeDates.includes(dStr),isToday:i===0});
   }
   grid.innerHTML=cells.map(c=>{
@@ -9738,7 +9746,7 @@ function renderWeeklyRecap(){
   if(!countEl||!daysEl)return;
 
   const today=new Date();
-  const todayStr=today.toISOString().slice(0,10);
+  const todayStr=localDateKey(today);
   const dayNames=['S','M','T','W','T','F','S'];
   const dow=today.getDay();
   const mondayOffset=dow===0?6:dow-1; // days since this week's Monday
@@ -9747,13 +9755,13 @@ function renderWeeklyRecap(){
   const thisWeekDates=[];
   for(let i=0;i<7;i++){
     const d=new Date(monday);d.setDate(monday.getDate()+i);
-    thisWeekDates.push(d.toISOString().slice(0,10));
+    thisWeekDates.push(localDateKey(d));
   }
   const lastMonday=new Date(monday);lastMonday.setDate(monday.getDate()-7);
   const lastWeekDates=[];
   for(let i=0;i<7;i++){
     const d=new Date(lastMonday);d.setDate(lastMonday.getDate()+i);
-    lastWeekDates.push(d.toISOString().slice(0,10));
+    lastWeekDates.push(localDateKey(d));
   }
   const thisWeekCount=thisWeekDates.filter(d=>trainingCompletedDates.includes(d)).length;
   const lastWeekCount=lastWeekDates.filter(d=>trainingCompletedDates.includes(d)).length;
@@ -9836,7 +9844,7 @@ function finishCNSTest(){
     toast('🧠',`CNS score: ${score}/100`);
   }
 }
-function todayISODateCNS(){return new Date().toISOString().slice(0,10);}
+function todayISODateCNS(){return localDateKey(new Date());}
 function renderCNSResult(){
   const el=document.getElementById('cns-last-result');
   if(!el||!cnsTapLog.length)return;
@@ -9857,9 +9865,9 @@ function renderReadiness(){
   if(!card)return;
   if(!sleepLog.length){card.style.display='none';return;}
   const last=sleepLog[sleepLog.length-1];
-  const today=new Date().toISOString().slice(0,10);
+  const today=localDateKey(new Date());
   const yesterday=new Date();yesterday.setDate(yesterday.getDate()-1);
-  const yStr=yesterday.toISOString().slice(0,10);
+  const yStr=localDateKey(yesterday);
   const lastIsRecent=(last.date===today||last.date===yStr);
   if(!lastIsRecent){card.style.display='none';return;}
   const trainedYesterday=(lastSessionDate===yStr||lastSessionDate===today);
@@ -9882,7 +9890,7 @@ const WINDDOWN_ITEMS=[
 function renderWinddownList(){
   const wrap=document.getElementById('winddown-list');
   if(!wrap)return;
-  const today=new Date().toISOString().slice(0,10);
+  const today=localDateKey(new Date());
   if(winddownDate!==today){winddownDate=today;winddownChecked={};saveToStorage();}
   wrap.innerHTML=WINDDOWN_ITEMS.map(item=>{
     const on=!!winddownChecked[item.key];
@@ -9896,11 +9904,11 @@ function renderWinddownList(){
 }
 function toggleWinddownItem(key){
   winddownChecked[key]=!winddownChecked[key];
-  const today=new Date().toISOString().slice(0,10);
+  const today=localDateKey(new Date());
   const allDone=WINDDOWN_ITEMS.every(item=>winddownChecked[item.key]);
   if(allDone&&winddownStreakLastDate!==today){
     const yesterday=new Date();yesterday.setDate(yesterday.getDate()-1);
-    const yStr=yesterday.toISOString().slice(0,10);
+    const yStr=localDateKey(yesterday);
     winddownStreak=(winddownStreakLastDate===yStr)?winddownStreak+1:1;
     winddownStreakLastDate=today;
     toast('🌙','Full wind-down — '+winddownStreak+' night streak!');
@@ -10184,7 +10192,7 @@ function renderCaloricShield(){
   let streakOk=true;
   for(let i=1;i<=3;i++){
     const d=new Date(today);d.setDate(d.getDate()-i);
-    const dStr=d.toISOString().slice(0,10);
+    const dStr=localDateKey(d);
     const entry=nutritionDayLog.find(e=>e.date===dStr);
     if(!entry||!entry.hitTarget){streakOk=false;break;}
   }
@@ -10237,7 +10245,7 @@ function renderCaloricShield(){
 
 
 function checkNutritionDay(){
-  const today=new Date().toISOString().slice(0,10);
+  const today=localDateKey(new Date());
   if(nutritionLogDate!==today){
     // snapshot the day that's ending, so the Caloric Shield's 3-day streak
     // check has real history to look at, not just today's live numbers
@@ -10606,13 +10614,13 @@ function logNutrition(){showPage('nutrition')}
 
 // ── QUICK ACTIONS ──
 function missedSession(){
-  const today=new Date().toISOString().slice(0,10);
+  const today=localDateKey(new Date());
   if(lastMissedCheckinDate===today){toast('😅','Already checked in on this today.');return}
   lastMissedCheckinDate=today;
   toast('😅','No worries. Rest up and come back tomorrow. One missed session changes nothing — giving up would.');addXP(2,'Check-in');saveToStorage();
 }
 function badDay(){
-  const today=new Date().toISOString().slice(0,10);
+  const today=localDateKey(new Date());
   if(lastBadDayCheckinDate===today){toast('🍕','Already checked in on this today.');return}
   lastBadDayCheckinDate=today;
   toast('🍕','One bad day breaks nothing. The pattern over weeks is what matters. Reset tomorrow.');addXP(2,'Honest check-in');saveToStorage();
@@ -10783,7 +10791,7 @@ function logWeight(){
   const w=parseFloat(document.getElementById('log-w').value);
   if(!w){toast('⚠️','Enter your weight');return}
   const now=new Date();
-  const entry={w,date:now.toLocaleDateString('en-GB',{day:'numeric',month:'short'}),iso:now.toISOString().slice(0,10)};
+  const entry={w,date:now.toLocaleDateString('en-GB',{day:'numeric',month:'short'}),iso:localDateKey(now)};
   // Sanity-check against the last logged entry before it ever gets saved —
   // a jump this size in this little time is essentially always a mis-type,
   // wrong units, or a duplicate tap, not a real week-to-week change.
@@ -10903,8 +10911,8 @@ function renderSchedule(){
   checkScheduleWeek();
   const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
   const baseSchedule=['Upper A','Lower A','Rest','Upper B','Lower B','Rest','Rest'];
-  const monday=new Date(getMonday(new Date()));
-  const dayDates=days.map((_,i)=>{const d=new Date(monday);d.setDate(monday.getDate()+i);return d.toISOString().slice(0,10);});
+  const monday=parseLocalDate(getMonday(new Date()));
+  const dayDates=days.map((_,i)=>{const d=new Date(monday);d.setDate(monday.getDate()+i);return localDateKey(d);});
   const s=baseSchedule.map((v,i)=>scheduleOverrides[i]!==undefined?scheduleOverrides[i]:v);
   const ti=new Date().getDay();const ti2=ti===0?6:ti-1;
 
@@ -10953,9 +10961,9 @@ function closeReschedule(){
   const md=document.getElementById('reschedule-modal');if(md)md.style.display='none';
 }
 function markDayDone(idx){
-  const monday=new Date(getMonday(new Date()));
+  const monday=parseLocalDate(getMonday(new Date()));
   const d=new Date(monday);d.setDate(monday.getDate()+idx);
-  weekCompletedDays[d.toISOString().slice(0,10)]=true;
+  weekCompletedDays[localDateKey(d)]=true;
   saveToStorage();
   toast('✓','Marked as done — nice work.');
   closeReschedule();
@@ -11003,11 +11011,11 @@ const BOT_ROSTER=[
 ];
 
 function getBotStats(bot){
-  const join=new Date(bot.joined);
+  const join=parseLocalDate(bot.joined);
   const now=new Date();
   const weeksElapsed=Math.max(0,(now-join)/(7*24*60*60*1000));
   // Deterministic daily jitter (stable within a day, shifts slightly day to day)
-  const dayKey=now.toISOString().slice(0,10)+bot.name;
+  const dayKey=localDateKey(now)+bot.name;
   let seed=0;for(let i=0;i<dayKey.length;i++)seed=(seed*31+dayKey.charCodeAt(i))>>>0;
   const jitter=((seed%200)-100)/100; // -1..1
   const gained=Math.max(0,weeksElapsed*bot.rate*(1+jitter*0.08));
