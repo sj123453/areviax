@@ -1733,10 +1733,14 @@ window.addEventListener('error', function(e){
   /* Mobile doesn't pin, so the 250vh section height meant for desktop's
      scroll-hijack just leaves a huge blank gap after the (much shorter)
      actual content scrolls by — the section sizes to its real content
-     here instead. */
+     here instead. .sc-stage itself was still forced to a full 100vh
+     (only .sc-section had been fixed), so its mount+copy content sat
+     vertically centered inside an artificially tall box — that box, not
+     margins, was the actual remaining gap. height:auto plus much lighter
+     padding closes it for real. */
   .sc-section{height:auto}
   .sc-mount{--w:165px;--h:240px;--d:64px}
-  .sc-stage{gap:8vw;flex-direction:column;padding:11vh 8vw}
+  .sc-stage{height:auto;gap:6vw;flex-direction:column;padding:4vh 8vw}
   .sc-rail{display:none}
   .sc-head{padding:6vh 8vw 2vh}
 }
@@ -1968,9 +1972,9 @@ window.addEventListener('error', function(e){
             entries.forEach(e => {
               if(!e.isIntersecting) return;
               gsap.timeline()
-                .to(cube, {rotateY:0, scale:1, duration:0.9, ease:'power2.out'}, 0)
-                .fromTo(front, {rotationY:0, z:32}, {rotationY:-38, z:24, duration:0.6, ease:'power2.out'}, 0.5)
-                .to(copy, {opacity:1, x:0, duration:0.5, ease:'power3.out'}, 0.65);
+                .to(cube, {rotateY:0, scale:1, duration:0.5, ease:'power2.out'}, 0)
+                .fromTo(front, {rotationY:0, z:32}, {rotationY:-38, z:24, duration:0.35, ease:'power2.out'}, 0.28)
+                .to(copy, {opacity:1, x:0, duration:0.3, ease:'power3.out'}, 0.4);
               playOnce.disconnect();
             });
           }, {threshold:0.35});
