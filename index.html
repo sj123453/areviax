@@ -1730,6 +1730,11 @@ window.addEventListener('error', function(e){
   .sc-cube{transform:none !important;opacity:1 !important}
 }
 @media (max-width:820px){
+  /* Mobile doesn't pin, so the 250vh section height meant for desktop's
+     scroll-hijack just leaves a huge blank gap after the (much shorter)
+     actual content scrolls by — the section sizes to its real content
+     here instead. */
+  .sc-section{height:auto}
   .sc-mount{--w:165px;--h:240px;--d:64px}
   .sc-stage{gap:8vw;flex-direction:column;padding:11vh 8vw}
   .sc-rail{display:none}
@@ -1949,29 +1954,27 @@ window.addEventListener('error', function(e){
           gsap.set(cube, {rotateY:-85, scale:.85});
           gsap.set(front, {z:32, transformOrigin:'left center'});
           gsap.set(copy, {opacity:0, x:-30});
-          // Trigger on the stage itself, not the (320vh, desktop-pinned-
-          // scale) section — the section is far taller than the actual
-          // mount+copy content block on mobile, since mobile doesn't pin.
-          // 'top 85%'/'top -60%' only covered a small slice near the top
-          // and left the cycle sitting static afterward; spanning the
-          // whole section instead scrolled the content itself out of view
-          // long before the animation finished. Tracking the stage's own
-          // transit through the viewport (enters at the bottom, exits at
-          // the top) keeps the cycle's duration matched to how long the
-          // content is actually visible, whatever that height turns out
-          // to be.
-          // No close/return phase here — mobile stacks the mount above
-          // the copy (flex-direction:column), so by the time someone has
-          // scrolled far enough for a "close" to make timeline sense, the
-          // book itself is already well off-screen above the viewport;
-          // animating it there is invisible and pointless. Swing open,
-          // let the copy write in, then just hold — it scrolls away
-          // naturally in its open state as the user continues.
-          gsap.timeline({
-            scrollTrigger:{ trigger:section.querySelector('.sc-stage'), start:'top bottom', end:'bottom top', scrub:0.35, invalidateOnRefresh: true }
-          }).to(cube, {rotateY:0, scale:1, duration:0.32, ease:'power1.inOut'}, 0)
-            .fromTo(front, {rotationY:0, z:32}, {rotationY:-38, z:24, duration:0.20, ease:'power2.out'}, 0.30)
-            .to(copy, {opacity:1, x:0, duration:0.22, ease:'power3.out'}, 0.40);
+          // Continuous scroll-scrubbing doesn't hold up against real touch
+          // scrolling — a fast swipe covers the whole trigger range faster
+          // than the scrub tween can track it, so only a fragment of the
+          // motion ever gets rendered before the timeline "catches up",
+          // which read as the animation barely starting before the copy
+          // just appears. A one-shot animation triggered once by
+          // visibility — playing at its own fixed pace, completely
+          // decoupled from scroll position or speed — sidesteps that
+          // mismatch entirely instead of trying to out-tune it.
+          const mount = section.querySelector('.sc-mount');
+          const playOnce = new IntersectionObserver((entries) => {
+            entries.forEach(e => {
+              if(!e.isIntersecting) return;
+              gsap.timeline()
+                .to(cube, {rotateY:0, scale:1, duration:0.9, ease:'power2.out'}, 0)
+                .fromTo(front, {rotationY:0, z:32}, {rotationY:-38, z:24, duration:0.6, ease:'power2.out'}, 0.5)
+                .to(copy, {opacity:1, x:0, duration:0.5, ease:'power3.out'}, 0.65);
+              playOnce.disconnect();
+            });
+          }, {threshold:0.35});
+          playOnce.observe(mount);
         }
       });
     });
