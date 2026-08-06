@@ -1055,6 +1055,21 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
 </style>
 </head>
 <body>
+<!-- INTRO / LOADING SCREEN — deliberately the very first element in <body>.
+     Browsers paint progressively as they parse; this used to sit near the
+     end of a ~10,000-line document (after #onboarding, which is visible by
+     default), so on a slow parse/load the questionnaire could paint and be
+     briefly visible before the parser even reached this overlay's markup —
+     regardless of any JS, since nothing here depends on script execution.
+     Being first guarantees it's on screen before anything it's meant to
+     hide ever gets a chance to paint. -->
+<div id="intro">
+  <canvas id="intro-canvas" width="220" height="220"></canvas>
+  <div class="intro-wordmark" id="intro-word">AREVIAX</div>
+  <div class="intro-tagline" id="intro-tag">Making Success Real</div>
+  <button class="intro-skip" id="intro-skip">Skip →</button>
+</div>
+
 <div id="toast"><span id="ti">💪</span><span id="tm" style="font-weight:600">XP</span></div>
 
 <div id="rest-overlay">
@@ -11194,14 +11209,6 @@ document.addEventListener('DOMContentLoaded', function(){
   }catch(e){console.error("Init error:",e)}
 });
 </script>
-
-  <!-- ── INTRO / LOADING SCREEN (ported from index.html) ── -->
-  <div id="intro">
-    <canvas id="intro-canvas" width="220" height="220"></canvas>
-    <div class="intro-wordmark" id="intro-word">AREVIAX</div>
-    <div class="intro-tagline" id="intro-tag">Making Success Real</div>
-    <button class="intro-skip" id="intro-skip">Skip →</button>
-  </div>
 
   <!-- ── MOBILE BOTTOM NAV ── -->
   <nav id="mobile-nav">
