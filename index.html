@@ -1870,14 +1870,18 @@ window.addEventListener('error', function(e){
   const spinEase = t => t - 0.0438 * Math.sin(4 * Math.PI * t);
 
   if(!reduceMotion){
-    // Normalizes wheel/touch scroll handling across browsers so a fast,
-    // choppy burst of raw wheel events (trackpad momentum in particular)
-    // gets fed to ScrollTrigger as a smoother velocity curve instead of
-    // being applied as a series of large, discrete jumps — this is the
-    // main cause of the pinned book animation looking jerky/glitchy on a
-    // fast scroll specifically, since the raw scroll deltas themselves
-    // were coarse, not just the scrub smoothing downstream of them.
-    if(typeof ScrollTrigger.normalizeScroll === 'function'){
+    // Normalizes wheel scroll handling so a fast, choppy burst of raw
+    // wheel events (trackpad momentum in particular) gets fed to
+    // ScrollTrigger as a smoother velocity curve instead of being applied
+    // as a series of large, discrete jumps — this is the main cause of the
+    // pinned book animation looking jerky on a fast scroll specifically.
+    // Desktop-only: on touch devices this hijacks native scrolling to
+    // re-implement it via JS, and mobile's book animation is already
+    // scroll-position-independent (IntersectionObserver-driven, not
+    // scrubbed) — there's nothing for it to smooth there, only native
+    // scroll behavior for it to interfere with, which is what turned into
+    // "briefly see the blurb, then it just doesn't work" on a phone.
+    if(window.innerWidth > 820 && typeof ScrollTrigger.normalizeScroll === 'function'){
       ScrollTrigger.normalizeScroll(true);
     }
 
