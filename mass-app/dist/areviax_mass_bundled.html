@@ -8014,6 +8014,7 @@ function completeSession(nameOverride){
   if(dateEl)dateEl.textContent=new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'short'});
   const dss=document.getElementById('d-sessions');if(dss)dss.textContent=sessThisWeek+'/'+profile.days;
   renderCompass();
+  renderConsistency(); // "This week" card on the Progress page reads sessThisWeek too — was only ever rendered on page load, so it went stale until the next reload
   if(!alreadyTrainedToday){
     const cc=document.getElementById('compass-main');
     if(cc){cc.classList.remove('pulse');requestAnimationFrame(()=>cc.classList.add('pulse'));}
