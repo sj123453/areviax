@@ -564,6 +564,14 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       font-family:'Outfit',sans-serif;font-size:9px;letter-spacing:.04em;
       transition:color .2s;position:relative;
     }
+    /* Start sits 3rd of 6 buttons — 2 to its left (Home, Build), 3 to its
+       right (Fuel, Progress, More) — so equal flex:1 on all six leaves it
+       visibly left of true center. Giving the 2 left-side buttons more
+       flex-grow (1.5 each = 3 units, matching the 3 right-side buttons at
+       1 unit each = 3 units) balances both flanking groups to equal
+       total width, which puts Start's own slot at the actual middle
+       regardless of the 2-vs-3 button-count split. */
+    #mn-home,#mn-workout{flex:1.5}
     .mn-btn svg{width:18px;height:18px;stroke-width:1.8;transition:filter .25s}
     .mn-btn.active,.mn-btn:active{color:var(--green)}
     .mn-btn.active svg{filter:drop-shadow(0 0 5px rgba(255,90,0,.7))}
@@ -1501,6 +1509,17 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
         <text x="36" y="46" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="rgba(238,240,255,.55)">/ <tspan id="d-protein-target">—</tspan></text>
       </svg>
     </div>
+  </div>
+
+  <div id="vol-daily-card" style="display:none;background:#0B0B0B;border:1px solid rgba(255,90,0,.08);border-radius:16px;padding:16px;margin-bottom:16px">
+    <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px">
+      <div style="display:flex;align-items:center;gap:6px">
+        <span style="font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,90,0,.75)">Volume &middot; this week</span>
+      </div>
+      <div style="font-size:11px;font-weight:800;color:var(--muted)" id="vol-daily-total"></div>
+    </div>
+    <div id="vol-daily-chart" style="display:flex;align-items:flex-end;gap:6px;height:56px;margin-bottom:7px"></div>
+    <div id="vol-daily-labels" style="display:flex;gap:6px;font-size:8px;color:var(--muted)"></div>
   </div>
 
   <div id="vol-trend-card" style="display:none;background:#0B0B0B;border:1px solid rgba(255,90,0,.08);border-radius:16px;padding:16px;margin-bottom:16px">
@@ -6023,6 +6042,62 @@ function renderConsistency(){
   }).join('');
 }
 
+// Local YYYY-MM-DD, matching how tonnageLog entries are dated — avoids
+// the UTC-shift bug .toISOString().slice(0,10) has near midnight.
+function localDateKey(d){
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+
+// Per-day breakdown of the current Monday-start week — same tonnageLog as
+// renderVolumeTrend below, just bucketed by day instead of by week so you
+// can see which specific days actually carried the volume.
+function renderDailyVolume(){
+  const card=document.getElementById('vol-daily-card');
+  const chartEl=document.getElementById('vol-daily-chart');
+  const labelsEl=document.getElementById('vol-daily-labels');
+  const totalEl=document.getElementById('vol-daily-total');
+  if(!card||!chartEl||!labelsEl||!totalEl)return;
+  if(!tonnageLog.length){card.style.display='none';return;}
+
+  const today=new Date();
+  const dow=today.getDay();
+  const mondayOffset=dow===0?6:dow-1;
+  const monday=new Date(today);monday.setDate(today.getDate()-mondayOffset);
+  monday.setHours(0,0,0,0);
+
+  const days=[]; // Mon -> Sun, 7 buckets
+  for(let i=0;i<7;i++){
+    const d=new Date(monday);d.setDate(monday.getDate()+i);
+    days.push({key:localDateKey(d),total:0});
+  }
+  tonnageLog.forEach(e=>{
+    const day=days.find(d=>d.key===e.date);
+    if(day)day.total+=e.tonnage;
+  });
+
+  card.style.display='';
+  const max=Math.max(...days.map(d=>d.total),1);
+  const dayLetters=['M','T','W','T','F','S','S'];
+  const todayKey=localDateKey(today);
+  chartEl.innerHTML=days.map(d=>{
+    const isToday=d.key===todayKey;
+    const col=d.total>0?(isToday?'linear-gradient(180deg,#FF7A2E,#FF5A00)':'rgba(255,90,0,.28)'):'rgba(255,255,255,.05)';
+    return `<div style="flex:1;height:100%;display:flex;align-items:flex-end">
+      <div class="vol-daily-bar" data-h="${d.total>0?Math.max(3,Math.round(d.total/max*100)):2}" style="width:100%;height:0%;background:${col};border-radius:3px 3px 1px 1px;transition:height .7s cubic-bezier(.16,1,.3,1)" title="${Math.round(d.total).toLocaleString()}kg"></div>
+    </div>`;
+  }).join('');
+  labelsEl.innerHTML=days.map((d,i)=>`<div style="flex:1;text-align:center;${d.key===todayKey?'color:var(--orange);font-weight:800':''}">${dayLetters[i]}</div>`).join('');
+
+  requestAnimationFrame(()=>{
+    requestAnimationFrame(()=>{
+      chartEl.querySelectorAll('.vol-daily-bar').forEach(bar=>{ bar.style.height=bar.dataset.h+'%'; });
+    });
+  });
+
+  const weekTotal=days.reduce((s,d)=>s+d.total,0);
+  totalEl.textContent=weekTotal>0?Math.round(weekTotal).toLocaleString()+'kg':'';
+}
+
 // Weekly training-volume trend — same tonnageLog already powering the
 // lifetime volume achievements, just bucketed into the last 8 Monday-start
 // calendar weeks so recent direction (up/down) is visible at a glance
@@ -6260,6 +6335,7 @@ function initApp(){
   try{renderCompass();}catch(e){console.error('renderCompass:',e.message);}
   try{renderConsistency();}catch(e){console.error('renderConsistency:',e.message);}
   try{renderVolumeTrend();}catch(e){console.error('renderVolumeTrend:',e.message);}
+  try{renderDailyVolume();}catch(e){console.error('renderDailyVolume:',e.message);}
   try{checkStreakAtRisk();}catch(e){console.error('checkStreakAtRisk:',e.message);}
   try{checkSleepReminder();}catch(e){console.error('checkSleepReminder:',e.message);}
   try{checkSittingJobTip();}catch(e){console.error('checkSittingJobTip:',e.message);}
