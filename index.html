@@ -458,20 +458,20 @@
        clips its pseudo-element children, but not its element siblings. */
     .pillar-wrap{position:relative;z-index:3}
     .pillar{
-      width:56px;
+      width:40px;
       height:var(--ph,100px);
       position:relative;
       margin-top:-2px;
       background:
-        repeating-linear-gradient(90deg,rgba(0,0,0,.32) 0px,rgba(0,0,0,.32) 2px,transparent 2px,transparent 13px),
-        linear-gradient(90deg,transparent 0%,rgba(255,255,255,.06) 16%,transparent 32%,transparent 68%,rgba(255,255,255,.04) 84%,transparent 100%),
+        repeating-linear-gradient(90deg,rgba(255,255,255,.05) 0px,rgba(255,255,255,.05) 1px,rgba(0,0,0,.4) 1px,rgba(0,0,0,.4) 3px,transparent 3px,transparent 6px),
         linear-gradient(to bottom,var(--pc,rgba(255,90,0,.16)) 0%,rgba(0,0,0,.38) 55%,rgba(0,0,0,.6) 100%);
       border-left:1px solid var(--pb,rgba(255,90,0,.2));
       border-right:1px solid var(--pb,rgba(255,90,0,.2));
       transition:height .4s cubic-bezier(.22,1,.36,1),width .4s cubic-bezier(.22,1,.36,1);
-      /* straight shaft — constant width top to bottom, no taper. */
+      /* straight, thin shaft with fluting (paired light/dark grooves)
+         instead of a flat block — constant width top to bottom, no taper. */
     }
-    .book-wide + .pillar-wrap .pillar,.pillar-wrap.pillar-tall .pillar{width:71px}
+    .book-wide + .pillar-wrap .pillar,.pillar-wrap.pillar-tall .pillar{width:52px}
     /* pillar capital — a classical Ionic cap: abacus slab, bead-and-reel
        astragal, a draped echinus cushion, and two scroll volutes (drawn as
        an Archimedean spiral stroke, mirrored left/right) — instead of a
@@ -494,12 +494,15 @@
        foot to stand on instead of just fading into a floor glow. Same mask
        technique as the capital, mirrored (flares down instead of up). */
     .pillar-base{
-      content:'';position:absolute;bottom:-16px;left:50%;
-      width:230%;height:26px;
+      /* squared, stepped plinth (necking collar → middle step → base
+         slab) instead of a rounded torus curve, matching a real
+         classical column base rather than a smoothed-off blob. */
+      content:'';position:absolute;bottom:-18px;left:50%;
+      width:280%;height:30px;
       transform:translateX(-50%);
       background-color:var(--pb,rgba(255,90,0,.4));
-      -webkit-mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%20200%2070%27%3E%3Cpath%20d%3D%27M56.5%2C0%20L56.5%2C12%20C56.5%2C22%2041.5%2C26%2035.5%2C36%20C29.5%2C44%2027.5%2C48%2027.5%2C55%20L27.5%2C70%20L172.5%2C70%20L172.5%2C55%20C172.5%2C48%20170.5%2C44%20164.5%2C36%20C158.5%2C26%20143.5%2C22%20143.5%2C12%20L143.5%2C0%20Z%27%2F%3E%3C%2Fsvg%3E");
-      mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%20200%2070%27%3E%3Cpath%20d%3D%27M56.5%2C0%20L56.5%2C12%20C56.5%2C22%2041.5%2C26%2035.5%2C36%20C29.5%2C44%2027.5%2C48%2027.5%2C55%20L27.5%2C70%20L172.5%2C70%20L172.5%2C55%20C172.5%2C48%20170.5%2C44%20164.5%2C36%20C158.5%2C26%20143.5%2C22%20143.5%2C12%20L143.5%2C0%20Z%27%2F%3E%3C%2Fsvg%3E");
+      -webkit-mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%20200%2070%27%3E%3Cpath%20d%3D%27M56.5%2C0%20L143.5%2C0%20L143.5%2C14%20L170%2C14%20L170%2C40%20L200%2C40%20L200%2C70%20L0%2C70%20L0%2C40%20L30%2C40%20L30%2C14%20L56.5%2C14%20Z%27%2F%3E%3C%2Fsvg%3E");
+      mask-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%27%20viewBox%3D%270%200%20200%2070%27%3E%3Cpath%20d%3D%27M56.5%2C0%20L143.5%2C0%20L143.5%2C14%20L170%2C14%20L170%2C40%20L200%2C40%20L200%2C70%20L0%2C70%20L0%2C40%20L30%2C40%20L30%2C14%20L56.5%2C14%20Z%27%2F%3E%3C%2Fsvg%3E");
       -webkit-mask-size:100% 100%;mask-size:100% 100%;
       -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;
       -webkit-mask-position:center;mask-position:center;
