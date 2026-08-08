@@ -1968,14 +1968,31 @@ window.addEventListener('error', function(e){
           // share that one pivot point and just occlude each other at any
           // angle without also separating in screen space. Sliding them to
           // either side while each holds a moderate, still-legible tilt is
-          // what actually produces the two-page V/tent from the bookstand
-          // reference, instead of one cover eclipsing the other. The spine
-          // and page-edge faces belonged to the closed, rigid box — with
-          // the covers independently hinging open now, those two would
-          // clip through empty space, so they fade out for the open beat
-          // and back in once the covers return to the closed box shape.
-          .fromTo(front, {rotationY:0, z:44, rotateX:0, x:0}, {rotationY:-32, z:34, rotateX:2, x:-118, duration:0.22, ease:'power2.out'}, 0.42)
-          .fromTo(back, {rotationY:180, z:44, x:0}, {rotationY:48, z:34, x:118, duration:0.22, ease:'power2.out'}, 0.42)
+          // what produces the two-page spread from the bookstand reference,
+          // instead of one cover eclipsing the other.
+          // Both final rotationY values must land on the SAME side of zero
+          // (both negative here) — this isn't cosmetic, it's a real 3D
+          // depth-ordering requirement. front and back share one pivot, so
+          // their far edges sweep toward or away from the camera depending
+          // on rotation sign; if the two covers sweep in OPPOSITE senses
+          // (one edge coming forward, the other going backward — e.g. -32
+          // paired with +48, the previous values here) the one going
+          // backward is genuinely behind the other in 3D at the pivot, not
+          // just visually crowded, so it's fully hidden there regardless of
+          // how far apart they're translated. Matching signs makes both
+          // fronts equally toward-camera, which is what let the translation
+          // above actually separate them instead of one eclipsing the
+          // other. cube itself sits at rotateY:340 (=-20) for this whole
+          // phase (see spin comment above), which composes additively with
+          // these local values — -20 local + -20 cube = -40 effective for
+          // front, -15 + -20 = -35 effective for back; both comfortably
+          // inside the ±90° backface-visible range with room to spare.
+          // The spine/page-edge faces belonged to the closed, rigid box —
+          // with the covers independently hinging open now, those two
+          // would clip through empty space, so they fade out for the open
+          // beat and back in once the covers return to the closed shape.
+          .fromTo(front, {rotationY:0, z:44, rotateX:0, x:0}, {rotationY:-20, z:34, rotateX:2, x:-100, duration:0.22, ease:'power2.out'}, 0.42)
+          .fromTo(back, {rotationY:180, z:44, x:0}, {rotationY:-15, z:34, x:100, duration:0.22, ease:'power2.out'}, 0.42)
           .to([spine, pages], {opacity:0, duration:0.1, ease:'power1.out'}, 0.42)
           .to([spine, pages], {opacity:1, duration:0.12, ease:'power1.in'}, 0.85)
           // Bundle only: the other four products fan out from behind the
@@ -2015,8 +2032,15 @@ window.addEventListener('error', function(e){
             played = true;
             gsap.timeline()
               .to(cube, {rotateY:0, scale:1, duration:0.5, ease:'power2.out'}, 0)
-              .fromTo(front, {rotationY:0, z:32, x:0}, {rotationY:-24, z:26, x:-88, duration:0.35, ease:'power2.out'}, 0.28)
-              .fromTo(back, {rotationY:180, z:32, x:0}, {rotationY:52, z:26, x:88, duration:0.35, ease:'power2.out'}, 0.28)
+              // Both final rotationY values land on the same (negative)
+              // side of zero, matching desktop — see the depth-ordering
+              // comment on the desktop timeline above. Mismatched signs
+              // (front negative, back positive, as this used to read) put
+              // back genuinely behind front in 3D at the shared pivot, not
+              // just visually crowded, so the translation below couldn't
+              // separate them no matter how far apart they slid.
+              .fromTo(front, {rotationY:0, z:32, x:0}, {rotationY:-40, z:26, x:-75, duration:0.35, ease:'power2.out'}, 0.28)
+              .fromTo(back, {rotationY:180, z:32, x:0}, {rotationY:-35, z:26, x:75, duration:0.35, ease:'power2.out'}, 0.28)
               .to([spine, pages], {opacity:0, duration:0.15, ease:'power1.out'}, 0.28)
               .to(copy, {opacity:1, x:0, duration:0.3, ease:'power3.out'}, 0.45);
             playOnce.disconnect();
