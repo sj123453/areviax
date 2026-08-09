@@ -4679,6 +4679,44 @@ function getWalkthroughSVG(anim){
           <animate attributeName="opacity" values="0.75;1;1;0.75" keyTimes="0; 0.4; 0.55; 1" dur="2.6s" repeatCount="indefinite"/>
         </ellipse>`;
       break;
+    case 'squat':
+      // Hip/knee/ankle pivots measured directly off the artwork the same
+      // way as curl's elbows: hip (171,437), knee (182,589), ankle
+      // (182,748) on the left leg, mirrored around the front figure's own
+      // centerline (~227, NOT the full viewBox's center — the viewBox
+      // holds both the front AND back figures side by side, so mirroring
+      // around the whole-viewBox midpoint lands coordinates on the back
+      // figure instead of the front one's other leg).
+      // A rotating-limb rig (the same technique curl uses) was tried
+      // first and rejected — rotating the thigh at the hip and the shin
+      // at the knee in opposite directions to fake a knee bend produced
+      // a scissoring "X" as the segments swept toward each other, which
+      // reads as the legs crossing, not bending. A strict front view has
+      // no depth axis to show a forward hip-hinge in anyway, so instead
+      // of rotation this animates the overlay bar's own y/height: the
+      // top (hip) drops toward the bottom (ankle, which stays fixed —
+      // planted feet), with a slight outward x drift on both bars to
+      // suggest the knees tracking out over the toes. Reads clearly as
+      // "the hips are sinking" without any crossing artifact.
+      overlay=`
+        <rect id="wtLegL${_uid}" x="164" y="437" width="16" height="311" rx="8" fill="rgba(255,255,255,.5)">
+          <animate attributeName="y" values="437;480;480;437" keyTimes="0; 0.4; 0.55; 1" dur="2.6s" repeatCount="indefinite" calcMode="spline" keySplines="0.4 0 0.2 1; 0 0 1 1; 0.4 0 0.2 1"/>
+          <animate attributeName="height" values="311;268;268;311" keyTimes="0; 0.4; 0.55; 1" dur="2.6s" repeatCount="indefinite" calcMode="spline" keySplines="0.4 0 0.2 1; 0 0 1 1; 0.4 0 0.2 1"/>
+          <animate attributeName="x" values="164;156;156;164" keyTimes="0; 0.4; 0.55; 1" dur="2.6s" repeatCount="indefinite" calcMode="spline" keySplines="0.4 0 0.2 1; 0 0 1 1; 0.4 0 0.2 1"/>
+        </rect>
+        <rect id="wtLegR${_uid}" x="256" y="437" width="16" height="311" rx="8" fill="rgba(255,255,255,.5)">
+          <animate attributeName="y" values="437;480;480;437" keyTimes="0; 0.4; 0.55; 1" dur="2.6s" repeatCount="indefinite" calcMode="spline" keySplines="0.4 0 0.2 1; 0 0 1 1; 0.4 0 0.2 1"/>
+          <animate attributeName="height" values="311;268;268;311" keyTimes="0; 0.4; 0.55; 1" dur="2.6s" repeatCount="indefinite" calcMode="spline" keySplines="0.4 0 0.2 1; 0 0 1 1; 0.4 0 0.2 1"/>
+          <animate attributeName="x" values="256;264;264;256" keyTimes="0; 0.4; 0.55; 1" dur="2.6s" repeatCount="indefinite" calcMode="spline" keySplines="0.4 0 0.2 1; 0 0 1 1; 0.4 0 0.2 1"/>
+        </rect>`;
+      pulse=`
+        <ellipse cx="172" cy="500" rx="26" ry="55" fill="url(#rgW${_uid})">
+          <animate attributeName="opacity" values="0.75;1;1;0.75" keyTimes="0; 0.4; 0.55; 1" dur="2.6s" repeatCount="indefinite"/>
+        </ellipse>
+        <ellipse cx="260" cy="500" rx="26" ry="55" fill="url(#rgW${_uid})">
+          <animate attributeName="opacity" values="0.75;1;1;0.75" keyTimes="0; 0.4; 0.55; 1" dur="2.6s" repeatCount="indefinite"/>
+        </ellipse>`;
+      break;
     default:
       // No animated rig built for this pattern yet — show the same static
       // highlighted muscle the small card thumbnail already shows, rather
@@ -4722,7 +4760,7 @@ function openWatch(i){
   const e=exs[i];if(!e)return;
   document.getElementById('watch-title').textContent=e.name;
   document.getElementById('watch-body').innerHTML=getWalkthroughSVG(e.anim);
-  document.getElementById('watch-note').textContent=e.anim==='curl'
+  document.getElementById('watch-note').textContent=(e.anim==='curl'||e.anim==='squat')
     ?'Overlay shows the rep path — the highlighted muscle is what should be doing the work.'
     :'No animated walkthrough built yet for this movement — showing the muscle it targets instead.';
   document.getElementById('watch-backdrop').style.display='block';
