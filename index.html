@@ -1685,6 +1685,7 @@ window.addEventListener('error', function(e){
   opacity:0;transform:translate(0,0) scale(.25) rotate(0deg);
   will-change:transform,opacity;
 }
+.sc-hinge{position:absolute;inset:0;transform-style:preserve-3d}
 .sc-face{position:absolute;inset:0;backface-visibility:hidden;border-radius:4px;overflow:hidden}
 .sc-face.sc-front{transform-origin:left center;display:flex;flex-direction:column;justify-content:space-between;padding:22px 18px;will-change:transform}
 .sc-face.sc-back{transform-origin:left center;background:#0d0b09;padding:22px 18px;display:flex;flex-direction:column;justify-content:space-between;will-change:transform,opacity}
@@ -1757,15 +1758,19 @@ window.addEventListener('error', function(e){
       <div class="sc-rail"><div class="sc-fill" id="sc-rail0"></div></div>
       <div class="sc-mount" style="--sc-glow:rgba(74,232,136,.4)">
         <div class="sc-cube" id="sc-cube0" onclick="openModal('massapp')">
+          <div class="sc-hinge sc-hinge-front">
           <div class="sc-face sc-front" style="background:linear-gradient(155deg,#1A3020,#0D1E12)">
             <div class="sc-cover-tag" style="color:#8FF0A8">Premium Subscription</div>
             <div class="sc-cover-title">Physique<br>System</div>
             <div class="sc-cover-price" style="color:#8FF0A8">£16/mo · £125/yr</div>
           </div>
+          </div>
+          <div class="sc-hinge sc-hinge-back">
           <div class="sc-face sc-back" style="background:linear-gradient(155deg,#152A1C,#0a160f)">
             <div class="sc-back-eyebrow">What's inside</div>
             <p class="sc-back-blurb">"Workout builder with PR detection, a 230+ item food database, sleep tracking, and progress photos — everything the Mass Blueprint teaches, tracked for you every day."</p>
             <div class="sc-back-meta">PHYSIQUE SYSTEM · £16/MO</div>
+          </div>
           </div>
           <div class="sc-face sc-spine" style="background:#0a160f"><span class="sc-spine-text">Physique System</span></div>
           <div class="sc-face sc-pages"></div>
@@ -1797,15 +1802,19 @@ window.addEventListener('error', function(e){
           <div class="sc-sat" style="background:linear-gradient(155deg,#B98CFF,#20143d)" data-tx="0" data-ty="-180" data-rot="0"></div>
         </div>
         <div class="sc-cube" id="sc-cube1" onclick="openModal('bundle')">
+          <div class="sc-hinge sc-hinge-front">
           <div class="sc-face sc-front" style="background:linear-gradient(155deg,#0A2E3D,#051A22)">
             <div class="sc-cover-tag" style="color:#8FE0FF">Complete Collection</div>
             <div class="sc-cover-title">The<br>Mastermind<br>Bundle</div>
             <div class="sc-cover-price" style="color:#8FE0FF">£97 · was £129</div>
           </div>
+          </div>
+          <div class="sc-hinge sc-hinge-back">
           <div class="sc-face sc-back" style="background:linear-gradient(155deg,#123340,#081820)">
             <div class="sc-back-eyebrow">What's inside</div>
             <p class="sc-back-blurb">"All five products. One price. Lifetime access. Everything you need to build, grow and scale — nothing held back."</p>
             <div class="sc-back-meta">MASTERMIND BUNDLE · £97</div>
+          </div>
           </div>
           <div class="sc-face sc-spine" style="background:#081820"><span class="sc-spine-text">Mastermind Bundle</span></div>
           <div class="sc-face sc-pages"></div>
@@ -1830,15 +1839,19 @@ window.addEventListener('error', function(e){
       <div class="sc-rail"><div class="sc-fill" id="sc-rail2"></div></div>
       <div class="sc-mount" style="--sc-glow:rgba(255,140,71,.45)">
         <div class="sc-cube" id="sc-cube2" onclick="openModal('app')">
+          <div class="sc-hinge sc-hinge-front">
           <div class="sc-face sc-front" style="background:linear-gradient(155deg,#3D1F0A,#150C05)">
             <div class="sc-cover-tag" style="color:#FFB380">Premium Subscription</div>
             <div class="sc-cover-title">Areviax<br>OS</div>
             <div class="sc-cover-price" style="color:#FFB380">£16/mo · £110/yr</div>
           </div>
+          </div>
+          <div class="sc-hinge sc-hinge-back">
           <div class="sc-face sc-back" style="background:linear-gradient(155deg,#402410,#150c05)">
             <div class="sc-back-eyebrow">What's inside</div>
             <p class="sc-back-blurb">"Workout planner, study sessions, habit tracking, and gamified goals — all in one place. Compass shard rewards, XP levels, and streak tracking."</p>
             <div class="sc-back-meta">AREVIAX OS · £16/MO</div>
+          </div>
           </div>
           <div class="sc-face sc-spine" style="background:#0f0904"><span class="sc-spine-text">Areviax OS</span></div>
           <div class="sc-face sc-pages"></div>
@@ -1916,6 +1929,8 @@ window.addEventListener('error', function(e){
       const rail = document.getElementById('sc-rail'+i);
       const front = cube.querySelector('.sc-front');
       const back = cube.querySelector('.sc-back');
+      const frontHinge = cube.querySelector('.sc-hinge-front');
+      const backHinge = cube.querySelector('.sc-hinge-back');
       const spine = cube.querySelector('.sc-spine');
       const pages = cube.querySelector('.sc-pages');
       const sats = section.querySelectorAll('.sc-sat');
@@ -1931,6 +1946,16 @@ window.addEventListener('error', function(e){
           // the front cracking open a few degrees while the back stays
           // rigidly shut behind it.
           gsap.set(back, {rotationY:180, z:44, transformOrigin:'left center'});
+          // Each cover's own rotationY/z (above) still does the closed-box
+          // spin exactly as before — that part isn't changing. The fan-open
+          // shape is a SEPARATE rotation on a wrapping element with its own
+          // pivot at the shared bottom-center spine point, composed on top
+          // of the cover's existing 3D spin via normal parent/child
+          // transform nesting. Keeping it on its own element avoids
+          // re-deriving the cover's resting 180°/left-center geometry to
+          // share a pivot it was never built around — this wrapper sits at
+          // rotation:0 (zero visual effect) except during the open beat.
+          gsap.set([frontHinge, backHinge], {transformOrigin:'50% 100%', rotation:0});
           if(sats.length) gsap.set(sats, {x:0, y:0, scale:.25, opacity:0, rotate:0});
           // The spin allocates LESS scroll-time to the angles where the
           // book shows its spine/page edge (~90°/~270°) and MORE to the
@@ -1991,8 +2016,19 @@ window.addEventListener('error', function(e){
           // with the covers independently hinging open now, those two
           // would clip through empty space, so they fade out for the open
           // beat and back in once the covers return to the closed shape.
-          .fromTo(front, {rotationY:0, z:44, rotateX:0, x:0}, {rotationY:-20, z:34, rotateX:2, x:-120, duration:0.22, ease:'power2.out'}, 0.42)
-          .fromTo(back, {rotationY:180, z:44, x:0}, {rotationY:-15, z:34, x:140, duration:0.22, ease:'power2.out'}, 0.42)
+          .fromTo(front, {rotationY:0, z:44, rotateX:0}, {rotationY:-20, z:34, rotateX:2, duration:0.22, ease:'power2.out'}, 0.42)
+          .fromTo(back, {rotationY:180, z:44}, {rotationY:-15, z:34, duration:0.22, ease:'power2.out'}, 0.42)
+          // The V-shape spread itself: both covers pivot from the SAME
+          // shared point (their wrapper's bottom-center, pinned to the
+          // book's own spine) and fan outward to opposite sides — matching
+          // an open book resting spine-down, not two cards sliding apart
+          // side by side. Signs are opposite here on purpose (unlike the
+          // covers' own rotationY above): this is a flat, in-plane Z-axis
+          // rotation on a different element, so there's no shared-pivot
+          // depth-culling risk — the two wrappers are independent siblings,
+          // neither is ever "behind" the other in 3D.
+          .fromTo(frontHinge, {rotation:0}, {rotation:-27, duration:0.22, ease:'power2.out'}, 0.42)
+          .fromTo(backHinge, {rotation:0}, {rotation:27, duration:0.22, ease:'power2.out'}, 0.42)
           // The back cover's rotation alone doesn't stay hidden long enough
           // to clear the front — power2.out's fast start means it swings
           // into a fully legible, undistorted angle well before it's
@@ -2015,8 +2051,9 @@ window.addEventListener('error', function(e){
           .fromTo(copyKids, {opacity:0, x:-40}, {opacity:1, x:0, duration:0.22, ease:'power3.out', stagger:0.025}, 0.48)
           .to(copyKids, {opacity:0, x:-30, duration:0.10, ease:'power1.in', stagger:0.015}, 0.85)
           .to(sats, {x:0, y:0, rotate:0, scale:.25, opacity:0, duration:0.12, stagger:0.015, ease:'power1.in'}, 0.85)
-          .to(front, {rotationY:0, z:44, rotateX:0, x:0, duration:0.18, ease:'power2.inOut'}, 0.87)
-          .to(back, {rotationY:180, z:44, x:0, duration:0.18, ease:'power2.inOut'}, 0.87)
+          .to(front, {rotationY:0, z:44, rotateX:0, duration:0.18, ease:'power2.inOut'}, 0.87)
+          .to(back, {rotationY:180, z:44, duration:0.18, ease:'power2.inOut'}, 0.87)
+          .to([frontHinge, backHinge], {rotation:0, duration:0.18, ease:'power2.inOut'}, 0.87)
           // Scale eases back to frame-one's 0.8 with its own dedicated
           // stretch, overlapping the tail of the cover closing rather than
           // waiting for it — the book visibly recedes as it finishes
@@ -2027,6 +2064,7 @@ window.addEventListener('error', function(e){
           gsap.set(cube, {rotateY:-85, scale:.85});
           gsap.set(front, {z:32, transformOrigin:'left center'});
           gsap.set(back, {rotationY:180, z:32, transformOrigin:'left center'});
+          gsap.set([frontHinge, backHinge], {transformOrigin:'50% 100%', rotation:0});
           gsap.set(copy, {opacity:0, x:-30});
           // Continuous scroll-scrubbing doesn't hold up against real touch
           // scrolling — a fast swipe covers the whole trigger range faster
@@ -2051,8 +2089,12 @@ window.addEventListener('error', function(e){
               // back genuinely behind front in 3D at the shared pivot, not
               // just visually crowded, so the translation below couldn't
               // separate them no matter how far apart they slid.
-              .fromTo(front, {rotationY:0, z:32, x:0}, {rotationY:-40, z:26, x:-90, duration:0.35, ease:'power2.out'}, 0.28)
-              .fromTo(back, {rotationY:180, z:32, x:0}, {rotationY:-35, z:26, x:90, duration:0.35, ease:'power2.out'}, 0.28)
+              .fromTo(front, {rotationY:0, z:32}, {rotationY:-40, z:26, duration:0.35, ease:'power2.out'}, 0.28)
+              .fromTo(back, {rotationY:180, z:32}, {rotationY:-35, z:26, duration:0.35, ease:'power2.out'}, 0.28)
+              // Same bottom-spine fan as desktop, scaled down for the
+              // smaller mobile box.
+              .fromTo(frontHinge, {rotation:0}, {rotation:-24, duration:0.35, ease:'power2.out'}, 0.28)
+              .fromTo(backHinge, {rotation:0}, {rotation:24, duration:0.35, ease:'power2.out'}, 0.28)
               // Same fix as desktop: gate the back cover's legibility on its
               // own later, accelerating fade instead of letting it pop
               // fully readable while still overlapping the front mid-swing.
