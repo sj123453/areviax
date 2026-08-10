@@ -4658,17 +4658,29 @@ function getWalkthroughSVG(anim){
       // Elbow pivots measured directly off the artwork: left arm (83,268),
       // right arm mirrored (371,268). Resting/extended angle ~11deg matches
       // the silhouette's own arm exactly so the overlay lines up with the
-      // real art at rest; curled angle ~170deg brings the forearm up
-      // toward the shoulder for a full bicep contraction.
+      // real art at rest.
+      // The curled target is reached by sweeping THROUGH zero (down) to a
+      // negative angle for the left arm / positive for the right, not by
+      // continuing further in the same direction as the resting tilt.
+      // SMIL interpolates the raw numeric path between keyframe values, so
+      // the sign of the target — not just its final value mod 360 — decides
+      // which side the forearm swings out to along the way. Continuing
+      // outward from the resting angle (11 -> 170) swings the whole forearm
+      // away from the torso, arriving pointing up but leaning outward —
+      // reads as a lateral raise, not a curl. Reversing the target's sign
+      // (11 -> -170, an equivalent final orientation reached via the
+      // opposite arc) sweeps the forearm up and in across the front of the
+      // chest instead, which is what a curl actually looks like from the
+      // front.
       overlay=`
         <g id="wtArmL${_uid}"><rect x="76" y="268" width="14" height="89" rx="7" fill="rgba(255,255,255,.55)"/></g>
         <g id="wtArmR${_uid}"><rect x="364" y="268" width="14" height="89" rx="7" fill="rgba(255,255,255,.55)"/></g>
         <animateTransform href="#wtArmL${_uid}" attributeName="transform" type="rotate"
-          values="11 83 268; 170 83 268; 170 83 268; 11 83 268" keyTimes="0; 0.4; 0.55; 1"
+          values="11 83 268; -170 83 268; -170 83 268; 11 83 268" keyTimes="0; 0.4; 0.55; 1"
           dur="2.6s" repeatCount="indefinite" calcMode="spline"
           keySplines="0.4 0 0.2 1; 0 0 1 1; 0.4 0 0.2 1"/>
         <animateTransform href="#wtArmR${_uid}" attributeName="transform" type="rotate"
-          values="-11 371 268; -170 371 268; -170 371 268; -11 371 268" keyTimes="0; 0.4; 0.55; 1"
+          values="-11 371 268; 170 371 268; 170 371 268; -11 371 268" keyTimes="0; 0.4; 0.55; 1"
           dur="2.6s" repeatCount="indefinite" calcMode="spline"
           keySplines="0.4 0 0.2 1; 0 0 1 1; 0.4 0 0.2 1"/>`;
       pulse=`
