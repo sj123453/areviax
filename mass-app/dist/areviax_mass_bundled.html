@@ -297,6 +297,9 @@ input,input:focus,input:active,
 .macro-row2-nums .tgt{font-size:12px;font-weight:600;color:var(--muted)}
 .macro-bar-wrap2{height:10px;border-radius:5px;background:rgba(255,255,255,.05);overflow:hidden;width:100%}
 .macro-bar-fill2{height:100%;border-radius:5px;transition:width .6s ease}
+.water-glass{cursor:pointer;padding:2px;border-radius:4px;transition:transform .12s ease}
+.water-glass:active{transform:scale(.85)}
+.water-glass svg path{transition:fill .2s ease,stroke .2s ease}
 
 /* MEAL */
 .meal-row{display:flex;align-items:center;gap:10px;padding:11px 14px;background:rgba(255,255,255,.03);border:1.5px solid rgba(255,255,255,.06);border-radius:8px;margin-bottom:8px}
@@ -1411,6 +1414,12 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     <span style="font-size:15px">🔥</span><span id="streak-risk-text"></span>
   </div>
 
+  <div id="streak-repair-banner" style="display:none;align-items:center;gap:8px;background:rgba(68,207,255,.08);border:1.5px solid rgba(68,207,255,.25);border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:11.5px;color:rgba(238,240,255,.85)">
+    <span style="font-size:15px">🔷</span><span id="streak-repair-text" style="flex:1"></span>
+    <span onclick="repairStreak()" style="cursor:pointer;color:#44CFFF;font-weight:700;text-decoration:underline;text-underline-offset:2px;white-space:nowrap">Repair</span>
+    <span onclick="dismissStreakRepair()" style="cursor:pointer;color:var(--muted);font-size:15px;padding:0 2px 0 8px">✕</span>
+  </div>
+
   <div id="sleep-reminder-banner" style="display:none;align-items:center;gap:8px;background:rgba(255,122,46,.08);border:1.5px solid rgba(255,122,46,.25);border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:11.5px;color:rgba(238,240,255,.85)">
     <span style="font-size:15px">😴</span><span id="sleep-reminder-text"></span>
   </div>
@@ -1456,15 +1465,28 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     <div style="font-size:11px;color:rgba(255,122,46,.8);font-weight:700;position:relative">— Areviax</div>
   </div>
 
-  <!-- COMPASS + STREAK + CALORIES/PROTEIN — sits directly on the page now.
-       Used to live behind a collapsed "Progress" accordion that had to be
-       tapped open every visit; today's numbers are worth seeing at a
-       glance, not worth an extra tap to reveal. -->
-  <div id="acc-progress" style="margin-bottom:16px">
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;margin-top:8px">
+  <!-- WEEKLY ASSESSMENT — real analysis of the week's actual data (sessions,
+       protein days, sleep — see generateAssessment()), computed every Monday
+       but previously left in a display:none block with nothing rendering it.
+       Surfaced here as a real card instead of building a separate "weekly
+       digest" feature that would just duplicate what this already does. -->
+  <div id="assessment-card" onclick="viewAssessment()" style="cursor:pointer;background:linear-gradient(135deg,rgba(68,212,255,.06),rgba(255,255,255,.01));border:1px solid rgba(68,212,255,.14);border-radius:16px;padding:16px 18px;margin-bottom:12px;position:relative">
+    <div id="assessment-new-badge" style="position:absolute;top:14px;right:16px;width:8px;height:8px;border-radius:50%;background:#44CFFF;box-shadow:0 0 8px rgba(68,212,255,.7)"></div>
+    <div style="font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:rgba(68,212,255,.75);margin-bottom:8px;font-weight:700">This Week's Assessment</div>
+    <div style="font-size:12.5px;color:rgba(238,240,255,.85);line-height:1.6" id="assessment-text">—</div>
+  </div>
+
+  <!-- THIS WEEK — Compass, Streak, Calories, Protein, and session count
+       grouped under one card instead of three separate floating blocks, so
+       it reads as one stat panel rather than a stack of boxes. Same data,
+       same functions render into it — only the container changed. -->
+  <div id="acc-progress" style="background:#0B0B0B;border:1px solid rgba(255,255,255,.06);border-radius:18px;padding:16px;margin-bottom:16px">
+  <div style="font-size:9px;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:rgba(238,240,255,.35);margin-bottom:12px">This week</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
     <div style="background:#0B0B0B;border:1px solid rgba(255,90,0,.12);border-radius:16px;padding:16px;display:flex;flex-direction:column;align-items:center;gap:8px;box-shadow:0 0 28px -14px rgba(255,90,0,.16)">
       <canvas id="compass-main" width="88" height="88"></canvas>
       <div style="font-size:8px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:rgba(68,212,255,.7)" id="compass-label">Weekly Compass</div>
+      <div id="shard-bank-indicator" style="font-size:9px;color:#44CFFF;font-weight:700"></div>
     </div>
     <div id="streak-card" style="background:#0B0B0B;border:1px solid rgba(255,122,46,.1);border-radius:16px;padding:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;box-shadow:0 0 28px -14px rgba(255,122,46,.14);position:relative;overflow:hidden">
       <div style="position:absolute;top:50%;left:50%;width:100px;height:100px;transform:translate(-50%,-50%);background:radial-gradient(circle,rgba(255,122,46,.14),transparent 70%);pointer-events:none"></div>
@@ -1511,7 +1533,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     </div>
   </div>
 
-  <div id="vol-daily-card" style="display:none;background:#0B0B0B;border:1px solid rgba(255,90,0,.08);border-radius:16px;padding:16px;margin-bottom:16px">
+  <div id="vol-daily-card" style="display:none;border-top:1px solid rgba(255,255,255,.06);padding-top:14px;margin-bottom:12px">
     <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px">
       <div style="display:flex;align-items:center;gap:6px">
         <span style="font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,90,0,.75)">Volume &middot; this week</span>
@@ -1522,7 +1544,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     <div id="vol-daily-labels" style="display:flex;gap:6px;font-size:8px;color:var(--muted)"></div>
   </div>
 
-  <div style="display:flex;justify-content:center;margin-bottom:16px;font-size:10.5px;color:var(--muted)">
+  <div style="display:flex;justify-content:center;font-size:10.5px;color:var(--muted)">
     <span><strong style="color:rgba(238,240,255,.85)" id="d-sessions-brief">0/0</strong> sessions this week</span>
   </div>
   </div>
@@ -1547,10 +1569,11 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     <button onclick="dismissBackupReminder()" style="background:none;border:none;color:rgba(238,240,255,.4);font-size:16px;padding:0 2px;line-height:1">×</button>
   </div>
 
-  <!-- HIDDEN ANCHORS — JS needs these IDs to exist, nothing renders -->
+  <!-- HIDDEN ANCHORS — JS needs these IDs to exist, nothing renders.
+       assessment-card moved out to a real visible spot above (see the
+       comment there) — removed from here so the id isn't duplicated. -->
   <div style="display:none">
     <div id="rank-badge"></div>
-    <div id="assessment-card" onclick="viewAssessment()" style="cursor:pointer"><div id="assessment-new-badge"></div><div id="assessment-text"></div></div>
     <div id="daily-companion"><div id="companion-text"></div><div id="quote-author"></div><div id="quote-context"></div></div>
     <div id="quest-list"></div>
     <div class="statue-figure"><div class="statue-metal-base"></div><div class="statue-metal-fill" id="statue-fill"></div></div>
@@ -2018,6 +2041,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
   <div class="card acc-body" id="acc-macros" style="margin-bottom:14px">
     <div class="ch"><span class="ct ct-mint" style="display:flex;align-items:center;gap:7px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>Today's macros</span><span class="ca" onclick="resetDay()">Reset</span></div>
     <div id="macro-disp"></div>
+    <div id="water-row" style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.06)"></div>
     <div id="macro-alcohol-line" style="display:none;font-size:11.5px;color:var(--muted);margin-top:6px">🍷 <span id="macro-alcohol-val">0</span>g alcohol today</div>
     <div id="macro-why-toggle" onclick="toggleMacroWhy()" style="font-size:10.5px;color:var(--muted);cursor:pointer;margin-top:8px;text-decoration:underline;text-underline-offset:2px;display:inline-block">Why these numbers?</div>
     <div id="macro-why-panel" style="display:none;margin-top:10px;padding:12px 14px;background:rgba(255,255,255,.03);border:1.5px solid var(--border2);border-radius:8px;font-size:11.5px;line-height:1.7;color:rgba(238,240,255,.7)">
@@ -2091,6 +2115,13 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     <div id="vol-trend-labels" style="display:flex;gap:6px;font-size:8px;color:var(--muted)"></div>
   </div>
 
+  <!-- XP SOURCE BREAKDOWN — what's actually been driving XP lately, not
+       just the lifetime total ticking up with no context. -->
+  <div class="card" style="margin-bottom:20px">
+    <div class="ch"><span class="ct">⭐ Where your XP came from</span></div>
+    <div id="xp-breakdown"></div>
+  </div>
+
   <!-- WEIGHT — one independent section -->
   <div style="font-size:9px;font-weight:800;letter-spacing:.24em;text-transform:uppercase;color:#FFD24D;margin-bottom:8px">Weight</div>
   <div class="card card-accent-gold" style="margin-bottom:20px">
@@ -2141,6 +2172,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
   <div class="card">
     <div class="ch"><span class="ct">Progress Photos</span><span class="ca" onclick="document.getElementById('photo-file-input').click()">+ Add photo</span></div>
     <input type="file" id="photo-file-input" accept="image/*" capture="environment" style="display:none" onchange="addProgressPhoto(this)">
+    <div id="photo-align-guide" style="display:none"></div>
     <div id="photo-gallery" class="photo-gallery"></div>
 
     <div id="photo-compare-section" style="display:none;margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,.06)">
@@ -3346,6 +3378,17 @@ function updateMobileNav(page){
 
 // ── STATE ──
 let xp=0,streak=0,compassPts=0,totalSess=0,sessThisWeek=0;
+// Compass shards — a real banked/spendable currency, unlike compassPts
+// (an ephemeral within-week counter that resets to 0 every Monday and was
+// never actually spendable on anything). Earned one per perfect
+// 7-day week, spendable on repairing a broken streak.
+let shardBank=0;
+let streakRepairDismissedDate='';
+// Every addXP() call already carries a human label ('Session complete',
+// 'Sleep logged', etc) — logging each award here (capped, oldest first
+// out) is what lets a breakdown view answer "what's actually been
+// driving XP lately" instead of just showing the lifetime total.
+let xpLog=[];
 let weightUnit='lbs',heightUnit='cm'; // display/input preference only — profile.weight stays lbs, profile.height stays cm everywhere else in the app
 let injuryWarningsDisabled=false;
 let reducedSetsMode=false; // trade sets-per-exercise for more exercise variety when muscles don't fit
@@ -3447,9 +3490,10 @@ function cyclePriority(key){
 
 let prs={};
 let lastPerformance={}; // name -> {weight,reps,date} — powers progressive-overload suggestions
+let liftHistory={}; // name -> [{date,weight,reps}, ...] one row per session — powers plateau detection
 let weightLog=[];
 let measurementsLog=[];
-let dayMacros={cals:0,prot:0};
+let dayMacros={cals:0,prot:0,water:0};
 let nutritionDayLog=[]; // [{date,hitTarget}] — powers the Caloric Shield's 3-day streak multiplier
 let timerOn=false,timerSecs=0,timerInt=null;
 let restSecs=0,restInt=null;
@@ -5231,6 +5275,29 @@ function renderPhotoGallery(){
     ).join('');
   }
   renderPhotoComparison();
+  renderPhotoAlignGuide();
+}
+
+// ── PHOTO ALIGN GUIDE — a live in-shot skeleton isn't feasible since
+// photos go through the OS camera app (no in-page <video> preview to draw
+// over), so this is the realistic version: the last saved photo shown
+// faintly with a rule-of-thirds grid, to eyeball framing/distance against
+// before opening the camera for the next one — cuts down on progress
+// photos shot from noticeably different distances/angles making
+// side-by-side comparison harder to read.
+function renderPhotoAlignGuide(){
+  const wrap=document.getElementById('photo-align-guide');
+  if(!wrap)return;
+  if(!photoLog.length){wrap.style.display='none';return;}
+  const last=photoLog[photoLog.length-1];
+  wrap.style.display='block';
+  wrap.innerHTML=`<div style="position:relative;max-width:180px;margin:0 auto 12px;border-radius:8px;overflow:hidden;border:1.5px solid var(--border2)">
+    <img src="${last.dataUrl}" style="width:100%;display:block;opacity:.4">
+    <div style="position:absolute;inset:0;display:grid;grid-template-columns:1fr 1fr 1fr;grid-template-rows:1fr 1fr 1fr">
+      ${Array.from({length:9},()=>'<div style="border:1px dashed rgba(255,255,255,.35)"></div>').join('')}
+    </div>
+    <div style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.6);color:#fff;font-size:9px;text-align:center;padding:3px 0">Match this framing (${fmtPhotoDate(last.date)})</div>
+  </div>`;
 }
 
 function renderPhotoComparison(){
@@ -5752,11 +5819,34 @@ function celebrateBurst(emojis,count){
 }
 function addXP(n,l=''){
   xp+=n;
+  xpLog.push({date:localDateKey(new Date()),amount:n,label:l||'Other'});
+  if(xpLog.length>500)xpLog=xpLog.slice(-500);
   const xve=document.getElementById('xp-val');if(xve)xve.textContent=xp;
   toast('⭐',`+${n} XP${l?' — '+l:''}`);
   try{updateAvatar();}catch(e){}
   updateStreakFromActivity();
   try{checkStreakAtRisk();}catch(e){}
+  try{renderXpBreakdown();}catch(e){}
+}
+// ── XP SOURCE BREAKDOWN — sums xpLog by label over a trailing 7-day
+// window, so "why did my XP go up this week" has a real answer instead
+// of just the lifetime counter ticking up with no context.
+function renderXpBreakdown(){
+  const wrap=document.getElementById('xp-breakdown');
+  if(!wrap)return;
+  const weekAgo=new Date();weekAgo.setDate(weekAgo.getDate()-7);
+  const recent=xpLog.filter(e=>parseLocalDate(e.date)>=weekAgo);
+  if(!recent.length){wrap.innerHTML='<div style="font-size:11px;color:var(--muted)">No XP earned in the last 7 days yet.</div>';return;}
+  const byLabel={};
+  recent.forEach(e=>{byLabel[e.label]=(byLabel[e.label]||0)+e.amount;});
+  const total=recent.reduce((a,e)=>a+e.amount,0);
+  const sorted=Object.entries(byLabel).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  const cols=['#FF5A00','#44CFFF','#6FE8A0','#FFC94A','#FF6FA5','#B98CFF'];
+  wrap.innerHTML=`<div style="font-size:9px;font-weight:700;color:rgba(238,240,255,.3);text-transform:uppercase;letter-spacing:.14em;margin-bottom:10px">Last 7 days · ${total} XP</div>`+
+    sorted.map(([label,amt],i)=>`<div style="display:flex;align-items:center;gap:8px;margin-bottom:7px">
+      <div style="flex:1;min-width:0"><div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px"><span style="color:rgba(238,240,255,.75)">${label}</span><span style="color:${cols[i]};font-weight:700;font-family:'JetBrains Mono',monospace">${amt}</span></div>
+      <div style="height:5px;border-radius:3px;background:rgba(255,255,255,.05);overflow:hidden"><div style="height:100%;border-radius:3px;width:${total?Math.round(amt/total*100):0}%;background:${cols[i]}"></div></div></div>
+    </div>`).join('');
 }
 // Streak now reflects "showed up today" — any XP-earning action counts, not just a logged workout.
 // A day with zero activity (zero XP earned) is the only thing that breaks it.
@@ -5883,6 +5973,7 @@ function showPage(id){
     // Recalculate greeting on every dashboard visit
     updateGreeting();
     try{checkStreakAtRisk();}catch(e){}
+    try{checkStreakBroken();}catch(e){}
     try{checkSleepReminder();}catch(e){}
     try{checkSittingJobTip();}catch(e){}
   }
@@ -6398,8 +6489,10 @@ function initApp(){
   try{renderCompass();}catch(e){console.error('renderCompass:',e.message);}
   try{renderConsistency();}catch(e){console.error('renderConsistency:',e.message);}
   try{renderVolumeTrend();}catch(e){console.error('renderVolumeTrend:',e.message);}
+  try{renderXpBreakdown();}catch(e){console.error('renderXpBreakdown:',e.message);}
   try{renderDailyVolume();}catch(e){console.error('renderDailyVolume:',e.message);}
   try{checkStreakAtRisk();}catch(e){console.error('checkStreakAtRisk:',e.message);}
+  try{checkStreakBroken();}catch(e){console.error('checkStreakBroken:',e.message);}
   try{checkSleepReminder();}catch(e){console.error('checkSleepReminder:',e.message);}
   try{checkSittingJobTip();}catch(e){console.error('checkSittingJobTip:',e.message);}
   try{buildTodayPreview();}catch(e){console.error('buildTodayPreview:',e.message);}
@@ -6455,6 +6548,8 @@ function renderCompass(){
   // this used to bail out early and silently skip drawCompass() entirely,
   // which is why the shard canvas never refreshed when a new shard was earned.
   drawCompass();
+  const sbi=document.getElementById('shard-bank-indicator');
+  if(sbi)sbi.textContent=shardBank>0?'🔷 '+shardBank+' shard'+(shardBank===1?'':'s'):'';
 }
 
 // Sweep-ring gauge + 8-point compass-rose needle -- the design that came out
@@ -7751,6 +7846,31 @@ function buildTodayPreview(){
   el.innerHTML=`<div style="font-weight:700;font-size:13px;margin-bottom:3px">Upper Body — Push</div><div style="font-size:11px;color:var(--muted);margin-bottom:9px">Chest · Shoulders · Triceps</div>${exs.map(e=>`<div style="display:flex;justify-content:space-between;font-size:11px;padding:4px 0;border-bottom:1.5px solid var(--border2)"><span style="color:var(--muted)">${e.name}</span><span style="font-family:'JetBrains Mono',monospace;font-size:10px">${e.sets}×${e.reps}</span></div>`).join('')}<div style="font-size:10px;color:var(--muted);margin-top:5px">Tap Start session to begin</div>`;
 }
 
+// ── PLATEAU RADAR — suggestNextWeight() above only ever looks at the
+// single most recent session, so it keeps gently suggesting "+2.5kg" every
+// time even if the user has quietly logged the exact same weight for the
+// last month. This looks BACK across liftHistory (real per-session rows,
+// unlike lastPerformance which only remembers one) to catch a genuine
+// stall — same or lower weight for several sessions running — and names
+// a specific fix instead of leaving the user to notice the stall
+// themselves.
+function detectPlateau(name){
+  const hist=liftHistory[name];
+  if(!hist||hist.length<4)return null;
+  const recent=hist.slice(-4);
+  const maxW=Math.max(...recent.map(h=>h.weight));
+  const minW=Math.min(...recent.map(h=>h.weight));
+  if(maxW>minW)return null; // still moving, no plateau
+  const sessions=recent.length;
+  const weight=recent[recent.length-1].weight;
+  const fixes=[
+    `try a deload — drop to ${Math.round(weight*0.85*10)/10}kg for one session, then build back up`,
+    `swap the rep range — if you've been doing ${recent[recent.length-1].reps} reps, try 2-3 reps lower with more weight, or 2-3 higher with less`,
+    `check your technique on the last couple reps — a stall is often the last rep or two turning into partial reps without you noticing`
+  ];
+  const fix=fixes[sessions%fixes.length];
+  return {sessions,weight,note:`Stuck at ${weight}kg for ${sessions} sessions — ${fix}.`};
+}
 function suggestNextWeight(e){
   const last=lastPerformance[e.name];
   if(!last)return null;
@@ -7833,6 +7953,7 @@ function buildSession(){
   const cont=document.getElementById('sess-exercises');if(!cont)return;
   cont.innerHTML=exs.map((e,i)=>{
     const sug=suggestNextWeight(e);
+    const plateau=detectPlateau(e.name);
     const saved=liveSessionProgress[e.name]&&liveSessionProgress[e.name].date===localDateKey(new Date())?liveSessionProgress[e.name]:null;
     return `
     <div class="ex-card" id="sex-${i}">
@@ -7846,6 +7967,7 @@ function buildSession(){
         <div style="width:80px"><label class="lbl" style="margin-top:0">Reps</label><input type="number" id="sr-${i}" style="padding:7px 9px" placeholder="${e.reps.split('–')[0]}" value="${saved?saved.reps:''}"></div>
       </div>
       ${sug?`<div style="font-size:10px;color:rgba(255,90,0,.7);margin:-2px 0 9px;line-height:1.4">📈 ${sug.note}</div>`:''}
+      ${plateau?`<div style="font-size:10px;color:#FF6F6F;background:rgba(255,90,90,.08);border:1px solid rgba(255,90,90,.2);border-radius:6px;padding:6px 9px;margin:-2px 0 9px;line-height:1.4">🎯 ${plateau.note}</div>`:''}
       <div class="sets-row" id="srow-${i}">${Array.from({length:effectiveSets(e)},(_,si)=>{
         const isDone=saved&&saved.doneSets.includes(si);
         const label=isDone?(saved.weight>0?`✓ ${saved.weight}×${saved.reps}`:'✓'):`Set ${si+1}`;
@@ -8076,6 +8198,19 @@ function logSet(ei,si,name,muscle){
     if(!prevBest||prevBest.date!==today||w>=prevBest.weight){
       lastPerformance[name]={weight:w,reps:r,date:today};
     }
+    // Per-exercise weight-over-time, unlike prs (all-time max only) and
+    // lastPerformance (single most recent entry, overwritten every set) —
+    // one row per session (today's best set), which is what plateau
+    // detection needs to look back across sessions rather than just sets.
+    if(!liftHistory[name])liftHistory[name]=[];
+    const hist=liftHistory[name];
+    const lastEntry=hist[hist.length-1];
+    if(!lastEntry||lastEntry.date!==today){
+      hist.push({date:today,weight:w,reps:r});
+      if(hist.length>50)liftHistory[name]=hist.slice(-50);
+    } else if(w>=lastEntry.weight){
+      lastEntry.weight=w;lastEntry.reps=r;
+    }
   }
   if(w>0&&(!prs[name]||w>prs[name])){
     prs[name]=w;chip.classList.add('pr');
@@ -8135,10 +8270,53 @@ function skipRest(){clearInterval(restInt);const ro=document.getElementById('res
 function checkCompassWeek(){
   const thisMonday=getMonday(new Date());
   if(compassWeekStart!==thisMonday){
+    // A perfect week (trained all 7 days) banks a spendable shard before
+    // compassPts resets — otherwise that achievement just evaporates into
+    // next week's counter with nothing to show for it.
+    if(compassPts>=7){
+      shardBank++;
+      toast('🔷','Perfect week — banked a Compass Shard!');
+    }
     compassWeekStart=thisMonday;
     compassPts=0;
     sessThisWeek=0; // was never resetting weekly before — silently grew forever
   }
+}
+// ── SHARD-FUNDED STREAK REPAIR — a broken streak was only ever visible
+// after the fact (streak silently drops to 1 the next time any XP is
+// earned, inside updateStreakFromActivity). This checks for the gap
+// BEFORE that silent reset happens, so there's a real window to spend a
+// banked shard and keep the streak alive instead of losing it outright.
+function checkStreakBroken(){
+  const banner=document.getElementById('streak-repair-banner');
+  if(!banner)return;
+  const today=localDateKey(new Date());
+  if(streakRepairDismissedDate===today||!lastActiveDate||lastActiveDate===today){banner.style.display='none';return;}
+  const yesterday=new Date();yesterday.setDate(yesterday.getDate()-1);
+  const yStr=localDateKey(yesterday);
+  const brokenAlready=lastActiveDate!==yStr; // a full day was missed — next activity will reset streak to 1
+  if(brokenAlready&&streak>1&&shardBank>0){
+    const textEl=document.getElementById('streak-repair-text');
+    if(textEl)textEl.innerHTML='Your <strong style="color:#44CFFF">'+streak+' day streak</strong> broke — spend a Compass Shard ('+shardBank+' banked) to keep it alive?';
+    banner.style.display='flex';
+  }else{
+    banner.style.display='none';
+  }
+}
+function dismissStreakRepair(){
+  streakRepairDismissedDate=localDateKey(new Date());
+  const banner=document.getElementById('streak-repair-banner');
+  if(banner)banner.style.display='none';
+}
+function repairStreak(){
+  if(shardBank<=0)return;
+  shardBank--;
+  const yesterday=new Date();yesterday.setDate(yesterday.getDate()-1);
+  lastActiveDate=localDateKey(yesterday); // makes today read as a valid continuation, not a fresh restart
+  const banner=document.getElementById('streak-repair-banner');
+  if(banner)banner.style.display='none';
+  toast('🔷','Streak repaired — '+streak+' days saved');
+  saveToStorage();
 }
 function checkScheduleWeek(){
   const thisMonday=getMonday(new Date());
@@ -8787,6 +8965,7 @@ function renderNutrition(){
   renderTodayLog();
   renderFeederQuest();
   renderCaloricShield();
+  renderWaterRow();
   const p=profile;if(!p.cals)return;
   const macros=[{name:'Calories',icon:'🔥',cur:Math.round(dayMacros.cals),target:p.cals,unit:'kcal',col:'#FF7A2E'},{name:'Protein',icon:'🥩',cur:Math.round((dayMacros.prot||0)*10)/10,target:p.protein,unit:'g',col:'#FF5A00'}];
   const _md=document.getElementById('macro-disp');if(!_md)return;
@@ -9925,12 +10104,16 @@ function renderReadiness(){
   const lastIsRecent=(last.date===today||last.date===yStr);
   if(!lastIsRecent){card.style.display='none';return;}
   const trainedYesterday=(lastSessionDate===yStr||lastSessionDate===today);
-  let msg;
+  let msg,action='';
+  const lowSleepAfterTraining=last.hours<6&&trainedYesterday;
   if(last.hours>=7&&trainedYesterday)msg='😴 <strong style="color:var(--green)">'+last.hours+'h sleep</strong> after training \u2014 you\'re set up well for today.';
-  else if(last.hours<6&&trainedYesterday)msg='⚠️ Only <strong style="color:#E8314A">'+last.hours+'h</strong> after a training day \u2014 consider an easier session today, or check the emergency guidance below.';
+  else if(lowSleepAfterTraining){
+    msg='⚠️ Only <strong style="color:#E8314A">'+last.hours+'h</strong> after a training day \u2014 consider an easier session today, or check the emergency guidance below.';
+    if(!reducedSetsMode)action='<div onclick="enableReducedSets();toast(\'😴\',\'Switched to a lighter session\');" style="margin-top:8px;font-size:11px;font-weight:700;color:#FF5A00;cursor:pointer;text-decoration:underline;text-underline-offset:2px">Switch today\'s session to lighter (2 sets/exercise) →</div>';
+  }
   else if(last.hours<6)msg='⚠️ Only <strong style="color:#E8314A">'+last.hours+'h</strong> last night \u2014 prioritize an early night tonight.';
   else msg='😴 <strong style="color:var(--green)">'+last.hours+'h</strong> logged \u2014 solid recovery.';
-  card.innerHTML='<strong style="color:#8E8E93;font-size:10px;letter-spacing:.1em;text-transform:uppercase">Today</strong><br>'+msg;
+  card.innerHTML='<strong style="color:#8E8E93;font-size:10px;letter-spacing:.1em;text-transform:uppercase">Today</strong><br>'+msg+action;
   card.style.display='';
 }
 
@@ -10310,7 +10493,7 @@ function checkNutritionDay(){
       if(nutritionDayLog.length>60)nutritionDayLog=nutritionDayLog.slice(-60);
     }
     nutritionLogDate=today;
-    dayMacros={cals:0,prot:0};
+    dayMacros={cals:0,prot:0,water:0};
     todayLog=[];
     shieldAtRiskToday=false;
     shieldGreatSaveAwardedToday=false;
@@ -10663,7 +10846,40 @@ function renderTodayLog(){
 
 function addMeal(cals,prot,name){logItem(name,cals,prot);addXP(5,'Meal logged');toast('🍽',name+' logged');checkProteinQuest();saveToStorage();}
 function logFood(){const n=document.getElementById('food-name').value||'Food';const c=parseInt(document.getElementById('food-cals').value)||0;const p=parseInt(document.getElementById('food-prot').value)||0;if(!c){toast('⚠️','Enter calories');return}logItem(n,c,p);document.getElementById('food-name').value='';document.getElementById('food-cals').value='';document.getElementById('food-prot').value='';addXP(5,'Food logged');toast('✅','Logged');checkProteinQuest();saveToStorage();}
-function resetDay(){if(!confirm('Clear everything logged today?'))return;dayMacros={cals:0,prot:0};todayLog=[];renderNutrition();saveToStorage();toast('🔄','Day reset')}
+// Water is a separate hydration habit from food logging — "Reset" clearing
+// a mis-logged meal shouldn't also wipe glasses already drunk today.
+function resetDay(){if(!confirm('Clear everything logged today?'))return;dayMacros={cals:0,prot:0,water:dayMacros.water||0};todayLog=[];renderNutrition();saveToStorage();toast('🔄','Day reset')}
+// ── WATER INTAKE — a row of tappable glasses rather than a number input,
+// so logging a glass is one tap like everything else in the nutrition
+// card. Rides dayMacros' existing daily-reset machinery (checkNutritionDay
+// above) for free — no separate rollover logic needed. Target is a flat
+// 8 glasses (~2L), the standard baseline, rather than adding a new
+// profile field for something this simple.
+const WATER_TARGET=8;
+function addWater(n){
+  checkNutritionDay();
+  dayMacros.water=Math.max(0,(dayMacros.water||0)+n);
+  if(n>0 && dayMacros.water===1) addXP(2,'Water logged');
+  renderNutrition();
+  saveToStorage();
+}
+function renderWaterRow(){
+  const wrap=document.getElementById('water-row');
+  if(!wrap)return;
+  const cur=Math.min(dayMacros.water||0,WATER_TARGET);
+  const over=Math.max(0,(dayMacros.water||0)-WATER_TARGET);
+  const glasses=Array.from({length:WATER_TARGET},(_,i)=>{
+    const filled=i<cur;
+    return `<div class="water-glass${filled?' filled':''}" onclick="addWater(${i<(dayMacros.water||0)?-1:1})" title="${filled?'Remove a glass':'Add a glass'}">
+      <svg width="16" height="20" viewBox="0 0 16 20" fill="none"><path d="M2 1h12l-1.5 17a1 1 0 01-1 .9H4.5a1 1 0 01-1-.9L2 1z" stroke="${filled?'#44CFFF':'rgba(255,255,255,.25)'}" stroke-width="1.4" fill="${filled?'rgba(68,207,255,.35)':'none'}"/></svg>
+    </div>`;
+  }).join('');
+  wrap.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <div class="macro-row2-label"><span class="macro-row2-icon">💧</span>Water</div>
+      <div class="macro-row2-nums"><span class="cur" style="color:#44CFFF">${dayMacros.water||0}</span><span class="tgt"> / ${WATER_TARGET} glasses</span></div>
+    </div>
+    <div style="display:flex;gap:5px;flex-wrap:wrap">${glasses}${over>0?`<div style="font-size:10px;color:#44CFFF;align-self:center;margin-left:4px">+${over} extra</div>`:''}</div>`;
+}
 function logNutrition(){showPage('nutrition')}
 
 // ── QUICK ACTIONS ──
@@ -10891,6 +11107,7 @@ function renderProgress(){
   renderMeasurements();
   renderTonnageBreakdown();
   try{renderVolumeTrend();}catch(e){console.error('renderVolumeTrend:',e.message);}
+  try{renderXpBreakdown();}catch(e){console.error('renderXpBreakdown:',e.message);}
   hist.innerHTML=weightLog.slice(-5).reverse().map((e,i)=>{
     const realIdx=weightLog.length-1-i;
     return `<div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;padding:4px 0;border-bottom:1.5px solid var(--border2)"><span style="color:var(--muted)">${e.date}</span><span style="display:flex;align-items:center;gap:8px"><span style="font-family:'JetBrains Mono',monospace;font-weight:600">${e.w} lbs</span>${i===0&&weightLog.length>1?`<span style="color:${e.w>weightLog[weightLog.length-2].w?'var(--green)':'var(--red)'};font-size:10px">${e.w>weightLog[weightLog.length-2].w?'↑':'↓'}${Math.abs(e.w-(weightLog[weightLog.length-2]?.w||e.w)).toFixed(1)}</span>`:''}<button onclick="deleteWeightEntry(${realIdx})" title="Remove this entry" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;line-height:1;padding:2px 4px">×</button></span></div>`;
@@ -11174,8 +11391,12 @@ function saveToStorage(){
     localStorage.setItem('arx_weightLog', JSON.stringify(weightLog));
     localStorage.setItem('arx_measurementsLog', JSON.stringify(measurementsLog));
     localStorage.setItem('arx_prs', JSON.stringify(prs));
+    localStorage.setItem('arx_liftHistory', JSON.stringify(liftHistory));
     localStorage.setItem('arx_lastPerformance', JSON.stringify(lastPerformance));
     localStorage.setItem('arx_streak', streak);
+    localStorage.setItem('arx_xpLog', JSON.stringify(xpLog));
+    localStorage.setItem('arx_shardBank', shardBank);
+    localStorage.setItem('arx_streakRepairDismissedDate', streakRepairDismissedDate);
     localStorage.setItem('arx_weightUnit', weightUnit);
     localStorage.setItem('arx_heightUnit', heightUnit);
     localStorage.setItem('arx_plannedSessionExs', JSON.stringify(plannedSessionExs));
@@ -11250,9 +11471,14 @@ function loadFromStorage(){
     if(ml){measurementsLog=JSON.parse(ml)}
     const pr=localStorage.getItem('arx_prs');
     if(pr){prs=JSON.parse(pr)}
+    const lh=localStorage.getItem('arx_liftHistory');
+    if(lh){try{liftHistory=JSON.parse(lh);}catch(e){liftHistory={};}}
     const lp=localStorage.getItem('arx_lastPerformance');
     if(lp){lastPerformance=JSON.parse(lp)}
     streak=parseInt(localStorage.getItem('arx_streak')||'0');
+    { const xl=localStorage.getItem('arx_xpLog'); if(xl){try{xpLog=JSON.parse(xl);}catch(e){xpLog=[];}} }
+    shardBank=parseInt(localStorage.getItem('arx_shardBank')||'0');
+    streakRepairDismissedDate=localStorage.getItem('arx_streakRepairDismissedDate')||'';
     weightUnit=localStorage.getItem('arx_weightUnit')||'lbs';
     heightUnit=localStorage.getItem('arx_heightUnit')||'cm';
     const pse=localStorage.getItem('arx_plannedSessionExs');
