@@ -1668,7 +1668,7 @@ window.addEventListener('error', function(e){
   background:radial-gradient(ellipse 55% 55% at 50% 50%,rgba(255,90,0,.07),transparent 70%);
   pointer-events:none;
 }
-.sc-mount{--w:220px;--h:320px;--d:88px;width:var(--w);height:var(--h);position:relative;flex-shrink:0;filter:drop-shadow(0 18px 26px rgba(0,0,0,.55))}
+.sc-mount{--w:220px;--h:320px;--d:88px;width:var(--w);height:var(--h);position:relative;flex-shrink:0}
 /* Grounding contact shadow — a tight, dark ellipse right where the book
    meets the surface, separate from the softer colored glow below it. The
    glow alone reads as ambient light; this is what actually anchors the
@@ -1688,6 +1688,7 @@ window.addEventListener('error', function(e){
 }
 .sc-mount.sc-visible::after{opacity:.7}
 .sc-cube{width:100%;height:100%;position:relative;transform-style:preserve-3d;will-change:transform;cursor:pointer;opacity:0;transition:opacity .5s ease;
+  filter:drop-shadow(0 18px 26px rgba(0,0,0,.55));
   -webkit-box-reflect:below 8px linear-gradient(rgba(255,255,255,.1),transparent 42%);}
 .sc-mount.sc-visible .sc-cube{opacity:1}
 .sc-satellites{position:absolute;inset:0;pointer-events:none;z-index:1}
@@ -1707,14 +1708,49 @@ window.addEventListener('error', function(e){
 .sc-spread{
   position:absolute;right:0;top:50%;width:460px;height:100%;
   transform:translateY(-50%) scale(.94);
-  display:flex;border-radius:8px;overflow:hidden;background:#f7f5ee;
+  display:flex;border-radius:8px;overflow:visible;background:#f7f5ee;
   box-shadow:0 30px 60px -16px rgba(0,0,0,.7),0 0 44px -12px var(--sc-glow,rgba(255,140,71,.3));
   opacity:0;pointer-events:none;will-change:transform,opacity;
-  -webkit-box-reflect:below 8px linear-gradient(rgba(255,255,255,.12),transparent 38%);
+}
+/* Page-block thickness — a visible cream edge along the bottom, like
+   looking at the stacked page edges of a real open book side-on, so the
+   spread doesn't read as a flat sheet floating in space. */
+.sc-spread::before{
+  content:'';position:absolute;left:2px;right:2px;bottom:-7px;height:9px;
+  background:repeating-linear-gradient(90deg,#e4dcc4 0px,#e4dcc4 2px,#d3c9ab 2px,#d3c9ab 4px);
+  border-radius:0 0 6px 6px;
+}
+/* Reflection — a soft, blurred, color-matched echo rather than a literal
+   mirrored duplicate: -webkit-box-reflect (the obvious tool for a true
+   mirror) is WebKit/Blink-only and renders as nothing at all in Firefox,
+   so a real cross-browser version needs an actual second element, not a
+   CSS property alone. Kept deliberately abstract/blurred instead of a
+   crisp mirrored copy of the text — closer to how the reference's own
+   reflections read (soft light bloom, not legible upside-down text) and
+   avoids the complexity of keeping a literal content-clone visually
+   synced to GSAP-driven opacity/scale changes on the original. As a
+   child of .sc-spread it inherits that element's own transform/opacity
+   automatically, so it fades and scales together with the real spread
+   for free, no extra tweening needed.
+
+   The fade lives entirely in the gradient's own alpha stops, not a flat
+   element-level opacity: against this page's near-black background, a
+   low element opacity darkens the whole cream fill toward black instead
+   of lightening it (opacity blends toward the backdrop, it doesn't add
+   light) — which is what was producing a solid dark rectangle here
+   instead of a soft glow. Baking the fade into rgba() stops keeps the
+   colour itself light while still fading out at the edges.
+*/
+.sc-spread-reflect{
+  position:absolute;left:6%;right:6%;top:100%;height:45%;margin-top:8px;
+  background:linear-gradient(to top,rgba(247,245,238,0) 0%,rgba(247,245,238,0) 20%,rgba(247,245,238,.5) 100%);
+  border-radius:8px;
+  transform:scaleY(-1);filter:blur(6px);
+  pointer-events:none;
 }
 .sc-spread-page{flex:1;padding:24px 22px;color:#17160f;position:relative;min-width:0}
-.sc-spread-left{background:linear-gradient(to right,#e8e3d2,#f7f5ee 15%)}
-.sc-spread-right{background:linear-gradient(to left,#e8e3d2,#f7f5ee 15%);display:flex;flex-direction:column;justify-content:space-between}
+.sc-spread-left{background:linear-gradient(to right,#e8e3d2,#f7f5ee 15%);border-radius:8px 0 0 8px}
+.sc-spread-right{background:linear-gradient(to left,#e8e3d2,#f7f5ee 15%);display:flex;flex-direction:column;justify-content:space-between;border-radius:0 8px 8px 0}
 .sc-spread-spine{width:10px;flex-shrink:0;background:linear-gradient(to right,rgba(0,0,0,.22),transparent,rgba(0,0,0,.22))}
 .sc-spread-eyebrow{font-family:'Outfit',sans-serif;font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:rgba(23,22,15,.45);margin-bottom:14px}
 .sc-spread-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:10px}
@@ -1838,6 +1874,7 @@ window.addEventListener('error', function(e){
             </div>
             <div class="sc-spread-price">£16/mo · £125/yr</div>
           </div>
+          <div class="sc-spread-reflect"></div>
         </div>
       </div>
       <div class="sc-copy" id="sc-copy0">
@@ -1906,6 +1943,7 @@ window.addEventListener('error', function(e){
             </div>
             <div class="sc-spread-price">£97 · one-time · was £129</div>
           </div>
+          <div class="sc-spread-reflect"></div>
         </div>
       </div>
       <div class="sc-copy" id="sc-copy1">
@@ -1962,6 +2000,7 @@ window.addEventListener('error', function(e){
             </div>
             <div class="sc-spread-price">£16/mo · £110/yr</div>
           </div>
+          <div class="sc-spread-reflect"></div>
         </div>
       </div>
       <div class="sc-copy" id="sc-copy2">
