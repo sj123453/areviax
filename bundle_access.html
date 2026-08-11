@@ -44,6 +44,23 @@ h1{font-weight:800;font-size:30px;letter-spacing:-.02em;margin-bottom:10px}
 .note-box strong{color:var(--cyan)}
 .footer-link{display:block;text-align:center;margin-top:32px;font-size:12.5px;color:var(--muted);text-decoration:none}
 .footer-link:hover{color:var(--white)}
+.progress-box{margin-bottom:28px}
+.progress-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+.progress-label{font-size:12px;color:var(--muted)}
+.progress-count{font-size:12px;font-weight:700;color:var(--cyan);font-variant-numeric:tabular-nums}
+.progress-track{height:6px;border-radius:4px;background:rgba(255,255,255,.06);overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--blue),var(--cyan));border-radius:4px;transition:width .4s ease;width:0%}
+.product-card{position:relative}
+.product-badge{position:absolute;top:-8px;left:44px;font-size:8.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:2px 7px;border-radius:5px;line-height:1.5}
+.product-badge.start{background:rgba(255,107,26,.15);color:var(--orange);border:1px solid rgba(255,107,26,.3)}
+.product-badge.continue{background:rgba(68,207,255,.15);color:var(--cyan);border:1px solid rgba(68,207,255,.3)}
+.product-check{
+  width:26px;height:26px;border-radius:7px;border:1.5px solid var(--border2);flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .15s;color:transparent;
+}
+.product-check:hover{border-color:var(--cyan)}
+.product-check.done{background:rgba(68,207,255,.15);border-color:var(--cyan);color:var(--cyan)}
+.product-card.done .product-title{color:var(--muted);text-decoration:line-through;text-decoration-color:rgba(123,132,176,.5)}
 </style>
 </head>
 <body>
@@ -54,10 +71,18 @@ h1{font-weight:800;font-size:30px;letter-spacing:-.02em;margin-bottom:10px}
   <h1>Everything's ready for you.</h1>
   <p class="sub">All 5 products are below. Each opens its own interactive guide — bookmark this page so you can come back to any of them whenever you like.</p>
 
-  <a href="https://areviaxgrowthcode.netlify.app/" class="product-card">
-    <div class="product-num">01</div>
+  <div class="progress-box">
+    <div class="progress-top">
+      <span class="progress-label">Your progress</span>
+      <span class="progress-count" id="progress-count">0 of 5</span>
+    </div>
+    <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+  </div>
+
+  <a href="https://areviaxgrowthcode.netlify.app/" class="product-card" data-pid="growth" onclick="markOpened('growth')">
+    <div class="product-check" data-pid="growth" onclick="toggleDone(event,'growth')">✓</div>
     <div class="product-info">
-      <div class="product-title">The Growth Code</div>
+      <div class="product-title">01 — The Growth Code</div>
       <div class="product-desc">TikTok & YouTube growth, 2026</div>
     </div>
     <div class="product-arrow">
@@ -65,10 +90,10 @@ h1{font-weight:800;font-size:30px;letter-spacing:-.02em;margin-bottom:10px}
     </div>
   </a>
 
-  <a href="https://areviaxincomeplaybook.netlify.app/" class="product-card">
-    <div class="product-num">02</div>
+  <a href="https://areviaxincomeplaybook.netlify.app/" class="product-card" data-pid="income" onclick="markOpened('income')">
+    <div class="product-check" data-pid="income" onclick="toggleDone(event,'income')">✓</div>
     <div class="product-info">
-      <div class="product-title">The Income Playbook</div>
+      <div class="product-title">02 — The Income Playbook</div>
       <div class="product-desc">Your first sale in 30 days</div>
     </div>
     <div class="product-arrow">
@@ -76,10 +101,10 @@ h1{font-weight:800;font-size:30px;letter-spacing:-.02em;margin-bottom:10px}
     </div>
   </a>
 
-  <a href="https://areviaxdigitalproductblueprint.netlify.app/" class="product-card">
-    <div class="product-num">03</div>
+  <a href="https://areviaxdigitalproductblueprint.netlify.app/" class="product-card" data-pid="blueprint" onclick="markOpened('blueprint')">
+    <div class="product-check" data-pid="blueprint" onclick="toggleDone(event,'blueprint')">✓</div>
     <div class="product-info">
-      <div class="product-title">Digital Product Blueprint</div>
+      <div class="product-title">03 — Digital Product Blueprint</div>
       <div class="product-desc">Create, launch & sell your own product</div>
     </div>
     <div class="product-arrow">
@@ -87,10 +112,10 @@ h1{font-weight:800;font-size:30px;letter-spacing:-.02em;margin-bottom:10px}
     </div>
   </a>
 
-  <a href="https://areviaxmassblueprint.netlify.app/" class="product-card">
-    <div class="product-num">04</div>
+  <a href="https://areviaxmassblueprint.netlify.app/" class="product-card" data-pid="mass" onclick="markOpened('mass')">
+    <div class="product-check" data-pid="mass" onclick="toggleDone(event,'mass')">✓</div>
     <div class="product-info">
-      <div class="product-title">The Mass Blueprint</div>
+      <div class="product-title">04 — The Mass Blueprint</div>
       <div class="product-desc">Build real size, even as a hard gainer</div>
     </div>
     <div class="product-arrow">
@@ -98,10 +123,10 @@ h1{font-weight:800;font-size:30px;letter-spacing:-.02em;margin-bottom:10px}
     </div>
   </a>
 
-  <a href="https://aipromptmasterbook.netlify.app/" class="product-card">
-    <div class="product-num">05</div>
+  <a href="https://aipromptmasterbook.netlify.app/" class="product-card" data-pid="prompt" onclick="markOpened('prompt')">
+    <div class="product-check" data-pid="prompt" onclick="toggleDone(event,'prompt')">✓</div>
     <div class="product-info">
-      <div class="product-title">AI Prompt Mastery</div>
+      <div class="product-title">05 — AI Prompt Mastery</div>
       <div class="product-desc">10× your AI output</div>
     </div>
     <div class="product-arrow">
@@ -110,11 +135,57 @@ h1{font-weight:800;font-size:30px;letter-spacing:-.02em;margin-bottom:10px}
   </a>
 
   <div class="note-box">
-    <strong>Bookmark this page.</strong> It's your permanent access point to everything in the bundle — there's no separate login, so keeping this link saved is how you'll find your way back to all 5.
+    <strong>Bookmark this page.</strong> It's your permanent access point to everything in the bundle — there's no separate login, so keeping this link saved is how you'll find your way back to all 5. Progress and "continue here" tracking above is saved on this device only.
   </div>
 
   <a href="https://areviax.netlify.app/" class="footer-link">← Back to Areviax</a>
 
 </div>
+<script>
+// Everything here is local to this device (no login/backend exists for the
+// bundle), so it's framed honestly in the note box above rather than
+// implying it syncs anywhere.
+const PIDS = ['growth','income','blueprint','mass','prompt'];
+function loadProgress(){ try{ return JSON.parse(localStorage.getItem('arx_bundle_progress')||'{}'); }catch(e){ return {}; } }
+function saveProgress(p){ localStorage.setItem('arx_bundle_progress', JSON.stringify(p)); }
+function loadLastOpened(){ return localStorage.getItem('arx_bundle_last_opened')||''; }
+function markOpened(pid){ localStorage.setItem('arx_bundle_last_opened', pid); }
+function toggleDone(evt, pid){
+  evt.preventDefault(); evt.stopPropagation();
+  const progress = loadProgress();
+  progress[pid] = !progress[pid];
+  saveProgress(progress);
+  render();
+}
+function render(){
+  const progress = loadProgress();
+  const lastOpened = loadLastOpened();
+  const doneCount = PIDS.filter(p=>progress[p]).length;
+  document.getElementById('progress-count').textContent = doneCount+' of '+PIDS.length;
+  document.getElementById('progress-fill').style.width = Math.round(doneCount/PIDS.length*100)+'%';
+  PIDS.forEach(pid=>{
+    const card = document.querySelector('.product-card[data-pid="'+pid+'"]');
+    const check = document.querySelector('.product-check[data-pid="'+pid+'"]');
+    if(!card||!check) return;
+    card.classList.toggle('done', !!progress[pid]);
+    check.classList.toggle('done', !!progress[pid]);
+    const existingBadge = card.querySelector('.product-badge');
+    if(existingBadge) existingBadge.remove();
+    if(progress[pid]) return; // no badge needed once marked done
+    let badge = null;
+    if(pid===lastOpened){
+      badge = document.createElement('div');
+      badge.className = 'product-badge continue';
+      badge.textContent = 'Continue here';
+    } else if(!lastOpened && doneCount===0 && pid===PIDS[0]){
+      badge = document.createElement('div');
+      badge.className = 'product-badge start';
+      badge.textContent = 'Start here';
+    }
+    if(badge) card.appendChild(badge);
+  });
+}
+render();
+</script>
 </body>
 </html>
