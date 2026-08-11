@@ -316,10 +316,55 @@ input,input:focus,input:active,
 .shake-glow{filter:drop-shadow(0 0 10px rgba(255,90,0,.65)) drop-shadow(0 0 22px rgba(255,90,0,.35))}
 .shake-type-card{background:var(--panel2);border:1.5px solid var(--border2);border-radius:10px;padding:10px;cursor:pointer;text-align:center;transition:all .18s}
 .shake-type-card:hover{border-color:rgba(255,90,0,.4);background:rgba(255,90,0,.05)}
-.emergency-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
-.em-item{background:var(--panel2);border:1.5px solid var(--border2);padding:7px;border-radius:4px;text-align:center}
-.em-food{font-size:11px;font-weight:600}
+.emergency-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}
+.em-item{background:var(--panel2);border:1.5px solid var(--border2);border-radius:10px;overflow:hidden;text-align:left;transition:border-color .15s}
+.em-item:hover{border-color:rgba(255,122,46,.4)}
+/* Photo slot — a food-toned gradient + icon stand-in until a real photo is
+   supplied per item; background-image is left as a CSS custom property so
+   dropping in a real photo later is a one-line style swap per item
+   (style="--em-photo:url(...)"), no markup changes needed. */
+.em-photo{
+  height:64px;display:flex;align-items:center;justify-content:center;font-size:22px;
+  background:var(--em-photo,linear-gradient(155deg,#3a2410,#1a1006)) center/cover;
+}
+.em-body{padding:8px 10px}
+.em-food{font-size:11.5px;font-weight:700}
 .em-cals{font-size:10px;color:var(--orange);margin-top:2px}
+
+/* NUTRITION HERO ROW — shield + shake, the two highest-signal pieces of
+   this page, given equal top-of-page real estate side by side rather than
+   the shield sitting alone up top and the shake buried after Log Food/Meal
+   Plan further down. Stacks to one column on mobile via the media query
+   at the bottom of this stylesheet. */
+.nutr-hero-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;align-items:stretch}
+.nutr-shield-card{display:flex;align-items:center;gap:16px;text-align:left;padding:20px}
+.nutr-shield-graphic{flex-shrink:0;position:relative;width:112px;height:112px}
+.nutr-shield-graphic .shield-ring-svg{position:absolute;inset:0;transform:rotate(-90deg)}
+.nutr-shield-graphic .shield-inner{position:absolute;top:12px;left:12px;width:88px;height:88px}
+.nutr-shield-info{flex:1;min-width:0}
+.nutr-shield-label{font-size:13px;font-weight:800;color:var(--white)}
+.nutr-shield-target{font-size:11px;color:var(--muted);margin-top:5px;line-height:1.5}
+.nutr-shield-status{font-size:11.5px;font-weight:700;margin-top:7px;line-height:1.4}
+.nutr-shield-status.ok{color:#2ECC71}
+.nutr-shield-status.warn{color:#FFC107}
+.nutr-shield-status.bad{color:#FF4455}
+/* Shake hero — a gradient stand-in for a real photo background until one's
+   supplied; built so dropping a background-image onto .nutr-shake-hero
+   later is a one-line swap, not a restructure (content already sits in its
+   own layer above a ::before that can carry the image + a darkening
+   overlay for text contrast). */
+.nutr-shake-hero{position:relative;padding:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;overflow:hidden;cursor:pointer;border-color:rgba(255,122,46,.25)}
+.nutr-shake-hero::before{
+  content:'';position:absolute;inset:0;z-index:0;
+  background:
+    radial-gradient(circle at 30% 20%,rgba(255,140,71,.22),transparent 55%),
+    radial-gradient(circle at 75% 80%,rgba(255,90,0,.16),transparent 60%),
+    linear-gradient(160deg,#241408,#0d0904 70%);
+}
+.nutr-shake-hero>*{position:relative;z-index:1}
+.nutr-shake-title{font-size:13px;font-weight:800;color:#FF8C47;margin-top:6px}
+.nutr-shake-sub{font-size:10.5px;color:rgba(238,240,255,.55);margin-top:2px}
+@media(max-width:700px){.nutr-hero-grid{grid-template-columns:1fr}}
 
 /* PROGRESS */
 .pr-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
@@ -1844,6 +1889,11 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
 <!-- NUTRITION -->
 <div class="page" id="page-nutrition">
 
+  <!-- HERO ROW — Caloric Shield + the shake quick-log, the two highest-
+       signal pieces of this page, given equal top-of-page prominence side
+       by side instead of the shield sitting alone up top and the shake
+       buried below Log Food/Meal Plan further down. -->
+  <div class="nutr-hero-grid">
   <!-- CALORIC SHIELD — moved here from the dashboard, which was getting
        crowded. Makes more sense here anyway — a nutrition-specific visual
        belongs on the nutrition page. Fills as today's calorie AND protein
@@ -1851,9 +1901,26 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        still well behind, and glows brighter with a small badge if you've
        genuinely hit both targets 3 days running (checked against real
        history, not just today's numbers). -->
-  <div class="card" style="text-align:center;padding:16px" id="acc-shield">
-    <div style="position:relative;width:88px;height:88px;margin:0 auto 8px">
-      <svg width="88" height="88" viewBox="0 0 88 88">
+  <div class="card nutr-shield-card" id="acc-shield">
+    <div class="nutr-shield-graphic">
+      <!-- Progress ring — the same stroke-dasharray/dashoffset circular-
+           gauge technique the Session Timer's burn-meter ring already
+           uses elsewhere in this app, reused here for visual consistency
+           rather than inventing a second way to draw a ring. Sits behind
+           the shield icon rather than replacing it: the ring gives a
+           smooth "cooler-looking" 0-100% read at a glance, the shield
+           itself still carries the escalating red/cracking/broken states
+           that make it distinctive. -->
+      <svg width="112" height="112" viewBox="0 0 112 112" class="shield-ring-svg">
+        <circle cx="56" cy="56" r="50" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="7"/>
+        <circle cx="56" cy="56" r="50" fill="none" stroke="url(#shieldRingGrad)" stroke-width="7" stroke-linecap="round" stroke-dasharray="314.16" stroke-dashoffset="314.16" id="shield-ring" style="transition:stroke-dashoffset .6s ease"/>
+        <defs>
+          <linearGradient id="shieldRingGrad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#FFD24A"/><stop offset="100%" stop-color="#FF9A2E"/>
+          </linearGradient>
+        </defs>
+      </svg>
+      <svg width="88" height="88" viewBox="0 0 88 88" class="shield-inner">
         <defs>
           <clipPath id="shieldClip"><path d="M44 6 L76 18 V42 C76 62 62 76 44 82 C26 76 12 62 12 42 V18 Z"/></clipPath>
         </defs>
@@ -1868,30 +1935,58 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
           <path d="M42 34 L36 46 L32 56" stroke="#FF4455" stroke-width=".8" stroke-linecap="round" fill="none" opacity=".45"/>
         </g>
         <g id="shield-broken" style="display:none">
-          <!-- full fracture stage: one impact point with 6 primary cracks radiating out at irregular angles,
-               each a dark under-stroke (depth) + a thinner bright over-stroke (the actual crack line), plus
-               short secondary branch cracks off a few of them and a small chipped triangle at the impact
-               point itself — reads as an actual shattered shield instead of a few straight scribbles. -->
-          <path d="M43 32 L46 29 L45 34 L48 31 Z" fill="#7A0F0F" opacity=".9"/>
-          <circle cx="42" cy="34" r="2" fill="#FF2233"/>
-          <path d="M42 34 L36 24 L40 16 L34 8" stroke="#7A0F0F" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity=".5"/>
-          <path d="M42 34 L36 24 L40 16 L34 8" stroke="#FF2233" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-          <path d="M36 24 L28 21" stroke="#FF2233" stroke-width=".7" stroke-linecap="round" fill="none" opacity=".75"/>
-          <path d="M42 34 L50 26 L46 18 L54 10" stroke="#7A0F0F" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity=".5"/>
-          <path d="M42 34 L50 26 L46 18 L54 10" stroke="#FF2233" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-          <path d="M42 34 L30 32 L22 36 L14 34" stroke="#7A0F0F" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity=".5"/>
-          <path d="M42 34 L30 32 L22 36 L14 34" stroke="#FF2233" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-          <path d="M42 34 L54 32 L62 36 L72 32" stroke="#7A0F0F" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity=".5"/>
-          <path d="M42 34 L54 32 L62 36 L72 32" stroke="#FF2233" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-          <path d="M54 32 L59 41" stroke="#FF2233" stroke-width=".7" stroke-linecap="round" fill="none" opacity=".75"/>
-          <path d="M42 34 L34 48 L30 60 L24 70" stroke="#7A0F0F" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity=".5"/>
-          <path d="M42 34 L34 48 L30 60 L24 70" stroke="#FF2233" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-          <path d="M34 48 L24 51" stroke="#FF2233" stroke-width=".7" stroke-linecap="round" fill="none" opacity=".75"/>
-          <path d="M42 34 L50 50 L48 62 L54 74" stroke="#7A0F0F" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity=".5"/>
-          <path d="M42 34 L50 50 L48 62 L54 74" stroke="#FF2233" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-          <path d="M50 50 L58 55" stroke="#FF2233" stroke-width=".7" stroke-linecap="round" fill="none" opacity=".75"/>
-          <path d="M42 34 L41 52 L44 66 L42 78" stroke="#7A0F0F" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity=".45"/>
-          <path d="M42 34 L41 52 L44 66 L42 78" stroke="#FF2233" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          <!-- Realistic fracture: a hot white-red impact core with a real glow
+               (feGaussianBlur+feMerge, not just opacity) radiating jagged,
+               irregular cracks — each stroke has more direction changes and
+               uneven segment lengths than a stylized zigzag, closer to how
+               tempered glass/ceramic actually spiders. Cracks that reach the
+               shield's edge get a chipped fragment breaking away from the
+               body outline, some drifting fully outside it, echoing the
+               "shattering apart" read of the reference rather than lines
+               drawn on an intact surface. -->
+          <g filter="url(#crackGlow)">
+            <path d="M43 32 L45.5 29.5 L44.8 33 L47.5 30.5 L46 34.5 Z" fill="#7A0F0F"/>
+            <circle cx="42.5" cy="33.5" r="3.2" fill="#FF6A3B"/>
+            <circle cx="42.5" cy="33.5" r="1.4" fill="#FFE8CC"/>
+            <path d="M42.5 33.5 L39 27 L41.5 22.5 L37.5 17 L39.8 11.5 L35 7" stroke="#7A0F0F" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity=".55"/>
+            <path d="M42.5 33.5 L39 27 L41.5 22.5 L37.5 17 L39.8 11.5 L35 7" stroke="#FF2233" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            <path d="M39 27 L32.5 25.5 L27 22" stroke="#FF2233" stroke-width=".6" stroke-linecap="round" fill="none" opacity=".7"/>
+            <path d="M37.5 17 L32 16.5" stroke="#FF2233" stroke-width=".55" stroke-linecap="round" fill="none" opacity=".6"/>
+            <path d="M42.5 33.5 L48 28 L45.5 21.5 L51 16.5 L48.5 9.5" stroke="#7A0F0F" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity=".55"/>
+            <path d="M42.5 33.5 L48 28 L45.5 21.5 L51 16.5 L48.5 9.5" stroke="#FF2233" stroke-width="1.05" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            <path d="M45.5 21.5 L52 20" stroke="#FF2233" stroke-width=".55" stroke-linecap="round" fill="none" opacity=".65"/>
+            <path d="M42.5 33.5 L33.5 31 L27 34.5 L19 32.5 L13 35.5" stroke="#7A0F0F" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity=".55"/>
+            <path d="M42.5 33.5 L33.5 31 L27 34.5 L19 32.5 L13 35.5" stroke="#FF2233" stroke-width="1.05" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            <path d="M27 34.5 L24.5 40.5" stroke="#FF2233" stroke-width=".55" stroke-linecap="round" fill="none" opacity=".6"/>
+            <path d="M42.5 33.5 L52 30.5 L58.5 34.5 L67 30 L74 33" stroke="#7A0F0F" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity=".55"/>
+            <path d="M42.5 33.5 L52 30.5 L58.5 34.5 L67 30 L74 33" stroke="#FF2233" stroke-width="1.05" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            <path d="M58.5 34.5 L62.5 42" stroke="#FF2233" stroke-width=".55" stroke-linecap="round" fill="none" opacity=".65"/>
+            <path d="M42.5 33.5 L36 45 L32.5 51.5 L27 58.5 L29.5 67 L23 73" stroke="#7A0F0F" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity=".55"/>
+            <path d="M42.5 33.5 L36 45 L32.5 51.5 L27 58.5 L29.5 67 L23 73" stroke="#FF2233" stroke-width="1.05" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            <path d="M32.5 51.5 L23.5 53" stroke="#FF2233" stroke-width=".55" stroke-linecap="round" fill="none" opacity=".6"/>
+            <path d="M27 58.5 L18.5 61" stroke="#FF2233" stroke-width=".5" stroke-linecap="round" fill="none" opacity=".55"/>
+            <path d="M42.5 33.5 L49 47 L45.5 54.5 L51.5 62 L47.5 71.5" stroke="#7A0F0F" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity=".55"/>
+            <path d="M42.5 33.5 L49 47 L45.5 54.5 L51.5 62 L47.5 71.5" stroke="#FF2233" stroke-width="1.05" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            <path d="M45.5 54.5 L54 58" stroke="#FF2233" stroke-width=".55" stroke-linecap="round" fill="none" opacity=".65"/>
+            <path d="M42.5 33.5 L41 48 L43.5 58.5 L40.5 68 L42.5 78" stroke="#7A0F0F" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity=".5"/>
+            <path d="M42.5 33.5 L41 48 L43.5 58.5 L40.5 68 L42.5 78" stroke="#FF2233" stroke-width=".9" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+          </g>
+          <!-- fragments breaking away from the shield body at crack exit points -->
+          <g opacity=".92">
+            <path d="M34.2 7.8 L37.5 6 L36.5 10.5 Z" fill="#8a8f96" stroke="#4a4e54" stroke-width=".4"/>
+            <path d="M48 9 L49.5 6.5 L52 9.8 L49 11.5 Z" fill="#9aa0a8" stroke="#4a4e54" stroke-width=".4"/>
+            <path d="M12.5 35 L9 34.2 L10.5 37.8 L13.5 37.5 Z" fill="#8a8f96" stroke="#4a4e54" stroke-width=".4"/>
+            <path d="M74.5 32.5 L78 32 L77 35.8 L74 35.2 Z" fill="#9aa0a8" stroke="#4a4e54" stroke-width=".4"/>
+            <path d="M22.5 73.5 L20 76.5 L24 77 L25 74 Z" fill="#8a8f96" stroke="#4a4e54" stroke-width=".4"/>
+          </g>
+          <!-- small debris drifting fully clear of the shield outline, like the reference's floating chips -->
+          <g opacity=".85">
+            <path d="M6 30 L9 28.5 L8.5 32.5 L5.5 33 Z" fill="#7d828a"/>
+            <path d="M80 22 L83.5 21.5 L82.5 25.5 L79.5 25 Z" fill="#8a8f96"/>
+            <path d="M16 82 L19 84 L15.5 85.5 L14 82.5 Z" fill="#7d828a"/>
+            <circle cx="60" cy="4" r="1.3" fill="#FF6A3B" opacity=".7"/>
+            <circle cx="3" cy="46" r="1.1" fill="#FF6A3B" opacity=".6"/>
+          </g>
         </g>
         <defs>
           <linearGradient id="shieldGrad" x1="0" y1="1" x2="0" y2="0">
@@ -1900,12 +1995,56 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
           <linearGradient id="shieldGradRed" x1="0" y1="1" x2="0" y2="0">
             <stop offset="0%" stop-color="#B01818"/><stop offset="100%" stop-color="#FF3B3B"/>
           </linearGradient>
+          <filter id="crackGlow" x="-60%" y="-60%" width="220%" height="220%">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="1.4" result="blur"/>
+            <feMerge>
+              <feMergeNode in="blur"/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
         </defs>
       </svg>
       <div id="shield-badge" style="display:none;position:absolute;top:-4px;right:-4px;background:#FFD700;color:#1a1300;font-size:9px;font-weight:900;padding:2px 5px;border-radius:8px;box-shadow:0 0 10px rgba(255,215,0,.6)">3🔥</div>
     </div>
-    <div style="font-size:10px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase" id="shield-label">Caloric Shield</div>
-    <div style="font-size:10.5px;color:var(--muted);opacity:.75;margin-top:4px;line-height:1.35;max-width:220px;margin-left:auto;margin-right:auto">Fills as you hit today's calorie &amp; protein targets. If you're still well behind by evening it turns red, then cracks, then fully breaks by the end of the day.</div>
+    <div class="nutr-shield-info">
+      <div class="nutr-shield-label" id="shield-label">Caloric Shield</div>
+      <div class="nutr-shield-target" id="shield-target"></div>
+      <div class="nutr-shield-status" id="shield-status-msg"></div>
+    </div>
+  </div>
+
+  <!-- SHAKE HERO — same logEmergencyShake()/toggleShakeTypes() wiring and
+       the same six quick-add items as before, just given the prominent
+       photo-card treatment instead of being a small box near the bottom
+       of the page. ::before on .nutr-shake-hero carries a gradient
+       stand-in for now — swapping in a real background photo later is a
+       one-line background-image change on that rule, nothing here needs
+       to move. -->
+  <div class="card nutr-shake-hero" id="shake-hero-card" onclick="logEmergencyShake()">
+    <div id="shake-glass-main" class="shake-glow" style="display:inline-block">
+      <svg width="52" height="61" viewBox="0 0 60 70">
+        <path d="M38 2 L48 22" stroke="#D8D8DC" stroke-width="5" stroke-linecap="round"/>
+        <path d="M15 20 L45 20 L40 65 Q30 70 20 65 Z" fill="#C9915A" stroke="rgba(255,255,255,.35)" stroke-width="1.5"/>
+        <ellipse cx="30" cy="20" rx="15" ry="3" fill="rgba(255,255,255,.2)"/>
+      </svg>
+    </div>
+    <div class="nutr-shake-title">Tap the shake — logs instantly</div>
+    <div class="nutr-shake-sub" id="shake-hero-macros">113 kcal · 13g protein</div>
+    <div onclick="event.stopPropagation();toggleShakeTypes()" style="font-size:10.5px;color:rgba(238,240,255,.5);text-decoration:underline;cursor:pointer;margin-top:8px">Or pick a different type →</div>
+  </div>
+  </div>
+  <div id="shake-types-panel" style="display:none;margin-bottom:14px" onclick="event.stopPropagation()"></div>
+  <!-- Photo slots are empty gradient+icon placeholders for now — each
+       carries a data-food attribute naming what image belongs there, so
+       real photos can be dropped in later via --em-photo without touching
+       this markup again. -->
+  <div class="emergency-grid" style="margin-bottom:14px">
+    <div class="em-item" data-food="peanut-butter"><div class="em-photo">🥜</div><div class="em-body"><div class="em-food">Peanut butter (2 tbsp)</div><div class="em-cals">190 kcal · 8g protein</div></div></div>
+    <div class="em-item" data-food="whole-milk"><div class="em-photo">🥛</div><div class="em-body"><div class="em-food">Whole milk (500ml)</div><div class="em-cals">310 kcal · 16g protein</div></div></div>
+    <div class="em-item" data-food="nuts"><div class="em-photo">🌰</div><div class="em-body"><div class="em-food">Nuts (handful)</div><div class="em-cals">170 kcal · 5g protein</div></div></div>
+    <div class="em-item" data-food="banana-pb"><div class="em-photo">🍌</div><div class="em-body"><div class="em-food">Banana + PB</div><div class="em-cals">280 kcal · 9g protein</div></div></div>
+    <div class="em-item" data-food="greek-yoghurt"><div class="em-photo">🥣</div><div class="em-body"><div class="em-food">Greek yoghurt</div><div class="em-cals">130 kcal · 17g protein</div></div></div>
+    <div class="em-item" data-food="oats-milk"><div class="em-photo">🥄</div><div class="em-body"><div class="em-food">Oats + milk</div><div class="em-cals">350 kcal · 14g protein</div></div></div>
   </div>
 
   <div class="companion"><div class="companion-msg" id="nutr-companion">Nutrition is 80% of this. Track it for 2 weeks before changing anything else.</div></div>
@@ -2055,31 +2194,6 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     <div style="margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,.06)">
       <div style="font-size:9px;font-weight:700;color:rgba(238,240,255,.3);text-transform:uppercase;letter-spacing:.14em;margin-bottom:10px">Logged today</div>
       <div id="today-log-list"></div>
-    </div>
-  </div>
-  <div class="emergency">
-    <div class="emergency-title">⚡ Behind on calories? — No cooking needed</div>
-    <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Late in the day and still short. These close the gap fast.</div>
-    <div style="text-align:center;margin-bottom:10px">
-      <div id="shake-glass-main" class="shake-glow" style="display:inline-block;cursor:pointer" onclick="logEmergencyShake()">
-        <svg width="56" height="66" viewBox="0 0 60 70">
-          <path d="M38 2 L48 22" stroke="#D8D8DC" stroke-width="5" stroke-linecap="round"/>
-          <path d="M15 20 L45 20 L40 65 Q30 70 20 65 Z" fill="#C9915A" stroke="rgba(255,255,255,.35)" stroke-width="1.5"/>
-          <ellipse cx="30" cy="20" rx="15" ry="3" fill="rgba(255,255,255,.2)"/>
-        </svg>
-      </div>
-      <div style="font-size:12px;font-weight:800;color:#FF8C47;margin-top:2px">Tap the shake — logs instantly</div>
-      <div style="font-size:10px;color:var(--muted)">113 kcal · 13g protein</div>
-      <div onclick="toggleShakeTypes()" style="font-size:10.5px;color:var(--muted);text-decoration:underline;cursor:pointer;margin-top:6px">Or pick a different type →</div>
-    </div>
-    <div id="shake-types-panel" style="display:none;margin-bottom:10px"></div>
-    <div class="emergency-grid">
-      <div class="em-item"><div class="em-food">Peanut butter (2 tbsp)</div><div class="em-cals">190 kcal · 8g protein</div></div>
-      <div class="em-item"><div class="em-food">Whole milk (500ml)</div><div class="em-cals">310 kcal · 16g protein</div></div>
-      <div class="em-item"><div class="em-food">Nuts (handful)</div><div class="em-cals">170 kcal · 5g protein</div></div>
-      <div class="em-item"><div class="em-food">Banana + PB</div><div class="em-cals">280 kcal · 9g protein</div></div>
-      <div class="em-item"><div class="em-food">Greek yoghurt</div><div class="em-cals">130 kcal · 17g protein</div></div>
-      <div class="em-item"><div class="em-food">Oats + milk</div><div class="em-cals">350 kcal · 14g protein</div></div>
     </div>
   </div>
 </div>
@@ -2283,13 +2397,13 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     <div id="sleep-debt" style="margin-top:10px;font-size:11px;padding:8px 12px;background:rgba(142,142,147,.06);border:1.5px solid rgba(142,142,147,.15);border-radius:8px;color:rgba(238,240,255,.7)"></div>
     <div class="emergency" style="background:rgba(142,142,147,.05);border-color:rgba(142,142,147,.18);margin-top:14px">
       <div class="emergency-title" style="color:#8E8E93">⚡ Under 5 hours last night? — Do this today</div>
-      <div class="emergency-grid">
-        <div class="em-item"><div class="em-food">Drop intensity</div><div class="em-cals">Same exercises, 1–2 fewer sets</div></div>
-        <div class="em-item"><div class="em-food">Hit protein anyway</div><div class="em-cals">Recovery still needs the raw material</div></div>
-        <div class="em-item"><div class="em-food">10 min daylight</div><div class="em-cals">Resets your clock for tonight</div></div>
-        <div class="em-item"><div class="em-food">Skip the nap trap</div><div class="em-cals">20 min max, before 3pm only</div></div>
-        <div class="em-item"><div class="em-food">No new PRs today</div><div class="em-cals">Under-slept + max effort = injury risk</div></div>
-        <div class="em-item"><div class="em-food">Caffeine cutoff</div><div class="em-cals">None after 2pm — protect tonight's sleep</div></div>
+      <div class="emergency-grid" style="grid-template-columns:repeat(3,1fr)">
+        <div class="em-item"><div class="em-body"><div class="em-food">Drop intensity</div><div class="em-cals">Same exercises, 1–2 fewer sets</div></div></div>
+        <div class="em-item"><div class="em-body"><div class="em-food">Hit protein anyway</div><div class="em-cals">Recovery still needs the raw material</div></div></div>
+        <div class="em-item"><div class="em-body"><div class="em-food">10 min daylight</div><div class="em-cals">Resets your clock for tonight</div></div></div>
+        <div class="em-item"><div class="em-body"><div class="em-food">Skip the nap trap</div><div class="em-cals">20 min max, before 3pm only</div></div></div>
+        <div class="em-item"><div class="em-body"><div class="em-food">No new PRs today</div><div class="em-cals">Under-slept + max effort = injury risk</div></div></div>
+        <div class="em-item"><div class="em-body"><div class="em-food">Caffeine cutoff</div><div class="em-cals">None after 2pm — protect tonight's sleep</div></div></div>
       </div>
     </div>
   </div>
@@ -10633,14 +10747,19 @@ function renderCaloricShield(){
   if(broken)broken.style.display=brokenStage?'':'none';
   fillEl.style.opacity=brokenStage?'0.15':(crackedStage?'0.4':'1');
 
-  // Full-shield glow uses cyan — our actual secondary accent color (gold
-  // is a separate, rarer third accent reserved just for the streak badge
-  // above, not a general "success" color).
-  const stageEl=document.getElementById('acc-shield');
-  if(stageEl){
-    const svgEl=stageEl.querySelector('svg');
-    if(svgEl)svgEl.style.filter=overall>=100?'drop-shadow(0 0 10px rgba(68,212,255,.85)) drop-shadow(0 0 22px rgba(68,212,255,.5))':'';
+  // Ring gauge — same stroke-dasharray/dashoffset technique as the
+  // burn-meter ring elsewhere in this app. At full, both the ring and the
+  // shield icon itself pick up a warm gold glow (not the cyan used for
+  // most other "success" states in this app) since a bright gold shine is
+  // specifically what reads as "fed well today" here.
+  const ring=document.getElementById('shield-ring');
+  if(ring){
+    const RING_CIRC=314.16;
+    ring.setAttribute('stroke-dashoffset',String(RING_CIRC*(1-overall/100)));
+    ring.style.filter=overall>=100?'drop-shadow(0 0 6px rgba(255,180,50,.9))':'';
   }
+  const innerSvg=document.querySelector('#acc-shield .shield-inner');
+  if(innerSvg)innerSvg.style.filter=overall>=100?'drop-shadow(0 0 8px rgba(255,180,50,.85)) drop-shadow(0 0 18px rgba(255,140,20,.5))':'';
 
   if(label){
     if(overall>=100)label.textContent=streakOk?'Shield Fortified 🛡️':'Shield Full';
@@ -10648,6 +10767,33 @@ function renderCaloricShield(){
     else if(crackedStage)label.textContent='Shield Cracking';
     else if(redStage)label.textContent='Shield at Risk';
     else label.textContent='Caloric Shield';
+  }
+
+  // Target/status readout beside the shield graphic — the shield shape
+  // alone doesn't say WHAT the two targets actually are or how far off
+  // today's numbers sit, which is the whole reason the reference layout
+  // pairs a text block next to it instead of leaving the graphic to speak
+  // for itself.
+  const targetEl=document.getElementById('shield-target');
+  const statusEl=document.getElementById('shield-status-msg');
+  if(targetEl)targetEl.textContent=`Target: ${Math.round(profile.cals).toLocaleString()} kcal / ${Math.round(profile.protein)}g protein`;
+  if(statusEl){
+    const calShort=Math.max(0,Math.round(profile.cals-dayMacros.cals));
+    const protShort=Math.max(0,Math.round(profile.protein-dayMacros.prot));
+    statusEl.classList.remove('ok','warn','bad');
+    if(overall>=100){
+      statusEl.textContent="On target — both hit today ✓";
+      statusEl.classList.add('ok');
+    }else if(brokenStage){
+      statusEl.textContent=`${calShort.toLocaleString()} kcal short — day's over, log it tomorrow`;
+      statusEl.classList.add('bad');
+    }else if(crackedStage||redStage){
+      statusEl.textContent=`${calShort.toLocaleString()} kcal / ${protShort}g protein still short`;
+      statusEl.classList.add('warn');
+    }else{
+      statusEl.textContent=calShort>0?`${calShort.toLocaleString()} kcal / ${protShort}g protein to go`:'Fueling strong!';
+      statusEl.classList.add('ok');
+    }
   }
 }
 
