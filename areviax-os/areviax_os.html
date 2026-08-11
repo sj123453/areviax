@@ -1989,6 +1989,14 @@ textarea{resize:vertical;min-height:72px}
           <div class="card-header"><span class="card-title">Your Reminders</span></div>
           <div id="reminders-list"></div>
         </div>
+
+        <div class="card">
+          <div class="card-header"><span class="card-title">Push to your phone</span></div>
+          <div style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:14px">
+            True push notifications (landing even with the app fully closed) need a server relaying them — this app doesn't have one. What every phone already has is a Calendar app that fires real alerts on its own schedule. Export your enabled reminders below and add them to your phone's calendar once — after that they'll notify you daily with nothing open, no App Store install, no extra permissions beyond the normal "Add to Calendar" prompt.
+          </div>
+          <button class="btn btn-primary" onclick="exportRemindersToCalendar()">📅 Export enabled reminders to Calendar</button>
+        </div>
       </div>
 
       <!-- ════ DONE LIST — the "anti-timesheet." Instead of planning ahead
@@ -3604,6 +3612,64 @@ function startReminderLoop(){
   reminderLoopStarted = true;
   checkReminders();
   setInterval(checkReminders, 60000);
+}
+
+// ── PUSH TO PHONE, NO APP STORE — the browser Notification reminders above
+// are honest about their real limit: they only fire while this tab is open.
+// True Web Push (a notification landing even with the app fully closed)
+// needs a server to hold subscriptions and relay pushes — real infrastructure
+// this static, localStorage-only app doesn't have, and standing one up is a
+// much bigger project than "add reminders."
+//
+// The calendar is the one thing already on every phone that can deliver a
+// real native alert on a schedule with nothing installed and no permission
+// dialog beyond "Add to Calendar": exporting each enabled reminder as a
+// recurring .ics VEVENT with a VALARM hands the actual alerting off to the
+// phone's own Calendar app (Apple Calendar, Google Calendar, Outlook —
+// they all honor VALARM). DTSTART/RRULE are written as floating local time
+// (no trailing Z, no TZID) on purpose, since a daily 9am reminder should
+// mean 9am wherever the phone's clock says it is, not a fixed UTC instant.
+function icsEscape(s){
+  return String(s).replace(/\\/g,'\\\\').replace(/,/g,'\\,').replace(/;/g,'\\;').replace(/\n/g,'\\n');
+}
+function icsUTC(d){
+  return d.getUTCFullYear()+String(d.getUTCMonth()+1).padStart(2,'0')+String(d.getUTCDate()).padStart(2,'0')+'T'+
+    String(d.getUTCHours()).padStart(2,'0')+String(d.getUTCMinutes()).padStart(2,'0')+String(d.getUTCSeconds()).padStart(2,'0')+'Z';
+}
+function icsLocalFloating(d){
+  return d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0')+'T'+
+    String(d.getHours()).padStart(2,'0')+String(d.getMinutes()).padStart(2,'0')+'00';
+}
+function exportRemindersToCalendar(){
+  const enabled = REMINDER_TYPES.filter(r=>reminderSettings[r.id] && reminderSettings[r.id].enabled);
+  if(!enabled.length){ showToast('📅','Turn on at least one reminder above first'); return; }
+  const now = new Date();
+  let ics = 'BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Areviax OS//Reminders//EN\r\nCALSCALE:GREGORIAN\r\n';
+  enabled.forEach(r=>{
+    const s = reminderSettings[r.id];
+    const [hh,mm] = (s.time||r.defaultTime).split(':').map(Number);
+    const start = new Date(now); start.setHours(hh,mm,0,0);
+    if(start<now) start.setDate(start.getDate()+1); // first occurrence today if still upcoming, else tomorrow
+    ics += 'BEGIN:VEVENT\r\n'+
+      'UID:areviax-'+r.id+'@areviax.app\r\n'+
+      'DTSTAMP:'+icsUTC(now)+'\r\n'+
+      'DTSTART:'+icsLocalFloating(start)+'\r\n'+
+      'DURATION:PT5M\r\n'+
+      'RRULE:FREQ=DAILY\r\n'+
+      'SUMMARY:'+icsEscape(r.icon+' '+r.label)+'\r\n'+
+      'DESCRIPTION:'+icsEscape(r.desc)+'\r\n'+
+      'BEGIN:VALARM\r\nACTION:DISPLAY\r\nDESCRIPTION:'+icsEscape(r.label)+'\r\nTRIGGER:PT0M\r\nEND:VALARM\r\n'+
+      'END:VEVENT\r\n';
+  });
+  ics += 'END:VCALENDAR\r\n';
+  const blob = new Blob([ics], {type:'text/calendar'});
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.download = 'areviax-reminders.ics';
+  link.href = url;
+  link.click();
+  setTimeout(()=>URL.revokeObjectURL(url), 2000);
+  showToast('📅','Downloaded — open the file and tap "Add All" to get real phone alerts, even with the app closed');
 }
 
 // ── DONE LIST — reverse time-tracking. Instead of planning ahead and
