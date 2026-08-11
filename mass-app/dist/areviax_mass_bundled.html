@@ -1358,6 +1358,10 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
      bugs are well documented), but this is the strongest available fix
      without wrapping the app as a native shell. -->
 <audio id="sleep-bg-audio" loop playsinline style="display:none"></audio>
+<!-- Same background-audio bridge as sleep sounds above, for the rest
+     timer between sets — see that comment for why a bare AudioContext
+     alone doesn't survive a lock screen. -->
+<audio id="rest-bg-audio" loop playsinline style="display:none"></audio>
 <div class="app" id="main-app" style="display:none">
   <div class="sidebar expanded" id="sidebar">
     <button class="sb-toggle" onclick="document.getElementById('sidebar').classList.toggle('expanded')">
@@ -3495,8 +3499,8 @@ let weightLog=[];
 let measurementsLog=[];
 let dayMacros={cals:0,prot:0,water:0};
 let nutritionDayLog=[]; // [{date,hitTarget}] — powers the Caloric Shield's 3-day streak multiplier
-let timerOn=false,timerSecs=0,timerInt=null;
-let restSecs=0,restInt=null;
+let timerOn=false,timerSecs=0,timerInt=null,timerStartedAt=0;
+let restSecs=0,restInt=null,restEndsAt=0,restAudioCtx=null,restOsc=null,restOscGain=null;
 let totalVolume=0;
 let tonnageLog=[];
 let feederQuestClaimedDate='';
@@ -4054,6 +4058,14 @@ const EX={
     {name:'Reverse Pec Deck',muscle:'rear delts',sets:3,reps:'12–15',eff:76,syn:82,safe:96,equip:['deltFlyMachine'],anim:'lateral',cue:'Facing into the machine, grip the handles with a slight bend in your elbows, and pull your arms back and out in a wide arc, squeezing your rear delts and upper back together at the end of each rep.',
       troubleshoot:[
         {feel:'Not feeling it in rear delts', fix:'Slow the rep down and focus on leading with your elbows rather than your hands — this is easy to turn into a shrug if you rush it.'},
+      ]},
+    {name:'Hanging Knee Raise',muscle:'core',sets:3,reps:'12–15',eff:84,syn:86,safe:92,equip:['full','home','park'],anim:'core',cue:'Hang from a bar with a still upper body, then bring your knees up toward your chest without swinging. A natural finisher on an upper day — you\'re already at the pull-up bar.',
+      troubleshoot:[
+        {feel:'Swinging instead of controlled', fix:'You\'re using momentum instead of your abs to move the weight — slow down and keep your upper body still.'},
+      ]},
+    {name:'Cable Crunch',muscle:'core',sets:3,reps:'12–15',eff:87,syn:88,safe:95,equip:['cableMachine'],anim:'core',cue:'Kneel facing the cable, rope behind your neck. Round your spine and crunch down toward your knees — spinal flexion, not a hip hinge, so your hips barely move while your upper back curls down.',
+      troubleshoot:[
+        {feel:'Hips moving, not abs', fix:'You\'re hinging at the hips instead of curling your spine. Keep your hips still and focus the movement on rounding your upper back down toward your knees.'},
       ]},
   ],
   'lower':[
@@ -7684,7 +7696,7 @@ function rerollWorkout(){
 const EXPECTED_MUSCLES={
   'upper-push':['chest','upper chest','shoulders','side delts','triceps'],
   'upper-pull':['back','lats','biceps','rear delts'],
-  'upper-full':['chest','back','shoulders','lats','rear delts','triceps','biceps'],
+  'upper-full':['chest','back','shoulders','lats','rear delts','triceps','biceps','core'],
   'lower':['quads','glutes','hamstrings','calves'],
   'full':['chest','back','quads','shoulders','biceps','triceps','glutes','hamstrings','core']
 };
@@ -7931,7 +7943,7 @@ function renderSessionHistory(){
     const d=parseLocalDate(s.date);
     const dLabel=d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});
     return `<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 12px;background:rgba(255,255,255,.03);border:1.5px solid var(--border2);border-radius:8px">
-      <div style="min-width:0"><div style="font-size:12px;font-weight:700;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${s.name}</div><div style="font-size:10px;color:var(--muted)">${dLabel} · ${s.exs.length} exercises</div></div>
+      <div style="min-width:0"><div style="font-size:12px;font-weight:700;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${s.name}</div><div style="font-size:10px;color:var(--muted)">${dLabel} · ${s.exs.length} exercises${s.durationSec?' · '+Math.round(s.durationSec/60)+'min':''}</div></div>
       <button class="btn btn-out btn-sm" style="flex-shrink:0" onclick="loadSessionFromHistory(${i})">Load</button>
     </div>`;
   }).join('');
@@ -8258,16 +8270,105 @@ function updateBurnMeter(secs){
     toast('⏱️','Hypertrophy phase complete — wrap up soon to protect your surplus');
   }
 }
+// Same fix as the rest timer: timerSecs used to only advance once per
+// setInterval tick, so it silently fell behind (or froze) whenever the
+// tab was backgrounded/throttled. timerStartedAt anchors the current
+// running segment to a real wall-clock timestamp; currentElapsedSeconds()
+// recomputes from that on every tick (and on resume), rather than trusting
+// the tick count itself. Also now the one source of truth completeSession()
+// reads for the session's actual duration (see currentElapsedSeconds()).
+function currentElapsedSeconds(){
+  return timerSecs+(timerOn?Math.floor((Date.now()-timerStartedAt)/1000):0);
+}
+function renderSessTimer(){
+  const secs=currentElapsedSeconds();
+  const m=Math.floor(secs/60),s=secs%60;
+  const st=document.getElementById('sess-timer');if(st)st.textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+  updateBurnMeter(secs);
+}
 function toggleTimer(){
+  if(!timerOn){timerStartedAt=Date.now();}
+  else{timerSecs=currentElapsedSeconds();}
   timerOn=!timerOn;
   const tbe=document.getElementById('timer-btn');if(tbe)tbe.textContent=timerOn?'Pause':'Resume';
-  if(timerOn)timerInt=setInterval(()=>{timerSecs++;const m=Math.floor(timerSecs/60),s=timerSecs%60;const st=document.getElementById('sess-timer');if(st)st.textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');updateBurnMeter(timerSecs)},1000);
+  if(timerOn)timerInt=setInterval(renderSessTimer,1000);
   else clearInterval(timerInt);
 }
-function resetTimer(){clearInterval(timerInt);timerOn=false;timerSecs=0;burnMeterWarned=false;const st=document.getElementById('sess-timer');if(st)st.textContent='00:00';const tb=document.getElementById('timer-btn');if(tb)tb.textContent='Start';updateBurnMeter(0)}
+function resetTimer(){clearInterval(timerInt);timerOn=false;timerSecs=0;timerStartedAt=0;burnMeterWarned=false;const st=document.getElementById('sess-timer');if(st)st.textContent='00:00';const tb=document.getElementById('timer-btn');if(tb)tb.textContent='Start';updateBurnMeter(0)}
 
-function startRest(s){clearInterval(restInt);restSecs=s;const ro=document.getElementById('rest-overlay');if(ro)ro.classList.add('show');const rt=document.getElementById('rest-time');if(rt)rt.textContent=s;restInt=setInterval(()=>{restSecs--;const rt2=document.getElementById('rest-time');if(rt2)rt2.textContent=restSecs;if(restSecs<=0){skipRest();toast('⏰','Rest done — next set!')}},1000)}
-function skipRest(){clearInterval(restInt);const ro=document.getElementById('rest-overlay');if(ro)ro.classList.remove('show')}
+// Rest timer, rebuilt around an absolute end timestamp instead of a
+// simple decrementing counter: mobile browsers throttle or fully suspend
+// setInterval once the screen locks or the app backgrounds, so a counter
+// that only decrements once per tick silently falls behind (or stops
+// outright) — computing remaining time from Date.now() vs a fixed target
+// self-corrects the moment the interval fires again, and the
+// visibilitychange listener below forces an immediate resync the instant
+// the user comes back, rather than waiting for the next tick.
+function startRest(s){
+  clearInterval(restInt);
+  restEndsAt=Date.now()+s*1000;
+  const ro=document.getElementById('rest-overlay');if(ro)ro.classList.add('show');
+  updateRestDisplay();
+  restInt=setInterval(updateRestDisplay,1000);
+  scheduleRestBeep(s);
+}
+function updateRestDisplay(){
+  const remaining=Math.max(0,Math.round((restEndsAt-Date.now())/1000));
+  const rt2=document.getElementById('rest-time');if(rt2)rt2.textContent=remaining;
+  if(remaining<=0){skipRest();toast('⏰','Rest done — next set!')}
+}
+function skipRest(){
+  clearInterval(restInt);
+  const ro=document.getElementById('rest-overlay');if(ro)ro.classList.remove('show');
+  stopRestBeep();
+}
+// ── Background-surviving rest alert — same bridge technique as the sleep
+// sounds above (a raw AudioContext alone gets suspended once the screen
+// locks; a real, already-playing <audio> element backed by the same
+// Web Audio graph does not). Rather than scheduling the beep with
+// setTimeout — which needs the page's JS to still be running at that
+// future moment, which it usually won't be if the phone is locked — this
+// starts a genuinely silent oscillator RIGHT NOW and schedules its gain
+// envelope (silent → beep → silent) using the AudioContext's own clock.
+// That's the audio thread's scheduler, not the main JS thread, so the
+// beep still fires on time even while the page itself is fully suspended
+// in the background — the same reason the AudioContext needs to already
+// be live and bridged before the phone locks, not started fresh after.
+function scheduleRestBeep(s){
+  try{
+    if(!restAudioCtx)restAudioCtx=new(window.AudioContext||window.webkitAudioContext)();
+    if(restAudioCtx.state==='suspended')restAudioCtx.resume();
+    const ctx=restAudioCtx;
+    const gain=ctx.createGain();gain.gain.value=1;gain.connect(ctx.destination);
+    const streamDest=ctx.createMediaStreamDestination();gain.connect(streamDest);
+    const bgAudio=document.getElementById('rest-bg-audio');
+    if(bgAudio){bgAudio.srcObject=streamDest.stream;bgAudio.play().catch(()=>{});}
+    if('mediaSession' in navigator){
+      navigator.mediaSession.metadata=new MediaMetadata({title:'Resting — '+s+'s',artist:'Areviax'});
+    }
+    if(restOsc){try{restOsc.stop();}catch(e){}}
+    const osc=ctx.createOscillator();osc.frequency.value=880;
+    const oscGain=ctx.createGain();oscGain.gain.value=0.00001;
+    osc.connect(oscGain);oscGain.connect(gain);osc.start();
+    restOsc=osc;restOscGain=oscGain;
+    const end=ctx.currentTime+s;
+    // three short beeps rather than one, so it reads clearly even if the
+    // user only glances back partway through
+    [0,0.6,1.2].forEach(off=>{
+      const t=end+off;
+      oscGain.gain.setValueAtTime(0.00001,t);
+      oscGain.gain.linearRampToValueAtTime(0.35,t+0.08);
+      oscGain.gain.linearRampToValueAtTime(0.00001,t+0.35);
+    });
+    osc.stop(end+2);
+  }catch(e){console.error('rest beep schedule:',e.message);}
+}
+function stopRestBeep(){
+  if(restOsc){try{restOsc.stop();}catch(e){}restOsc=null;restOscGain=null;}
+}
+document.addEventListener('visibilitychange',()=>{
+  if(!document.hidden&&restInt)updateRestDisplay();
+});
 
 function checkCompassWeek(){
   const thisMonday=getMonday(new Date());
@@ -8329,7 +8430,35 @@ function checkScheduleWeek(){
   }
 }
 
+// ── SESSION PACING — an actual-vs-expected comparison, not just a raw
+// duration number with nothing to compare it against. The estimate
+// deliberately includes real rest time (the same per-focus rest constant
+// logSet uses to start the rest timer), not just working time — otherwise
+// completely normal rest between sets would look like "running long" and
+// the flag below would trigger constantly on sessions that are actually
+// fine. Only fires once genuinely far past that fair estimate.
+function estimateSessionMinutes(exs){
+  if(!exs||!exs.length)return 0;
+  const restSec={strength:120,hypertrophy:90,pump:45}[sessionFocus]||90;
+  const workSecPerSet=45; // rough time actually performing one set
+  let totalSec=0;
+  exs.forEach(e=>{
+    const sets=effectiveSets(e);
+    totalSec+=sets*workSecPerSet+Math.max(0,sets-1)*restSec;
+  });
+  totalSec+=exs.length*30; // setup/transition buffer between exercises
+  return totalSec/60;
+}
+function checkSessionPacing(actualSec,exs){
+  const expectedMin=estimateSessionMinutes(exs);
+  const actualMin=actualSec/60;
+  if(expectedMin<5)return; // too short a plan to say anything meaningful
+  if(actualMin>expectedMin*1.4&&actualMin>expectedMin+10){
+    toast('⏱️','Ran '+Math.round(actualMin-expectedMin)+'min longer than expected (rest time already factored in) — if this keeps happening, try capping rest to your focus\'s target or supersetting accessory work to keep momentum.');
+  }
+}
 function completeSession(nameOverride){
+  const sessionDurationSec=currentElapsedSeconds();
   clearInterval(timerInt);timerOn=false;
 
   const today=localDateKey(new Date());
@@ -8337,8 +8466,9 @@ function completeSession(nameOverride){
   const todaysWorkoutName=nameOverride||document.getElementById('d-next-full')?.textContent||'a session';
 
   if(plannedSessionExs&&plannedSessionExs.length){
-    sessionHistory.unshift({date:today,name:todaysWorkoutName,type:plannedSessionType,exs:plannedSessionExs});
+    sessionHistory.unshift({date:today,name:todaysWorkoutName,type:plannedSessionType,exs:plannedSessionExs,durationSec:sessionDurationSec});
     if(sessionHistory.length>15)sessionHistory.length=15; // keep the list manageable
+    if(sessionDurationSec>0)checkSessionPacing(sessionDurationSec,plannedSessionExs);
   }
   trainingTimeLog.push(new Date().getHours());
   liveSessionProgress={};
