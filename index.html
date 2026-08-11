@@ -1712,13 +1712,32 @@ window.addEventListener('error', function(e){
   box-shadow:0 30px 60px -16px rgba(0,0,0,.7),0 0 44px -12px var(--sc-glow,rgba(255,140,71,.3));
   opacity:0;pointer-events:none;will-change:transform,opacity;
 }
-/* Page-block thickness — a visible cream edge along the bottom, like
-   looking at the stacked page edges of a real open book side-on, so the
-   spread doesn't read as a flat sheet floating in space. */
+/* Page-block thickness — a real open book shows the stacked-page edge
+   along THREE sides (bottom + both outer edges; only the top/spine fold
+   is hidden), not just a single stripe along the bottom. One strip alone
+   still read as a flat card with a shadow painted under it; wrapping the
+   block on three sides is what actually sells "this has volume." Bottom
+   uses ::before (existing), right uses ::after, left needs a real child
+   element since a box only gets two pseudo-elements. All three share the
+   same striped page-edge texture, just rotated to match their edge. */
 .sc-spread::before{
-  content:'';position:absolute;left:2px;right:2px;bottom:-7px;height:9px;
-  background:repeating-linear-gradient(90deg,#e4dcc4 0px,#e4dcc4 2px,#d3c9ab 2px,#d3c9ab 4px);
-  border-radius:0 0 6px 6px;
+  content:'';position:absolute;left:6px;right:6px;bottom:-10px;height:12px;
+  background:repeating-linear-gradient(90deg,#e9e1c8 0px,#e9e1c8 2px,#d3c9ab 2px,#d3c9ab 4px);
+  border-radius:0 0 7px 7px;
+  box-shadow:0 5px 10px -4px rgba(0,0,0,.5);
+}
+.sc-spread::after{
+  content:'';position:absolute;top:6px;bottom:6px;right:-10px;width:12px;
+  background:repeating-linear-gradient(180deg,#e9e1c8 0px,#e9e1c8 2px,#d3c9ab 2px,#d3c9ab 4px);
+  border-radius:0 7px 7px 0;
+  box-shadow:5px 0 10px -4px rgba(0,0,0,.5);
+}
+.sc-spread-edge-l{
+  position:absolute;top:6px;bottom:6px;left:-10px;width:12px;
+  background:repeating-linear-gradient(180deg,#e9e1c8 0px,#e9e1c8 2px,#d3c9ab 2px,#d3c9ab 4px);
+  border-radius:7px 0 0 7px;
+  box-shadow:-5px 0 10px -4px rgba(0,0,0,.5);
+  pointer-events:none;
 }
 /* Reflection — a soft, blurred, color-matched echo rather than a literal
    mirrored duplicate: -webkit-box-reflect (the obvious tool for a true
@@ -1874,6 +1893,7 @@ window.addEventListener('error', function(e){
             </div>
             <div class="sc-spread-price">£16/mo · £125/yr</div>
           </div>
+          <div class="sc-spread-edge-l"></div>
           <div class="sc-spread-reflect"></div>
         </div>
       </div>
@@ -1943,6 +1963,7 @@ window.addEventListener('error', function(e){
             </div>
             <div class="sc-spread-price">£97 · one-time · was £129</div>
           </div>
+          <div class="sc-spread-edge-l"></div>
           <div class="sc-spread-reflect"></div>
         </div>
       </div>
@@ -2000,6 +2021,7 @@ window.addEventListener('error', function(e){
             </div>
             <div class="sc-spread-price">£16/mo · £110/yr</div>
           </div>
+          <div class="sc-spread-edge-l"></div>
           <div class="sc-spread-reflect"></div>
         </div>
       </div>
