@@ -3764,7 +3764,7 @@ const EX={
         {feel:'Lower back', fix:'Don\'t force the arch at the top beyond what feels comfortable — let your range of motion grow naturally over time rather than pushing it immediately.'},
         {feel:'Shoulders (sharp)', fix:'Slow the whole movement down considerably — this is a more complex shoulder path than a standard push-up and rewards control over speed.'},
       ]},
-    {name:'Diamond Push-ups',muscle:'triceps',sets:3,reps:'10–15',eff:74,syn:86,safe:93,equip:['full','dumbbells','home','bodyweight'],anim:'pushup',cue:'Hands close together forming a diamond shape with your thumbs and index fingers under your chest. Keep your elbows tracking back close to your body as you lower, rather than flaring out, and you should feel this burning in the backs of your upper arms by the end of the set.',
+    {name:'Diamond Push-ups',muscle:'chest + triceps',sets:3,reps:'10–15',eff:74,syn:86,safe:93,equip:['full','dumbbells','home','bodyweight'],anim:'pushup',cue:'Hands close together forming a diamond shape with your thumbs and index fingers under your chest. Keep your elbows tracking back close to your body as you lower, rather than flaring out, and you should feel this burning in the backs of your upper arms by the end of the set.',
       troubleshoot:[
         {feel:'Wrists', fix:'Try shifting the diamond slightly further forward under your chest rather than directly below your sternum, and make sure weight is spread across your whole palm.'},
         {feel:'Chest more than triceps', fix:'Your elbows are probably flaring outward. Keep them tucked tight against your ribs as you lower — that\'s what shifts the work onto your triceps instead of your chest.'},
@@ -4488,7 +4488,7 @@ const EX={
       troubleshoot:[
         {feel:'Feels awkward or hard to sequence', fix:'Practice each of the three parts separately first with very light weight before linking them together.'},
       ]},
-    {name:'Close-Grip Push-up',muscle:'triceps',sets:3,reps:'10–15',eff:78,syn:83,safe:94,equip:['full','home','bodyweight'],anim:'pushup',cue:'Hands close together, roughly shoulder-width or slightly narrower, elbows tracking close to your body rather than flared out, shifting the emphasis from chest onto triceps.',
+    {name:'Close-Grip Push-up',muscle:'chest + triceps',sets:3,reps:'10–15',eff:78,syn:83,safe:94,equip:['full','home','bodyweight'],anim:'pushup',cue:'Hands close together, roughly shoulder-width or slightly narrower, elbows tracking close to your body rather than flared out, shifting the emphasis from chest onto triceps.',
       troubleshoot:[
         {feel:'Wrists uncomfortable', fix:'Try on fists or use push-up handles to keep your wrists in a more neutral position.'},
       ]},
@@ -6907,7 +6907,7 @@ function moveExercise(index,direction){
   const filtered=allEx.filter(e=>equipOk(e));
   const timeVal=wbTime.value;
   const maxEx=maxExForTime(timeVal,filtered.length);
-  let exs=selectedMuscles.size>0 ? spreadBySelectedMuscle(filtered,maxEx) : (type==='upper-full') ? spreadByMuscle(filtered,maxEx) : filtered.slice(0,maxEx);
+  let exs=selectedMuscles.size>0 ? spreadBySelectedMuscle(filtered,maxEx) : (type==='upper-full'||type==='full') ? spreadByMuscle(filtered,maxEx) : filtered.slice(0,maxEx);
   exs=applyCustomOrder(exs,type);
   const newIndex=index+direction;
   if(newIndex<0||newIndex>=exs.length) return;
