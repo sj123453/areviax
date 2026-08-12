@@ -665,21 +665,12 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       transition:opacity .7s ease, visibility .7s ease;
     }
     #intro.done{opacity:0;visibility:hidden;pointer-events:none}
-    /* Uses the actual brand compass PNG (same file as the home-screen icon)
-       instead of a from-scratch canvas redraw, so the loading screen and
-       the app icon are guaranteed to be the same compass rather than two
-       independently-drawn approximations of it. A CSS scale/fade/glow
-       entrance keeps the "arriving" feel the old canvas animation had. */
-    #intro-compass-img{
-      width:160px;height:160px;border-radius:50%;display:block;
-      opacity:0;transform:scale(.7);filter:drop-shadow(0 0 0 rgba(255,90,0,0));
-      animation:introCompassIn 1.1s cubic-bezier(.2,.8,.2,1) forwards;
-    }
-    @keyframes introCompassIn{
-      0%{opacity:0;transform:scale(.7) rotate(-25deg);filter:drop-shadow(0 0 0 rgba(255,90,0,0))}
-      60%{opacity:1;transform:scale(1.04) rotate(4deg);filter:drop-shadow(0 0 24px rgba(255,90,0,.55))}
-      100%{opacity:1;transform:scale(1) rotate(0deg);filter:drop-shadow(0 0 14px rgba(255,90,0,.4))}
-    }
+    /* Same 8-point "rose" compass the marketing site's own loading screen
+       draws (drawIntroCompass in index.html) — ported directly rather than
+       the simpler nav-logo mark, since that's specifically the "cool
+       looking one" this should match. Canvas-drawn (not a static image)
+       so the grow-in + slowing-spin animation is identical too. */
+    #intro-canvas{display:block}
     .intro-wordmark{
       margin-top:28px;
       font-weight:800;font-size:22px;letter-spacing:.22em;text-transform:uppercase;
@@ -1147,7 +1138,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
      Being first guarantees it's on screen before anything it's meant to
      hide ever gets a chance to paint. -->
 <div id="intro">
-  <img id="intro-compass-img" src="images/icons/favicon.png" alt="Areviax">
+  <canvas id="intro-canvas" width="220" height="220"></canvas>
   <div class="intro-wordmark" id="intro-word">AREVIAX</div>
   <div class="intro-tagline" id="intro-tag">Making Success Real</div>
   <button class="intro-skip" id="intro-skip">Skip →</button>
@@ -3432,24 +3423,87 @@ window.addEventListener('unhandledrejection',function(e){console.error('PROMISE:
 // ── INTRO ANIMATION ──
 document.addEventListener('DOMContentLoaded', function(){
   const introEl = document.getElementById('intro');
+  const introCanvas = document.getElementById('intro-canvas');
   const introWord = document.getElementById('intro-word');
   const introTag  = document.getElementById('intro-tag');
   const introSkip = document.getElementById('intro-skip');
-  if(!introEl) return;
+  if(!introEl || !introCanvas || !introCanvas.getContext) return;
 
-  // The compass itself is now the real PNG (see #intro-compass-img's CSS
-  // animation) instead of a hand-drawn canvas recreation, so there's
-  // nothing left to animate here in JS — just reveal the wordmark/tagline
-  // once the compass's own entrance has mostly played out, then auto-close
-  // same as before.
+  // Same 8-point "rose" compass drawIntroCompass() draws on the marketing
+  // site's own loading screen (index.html) — ported directly rather than
+  // reimplemented, so the two loading screens are guaranteed to look
+  // identical instead of two separate hand-tuned approximations.
+  const iCtx = introCanvas.getContext('2d');
+  const IW=220, IC=110;
+  let introAngle=0, introProgress=0, introDone=false;
+
+  function drawIntroCompass(progress){
+    iCtx.clearRect(0,0,IW,IW);
+    const r = IC*.88*Math.min(progress,1);
+    if(r<2) return;
+    for(let i=8;i>0;i--){
+      iCtx.beginPath();iCtx.arc(IC,IC,r*(i/8),0,Math.PI*2);
+      iCtx.strokeStyle=`rgba(255,90,0,${.05*(i/8)})`;iCtx.lineWidth=2;
+      iCtx.globalAlpha=1;iCtx.stroke();
+    }
+    const bg=iCtx.createRadialGradient(IC,IC,0,IC,IC,r);
+    bg.addColorStop(0,'rgba(200,80,0,.95)');bg.addColorStop(1,'rgba(7,9,15,.6)');
+    iCtx.beginPath();iCtx.arc(IC,IC,r,0,Math.PI*2);
+    iCtx.fillStyle=bg;iCtx.globalAlpha=1;iCtx.fill();
+    iCtx.beginPath();iCtx.arc(IC,IC,r,0,Math.PI*2);
+    iCtx.strokeStyle='rgba(255,140,60,.8)';iCtx.lineWidth=.8;iCtx.stroke();
+
+    function iRoseSpike(ang,len,bulgeR,hw,lightCol,darkCol){
+      const a=ang*Math.PI/180;
+      const dx=Math.cos(a), dy=Math.sin(a), px=-dy, py=dx;
+      const backR=r*.06;
+      const tip={x:IC+dx*len,y:IC+dy*len};
+      const back={x:IC+dx*backR,y:IC+dy*backR};
+      const midX=IC+dx*bulgeR, midY=IC+dy*bulgeR;
+      const midLeft={x:midX+px*hw,y:midY+py*hw};
+      const midRight={x:midX-px*hw,y:midY-py*hw};
+      const a2=alphaMul*Math.min(progress,1);
+      iCtx.globalAlpha=a2*.92;
+      iCtx.beginPath();iCtx.moveTo(back.x,back.y);iCtx.lineTo(midLeft.x,midLeft.y);iCtx.lineTo(tip.x,tip.y);iCtx.closePath();
+      iCtx.fillStyle=darkCol;iCtx.fill();
+      iCtx.beginPath();iCtx.moveTo(back.x,back.y);iCtx.lineTo(tip.x,tip.y);iCtx.lineTo(midRight.x,midRight.y);iCtx.closePath();
+      iCtx.fillStyle=lightCol;iCtx.fill();
+    }
+    const rot=introAngle;
+    const alphaMul=1;
+    const iRoseDirs=[0,45,90,135,180,225,270,315];
+    iRoseDirs.forEach((a,i)=>{
+      const isLong=i%2===0;
+      iRoseSpike(a+rot, isLong?r*.88:r*.5, isLong?r*.34:r*.28, isLong?r*.07:r*.055, '#FF8C47','#B8390A');
+    });
+
+    iCtx.globalAlpha=Math.min(progress,1);
+    iCtx.fillStyle='#FF5A00';iCtx.shadowColor='#FF5A00';iCtx.shadowBlur=10;
+    iCtx.beginPath();iCtx.arc(IC,IC,r*.045,0,Math.PI*2);iCtx.fill();
+    iCtx.fillStyle='white';iCtx.shadowBlur=0;
+    iCtx.beginPath();iCtx.arc(IC,IC,r*.018,0,Math.PI*2);iCtx.fill();
+  }
+
+  let introStart=null;
+  function introLoop(ts){
+    if(!introStart)introStart=ts;
+    const elapsed=ts-introStart;
+    introProgress=Math.min(elapsed/800,1);
+    introAngle+=1.8*(1-introProgress*.7);
+    drawIntroCompass(introProgress);
+    if(introProgress>.6){
+      if(introWord)introWord.classList.add('show');
+      if(introTag)introTag.classList.add('show');
+    }
+    if(!introDone)requestAnimationFrame(introLoop);
+  }
+
   function closeIntro(){
+    introDone=true;
     introEl.classList.add('done');
   }
 
-  setTimeout(function(){
-    if(introWord)introWord.classList.add('show');
-    if(introTag)introTag.classList.add('show');
-  }, 480);
+  requestAnimationFrame(introLoop);
   setTimeout(closeIntro, 2800);
   if(introSkip) introSkip.addEventListener('click', closeIntro);
 });
