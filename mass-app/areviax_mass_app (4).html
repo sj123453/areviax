@@ -8378,12 +8378,22 @@ function renderSwapList(i,term){
   const current=exs[i];if(!current)return;
   const q=(term||'').trim().toLowerCase();
   const allEx=Object.values(EX).flat().filter((e,idx,arr)=>arr.findIndex(x=>x.name===e.name)===idx);
+  // Same exact muscle tag (e.g. 'shoulders' -> 'shoulders') is a more
+  // relevant swap than a same-group-but-different tag (e.g. 'shoulders' ->
+  // 'rear delts') — sort exact matches first so the closest substitutes
+  // surface at the top of the list instead of being mixed in at random
+  // with broader group matches.
   const sameMuscle=allEx.filter(e=>{
     if(e.name===current.name||!equipOk(e))return false;
     if(e.muscle===current.muscle)return true;
     const currentMuscleKey=Object.keys(MUSCLE_GROUPS).find(k=>current.muscle.includes(k)||(MUSCLE_GROUPS[k]||[]).some(syn=>current.muscle.includes(syn)));
     if(!currentMuscleKey)return false;
     return (MUSCLE_GROUPS[currentMuscleKey]||[]).some(syn=>e.muscle.includes(syn));
+  }).sort((a,b)=>{
+    const aExact=a.muscle===current.muscle?0:1;
+    const bExact=b.muscle===current.muscle?0:1;
+    if(aExact!==bExact)return aExact-bExact;
+    return (b.eff||0)-(a.eff||0); // within the same tier, most effective first
   });
   const pool=(q?allEx.filter(e=>equipOk(e)&&e.name!==current.name&&e.name.toLowerCase().includes(q)):sameMuscle);
   const cont=document.getElementById('swap-list-'+i);if(!cont)return;
