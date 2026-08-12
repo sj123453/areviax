@@ -1681,6 +1681,13 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     <strong style="color:#FF5A00">Reminder:</strong> you noted <span id="injury-reminder-text"></span> at signup. Swap out anything that aggravates it, and stop if something feels wrong.
   </div>
 
+  <!-- TODAY'S PLAN NUDGE — advises (doesn't block) doing the day's actual
+       allocated workout from a generated week, rather than the builder
+       silently letting a different session become "today's session" with
+       no acknowledgement a specific one was already scheduled. See
+       renderTodayPlanBanner. -->
+  <div id="today-plan-banner" style="display:none;background:rgba(68,207,255,.06);border:1.5px solid rgba(68,207,255,.25);border-radius:8px;padding:12px 14px;margin-bottom:16px"></div>
+
   <!-- EMERGENCY WORKOUT — protects the streak on a genuinely bad day without
        pretending it was a real training session. Lives here rather than on
        the dashboard, since this is where "what am I doing today" decisions
@@ -6215,7 +6222,7 @@ function showPage(id){
     try{checkSleepReminder();}catch(e){}
     try{checkSittingJobTip();}catch(e){}
   }
-  if(id==='workout'){safeRender(renderExercises,'workout');safeRender(renderSessionHistory,'workout');}
+  if(id==='workout'){safeRender(renderExercises,'workout');safeRender(renderSessionHistory,'workout');safeRender(renderTodayPlanBanner,'workout');}
   if(id==='session'){
     // Commit whatever's live in the builder to the active session only
     // now — actually navigating to Start Session is the real signal the
@@ -8749,6 +8756,7 @@ function completeSession(nameOverride){
   lastSessionWorkoutName=todaysWorkoutName;
   lastSessionDate=today;
   checkScheduleWeek();
+  if(!alreadyTrainedToday)reconcileScheduleOnComplete(plannedSessionType);
   weekCompletedDays[today]=true;
 
   // Set greeting + date
@@ -11701,6 +11709,53 @@ function startScheduledDay(i){
   plannedSessionExs=slot.exs;plannedSessionType=slot.type;plannedSessionName=slot.name;
   saveToStorage();
   showPage('session');
+}
+// Advisory nudge shown on the Workout Builder — surfaces today's real
+// allocated session from a generated week (if there is one and it hasn't
+// been done yet) so the builder can still be used freely, but doesn't
+// silently let a different workout replace today's plan with no
+// acknowledgement one was already scheduled. Deliberately a suggestion,
+// not a block — "Do this instead" is one tap away, but building/starting
+// something else is still completely allowed (see reconcileScheduleOnComplete
+// for what happens then).
+function renderTodayPlanBanner(){
+  const el=document.getElementById('today-plan-banner');
+  if(!el)return;
+  if(!generatedWeek){el.style.display='none';return;}
+  checkScheduleWeek();
+  const ti=new Date().getDay();const ti2=ti===0?6:ti-1;
+  const today=localDateKey(new Date());
+  const slot=getScheduleSlot(ti2);
+  if(slot.type==='rest'||!slot.exs||!slot.exs.length||weekCompletedDays[today]){el.style.display='none';return;}
+  el.style.display='block';
+  el.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+    <div style="font-size:11.5px;color:rgba(238,240,255,.85)">📅 Today's plan is <strong style="color:var(--cyan)">${slot.name}</strong> — building something else is fine, but that's the recommended one for today.</div>
+    <button class="btn btn-g btn-sm" style="flex-shrink:0" onclick="startScheduledDay(${ti2})">Do this instead →</button>
+  </div>`;
+}
+// Called from completeSession() right before today gets marked trained.
+// If today had a real allocated workout (from a generated week) and what
+// actually just got completed isn't that — a different builder session, a
+// custom workout, whatever — the allocated one doesn't just quietly vanish
+// under weekCompletedDays being set true for today. It gets moved to the
+// next open day and called out as the recommended next session, the same
+// way a genuinely missed day would be handled.
+function reconcileScheduleOnComplete(completedType){
+  if(!generatedWeek)return;
+  const ti=new Date().getDay();const ti2=ti===0?6:ti-1;
+  const todaySlot=getScheduleSlot(ti2);
+  if(todaySlot.type==='rest'||todaySlot.type===completedType)return;
+  const targetIdx=SCHED_DAYS.findIndex((_,j)=>j>ti2&&getScheduleSlot(j).type==='rest');
+  if(targetIdx>=0){
+    scheduleOverrides[targetIdx]=todaySlot;
+    scheduleOverrides[ti2]={type:'rest',name:'Rest',exs:[]};
+    toast('📅',`Did something else today — moved ${todaySlot.name} to ${SCHED_DAYS[targetIdx]}. Recommended for your next session.`);
+  }else{
+    // No open day left this week to move it to — leave today's slot as-is
+    // rather than losing it outright; it'll surface again once a rest day
+    // opens up (next week's regeneration, or a manual reschedule).
+    toast('📅',`Did something else today — no open day left this week to move ${todaySlot.name} to. It'll carry over.`);
+  }
 }
 function renderSchedule(){
   const sg=document.getElementById('sched-grid');
