@@ -1446,10 +1446,6 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
      bugs are well documented), but this is the strongest available fix
      without wrapping the app as a native shell. -->
 <audio id="sleep-bg-audio" loop playsinline style="display:none"></audio>
-<!-- Same background-audio bridge as sleep sounds above, for the rest
-     timer between sets — see that comment for why a bare AudioContext
-     alone doesn't survive a lock screen. -->
-<audio id="rest-bg-audio" loop playsinline style="display:none"></audio>
 <div class="app" id="main-app" style="display:none">
   <div class="sidebar expanded" id="sidebar">
     <button class="sb-toggle" onclick="document.getElementById('sidebar').classList.toggle('expanded')">
@@ -3704,7 +3700,7 @@ let measurementsLog=[];
 let dayMacros={cals:0,prot:0,water:0};
 let nutritionDayLog=[]; // [{date,hitTarget}] — powers the Caloric Shield's 3-day streak multiplier
 let timerOn=false,timerSecs=0,timerInt=null,timerStartedAt=0;
-let restSecs=0,restInt=null,restEndsAt=0,restAudioCtx=null,restOsc=null,restOscGain=null;
+let restSecs=0,restInt=null,restEndsAt=0;
 let totalVolume=0;
 let tonnageLog=[];
 let feederQuestClaimedDate='';
@@ -8553,7 +8549,6 @@ function startRest(s){
   const ro=document.getElementById('rest-overlay');if(ro)ro.classList.add('show');
   updateRestDisplay();
   restInt=setInterval(updateRestDisplay,1000);
-  scheduleRestBeep(s);
 }
 function updateRestDisplay(){
   const remaining=Math.max(0,Math.round((restEndsAt-Date.now())/1000));
@@ -8563,51 +8558,6 @@ function updateRestDisplay(){
 function skipRest(){
   clearInterval(restInt);
   const ro=document.getElementById('rest-overlay');if(ro)ro.classList.remove('show');
-  stopRestBeep();
-}
-// ── Background-surviving rest alert — same bridge technique as the sleep
-// sounds above (a raw AudioContext alone gets suspended once the screen
-// locks; a real, already-playing <audio> element backed by the same
-// Web Audio graph does not). Rather than scheduling the beep with
-// setTimeout — which needs the page's JS to still be running at that
-// future moment, which it usually won't be if the phone is locked — this
-// starts a genuinely silent oscillator RIGHT NOW and schedules its gain
-// envelope (silent → beep → silent) using the AudioContext's own clock.
-// That's the audio thread's scheduler, not the main JS thread, so the
-// beep still fires on time even while the page itself is fully suspended
-// in the background — the same reason the AudioContext needs to already
-// be live and bridged before the phone locks, not started fresh after.
-function scheduleRestBeep(s){
-  try{
-    if(!restAudioCtx)restAudioCtx=new(window.AudioContext||window.webkitAudioContext)();
-    if(restAudioCtx.state==='suspended')restAudioCtx.resume();
-    const ctx=restAudioCtx;
-    const gain=ctx.createGain();gain.gain.value=1;gain.connect(ctx.destination);
-    const streamDest=ctx.createMediaStreamDestination();gain.connect(streamDest);
-    const bgAudio=document.getElementById('rest-bg-audio');
-    if(bgAudio){bgAudio.srcObject=streamDest.stream;bgAudio.play().catch(()=>{});}
-    if('mediaSession' in navigator){
-      navigator.mediaSession.metadata=new MediaMetadata({title:'Resting — '+s+'s',artist:'Areviax'});
-    }
-    if(restOsc){try{restOsc.stop();}catch(e){}}
-    const osc=ctx.createOscillator();osc.frequency.value=880;
-    const oscGain=ctx.createGain();oscGain.gain.value=0.00001;
-    osc.connect(oscGain);oscGain.connect(gain);osc.start();
-    restOsc=osc;restOscGain=oscGain;
-    const end=ctx.currentTime+s;
-    // three short beeps rather than one, so it reads clearly even if the
-    // user only glances back partway through
-    [0,0.6,1.2].forEach(off=>{
-      const t=end+off;
-      oscGain.gain.setValueAtTime(0.00001,t);
-      oscGain.gain.linearRampToValueAtTime(0.35,t+0.08);
-      oscGain.gain.linearRampToValueAtTime(0.00001,t+0.35);
-    });
-    osc.stop(end+2);
-  }catch(e){console.error('rest beep schedule:',e.message);}
-}
-function stopRestBeep(){
-  if(restOsc){try{restOsc.stop();}catch(e){}restOsc=null;restOscGain=null;}
 }
 document.addEventListener('visibilitychange',()=>{
   if(!document.hidden&&restInt)updateRestDisplay();
