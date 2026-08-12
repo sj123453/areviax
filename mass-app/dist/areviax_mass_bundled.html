@@ -393,6 +393,18 @@ input,input:focus,input:active,
 .pr-card-badge{display:inline-block;margin-top:8px;font-size:8px;font-weight:800;background:rgba(255,215,0,.15);color:var(--yellow);border:1.5px solid rgba(255,215,0,.28);padding:2px 8px;border-radius:10px;letter-spacing:.05em;position:relative}
 .pr-card-empty{margin-top:8px;font-size:8.5px;color:var(--muted2);position:relative}
 
+/* DATA TERMINAL — consolidates what used to be four separate stacked
+   full-width cards (Personal Records, Body Measurements, Weight Log,
+   Tonnage) into one tabbed card, so scanning your stats doesn't mean
+   scrolling past all four every time. Each tab panel is exactly the
+   existing card body that used to stand alone — same ids, same render
+   functions, same onclick handlers — just moved, not rebuilt. */
+.data-terminal-tabs{display:flex;gap:4px;overflow-x:auto;margin-bottom:16px;padding-bottom:2px;-webkit-overflow-scrolling:touch}
+.data-terminal-tab{flex-shrink:0;display:flex;align-items:center;gap:6px;background:transparent;border:none;border-bottom:2px solid transparent;color:rgba(238,240,255,.45);font-family:'Outfit',sans-serif;font-size:11.5px;font-weight:700;padding:8px 4px;cursor:pointer;white-space:nowrap;transition:color .15s,border-color .15s}
+.data-terminal-tab.active{color:var(--white);border-bottom-color:var(--orange)}
+.data-terminal-panel{display:none}
+.data-terminal-panel.active{display:block}
+
 .stat-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
 .stat-row-icon{font-size:13px;width:18px;text-align:center;flex-shrink:0}
 .stat-row-label{width:56px;font-size:10px;font-weight:700;color:rgba(238,240,255,.6);flex-shrink:0}
@@ -2230,19 +2242,15 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     <div id="consistency-wrap"></div>
   </div>
 
-  <!-- MECHANICAL TENSION TONNAGE — weekly Sets×Reps×Weight per muscle group,
-       so you can see which muscles are actually getting real training
-       volume this week vs which are being neglected, rather than just a
-       single lifetime "kg lifted" number. -->
+  <!-- XP SOURCE BREAKDOWN — what's actually been driving XP lately, not
+       just the lifetime total ticking up with no context. -->
   <div class="card" style="margin-bottom:20px">
-    <div class="ch"><span class="ct">This week's tonnage by muscle</span></div>
-    <div id="tonnage-breakdown"></div>
+    <div class="ch"><span class="ct">⭐ Where your XP came from</span></div>
+    <div id="xp-breakdown"></div>
   </div>
 
-  <!-- VOLUME TREND — moved here from Home, which already has the
-       per-day "this week" chart; the 8-week trend is a longer-horizon
-       view that fits better alongside tonnage on the page dedicated to
-       tracking progress over time. -->
+  <!-- VOLUME TREND — the 8-week trend, longer-horizon than the weekly
+       tonnage tab below. -->
   <div id="vol-trend-card" style="display:none;background:#0B0B0B;border:1px solid rgba(255,90,0,.08);border-radius:16px;padding:16px;margin-bottom:20px">
     <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px">
       <div style="display:flex;align-items:center;gap:6px">
@@ -2254,81 +2262,94 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     <div id="vol-trend-labels" style="display:flex;gap:6px;font-size:8px;color:var(--muted)"></div>
   </div>
 
-  <!-- XP SOURCE BREAKDOWN — what's actually been driving XP lately, not
-       just the lifetime total ticking up with no context. -->
+  <!-- DATA TERMINAL — Personal Records / Body Measurements / Weight Log /
+       Tonnage used to be four separate full-width cards stacked one after
+       another; consolidated into one tabbed card so checking any one of
+       them doesn't mean scrolling past the other three. Every id, render
+       function, and onclick below is unchanged from when each was its own
+       card — this is a container change, not a rebuild. -->
   <div class="card" style="margin-bottom:20px">
-    <div class="ch"><span class="ct">⭐ Where your XP came from</span></div>
-    <div id="xp-breakdown"></div>
-  </div>
-
-  <!-- WEIGHT — one independent section -->
-  <div style="font-size:9px;font-weight:800;letter-spacing:.24em;text-transform:uppercase;color:#FFD24D;margin-bottom:8px">Weight</div>
-  <div class="card card-accent-gold" style="margin-bottom:20px">
-    <div class="ch"><span class="ct ct-gold" style="display:flex;align-items:center;gap:7px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>Log your weight</span></div>
-    <div style="display:flex;gap:7px;align-items:flex-end">
-      <div style="flex:1"><label class="lbl" style="margin-top:0">Weight today (lbs)</label><input type="number" id="log-w" placeholder="e.g. 147"></div>
-      <button class="btn btn-g btn-sm" style="flex-shrink:0" onclick="logWeight()">Log</button>
+    <div class="ch"><span class="ct">📋 Data Terminal</span></div>
+    <div class="data-terminal-tabs">
+      <button class="data-terminal-tab active" id="dt-tab-pr" onclick="switchDataTerminalTab('pr')">🏆 Personal Records</button>
+      <button class="data-terminal-tab" id="dt-tab-body" onclick="switchDataTerminalTab('body')">📐 Body Measurements</button>
+      <button class="data-terminal-tab" id="dt-tab-weight" onclick="switchDataTerminalTab('weight')">⚖️ Weight Log</button>
+      <button class="data-terminal-tab" id="dt-tab-tonnage" onclick="switchDataTerminalTab('tonnage')">📈 Tonnage</button>
     </div>
-    <div id="w-history"></div>
-    <div style="height:1px;background:rgba(255,210,77,.14);margin:16px 0"></div>
-    <div style="font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,210,77,.6);margin-bottom:6px">Where you're headed</div>
-    <div id="prediction" style="font-size:12px;color:var(--muted);line-height:1.75">Log at least 2 weight entries to see your predicted progress.</div>
-    <div style="height:1px;background:rgba(255,210,77,.14);margin:16px 0"></div>
-    <div style="font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,210,77,.6);margin-bottom:8px">Weight chart</div>
-    <div id="w-chart"></div>
-    <div style="font-size:10px;color:var(--muted);margin-top:6px">Target: 0.5–1 lb per week. Slower is fine — faster risks fat gain.</div>
-  </div>
 
-  <!-- BODY — one independent section -->
-  <div style="font-size:9px;font-weight:800;letter-spacing:.24em;text-transform:uppercase;color:#6FC3FF;margin-bottom:8px">Body</div>
-  <div class="card card-accent-blue" style="margin-bottom:20px">
-    <div class="ch"><span class="ct ct-blue" style="display:flex;align-items:center;gap:7px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a4 4 0 014 4v2a4 4 0 01-8 0V6a4 4 0 014-4z"/><path d="M6 21v-2a6 6 0 0112 0v2"/></svg>Body measurements (cm)</span></div>
-    <div style="font-size:11px;color:var(--muted);margin-bottom:10px">The scale doesn't show everything — track inches/cm too. Log whichever you have a tape measure for, you don't need all five every time.</div>
-    <div class="g2" style="gap:8px">
-      <div><label class="lbl" style="margin-top:0">Chest</label><input type="number" step="0.1" id="m-chest" placeholder="e.g. 102"></div>
-      <div><label class="lbl" style="margin-top:0">Waist</label><input type="number" step="0.1" id="m-waist" placeholder="e.g. 81"></div>
-      <div><label class="lbl" style="margin-top:8px">Hips</label><input type="number" step="0.1" id="m-hips" placeholder="e.g. 98"></div>
-      <div><label class="lbl" style="margin-top:8px">Arms</label><input type="number" step="0.1" id="m-arms" placeholder="e.g. 35"></div>
+    <div class="data-terminal-panel active" id="dt-panel-pr">
+      <div id="pr-list"></div>
     </div>
-    <div style="margin-top:8px"><label class="lbl" style="margin-top:0">Thighs</label><input type="number" step="0.1" id="m-thighs" placeholder="e.g. 56"></div>
-    <button class="btn btn-g btn-sm" style="margin-top:10px;width:100%" onclick="logMeasurements()">Log Measurements</button>
-    <div style="margin-top:12px" id="measurements-history"></div>
-  </div>
 
-  <!-- Sleep now has its own dedicated Recovery page — see sidebar -->
-  <div class="card" onclick="showPage('recovery')" style="cursor:pointer;border-color:rgba(142,142,147,.2);margin-bottom:16px">
-    <div style="display:flex;align-items:center;gap:12px">
-      <div style="width:38px;height:38px;border-radius:10px;background:rgba(142,142,147,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0">
-        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#8E8E93" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+    <div class="data-terminal-panel" id="dt-panel-body">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:10px">The scale doesn't show everything — track inches/cm too. Log whichever you have a tape measure for, you don't need all five every time.</div>
+      <div class="g2" style="gap:8px">
+        <div><label class="lbl" style="margin-top:0">Chest</label><input type="number" step="0.1" id="m-chest" placeholder="e.g. 102"></div>
+        <div><label class="lbl" style="margin-top:0">Waist</label><input type="number" step="0.1" id="m-waist" placeholder="e.g. 81"></div>
+        <div><label class="lbl" style="margin-top:8px">Hips</label><input type="number" step="0.1" id="m-hips" placeholder="e.g. 98"></div>
+        <div><label class="lbl" style="margin-top:8px">Arms</label><input type="number" step="0.1" id="m-arms" placeholder="e.g. 35"></div>
       </div>
-      <div style="flex:1">
-        <div style="font-size:14px;font-weight:800;color:var(--white)">Sleep & Recovery</div>
-        <div style="font-size:11px;color:var(--muted)">Log your sleep, wind-down sounds, breathing exercises →</div>
+      <div style="margin-top:8px"><label class="lbl" style="margin-top:0">Thighs</label><input type="number" step="0.1" id="m-thighs" placeholder="e.g. 56"></div>
+      <button class="btn btn-g btn-sm" style="margin-top:10px;width:100%" onclick="logMeasurements()">Log Measurements</button>
+      <div style="margin-top:12px" id="measurements-history"></div>
+    </div>
+
+    <div class="data-terminal-panel" id="dt-panel-weight">
+      <div style="display:flex;gap:7px;align-items:flex-end">
+        <div style="flex:1"><label class="lbl" style="margin-top:0">Weight today (lbs)</label><input type="number" id="log-w" placeholder="e.g. 147"></div>
+        <button class="btn btn-g btn-sm" style="flex-shrink:0" onclick="logWeight()">Log</button>
       </div>
+      <div id="w-history"></div>
+      <div style="height:1px;background:rgba(255,255,255,.08);margin:16px 0"></div>
+      <div style="font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,210,77,.6);margin-bottom:6px">Where you're headed</div>
+      <div id="prediction" style="font-size:12px;color:var(--muted);line-height:1.75">Log at least 2 weight entries to see your predicted progress.</div>
+      <div style="height:1px;background:rgba(255,255,255,.08);margin:16px 0"></div>
+      <div style="font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,210,77,.6);margin-bottom:8px">Weight chart</div>
+      <div id="w-chart"></div>
+      <div style="font-size:10px;color:var(--muted);margin-top:6px">Target: 0.5–1 lb per week. Slower is fine — faster risks fat gain.</div>
+    </div>
+
+    <div class="data-terminal-panel" id="dt-panel-tonnage">
+      <div id="tonnage-breakdown"></div>
     </div>
   </div>
 
-  <div class="card">
-    <div class="ch"><span class="ct">Progress Photos</span><span class="ca" onclick="document.getElementById('photo-file-input').click()">+ Add photo</span></div>
-    <input type="file" id="photo-file-input" accept="image/*" capture="environment" style="display:none" onchange="addProgressPhoto(this)">
-    <div id="photo-align-guide" style="display:none"></div>
-    <div id="photo-gallery" class="photo-gallery"></div>
+  <!-- Photos + Sleep quick-log side by side, the two things you'd check
+       right after your stats — matched to the same 2-column hero-row
+       pattern the Nutrition page already uses for its own top row. -->
+  <div class="nutr-hero-grid" style="margin-bottom:14px">
+    <div class="card" style="margin-bottom:0">
+      <div class="ch"><span class="ct">Progress Photos</span><span class="ca" onclick="document.getElementById('photo-file-input').click()">+ Add photo</span></div>
+      <input type="file" id="photo-file-input" accept="image/*" capture="environment" style="display:none" onchange="addProgressPhoto(this)">
+      <div id="photo-align-guide" style="display:none"></div>
+      <div id="photo-gallery" class="photo-gallery"></div>
 
-    <div id="photo-compare-section" style="display:none;margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,.06)">
-      <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Day 1 vs Now</div>
-      <div class="photo-slider-wrap">
-        <img id="photo-slider-before" class="photo-slider-img">
-        <div id="photo-slider-after-wrap" class="photo-slider-after-wrap">
-          <img id="photo-slider-after" class="photo-slider-img">
+      <div id="photo-compare-section" style="display:none;margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,.06)">
+        <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Day 1 vs Now</div>
+        <div class="photo-slider-wrap">
+          <img id="photo-slider-before" class="photo-slider-img">
+          <div id="photo-slider-after-wrap" class="photo-slider-after-wrap">
+            <img id="photo-slider-after" class="photo-slider-img">
+          </div>
+          <div class="photo-slider-handle" id="photo-slider-handle"></div>
+          <input type="range" id="photo-slider-range" min="0" max="100" value="50" class="photo-slider-range" oninput="updatePhotoSlider(this.value)">
+          <div class="photo-slider-label-left" id="photo-compare-before-label"></div>
+          <div class="photo-slider-label-right" id="photo-compare-after-label"></div>
         </div>
-        <div class="photo-slider-handle" id="photo-slider-handle"></div>
-        <input type="range" id="photo-slider-range" min="0" max="100" value="50" class="photo-slider-range" oninput="updatePhotoSlider(this.value)">
-        <div class="photo-slider-label-left" id="photo-compare-before-label"></div>
-        <div class="photo-slider-label-right" id="photo-compare-after-label"></div>
       </div>
     </div>
+
+    <!-- Real tracked numbers only (last night's hours + 7-day average) —
+         no fabricated "readiness %" or "wake score", since nothing here
+         measures either of those; renderSleepQuickLog() below computes
+         both from the same sleepLog the Recovery page already uses. -->
+    <div class="card" style="margin-bottom:0;cursor:pointer" onclick="showPage('recovery')">
+      <div class="ch"><span class="ct" style="display:flex;align-items:center;gap:7px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>Sleep &amp; Recovery</span></div>
+      <div id="sleep-quicklog-body"></div>
+      <button class="btn btn-out btn-sm" style="width:100%;margin-top:12px" onclick="event.stopPropagation();showPage('recovery')">Log sleep / full Recovery page →</button>
+    </div>
   </div>
-  <div class="card"><div class="ch"><span class="ct">Personal records 🏆</span></div><div id="pr-list"></div></div>
+
   <div class="card" id="compare-card" style="display:none"><div class="ch"><span class="ct">You vs day 1</span></div><div id="compare-body"></div></div>
 
   <!-- CROSS-PROMO — sits at the bottom, after someone's actually reviewed
@@ -9272,6 +9293,17 @@ function toggleAccordion(id,headerEl){
     headerEl.classList.add('open');
   }
 }
+// ── DATA TERMINAL TABS — Progress page's consolidated Personal Records /
+// Body Measurements / Weight Log / Tonnage card. Straightforward show/hide,
+// no accordion-style single-open-at-a-time coupling to any other page.
+function switchDataTerminalTab(tab){
+  ['pr','body','weight','tonnage'].forEach(t=>{
+    const panel=document.getElementById('dt-panel-'+t);
+    const btn=document.getElementById('dt-tab-'+t);
+    if(panel)panel.classList.toggle('active',t===tab);
+    if(btn)btn.classList.toggle('active',t===tab);
+  });
+}
 function toggleCatchup(){
   const body=document.getElementById('catchup-body');
   const chevron=document.getElementById('catchup-chevron');
@@ -10414,6 +10446,33 @@ function renderCNSResult(){
   el.innerHTML=msg;
 }
 
+// Progress page's Sleep & Recovery quick-log card — deliberately only
+// surfaces numbers sleepLog actually has (last night's hours, 7-day
+// average), not a fabricated "readiness %" or "wake score" with nothing
+// real behind them.
+function renderSleepQuickLog(){
+  const wrap=document.getElementById('sleep-quicklog-body');
+  if(!wrap)return;
+  if(!sleepLog.length){
+    wrap.innerHTML='<div style="font-size:11.5px;color:var(--muted);line-height:1.6">No sleep logged yet — track a night on the Recovery page and it\'ll show up here.</div>';
+    return;
+  }
+  const last=sleepLog[sleepLog.length-1];
+  const weekAgo=new Date();weekAgo.setDate(weekAgo.getDate()-7);
+  const recent=sleepLog.filter(e=>parseLocalDate(e.date)>=weekAgo);
+  const avg=recent.length?(recent.reduce((a,e)=>a+e.hours,0)/recent.length):null;
+  const lastColor=last.hours>=7?'var(--green)':last.hours>=6?'#FFC107':'#FF4455';
+  wrap.innerHTML=`<div style="display:flex;gap:10px">
+    <div style="flex:1;background:rgba(255,255,255,.03);border:1.5px solid var(--border2);border-radius:10px;padding:10px;text-align:center">
+      <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">Last night</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:800;color:${lastColor}">${last.hours}h</div>
+    </div>
+    <div style="flex:1;background:rgba(255,255,255,.03);border:1.5px solid var(--border2);border-radius:10px;padding:10px;text-align:center">
+      <div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">7-day avg</div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:800;color:var(--white)">${avg?avg.toFixed(1)+'h':'—'}</div>
+    </div>
+  </div>`;
+}
 function renderReadiness(){
   const card=document.getElementById('readiness-card');
   if(!card)return;
@@ -11461,6 +11520,7 @@ function renderProgress(){
   renderTonnageBreakdown();
   try{renderVolumeTrend();}catch(e){console.error('renderVolumeTrend:',e.message);}
   try{renderXpBreakdown();}catch(e){console.error('renderXpBreakdown:',e.message);}
+  try{renderSleepQuickLog();}catch(e){console.error('renderSleepQuickLog:',e.message);}
   hist.innerHTML=weightLog.slice(-5).reverse().map((e,i)=>{
     const realIdx=weightLog.length-1-i;
     return `<div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;padding:4px 0;border-bottom:1.5px solid var(--border2)"><span style="color:var(--muted)">${e.date}</span><span style="display:flex;align-items:center;gap:8px"><span style="font-family:'JetBrains Mono',monospace;font-weight:600">${e.w} lbs</span>${i===0&&weightLog.length>1?`<span style="color:${e.w>weightLog[weightLog.length-2].w?'var(--green)':'var(--red)'};font-size:10px">${e.w>weightLog[weightLog.length-2].w?'↑':'↓'}${Math.abs(e.w-(weightLog[weightLog.length-2]?.w||e.w)).toFixed(1)}</span>`:''}<button onclick="deleteWeightEntry(${realIdx})" title="Remove this entry" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;line-height:1;padding:2px 4px">×</button></span></div>`;
