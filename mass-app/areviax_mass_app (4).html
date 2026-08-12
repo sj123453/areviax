@@ -330,8 +330,27 @@ input,input:focus,input:active,
 /* EMERGENCY BOX */
 .emergency{background:rgba(255,122,46,.05);border:1.5px solid rgba(255,122,46,.18);border-radius:6px;padding:13px 15px;margin-top:10px}
 .emergency-title{font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#F0A84A;margin-bottom:8px}
-@keyframes shakeWiggle{0%{transform:rotate(0)}15%{transform:rotate(-8deg)}30%{transform:rotate(7deg)}45%{transform:rotate(-6deg)}60%{transform:rotate(4deg)}75%{transform:rotate(-2deg)}100%{transform:rotate(0)}}
-.shake-wiggling{animation:shakeWiggle .5s ease}
+/* Bottle-shake burst — rapid vertical bounce (the dominant motion when you
+   actually shake a bottle by hand) with a smaller, faster horizontal
+   jitter layered on top so it doesn't read as a clean single-axis bounce.
+   Two full up/down cycles packed into .6s, easing tightest at the
+   direction changes (where a real shake snaps hardest) and fully
+   relaxing back to rest at the end rather than stopping abruptly. */
+@keyframes shakeBottle{
+  0%{transform:translate(0,0) rotate(0)}
+  8%{transform:translate(2px,-9px) rotate(-2deg)}
+  16%{transform:translate(-3px,3px) rotate(1.5deg)}
+  24%{transform:translate(2px,-10px) rotate(-2.5deg)}
+  32%{transform:translate(-2px,4px) rotate(2deg)}
+  40%{transform:translate(3px,-8px) rotate(-1.5deg)}
+  48%{transform:translate(-2px,3px) rotate(1.5deg)}
+  56%{transform:translate(2px,-6px) rotate(-1deg)}
+  64%{transform:translate(-1px,2px) rotate(1deg)}
+  72%{transform:translate(1px,-3px) rotate(-.5deg)}
+  84%{transform:translate(0,1px) rotate(.3deg)}
+  100%{transform:translate(0,0) rotate(0)}
+}
+.shake-wiggling{animation:shakeBottle .6s cubic-bezier(.36,.07,.19,.97)}
 .shake-glow{filter:drop-shadow(0 0 10px rgba(255,90,0,.65)) drop-shadow(0 0 22px rgba(255,90,0,.35))}
 .shake-type-card{background:var(--panel2);border:1.5px solid var(--border2);border-radius:10px;padding:10px;cursor:pointer;text-align:center;transition:all .18s}
 .shake-type-card:hover{border-color:rgba(255,90,0,.4);background:rgba(255,90,0,.05)}
@@ -378,16 +397,21 @@ input,input:focus,input:active,
 .nutr-shield-status.ok{color:#2ECC71}
 .nutr-shield-status.warn{color:#FFC107}
 .nutr-shield-status.bad{color:#FF4455}
-/* Shake hero — kitchen-counter photo background with a darkening gradient
-   overlay for text contrast (content sits in its own layer above ::before). */
+/* Shake hero — a real photo of the shaker sitting on the counter (not a
+   background-image + separate icon), so the same photo IS the thing that
+   visibly shakes on tap. Photo is a plain <img>, not a background, so the
+   shakeBottle transform above can animate it independently of the card's
+   own border-radius/overflow clipping. Darkening overlay sits in its own
+   layer between the photo and the text for contrast, and — deliberately —
+   does NOT get the shake transform, so the text stays readable/still while
+   the bottle underneath moves. */
 .nutr-shake-hero{position:relative;padding:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;overflow:hidden;cursor:pointer;border-color:rgba(255,122,46,.25)}
+.nutr-shake-bottle-img{position:absolute;inset:-6%;z-index:0;width:112%;height:112%;object-fit:cover;object-position:center 38%;transform-origin:center 75%}
 .nutr-shake-hero::before{
-  content:'';position:absolute;inset:0;z-index:0;
-  background:
-    linear-gradient(160deg,rgba(20,12,5,.7),rgba(10,7,3,.55) 60%,rgba(8,5,2,.82)),
-    url('images/shake_bg.png') center 30%/cover no-repeat;
+  content:'';position:absolute;inset:0;z-index:1;
+  background:linear-gradient(160deg,rgba(20,12,5,.68),rgba(10,7,3,.5) 55%,rgba(8,5,2,.8));
 }
-.nutr-shake-hero>*{position:relative;z-index:1}
+.nutr-shake-hero>*{position:relative;z-index:2}
 .nutr-shake-title{font-size:13px;font-weight:800;color:#FF8C47;margin-top:6px}
 .nutr-shake-sub{font-size:10.5px;color:rgba(238,240,255,.55);margin-top:2px}
 @media(max-width:700px){.nutr-hero-grid{grid-template-columns:1fr}}
@@ -2095,19 +2119,13 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
   </div>
 
   <div class="nutr-masonry-col">
-  <!-- SHAKE HERO — same logEmergencyShake()/toggleShakeTypes() wiring and
-       the same six quick-add items as before, just given the prominent
-       photo-card treatment instead of being a small box near the bottom
-       of the page. ::before on .nutr-shake-hero carries the kitchen-photo
-       background. -->
+  <!-- SHAKE HERO — same logEmergencyShake()/toggleShakeTypes() wiring as
+       before. The photo itself is the shaker (not a background + separate
+       icon), so tapping visibly shakes the real bottle via the shakeBottle
+       keyframe on #shake-bottle-img — see that animation's comment for why
+       it's shaped the way it is. -->
   <div class="card nutr-shake-hero" id="shake-hero-card" onclick="logEmergencyShake()">
-    <div id="shake-glass-main" class="shake-glow" style="display:inline-block">
-      <svg width="52" height="61" viewBox="0 0 60 70">
-        <path d="M38 2 L48 22" stroke="#D8D8DC" stroke-width="5" stroke-linecap="round"/>
-        <path d="M15 20 L45 20 L40 65 Q30 70 20 65 Z" fill="#C9915A" stroke="rgba(255,255,255,.35)" stroke-width="1.5"/>
-        <ellipse cx="30" cy="20" rx="15" ry="3" fill="rgba(255,255,255,.2)"/>
-      </svg>
-    </div>
+    <img id="shake-bottle-img" class="nutr-shake-bottle-img" src="images/shake_bottle.png" alt="">
     <div class="nutr-shake-title">Tap the shake — logs instantly</div>
     <div class="nutr-shake-sub" id="shake-hero-macros">113 kcal · 13g protein</div>
     <div onclick="event.stopPropagation();toggleShakeTypes()" style="font-size:10.5px;color:rgba(238,240,255,.5);text-decoration:underline;cursor:pointer;margin-top:8px">Or pick a different type →</div>
@@ -11277,10 +11295,10 @@ function saveShakeBuilderTemplate(){
   renderShakeTypesPanel();
 }
 function logEmergencyShake(){
-  const glass=document.getElementById('shake-glass-main');
-  if(glass){
-    glass.classList.remove('shake-wiggling'); void glass.offsetWidth;
-    glass.classList.add('shake-wiggling');
+  const bottle=document.getElementById('shake-bottle-img');
+  if(bottle){
+    bottle.classList.remove('shake-wiggling'); void bottle.offsetWidth;
+    bottle.classList.add('shake-wiggling');
   }
   logItem('Emergency Protein Shake (whey + milk)', 113, 13);
   toast('🥤','Shake logged — 113 kcal, 13g protein added');
