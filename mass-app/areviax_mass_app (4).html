@@ -3714,6 +3714,13 @@ let trainingTimeLog=[]; // hour-of-day (0-23) for each completed session — pow
 let customWorkouts={};
 let customSessionExs=[];
 let plannedSessionExs=[],plannedSessionType='upper-push',plannedSessionName='',builderMode='auto';
+// Auto-builder's live preview — same idea as customSessionExs for Custom
+// mode: the builder recomputes this on every dropdown/checkbox/search
+// change so the on-page preview stays current, but it's NOT what Start
+// Session runs. That only gets committed from these when the user actually
+// navigates to Start Session (see showPage), so merely reopening or
+// tweaking the builder can't silently overwrite an already-active session.
+let autoPreviewExs=[],autoPreviewType='upper-push',autoPreviewName='';
 let sessionHistory=[]; // past sessions — each {date,name,type,exs} — lets a session be reloaded into the builder
 let lastSessionDate='';
 let autoCountedDate=''; // date sessThisWeek/compassPts/totalSess were last auto-counted from a logged set — separate from lastSessionDate so the "already trained today, log anyway?" prompt still only fires on a genuine second explicit completion, not on the first logSet() of a normal session
@@ -5779,10 +5786,13 @@ function renderCustomSelected(){
     ).join('') : '<div class="custom-empty">Add exercises from the list below to build your own session.</div>';
   }
   updateSynergy(customSessionExs,'full');
-  if(builderMode==='custom'){
-    plannedSessionExs=customSessionExs;plannedSessionType='custom';plannedSessionName='Custom Session';saveToStorage();
-    const dnf=document.getElementById('d-next-full');if(dnf)dnf.textContent=plannedSessionName;
-  }
+  // Deliberately NOT syncing plannedSessionExs here on every edit — that
+  // used to mean starting a new custom build (even a single exercise, not
+  // yet finished or saved) would silently overwrite whatever session was
+  // already active, including one the user had genuinely saved earlier.
+  // The commit now happens in showPage() only when the user actually
+  // navigates to Start Session, which is the real signal they mean this
+  // build to become today's session.
 }
 function saveCustomTemplate(){
   if(!customSessionExs.length){toast('⚠️','Add some exercises first');return;}
@@ -6192,7 +6202,22 @@ function showPage(id){
     try{checkSittingJobTip();}catch(e){}
   }
   if(id==='workout'){safeRender(renderExercises,'workout');safeRender(renderSessionHistory,'workout');}
-  if(id==='session')safeRender(buildSession,'session');
+  if(id==='session'){
+    // Commit whatever's live in the builder to the active session only
+    // now — actually navigating to Start Session is the real signal the
+    // user means it to run, not every incremental edit/reroll/swap while
+    // they're still assembling or adjusting it (see renderCustomSelected
+    // and renderExercises/pickBuilderSwap for the in-builder preview
+    // state this reads from).
+    if(builderMode==='custom'&&customSessionExs.length){
+      plannedSessionExs=customSessionExs;plannedSessionType='custom';plannedSessionName='Custom Session';saveToStorage();
+      const dnf=document.getElementById('d-next-full');if(dnf)dnf.textContent=plannedSessionName;
+    }else if(builderMode==='auto'&&autoPreviewExs.length){
+      plannedSessionExs=autoPreviewExs;plannedSessionType=autoPreviewType;plannedSessionName=autoPreviewName;saveToStorage();
+      const dnf=document.getElementById('d-next-full');if(dnf)dnf.textContent=plannedSessionName;
+    }
+    safeRender(buildSession,'session');
+  }
   if(id==='progress')safeRender(renderProgress,'progress');
   if(id==='recovery')safeRender(renderRecoveryPage,'recovery');
   if(id==='schedule')safeRender(renderSchedule,'schedule');
@@ -7374,8 +7399,7 @@ function renderExercises(){
     </div>`).join('');
   updateSynergy(exs,type);
   if(builderMode==='auto'){
-    plannedSessionExs=exs;plannedSessionType=type;plannedSessionName=getSessionName(type);saveToStorage();
-    const dnf=document.getElementById('d-next-full');if(dnf)dnf.textContent=plannedSessionName;
+    autoPreviewExs=exs;autoPreviewType=type;autoPreviewName=getSessionName(type);
   }
   const badge=document.getElementById('ex-count-badge');
   if(badge)badge.textContent=exs.length?`✓ ${exs.length} exercise${exs.length===1?'':'s'} · updated`:'';
@@ -7833,8 +7857,7 @@ function pickBuilderSwap(i,name){
     </div>`).join('');
     updateSynergy(exs,type);
     if(builderMode==='auto'){
-      plannedSessionExs=exs;plannedSessionType=type;plannedSessionName=getSessionName(type);saveToStorage();
-      const dnf=document.getElementById('d-next-full');if(dnf)dnf.textContent=plannedSessionName;
+      autoPreviewExs=exs;autoPreviewType=type;autoPreviewName=getSessionName(type);
     }
     toast('⇄',`Swapped in ${pick.name}`);
   };
