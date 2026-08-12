@@ -8085,6 +8085,20 @@ function detectPlateau(name){
   const fix=fixes[sessions%fixes.length];
   return {sessions,weight,note:`Stuck at ${weight}kg for ${sessions} sessions — ${fix}.`};
 }
+// Dumbbells and machines/cables are the two equipment types where the
+// number on the weight input is genuinely ambiguous — a dumbbell number is
+// almost always per hand, not the combined total of both, while a
+// machine/cable stack number is the opposite (one total figure even though
+// it's driving a pin on one side). Barbells, bodyweight, and bands don't
+// have this problem (there's only one weight to read off), so those are
+// left with the plain "Weight (kg)" label.
+const MACHINE_CABLE_EQUIP=new Set(['cableMachine','calfRaiseMachine','chestPressMachine','deltFlyMachine','ghdMachine','hackSquatMachine','latPulldown','legCurlMachine','legExtensionMachine','legPress','rowMachine','shoulderPressMachine','smithMachine']);
+function weightInputLabel(e){
+  const equip=e.equip||[];
+  if(equip.includes('dumbbells'))return 'Weight per dumbbell (kg)';
+  if(equip.some(x=>MACHINE_CABLE_EQUIP.has(x)))return 'Weight (kg) — total stack';
+  return 'Weight (kg)';
+}
 function suggestNextWeight(e){
   const last=lastPerformance[e.name];
   if(!last)return null;
@@ -8201,7 +8215,7 @@ function buildSession(){
         </div>
       </div>
       <div style="display:flex;gap:8px;margin-bottom:7px">
-        <div style="flex:1"><label class="lbl" style="margin-top:0">Weight (kg)</label><input type="number" id="sw-${i}" style="padding:7px 9px" placeholder="${sug?sug.weight:'kg'}" value="${saved?saved.weight:''}"></div>
+        <div style="flex:1"><label class="lbl" style="margin-top:0">${weightInputLabel(e)}</label><input type="number" id="sw-${i}" style="padding:7px 9px" placeholder="${sug?sug.weight:'kg'}" value="${saved?saved.weight:''}"></div>
         <div style="width:80px"><label class="lbl" style="margin-top:0">Reps</label><input type="number" id="sr-${i}" style="padding:7px 9px" placeholder="${e.reps.split('–')[0]}" value="${saved?saved.reps:''}"></div>
       </div>
       ${sug?`<div style="font-size:10px;color:rgba(255,90,0,.7);margin:-2px 0 9px;line-height:1.4">📈 ${sug.note}</div>`:''}
