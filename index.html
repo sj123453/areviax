@@ -1706,6 +1706,14 @@ window.addEventListener('error', function(e){
    reference's distinct closed-card / open-spread look instead of trying
    to physically simulate the page turn. */
 .sc-spread{
+  /* True centering (left:50%) put the spread's right half directly under
+     the headline copy that sits beside the book in the stage's flex
+     layout — .sc-mount is only 220px wide, so centering a 460px spread
+     on it overflows symmetrically into space the copy already occupies.
+     Right-anchored (matching the book's own right edge) keeps it clear
+     of that text; the hinge tilt below is what actually answers "open
+     toward the centre, not flat to one side" without colliding with
+     anything. */
   position:absolute;right:0;top:50%;width:460px;height:100%;
   transform:translateY(-50%) scale(.94);
   display:flex;border-radius:8px;overflow:visible;background:#f7f5ee;
@@ -1780,7 +1788,7 @@ window.addEventListener('error', function(e){
 .sc-spread-blurb{font-size:11px;line-height:1.55;color:rgba(23,22,15,.6);margin:0}
 .sc-spread-price{font-family:'Outfit',sans-serif;font-size:12px;font-weight:800;border-top:1px solid rgba(0,0,0,.1);padding-top:10px;margin-top:10px;color:#141309}
 @media(max-width:820px){
-  .sc-spread{width:290px;right:auto;left:50%;transform:translate(-50%,-50%)}
+  .sc-spread{width:290px;right:auto;left:50%;transform:translate(-50%,-50%) scale(.94)}
   .sc-spread-page{padding:16px 14px}
   .sc-spread-heading{font-size:14px}
   .sc-spread-blurb{font-size:10px}
@@ -2116,7 +2124,12 @@ window.addEventListener('error', function(e){
           // at rotation:0 so they have zero visual effect.
           gsap.set(back, {rotationY:180, z:44, transformOrigin:'left center'});
           gsap.set([frontHinge, backHinge], {transformOrigin:'50% 100%', rotation:0});
-          gsap.set(spread, {opacity:0});
+          // A dead-flat 180° spread read as a photo of a page, not a book
+          // resting open on a table — a slight permanent rotationX (never
+          // touched by the open/close tweens, so it's constant throughout)
+          // tilts the far edge back like you're looking down at it, closer
+          // to an actual open hinge than a perfectly frontal rectangle.
+          gsap.set(spread, {opacity:0, rotationX:-10, transformPerspective:1000, transformOrigin:'center top'});
           if(sats.length) gsap.set(sats, {x:0, y:0, scale:.25, opacity:0, rotate:0});
           // The spin allocates LESS scroll-time to the angles where the
           // book shows its spine/page edge (~90°/~270°) and MORE to the
@@ -2146,6 +2159,17 @@ window.addEventListener('error', function(e){
           // the literal frame-one angle for the rest of the cycle — only
           // scale needs to ease back down at the very end to complete the
           // loop.
+          //
+          // Tried steepening the starting angle (-20 → -38) to reveal more
+          // of the spine/pages depth at rest — turned out the .sc-pages/
+          // .sc-spine side faces render at literally zero screen width at
+          // ANY rotation angle (confirmed 0 to ±60°), a pre-existing 3D
+          // CSS bug (getBoundingClientRect stays 0 wide regardless of the
+          // element's own 88px width, even with perspective/preserve-3d
+          // added directly on the immediate parent) — a real bug, but a
+          // deeper one than an angle tweak fixes, so reverted rather than
+          // ship a steeper angle that buys nothing since the depth it's
+          // supposed to reveal never actually renders.
           .fromTo(cube, {rotateY:-20, scale:.8, x:0}, {rotateY:340, scale:1, duration:0.46, ease:spinEase}, 0)
           .to(cube, {rotateX:8, duration:0.23, ease:'sine.inOut'}, 0)
           .to(cube, {rotateX:0, duration:0.23, ease:'sine.inOut'}, 0.23)
@@ -2194,7 +2218,7 @@ window.addEventListener('error', function(e){
           gsap.set(front, {z:32, transformOrigin:'left center'});
           gsap.set(back, {rotationY:180, z:32, transformOrigin:'left center'});
           gsap.set([frontHinge, backHinge], {transformOrigin:'50% 100%', rotation:0});
-          gsap.set(spread, {opacity:0});
+          gsap.set(spread, {opacity:0, rotationX:-10, transformPerspective:1000, transformOrigin:'center top'});
           gsap.set(copy, {opacity:0, x:-30});
           // Continuous scroll-scrubbing doesn't hold up against real touch
           // scrolling — a fast swipe covers the whole trigger range faster
