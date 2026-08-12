@@ -2653,6 +2653,13 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
 
 <!-- SCHEDULE -->
 <div class="page" id="page-schedule">
+  <!-- Auto-generate a real, followable training week sized to profile.days
+       — real exercises per day, not just text labels, and a miss
+       automatically slides into the next open rest day (see
+       generateFullWeek/autoRescheduleMissedDays). Content is filled in by
+       renderSchedule() since it depends on whether a week's already been
+       generated. -->
+  <div class="card" id="sched-generate-card" style="margin-bottom:20px;border-color:rgba(255,122,46,.25)"></div>
   <div class="card"><div class="ch"><span class="ct">Your training week</span></div><div class="sched-grid" id="sched-grid"></div></div>
   <div class="g2">
     <div class="card"><div class="ch"><span class="ct">Session modes</span></div>
@@ -3732,6 +3739,13 @@ let bestStreak=0; // longest streak ever, separate from the current one — surv
 let activeDates=[]; // unique dates any activity happened — powers the consistency heatmap
 let compassWeekStart='';
 let scheduleWeekStart='',scheduleOverrides={},weekCompletedDays={};
+// Auto-generated training week — null until the user opts in from the
+// Schedule page. Each of the 7 entries is either {type:'rest'} or
+// {type,name,exs} with a real, playable exercise list (not just a text
+// label like the old hardcoded baseSchedule). autoReschedDates tracks
+// which calendar dates have already been auto-moved this week so a missed
+// day only gets rearranged once, not every time the page re-renders.
+let generatedWeek=null,autoReschedDates={};
 let joinDate='';
 let lastAnniversaryYear=0;
 let unlockedAchievements=[];
@@ -8667,6 +8681,13 @@ function checkScheduleWeek(){
     scheduleWeekStart=thisMonday;
     scheduleOverrides={};
     weekCompletedDays={};
+    autoReschedDates={};
+    // A generated week is meant to be an ongoing plan, not a one-off — keep
+    // it going into the new week automatically rather than quietly
+    // reverting to the plain default schedule the moment Monday rolls
+    // over. Silent since this happens in the background on whatever page
+    // load first crosses into the new week, not from a user action.
+    if(generatedWeek)generateFullWeek(true);
   }
 }
 
@@ -11620,48 +11641,169 @@ function renderProgress(){
 }
 
 // ── SCHEDULE ──
+const SCHED_DAYS=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+// One sensible split per days/week — reuses the same real EX categories the
+// Workout Builder's Auto mode already generates from (upper-push/upper-pull/
+// upper-full/lower/full), just picked out day by day instead of one at a
+// time, so "generate my week" produces something a person would actually
+// want to follow rather than a random scramble.
+const WEEK_SPLIT_PATTERNS={
+  1:['full','rest','rest','rest','rest','rest','rest'],
+  2:['full','rest','rest','full','rest','rest','rest'],
+  3:['full','rest','full','rest','full','rest','rest'],
+  4:['upper-full','lower','rest','upper-full','lower','rest','rest'],
+  5:['upper-push','lower','upper-pull','lower','full','rest','rest'],
+  6:['upper-push','lower','upper-pull','upper-push','lower','upper-pull','rest'],
+  7:['upper-push','lower','upper-pull','upper-full','lower','full','upper-pull']
+};
+// Generates a real 7-day plan — not just text labels — sized to
+// profile.days. silent=true skips the toast, used for the automatic
+// Monday-rollover regeneration so it doesn't announce itself unprompted.
+function generateFullWeek(silent){
+  const days=Math.max(1,Math.min(7,parseInt(profile.days)||4));
+  const pattern=WEEK_SPLIT_PATTERNS[days];
+  generatedWeek=pattern.map(type=>{
+    if(type==='rest')return{type:'rest',name:'Rest',exs:[]};
+    const pool=[...(EX[type]||[])].filter(e=>equipOk(e));
+    // Independent shuffle per day so a split that repeats a type (e.g. two
+    // 'lower' days in the 5-day pattern) doesn't hand back the identical
+    // exercise list twice in the same week.
+    for(let i=pool.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]];}
+    const exs=pool.slice(0,Math.min(7,pool.length));
+    return{type,name:getSessionTypeLabel(type),exs};
+  });
+  scheduleOverrides={};
+  autoReschedDates={};
+  saveToStorage();
+  if(!silent)toast('📅','Your training week is ready — tap any day to start it.');
+  renderSchedule();
+}
+function clearGeneratedWeek(){
+  generatedWeek=null;scheduleOverrides={};autoReschedDates={};
+  saveToStorage();
+  toast('🗑️','Back to manual scheduling.');
+  renderSchedule();
+}
+// Slot for day index i, folding in any manual reschedule override — source
+// is the generated week if one's active, otherwise the same static
+// Upper/Lower split that's always been the default.
+function getScheduleSlot(i){
+  const base=generatedWeek||['Upper A','Lower A','Rest','Upper B','Lower B','Rest','Rest'].map(v=>({type:v==='Rest'?'rest':'legacy',name:v,exs:[]}));
+  const raw=scheduleOverrides[i]!==undefined?scheduleOverrides[i]:base[i];
+  // Overrides saved by an older build stored plain strings (e.g. 'Rest') —
+  // normalize on read so a returning user's saved schedule doesn't crash
+  // against code that now expects {type,name,exs} objects everywhere.
+  return typeof raw==='string'?{type:raw==='Rest'?'rest':'legacy',name:raw,exs:[]}:raw;
+}
+function startScheduledDay(i){
+  const slot=getScheduleSlot(i);
+  if(!slot||slot.type==='rest'||!slot.exs||!slot.exs.length)return;
+  plannedSessionExs=slot.exs;plannedSessionType=slot.type;plannedSessionName=slot.name;
+  saveToStorage();
+  showPage('session');
+}
 function renderSchedule(){
   const sg=document.getElementById('sched-grid');
   if(!sg)return;
   checkScheduleWeek();
-  const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-  const baseSchedule=['Upper A','Lower A','Rest','Upper B','Lower B','Rest','Rest'];
+  autoRescheduleMissedDays();
   const monday=parseLocalDate(getMonday(new Date()));
-  const dayDates=days.map((_,i)=>{const d=new Date(monday);d.setDate(monday.getDate()+i);return localDateKey(d);});
-  const s=baseSchedule.map((v,i)=>scheduleOverrides[i]!==undefined?scheduleOverrides[i]:v);
+  const dayDates=SCHED_DAYS.map((_,i)=>{const d=new Date(monday);d.setDate(monday.getDate()+i);return localDateKey(d);});
+  const slots=SCHED_DAYS.map((_,i)=>getScheduleSlot(i));
   const ti=new Date().getDay();const ti2=ti===0?6:ti-1;
 
-  sg.innerHTML=days.map((d,i)=>{
-    const val=s[i];
-    const isRest=val==='Rest';
+  const genCard=document.getElementById('sched-generate-card');
+  if(genCard){
+    genCard.innerHTML=generatedWeek
+      ? `<div style="font-size:11.5px;color:var(--muted);line-height:1.6;margin-bottom:10px">Auto-generated for ${profile.days||4} days/week. Miss a day and it moves itself to your next rest day — no need to replan.</div>
+         <div style="display:flex;gap:8px">
+           <button class="btn btn-out btn-sm" style="flex:1" onclick="generateFullWeek()">🔄 Regenerate</button>
+           <button class="btn btn-ghost btn-sm" style="flex:1" onclick="clearGeneratedWeek()">Back to manual</button>
+         </div>`
+      : `<div style="font-size:11.5px;color:var(--muted);line-height:1.6;margin-bottom:10px">Let us lay out a real, followable week from your ${profile.days||4} days/week — with real exercises, not just labels. Miss a day and it automatically slides into your next rest day instead of just falling off.</div>
+         <button class="btn btn-g btn-sm" style="width:100%" onclick="generateFullWeek()">🔥 Generate My Training Week</button>`;
+  }
+
+  sg.innerHTML=SCHED_DAYS.map((d,i)=>{
+    const slot=slots[i];
+    const isRest=slot.type==='rest';
     const isPast=i<ti2;
     const isToday=i===ti2;
     const wasCompleted=!!weekCompletedDays[dayDates[i]];
     const missed=isPast&&!isRest&&!wasCompleted;
-    return `<div class="sched-day ${!isRest?'on':''} ${isToday?'today':''} ${missed?'missed':''}" ${missed?`onclick="openReschedule(${i})" style="cursor:pointer"`:''}>
+    const canStart=!isRest&&!missed&&i>=ti2&&generatedWeek&&slot.exs&&slot.exs.length;
+    const onclick=missed?`openReschedule(${i})`:canStart?`startScheduledDay(${i})`:'';
+    return `<div class="sched-day ${!isRest?'on':''} ${isToday?'today':''} ${missed?'missed':''}" ${onclick?`onclick="${onclick}" style="cursor:pointer"`:''}>
       <div class="sd-name">${d}</div>
-      <div class="sd-val ${isRest?'rest':''}">${val}</div>
+      <div class="sd-val ${isRest?'rest':''}">${slot.name}</div>
       ${missed?'<div style="font-size:8px;font-weight:700;color:#FF7A2E;margin-top:3px;letter-spacing:.04em">⚠ MISSED — TAP</div>':''}
       ${!isRest&&isPast&&wasCompleted?'<div style="font-size:8px;font-weight:700;color:var(--green);margin-top:3px">✓ DONE</div>':''}
+      ${canStart&&isToday?'<div style="font-size:8px;font-weight:700;color:var(--cyan);margin-top:3px">▶ TAP TO START</div>':''}
     </div>`;
   }).join('');
 
   const ws=document.getElementById('week-sum');if(!ws)return;
-  const nextIdx=s[ti2]!=='Rest'?ti2:s.findIndex((v,i)=>i>ti2&&v!=='Rest');
-  ws.innerHTML=`<div style="display:flex;justify-content:space-between;font-size:11px;padding:4px 0;border-bottom:1.5px solid var(--border2)"><span style="color:var(--muted)">Sessions this week</span><span>${sessThisWeek}/${profile.days}</span></div><div style="display:flex;justify-content:space-between;font-size:11px;padding:4px 0;border-bottom:1.5px solid var(--border2)"><span style="color:var(--muted)">Rest days</span><span>${s.filter(v=>v==='Rest').length}</span></div><div style="display:flex;justify-content:space-between;font-size:11px;padding:4px 0"><span style="color:var(--muted)">Next session</span><span style="color:var(--green)">${nextIdx>=0?s[nextIdx]:'—'}</span></div>`;
+  const names=slots.map(s=>s.name);
+  const nextIdx=names[ti2]!=='Rest'?ti2:names.findIndex((v,i)=>i>ti2&&v!=='Rest');
+  ws.innerHTML=`<div style="display:flex;justify-content:space-between;font-size:11px;padding:4px 0;border-bottom:1.5px solid var(--border2)"><span style="color:var(--muted)">Sessions this week</span><span>${sessThisWeek}/${profile.days}</span></div><div style="display:flex;justify-content:space-between;font-size:11px;padding:4px 0;border-bottom:1.5px solid var(--border2)"><span style="color:var(--muted)">Rest days</span><span>${names.filter(v=>v==='Rest').length}</span></div><div style="display:flex;justify-content:space-between;font-size:11px;padding:4px 0"><span style="color:var(--muted)">Next session</span><span style="color:var(--green)">${nextIdx>=0?names[nextIdx]:'—'}</span></div>`;
 }
 
-// ── RESCHEDULE — for days that got missed. Either confirm it actually
-// happened (in case logging lagged behind reality), or move the session to
-// one of this week's remaining rest days rather than just losing it. ──
+// ── AUTO-REARRANGE — only for an actively generated week (see
+// generateFullWeek). The first time a training day is detected missed
+// (past, not rest, not marked done), it's automatically slid into the next
+// available rest day this week rather than requiring the user to notice
+// and manually move it. autoReschedDates guards each calendar date so a
+// day only ever gets auto-moved once, even though renderSchedule may run
+// many times across the day.
+function autoRescheduleMissedDays(){
+  if(!generatedWeek)return;
+  const monday=parseLocalDate(getMonday(new Date()));
+  const dayDates=SCHED_DAYS.map((_,i)=>{const d=new Date(monday);d.setDate(monday.getDate()+i);return localDateKey(d);});
+  const ti=new Date().getDay();const ti2=ti===0?6:ti-1;
+  const moves=[];
+  let anyChecked=false;
+  for(let i=0;i<ti2;i++){
+    const slot=getScheduleSlot(i);
+    if(slot.type==='rest')continue;
+    if(weekCompletedDays[dayDates[i]])continue;
+    if(autoReschedDates[dayDates[i]])continue;
+    // Missed — find the next still-open rest day at or after TODAY. Only
+    // today-or-later, never an earlier day in the week, or a missed day
+    // could get "moved" into a slot that's already in the past too and
+    // just get stuck there unreachable (found the hard way — an earlier
+    // version of this search started at index 0 and could park a missed
+    // Tuesday on top of Monday).
+    const targetIdx=SCHED_DAYS.findIndex((_,j)=>j>=ti2&&getScheduleSlot(j).type==='rest');
+    autoReschedDates[dayDates[i]]=true;
+    anyChecked=true;
+    if(targetIdx>=0){
+      scheduleOverrides[targetIdx]=slot;
+      scheduleOverrides[i]={type:'rest',name:'Rest',exs:[]};
+      moves.push({from:SCHED_DAYS[i],to:SCHED_DAYS[targetIdx],name:slot.name});
+    }
+  }
+  if(moves.length){
+    saveToStorage();
+    const msg=moves.length===1
+      ? `Missed ${moves[0].from}'s ${moves[0].name} — moved it to ${moves[0].to} for you.`
+      : moves.map(m=>`${m.from}'s ${m.name} → ${m.to}`).join(', ')+' — moved for you.';
+    toast('📅',msg);
+  }else if(anyChecked){
+    saveToStorage();
+  }
+}
+
+// ── RESCHEDULE — manual version, for the default (non-generated) schedule,
+// or for a generated-week day that has no rest day left to auto-move into.
+// Either confirm it actually happened (in case logging lagged behind
+// reality), or move the session to one of this week's remaining rest days
+// rather than just losing it. ──
 function openReschedule(idx){
-  const days=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-  const baseSchedule=['Upper A','Lower A','Rest','Upper B','Lower B','Rest','Rest'];
-  const s=baseSchedule.map((v,i)=>scheduleOverrides[i]!==undefined?scheduleOverrides[i]:v);
-  const titleEl=document.getElementById('resched-title');if(titleEl)titleEl.textContent=`Missed ${days[idx]}'s ${s[idx]}?`;
+  const slots=SCHED_DAYS.map((_,i)=>getScheduleSlot(i));
+  const titleEl=document.getElementById('resched-title');if(titleEl)titleEl.textContent=`Missed ${SCHED_DAYS[idx]}'s ${slots[idx].name}?`;
   const subEl=document.getElementById('resched-sub');if(subEl)subEl.textContent='Already did it, or want to move it to another day this week?';
   const ti=new Date().getDay();const ti2=ti===0?6:ti-1;
-  const restDays=days.map((d,i)=>({d,i})).filter(({i})=>s[i]==='Rest'&&i>=ti2);
+  const restDays=SCHED_DAYS.map((d,i)=>({d,i})).filter(({i})=>slots[i].type==='rest'&&i>=ti2);
   const opts=document.getElementById('resched-options');
   if(opts){
     opts.innerHTML=`<button class="btn btn-g" style="width:100%" onclick="markDayDone(${idx})">✓ I actually did this</button>`
@@ -11685,12 +11827,11 @@ function markDayDone(idx){
   renderSchedule();
 }
 function rescheduleDay(fromIdx,toIdx){
-  const baseSchedule=['Upper A','Lower A','Rest','Upper B','Lower B','Rest','Rest'];
-  const currentVal=scheduleOverrides[fromIdx]!==undefined?scheduleOverrides[fromIdx]:baseSchedule[fromIdx];
+  const currentVal=getScheduleSlot(fromIdx);
   scheduleOverrides[toIdx]=currentVal;
-  scheduleOverrides[fromIdx]='Rest';
+  scheduleOverrides[fromIdx]=generatedWeek?{type:'rest',name:'Rest',exs:[]}:'Rest';
   saveToStorage();
-  toast('📅','Moved to '+['Mon','Tue','Wed','Thu','Fri','Sat','Sun'][toIdx]);
+  toast('📅','Moved to '+SCHED_DAYS[toIdx]);
   closeReschedule();
   renderSchedule();
 }
@@ -11877,6 +12018,8 @@ function saveToStorage(){
     localStorage.setItem('arx_scheduleWeekStart', scheduleWeekStart);
     localStorage.setItem('arx_scheduleOverrides', JSON.stringify(scheduleOverrides));
     localStorage.setItem('arx_weekCompletedDays', JSON.stringify(weekCompletedDays));
+    localStorage.setItem('arx_generatedWeek', JSON.stringify(generatedWeek));
+    localStorage.setItem('arx_autoReschedDates', JSON.stringify(autoReschedDates));
     localStorage.setItem('arx_joinDate', joinDate);
     localStorage.setItem('arx_lastAnniversaryYear', lastAnniversaryYear);
     localStorage.setItem('arx_unlockedAchievements', JSON.stringify(unlockedAchievements));
@@ -11974,6 +12117,10 @@ function loadFromStorage(){
     if(so){try{scheduleOverrides=JSON.parse(so);}catch(e){scheduleOverrides={};}}
     const wcd=localStorage.getItem('arx_weekCompletedDays');
     if(wcd){try{weekCompletedDays=JSON.parse(wcd);}catch(e){weekCompletedDays={};}}
+    const gw=localStorage.getItem('arx_generatedWeek');
+    if(gw){try{generatedWeek=JSON.parse(gw);}catch(e){generatedWeek=null;}}
+    const ard=localStorage.getItem('arx_autoReschedDates');
+    if(ard){try{autoReschedDates=JSON.parse(ard);}catch(e){autoReschedDates={};}}
     joinDate=localStorage.getItem('arx_joinDate')||'';
     lastAnniversaryYear=parseInt(localStorage.getItem('arx_lastAnniversaryYear')||'0');
     const ua=localStorage.getItem('arx_unlockedAchievements');
