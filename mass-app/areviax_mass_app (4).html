@@ -350,6 +350,17 @@ input,input:focus,input:active,
    Plan further down. Stacks to one column on mobile via the media query
    at the bottom of this stylesheet. */
 .nutr-hero-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;align-items:stretch}
+/* NUTRITION MASONRY — Shield/Feeder Quest/Macros stacked in one column,
+   Shake/food-grid stacked in the other, so the whole "at a glance" dashboard
+   fits on one screen like the reference layout instead of each piece being
+   its own full-width row (which pushed everything into a long scroll). Log
+   Food/Meal Plan stay as accordions below this block — those are full tools,
+   not glanceable summary content, so collapsing them out of the way still
+   matches the spirit of the reference. */
+.nutr-masonry{display:flex;gap:12px;align-items:flex-start;margin-bottom:14px}
+.nutr-masonry-col{flex:1;min-width:0;display:flex;flex-direction:column;gap:12px}
+.nutr-food-grid{grid-template-columns:repeat(3,1fr)}
+@media(max-width:700px){.nutr-masonry{flex-direction:column}.nutr-food-grid{grid-template-columns:1fr 1fr}}
 .nutr-shield-card{display:flex;align-items:center;gap:16px;text-align:left;padding:20px}
 .nutr-shield-graphic{flex-shrink:0;position:relative;width:112px;height:112px}
 .nutr-shield-graphic .shield-ring-svg{position:absolute;inset:0;transform:rotate(-90deg)}
@@ -361,18 +372,14 @@ input,input:focus,input:active,
 .nutr-shield-status.ok{color:#2ECC71}
 .nutr-shield-status.warn{color:#FFC107}
 .nutr-shield-status.bad{color:#FF4455}
-/* Shake hero — a gradient stand-in for a real photo background until one's
-   supplied; built so dropping a background-image onto .nutr-shake-hero
-   later is a one-line swap, not a restructure (content already sits in its
-   own layer above a ::before that can carry the image + a darkening
-   overlay for text contrast). */
+/* Shake hero — kitchen-counter photo background with a darkening gradient
+   overlay for text contrast (content sits in its own layer above ::before). */
 .nutr-shake-hero{position:relative;padding:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;overflow:hidden;cursor:pointer;border-color:rgba(255,122,46,.25)}
 .nutr-shake-hero::before{
   content:'';position:absolute;inset:0;z-index:0;
   background:
-    radial-gradient(circle at 30% 20%,rgba(255,140,71,.22),transparent 55%),
-    radial-gradient(circle at 75% 80%,rgba(255,90,0,.16),transparent 60%),
-    linear-gradient(160deg,#241408,#0d0904 70%);
+    linear-gradient(160deg,rgba(20,12,5,.7),rgba(10,7,3,.55) 60%,rgba(8,5,2,.82)),
+    url('images/shake_bg.png') center 30%/cover no-repeat;
 }
 .nutr-shake-hero>*{position:relative;z-index:1}
 .nutr-shake-title{font-size:13px;font-weight:800;color:#FF8C47;margin-top:6px}
@@ -1919,11 +1926,17 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
 <!-- NUTRITION -->
 <div class="page" id="page-nutrition">
 
-  <!-- HERO ROW — Caloric Shield + the shake quick-log, the two highest-
-       signal pieces of this page, given equal top-of-page prominence side
-       by side instead of the shield sitting alone up top and the shake
-       buried below Log Food/Meal Plan further down. -->
-  <div class="nutr-hero-grid">
+  <!-- Companion banner moved to the very top of the page, above the
+       dashboard block, matching the reference layout instead of being
+       buried mid-scroll between the food-cards and Feeder Quest. -->
+  <div class="companion" style="margin-bottom:14px"><div class="companion-msg" id="nutr-companion">Nutrition is 80% of this. Track it for 2 weeks before changing anything else.</div></div>
+
+  <!-- AT-A-GLANCE DASHBOARD — Shield/Feeder Quest/Macros in one column,
+       Shake/food-grid in the other, so the whole glanceable summary fits on
+       one screen like the reference layout. Log Food/Meal Plan (full tools,
+       not summary content) stay as accordions below this block. -->
+  <div class="nutr-masonry">
+  <div class="nutr-masonry-col">
   <!-- CALORIC SHIELD — moved here from the dashboard, which was getting
        crowded. Makes more sense here anyway — a nutrition-specific visual
        belongs on the nutrition page. Fills as today's calorie AND protein
@@ -2043,13 +2056,41 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     </div>
   </div>
 
+  <!-- FEEDER-MEAL DAILY QUEST — a small randomized daily micro-challenge
+       tailored for hardgainers, since "eat more" alone is a boring, vague
+       instruction. Same quest all day (seeded by date, not re-randomized
+       every reload), instant XP on completion, once per day. -->
+  <div id="feeder-quest-card" class="card" style="margin-bottom:0;display:none">
+    <div class="ch"><span class="ct" style="display:flex;align-items:center;gap:7px">🎯 Today's Feeder Quest</span></div>
+    <div id="feeder-quest-body"></div>
+  </div>
+
+  <!-- Today's macros — always-visible summary (not an accordion) so it's
+       part of the glanceable dashboard block rather than needing a tap to
+       see, matching the reference layout. -->
+  <div class="card" id="acc-macros" style="margin-bottom:0">
+    <div class="ch"><span class="ct ct-mint" style="display:flex;align-items:center;gap:7px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>Today's macros</span><span class="ca" onclick="resetDay()">Reset</span></div>
+    <div id="macro-disp"></div>
+    <div id="water-row" style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.06)"></div>
+    <div id="macro-alcohol-line" style="display:none;font-size:11.5px;color:var(--muted);margin-top:6px">🍷 <span id="macro-alcohol-val">0</span>g alcohol today</div>
+    <div id="macro-why-toggle" onclick="toggleMacroWhy()" style="font-size:10.5px;color:var(--muted);cursor:pointer;margin-top:8px;text-decoration:underline;text-underline-offset:2px;display:inline-block">Why these numbers?</div>
+    <div id="macro-why-panel" style="display:none;margin-top:10px;padding:12px 14px;background:rgba(255,255,255,.03);border:1.5px solid var(--border2);border-radius:8px;font-size:11.5px;line-height:1.7;color:rgba(238,240,255,.7)">
+      <div style="margin-bottom:8px"><strong style="color:var(--white)">Protein — 1g per lb of bodyweight.</strong> Training tears muscle fibres down; protein is the raw material your body uses to rebuild them thicker. This lands right at the top of what research shows actually helps — going higher doesn't build more muscle, it just crowds out the carbs your training needs.</div>
+      <div><strong style="color:var(--white)">Calories — a controlled surplus.</strong> Building new muscle costs energy on top of what you burn day to day. Too small a surplus and there's nothing to build with; too large and most of the extra goes to fat instead of muscle.</div>
+    </div>
+    <div style="margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,.06)">
+      <div style="font-size:9px;font-weight:700;color:rgba(238,240,255,.3);text-transform:uppercase;letter-spacing:.14em;margin-bottom:10px">Logged today</div>
+      <div id="today-log-list"></div>
+    </div>
+  </div>
+  </div>
+
+  <div class="nutr-masonry-col">
   <!-- SHAKE HERO — same logEmergencyShake()/toggleShakeTypes() wiring and
        the same six quick-add items as before, just given the prominent
        photo-card treatment instead of being a small box near the bottom
-       of the page. ::before on .nutr-shake-hero carries a gradient
-       stand-in for now — swapping in a real background photo later is a
-       one-line background-image change on that rule, nothing here needs
-       to move. -->
+       of the page. ::before on .nutr-shake-hero carries the kitchen-photo
+       background. -->
   <div class="card nutr-shake-hero" id="shake-hero-card" onclick="logEmergencyShake()">
     <div id="shake-glass-main" class="shake-glow" style="display:inline-block">
       <svg width="52" height="61" viewBox="0 0 60 70">
@@ -2062,13 +2103,13 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     <div class="nutr-shake-sub" id="shake-hero-macros">113 kcal · 13g protein</div>
     <div onclick="event.stopPropagation();toggleShakeTypes()" style="font-size:10.5px;color:rgba(238,240,255,.5);text-decoration:underline;cursor:pointer;margin-top:8px">Or pick a different type →</div>
   </div>
-  </div>
-  <div id="shake-types-panel" style="display:none;margin-bottom:14px" onclick="event.stopPropagation()"></div>
+  <div id="shake-types-panel" style="display:none" onclick="event.stopPropagation()"></div>
   <!-- Photo slots are empty gradient+icon placeholders for now — each
        carries a data-food attribute naming what image belongs there, so
        real photos can be dropped in later via --em-photo without touching
-       this markup again. -->
-  <div class="emergency-grid" style="margin-bottom:14px">
+       this markup again. Tighter 3-column grid (vs 2) to match the
+       reference's more compact packing. -->
+  <div class="emergency-grid nutr-food-grid">
     <div class="em-item" data-food="peanut-butter"><div class="em-photo">🥜</div><div class="em-body"><div class="em-food">Peanut butter (2 tbsp)</div><div class="em-cals">190 kcal · 8g protein</div></div></div>
     <div class="em-item" data-food="whole-milk"><div class="em-photo">🥛</div><div class="em-body"><div class="em-food">Whole milk (500ml)</div><div class="em-cals">310 kcal · 16g protein</div></div></div>
     <div class="em-item" data-food="nuts"><div class="em-photo">🌰</div><div class="em-body"><div class="em-food">Nuts (handful)</div><div class="em-cals">170 kcal · 5g protein</div></div></div>
@@ -2076,8 +2117,8 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     <div class="em-item" data-food="greek-yoghurt"><div class="em-photo">🥣</div><div class="em-body"><div class="em-food">Greek yoghurt</div><div class="em-cals">130 kcal · 17g protein</div></div></div>
     <div class="em-item" data-food="oats-milk"><div class="em-photo">🥄</div><div class="em-body"><div class="em-food">Oats + milk</div><div class="em-cals">350 kcal · 14g protein</div></div></div>
   </div>
-
-  <div class="companion"><div class="companion-msg" id="nutr-companion">Nutrition is 80% of this. Track it for 2 weeks before changing anything else.</div></div>
+  </div>
+  </div>
 
   <!-- CATCH-UP PROMPT — hidden unless actually behind on calories today.
        A clickable question rather than a passive sentence, expanding into
@@ -2088,15 +2129,6 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       <span id="catchup-chevron" style="color:var(--muted);font-size:12px;transition:transform .2s">▼</span>
     </div>
     <div id="catchup-body" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--border2)" onclick="event.stopPropagation()"></div>
-  </div>
-
-  <!-- FEEDER-MEAL DAILY QUEST — a small randomized daily micro-challenge
-       tailored for hardgainers, since "eat more" alone is a boring, vague
-       instruction. Same quest all day (seeded by date, not re-randomized
-       every reload), instant XP on completion, once per day. -->
-  <div id="feeder-quest-card" class="card" style="margin-bottom:14px;display:none">
-    <div class="ch"><span class="ct" style="display:flex;align-items:center;gap:7px">🎯 Today's Feeder Quest</span></div>
-    <div id="feeder-quest-body"></div>
   </div>
 
   <!-- Unified log card with premium tabs -->
@@ -2206,28 +2238,6 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       <button onclick="generateShoppingList()" style="width:100%;background:rgba(255,122,46,.1);border:1.5px solid rgba(255,122,46,.3);border-radius:8px;padding:11px;color:rgba(255,122,46,.9);font-family:'Outfit',sans-serif;font-size:11.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;cursor:pointer">🛒 Build Shopping List From This Plan</button>
     </div>
     <div id="shopping-list-output" style="margin-top:14px"></div>
-  </div>
-
-  <!-- Today's macros — full width card -->
-  <div class="acc-header tile" onclick="toggleAccordion('acc-macros',this)">
-    <div class="acc-tile-icon">📊</div>
-    <div style="flex:1;min-width:0"><div class="acc-header-title">Today's Macros</div><div class="acc-header-sub" id="acc-macros-preview">Track your progress</div></div>
-    <span class="acc-chev">▼</span>
-  </div>
-  <div class="card acc-body" id="acc-macros" style="margin-bottom:14px">
-    <div class="ch"><span class="ct ct-mint" style="display:flex;align-items:center;gap:7px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>Today's macros</span><span class="ca" onclick="resetDay()">Reset</span></div>
-    <div id="macro-disp"></div>
-    <div id="water-row" style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.06)"></div>
-    <div id="macro-alcohol-line" style="display:none;font-size:11.5px;color:var(--muted);margin-top:6px">🍷 <span id="macro-alcohol-val">0</span>g alcohol today</div>
-    <div id="macro-why-toggle" onclick="toggleMacroWhy()" style="font-size:10.5px;color:var(--muted);cursor:pointer;margin-top:8px;text-decoration:underline;text-underline-offset:2px;display:inline-block">Why these numbers?</div>
-    <div id="macro-why-panel" style="display:none;margin-top:10px;padding:12px 14px;background:rgba(255,255,255,.03);border:1.5px solid var(--border2);border-radius:8px;font-size:11.5px;line-height:1.7;color:rgba(238,240,255,.7)">
-      <div style="margin-bottom:8px"><strong style="color:var(--white)">Protein — 1g per lb of bodyweight.</strong> Training tears muscle fibres down; protein is the raw material your body uses to rebuild them thicker. This lands right at the top of what research shows actually helps — going higher doesn't build more muscle, it just crowds out the carbs your training needs.</div>
-      <div><strong style="color:var(--white)">Calories — a controlled surplus.</strong> Building new muscle costs energy on top of what you burn day to day. Too small a surplus and there's nothing to build with; too large and most of the extra goes to fat instead of muscle.</div>
-    </div>
-    <div style="margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,.06)">
-      <div style="font-size:9px;font-weight:700;color:rgba(238,240,255,.3);text-transform:uppercase;letter-spacing:.14em;margin-bottom:10px">Logged today</div>
-      <div id="today-log-list"></div>
-    </div>
   </div>
 </div>
 
