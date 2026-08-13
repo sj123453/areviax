@@ -30,6 +30,18 @@
   --white:#EEF0FF;--muted:#8E8E93;--muted2:#3A3A3C;
   --border:rgba(255,255,255,.08);--border2:rgba(255,255,255,.06);
 }
+/* LIGHT THEME — flips every var(--...) reference; anything still styled
+   with a literal hex/rgba color inline (there's a lot of that across the
+   page render functions) won't react to this yet — those need converting
+   to var()-based colors in a follow-up pass before light mode can be
+   called fully finished, not just toggleable. */
+:root[data-theme="light"]{
+  --bg:#F5F5F2;--bg2:#EAEAE5;--panel:rgba(255,255,255,.85);--panel2:rgba(245,245,240,.8);
+  --white:#161616;--muted:#6B6B6E;--muted2:#B8B8BC;
+  --border:rgba(0,0,0,.1);--border2:rgba(0,0,0,.07);
+}
+[data-theme="light"] html{background:#F5F5F2}
+[data-theme="light"] body{background:linear-gradient(160deg,#F5F5F2 0%,#EAEAE5 100%) fixed;background-color:#F5F5F2}
 html{height:100%;background:#0B0B0B;overscroll-behavior-y:none}body{height:100%;background:linear-gradient(160deg,#0B0B0B 0%,#000000 100%) fixed;background-color:#0B0B0B;color:var(--white);font-family:'Outfit',sans-serif;font-weight:400;overflow:hidden;overscroll-behavior-y:none}
 input,input:focus,input:active,
     textarea,textarea:focus,
@@ -128,11 +140,11 @@ input,input:focus,input:active,
 .g4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
 
 /* CARD */
-.card{background:rgba(10,14,28,.72);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1.5px solid rgba(255,255,255,.07);border-radius:14px;padding:22px 24px;margin-bottom:12px;transition:border-color .3s,box-shadow .3s}
+.card{background:var(--panel);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1.5px solid var(--border2);border-radius:14px;padding:22px 24px;margin-bottom:12px;transition:border-color .3s,box-shadow .3s}
 
 /* Equipment chips */
 .equip-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
-.equip-chip{display:flex;align-items:center;justify-content:center;gap:5px;padding:6px 11px;border-radius:20px;border:1.5px solid rgba(255,255,255,.12);background:rgba(255,255,255,.04);color:rgba(238,240,255,.6);font-size:11px;font-weight:600;cursor:pointer;transition:all .18s;white-space:nowrap}
+.equip-chip{display:flex;align-items:center;justify-content:center;gap:5px;padding:6px 11px;border-radius:20px;border:1.5px solid var(--border);background:var(--panel2);color:var(--muted);font-size:11px;font-weight:600;cursor:pointer;transition:all .18s;white-space:nowrap}
 .equip-chip.active{background:rgba(255,90,0,.06);border-color:rgba(255,90,0,.55);color:var(--orange)}
 
 /* Priority dials */
@@ -153,7 +165,7 @@ input,input:focus,input:active,
 .syn-lbl{font-size:10.5px;color:var(--muted);width:108px;flex-shrink:0}
 .card:hover{border-color:rgba(255,90,0,.16);box-shadow:0 0 40px -18px rgba(255,90,0,.18)}
 .ch{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
-.ct{font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:rgba(238,240,255,.92)}
+.ct{font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--white);opacity:.92}
 .ct-gold{color:#FFD24D!important}
 .ct-purple{color:#8E8E93!important}
 .ct-blue{color:#6FC3FF!important}
@@ -511,8 +523,8 @@ input,input:focus,input:active,
 .lb-you{border-color:rgba(255,90,0,.25);background:rgba(255,90,0,.04)}
 
 /* FORM */
-label.lbl{font-size:9px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:rgba(238,240,255,.38);display:block;margin-bottom:5px;margin-top:12px}
-input[type=text],input[type=number],select{width:100%;background:rgba(255,255,255,.04);border:1.5px solid rgba(255,255,255,.09);color:#EEF0FF;font-family:'Outfit',sans-serif;font-size:13px;padding:9px 13px;border-radius:8px;transition:all .18s}
+label.lbl{font-size:9px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--white);opacity:.55;display:block;margin-bottom:5px;margin-top:12px}
+input[type=text],input[type=number],select{width:100%;background:var(--panel2);border:1.5px solid var(--border);color:var(--white);font-family:'Outfit',sans-serif;font-size:13px;padding:9px 13px;border-radius:8px;transition:all .18s}
 input[type=text]:focus,input[type=number]:focus,select:focus{outline:none;border-color:var(--green);background:rgba(255,255,255,.06);box-shadow:0 0 0 3px rgba(142,142,147,.1)}
 input:focus,select:focus{outline:none;border-color:var(--green)}
 select option{background:var(--panel)}
@@ -3427,6 +3439,18 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
   </div>
 
   <div class="card" style="margin-bottom:14px">
+    <div class="ch"><span class="ct">Appearance</span></div>
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <label class="lbl" style="margin:0">Theme</label>
+      <div id="set-theme-toggle" style="display:flex;gap:4px">
+        <button type="button" class="equip-chip" data-u="dark" onclick="setTheme('dark')" style="padding:3px 10px;font-size:10px">🌙 Dark</button>
+        <button type="button" class="equip-chip" data-u="light" onclick="setTheme('light')" style="padding:3px 10px;font-size:10px">☀️ Light</button>
+      </div>
+    </div>
+    <div style="font-size:10.5px;color:var(--muted);margin-top:6px;line-height:1.5">Early — most cards still look right in dark mode while light mode catches up card by card.</div>
+  </div>
+
+  <div class="card" style="margin-bottom:14px">
     <div class="ch"><span class="ct">Goal & Training</span></div>
     <label class="lbl" style="margin-top:0">Goal</label>
     <select id="set-goal">
@@ -3820,6 +3844,14 @@ let generatedWeek=null,autoReschedDates={};
 // handing back a fixed 7-exercise session.
 let weekSessionLength='60';
 let startingScheduledSession=false;
+let appTheme='dark';
+function setTheme(t){
+  appTheme=t==='light'?'light':'dark';
+  document.documentElement.setAttribute('data-theme',appTheme);
+  saveToStorage();
+  const swt=document.getElementById('set-theme-toggle');
+  if(swt)swt.querySelectorAll('.equip-chip').forEach(b=>b.classList.toggle('active',b.dataset.u===appTheme));
+}
 let joinDate='';
 let lastAnniversaryYear=0;
 let unlockedAchievements=[];
@@ -5379,6 +5411,7 @@ function renderSettings(){
   const shfw=document.getElementById('set-height-ftin-wrap');if(shfw)shfw.style.display=heightUnit==='ftin'?'flex':'none';
   const swt=document.getElementById('set-weight-unit-toggle');if(swt)swt.querySelectorAll('.equip-chip').forEach(b=>b.classList.toggle('active',b.dataset.u===weightUnit));
   const sht=document.getElementById('set-height-unit-toggle');if(sht)sht.querySelectorAll('.equip-chip').forEach(b=>b.classList.toggle('active',b.dataset.u===heightUnit));
+  const stt=document.getElementById('set-theme-toggle');if(stt)stt.querySelectorAll('.equip-chip').forEach(b=>b.classList.toggle('active',b.dataset.u===appTheme));
   document.getElementById('set-age').value=profile.age||'';
   document.getElementById('set-goal').value=profile.goal||'bulk';
   document.getElementById('set-equip').value=profile.equip||'full';
@@ -12156,6 +12189,7 @@ function saveToStorage(){
     localStorage.setItem('arx_prs', JSON.stringify(prs));
     localStorage.setItem('arx_prBestReps', JSON.stringify(prBestReps));
     localStorage.setItem('arx_weekSessionLength', weekSessionLength);
+    localStorage.setItem('arx_appTheme', appTheme);
     localStorage.setItem('arx_liftHistory', JSON.stringify(liftHistory));
     localStorage.setItem('arx_lastPerformance', JSON.stringify(lastPerformance));
     localStorage.setItem('arx_streak', streak);
@@ -12242,6 +12276,9 @@ function loadFromStorage(){
     if(prr){try{prBestReps=JSON.parse(prr);}catch(e){prBestReps={};}}
     const wsl=localStorage.getItem('arx_weekSessionLength');
     if(wsl)weekSessionLength=wsl;
+    const th=localStorage.getItem('arx_appTheme');
+    appTheme=th==='light'?'light':'dark';
+    document.documentElement.setAttribute('data-theme',appTheme);
     const lh=localStorage.getItem('arx_liftHistory');
     if(lh){try{liftHistory=JSON.parse(lh);}catch(e){liftHistory={};}}
     const lp=localStorage.getItem('arx_lastPerformance');
