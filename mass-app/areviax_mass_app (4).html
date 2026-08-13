@@ -3844,6 +3844,11 @@ let generatedWeek=null,autoReschedDates={};
 // handing back a fixed 7-exercise session.
 let weekSessionLength='60';
 let startingScheduledSession=false;
+// Every time a scheduled day gets swapped for something else, a record of
+// what was allocated vs what actually got trained — powers the lower-body
+// avoidance nudge below. Capped, not used to silently force anything.
+let deviationLog=[];
+let lowerBodyNudgeDismissedAt=null;
 let appTheme='dark';
 function setTheme(t){
   appTheme=t==='light'?'light':'dark';
@@ -8861,7 +8866,7 @@ function completeSession(nameOverride){
   lastSessionWorkoutName=todaysWorkoutName;
   lastSessionDate=today;
   checkScheduleWeek();
-  if(!alreadyTrainedToday)reconcileScheduleOnComplete(plannedSessionType);
+  if(!alreadyTrainedToday)reconcileScheduleOnComplete(plannedSessionType,plannedSessionExs);
   weekCompletedDays[today]=true;
 
   // Set greeting + date
@@ -11928,11 +11933,18 @@ function renderTodayPlanBanner(){
 // under weekCompletedDays being set true for today. It gets moved to the
 // next open day and called out as the recommended next session, the same
 // way a genuinely missed day would be handled.
-function reconcileScheduleOnComplete(completedType){
+function reconcileScheduleOnComplete(completedType,completedExs){
   if(!generatedWeek)return;
   const ti=new Date().getDay();const ti2=ti===0?6:ti-1;
   const todaySlot=getScheduleSlot(ti2);
   if(todaySlot.type==='rest'||todaySlot.type===completedType)return;
+  // Log what actually happened instead of the allocated session — which
+  // muscles, not just which type label — so a pattern (e.g. Lower keeps
+  // getting swapped for Upper Push) is measurable rather than guessed at.
+  const actualMuscles=[...new Set((completedExs||[]).flatMap(e=>(e.muscle||'').split('+').map(s=>s.trim()).filter(Boolean)))];
+  deviationLog.push({date:localDateKey(new Date()),allocatedType:todaySlot.type,actualType:completedType,actualMuscles});
+  if(deviationLog.length>60)deviationLog=deviationLog.slice(-60); // cap growth, keep it from growing forever
+  checkLowerBodyAvoidance();
   const targetIdx=SCHED_DAYS.findIndex((_,j)=>j>ti2&&getScheduleSlot(j).type==='rest');
   if(targetIdx>=0){
     scheduleOverrides[targetIdx]=todaySlot;
@@ -11944,6 +11956,23 @@ function reconcileScheduleOnComplete(completedType){
     // opens up (next week's regeneration, or a manual reschedule).
     toast('📅',`Did something else today — no open day left this week to move ${todaySlot.name} to. It'll carry over.`);
   }
+}
+// Fires only when Lower has genuinely been avoided repeatedly (3+ of the
+// last 4 deviations were away from an allocated Lower day) — a single
+// swapped day is normal life, not a pattern. Explains why it matters and
+// stops there; never forces or auto-inserts anything.
+function checkLowerBodyAvoidance(){
+  const recentLowerDeviations=deviationLog.filter(d=>d.allocatedType==='lower').slice(-4);
+  if(recentLowerDeviations.length<3)return;
+  const today=localDateKey(new Date());
+  if(lowerBodyNudgeDismissedAt){
+    const daysSince=(parseLocalDate(today)-parseLocalDate(lowerBodyNudgeDismissedAt))/86400000;
+    if(daysSince<14)return; // don't re-nag more than once every 2 weeks
+  }
+  const swappedFor=recentLowerDeviations.map(d=>d.actualType).filter((v,i,a)=>a.indexOf(v)===i);
+  toast('🦵',`Lower body's been swapped out ${recentLowerDeviations.length} of your last few sessions (for ${swappedFor.map(getSessionTypeLabel).join('/')}). Legs are half your muscle mass and skipping them long-term caps upper body growth too, plus raises injury risk from the imbalance — but it's your call. If it's the fatigue rather than the muscles themselves, "Switch today's session to lighter" (2 sets/exercise, on the Workout page) makes it a lot less to face without skipping it outright.`);
+  lowerBodyNudgeDismissedAt=today;
+  saveToStorage();
 }
 function renderSchedule(){
   const sg=document.getElementById('sched-grid');
@@ -12234,6 +12263,8 @@ function saveToStorage(){
     localStorage.setItem('arx_prBestReps', JSON.stringify(prBestReps));
     localStorage.setItem('arx_weekSessionLength', weekSessionLength);
     localStorage.setItem('arx_appTheme', appTheme);
+    localStorage.setItem('arx_deviationLog', JSON.stringify(deviationLog));
+    localStorage.setItem('arx_lowerBodyNudgeDismissedAt', lowerBodyNudgeDismissedAt||'');
     localStorage.setItem('arx_liftHistory', JSON.stringify(liftHistory));
     localStorage.setItem('arx_lastPerformance', JSON.stringify(lastPerformance));
     localStorage.setItem('arx_streak', streak);
@@ -12323,6 +12354,9 @@ function loadFromStorage(){
     const th=localStorage.getItem('arx_appTheme');
     appTheme=th==='light'?'light':'dark';
     document.documentElement.setAttribute('data-theme',appTheme);
+    const dl=localStorage.getItem('arx_deviationLog');
+    if(dl){try{deviationLog=JSON.parse(dl);}catch(e){deviationLog=[];}}
+    lowerBodyNudgeDismissedAt=localStorage.getItem('arx_lowerBodyNudgeDismissedAt')||null;
     const lh=localStorage.getItem('arx_liftHistory');
     if(lh){try{liftHistory=JSON.parse(lh);}catch(e){liftHistory={};}}
     const lp=localStorage.getItem('arx_lastPerformance');
