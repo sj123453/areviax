@@ -260,6 +260,21 @@ input,input:focus,input:active,
 .acc-tile-icon{width:42px;height:42px;flex-shrink:0;border-radius:10px;background:rgba(255,122,46,.1);border:1.5px solid rgba(255,122,46,.22);display:flex;align-items:center;justify-content:center;font-size:19px}
 .acc-header.tile .acc-header-title{font-size:13.5px;font-weight:800}
 .acc-body.open{display:block}
+/* RECOVERY TILE GRID — same acc-header.tile/acc-body pieces Nutrition
+   uses, arranged as a responsive multi-column grid of compact square
+   tiles instead of one-per-row, matching the reference layout's dense
+   dashboard feel. Bodies are display:none while closed (removed from grid
+   flow entirely, so they don't leave gaps) and jump to full grid width via
+   grid-column:1/-1 the moment they open, breaking to their own row —
+   toggleAccordion()'s single-open-at-a-time behavior is untouched, this is
+   purely a layout change. Scoped to #page-recovery so Nutrition's existing
+   horizontal tile rows aren't affected. */
+.rec-tile-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(136px,1fr));gap:10px;margin-bottom:16px}
+#page-recovery .acc-header.tile{flex-direction:column;text-align:center;justify-content:center;gap:8px;padding:16px 12px;margin-bottom:0;min-height:104px}
+#page-recovery .acc-header.tile .acc-header-sub{margin-top:0;line-height:1.35}
+#page-recovery .acc-header.tile .acc-chev{display:none}
+#page-recovery .acc-body{grid-column:1/-1}
+#page-recovery .acc-body.open{margin-bottom:0}
 .custom-meal-slot{display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.03);border:1.5px solid var(--border2);border-radius:8px;padding:12px 14px;cursor:pointer;font-size:12.5px;color:rgba(238,240,255,.5)}
 .custom-meal-slot.filled{color:var(--white);border-color:rgba(142,142,147,.3);background:rgba(142,142,147,.06)}
 .shop-item{display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(255,255,255,.03);border:1.5px solid var(--border2);border-radius:8px;cursor:pointer;transition:all .15s}
@@ -2421,6 +2436,13 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
 
   <div id="readiness-card" style="display:none;background:rgba(142,142,147,.06);border:1.5px solid rgba(142,142,147,.2);border-radius:12px;padding:14px 16px;margin-bottom:16px;font-size:12px;color:rgba(238,240,255,.8);line-height:1.6"></div>
 
+  <!-- RECOVERY TILE GRID — every section below as a compact tile in a
+       responsive grid instead of a full-width vertical stack, matching the
+       reference layout's dense dashboard feel. Whichever tile is tapped
+       open still expands its full existing accordion body (unchanged
+       functionality) — the body just spans the full grid width when open
+       via grid-column:1/-1 instead of living in a single-column list. -->
+  <div class="rec-tile-grid">
   <!-- CNS FRY SCORE — a 15-second tap-speed test as a rough, free proxy for
        neuromuscular/CNS fatigue, since not everyone has a $300 wearable that
        measures this properly. Scored against the user's OWN rolling
@@ -2429,7 +2451,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        meaningful relative to your own recent average. -->
     <div class="acc-header tile" onclick="toggleAccordion('acc-cns',this)">
     <div class="acc-tile-icon">🧠</div>
-    <div style="flex:1;min-width:0"><div class="acc-header-title">CNS Readiness Test</div><div class="acc-header-sub">Score your nervous-system fatigue</div></div>
+    <div style="flex:1;min-width:0"><div class="acc-header-title">CNS Readiness Test</div><div class="acc-header-sub" id="rec-cns-preview">Score your nervous-system fatigue</div></div>
     <span class="acc-chev">▼</span>
   </div>
   <div id="acc-cns" class="card acc-body" style="margin-bottom:16px">
@@ -2450,7 +2472,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
   <!-- SLEEP TRACKING -->
     <div class="acc-header tile" onclick="toggleAccordion('acc-sleep',this)">
     <div class="acc-tile-icon">😴</div>
-    <div style="flex:1;min-width:0"><div class="acc-header-title">Sleep</div><div class="acc-header-sub">Log hours, see your trend</div></div>
+    <div style="flex:1;min-width:0"><div class="acc-header-title">Sleep</div><div class="acc-header-sub" id="rec-sleep-preview">Log hours, see your trend</div></div>
     <span class="acc-chev">▼</span>
   </div>
   <div id="acc-sleep" class="card acc-body card-accent-purple" style="margin-bottom:16px;padding:26px;border-width:1.5px">
@@ -2673,6 +2695,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       <div style="display:flex;gap:10px;align-items:flex-start"><div style="width:6px;height:6px;border-radius:50%;background:#8E8E93;margin-top:6px;flex-shrink:0"></div><div><strong style="color:var(--white);font-size:12px">Deload weeks</strong><div style="font-size:11px;color:var(--muted);line-height:1.5">Every 6–8 weeks, drop volume by roughly half for a week. It's not a step backward — it's what lets the next block of training actually work.</div></div></div>
       <div style="display:flex;gap:10px;align-items:flex-start"><div style="width:6px;height:6px;border-radius:50%;background:#8E8E93;margin-top:6px;flex-shrink:0"></div><div><strong style="color:var(--white);font-size:12px">Stress management</strong><div style="font-size:11px;color:var(--muted);line-height:1.5">Chronic stress keeps cortisol elevated, which fights against the recovery you're trying to build. The breathing exercise above genuinely helps here — it's not just for falling asleep.</div></div></div>
     </div>
+  </div>
   </div>
 </div>
 
@@ -9524,6 +9547,7 @@ function logSleep(dateOverride){
   else sleepLog.push({date:targetDate,hours});
   input.value='';
   renderSleepLog();
+  renderRecoveryTilePreviews();
   addXP(5,'Sleep logged');
   saveToStorage();
   toast('😴','Sleep logged \u2014 '+hours+'h'+(dateOverride?' (yesterday)':''));
@@ -10459,6 +10483,26 @@ function renderRecoveryPage(){
   renderWinddownList();
   renderBrainDump();
   renderReadiness();
+  renderRecoveryTilePreviews();
+}
+// Populates the CNS/Sleep tile subtitles with the last real value (score,
+// hours) instead of a static description — an "at a glance" preview like
+// the reference layout's gauge/chart, reusing data these sections already
+// track rather than a second parallel data source.
+function renderRecoveryTilePreviews(){
+  const cnsEl=document.getElementById('rec-cns-preview');
+  if(cnsEl){
+    if(cnsTapLog.length){
+      const last=cnsTapLog[cnsTapLog.length-1];
+      cnsEl.textContent=cnsTapLog.length>1?`Last: ${last.score}%`:'First test logged';
+    }else{
+      cnsEl.textContent='Score your nervous-system fatigue';
+    }
+  }
+  const sleepEl=document.getElementById('rec-sleep-preview');
+  if(sleepEl){
+    sleepEl.textContent=sleepLog.length?`Last night: ${sleepLog[sleepLog.length-1].hours}h`:'Log hours, see your trend';
+  }
 }
 // ── CNS FRY SCORE — 15-second tap-speed test, scored against the user's own
 // rolling baseline (last 14 tests) rather than a fake universal "normal"
@@ -10499,6 +10543,7 @@ function finishCNSTest(){
   document.getElementById('cns-running-state').style.display='none';
   document.getElementById('cns-idle-state').style.display='block';
   renderCNSResult();
+  renderRecoveryTilePreviews();
   if(!baseline){
     toast('🧠','First test logged — keep testing daily to build your baseline');
   } else if(score<40){
