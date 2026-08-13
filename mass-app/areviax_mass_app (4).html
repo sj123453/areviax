@@ -1589,7 +1589,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        terminal instead of the compact single-line row this used to be. -->
   <div style="background:linear-gradient(160deg,rgba(255,90,0,.09),rgba(11,11,11,.9));border:1.5px solid rgba(255,90,0,.3);border-radius:16px;padding:20px;box-shadow:0 0 32px -18px rgba(255,90,0,.35)">
     <div style="font-size:9px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,90,0,.55);margin-bottom:6px">Today</div>
-    <div style="font-size:22px;font-weight:900;color:var(--white);line-height:1.15;letter-spacing:-.01em;margin-bottom:16px" id="d-next-full">Upper Body Push — Day 1</div>
+    <div style="font-size:22px;font-weight:900;color:var(--white);line-height:1.15;letter-spacing:-.01em;margin-bottom:16px" id="d-next-full">Push Upper — Day 1</div>
     <button onclick="showPage('workout')" style="width:100%;background:linear-gradient(135deg,#FF5A00,#FF7A2E);border:none;border-radius:10px;padding:13px;color:#2B0E00;font-family:'Outfit',sans-serif;font-size:13px;font-weight:900;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;box-shadow:0 10px 24px -10px rgba(255,90,0,.5)">▶ Start Workout</button>
     <div id="dash-nutrition-pulse" onclick="showPage('nutrition')" style="margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,.08);font-size:11px;color:var(--muted);cursor:pointer"></div>
   </div>
@@ -1811,8 +1811,8 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
         <div>
           <div class="lbl" style="margin-bottom:5px">Type</div>
           <select id="wb-type" onchange="renderExercises()">
-            <option value="upper-push">Upper Push</option>
-            <option value="upper-pull">Upper Pull</option>
+            <option value="upper-push">Push Upper</option>
+            <option value="upper-pull">Pull Upper</option>
             <option value="upper-full">Upper Full</option>
             <option value="lower">Lower Body</option>
             <option value="full">Full Body</option>
@@ -3814,6 +3814,12 @@ let scheduleWeekStart='',scheduleOverrides={},weekCompletedDays={};
 // which calendar dates have already been auto-moved this week so a missed
 // day only gets rearranged once, not every time the page re-renders.
 let generatedWeek=null,autoReschedDates={};
+// How long each day of the generated week should run — same time buckets
+// as the Workout Builder's own picker (maxExForTime), so "generate my
+// week" respects how much time the person actually has instead of always
+// handing back a fixed 7-exercise session.
+let weekSessionLength='60';
+let startingScheduledSession=false;
 let joinDate='';
 let lastAnniversaryYear=0;
 let unlockedAchievements=[];
@@ -6291,7 +6297,9 @@ function showPage(id){
     // they're still assembling or adjusting it (see renderCustomSelected
     // and renderExercises/pickBuilderSwap for the in-builder preview
     // state this reads from).
-    if(builderMode==='custom'&&customSessionExs.length){
+    if(startingScheduledSession){
+      startingScheduledSession=false;
+    }else if(builderMode==='custom'&&customSessionExs.length){
       plannedSessionExs=customSessionExs;plannedSessionType='custom';plannedSessionName='Custom Session';saveToStorage();
       const dnf=document.getElementById('d-next-full');if(dnf)dnf.textContent=plannedSessionName;
     }else if(builderMode==='auto'&&autoPreviewExs.length){
@@ -7368,7 +7376,7 @@ function matchesMuscleTargets(muscleTag){
 const UPPER_MUSCLES=['chest','back','shoulders','biceps','triceps'];
 const LOWER_MUSCLES=['quads','hamstrings','glutes','calves'];
 function getSessionTypeLabel(type){
-  const labels={'upper-push':'Upper Body Push','upper-pull':'Upper Body Pull','upper-full':'Upper Body','lower':'Lower Body','full':'Full Body','arms':'Arms','custom':'Custom Session'};
+  const labels={'upper-push':'Push Upper','upper-pull':'Pull Upper','upper-full':'Upper Body','lower':'Lower Body','full':'Full Body','arms':'Arms','custom':'Custom Session'};
   return labels[type]||'Session';
 }
 function getSessionName(type){
@@ -11764,7 +11772,8 @@ function generateFullWeek(silent){
     // 'lower' days in the 5-day pattern) doesn't hand back the identical
     // exercise list twice in the same week.
     for(let i=pool.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]];}
-    const exs=pool.slice(0,Math.min(7,pool.length));
+    const cap=Math.min(maxExForTime(weekSessionLength,pool.length),pool.length);
+    const exs=pool.slice(0,cap);
     return{type,name:getSessionTypeLabel(type),exs};
   });
   scheduleOverrides={};
@@ -11772,6 +11781,14 @@ function generateFullWeek(silent){
   saveToStorage();
   if(!silent)toast('📅','Your training week is ready — tap any day to start it.');
   renderSchedule();
+}
+function setWeekSessionLength(val){
+  weekSessionLength=val;
+  saveToStorage();
+  if(generatedWeek){
+    generateFullWeek(true); // re-cut each day's exercise list to the new time budget
+    toast('⏱️','Session length updated — your week has been reshuffled to fit.');
+  }
 }
 function clearGeneratedWeek(){
   generatedWeek=null;scheduleOverrides={};autoReschedDates={};
@@ -11794,6 +11811,13 @@ function startScheduledDay(i){
   const slot=getScheduleSlot(i);
   if(!slot||slot.type==='rest'||!slot.exs||!slot.exs.length)return;
   plannedSessionExs=slot.exs;plannedSessionType=slot.type;plannedSessionName=slot.name;
+  // Tells showPage('session') not to re-derive plannedSessionExs from
+  // whatever's currently sitting in the Workout Builder's auto/custom
+  // preview — that logic exists so tapping "Start Session" inside the
+  // builder commits the builder's own draft, but a scheduled day's real
+  // allocated exercises must win over stale builder state instead of
+  // silently getting overwritten by it.
+  startingScheduledSession=true;
   saveToStorage();
   showPage('session');
 }
@@ -11856,13 +11880,26 @@ function renderSchedule(){
 
   const genCard=document.getElementById('sched-generate-card');
   if(genCard){
+    const lenPicker=`<div style="margin-bottom:10px">
+           <div class="lbl" style="margin-bottom:5px">Session length</div>
+           <select id="week-len-select" onchange="setWeekSessionLength(this.value)" style="width:100%">
+             <option value="min" ${weekSessionLength==='min'?'selected':''}>15–20 min</option>
+             <option value="30" ${weekSessionLength==='30'?'selected':''}>30 min</option>
+             <option value="short" ${weekSessionLength==='short'?'selected':''}>45 min</option>
+             <option value="60" ${weekSessionLength==='60'?'selected':''}>1 hour</option>
+             <option value="90" ${weekSessionLength==='90'?'selected':''}>1.5 hours</option>
+             <option value="full" ${weekSessionLength==='full'?'selected':''}>2+ hours</option>
+           </select>
+         </div>`;
     genCard.innerHTML=generatedWeek
       ? `<div style="font-size:11.5px;color:var(--muted);line-height:1.6;margin-bottom:10px">Auto-generated for ${profile.days||4} days/week. Miss a day and it moves itself to your next rest day — no need to replan.</div>
+         ${lenPicker}
          <div style="display:flex;gap:8px">
            <button class="btn btn-out btn-sm" style="flex:1" onclick="generateFullWeek()">🔄 Regenerate</button>
            <button class="btn btn-ghost btn-sm" style="flex:1" onclick="clearGeneratedWeek()">Back to manual</button>
          </div>`
       : `<div style="font-size:11.5px;color:var(--muted);line-height:1.6;margin-bottom:10px">Let us lay out a real, followable week from your ${profile.days||4} days/week — with real exercises, not just labels. Miss a day and it automatically slides into your next rest day instead of just falling off.</div>
+         ${lenPicker}
          <button class="btn btn-g btn-sm" style="width:100%" onclick="generateFullWeek()">🔥 Generate My Training Week</button>`;
   }
 
@@ -12118,6 +12155,7 @@ function saveToStorage(){
     localStorage.setItem('arx_measurementsLog', JSON.stringify(measurementsLog));
     localStorage.setItem('arx_prs', JSON.stringify(prs));
     localStorage.setItem('arx_prBestReps', JSON.stringify(prBestReps));
+    localStorage.setItem('arx_weekSessionLength', weekSessionLength);
     localStorage.setItem('arx_liftHistory', JSON.stringify(liftHistory));
     localStorage.setItem('arx_lastPerformance', JSON.stringify(lastPerformance));
     localStorage.setItem('arx_streak', streak);
@@ -12202,6 +12240,8 @@ function loadFromStorage(){
     if(pr){prs=JSON.parse(pr)}
     const prr=localStorage.getItem('arx_prBestReps');
     if(prr){try{prBestReps=JSON.parse(prr);}catch(e){prBestReps={};}}
+    const wsl=localStorage.getItem('arx_weekSessionLength');
+    if(wsl)weekSessionLength=wsl;
     const lh=localStorage.getItem('arx_liftHistory');
     if(lh){try{liftHistory=JSON.parse(lh);}catch(e){liftHistory={};}}
     const lp=localStorage.getItem('arx_lastPerformance');
