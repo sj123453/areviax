@@ -61,6 +61,22 @@ h1{font-weight:800;font-size:30px;letter-spacing:-.02em;margin-bottom:10px}
 .product-check:hover{border-color:var(--cyan)}
 .product-check.done{background:rgba(68,207,255,.15);border-color:var(--cyan);color:var(--cyan)}
 .product-card.done .product-title{color:var(--muted);text-decoration:line-through;text-decoration-color:rgba(123,132,176,.5)}
+.digest-box{
+  margin-bottom:28px;padding:16px 20px;border-radius:10px;
+  background:rgba(68,207,255,.04);border:1px solid var(--border2);
+  display:flex;align-items:center;gap:14px;
+}
+.digest-icon{font-size:20px;flex-shrink:0}
+.digest-text{font-size:12.5px;color:rgba(238,240,255,.8);line-height:1.55}
+.digest-text strong{color:var(--white)}
+.unlock-box{
+  margin-bottom:28px;padding:18px 20px;border-radius:10px;
+  background:rgba(255,107,26,.06);border:1px solid rgba(255,107,26,.25);
+}
+.unlock-eyebrow{font-size:10px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--orange);margin-bottom:8px}
+.unlock-title{font-size:14px;font-weight:700;margin-bottom:6px}
+.unlock-body{font-size:12.5px;color:rgba(238,240,255,.8);line-height:1.6}
+.unlock-body a{color:var(--orange)}
 </style>
 </head>
 <body>
@@ -71,6 +87,14 @@ h1{font-weight:800;font-size:30px;letter-spacing:-.02em;margin-bottom:10px}
   <h1>Everything's ready for you.</h1>
   <p class="sub">All 5 products are below. Each opens its own interactive guide — bookmark this page so you can come back to any of them whenever you like.</p>
 
+  <!-- WEEKLY DIGEST — a real summary of activity on THIS device over the
+       last 7 days, built from the same open/complete events already
+       tracked below rather than a second parallel data source. No
+       cross-device or cross-product sync exists (there's no backend), so
+       this stays honest about being local-only, same as the note box
+       further down. -->
+  <div class="digest-box" id="digest-box"></div>
+
   <div class="progress-box">
     <div class="progress-top">
       <span class="progress-label">Your progress</span>
@@ -78,6 +102,13 @@ h1{font-weight:800;font-size:30px;letter-spacing:-.02em;margin-bottom:10px}
     </div>
     <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
   </div>
+
+  <!-- BUNDLE-ONLY UNLOCKS — a small reward for real progress across the
+       bundle rather than just a bare completion percentage: a bonus tip
+       unlocks at 3/5, a completion card at 5/5. Hidden entirely below that
+       threshold rather than shown as a locked/greyed-out teaser, so it
+       reads as something earned, not a nag. -->
+  <div class="unlock-box" id="unlock-box" style="display:none"></div>
 
   <a href="https://areviaxgrowthcode.netlify.app/" class="product-card" data-pid="growth" onclick="markOpened('growth')">
     <div class="product-check" data-pid="growth" onclick="toggleDone(event,'growth')">✓</div>
@@ -146,16 +177,66 @@ h1{font-weight:800;font-size:30px;letter-spacing:-.02em;margin-bottom:10px}
 // bundle), so it's framed honestly in the note box above rather than
 // implying it syncs anywhere.
 const PIDS = ['growth','income','blueprint','mass','prompt'];
+const PRODUCT_NAMES = {growth:'The Growth Code',income:'The Income Playbook',blueprint:'Digital Product Blueprint',mass:'The Mass Blueprint',prompt:'AI Prompt Mastery'};
 function loadProgress(){ try{ return JSON.parse(localStorage.getItem('arx_bundle_progress')||'{}'); }catch(e){ return {}; } }
 function saveProgress(p){ localStorage.setItem('arx_bundle_progress', JSON.stringify(p)); }
 function loadLastOpened(){ return localStorage.getItem('arx_bundle_last_opened')||''; }
-function markOpened(pid){ localStorage.setItem('arx_bundle_last_opened', pid); }
+// Activity log powers the weekly digest — capped so it can't grow forever
+// on a device someone keeps for years, keeps roughly the last few months
+// of activity which is far more than a "this week" digest ever needs.
+function loadLog(){ try{ return JSON.parse(localStorage.getItem('arx_bundle_activity_log')||'[]'); }catch(e){ return []; } }
+function logActivity(pid, action){
+  const log = loadLog();
+  log.push({pid, action, ts: Date.now()});
+  if(log.length>300) log.splice(0, log.length-300);
+  localStorage.setItem('arx_bundle_activity_log', JSON.stringify(log));
+}
+function markOpened(pid){
+  localStorage.setItem('arx_bundle_last_opened', pid);
+  logActivity(pid, 'open');
+}
 function toggleDone(evt, pid){
   evt.preventDefault(); evt.stopPropagation();
   const progress = loadProgress();
   progress[pid] = !progress[pid];
   saveProgress(progress);
+  if(progress[pid]) logActivity(pid, 'done');
   render();
+}
+function renderDigest(){
+  const el = document.getElementById('digest-box');
+  if(!el) return;
+  const weekAgo = Date.now() - 7*24*60*60*1000;
+  const recent = loadLog().filter(e=>e.ts>=weekAgo);
+  const opened = new Set(recent.filter(e=>e.action==='open').map(e=>e.pid));
+  const completed = new Set(recent.filter(e=>e.action==='done').map(e=>e.pid));
+  let icon = '📬', text;
+  if(recent.length===0){
+    text = 'No activity yet this week — pick up wherever you left off.';
+  } else if(completed.size>0){
+    icon = '🔥';
+    text = `This week: <strong>${completed.size}</strong> product${completed.size===1?'':'s'} completed, <strong>${opened.size}</strong> opened. Good pace — keep it going.`;
+  } else {
+    text = `This week: <strong>${opened.size}</strong> product${opened.size===1?'':'s'} opened, none marked done yet. Check one off when you finish it.`;
+  }
+  el.innerHTML = `<span class="digest-icon">${icon}</span><span class="digest-text">${text}</span>`;
+}
+function renderUnlocks(doneCount){
+  const el = document.getElementById('unlock-box');
+  if(!el) return;
+  if(doneCount>=5){
+    el.style.display = 'block';
+    el.innerHTML = `<div class="unlock-eyebrow">🏆 Unlocked — Bundle Master</div>
+      <div class="unlock-title">All 5, done.</div>
+      <div class="unlock-body">That's the full bundle finished — growth, income, product creation, mass, and AI output, all covered. Most people buy a bundle like this and open one product. You actually went through all five.</div>`;
+  } else if(doneCount>=3){
+    el.style.display = 'block';
+    el.innerHTML = `<div class="unlock-eyebrow">🎁 Bonus unlocked — 3 of 5</div>
+      <div class="unlock-title">The compounding move</div>
+      <div class="unlock-body">You're past the halfway point, which is where most people stall. The real leverage in this bundle isn't any single product — it's combining them: the audience-building from the Growth Code feeds the Income Playbook, and the Digital Product Blueprint gives you something of your own to sell to that audience. Worth finishing the last ${5-doneCount} with that in mind.</div>`;
+  } else {
+    el.style.display = 'none';
+  }
 }
 function render(){
   const progress = loadProgress();
@@ -184,6 +265,8 @@ function render(){
     }
     if(badge) card.appendChild(badge);
   });
+  renderDigest();
+  renderUnlocks(doneCount);
 }
 render();
 </script>
