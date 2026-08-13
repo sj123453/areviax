@@ -4610,6 +4610,7 @@ const EX={
       ]},
   ],
   'full':[
+    {name:'Calf Raises',muscle:'calves',sets:4,reps:'15–20',eff:81,syn:88,safe:97,equip:['full','dumbbells','home','bodyweight'],anim:'calves',cue:'Full range of motion every rep — a deep stretch at the bottom with your heels dropped low, then a hard squeeze and pause at the very top. Calves are a stubborn muscle that respond best to high volume and genuinely full range, not heavy partial reps.'},
     {name:'Ab Wheel Rollout',muscle:'core',sets:3,reps:'8–12',eff:88,syn:85,safe:82,equip:['full','home'],anim:'core',cue:'One of the hardest core exercises there is — it trains your abs to resist your spine extending under load, not just to crunch forward. Roll out only as far as you can control without your lower back sagging, then pull back in.',
       troubleshoot:[
         {feel:'Lower back sagging or aching', fix:'You\'re rolling out further than your core strength currently supports. Shorten the range and build up gradually — this is normal early on.'},
@@ -11792,6 +11793,43 @@ const WEEK_SPLIT_PATTERNS={
   6:['upper-push','lower','upper-pull','upper-push','lower','upper-pull','rest'],
   7:['upper-push','lower','upper-pull','upper-full','lower','full','upper-pull']
 };
+// spreadByMuscle guarantees one pick per distinct exact-muscle-tag group
+// before any group gets a second, sorted smallest group first — but when a
+// pool has more distinct groups than the session has room for (e.g. the
+// full-body pool has 16 distinct muscle tags but a 60min session only fits
+// 7 exercises), the groups past that cutoff are left out entirely, every
+// single time, since the sort order never changes. Standalone 'hamstrings'
+// and 'calves' — never bundled into a compound tag with anything smaller —
+// are the ones that consistently lose that cutoff in the full-body pool.
+// This tops up any major muscle with zero representation by swapping out a
+// slot from whichever muscle currently has the most picks (so it never
+// removes a muscle's ONLY exercise to add another's).
+function topUpMissingMuscles(exs,pool){
+  const MAJOR=['chest','back','shoulders','biceps','triceps','quads','hamstrings','glutes','calves'];
+  const tags=e=>(e.muscle||'').split('+').map(s=>s.trim());
+  const countOf=(list,tag)=>list.filter(e=>tags(e).includes(tag)).length;
+  const pickedNames=new Set(exs.map(e=>e.name));
+  MAJOR.forEach(tag=>{
+    if(countOf(exs,tag)>0)return; // already covered
+    const candidate=pool.find(e=>!pickedNames.has(e.name)&&tags(e).includes(tag));
+    if(!candidate)return; // pool has nothing for this muscle at all — nothing we can do
+    // Only swap a slot whose EVERY tag has backup coverage elsewhere — using
+    // the exercise's worst (least-represented) tag, not its best, so a
+    // "back + core" exercise doesn't get removed just because core is deep
+    // if back has no other representation to fall back on.
+    let worstIdx=-1,worstCount=1;
+    exs.forEach((e,i)=>{
+      const c=Math.min(...tags(e).map(t=>countOf(exs,t)));
+      if(c>worstCount){worstCount=c;worstIdx=i;}
+    });
+    if(worstIdx>=0){
+      pickedNames.delete(exs[worstIdx].name);
+      pickedNames.add(candidate.name);
+      exs[worstIdx]=candidate;
+    }
+  });
+  return exs;
+}
 // Generates a real 7-day plan — not just text labels — sized to
 // profile.days. silent=true skips the toast, used for the automatic
 // Monday-rollover regeneration so it doesn't announce itself unprompted.
@@ -11803,10 +11841,16 @@ function generateFullWeek(silent){
     const pool=[...(EX[type]||[])].filter(e=>equipOk(e));
     // Independent shuffle per day so a split that repeats a type (e.g. two
     // 'lower' days in the 5-day pattern) doesn't hand back the identical
-    // exercise list twice in the same week.
+    // exercise list twice in the same week, and so which exercise gets
+    // picked within each muscle group varies week to week.
     for(let i=pool.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]];}
     const cap=Math.min(maxExForTime(weekSessionLength,pool.length),pool.length);
-    const exs=pool.slice(0,cap);
+    // spreadByMuscle guarantees every muscle group in the pool gets at least
+    // one pick before any group gets a second — a plain shuffle+slice here
+    // let a deep group (e.g. 'core' at 21 of 52 full-body exercises) crowd
+    // out entire other groups by chance. Same balancing the manual Workout
+    // Builder already uses for these session types (see renderExercises).
+    const exs=topUpMissingMuscles(spreadByMuscle(pool,cap),pool);
     return{type,name:getSessionTypeLabel(type),exs};
   });
   scheduleOverrides={};
