@@ -3763,6 +3763,11 @@ function cyclePriority(key){
 }
 
 let prs={};
+// Best reps ever done at the current PR weight for each exercise — lets a
+// rep increase at the same top weight count as a PR too, not just a weight
+// increase (e.g. 100kg×5 -> 100kg×7 is real progress even though the
+// weight didn't move).
+let prBestReps={};
 let lastPerformance={}; // name -> {weight,reps,date} — powers progressive-overload suggestions
 let liftHistory={}; // name -> [{date,weight,reps}, ...] one row per session — powers plateau detection
 let weightLog=[];
@@ -8579,12 +8584,14 @@ function logSet(ei,si,name,muscle){
       lastEntry.weight=w;lastEntry.reps=r;
     }
   }
-  if(w>0&&(!prs[name]||w>prs[name])){
-    prs[name]=w;chip.classList.add('pr');
+  const isWeightPR=w>0&&(!prs[name]||w>prs[name]);
+  const isRepPR=w>0&&!isWeightPR&&prs[name]&&w===prs[name]&&r>(prBestReps[name]||0);
+  if(isWeightPR||isRepPR){
+    prs[name]=w;prBestReps[name]=r;chip.classList.add('pr');
     chip.textContent=`🏆 ${w}×${r}`;
     const pd=document.getElementById('pr-d-'+ei);
     if(pd)pd.textContent='PR: '+w+'kg';
-    toast('🏆','New PR on '+name+': '+w+'kg!');
+    toast('🏆',isWeightPR?'New PR on '+name+': '+w+'kg!':'New PR on '+name+': '+w+'kg×'+r+' (more reps)!');
     celebrateBurst(['🏆','⭐','💥'],18);
     checkQuestWeek();questProgress.prs=(questProgress.prs||0)+1;renderQuests();checkAchievements();
   }
@@ -12110,6 +12117,7 @@ function saveToStorage(){
     localStorage.setItem('arx_weightLog', JSON.stringify(weightLog));
     localStorage.setItem('arx_measurementsLog', JSON.stringify(measurementsLog));
     localStorage.setItem('arx_prs', JSON.stringify(prs));
+    localStorage.setItem('arx_prBestReps', JSON.stringify(prBestReps));
     localStorage.setItem('arx_liftHistory', JSON.stringify(liftHistory));
     localStorage.setItem('arx_lastPerformance', JSON.stringify(lastPerformance));
     localStorage.setItem('arx_streak', streak);
@@ -12192,6 +12200,8 @@ function loadFromStorage(){
     if(ml){measurementsLog=JSON.parse(ml)}
     const pr=localStorage.getItem('arx_prs');
     if(pr){prs=JSON.parse(pr)}
+    const prr=localStorage.getItem('arx_prBestReps');
+    if(prr){try{prBestReps=JSON.parse(prr);}catch(e){prBestReps={};}}
     const lh=localStorage.getItem('arx_liftHistory');
     if(lh){try{liftHistory=JSON.parse(lh);}catch(e){liftHistory={};}}
     const lp=localStorage.getItem('arx_lastPerformance');
