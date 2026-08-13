@@ -118,7 +118,11 @@ input,input:focus,input:active,
    unless the item itself is told it's allowed to shrink. The >* rule below
    is what actually makes that stick, on every grid class that had this bug
    (long tab labels / card text forcing cards wider than the viewport). */
-.g2>*,.g3>*,.g4>*,.nutr-hero-grid>*,.pr-grid>*,.emergency-grid>*,.nutr-masonry-col>*{min-width:0}
+.g2>*,.g3>*,.g4>*,.nutr-hero-grid>*,.pr-grid>*,.emergency-grid>*,.nutr-masonry-col>*,.priority-grid>*,.sched-grid>*,.smartlog-macros>*,.hall-grid>*,#heatmap-grid>*,#recap-week-days>*{min-width:0}
+/* Defensive catch-all: any ad-hoc inline-style grid elsewhere in the app gets
+   the same >* min-width:0 treatment, so this class of bug can't recur when a
+   grid is added inline instead of via a shared class. */
+[style*="grid-template-columns"]>*{min-width:0}
 .g2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
 .g3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
 .g4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
@@ -132,7 +136,7 @@ input,input:focus,input:active,
 .equip-chip.active{background:rgba(255,90,0,.06);border-color:rgba(255,90,0,.55);color:var(--orange)}
 
 /* Priority dials */
-.priority-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px}
+.priority-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;margin-top:6px}
 .pri-item{display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.03);border:1.5px solid rgba(255,255,255,.07);border-radius:8px;padding:9px 12px;cursor:pointer;transition:all .18s}
 .pri-item.pri-selected{border-color:rgba(255,90,0,.6);box-shadow:0 0 16px -2px rgba(255,90,0,.5)}
 .pri-item:hover{border-color:rgba(255,255,255,.14)}
@@ -479,7 +483,7 @@ input,input:focus,input:active,
 
 
 /* SCHED */
-.sched-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:0;margin-bottom:14px;border-bottom:1.5px solid rgba(255,255,255,.06)}
+.sched-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:0;margin-bottom:14px;border-bottom:1.5px solid rgba(255,255,255,.06)}
 .sched-day{background:transparent;border:none;border-bottom:2px solid transparent;padding:10px 5px 8px;text-align:center;transition:all .2s}
 .sched-day.on{background:rgba(255,90,0,.07);border-color:rgba(255,90,0,.2)}
 .sched-day.today{background:rgba(255,90,0,.07);border-bottom-color:rgba(255,90,0,.9);border-radius:6px 6px 0 0}
@@ -972,7 +976,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .smartlog-hint{font-size:10px;color:var(--muted);margin-top:6px;line-height:1.5}
     .smartlog-empty{font-size:11.5px;color:var(--muted);text-align:center;padding:14px 0}
     .smartlog-est{font-size:11px;color:var(--green);font-weight:700;text-align:center;margin-bottom:8px}
-    .smartlog-macros{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;text-align:center}
+    .smartlog-macros{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;text-align:center}
     .smartlog-macros div{background:rgba(255,255,255,.03);border-radius:6px;padding:8px 4px}
     .smartlog-macros span{display:block;font-size:14px;font-weight:800;color:var(--white)}
 
@@ -990,7 +994,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .statue-teaser svg{flex-shrink:0;color:var(--muted)}
 
     /* ── HALL OF STATUES ── */
-    .hall-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+    .hall-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
     .hall-statue{text-align:center}
     .hall-statue-fig{
       position:relative;width:100%;aspect-ratio:391/749;
@@ -1616,7 +1620,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        same functions render into it — only the container changed. -->
   <div id="acc-progress" style="background:#0B0B0B;border:1px solid rgba(255,255,255,.06);border-radius:18px;padding:16px;margin-bottom:0">
   <div style="font-size:9px;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:rgba(238,240,255,.35);margin-bottom:12px">This week</div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+  <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;margin-bottom:12px">
     <div style="background:#0B0B0B;border:1px solid rgba(255,90,0,.12);border-radius:16px;padding:16px;display:flex;flex-direction:column;align-items:center;gap:8px;box-shadow:0 0 28px -14px rgba(255,90,0,.16)">
       <canvas id="compass-main" width="88" height="88"></canvas>
       <div style="font-size:8px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:rgba(68,212,255,.7)" id="compass-label">Weekly Compass</div>
@@ -1638,7 +1642,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     </div>
   </div>
 
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+  <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;margin-bottom:16px">
     <div style="background:rgba(255,122,46,.045);border:1px solid rgba(255,122,46,.1);border-radius:16px;padding:16px;text-align:center">
       <div style="display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:8px">
         <span style="font-size:15px">🔥</span>
@@ -1765,7 +1769,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     <div class="ch" style="margin-bottom:10px"><span class="ct" style="font-size:13px;color:var(--white)">🏃 Cardio & Sport</span></div>
     <div style="font-size:11px;color:var(--muted);margin-bottom:10px">Running, cycling, football, swimming — anything that isn't sets and reps.</div>
     <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px" id="cardio-activity-chips"></div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+    <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;margin-bottom:10px">
       <div><label style="font-size:10px;color:var(--muted);display:block;margin-bottom:3px">Duration (mins)</label><input type="number" id="cardio-duration" placeholder="30" min="1"></div>
       <div>
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
@@ -1803,7 +1807,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     <div class="card">
       <div class="ch" style="margin-bottom:14px"><span class="ct">Session</span></div>
 
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
+      <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;margin-bottom:14px">
         <div>
           <div class="lbl" style="margin-bottom:5px">Type</div>
           <select id="wb-type" onchange="renderExercises()">
@@ -2518,7 +2522,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     <div id="sleep-debt" style="margin-top:10px;font-size:11px;padding:8px 12px;background:rgba(142,142,147,.06);border:1.5px solid rgba(142,142,147,.15);border-radius:8px;color:rgba(238,240,255,.7)"></div>
     <div class="emergency" style="background:rgba(142,142,147,.05);border-color:rgba(142,142,147,.18);margin-top:14px">
       <div class="emergency-title" style="color:#8E8E93">⚡ Under 5 hours last night? — Do this today</div>
-      <div class="emergency-grid" style="grid-template-columns:repeat(3,1fr)">
+      <div class="emergency-grid" style="grid-template-columns:repeat(3,minmax(0,1fr))">
         <div class="em-item"><div class="em-body"><div class="em-food">Drop intensity</div><div class="em-cals">Same exercises, 1–2 fewer sets</div></div></div>
         <div class="em-item"><div class="em-body"><div class="em-food">Hit protein anyway</div><div class="em-cals">Recovery still needs the raw material</div></div></div>
         <div class="em-item"><div class="em-body"><div class="em-food">10 min daylight</div><div class="em-cals">Resets your clock for tonight</div></div></div>
@@ -3170,7 +3174,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
   <!-- CONSISTENCY HEATMAP -->
   <div class="card" style="margin-bottom:14px">
     <div class="ch"><span class="ct">Consistency</span></div>
-    <div id="heatmap-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:8px"></div>
+    <div id="heatmap-grid" style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px;margin-bottom:8px"></div>
     <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--muted)">
       <span>Less</span><span id="heatmap-caption"></span><span>More</span>
     </div>
@@ -3183,7 +3187,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       <div style="font-size:26px;font-weight:900;color:var(--green)" id="recap-week-count">0</div>
       <div style="font-size:11px;color:var(--muted)" id="recap-week-label">days trained this week</div>
     </div>
-    <div id="recap-week-days" style="display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-bottom:8px"></div>
+    <div id="recap-week-days" style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;margin-bottom:8px"></div>
     <div style="font-size:10.5px;color:var(--muted)" id="recap-week-trend"></div>
   </div>
 
@@ -3226,7 +3230,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
   <!-- LIFETIME STATS PLAQUE -->
   <div class="card" style="margin-bottom:14px">
     <div class="ch"><span class="ct">Lifetime Record</span></div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+    <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px">
       <div style="background:rgba(255,255,255,.025);border:1.5px solid rgba(255,255,255,.07);border-radius:8px;padding:14px">
         <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">Total Volume</div>
         <div style="font-size:22px;font-weight:800;color:var(--white)" id="profile-volume">0 kg</div>
@@ -5587,7 +5591,7 @@ function renderPhotoAlignGuide(){
   wrap.style.display='block';
   wrap.innerHTML=`<div style="position:relative;max-width:180px;margin:0 auto 12px;border-radius:8px;overflow:hidden;border:1.5px solid var(--border2)">
     <img src="${last.dataUrl}" style="width:100%;display:block;opacity:.4">
-    <div style="position:absolute;inset:0;display:grid;grid-template-columns:1fr 1fr 1fr;grid-template-rows:1fr 1fr 1fr">
+    <div style="position:absolute;inset:0;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1fr);grid-template-rows:1fr 1fr 1fr">
       ${Array.from({length:9},()=>'<div style="border:1px dashed rgba(255,255,255,.35)"></div>').join('')}
     </div>
     <div style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.6);color:#fff;font-size:9px;text-align:center;padding:3px 0">Match this framing (${fmtPhotoDate(last.date)})</div>
@@ -6431,7 +6435,7 @@ function finishPlanCalculation(){
   const ort=document.getElementById('ob-res-title');if(ort)ort.textContent='Here are your numbers, '+profile.name+'.';
   const orc=document.getElementById('ob-res-content');if(orc)orc.innerHTML=`
     <div style="font-size:11px;color:var(--muted);margin-bottom:10px">Your BMI: <strong style="color:var(--white)">${bmi.toFixed(1)}</strong></div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px">
+    <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;margin-bottom:14px">
       ${[['Calories',profile.cals.toLocaleString(),'kcal/day','#FF5A00'],['Protein',profile.protein+'g','daily','#44D4FF'],['Carbs',profile.carbs+'g','daily','#4ADE80'],['Fats',profile.fats+'g','daily','#FFD700']].map(([n,v,s2,c])=>`<div style="background:var(--panel2);border:1.5px solid var(--border2);padding:10px;border-radius:4px;border-top:2px solid ${c}"><div style="font-weight:800;font-size:18px;color:${c}">${v}</div><div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-top:1px">${n} ${s2}</div></div>`).join('')}
     </div>
     <div style="padding:10px 12px;background:rgba(255,90,0,.06);border:1.5px solid rgba(255,90,0,.15);border-radius:4px;font-size:12px;color:var(--muted);line-height:1.7">
@@ -11122,7 +11126,7 @@ function toggleShakeTypes(){
 function renderShakeTypesPanel(){
   const panel=document.getElementById('shake-types-panel');
   if(!panel)return;
-  panel.innerHTML=`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
+  panel.innerHTML=`<div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px">
     ${SHAKE_TYPES.map((s,i)=>`<div class="shake-type-card" onclick="toggleShakeRecipe(${i})">
       ${getShakeGlassSVG(s.color,40)}
       <div style="font-size:10px;font-weight:700;margin-top:4px">${s.name}</div>
@@ -11720,7 +11724,7 @@ function renderProgress(){
   }).join('')+`</div>`;
   // Compare
   if(weightLog.length>=2){
-    const cb=document.getElementById('compare-body');if(cb)cb.innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div style="background:var(--panel2);border:1.5px solid var(--border2);padding:10px;border-radius:4px;text-align:center"><div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em">Day 1</div><div style="font-weight:800;font-size:20px;margin-top:3px">${weightLog[0].w} lbs</div></div><div style="background:var(--panel2);border:1.5px solid rgba(255,90,0,.2);padding:10px;border-radius:4px;text-align:center"><div style="font-size:9px;color:var(--green);text-transform:uppercase;letter-spacing:.08em">Today</div><div style="font-weight:800;font-size:20px;margin-top:3px;color:var(--green)">${weightLog[weightLog.length-1].w} lbs</div><div style="font-size:11px;color:var(--green);margin-top:3px">+${(weightLog[weightLog.length-1].w-weightLog[0].w).toFixed(1)} lbs</div></div></div>`;
+    const cb=document.getElementById('compare-body');if(cb)cb.innerHTML=`<div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px"><div style="background:var(--panel2);border:1.5px solid var(--border2);padding:10px;border-radius:4px;text-align:center"><div style="font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em">Day 1</div><div style="font-weight:800;font-size:20px;margin-top:3px">${weightLog[0].w} lbs</div></div><div style="background:var(--panel2);border:1.5px solid rgba(255,90,0,.2);padding:10px;border-radius:4px;text-align:center"><div style="font-size:9px;color:var(--green);text-transform:uppercase;letter-spacing:.08em">Today</div><div style="font-weight:800;font-size:20px;margin-top:3px;color:var(--green)">${weightLog[weightLog.length-1].w} lbs</div><div style="font-size:11px;color:var(--green);margin-top:3px">+${(weightLog[weightLog.length-1].w-weightLog[0].w).toFixed(1)} lbs</div></div></div>`;
   }
 }
 
