@@ -11610,7 +11610,7 @@ function renderWeightChart(container){
   // from the outlier-excluded ("clean") log, not the raw noisy daily
   // weigh-ins, so a single big-water-weight day doesn't yank the smoothed
   // line around the way it does the raw line above.
-  const cleanForSmooth=(trend&&trend.usable?trend.clean:entries).map(e=>({...e}));
+  const cleanForSmooth=(trend&&trend.usable?trend.clean:trend.entries).map(e=>({...e}));
   const smoothPoints=pts.map((p,i)=>{
     const centerDate=p._d;
     const windowStart=centerDate-3.5*86400000, windowEnd=centerDate+3.5*86400000;
@@ -11685,7 +11685,12 @@ function logWeight(){
   document.getElementById('log-w').value='';
   const dwt=document.getElementById('d-weight');if(dwt)dwt.textContent=w+'lbs';
   if(weightLog.length>=2){const cc=document.getElementById('compare-card');if(cc)cc.style.display=''}
-  renderProgress();addXP(5,'Weight logged');saveToStorage();
+  // Save first, render after — a chart-rendering bug should never be able
+  // to make a logged weight vanish on reload (it did, silently, before
+  // this: renderProgress() ran first with no try/catch, so an exception in
+  // there skipped saveToStorage() entirely further down the same line).
+  addXP(5,'Weight logged');saveToStorage();
+  try{renderProgress();}catch(e){console.error('renderProgress error:',e.message);}
 }
 function cancelWeightLog(){
   _pendingWeightLog=null;
