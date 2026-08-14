@@ -8347,10 +8347,17 @@ function buildSession(){
   // Use whatever was actually configured in the Workout Builder — this used to
   // be hardcoded to always show Upper Push regardless of what was built, which
   // meant Start Session never reflected your actual plan. Falls back to a
-  // sensible default only if nothing has been configured yet at all.
+  // sensible default only if nothing has been configured yet at all — e.g.
+  // tapping the bottom nav's Start button straight from onboarding, without
+  // ever visiting the builder. That fallback used to hand back the ENTIRE
+  // raw upper-push pool unfiltered (50 exercises, no muscle balancing or
+  // time cap) and never actually saved it to plannedSessionExs, which also
+  // meant completing that session silently failed to save to history.
   let exs=plannedSessionExs;
   if(!exs||!exs.length){
-    exs=(EX['upper-push']||[]).filter(e=>equipOk(e));
+    const pool=(EX['upper-push']||[]).filter(e=>equipOk(e));
+    exs=spreadByMuscle(pool,maxExForTime(weekSessionLength,pool.length));
+    plannedSessionExs=exs;plannedSessionType='upper-push';plannedSessionName=getSessionTypeLabel('upper-push');
   }
   const cont=document.getElementById('sess-exercises');if(!cont)return;
   cont.innerHTML=exs.map((e,i)=>{
