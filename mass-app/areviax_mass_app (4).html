@@ -6831,6 +6831,12 @@ function initApp(){
   if(typeof profile==='undefined')return;
   if(!document.getElementById('dash-name'))return;
   if(!joinDate)joinDate=localDateKey(new Date());
+  // Both entry points into initApp (finishOnboarding, and a returning
+  // user's page load) show the dashboard directly without going through
+  // showPage('dashboard') — which is where the greeting name normally gets
+  // set — so without this, the very first screen a brand-new user sees
+  // right after onboarding greets them as "Athlete" instead of their name.
+  updateGreeting();
   checkCompassWeek(); // resets sessThisWeek/compassPts if a new week has started since last open
   const dca=document.getElementById('d-cals');if(dca)dca.textContent=profile.cals.toLocaleString();
   const dcs=document.getElementById('d-cals-sub');if(dcs)dcs.textContent=profile.weight+'lbs × '+(profile.goal==='bulk'?19:18);
@@ -9568,7 +9574,14 @@ function generateAssessment(){
 
 function checkWeeklyAssessment(){
   const thisMonday=getMonday(new Date());
-  if(assessmentWeekStart!==thisMonday){
+  // A user who joined THIS week has no prior week to assess — without this,
+  // the very first thing a brand-new user sees is "you didn't log a
+  // session last week" and "protein wasn't hit once", which is simply
+  // false (they didn't have the app yet) and a rough first impression.
+  // Leave assessmentText unset so the proper "check back Monday" fallback
+  // in renderAssessmentCard() shows instead.
+  const joinedThisWeek=joinDate&&parseLocalDate(joinDate)>=parseLocalDate(thisMonday);
+  if(assessmentWeekStart!==thisMonday&&!joinedThisWeek){
     assessmentWeekStart=thisMonday;
     assessmentText=generateAssessment();
     assessmentViewed=false;
