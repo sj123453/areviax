@@ -832,6 +832,32 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       color:rgba(238,240,255,.4);opacity:.5;cursor:pointer;
       border:none;background:none;
     }
+    /* DAILY PERSPECTIVE — a Duolingo-style once-a-day briefing screen that
+       sits right behind #intro (one z-index lower, same fixed/opaque/
+       flex-center pattern) so it's revealed the instant the intro compass
+       fades, instead of dropping straight into the dashboard. Only shown
+       for returning users, at most once per calendar date
+       (lastPerspectiveShownDate gates it) — auto-dismisses after a few
+       seconds or via the corner X, either way landing on the real
+       dashboard underneath. Every number on it (streak, sessions this
+       week, the quote) is data the dashboard already shows for real. */
+    #daily-perspective{
+      position:fixed;inset:0;z-index:9998;
+      background:radial-gradient(circle at 50% 30%,rgba(255,90,0,.08),transparent 60%),#0B0B0B;
+      display:none;flex-direction:column;align-items:center;justify-content:center;
+      padding:32px;box-sizing:border-box;text-align:center;
+      transition:opacity .6s ease,visibility .6s ease;
+    }
+    #daily-perspective.show{display:flex}
+    #daily-perspective.done{opacity:0;visibility:hidden;pointer-events:none}
+    .dp-close{position:absolute;top:20px;right:20px;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:rgba(238,240,255,.6);font-size:16px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+    .dp-stat-row{display:flex;gap:28px;margin-bottom:34px}
+    .dp-stat{display:flex;flex-direction:column;align-items:center;gap:4px}
+    .dp-stat-num{font-family:'JetBrains Mono',monospace;font-size:26px;font-weight:800;color:var(--white)}
+    .dp-stat-label{font-size:9px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+    .dp-eyebrow{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,122,46,.75);font-weight:700;margin-bottom:16px}
+    .dp-quote{max-width:340px;font-size:20px;font-style:italic;font-weight:600;line-height:1.45;color:var(--white)}
+    .dp-attrib{margin-top:14px;font-size:11px;font-weight:700;color:rgba(255,122,46,.8)}
     /* ── GAMIFICATION: RANK, AVATAR, QUESTS ── */
     #rank-badge{
       display:inline-flex;align-items:center;gap:5px;
@@ -1283,6 +1309,26 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
   <div class="intro-wordmark" id="intro-word">AREVIAX</div>
   <div class="intro-tagline" id="intro-tag">Making Success Real</div>
   <button class="intro-skip" id="intro-skip">Skip →</button>
+</div>
+
+<!-- DAILY PERSPECTIVE — see the CSS comment on #daily-perspective for why
+     this sits directly behind #intro. Hidden by default; JS adds "show"
+     only for a returning user who hasn't seen it yet today. -->
+<div id="daily-perspective">
+  <div class="dp-close" onclick="closeDailyPerspective()">✕</div>
+  <div class="dp-stat-row">
+    <div class="dp-stat">
+      <div class="dp-stat-num" id="dp-streak-num">0</div>
+      <div class="dp-stat-label">🔥 Streak</div>
+    </div>
+    <div class="dp-stat">
+      <div class="dp-stat-num" id="dp-sessions-num">0/0</div>
+      <div class="dp-stat-label">This week</div>
+    </div>
+  </div>
+  <div class="dp-eyebrow">Today's Perspective</div>
+  <div class="dp-quote" id="dp-quote-text">—</div>
+  <div class="dp-attrib">— Areviax</div>
 </div>
 
 <div id="toast"><span id="ti">💪</span><span id="tm" style="font-weight:600">XP</span></div>
@@ -4000,6 +4046,7 @@ let autoCountedDate=''; // date sessThisWeek/compassPts/totalSess were last auto
 let lastEmergencyWorkoutDate='';
 let lastMissedCheckinDate='';
 let lastBadDayCheckinDate='';
+let lastPerspectiveShownDate=''; // gates the once-per-day post-load "Today's Perspective" screen
 let lastActiveDate=''; // last calendar date any XP was earned — drives the "showing up" streak
 let bestStreak=0; // longest streak ever, separate from the current one — survives a streak breaking
 let activeDates=[]; // unique dates any activity happened — powers the consistency heatmap
@@ -7021,6 +7068,41 @@ function renderDashQuote(){
   const q = DASH_QUOTES[dayNum % DASH_QUOTES.length];
   const qtEl = document.getElementById('dash-quote-text');
   if(qtEl) qtEl.textContent = '"' + q + '"';
+}
+
+// DAILY PERSPECTIVE — a once-per-day post-load briefing screen (streak,
+// sessions this week, today's quote — same DASH_QUOTES day-index formula
+// as renderDashQuote(), so it's never a different quote than the
+// dashboard shows), only for returning users. Called once from the
+// returning-user init path, never from finishOnboarding() — a
+// brand-new user just finished the whole onboarding flow, one more
+// screen before their first real look at the app would be friction,
+// not a nice touch. Sits behind #intro (see its CSS comment) so it's
+// revealed the instant the loading compass fades, then auto-dismisses
+// a few seconds later or via the corner X either way.
+let _dpAutoCloseTimer=null;
+function maybeShowDailyPerspective(){
+  const el=document.getElementById('daily-perspective');
+  if(!el)return;
+  const today=localDateKey(new Date());
+  if(lastPerspectiveShownDate===today)return;
+  const dayNum=Math.floor(Date.now()/86400000);
+  const q=DASH_QUOTES[dayNum%DASH_QUOTES.length];
+  const qtEl=document.getElementById('dp-quote-text');if(qtEl)qtEl.textContent='"'+q+'"';
+  const sNum=document.getElementById('dp-streak-num');if(sNum)sNum.textContent=streak;
+  const sessNum=document.getElementById('dp-sessions-num');if(sessNum)sessNum.textContent=sessThisWeek+'/'+(profile.days||0);
+  el.classList.add('show');
+  lastPerspectiveShownDate=today;
+  saveToStorage();
+  // generous flat delay from page load (not from when #intro finishes) —
+  // covers both the full ~3.5s intro animation and an early Skip tap,
+  // leaving a real few seconds to actually read it either way.
+  _dpAutoCloseTimer=setTimeout(closeDailyPerspective,7500);
+}
+function closeDailyPerspective(){
+  if(_dpAutoCloseTimer){clearTimeout(_dpAutoCloseTimer);_dpAutoCloseTimer=null;}
+  const el=document.getElementById('daily-perspective');
+  if(el)el.classList.add('done');
 }
 
 // ── CARDIO & SPORT — standalone logging, separate from the strength
@@ -12669,6 +12751,7 @@ function saveToStorage(){
     localStorage.setItem('arx_lastEmergencyWorkoutDate', lastEmergencyWorkoutDate);
     localStorage.setItem('arx_lastMissedCheckinDate', lastMissedCheckinDate);
     localStorage.setItem('arx_lastBadDayCheckinDate', lastBadDayCheckinDate);
+    localStorage.setItem('arx_lastPerspectiveShownDate', lastPerspectiveShownDate);
     localStorage.setItem('arx_sessThisWeek', sessThisWeek);
     localStorage.setItem('arx_customExerciseOrder', JSON.stringify(customExerciseOrder));
     localStorage.setItem('arx_scheduleWeekStart', scheduleWeekStart);
@@ -12775,6 +12858,7 @@ function loadFromStorage(){
     lastEmergencyWorkoutDate=localStorage.getItem('arx_lastEmergencyWorkoutDate')||'';
     lastMissedCheckinDate=localStorage.getItem('arx_lastMissedCheckinDate')||'';
     lastBadDayCheckinDate=localStorage.getItem('arx_lastBadDayCheckinDate')||'';
+    lastPerspectiveShownDate=localStorage.getItem('arx_lastPerspectiveShownDate')||'';
     sessThisWeek=parseInt(localStorage.getItem('arx_sessThisWeek')||'0');
     const ceo=localStorage.getItem('arx_customExerciseOrder');
     if(ceo){try{customExerciseOrder=JSON.parse(ceo);}catch(e){customExerciseOrder={};}}
@@ -12847,6 +12931,7 @@ document.addEventListener('DOMContentLoaded', function(){
     const xv=document.getElementById('xp-val');if(xv)xv.textContent=xp;
     const fv=document.getElementById('flame-val');if(fv)fv.textContent=streak;
     initApp();
+    try{maybeShowDailyPerspective();}catch(e){console.error('maybeShowDailyPerspective:',e.message);}
   }
   }catch(e){console.error("Init error:",e)}
 });
