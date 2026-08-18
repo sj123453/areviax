@@ -453,19 +453,21 @@ input,input:focus,input:active,
 .nutr-shake-sub{font-size:10.5px;color:rgba(238,240,255,.55);margin-top:2px}
 @media(max-width:700px){.nutr-hero-grid{grid-template-columns:1fr}}
 
-/* DASHBOARD — mobile-default single-column stack (greeting, today, ring
-   row, chart, quote/assessment, recent activity, in that reading order).
-   At >=900px this genuinely restructures into a main+sidebar composition
-   (big chart in a wide left column, everything else in a right rail)
-   rather than just reflowing the same stack into two side-by-side
-   columns — same six pieces, different arrangement, matching how the
-   reference dashboards differ between their phone and laptop shots. */
-.dash-grid{display:grid;gap:14px;grid-template-columns:1fr;
-  grid-template-areas:"greeting" "today" "rings" "chart" "quote" "activity"}
+/* DASHBOARD — mobile-default single-column stack (compact header, today
+   CTA, today's overview gauges, workout-progress line chart, nutrition
+   logs, quote/assessment, recent activity, in that reading order),
+   condensed to match a compact glass-card reference instead of the
+   larger/looser card stack this used to be. At >=900px this restructures
+   into a main+sidebar composition (big chart in a wide left column,
+   everything else in a right rail) rather than just reflowing the same
+   stack into two side-by-side columns. */
+.dash-grid{display:grid;gap:12px;grid-template-columns:1fr;
+  grid-template-areas:"greeting" "today" "overview" "progress" "nutrition" "quote" "activity"}
 .dash-greeting{grid-area:greeting}
 .dash-today{grid-area:today}
-.dash-rings{grid-area:rings}
-.dash-chart{grid-area:chart}
+.dash-rings{grid-area:overview}
+.dash-chart{grid-area:progress}
+.dash-nutrition{grid-area:nutrition}
 .dash-quote{grid-area:quote}
 .dash-activity{grid-area:activity}
 .dash-rings-inner{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
@@ -473,8 +475,36 @@ input,input:focus,input:active,
 @media(min-width:900px){
   #page-dashboard{max-width:1120px}
   .dash-grid{grid-template-columns:1.65fr 1fr;align-items:start;
-    grid-template-areas:"greeting rings" "today rings" "chart activity" "chart quote"}
+    grid-template-areas:"greeting overview" "today overview" "progress nutrition" "progress quote" "progress activity"}
 }
+
+/* DASHBOARD HEADER ROW — compact avatar + greeting + date, replacing the
+   old oversized standalone name block so the primary content (today's
+   session, this week's numbers) starts higher on the screen. */
+.dash-header-row{display:flex;align-items:center;gap:12px}
+.dash-avatar{width:40px;height:40px;border-radius:50%;flex-shrink:0;background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center}
+
+/* SPEEDOMETER GAUGE — half-circle progress arc, same stroke-dasharray
+   technique as the existing full-circle rings, just over 180° instead of
+   360°. Used for Sessions This Week alongside the Calories full ring, so
+   "Today's Overview" reads as two glanceable gauges like the reference,
+   without needing a pedometer/GPS this app has no way to power. */
+.gauge-half-wrap{display:flex;flex-direction:column;align-items:center}
+.gauge-half-val{font-family:'JetBrains Mono',monospace;font-weight:800;margin-top:-30px}
+
+/* WORKOUT PROGRESS LINE CHART — real tonnageLog data as an SVG polyline
+   (orange = actual daily volume, cyan = 3-day rolling average) instead of
+   the bar-chart treatment used elsewhere, matching the reference's line
+   trend visual. */
+.wp-chart-wrap{position:relative;width:100%}
+.wp-chart-labels{display:flex;justify-content:space-between;font-size:8px;color:var(--muted);margin-top:4px}
+
+/* NUTRITION LOGS — horizontal macro bars (real dayMacros vs targets)
+   beside a calories-logged ring, split-panel like the reference. */
+.nutri-bar-row{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.nutri-bar-label{width:46px;flex-shrink:0;font-size:9px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.nutri-bar-track{flex:1;height:6px;border-radius:3px;background:rgba(255,255,255,.06);overflow:hidden}
+.nutri-bar-fill{height:100%;border-radius:3px;transition:width .6s cubic-bezier(.16,1,.3,1)}
 
 /* DESKTOP PAGE WIDTH — the same 760px cap that fits mobile nicely also
    makes every other page look cramped and small on a laptop, wasting the
@@ -1587,7 +1617,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
           <div class="tb-sub" id="tb-sub">Let's get to work</div>
         </div>
         <div class="tb-right">
-          <div class="tb-pill tp-green">🔥 <span id="streak-val">0</span> streak</div>
+          <div class="tb-pill tp-green" onclick="openStreakDetail()" style="cursor:pointer">🔥 <span id="streak-val">0</span> streak</div>
           <div class="tb-pill tp-gold">⭐ <span id="xp-val">0</span> XP</div>
         </div>
       </div>
@@ -1626,55 +1656,64 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
   <div class="dash-grid">
 
   <div class="dash-greeting">
-  <!-- NAME + DATE -->
-  <div style="background:linear-gradient(135deg,rgba(255,90,0,.06),rgba(255,255,255,.01));border:1px solid rgba(255,90,0,.08);border-radius:16px;padding:18px 20px;height:100%;box-sizing:border-box">
-    <div style="font-size:11px;color:rgba(255,90,0,.85);letter-spacing:.22em;text-transform:uppercase;font-weight:700;margin-bottom:6px" id="dash-greeting">Good morning</div>
-    <div style="font-size:44px;font-weight:900;letter-spacing:-.02em;color:var(--white);line-height:1" id="dash-name">Athlete</div>
-    <div style="font-size:11px;color:var(--muted);margin-top:8px" id="dash-date"></div>
+  <!-- COMPACT HEADER ROW — avatar + greeting + name on one line, date at
+       the right, replacing the old oversized 44px standalone name block
+       so real content starts higher on the screen. Streak/XP already
+       live permanently in the app's own topbar, so they aren't repeated
+       here. -->
+  <div style="background:linear-gradient(135deg,rgba(255,90,0,.06),rgba(255,255,255,.01));border:1px solid rgba(255,90,0,.08);border-radius:14px;padding:12px 16px;height:100%;box-sizing:border-box">
+    <div class="dash-header-row">
+      <div class="dash-avatar">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="rgba(238,240,255,.45)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.5 4-7 8-7s8 2.5 8 7"/></svg>
+      </div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:14px;font-weight:900;color:var(--white);letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+          <span id="dash-greeting" style="color:rgba(255,122,46,.9)">Good morning</span>, <span id="dash-name">Athlete</span>!
+        </div>
+      </div>
+      <div style="font-size:9.5px;color:var(--muted);flex-shrink:0;text-align:right" id="dash-date"></div>
+    </div>
   </div>
   </div>
 
   <div class="dash-today">
-  <!-- TODAY — the main workout CTA -->
-  <div style="background:linear-gradient(160deg,rgba(255,90,0,.09),rgba(11,11,11,.9));border:1.5px solid rgba(255,90,0,.3);border-radius:16px;padding:20px;box-shadow:0 0 32px -18px rgba(255,90,0,.35)">
-    <div style="font-size:9px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,90,0,.55);margin-bottom:6px">Today</div>
-    <div style="font-size:22px;font-weight:900;color:var(--white);line-height:1.15;letter-spacing:-.01em;margin-bottom:16px" id="d-next-full">Push Upper — Day 1</div>
-    <button onclick="showPage('workout')" style="width:100%;background:linear-gradient(135deg,#FF5A00,#FF7A2E);border:none;border-radius:10px;padding:13px;color:#2B0E00;font-family:'Outfit',sans-serif;font-size:13px;font-weight:900;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;box-shadow:0 10px 24px -10px rgba(255,90,0,.5)">▶ Start Workout</button>
-    <div id="dash-nutrition-pulse" onclick="showPage('nutrition')" style="margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,.08);font-size:11px;color:var(--muted);cursor:pointer"></div>
+  <!-- TODAY — the main workout CTA, condensed to a single compact row
+       (session name left, Start button right) instead of a tall stacked
+       block, so it reads instantly without eating vertical space. -->
+  <div style="background:linear-gradient(160deg,rgba(255,90,0,.09),rgba(11,11,11,.9));border:1.5px solid rgba(255,90,0,.3);border-radius:14px;padding:14px 16px;box-shadow:0 0 24px -16px rgba(255,90,0,.35)">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+      <div style="min-width:0">
+        <div style="font-size:8.5px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,90,0,.55);margin-bottom:3px">Today</div>
+        <div style="font-size:15px;font-weight:900;color:var(--white);line-height:1.2;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="d-next-full">Push Upper — Day 1</div>
+      </div>
+      <button onclick="showPage('workout')" style="flex-shrink:0;background:linear-gradient(135deg,#FF5A00,#FF7A2E);border:none;border-radius:9px;padding:11px 18px;color:#2B0E00;font-family:'Outfit',sans-serif;font-size:11.5px;font-weight:900;letter-spacing:.03em;text-transform:uppercase;cursor:pointer;box-shadow:0 8px 18px -8px rgba(255,90,0,.5);white-space:nowrap">▶ Start</button>
+    </div>
+    <div id="dash-nutrition-pulse" onclick="showPage('nutrition')" style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.08);font-size:10.5px;color:var(--muted);cursor:pointer"></div>
   </div>
   </div>
 
   <div class="dash-rings">
-  <!-- STATS PANEL — Compass, Streak, Calories, Protein in one consistent
-       2x2 tile grid via .dash-rings-inner, plus the session-count line
-       beneath. Same data/functions as before, only regrouped. -->
-  <div id="acc-progress" style="background:var(--panel);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.06);border-radius:18px;padding:16px;height:100%;box-sizing:border-box">
-  <div style="font-size:9px;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:rgba(238,240,255,.35);margin-bottom:12px">This week</div>
-  <div class="dash-rings-inner" style="margin-bottom:12px">
-    <div style="background:#0B0B0B;border:1px solid rgba(255,90,0,.12);border-radius:16px;padding:16px;display:flex;flex-direction:column;align-items:center;gap:8px;box-shadow:0 0 28px -14px rgba(255,90,0,.16)">
-      <canvas id="compass-main" width="88" height="88"></canvas>
-      <div style="font-size:8px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:rgba(68,212,255,.7)" id="compass-label">Weekly Compass</div>
-      <div id="shard-bank-indicator" style="font-size:9px;color:#44CFFF;font-weight:700"></div>
-    </div>
-    <div id="streak-card" onclick="openStreakDetail()" style="cursor:pointer;background:#0B0B0B;border:1px solid rgba(255,122,46,.1);border-radius:16px;padding:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;box-shadow:0 0 28px -14px rgba(255,122,46,.14);position:relative;overflow:hidden">
-      <div style="position:absolute;top:50%;left:50%;width:100px;height:100px;transform:translate(-50%,-50%);background:radial-gradient(circle,rgba(255,122,46,.14),transparent 70%);pointer-events:none"></div>
-      <svg width="24" height="32" viewBox="0 0 32 44" fill="none" style="position:relative">
-        <path d="M16 42 C6 42 2 34 2 28 C2 20 8 16 10 10 C11 7 11 4 10 2 C13 5 14 8 14 11 C16 8 17 4 15 0 C20 4 24 10 22 18 C24 15 25 11 24 8 C28 13 30 20 30 26 C30 34 26 42 16 42Z" fill="url(#fgD1)" opacity=".9"/>
-        <path d="M16 40 C9 40 6 33 6 28 C6 23 9 19 11 15 C12 12 12 9 11 7 C14 10 15 13 14 16 C16 13 17 10 16 7 C19 11 21 16 20 21 C22 18 22 15 21 12 C24 17 26 22 26 28 C26 34 22 40 16 40Z" fill="url(#fgD2)"/>
-        <defs>
-          <linearGradient id="fgD1" x1="16" y1="42" x2="16" y2="0" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#FF7A2E" stop-opacity=".9"/><stop offset="100%" stop-color="#FFC98A" stop-opacity=".7"/></linearGradient>
-          <linearGradient id="fgD2" x1="16" y1="40" x2="16" y2="7" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#E85F1A"/><stop offset="100%" stop-color="#FFD8A8" stop-opacity=".9"/></linearGradient>
-        </defs>
+  <!-- TODAY'S OVERVIEW — two glanceable gauges: Sessions this week (a
+       half-circle "speedometer" gauge, same stroke-dasharray technique as
+       every other ring in this app) and Calories (the existing full-circle
+       ring). The old 2x2 grid also carried a separate Streak tile and
+       Compass canvas — streak is still one tap away via the topbar's
+       streak pill (now clickable), and the compass concept is what
+       "sessions this week" already tracks, so nothing here is fabricated
+       to fill a slot a real pedometer/GPS would need. -->
+  <div id="acc-progress" style="background:var(--panel);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:16px;height:100%;box-sizing:border-box">
+  <div style="font-size:9px;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:rgba(238,240,255,.35);margin-bottom:12px">Today's Overview</div>
+  <div class="dash-rings-inner">
+    <div class="gauge-half-wrap" style="background:rgba(255,90,0,.045);border:1px solid rgba(255,90,0,.1);border-radius:14px;padding:14px 10px 10px">
+      <svg width="100" height="60" viewBox="0 0 100 60">
+        <path d="M8 55 A 42 42 0 0 1 92 55" fill="none" stroke="rgba(255,255,255,.07)" stroke-width="9" stroke-linecap="round"/>
+        <path id="sess-gauge-arc" d="M8 55 A 42 42 0 0 1 92 55" fill="none" stroke="url(#sessGaugeGrad)" stroke-width="9" stroke-linecap="round" stroke-dasharray="131.9" stroke-dashoffset="131.9" style="transition:stroke-dashoffset .6s cubic-bezier(.16,1,.3,1)"/>
+        <defs><linearGradient id="sessGaugeGrad" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#FF7A2E"/><stop offset="100%" stop-color="#FF5A00"/></linearGradient></defs>
       </svg>
-      <div style="font-size:30px;font-weight:900;color:var(--white);letter-spacing:-.03em;line-height:1;position:relative" id="flame-val">0</div>
-      <div style="font-size:8px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,122,46,.55);position:relative">Day Streak</div>
-      <div style="font-size:9px;color:rgba(255,122,46,.4);position:relative" id="best-streak-sub"></div>
+      <div class="gauge-half-val" style="font-size:19px;color:var(--white)" id="d-sessions-brief">0/0</div>
+      <div style="font-size:8px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,122,46,.65);margin-top:4px;text-align:center">Sessions</div>
     </div>
-    <div style="background:rgba(255,122,46,.045);border:1px solid rgba(255,122,46,.1);border-radius:16px;padding:16px;text-align:center">
-      <div style="display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:8px">
-        <span style="font-size:15px">🔥</span>
-        <span style="font-size:9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,122,46,.75)">Calories</span>
-      </div>
+    <div style="background:rgba(255,90,0,.045);border:1px solid rgba(255,90,0,.1);border-radius:14px;padding:14px 10px;text-align:center">
       <svg width="72" height="72" viewBox="0 0 72 72" style="display:block;margin:0 auto">
         <circle cx="36" cy="36" r="29" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="6.5"/>
         <circle id="d-cals-ring" cx="36" cy="36" r="29" fill="none" stroke="url(#dCalsGrad)" stroke-width="6.5" stroke-linecap="round" transform="rotate(-90 36 36)" stroke-dasharray="182.2" stroke-dashoffset="182.2" style="transition:stroke-dashoffset .5s cubic-bezier(.16,1,.3,1)"/>
@@ -1682,45 +1721,85 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
         <text x="36" y="33" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-weight="700" font-size="13" fill="#fff" id="d-cals-brief">0</text>
         <text x="36" y="46" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="rgba(238,240,255,.55)">/ <tspan id="d-cals-target">—</tspan></text>
       </svg>
-    </div>
-    <div style="background:rgba(68,212,255,.045);border:1px solid rgba(68,212,255,.1);border-radius:16px;padding:16px;text-align:center">
-      <div style="display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:8px">
-        <span style="font-size:15px">🥩</span>
-        <span style="font-size:9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:rgba(68,212,255,.75)">Protein</span>
-      </div>
-      <svg width="72" height="72" viewBox="0 0 72 72" style="display:block;margin:0 auto">
-        <circle cx="36" cy="36" r="29" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="6.5"/>
-        <circle id="d-protein-ring" cx="36" cy="36" r="29" fill="none" stroke="url(#dProtGrad)" stroke-width="6.5" stroke-linecap="round" transform="rotate(-90 36 36)" stroke-dasharray="182.2" stroke-dashoffset="182.2" style="transition:stroke-dashoffset .5s cubic-bezier(.16,1,.3,1)"/>
-        <defs><linearGradient id="dProtGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#8fe6ff"/><stop offset="100%" stop-color="#44CFFF"/></linearGradient></defs>
-        <text x="36" y="33" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-weight="700" font-size="13" fill="#fff" id="d-protein-brief">0g</text>
-        <text x="36" y="46" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="8" fill="rgba(238,240,255,.55)">/ <tspan id="d-protein-target">—</tspan></text>
-      </svg>
+      <div style="font-size:8px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,122,46,.65);margin-top:6px">Calories</div>
     </div>
   </div>
-
-  <div style="display:flex;justify-content:center;font-size:10.5px;color:var(--muted)">
-    <span><strong style="color:rgba(238,240,255,.85)" id="d-sessions-brief">0/0</strong> sessions this week</span>
+  <!-- kept for JS compatibility (updateStreakUI reads these) — not shown,
+       the topbar streak pill is now the visible/clickable streak surface -->
+  <div style="display:none">
+    <canvas id="compass-main" width="88" height="88"></canvas>
+    <div id="compass-label"></div>
+    <div id="shard-bank-indicator"></div>
+    <div id="streak-card"></div>
+    <div id="flame-val">0</div>
+    <div id="best-streak-sub"></div>
+    <div id="d-protein-ring"></div>
+    <div id="d-protein-brief"></div>
+    <div id="d-protein-target"></div>
   </div>
   </div>
   </div>
 
   <div class="dash-chart">
-  <!-- WEEKLY VOLUME — promoted from a buried stat row to the dashboard's
-       hero chart, matching the reference layout's big trend visual. Same
-       renderDailyVolume()/tonnageLog data as before, now with a real
-       empty state instead of just going display:none with nothing to see. -->
-  <div style="background:var(--panel);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.06);border-radius:18px;padding:18px 20px;height:100%;box-sizing:border-box">
+  <!-- WORKOUT PROGRESS — a real SVG line chart (orange = actual daily
+       volume this week, cyan = 3-day rolling average of that same real
+       tonnageLog data) instead of the bar-chart treatment used before,
+       plus a View Workouts button. Two-tone but both lines are computed
+       from real logged sets — no second, fabricated data series. -->
+  <div style="background:var(--panel);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:16px 18px;height:100%;box-sizing:border-box">
     <div id="vol-daily-card" style="display:none">
-      <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:16px">
-        <span style="font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,90,0,.75)">Volume &middot; this week</span>
+      <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px">
+        <span style="font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:rgba(238,240,255,.35)">Workout Progress</span>
         <div style="font-size:11px;font-weight:800;color:var(--muted)" id="vol-daily-total"></div>
       </div>
-      <div id="vol-daily-chart" style="display:flex;align-items:flex-end;gap:8px;height:130px;margin-bottom:8px"></div>
-      <div id="vol-daily-labels" style="display:flex;gap:8px;font-size:8px;color:var(--muted)"></div>
+      <div class="wp-chart-wrap">
+        <svg viewBox="0 0 280 100" preserveAspectRatio="none" style="width:100%;height:120px;display:block">
+          <polyline id="wp-avg-line" fill="none" stroke="#44CFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity=".8" vector-effect="non-scaling-stroke" points=""/>
+          <polyline id="wp-vol-line" fill="none" stroke="#FF7A2E" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke" points=""/>
+          <g id="wp-dots"></g>
+        </svg>
+        <div class="wp-chart-labels"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span></div>
+      </div>
     </div>
     <div id="vol-daily-empty" style="text-align:center;padding:28px 8px">
-      <div style="font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,90,0,.55);margin-bottom:10px">Volume &middot; this week</div>
-      <div style="font-size:12px;color:var(--muted);line-height:1.6">Log your first set and this chart fills in — a quick read on how hard each day of the week has been.</div>
+      <div style="font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,90,0,.55);margin-bottom:10px">Workout Progress</div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.6">Log your first set and this chart fills in — a quick read on how your training's trending this week.</div>
+    </div>
+    <button onclick="showPage('workout')" style="width:100%;margin-top:14px;background:linear-gradient(135deg,#FF5A00,#FF7A2E);border:none;border-radius:9px;padding:12px;color:#2B0E00;font-family:'Outfit',sans-serif;font-size:11.5px;font-weight:900;letter-spacing:.05em;text-transform:uppercase;cursor:pointer;box-shadow:0 8px 18px -8px rgba(255,90,0,.4)">View Workouts</button>
+  </div>
+  </div>
+
+  <div class="dash-nutrition">
+  <!-- NUTRITION LOGS — split panel: horizontal Protein/Carbs/Fat bars
+       (real dayMacros vs profile targets — dayMacros.carbs/fats are now
+       actually accumulated in logItem(), which is a genuine small fix,
+       not just new UI) beside a Calories-logged ring. -->
+  <div style="background:var(--panel);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:16px 18px;height:100%;box-sizing:border-box">
+    <div style="font-size:9px;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:rgba(238,240,255,.35);margin-bottom:14px">Nutrition Logs</div>
+    <div style="display:flex;gap:16px;align-items:center">
+      <div style="flex:1;min-width:0">
+        <div class="nutri-bar-row">
+          <div class="nutri-bar-label">Protein</div>
+          <div class="nutri-bar-track"><div class="nutri-bar-fill" id="dn-prot-fill" style="width:0%;background:linear-gradient(90deg,#FF7A2E,#FF5A00)"></div></div>
+        </div>
+        <div class="nutri-bar-row">
+          <div class="nutri-bar-label">Carbs</div>
+          <div class="nutri-bar-track"><div class="nutri-bar-fill" id="dn-carbs-fill" style="width:0%;background:linear-gradient(90deg,#8fe6ff,#44CFFF)"></div></div>
+        </div>
+        <div class="nutri-bar-row" style="margin-bottom:0">
+          <div class="nutri-bar-label">Fat</div>
+          <div class="nutri-bar-track"><div class="nutri-bar-fill" id="dn-fats-fill" style="width:0%;background:linear-gradient(90deg,#FFD24A,#FF9A2E)"></div></div>
+        </div>
+      </div>
+      <div style="flex-shrink:0;text-align:center">
+        <svg width="60" height="60" viewBox="0 0 64 64" style="display:block">
+          <circle cx="32" cy="32" r="26" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="6"/>
+          <circle id="dn-cals-ring" cx="32" cy="32" r="26" fill="none" stroke="url(#dnCalsGrad)" stroke-width="6" stroke-linecap="round" transform="rotate(-90 32 32)" stroke-dasharray="163.4" stroke-dashoffset="163.4" style="transition:stroke-dashoffset .5s cubic-bezier(.16,1,.3,1)"/>
+          <defs><linearGradient id="dnCalsGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#FF8C47"/><stop offset="100%" stop-color="#FF5A00"/></linearGradient></defs>
+        </svg>
+        <div style="font-size:8.5px;color:var(--muted);margin-top:4px">Logged</div>
+        <div style="font-size:11px;font-weight:800;color:var(--white)" id="dn-cals-val">0 cal</div>
+      </div>
     </div>
   </div>
   </div>
@@ -3945,7 +4024,7 @@ let lastPerformance={}; // name -> {weight,reps,date} — powers progressive-ove
 let liftHistory={}; // name -> [{date,weight,reps}, ...] one row per session — powers plateau detection
 let weightLog=[];
 let measurementsLog=[];
-let dayMacros={cals:0,prot:0,water:0};
+let dayMacros={cals:0,prot:0,carbs:0,fats:0,water:0};
 let nutritionDayLog=[]; // [{date,hitTarget}] — powers the Caloric Shield's 3-day streak multiplier
 let timerOn=false,timerSecs=0,timerInt=null,timerStartedAt=0;
 let restSecs=0,restInt=null,restEndsAt=0;
@@ -6860,10 +6939,11 @@ function parseLocalDate(str){
 function renderDailyVolume(){
   const card=document.getElementById('vol-daily-card');
   const emptyEl=document.getElementById('vol-daily-empty');
-  const chartEl=document.getElementById('vol-daily-chart');
-  const labelsEl=document.getElementById('vol-daily-labels');
   const totalEl=document.getElementById('vol-daily-total');
-  if(!card||!chartEl||!labelsEl||!totalEl)return;
+  const volLine=document.getElementById('wp-vol-line');
+  const avgLine=document.getElementById('wp-avg-line');
+  const dotsG=document.getElementById('wp-dots');
+  if(!card||!totalEl||!volLine||!avgLine)return;
   if(!tonnageLog.length){card.style.display='none';if(emptyEl)emptyEl.style.display='';return;}
   if(emptyEl)emptyEl.style.display='none';
 
@@ -6885,25 +6965,49 @@ function renderDailyVolume(){
 
   card.style.display='';
   const max=Math.max(...days.map(d=>d.total),1);
-  const dayLetters=['M','T','W','T','F','S','S'];
-  const todayKey=localDateKey(today);
-  chartEl.innerHTML=days.map(d=>{
-    const isToday=d.key===todayKey;
-    const col=d.total>0?(isToday?'linear-gradient(180deg,#FF7A2E,#FF5A00)':'rgba(255,90,0,.28)'):'rgba(255,255,255,.05)';
-    return `<div style="flex:1;height:100%;display:flex;align-items:flex-end">
-      <div class="vol-daily-bar" data-h="${d.total>0?Math.max(3,Math.round(d.total/max*100)):2}" style="width:100%;height:0%;background:${col};border-radius:3px 3px 1px 1px;transition:height .7s cubic-bezier(.16,1,.3,1)" title="${Math.round(d.total).toLocaleString()}kg"></div>
-    </div>`;
-  }).join('');
-  labelsEl.innerHTML=days.map((d,i)=>`<div style="flex:1;text-align:center;${d.key===todayKey?'color:var(--orange);font-weight:800':''}">${dayLetters[i]}</div>`).join('');
+  const W=280,H=100,padX=8,padY=10;
+  const xFor=i=>(i/6)*(W-2*padX)+padX;
+  const yFor=v=>H-padY-((v/max)*(H-2*padY));
 
-  requestAnimationFrame(()=>{
-    requestAnimationFrame(()=>{
-      chartEl.querySelectorAll('.vol-daily-bar').forEach(bar=>{ bar.style.height=bar.dataset.h+'%'; });
-    });
-  });
+  const volPts=days.map((d,i)=>`${xFor(i).toFixed(1)},${yFor(d.total).toFixed(1)}`).join(' ');
+  // 3-day trailing rolling average — a real smoothing of the same
+  // tonnageLog data above, not a second fabricated series, giving the
+  // chart a genuine two-tone orange/cyan read like the reference.
+  const avgPts=days.map((d,i)=>{
+    const win=days.slice(Math.max(0,i-2),i+1);
+    const avg=win.reduce((s,w)=>s+w.total,0)/win.length;
+    return `${xFor(i).toFixed(1)},${yFor(avg).toFixed(1)}`;
+  }).join(' ');
+
+  volLine.setAttribute('points',volPts);
+  avgLine.setAttribute('points',avgPts);
+  if(dotsG)dotsG.innerHTML=days.map((d,i)=>d.total>0?`<circle cx="${xFor(i).toFixed(1)}" cy="${yFor(d.total).toFixed(1)}" r="3" fill="#FF5A00"/>`:'').join('');
 
   const weekTotal=days.reduce((s,d)=>s+d.total,0);
   totalEl.textContent=weekTotal>0?Math.round(weekTotal).toLocaleString()+'kg':'';
+}
+
+// Dashboard's Nutrition Logs card — Protein/Carbs/Fat as horizontal bars
+// against real profile targets, plus a Calories-logged ring. All four
+// numbers come straight from dayMacros/profile — nothing here is a second
+// visual for data shown elsewhere on the page (the old dashboard had a
+// separate Protein ring; this replaces it rather than duplicating it).
+function renderDashNutritionLogs(){
+  const pf=document.getElementById('dn-prot-fill');
+  if(!pf)return;
+  const cf=document.getElementById('dn-carbs-fill');
+  const ff=document.getElementById('dn-fats-fill');
+  const ring=document.getElementById('dn-cals-ring');
+  const calsVal=document.getElementById('dn-cals-val');
+  const protPct=profile.protein?Math.min(100,(dayMacros.prot||0)/profile.protein*100):0;
+  const carbsPct=profile.carbs?Math.min(100,(dayMacros.carbs||0)/profile.carbs*100):0;
+  const fatsPct=profile.fats?Math.min(100,(dayMacros.fats||0)/profile.fats*100):0;
+  pf.style.width=protPct+'%';
+  cf.style.width=carbsPct+'%';
+  ff.style.width=fatsPct+'%';
+  const calsPct=profile.cals?Math.min(1,(dayMacros.cals||0)/profile.cals):0;
+  if(ring)ring.style.strokeDashoffset=(163.4*(1-calsPct)).toFixed(1);
+  if(calsVal)calsVal.textContent=Math.round(dayMacros.cals||0).toLocaleString()+' cal';
 }
 
 // Dashboard's compact "Recent Activity" feed — last few completed
@@ -7167,6 +7271,7 @@ function initApp(){
   const dpt=document.getElementById('d-protein-target');if(dpt)dpt.textContent=(profile.protein||0)+'g';
   const dpring=document.getElementById('d-protein-ring');if(dpring){const p=Math.min(1,profile.protein?(dayMacros.prot||0)/profile.protein:0);dpring.style.strokeDashoffset=(182.2*(1-p)).toFixed(1);}
   const dsb=document.getElementById('d-sessions-brief');if(dsb)dsb.textContent=sessThisWeek+'/'+profile.days;
+  const sga=document.getElementById('sess-gauge-arc');if(sga){const sp=profile.days?Math.min(1,sessThisWeek/profile.days):0;sga.style.strokeDashoffset=(131.9*(1-sp)).toFixed(1);}
   const fv2=document.getElementById('flame-val');if(fv2)fv2.textContent=streak;
   const bss=document.getElementById('best-streak-sub');if(bss)bss.textContent=bestStreak>streak?'Best: '+bestStreak+' days':'';
   try{setCompanionMessage();}catch(e){console.error('setCompanionMessage:',e.message);}
@@ -7175,6 +7280,7 @@ function initApp(){
   try{renderVolumeTrend();}catch(e){console.error('renderVolumeTrend:',e.message);}
   try{renderXpBreakdown();}catch(e){console.error('renderXpBreakdown:',e.message);}
   try{renderDailyVolume();}catch(e){console.error('renderDailyVolume:',e.message);}
+  try{renderDashNutritionLogs();}catch(e){console.error('renderDashNutritionLogs:',e.message);}
   try{renderDashRecentActivity();}catch(e){console.error('renderDashRecentActivity:',e.message);}
   try{checkStreakAtRisk();}catch(e){console.error('checkStreakAtRisk:',e.message);}
   try{checkStreakBroken();}catch(e){console.error('checkStreakBroken:',e.message);}
@@ -11429,7 +11535,7 @@ function checkNutritionDay(){
       if(nutritionDayLog.length>60)nutritionDayLog=nutritionDayLog.slice(-60);
     }
     nutritionLogDate=today;
-    dayMacros={cals:0,prot:0,water:0};
+    dayMacros={cals:0,prot:0,carbs:0,fats:0,water:0};
     todayLog=[];
     shieldAtRiskToday=false;
     shieldGreatSaveAwardedToday=false;
@@ -11439,6 +11545,7 @@ function checkNutritionDay(){
 function logItem(name,cals,prot,carbs,fats,alcohol){
   checkNutritionDay();
   dayMacros.cals+=cals;dayMacros.prot+=prot;
+  dayMacros.carbs=(dayMacros.carbs||0)+(carbs||0);dayMacros.fats=(dayMacros.fats||0)+(fats||0);
   if(alcohol) dayMacros.alcohol=(dayMacros.alcohol||0)+alcohol;
   todayLog.push({name,cals,prot,carbs,fats,alcohol,time:new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})});
   renderNutrition();
@@ -11784,7 +11891,7 @@ function addMeal(cals,prot,name){logItem(name,cals,prot);addXP(5,'Meal logged');
 function logFood(){const n=document.getElementById('food-name').value||'Food';const c=parseInt(document.getElementById('food-cals').value)||0;const p=parseInt(document.getElementById('food-prot').value)||0;if(!c){toast('⚠️','Enter calories');return}logItem(n,c,p);document.getElementById('food-name').value='';document.getElementById('food-cals').value='';document.getElementById('food-prot').value='';addXP(5,'Food logged');toast('✅','Logged');checkProteinQuest();saveToStorage();}
 // Water is a separate hydration habit from food logging — "Reset" clearing
 // a mis-logged meal shouldn't also wipe glasses already drunk today.
-function resetDay(){if(!confirm('Clear everything logged today?'))return;dayMacros={cals:0,prot:0,water:dayMacros.water||0};todayLog=[];renderNutrition();saveToStorage();toast('🔄','Day reset')}
+function resetDay(){if(!confirm('Clear everything logged today?'))return;dayMacros={cals:0,prot:0,carbs:0,fats:0,water:dayMacros.water||0};todayLog=[];renderNutrition();saveToStorage();toast('🔄','Day reset')}
 // ── WATER INTAKE — a row of tappable glasses rather than a number input,
 // so logging a glass is one tap like everything else in the nutrition
 // card. Rides dayMacros' existing daily-reset machinery (checkNutritionDay
