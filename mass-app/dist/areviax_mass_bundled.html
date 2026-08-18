@@ -430,6 +430,16 @@ input,input:focus,input:active,
 .nutr-masonry-col{flex:1;min-width:0;display:flex;flex-direction:column;gap:12px}
 .nutr-food-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
 @media(max-width:700px){.nutr-masonry{flex-direction:column}.nutr-food-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* RECIPES */
+.recipe-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@media(min-width:900px){.recipe-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.recipe-card{background:var(--panel);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1.5px solid var(--border2);border-radius:14px;overflow:hidden;cursor:pointer;transition:border-color .2s}
+.recipe-card:hover{border-color:rgba(255,90,0,.3)}
+.recipe-card-visual{width:100%;height:92px;display:flex;align-items:center;justify-content:center;font-size:34px;background:linear-gradient(160deg,rgba(255,90,0,.14),rgba(255,255,255,.02))}
+.recipe-card-body{padding:11px 12px}
+.recipe-card-name{font-size:12.5px;font-weight:700;color:var(--white);line-height:1.3;margin-bottom:6px;min-height:2.6em;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.recipe-card-macros{display:flex;gap:5px;flex-wrap:wrap;font-size:9px;color:var(--muted);font-weight:700}
 .nutr-shield-card{display:flex;align-items:center;gap:16px;text-align:left;padding:20px}
 .nutr-shield-graphic{flex-shrink:0;position:relative;width:112px;height:112px}
 .nutr-shield-graphic .shield-ring-svg{position:absolute;inset:0;transform:rotate(-90deg)}
@@ -509,7 +519,7 @@ input,input:focus,input:active,
    at the narrower reading width — long-form text gets harder to read as
    the line length grows, not easier. */
 @media(min-width:900px){
-  #page-workout,#page-session,#page-nutrition,#page-progress,#page-recovery,
+  #page-workout,#page-session,#page-nutrition,#page-recipes,#page-progress,#page-recovery,
   #page-schedule,#page-leaderboard,#page-profile,#page-settings{max-width:960px}
 }
 
@@ -2152,6 +2162,60 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       AI Vision Scan
       <span style="position:absolute;top:-7px;right:-7px;background:#44CFFF;color:#04121A;font-size:8px;font-weight:900;letter-spacing:.04em;padding:2px 6px;border-radius:8px;box-shadow:0 0 10px rgba(68,207,255,.6)">SOON</span>
     </button>
+    <button onclick="showPage('recipes')" style="flex:1;display:flex;align-items:center;justify-content:center;gap:8px;background:rgba(255,255,255,.04);border:1.5px solid var(--border2);border-radius:11px;padding:13px;color:var(--white);font-family:'Outfit',sans-serif;font-size:12px;font-weight:900;letter-spacing:.04em;text-transform:uppercase;cursor:pointer">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+      Recipes
+    </button>
+  </div>
+
+  <!-- NUTRITION OVERVIEW — a calorie bar + Protein/Carbs/Fat wheels above
+       the fold, matching the reference layout's compact glance summary.
+       Same real dayMacros/profile data renderNutrition() already computed
+       for the old 2-bar display — extended to include carbs/fats (now
+       actually tracked in dayMacros, see logItem()) and drawn as wheels
+       instead of bars for the two extra macros, reusing the exact same
+       stroke-dasharray ring technique as the Dashboard's wheels. -->
+  <div class="card" style="margin-bottom:14px">
+    <div class="ch"><span class="ct">Today's Overview</span></div>
+    <div id="nutr-cals-bar-wrap" style="margin-bottom:14px">
+      <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px">
+        <span style="font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,122,46,.75)">Calories</span>
+        <span style="font-size:12px;font-weight:800" id="nutr-cals-nums"><span style="color:#FF7A2E" id="nutr-cals-cur">0</span> <span style="color:var(--muted)">/ <span id="nutr-cals-tgt">0</span> kcal</span></span>
+      </div>
+      <div class="macro-bar-wrap2"><div class="macro-bar-fill2" id="nutr-cals-fill" style="width:0%;background:linear-gradient(90deg,#FF7A2E99,#FF7A2E)"></div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px">
+      <div style="background:rgba(255,90,0,.045);border:1px solid rgba(255,90,0,.1);border-radius:14px;padding:10px 4px;text-align:center">
+        <svg width="64" height="64" viewBox="0 0 72 72" style="display:block;margin:0 auto;max-width:100%;height:auto">
+          <circle cx="36" cy="36" r="29" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="6.5"/>
+          <circle id="nutr-prot-ring" cx="36" cy="36" r="29" fill="none" stroke="url(#nutrProtGrad)" stroke-width="6.5" stroke-linecap="round" transform="rotate(-90 36 36)" stroke-dasharray="182.2" stroke-dashoffset="182.2" style="transition:stroke-dashoffset .5s cubic-bezier(.16,1,.3,1)"/>
+          <defs><linearGradient id="nutrProtGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#FF8C47"/><stop offset="100%" stop-color="#FF5A00"/></linearGradient></defs>
+          <text x="36" y="33" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-weight="700" font-size="12" fill="#fff" id="nutr-prot-brief">0g</text>
+          <text x="36" y="46" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="7.5" fill="rgba(238,240,255,.55)">/ <tspan id="nutr-prot-target">—</tspan></text>
+        </svg>
+        <div style="font-size:7px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,122,46,.65);margin-top:4px">Protein</div>
+      </div>
+      <div style="background:rgba(68,212,255,.045);border:1px solid rgba(68,212,255,.1);border-radius:14px;padding:10px 4px;text-align:center">
+        <svg width="64" height="64" viewBox="0 0 72 72" style="display:block;margin:0 auto;max-width:100%;height:auto">
+          <circle cx="36" cy="36" r="29" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="6.5"/>
+          <circle id="nutr-carbs-ring" cx="36" cy="36" r="29" fill="none" stroke="url(#nutrCarbsGrad)" stroke-width="6.5" stroke-linecap="round" transform="rotate(-90 36 36)" stroke-dasharray="182.2" stroke-dashoffset="182.2" style="transition:stroke-dashoffset .5s cubic-bezier(.16,1,.3,1)"/>
+          <defs><linearGradient id="nutrCarbsGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#8fe6ff"/><stop offset="100%" stop-color="#44CFFF"/></linearGradient></defs>
+          <text x="36" y="33" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-weight="700" font-size="12" fill="#fff" id="nutr-carbs-brief">0g</text>
+          <text x="36" y="46" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="7.5" fill="rgba(238,240,255,.55)">/ <tspan id="nutr-carbs-target">—</tspan></text>
+        </svg>
+        <div style="font-size:7px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(68,212,255,.75);margin-top:4px">Carbs</div>
+      </div>
+      <div style="background:rgba(255,215,74,.045);border:1px solid rgba(255,215,74,.15);border-radius:14px;padding:10px 4px;text-align:center">
+        <svg width="64" height="64" viewBox="0 0 72 72" style="display:block;margin:0 auto;max-width:100%;height:auto">
+          <circle cx="36" cy="36" r="29" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="6.5"/>
+          <circle id="nutr-fats-ring" cx="36" cy="36" r="29" fill="none" stroke="url(#nutrFatsGrad)" stroke-width="6.5" stroke-linecap="round" transform="rotate(-90 36 36)" stroke-dasharray="182.2" stroke-dashoffset="182.2" style="transition:stroke-dashoffset .5s cubic-bezier(.16,1,.3,1)"/>
+          <defs><linearGradient id="nutrFatsGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#FFD24A"/><stop offset="100%" stop-color="#FF9A2E"/></linearGradient></defs>
+          <text x="36" y="33" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-weight="700" font-size="12" fill="#fff" id="nutr-fats-brief">0g</text>
+          <text x="36" y="46" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="7.5" fill="rgba(238,240,255,.55)">/ <tspan id="nutr-fats-target">—</tspan></text>
+        </svg>
+        <div style="font-size:7px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,215,74,.8);margin-top:4px">Fat</div>
+      </div>
+    </div>
   </div>
 
   <!-- AT-A-GLANCE DASHBOARD — Shield/Feeder Quest/Macros in one column,
@@ -2456,6 +2520,47 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       <button onclick="generateShoppingList()" style="width:100%;background:rgba(255,122,46,.1);border:1.5px solid rgba(255,122,46,.3);border-radius:8px;padding:11px;color:rgba(255,122,46,.9);font-family:'Outfit',sans-serif;font-size:11.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;cursor:pointer">🛒 Build Shopping List From This Plan</button>
     </div>
     <div id="shopping-list-output" style="margin-top:14px"></div>
+  </div>
+</div>
+
+<!-- RECIPES — a real, browsable listing over RECIPES_DB (21 recipes,
+     the same database the Meal Plan generator already draws from), not
+     a separate/duplicate content set. No photos yet — each card shows a
+     clean placeholder (icon + macro chips) instead of a fake stock
+     photo, ready to swap for real images once provided. -->
+<div class="page" id="page-recipes">
+
+  <div class="companion" style="margin-bottom:14px"><div class="companion-msg">Real meals, built for a surplus — tap any card for full ingredients and steps.</div></div>
+
+  <div class="data-terminal-tabs" id="recipe-type-tabs" style="margin-bottom:14px">
+    <button class="data-terminal-tab active" data-type="all" onclick="switchRecipeType('all',this)">All</button>
+    <button class="data-terminal-tab" data-type="breakfast" onclick="switchRecipeType('breakfast',this)">🍳 Breakfast</button>
+    <button class="data-terminal-tab" data-type="lunch" onclick="switchRecipeType('lunch',this)">🥗 Lunch</button>
+    <button class="data-terminal-tab" data-type="dinner" onclick="switchRecipeType('dinner',this)">🍽 Dinner</button>
+    <button class="data-terminal-tab" data-type="snack" onclick="switchRecipeType('snack',this)">🍎 Snack</button>
+  </div>
+
+  <div id="recipe-grid" class="recipe-grid"></div>
+
+</div>
+
+<!-- RECIPE DETAIL MODAL — same fixed-inset overlay pattern as the
+     exercise How-To modal, reusing that visual language rather than
+     inventing a third modal style. -->
+<div id="recipe-detail-backdrop" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9998" onclick="closeRecipeDetail()"></div>
+<div id="recipe-detail-modal" style="display:none;position:fixed;inset:16px;background:var(--panel);border:1px solid var(--border);border-radius:18px;z-index:9999;overflow-y:auto;max-width:480px;margin:0 auto;box-shadow:0 30px 80px -20px rgba(0,0,0,.7)">
+  <div style="padding:22px">
+    <div style="display:flex;justify-content:flex-end"><span onclick="closeRecipeDetail()" style="cursor:pointer;color:var(--muted);font-size:20px;line-height:1">✕</span></div>
+    <div id="recipe-detail-placeholder" class="recipe-card-visual" style="height:140px;border-radius:12px;margin-bottom:16px"></div>
+    <div style="font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,122,46,.75);margin-bottom:4px" id="recipe-detail-type"></div>
+    <div style="font-size:19px;font-weight:900;color:var(--white);margin-bottom:10px" id="recipe-detail-name"></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px" id="recipe-detail-macros"></div>
+    <div style="font-size:12px;color:rgba(238,240,255,.7);line-height:1.6;margin-bottom:18px;padding:12px 14px;background:rgba(255,255,255,.03);border:1.5px solid var(--border2);border-radius:8px" id="recipe-detail-why"></div>
+    <div class="ex-cue-label" style="margin-bottom:8px">Ingredients</div>
+    <div id="recipe-detail-ingredients" style="margin-bottom:18px"></div>
+    <div class="ex-cue-label" style="margin-bottom:8px">Method</div>
+    <div id="recipe-detail-steps"></div>
+    <button class="btn btn-g" style="width:100%;margin-top:20px" onclick="closeRecipeDetail()">Done</button>
   </div>
 </div>
 
@@ -6664,7 +6769,7 @@ function showPage(id){
   if(pg)pg.classList.add('active');
   document.querySelectorAll('.sb-item').forEach(i=>{if(i.getAttribute('onclick')?.includes(id))i.classList.add('active')});
   try{
-    const titles={dashboard:['Home','Let\'s get to work.'],workout:['Workout','Build your session.'],session:['Session','Time to work.'],nutrition:['Nutrition','Hit your targets.'],progress:['Progress','See how far you\'ve come.'],recovery:['Recovery','Sleep, breathing, and how to actually recover.'],schedule:['Schedule','Plan your week.'],leaderboard:['Leaderboard','See how you rank.'],learn:['Science','Understand the why.'],profile:['Profile','Your stats, on display.'],legal:['Legal','Privacy, terms, and health info.'],settings:['Settings','Update your details anytime.']};
+    const titles={dashboard:['Home','Let\'s get to work.'],workout:['Workout','Build your session.'],session:['Session','Time to work.'],nutrition:['Nutrition','Hit your targets.'],recipes:['Recipes','Real meals, built for the surplus.'],progress:['Progress','See how far you\'ve come.'],recovery:['Recovery','Sleep, breathing, and how to actually recover.'],schedule:['Schedule','Plan your week.'],leaderboard:['Leaderboard','See how you rank.'],learn:['Science','Understand the why.'],profile:['Profile','Your stats, on display.'],legal:['Legal','Privacy, terms, and health info.'],settings:['Settings','Update your details anytime.']};
     const[t,s]=titles[id]||[id,''];
     const tte=document.getElementById('tb-title');if(tte)tte.textContent=t;
     const tse=document.getElementById('tb-sub');if(tse)tse.textContent=s;
@@ -6716,6 +6821,7 @@ function showPage(id){
   if(id==='schedule')safeRender(renderSchedule,'schedule');
   if(id==='leaderboard')safeRender(renderLB,'leaderboard');
   if(id==='nutrition')safeRender(renderNutrition,'nutrition');
+  if(id==='recipes')safeRender(renderRecipesPage,'recipes');
   if(id==='profile')safeRender(renderProfile,'profile');
   if(id==='settings')safeRender(renderSettings,'settings');
 }
@@ -9662,6 +9768,57 @@ const RECIPES_DB=[
     why:'The jerky is what makes this one work — same grab-and-go convenience, but now with a real protein source instead of just nuts and dried fruit carrying the whole snack.'},
 ];
 
+// ── RECIPES PAGE — a real, browsable listing over RECIPES_DB (same data
+// the Meal Plan generator already draws from — not a duplicate set).
+// No photos yet, so cards use a clean type-emoji placeholder instead of
+// a fake stock photo; swap RECIPE_TYPE_ICON/the card visual for real
+// <img> tags once images are provided, everything else stays the same.
+const RECIPE_TYPE_ICON={breakfast:'🍳',lunch:'🥗',dinner:'🍽',snack:'🍎'};
+let recipeTypeFilter='all';
+function switchRecipeType(type,btn){
+  recipeTypeFilter=type;
+  document.querySelectorAll('#recipe-type-tabs .data-terminal-tab').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  renderRecipesPage();
+}
+function renderRecipesPage(){
+  const grid=document.getElementById('recipe-grid');
+  if(!grid)return;
+  const list=recipeTypeFilter==='all'?RECIPES_DB:RECIPES_DB.filter(r=>r.type===recipeTypeFilter);
+  grid.innerHTML=list.map((r)=>{
+    const idx=RECIPES_DB.indexOf(r);
+    return `<div class="recipe-card" onclick="openRecipeDetail(${idx})">
+      <div class="recipe-card-visual">${RECIPE_TYPE_ICON[r.type]||'🍴'}</div>
+      <div class="recipe-card-body">
+        <div class="recipe-card-name">${r.name}</div>
+        <div class="recipe-card-macros"><span>${r.cals} kcal</span><span>·</span><span>${r.prot}g protein</span></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+function openRecipeDetail(idx){
+  const r=RECIPES_DB[idx];if(!r)return;
+  const visEl=document.getElementById('recipe-detail-placeholder');if(visEl)visEl.textContent=RECIPE_TYPE_ICON[r.type]||'🍴';
+  const typeEl=document.getElementById('recipe-detail-type');if(typeEl)typeEl.textContent=r.type;
+  const nameEl=document.getElementById('recipe-detail-name');if(nameEl)nameEl.textContent=r.name;
+  const macrosEl=document.getElementById('recipe-detail-macros');
+  if(macrosEl){
+    const chips=[['🔥',r.cals+' kcal'],['🥩',r.prot+'g protein'],['🌾',r.carbs+'g carbs'],['🫒',r.fats+'g fat']];
+    macrosEl.innerHTML=chips.map(([ic,t])=>`<span style="background:rgba(255,255,255,.05);border:1.5px solid var(--border2);border-radius:8px;padding:5px 10px;font-size:10.5px;font-weight:700;color:rgba(238,240,255,.8)">${ic} ${t}</span>`).join('');
+  }
+  const whyEl=document.getElementById('recipe-detail-why');if(whyEl)whyEl.textContent=r.why;
+  const ingEl=document.getElementById('recipe-detail-ingredients');
+  if(ingEl)ingEl.innerHTML=r.ingredients.map(i=>`<div style="display:flex;gap:8px;align-items:flex-start;font-size:12px;color:rgba(238,240,255,.75);line-height:1.6;margin-bottom:4px"><span style="color:rgba(255,122,46,.7)">•</span>${i}</div>`).join('');
+  const stepsEl=document.getElementById('recipe-detail-steps');
+  if(stepsEl)stepsEl.innerHTML=r.steps.map((s,i)=>`<div style="display:flex;gap:10px;margin-bottom:12px"><div style="flex-shrink:0;width:20px;height:20px;border-radius:50%;background:rgba(255,90,0,.15);color:#FF9A5C;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center">${i+1}</div><div style="font-size:12.5px;color:rgba(238,240,255,.8);line-height:1.55">${s}</div></div>`).join('');
+  document.getElementById('recipe-detail-backdrop').style.display='block';
+  document.getElementById('recipe-detail-modal').style.display='block';
+}
+function closeRecipeDetail(){
+  document.getElementById('recipe-detail-backdrop').style.display='none';
+  document.getElementById('recipe-detail-modal').style.display='none';
+}
+
 // ── FEEDER-MEAL DAILY QUEST — a small randomized daily micro-challenge for
 // hardgainers who often just need a nudge to eat one more real thing.
 // Date-seeded so the same quest shows for the whole day rather than
@@ -9925,6 +10082,23 @@ function renderNutrition(){
   const macros=[{name:'Calories',icon:'🔥',cur:Math.round(dayMacros.cals),target:p.cals,unit:'kcal',col:'#FF7A2E'},{name:'Protein',icon:'🥩',cur:Math.round((dayMacros.prot||0)*10)/10,target:p.protein,unit:'g',col:'#FF5A00'}];
   const _md=document.getElementById('macro-disp');if(!_md)return;
   _md.innerHTML=macros.map(m=>`<div class="macro-row2"><div class="macro-row2-top"><div class="macro-row2-label"><span class="macro-row2-icon">${m.icon}</span>${m.name}</div><div class="macro-row2-nums"><span class="cur" style="color:${m.col}">${m.cur}${m.unit}</span><span class="tgt"> / ${m.target}${m.unit}</span></div></div><div class="macro-bar-wrap2"><div class="macro-bar-fill2" style="width:${Math.min(100,m.target>0?m.cur/m.target*100:0)}%;background:linear-gradient(90deg,${m.col}99,${m.col})"></div></div></div>`).join('');
+
+  // TODAY'S OVERVIEW — calorie bar + Protein/Carbs/Fat wheels, same data
+  // as the macros array above plus the two extra macros dayMacros now
+  // actually tracks (carbs/fats — see logItem()).
+  const calsCurEl=document.getElementById('nutr-cals-cur');if(calsCurEl)calsCurEl.textContent=Math.round(dayMacros.cals||0).toLocaleString();
+  const calsTgtEl=document.getElementById('nutr-cals-tgt');if(calsTgtEl)calsTgtEl.textContent=(p.cals||0).toLocaleString();
+  const calsFillEl=document.getElementById('nutr-cals-fill');if(calsFillEl)calsFillEl.style.width=Math.min(100,p.cals?(dayMacros.cals||0)/p.cals*100:0)+'%';
+  [
+    {ring:'nutr-prot-ring',brief:'nutr-prot-brief',target:'nutr-prot-target',cur:dayMacros.prot||0,tgt:p.protein||0,unit:'g'},
+    {ring:'nutr-carbs-ring',brief:'nutr-carbs-brief',target:'nutr-carbs-target',cur:dayMacros.carbs||0,tgt:p.carbs||0,unit:'g'},
+    {ring:'nutr-fats-ring',brief:'nutr-fats-brief',target:'nutr-fats-target',cur:dayMacros.fats||0,tgt:p.fats||0,unit:'g'},
+  ].forEach(w=>{
+    const ringEl=document.getElementById(w.ring);
+    if(ringEl){const pct=Math.min(1,w.tgt?w.cur/w.tgt:0);ringEl.style.strokeDashoffset=(182.2*(1-pct)).toFixed(1);}
+    const briefEl=document.getElementById(w.brief);if(briefEl)briefEl.textContent=Math.round(w.cur)+w.unit;
+    const targetEl=document.getElementById(w.target);if(targetEl)targetEl.textContent=Math.round(w.tgt)+w.unit;
+  });
   const alcLine=document.getElementById('macro-alcohol-line');
   if(alcLine){
     if(dayMacros.alcohol>0){
@@ -12982,6 +13156,10 @@ document.addEventListener('DOMContentLoaded', function(){
     <div class="more-sheet-item" onclick="showPage('schedule');toggleMoreSheet()">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
       <span>Schedule</span>
+    </div>
+    <div class="more-sheet-item" onclick="showPage('recipes');toggleMoreSheet()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
+      <span>Recipes</span>
     </div>
     <div class="more-sheet-item" onclick="showPage('recovery');toggleMoreSheet()">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
