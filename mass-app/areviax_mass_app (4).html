@@ -3240,9 +3240,10 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
   <div class="card" style="margin-bottom:14px">
     <div class="ch"><span class="ct">Lifetime Record</span></div>
     <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px">
-      <div style="background:rgba(255,255,255,.025);border:1.5px solid rgba(255,255,255,.07);border-radius:8px;padding:14px">
+      <div onclick="openMilestones()" style="cursor:pointer;background:rgba(255,255,255,.025);border:1.5px solid rgba(255,255,255,.07);border-radius:8px;padding:14px">
         <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">Total Volume</div>
         <div style="font-size:22px;font-weight:800;color:var(--white)" id="profile-volume">0 kg</div>
+        <div style="font-size:9.5px;color:rgba(255,122,46,.75);margin-top:3px;font-weight:700">View milestones →</div>
       </div>
       <div style="background:rgba(255,255,255,.025);border:1.5px solid rgba(255,255,255,.07);border-radius:8px;padding:14px">
         <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">Sessions Completed</div>
@@ -3592,6 +3593,23 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       <div style="font-size:10.5px;color:var(--muted);margin-bottom:10px">Tap to change — same setting as Days per week in Settings.</div>
       <div id="sd-goal-pills" style="display:flex;gap:8px"></div>
     </div>
+  </div>
+</div>
+
+<!-- ── LIFTING MILESTONES — total lifetime volume as real-world weight
+     equivalents, with a progress bar toward the next one and a scrollable
+     list of everything already cleared. ── -->
+<div id="milestones-backdrop" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9998" onclick="closeMilestones()"></div>
+<div id="milestones-modal" style="display:none;position:fixed;inset:16px;z-index:9999;max-width:480px;margin:0 auto;background:var(--panel);border:1.5px solid var(--border);border-radius:16px;box-shadow:0 20px 60px -20px rgba(0,0,0,.7);flex-direction:column;overflow:hidden">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1.5px solid var(--border2);flex-shrink:0">
+    <div style="font-weight:800;font-size:14px">Lifting Milestones</div>
+    <button onclick="closeMilestones()" style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;line-height:1;padding:4px 8px">✕</button>
+  </div>
+  <div style="flex:1;min-height:0;overflow-y:auto;padding:16px">
+    <div id="ms-total" style="text-align:center;font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:14px">0 kg lifted</div>
+    <div id="ms-next-card" style="text-align:center;background:var(--panel2);border:1.5px solid var(--border2);border-radius:12px;padding:18px;margin-bottom:18px"></div>
+    <div style="font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:8px">All milestones</div>
+    <div id="ms-list"></div>
   </div>
 </div>
 
@@ -6057,6 +6075,72 @@ function renderTemplateList(){
     return '<span class="template-chip" onclick="loadCustomTemplate(\''+safe+'\')">📂 '+n+
       '<span onclick="event.stopPropagation();deleteCustomTemplate(\''+safe+'\')" title="Delete template" style="margin-left:7px;opacity:.6">×</span></span>';
   }).join(''):'<span style="color:var(--muted);font-size:11px">No saved templates yet — build a session and save it.</span>';
+}
+
+// ── LIFTING MILESTONES — total lifetime volume translated into real-world
+// weight equivalents, so "48,200kg" means something more tangible than a
+// bare number. Weights are approximate, picked for a fun/memorable
+// progression rather than scientific precision. ──
+const MILESTONES=[
+  {kg:500,     icon:'🐎', label:'A Racehorse'},
+  {kg:1000,    icon:'🚗', label:'A Small Car'},
+  {kg:2500,    icon:'🦏', label:'A White Rhino'},
+  {kg:5000,    icon:'🐘', label:'An Elephant'},
+  {kg:10000,   icon:'🚌', label:'A Double-Decker Bus'},
+  {kg:25000,   icon:'🦖', label:'A T-Rex'},
+  {kg:50000,   icon:'🏠', label:'A Small House'},
+  {kg:100000,  icon:'✈️', label:'A Boeing 737'},
+  {kg:150000,  icon:'🐋', label:'A Blue Whale'},
+  {kg:204000,  icon:'🗽', label:'The Statue of Liberty'},
+  {kg:300000,  icon:'🚀', label:'A Space Shuttle'},
+  {kg:500000,  icon:'🌉', label:'A Bridge Span'},
+];
+function openMilestones(){
+  renderMilestones();
+  document.getElementById('milestones-backdrop').style.display='block';
+  document.getElementById('milestones-modal').style.display='flex';
+  document.body.style.overflow='hidden';
+}
+function closeMilestones(){
+  document.getElementById('milestones-backdrop').style.display='none';
+  document.getElementById('milestones-modal').style.display='none';
+  document.body.style.overflow='';
+}
+function renderMilestones(){
+  const vol=totalVolume||0;
+  const totEl=document.getElementById('ms-total');
+  if(totEl)totEl.textContent=Math.round(vol).toLocaleString()+' kg lifted';
+  const next=MILESTONES.find(m=>m.kg>vol);
+  const nextEl=document.getElementById('ms-next-card');
+  if(nextEl){
+    if(next){
+      const prevKg=[...MILESTONES].reverse().find(m=>m.kg<=vol)?.kg||0;
+      const pct=Math.max(2,Math.min(100,Math.round((vol-prevKg)/(next.kg-prevKg)*100)));
+      nextEl.innerHTML=`<div style="font-size:32px;margin-bottom:6px">${next.icon}</div>
+        <div style="font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,122,46,.7)">Next milestone</div>
+        <div style="font-size:16px;font-weight:800;color:var(--white);margin:2px 0 8px">${next.label}</div>
+        <div style="height:8px;background:rgba(255,255,255,.08);border-radius:4px;overflow:hidden"><div style="height:100%;width:${pct}%;background:linear-gradient(90deg,#FF7A2E,#FF5A00);border-radius:4px"></div></div>
+        <div style="font-size:11px;color:var(--muted);margin-top:6px">${Math.round(next.kg-vol).toLocaleString()}kg to go</div>`;
+    } else {
+      nextEl.innerHTML=`<div style="font-size:32px;margin-bottom:6px">🏆</div>
+        <div style="font-size:14px;font-weight:800;color:var(--white)">You've cleared every milestone here.</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:4px">Keep stacking volume — genuinely elite territory.</div>`;
+    }
+  }
+  const listEl=document.getElementById('ms-list');
+  if(listEl){
+    listEl.innerHTML=MILESTONES.map(m=>{
+      const done=vol>=m.kg;
+      return `<div style="display:flex;align-items:center;gap:12px;padding:12px;background:${done?'rgba(255,122,46,.06)':'var(--panel2)'};border:1.5px solid ${done?'rgba(255,122,46,.3)':'var(--border2)'};border-radius:10px;margin-bottom:8px">
+        <div style="font-size:26px;opacity:${done?'1':'.35'};filter:${done?'none':'grayscale(1)'}">${m.icon}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:12.5px;font-weight:700;color:${done?'var(--white)':'var(--muted)'}">${m.label}</div>
+          <div style="font-size:10px;color:var(--muted)">${m.kg.toLocaleString()}kg lifetime</div>
+        </div>
+        ${done?'<div style="color:var(--green);font-size:16px;flex-shrink:0">✓</div>':''}
+      </div>`;
+    }).join('');
+  }
 }
 
 // ── LIFTER RANK ──
