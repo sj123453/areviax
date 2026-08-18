@@ -14,7 +14,7 @@ import re, sys, os, json, base64
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 SRC = os.path.join(HERE, "areviax_mass_app (4).html")
-MIME = {".png": "image/png", ".mp3": "audio/mpeg"}
+MIME = {".png": "image/png", ".mp3": "audio/mpeg", ".jpg": "image/jpeg", ".jpeg": "image/jpeg"}
 
 
 def data_uri_for(rel_path):
@@ -27,7 +27,7 @@ def data_uri_for(rel_path):
 
 def inline_asset_paths(text):
     """Replace every quoted 'images/...' / 'audio/...' path with its data URI."""
-    pattern = re.compile(r"(['\"])((?:images|audio)/[^'\"]+\.(?:png|mp3))\1")
+    pattern = re.compile(r"(['\"])((?:images|audio)/[^'\"]+\.(?:png|mp3|jpg|jpeg))\1")
 
     def repl(m):
         quote, rel = m.group(1), m.group(2)
@@ -55,7 +55,7 @@ def build(output_path):
 
     data = inline_asset_paths(data)
 
-    remaining = re.findall(r"(?:images|audio)/[^'\"]+\.(?:png|mp3)", data)
+    remaining = re.findall(r"(?:images|audio)/[^'\"]+\.(?:png|mp3|jpg|jpeg)", data)
     if remaining:
         print("WARNING: unresolved asset references left in output:", set(remaining))
 
