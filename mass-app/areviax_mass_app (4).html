@@ -213,9 +213,17 @@ input,input:focus,input:active,
 .ex-card:hover{border-color:var(--border)}
 .ex-top{display:flex;flex-direction:row;gap:10px;align-items:flex-start}
 .ex-fig{width:236px;height:230px;flex-shrink:0;background:#0B0B0B;border:1.5px solid rgba(255,255,255,.1);border-radius:5px;overflow:hidden;position:relative}
-.ex-info{flex:1}
+.ex-info{flex:1;min-width:0}
 .ex-name{font-weight:700;font-size:13px;margin-bottom:2px}
 .ex-meta{font-size:10px;color:var(--muted);margin-bottom:6px}
+/* On mobile the fixed 236px figure left almost no room for the name/meta
+   column next to it (long exercise names wrapping into a ~90px sliver,
+   PR text squashed) — shrink the thumbnail so the text actually has
+   space to lay out cleanly. min-width:0 above so ex-info can shrink
+   below its content's natural width instead of forcing an overflow. */
+@media(max-width:700px){
+  .ex-fig{width:132px;height:130px}
+}
 .ex-ratings{display:flex;gap:5px;flex-wrap:wrap}
 .er{font-size:9px;font-weight:700;letter-spacing:.06em;padding:2px 7px;border-radius:10px}
 .er-e{background:rgba(255,90,0,.1);color:var(--green);border:1.5px solid rgba(255,90,0,.2)}
@@ -8782,8 +8790,8 @@ function buildSession(){
     return `
     <div class="ex-card" id="sex-${i}">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:9px">
-        <div style="width:236px;height:230px;flex-shrink:0;background:#0B0B0B;border:1.5px solid rgba(255,255,255,.08);border-radius:4px;overflow:hidden">${getCardThumb(e)}</div>
-        <div style="flex:1"><div class="ex-name">${e.name}</div><div class="ex-meta">${e.muscle} · ${effectiveSets(e)}×${e.reps}</div></div>
+        <div class="ex-fig">${getCardThumb(e)}</div>
+        <div style="flex:1;min-width:0"><div class="ex-name">${e.name}</div><div class="ex-meta">${e.muscle} · ${effectiveSets(e)}×${e.reps}</div></div>
         <div style="text-align:right;flex-shrink:0">
           <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--yellow)" id="pr-d-${i}">PR: ${prs[e.name]||'—'}kg</div>
           <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);margin-top:2px" id="e1rm-d-${i}" data-val="${e1rm||0}" title="Estimated 1-rep max (Epley formula) from your heaviest logged set">${e1rm?`Est 1RM: ${e1rm}kg`:''}</div>
