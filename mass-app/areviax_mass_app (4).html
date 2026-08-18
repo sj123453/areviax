@@ -453,6 +453,29 @@ input,input:focus,input:active,
 .nutr-shake-sub{font-size:10.5px;color:rgba(238,240,255,.55);margin-top:2px}
 @media(max-width:700px){.nutr-hero-grid{grid-template-columns:1fr}}
 
+/* DASHBOARD — mobile-default single-column stack (greeting, today, ring
+   row, chart, quote/assessment, recent activity, in that reading order).
+   At >=900px this genuinely restructures into a main+sidebar composition
+   (big chart in a wide left column, everything else in a right rail)
+   rather than just reflowing the same stack into two side-by-side
+   columns — same six pieces, different arrangement, matching how the
+   reference dashboards differ between their phone and laptop shots. */
+.dash-grid{display:grid;gap:14px;grid-template-columns:1fr;
+  grid-template-areas:"greeting" "today" "rings" "chart" "quote" "activity"}
+.dash-greeting{grid-area:greeting}
+.dash-today{grid-area:today}
+.dash-rings{grid-area:rings}
+.dash-chart{grid-area:chart}
+.dash-quote{grid-area:quote}
+.dash-activity{grid-area:activity}
+.dash-rings-inner{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.dash-rings-inner>*{min-width:0}
+@media(min-width:900px){
+  #page-dashboard{max-width:1120px}
+  .dash-grid{grid-template-columns:1.65fr 1fr;align-items:start;
+    grid-template-areas:"greeting rings" "today rings" "chart activity" "chart quote"}
+}
+
 /* PROGRESS */
 .pr-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}
 .pr-card{position:relative;background:var(--panel2);border:1.5px solid var(--border2);border-radius:12px;padding:14px 10px;text-align:center;overflow:hidden}
@@ -1576,60 +1599,40 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     <span onclick="dismissWalkTip()" style="cursor:pointer;color:var(--muted);font-size:15px;padding:0 2px 0 8px">✕</span>
   </div>
 
-  <!-- DASHBOARD 2-COLUMN LAYOUT — greeting + today's session on the left,
-       weekly stats + motivation on the right, matching the reference
-       layout instead of every card stacking full-width one after another
-       down the page. Same nutr-hero-grid pattern Nutrition/Progress
-       already use for their own top rows. -->
-  <div class="nutr-hero-grid" style="align-items:start">
-  <div class="nutr-masonry-col">
+  <!-- DASHBOARD GRID — named-area layout: mobile stacks single-column
+       (greeting, today, rings, chart, quote, activity); desktop (>=900px)
+       reflows into a 2-col main+sidebar composition via .dash-grid's own
+       media query in the shared CSS block, matching the reference
+       mobile/laptop layouts while reusing the same render functions/ids
+       as before — only the containers around them changed. -->
+  <div class="dash-grid">
 
-  <!-- NAME + DATE — given a card treatment (gradient + border) instead of
-       sitting as bare text, so it reads as part of the same visual system
-       as the Today card below rather than floating alone at the top. -->
-  <div style="background:linear-gradient(135deg,rgba(255,90,0,.06),rgba(255,255,255,.01));border:1px solid rgba(255,90,0,.08);border-radius:16px;padding:18px 20px;margin-bottom:0">
+  <div class="dash-greeting">
+  <!-- NAME + DATE -->
+  <div style="background:linear-gradient(135deg,rgba(255,90,0,.06),rgba(255,255,255,.01));border:1px solid rgba(255,90,0,.08);border-radius:16px;padding:18px 20px;height:100%;box-sizing:border-box">
     <div style="font-size:11px;color:rgba(255,90,0,.85);letter-spacing:.22em;text-transform:uppercase;font-weight:700;margin-bottom:6px" id="dash-greeting">Good morning</div>
     <div style="font-size:44px;font-weight:900;letter-spacing:-.02em;color:var(--white);line-height:1" id="dash-name">Athlete</div>
     <div style="font-size:11px;color:var(--muted);margin-top:8px" id="dash-date"></div>
   </div>
+  </div>
 
-  <!-- TODAY — the main workout CTA, given real visual weight (glowing
-       border, bigger session name) to match the reference layout's launch
-       terminal instead of the compact single-line row this used to be. -->
+  <div class="dash-today">
+  <!-- TODAY — the main workout CTA -->
   <div style="background:linear-gradient(160deg,rgba(255,90,0,.09),rgba(11,11,11,.9));border:1.5px solid rgba(255,90,0,.3);border-radius:16px;padding:20px;box-shadow:0 0 32px -18px rgba(255,90,0,.35)">
     <div style="font-size:9px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,90,0,.55);margin-bottom:6px">Today</div>
     <div style="font-size:22px;font-weight:900;color:var(--white);line-height:1.15;letter-spacing:-.01em;margin-bottom:16px" id="d-next-full">Push Upper — Day 1</div>
     <button onclick="showPage('workout')" style="width:100%;background:linear-gradient(135deg,#FF5A00,#FF7A2E);border:none;border-radius:10px;padding:13px;color:#2B0E00;font-family:'Outfit',sans-serif;font-size:13px;font-weight:900;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;box-shadow:0 10px 24px -10px rgba(255,90,0,.5)">▶ Start Workout</button>
     <div id="dash-nutrition-pulse" onclick="showPage('nutrition')" style="margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,.08);font-size:11px;color:var(--muted);cursor:pointer"></div>
   </div>
-
-  </div>
-  <div class="nutr-masonry-col">
-
-  <!-- INTEGRATED MOTIVATION — the daily quote and the weekly assessment
-       combined into one card (two sections, one container) rather than
-       two separate floating blocks, matching the reference layout. Same
-       ids/render functions as before — dash-quote-text and assessment-text
-       are unchanged, just nested together now. -->
-  <div style="background:linear-gradient(135deg,rgba(255,90,0,.05),rgba(255,255,255,.012));border:1px solid rgba(255,90,0,.12);border-radius:16px;padding:20px;position:relative;overflow:hidden">
-    <div style="position:absolute;top:2px;left:14px;font-size:60px;font-family:Georgia,serif;color:rgba(255,90,0,.14);line-height:1;pointer-events:none">&ldquo;</div>
-    <div style="font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,122,46,.7);margin-bottom:12px;font-weight:700;position:relative">Today's Perspective</div>
-    <div style="font-size:16px;color:var(--white);line-height:1.45;font-style:italic;font-weight:600;margin-bottom:8px;position:relative" id="dash-quote-text">—</div>
-    <div style="font-size:11px;color:rgba(255,122,46,.8);font-weight:700;position:relative;margin-bottom:16px">— Areviax</div>
-    <div id="assessment-card" onclick="viewAssessment()" style="cursor:pointer;position:relative;border-top:1px solid rgba(68,212,255,.14);padding-top:16px">
-      <div id="assessment-new-badge" style="position:absolute;top:16px;right:0;width:8px;height:8px;border-radius:50%;background:#44CFFF;box-shadow:0 0 8px rgba(68,212,255,.7)"></div>
-      <div style="font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:rgba(68,212,255,.75);margin-bottom:8px;font-weight:700">This Week's Assessment</div>
-      <div style="font-size:12.5px;color:rgba(238,240,255,.85);line-height:1.6" id="assessment-text">—</div>
-    </div>
   </div>
 
-  <!-- THIS WEEK — Compass, Streak, Calories, Protein, and session count
-       grouped under one card instead of three separate floating blocks, so
-       it reads as one stat panel rather than a stack of boxes. Same data,
-       same functions render into it — only the container changed. -->
-  <div id="acc-progress" style="background:#0B0B0B;border:1px solid rgba(255,255,255,.06);border-radius:18px;padding:16px;margin-bottom:0">
+  <div class="dash-rings">
+  <!-- STATS PANEL — Compass, Streak, Calories, Protein in one consistent
+       2x2 tile grid via .dash-rings-inner, plus the session-count line
+       beneath. Same data/functions as before, only regrouped. -->
+  <div id="acc-progress" style="background:#0B0B0B;border:1px solid rgba(255,255,255,.06);border-radius:18px;padding:16px;height:100%;box-sizing:border-box">
   <div style="font-size:9px;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:rgba(238,240,255,.35);margin-bottom:12px">This week</div>
-  <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;margin-bottom:12px">
+  <div class="dash-rings-inner" style="margin-bottom:12px">
     <div style="background:#0B0B0B;border:1px solid rgba(255,90,0,.12);border-radius:16px;padding:16px;display:flex;flex-direction:column;align-items:center;gap:8px;box-shadow:0 0 28px -14px rgba(255,90,0,.16)">
       <canvas id="compass-main" width="88" height="88"></canvas>
       <div style="font-size:8px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:rgba(68,212,255,.7)" id="compass-label">Weekly Compass</div>
@@ -1649,9 +1652,6 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       <div style="font-size:8px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,122,46,.55);position:relative">Day Streak</div>
       <div style="font-size:9px;color:rgba(255,122,46,.4);position:relative" id="best-streak-sub"></div>
     </div>
-  </div>
-
-  <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;margin-bottom:16px">
     <div style="background:rgba(255,122,46,.045);border:1px solid rgba(255,122,46,.1);border-radius:16px;padding:16px;text-align:center">
       <div style="display:flex;align-items:center;justify-content:center;gap:6px;margin-bottom:8px">
         <span style="font-size:15px">🔥</span>
@@ -1680,23 +1680,60 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     </div>
   </div>
 
-  <div id="vol-daily-card" style="display:none;border-top:1px solid rgba(255,255,255,.06);padding-top:14px;margin-bottom:12px">
-    <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px">
-      <div style="display:flex;align-items:center;gap:6px">
-        <span style="font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,90,0,.75)">Volume &middot; this week</span>
-      </div>
-      <div style="font-size:11px;font-weight:800;color:var(--muted)" id="vol-daily-total"></div>
-    </div>
-    <div id="vol-daily-chart" style="display:flex;align-items:flex-end;gap:6px;height:56px;margin-bottom:7px"></div>
-    <div id="vol-daily-labels" style="display:flex;gap:6px;font-size:8px;color:var(--muted)"></div>
-  </div>
-
   <div style="display:flex;justify-content:center;font-size:10.5px;color:var(--muted)">
     <span><strong style="color:rgba(238,240,255,.85)" id="d-sessions-brief">0/0</strong> sessions this week</span>
   </div>
   </div>
-
   </div>
+
+  <div class="dash-chart">
+  <!-- WEEKLY VOLUME — promoted from a buried stat row to the dashboard's
+       hero chart, matching the reference layout's big trend visual. Same
+       renderDailyVolume()/tonnageLog data as before, now with a real
+       empty state instead of just going display:none with nothing to see. -->
+  <div style="background:#0B0B0B;border:1px solid rgba(255,255,255,.06);border-radius:18px;padding:18px 20px;height:100%;box-sizing:border-box">
+    <div id="vol-daily-card" style="display:none">
+      <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:16px">
+        <span style="font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,90,0,.75)">Volume &middot; this week</span>
+        <div style="font-size:11px;font-weight:800;color:var(--muted)" id="vol-daily-total"></div>
+      </div>
+      <div id="vol-daily-chart" style="display:flex;align-items:flex-end;gap:8px;height:130px;margin-bottom:8px"></div>
+      <div id="vol-daily-labels" style="display:flex;gap:8px;font-size:8px;color:var(--muted)"></div>
+    </div>
+    <div id="vol-daily-empty" style="text-align:center;padding:28px 8px">
+      <div style="font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,90,0,.55);margin-bottom:10px">Volume &middot; this week</div>
+      <div style="font-size:12px;color:var(--muted);line-height:1.6">Log your first set and this chart fills in — a quick read on how hard each day of the week has been.</div>
+    </div>
+  </div>
+  </div>
+
+  <div class="dash-quote">
+  <!-- INTEGRATED MOTIVATION — daily quote + weekly assessment together -->
+  <div style="background:linear-gradient(135deg,rgba(255,90,0,.05),rgba(255,255,255,.012));border:1px solid rgba(255,90,0,.12);border-radius:16px;padding:20px;position:relative;overflow:hidden;height:100%;box-sizing:border-box">
+    <div style="position:absolute;top:2px;left:14px;font-size:60px;font-family:Georgia,serif;color:rgba(255,90,0,.14);line-height:1;pointer-events:none">&ldquo;</div>
+    <div style="font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,122,46,.7);margin-bottom:12px;font-weight:700;position:relative">Today's Perspective</div>
+    <div style="font-size:16px;color:var(--white);line-height:1.45;font-style:italic;font-weight:600;margin-bottom:8px;position:relative" id="dash-quote-text">—</div>
+    <div style="font-size:11px;color:rgba(255,122,46,.8);font-weight:700;position:relative;margin-bottom:16px">— Areviax</div>
+    <div id="assessment-card" onclick="viewAssessment()" style="cursor:pointer;position:relative;border-top:1px solid rgba(68,212,255,.14);padding-top:16px">
+      <div id="assessment-new-badge" style="position:absolute;top:16px;right:0;width:8px;height:8px;border-radius:50%;background:#44CFFF;box-shadow:0 0 8px rgba(68,212,255,.7)"></div>
+      <div style="font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:rgba(68,212,255,.75);margin-bottom:8px;font-weight:700">This Week's Assessment</div>
+      <div style="font-size:12.5px;color:rgba(238,240,255,.85);line-height:1.6" id="assessment-text">—</div>
+    </div>
+  </div>
+  </div>
+
+  <div class="dash-activity">
+  <!-- RECENT ACTIVITY — new: a compact glance at the last few completed
+       sessions, matching the reference layout's activity feed. Reads
+       straight from sessionHistory (same array the Workout Builder's
+       "reload previous session" list already uses), rendered by
+       renderDashRecentActivity(). -->
+  <div style="background:#0B0B0B;border:1px solid rgba(255,255,255,.06);border-radius:18px;padding:18px 20px;height:100%;box-sizing:border-box">
+    <div style="font-size:9px;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:rgba(238,240,255,.35);margin-bottom:14px">Recent Activity</div>
+    <div id="dash-recent-activity"></div>
+  </div>
+  </div>
+
   </div>
 
   <!-- REST DAY -->
@@ -6763,11 +6800,13 @@ function parseLocalDate(str){
 // can see which specific days actually carried the volume.
 function renderDailyVolume(){
   const card=document.getElementById('vol-daily-card');
+  const emptyEl=document.getElementById('vol-daily-empty');
   const chartEl=document.getElementById('vol-daily-chart');
   const labelsEl=document.getElementById('vol-daily-labels');
   const totalEl=document.getElementById('vol-daily-total');
   if(!card||!chartEl||!labelsEl||!totalEl)return;
-  if(!tonnageLog.length){card.style.display='none';return;}
+  if(!tonnageLog.length){card.style.display='none';if(emptyEl)emptyEl.style.display='';return;}
+  if(emptyEl)emptyEl.style.display='none';
 
   const today=new Date();
   const dow=today.getDay();
@@ -6806,6 +6845,30 @@ function renderDailyVolume(){
 
   const weekTotal=days.reduce((s,d)=>s+d.total,0);
   totalEl.textContent=weekTotal>0?Math.round(weekTotal).toLocaleString()+'kg':'';
+}
+
+// Dashboard's compact "Recent Activity" feed — last few completed
+// sessions from sessionHistory (same array the Workout Builder's reload
+// list already uses), just a glance rather than an editable list.
+function renderDashRecentActivity(){
+  const el=document.getElementById('dash-recent-activity');
+  if(!el)return;
+  if(!sessionHistory.length){
+    el.innerHTML=`<div style="font-size:11.5px;color:var(--muted);line-height:1.6">Finish a session and it'll show up here.</div>`;
+    return;
+  }
+  const todayKey=localDateKey(new Date());
+  const yKey=(()=>{const d=new Date();d.setDate(d.getDate()-1);return localDateKey(d);})();
+  el.innerHTML=sessionHistory.slice(0,4).map(s=>{
+    const dLabel=s.date===todayKey?'Today':s.date===yKey?'Yesterday':parseLocalDate(s.date).toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});
+    return `<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,.05)">
+      <div style="width:30px;height:30px;border-radius:9px;background:rgba(255,90,0,.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px">✓</div>
+      <div style="min-width:0;flex:1"><div style="font-size:12px;font-weight:700;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${s.name}</div><div style="font-size:10px;color:var(--muted)">${s.exs.length} exercises${s.durationSec?' · '+Math.round(s.durationSec/60)+'min':''}</div></div>
+      <div style="font-size:10px;color:var(--muted);flex-shrink:0;white-space:nowrap">${dLabel}</div>
+    </div>`;
+  }).join('');
+  const last=el.lastElementChild;
+  if(last)last.style.borderBottom='none';
 }
 
 // Weekly training-volume trend — same tonnageLog already powering the
@@ -7053,6 +7116,7 @@ function initApp(){
   try{renderVolumeTrend();}catch(e){console.error('renderVolumeTrend:',e.message);}
   try{renderXpBreakdown();}catch(e){console.error('renderXpBreakdown:',e.message);}
   try{renderDailyVolume();}catch(e){console.error('renderDailyVolume:',e.message);}
+  try{renderDashRecentActivity();}catch(e){console.error('renderDashRecentActivity:',e.message);}
   try{checkStreakAtRisk();}catch(e){console.error('checkStreakAtRisk:',e.message);}
   try{checkStreakBroken();}catch(e){console.error('checkStreakBroken:',e.message);}
   try{checkSleepReminder();}catch(e){console.error('checkSleepReminder:',e.message);}
