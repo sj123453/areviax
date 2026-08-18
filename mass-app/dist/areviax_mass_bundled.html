@@ -440,6 +440,24 @@ input,input:focus,input:active,
 .recipe-card-body{padding:11px 12px}
 .recipe-card-name{font-size:12.5px;font-weight:700;color:var(--white);line-height:1.3;margin-bottom:6px;min-height:2.6em;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .recipe-card-macros{display:flex;gap:5px;flex-wrap:wrap;font-size:9px;color:var(--muted);font-weight:700}
+
+/* NUTRITION CARD CAROUSEL — Shield/Feeder Quest/Emergency Shake/Recipes/
+   Meal Plan as horizontally swipeable cards instead of a tall vertical
+   stack, so the "at a glance" summary above (calories/macro wheels/
+   hydration) can fit one mobile screen without these pushing it down.
+   Native scroll-snap, no JS needed for the swipe itself — each card is a
+   fixed width with the next one peeking at the edge. */
+.nutr-carousel-label{font-size:9px;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:rgba(238,240,255,.35);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.nutr-carousel{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:6px;margin-bottom:18px;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
+.nutr-carousel::-webkit-scrollbar{height:5px}
+.nutr-carousel::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:3px}
+.nutr-carousel-card{flex:0 0 82%;scroll-snap-align:start;min-width:0}
+@media(min-width:560px){.nutr-carousel-card{flex-basis:340px}}
+.nutr-carousel-card .card,.nutr-carousel-card .nutr-shield-card{height:100%;margin-bottom:0;box-sizing:border-box}
+.nutr-teaser-card{height:100%;box-sizing:border-box;cursor:pointer;display:flex;flex-direction:column;justify-content:center;text-align:center;gap:8px;padding:24px 18px}
+.nutr-teaser-icon{font-size:30px}
+.nutr-teaser-title{font-size:14px;font-weight:800;color:var(--white)}
+.nutr-teaser-sub{font-size:11px;color:var(--muted);line-height:1.5}
 .nutr-shield-card{display:flex;align-items:center;gap:16px;text-align:left;padding:20px}
 .nutr-shield-graphic{flex-shrink:0;position:relative;width:112px;height:112px}
 .nutr-shield-graphic .shield-ring-svg{position:absolute;inset:0;transform:rotate(-90deg)}
@@ -2218,12 +2236,26 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     </div>
   </div>
 
-  <!-- AT-A-GLANCE DASHBOARD — Shield/Feeder Quest/Macros in one column,
-       Shake/food-grid in the other, so the whole glanceable summary fits on
-       one screen like the reference layout. Log Food/Meal Plan (full tools,
-       not summary content) stay as accordions below this block. -->
-  <div class="nutr-masonry">
-  <div class="nutr-masonry-col">
+  <!-- HYDRATION — promoted out of the old Today's Macros card into its
+       own compact row up here, so it's part of the one-screen summary
+       (matching the reference) instead of buried lower on the page. Same
+       renderWaterRow()/tap-to-add-a-glass data and interaction as before,
+       just relocated. -->
+  <div class="card" style="margin-bottom:14px" id="acc-hydration">
+    <div id="water-row"></div>
+  </div>
+
+  <!-- CARD CAROUSEL — Shield, Feeder Quest, Emergency Shake, Recipes, and
+       Meal Plan as horizontally swipeable cards instead of stacking
+       vertically, so the summary above stays a one-screen glance on
+       mobile while these stay one swipe away rather than a scroll away.
+       Log Food (the primary logging tool) stays as a regular accordion
+       below, not in the carousel — that's a full form, not a glanceable
+       card. -->
+  <div class="nutr-carousel-label">‹ Swipe for more ›</div>
+  <div class="nutr-carousel" id="nutr-carousel">
+
+  <div class="nutr-carousel-card">
   <!-- CALORIC SHIELD — moved here from the dashboard, which was getting
        crowded. Makes more sense here anyway — a nutrition-specific visual
        belongs on the nutrition page. Fills as today's calorie AND protein
@@ -2342,37 +2374,23 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       <div class="nutr-shield-status" id="shield-status-msg"></div>
     </div>
   </div>
+  </div>
 
+  <div class="nutr-carousel-card">
   <!-- FEEDER-MEAL DAILY QUEST — a small randomized daily micro-challenge
        tailored for hardgainers, since "eat more" alone is a boring, vague
        instruction. Same quest all day (seeded by date, not re-randomized
-       every reload), instant XP on completion, once per day. -->
-  <div id="feeder-quest-card" class="card" style="margin-bottom:0;display:none">
+       every reload), instant XP on completion, once per day. Always has
+       a quest (getTodaysFeederQuest() is deterministic per date, never
+       empty), so unlike the old display:none default this card just
+       renders straight away as its own carousel slide. -->
+  <div id="feeder-quest-card" class="card">
     <div class="ch"><span class="ct" style="display:flex;align-items:center;gap:7px">🎯 Today's Feeder Quest</span></div>
     <div id="feeder-quest-body"></div>
   </div>
-
-  <!-- Today's macros — always-visible summary (not an accordion) so it's
-       part of the glanceable dashboard block rather than needing a tap to
-       see, matching the reference layout. -->
-  <div class="card" id="acc-macros" style="margin-bottom:0">
-    <div class="ch"><span class="ct ct-mint" style="display:flex;align-items:center;gap:7px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>Today's macros</span><span class="ca" onclick="resetDay()">Reset</span></div>
-    <div id="macro-disp"></div>
-    <div id="water-row" style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.06)"></div>
-    <div id="macro-alcohol-line" style="display:none;font-size:11.5px;color:var(--muted);margin-top:6px">🍷 <span id="macro-alcohol-val">0</span>g alcohol today</div>
-    <div id="macro-why-toggle" onclick="toggleMacroWhy()" style="font-size:10.5px;color:var(--muted);cursor:pointer;margin-top:8px;text-decoration:underline;text-underline-offset:2px;display:inline-block">Why these numbers?</div>
-    <div id="macro-why-panel" style="display:none;margin-top:10px;padding:12px 14px;background:rgba(255,255,255,.03);border:1.5px solid var(--border2);border-radius:8px;font-size:11.5px;line-height:1.7;color:rgba(238,240,255,.7)">
-      <div style="margin-bottom:8px"><strong style="color:var(--white)">Protein — 1g per lb of bodyweight.</strong> Training tears muscle fibres down; protein is the raw material your body uses to rebuild them thicker. This lands right at the top of what research shows actually helps — going higher doesn't build more muscle, it just crowds out the carbs your training needs.</div>
-      <div><strong style="color:var(--white)">Calories — a controlled surplus.</strong> Building new muscle costs energy on top of what you burn day to day. Too small a surplus and there's nothing to build with; too large and most of the extra goes to fat instead of muscle.</div>
-    </div>
-    <div style="margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,.06)">
-      <div style="font-size:9px;font-weight:700;color:rgba(238,240,255,.3);text-transform:uppercase;letter-spacing:.14em;margin-bottom:10px">Logged today</div>
-      <div id="today-log-list"></div>
-    </div>
-  </div>
   </div>
 
-  <div class="nutr-masonry-col">
+  <div class="nutr-carousel-card">
   <!-- SHAKE HERO — same logEmergencyShake()/toggleShakeTypes() wiring as
        before. The photo itself is the shaker (not a background + separate
        icon), so tapping visibly shakes the real bottle via the shakeBottle
@@ -2386,20 +2404,61 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     <div onclick="event.stopPropagation();toggleShakeTypes()" style="font-size:10.5px;color:rgba(238,240,255,.5);text-decoration:underline;cursor:pointer;margin-top:8px">Or pick a different type →</div>
   </div>
   <div id="shake-types-panel" style="display:none" onclick="event.stopPropagation()"></div>
-  <!-- Photo slots are empty gradient+icon placeholders for now — each
-       carries a data-food attribute naming what image belongs there, so
-       real photos can be dropped in later via --em-photo without touching
-       this markup again. Tighter 3-column grid (vs 2) to match the
-       reference's more compact packing. -->
-  <div class="emergency-grid nutr-food-grid">
-    <div class="em-item" data-food="peanut-butter"><div class="em-photo">🥜</div><div class="em-body"><div class="em-food">Peanut butter (2 tbsp)</div><div class="em-cals">190 kcal · 8g protein</div></div></div>
-    <div class="em-item" data-food="whole-milk"><div class="em-photo">🥛</div><div class="em-body"><div class="em-food">Whole milk (500ml)</div><div class="em-cals">310 kcal · 16g protein</div></div></div>
-    <div class="em-item" data-food="nuts"><div class="em-photo">🌰</div><div class="em-body"><div class="em-food">Nuts (handful)</div><div class="em-cals">170 kcal · 5g protein</div></div></div>
-    <div class="em-item" data-food="banana-pb"><div class="em-photo">🍌</div><div class="em-body"><div class="em-food">Banana + PB</div><div class="em-cals">280 kcal · 9g protein</div></div></div>
-    <div class="em-item" data-food="greek-yoghurt"><div class="em-photo">🥣</div><div class="em-body"><div class="em-food">Greek yoghurt</div><div class="em-cals">130 kcal · 17g protein</div></div></div>
-    <div class="em-item" data-food="oats-milk"><div class="em-photo">🥄</div><div class="em-body"><div class="em-food">Oats + milk</div><div class="em-cals">350 kcal · 14g protein</div></div></div>
+  </div>
+
+  <div class="nutr-carousel-card">
+  <!-- Quick-add foods — its own carousel slide (was the shake card's
+       neighbour in the old 2-column layout). Photo slots are empty
+       gradient+icon placeholders for now — each carries a data-food
+       attribute naming what image belongs there, so real photos can be
+       dropped in later via --em-photo without touching this markup again. -->
+  <div class="card" style="height:100%;box-sizing:border-box;overflow-y:auto">
+    <div class="ch"><span class="ct">Quick Add</span></div>
+    <div class="emergency-grid nutr-food-grid">
+      <div class="em-item" data-food="peanut-butter"><div class="em-photo">🥜</div><div class="em-body"><div class="em-food">Peanut butter (2 tbsp)</div><div class="em-cals">190 kcal · 8g protein</div></div></div>
+      <div class="em-item" data-food="whole-milk"><div class="em-photo">🥛</div><div class="em-body"><div class="em-food">Whole milk (500ml)</div><div class="em-cals">310 kcal · 16g protein</div></div></div>
+      <div class="em-item" data-food="nuts"><div class="em-photo">🌰</div><div class="em-body"><div class="em-food">Nuts (handful)</div><div class="em-cals">170 kcal · 5g protein</div></div></div>
+      <div class="em-item" data-food="banana-pb"><div class="em-photo">🍌</div><div class="em-body"><div class="em-food">Banana + PB</div><div class="em-cals">280 kcal · 9g protein</div></div></div>
+      <div class="em-item" data-food="greek-yoghurt"><div class="em-photo">🥣</div><div class="em-body"><div class="em-food">Greek yoghurt</div><div class="em-cals">130 kcal · 17g protein</div></div></div>
+      <div class="em-item" data-food="oats-milk"><div class="em-photo">🥄</div><div class="em-body"><div class="em-food">Oats + milk</div><div class="em-cals">350 kcal · 14g protein</div></div></div>
+    </div>
   </div>
   </div>
+
+  <div class="nutr-carousel-card">
+  <!-- Recipes teaser — the full browsable page lives at showPage('recipes'),
+       this is just a quick-glance entry point into the carousel flow. -->
+  <div class="card nutr-teaser-card" onclick="showPage('recipes')">
+    <div class="nutr-teaser-icon">📖</div>
+    <div class="nutr-teaser-title">Recipes</div>
+    <div class="nutr-teaser-sub">21 real meals with full ingredients &amp; steps — tap to browse</div>
+  </div>
+  </div>
+
+  <div class="nutr-carousel-card">
+  <!-- Meal Plan teaser — opens the real accordion below rather than
+       duplicating its (large, control-heavy) UI inside a swipe card. -->
+  <div class="card nutr-teaser-card" onclick="openMealPlanBuilder()">
+    <div class="nutr-teaser-icon">🍽</div>
+    <div class="nutr-teaser-title">Meal Plan</div>
+    <div class="nutr-teaser-sub">Generate full days against your targets, or build your own</div>
+  </div>
+  </div>
+
+  </div>
+
+  <!-- Logged Today — Calories/Protein already live in Today's Overview
+       above, so this card is just the log list + why-these-numbers detail
+       now, not a second set of the same bars. -->
+  <div class="card" id="acc-macros" style="margin-bottom:14px">
+    <div class="ch"><span class="ct ct-mint" style="display:flex;align-items:center;gap:7px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>Logged Today</span><span class="ca" onclick="resetDay()">Reset</span></div>
+    <div id="today-log-list"></div>
+    <div id="macro-alcohol-line" style="display:none;font-size:11.5px;color:var(--muted);margin-top:10px">🍷 <span id="macro-alcohol-val">0</span>g alcohol today</div>
+    <div id="macro-why-toggle" onclick="toggleMacroWhy()" style="font-size:10.5px;color:var(--muted);cursor:pointer;margin-top:10px;text-decoration:underline;text-underline-offset:2px;display:inline-block">Why these numbers?</div>
+    <div id="macro-why-panel" style="display:none;margin-top:10px;padding:12px 14px;background:rgba(255,255,255,.03);border:1.5px solid var(--border2);border-radius:8px;font-size:11.5px;line-height:1.7;color:rgba(238,240,255,.7)">
+      <div style="margin-bottom:8px"><strong style="color:var(--white)">Protein — 1g per lb of bodyweight.</strong> Training tears muscle fibres down; protein is the raw material your body uses to rebuild them thicker. This lands right at the top of what research shows actually helps — going higher doesn't build more muscle, it just crowds out the carbs your training needs.</div>
+      <div><strong style="color:var(--white)">Calories — a controlled surplus.</strong> Building new muscle costs energy on top of what you burn day to day. Too small a surplus and there's nothing to build with; too large and most of the extra goes to fat instead of muscle.</div>
+    </div>
   </div>
 
   <!-- CATCH-UP PROMPT — hidden unless actually behind on calories today.
@@ -12103,6 +12162,12 @@ function openLogFood(){
   const header=document.querySelector('.acc-header[onclick*="acc-logfood"]');
   const body=document.getElementById('acc-logfood');
   if(header&&body&&!body.classList.contains('open'))toggleAccordion('acc-logfood',header);
+  if(body)body.scrollIntoView({behavior:'smooth',block:'start'});
+}
+function openMealPlanBuilder(){
+  const header=document.querySelector('.acc-header[onclick*="acc-mealplan"]');
+  const body=document.getElementById('acc-mealplan');
+  if(header&&body&&!body.classList.contains('open'))toggleAccordion('acc-mealplan',header);
   if(body)body.scrollIntoView({behavior:'smooth',block:'start'});
 }
 function openAiVisionScan(){
