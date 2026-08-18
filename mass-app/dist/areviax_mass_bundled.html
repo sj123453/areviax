@@ -476,6 +476,24 @@ input,input:focus,input:active,
     grid-template-areas:"greeting rings" "today rings" "chart activity" "chart quote"}
 }
 
+/* DESKTOP PAGE WIDTH — the same 760px cap that fits mobile nicely also
+   makes every other page look cramped and small on a laptop, wasting the
+   real estate the sidebar layout has to offer. Nutrition/Progress/Workout
+   already use grid patterns (nutr-hero-grid, pr-grid, rec-tile-grid) that
+   simply gain more breathing room or more columns at a wider container —
+   no bespoke per-page redesign needed for most of them. Settings and
+   Profile get their own explicit 2-column split below since their content
+   doesn't already live in a grid. Learn and Legal are deliberately left
+   at the narrower reading width — long-form text gets harder to read as
+   the line length grows, not easier. */
+@media(min-width:900px){
+  #page-workout,#page-session,#page-nutrition,#page-progress,#page-recovery,
+  #page-schedule,#page-leaderboard,#page-profile,#page-settings{max-width:960px}
+}
+
+.settings-grid,.profile-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;align-items:start}
+@media(max-width:899px){.settings-grid,.profile-grid{grid-template-columns:1fr}}
+
 /* PROGRESS */
 .pr-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}
 .pr-card{position:relative;background:var(--panel2);border:1.5px solid var(--border2);border-radius:12px;padding:14px 10px;text-align:center;overflow:hidden}
@@ -3246,6 +3264,8 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     <div style="font-size:10px;color:rgba(255,255,255,.3);margin-top:2px" id="profile-joindate"></div>
   </div>
 
+  <div class="profile-grid">
+  <div>
   <!-- CONSISTENCY HEATMAP -->
   <div class="card" style="margin-bottom:14px">
     <div class="ch"><span class="ct">Consistency</span></div>
@@ -3281,27 +3301,6 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     <div style="font-size:10.5px;color:var(--muted);margin-top:8px" id="training-time-insight"></div>
   </div>
 
-  <!-- STATUE CENTERPIECE — larger version of the dashboard statue -->
-  <div class="card" style="margin-bottom:14px">
-    <div class="statue-stage" style="width:320px;padding-top:28px">
-      <div class="statue-spotlight" style="width:480px;height:320px"></div>
-      <div class="statue-figure" style="width:270px;height:517px">
-        <div class="statue-metal-base"></div>
-        <div class="statue-metal-fill" id="profile-statue-fill"></div>
-        <div class="statue-vignette"></div>
-      </div>
-      <div class="statue-medal-badge" id="profile-medal" style="top:8px"></div>
-      <div class="statue-pedestal" style="width:260px">
-        <div class="pedestal-cap"></div>
-        <div class="pedestal-body">
-          <div class="plaque-name" id="profile-plaque-name" style="font-size:13px">ATHLETE</div>
-          <div class="plaque-rank" id="profile-plaque-rank" style="font-size:10px">BRONZE LIFTER</div>
-        </div>
-      </div>
-    </div>
-    <div style="text-align:center;margin-top:14px;font-size:11px;font-weight:700;color:var(--green)" id="profile-pct">0% cast</div>
-  </div>
-
   <!-- LIFETIME STATS PLAQUE -->
   <div class="card" style="margin-bottom:14px">
     <div class="ch"><span class="ct">Lifetime Record</span></div>
@@ -3325,6 +3324,29 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       </div>
     </div>
   </div>
+  </div>
+
+  <div>
+  <!-- STATUE CENTERPIECE — larger version of the dashboard statue -->
+  <div class="card" style="margin-bottom:14px">
+    <div class="statue-stage" style="width:320px;padding-top:28px">
+      <div class="statue-spotlight" style="width:480px;height:320px"></div>
+      <div class="statue-figure" style="width:270px;height:517px">
+        <div class="statue-metal-base"></div>
+        <div class="statue-metal-fill" id="profile-statue-fill"></div>
+        <div class="statue-vignette"></div>
+      </div>
+      <div class="statue-medal-badge" id="profile-medal" style="top:8px"></div>
+      <div class="statue-pedestal" style="width:260px">
+        <div class="pedestal-cap"></div>
+        <div class="pedestal-body">
+          <div class="plaque-name" id="profile-plaque-name" style="font-size:13px">ATHLETE</div>
+          <div class="plaque-rank" id="profile-plaque-rank" style="font-size:10px">BRONZE LIFTER</div>
+        </div>
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:14px;font-size:11px;font-weight:700;color:var(--green)" id="profile-pct">0% cast</div>
+  </div>
 
   <!-- HALL OF STATUES -->
   <div class="card" style="margin-bottom:14px">
@@ -3337,6 +3359,8 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
   <div class="card" style="margin-bottom:14px">
     <div class="ch"><span class="ct">Trophy Road</span></div>
     <div id="trophy-road" style="max-height:380px;overflow-y:auto;padding-right:4px"></div>
+  </div>
+  </div>
   </div>
 
   <!-- COMPARE WITH OTHERS -->
@@ -3427,7 +3451,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     <p>If this policy changes, the "Last updated" date above will change too. Continued use of the app after changes means you accept the updated policy.</p>
 
     <h4>Contact</h4>
-    <p>Questions about this policy: <em>[add your contact email here before real release]</em></p>
+    <p>Questions about this policy: <em>areviaxsupport@gmail.com</em></p>
   </div>
 
   <div id="legal-terms" class="card legal-doc" style="display:none">
@@ -3484,6 +3508,8 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
 <!-- SETTINGS -->
 <div class="page" id="page-settings">
 
+  <div class="settings-grid">
+  <div>
   <div class="card" style="margin-bottom:14px">
     <div class="ch"><span class="ct">Your Details</span></div>
     <label class="lbl" style="margin-top:0">Name</label>
@@ -3513,7 +3539,9 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     </div>
     <div style="font-size:10.5px;color:var(--muted);margin-top:6px;line-height:1.5">Early — most cards still look right in dark mode while light mode catches up card by card.</div>
   </div>
+  </div>
 
+  <div>
   <div class="card" style="margin-bottom:14px">
     <div class="ch"><span class="ct">Goal & Training</span></div>
     <label class="lbl" style="margin-top:0">Goal</label>
@@ -3545,6 +3573,8 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
 
   <div class="card" style="margin-bottom:14px">
     <div id="settings-preview" style="font-size:12px;color:var(--muted);line-height:1.7"></div>
+  </div>
+  </div>
   </div>
 
   <button class="btn btn-g" style="width:100%;justify-content:center" onclick="saveSettings()">Save Changes</button>
