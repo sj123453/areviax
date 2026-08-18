@@ -2039,6 +2039,24 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        buried mid-scroll between the food-cards and Feeder Quest. -->
   <div class="companion" style="margin-bottom:14px"><div class="companion-msg" id="nutr-companion">Nutrition is 80% of this. Track it for 2 weeks before changing anything else.</div></div>
 
+  <!-- QUICK ACTIONS — a prominent two-button logging row above the fold:
+       Log Meal (real, opens the Smart Log/Manual Entry accordion below)
+       and AI Vision Scan. The scan button is intentionally NOT wired to
+       any real camera/vision pipeline — this app has no such backend —
+       so it's a clearly-labelled "Soon" stub that explains the honest
+       alternative (Smart Log) rather than faking a scan result. -->
+  <div style="display:flex;gap:10px;margin-bottom:14px">
+    <button onclick="openLogFood()" style="flex:1;display:flex;align-items:center;justify-content:center;gap:8px;background:linear-gradient(135deg,#FF5A00,#FF7A2E);border:none;border-radius:11px;padding:13px;color:#2B0E00;font-family:'Outfit',sans-serif;font-size:12px;font-weight:900;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;box-shadow:0 10px 24px -10px rgba(255,90,0,.5)">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#2B0E00" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/></svg>
+      Log Meal
+    </button>
+    <button onclick="openAiVisionScan()" style="flex:1;position:relative;display:flex;align-items:center;justify-content:center;gap:8px;background:rgba(68,207,255,.08);border:1.5px solid rgba(68,207,255,.3);border-radius:11px;padding:13px;color:#44CFFF;font-family:'Outfit',sans-serif;font-size:12px;font-weight:900;letter-spacing:.04em;text-transform:uppercase;cursor:pointer">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#44CFFF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+      AI Vision Scan
+      <span style="position:absolute;top:-7px;right:-7px;background:#44CFFF;color:#04121A;font-size:8px;font-weight:900;letter-spacing:.04em;padding:2px 6px;border-radius:8px;box-shadow:0 0 10px rgba(68,207,255,.6)">SOON</span>
+    </button>
+  </div>
+
   <!-- AT-A-GLANCE DASHBOARD — Shield/Feeder Quest/Macros in one column,
        Shake/food-grid in the other, so the whole glanceable summary fits on
        one screen like the reference layout. Log Food/Meal Plan (full tools,
@@ -2577,6 +2595,17 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
         <div class="em-item"><div class="em-body"><div class="em-food">Caffeine cutoff</div><div class="em-cals">None after 2pm — protect tonight's sleep</div></div></div>
       </div>
     </div>
+  </div>
+
+  <!-- SLEEP ARCHITECTURE — deliberately locked, not wired to any real data.
+       A REM/DEEP/LIGHT breakdown needs wearable sensor input this app has
+       no way to collect; showing fabricated cycle diagrams here would be
+       exactly the kind of fake capability we don't do. Sits as a visible
+       "Soon" stub instead, next to the real Sleep tile above it. -->
+    <div class="acc-header tile" onclick="lockedFeatureToast('Sleep Architecture')" style="opacity:.55;cursor:not-allowed;position:relative">
+    <div class="acc-tile-icon">🌙</div>
+    <div style="flex:1;min-width:0"><div class="acc-header-title">Sleep Architecture</div><div class="acc-header-sub">REM / Deep / Light breakdown</div></div>
+    <span style="background:rgba(142,142,147,.18);color:rgba(238,240,255,.6);font-size:8px;font-weight:900;letter-spacing:.06em;padding:3px 7px;border-radius:8px;flex-shrink:0">SOON</span>
   </div>
 
   <!-- SLEEP SOUNDS — generated live with Web Audio, so it loops indefinitely with zero file size -->
@@ -11758,6 +11787,18 @@ function renderWaterRow(){
     <div style="display:flex;gap:5px;flex-wrap:wrap">${glasses}${over>0?`<div style="font-size:10px;color:#44CFFF;align-self:center;margin-left:4px">+${over} extra</div>`:''}</div>`;
 }
 function logNutrition(){showPage('nutrition')}
+function openLogFood(){
+  const header=document.querySelector('.acc-header[onclick*="acc-logfood"]');
+  const body=document.getElementById('acc-logfood');
+  if(header&&body&&!body.classList.contains('open'))toggleAccordion('acc-logfood',header);
+  if(body)body.scrollIntoView({behavior:'smooth',block:'start'});
+}
+function openAiVisionScan(){
+  toast('📷','AI Vision Scan is coming soon — for now, Smart Log estimates macros from a text description in seconds.');
+}
+function lockedFeatureToast(name){
+  toast('🔒',name+' needs real wearable/sensor data we don\'t have yet — coming once that\'s possible to do honestly.');
+}
 
 // ── QUICK ACTIONS ──
 function missedSession(){
