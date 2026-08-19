@@ -506,6 +506,46 @@ input,input:focus,input:active,
   .dash-grid{grid-template-columns:1.4fr 1fr;align-items:start;
     grid-template-areas:"greeting overview" "today overview" "today quote"}
 }
+/* DESKTOP DASHBOARD SCALE-UP — the dashboard's cards were sized tight
+   enough to fit one mobile screen without scrolling (see .dash-grid's
+   comment), which left a laptop window mostly empty below the fold once
+   stretched across the same compact cards. Desktop doesn't have that
+   one-screen constraint, so past 900px this bumps up type, icon/ring
+   size, and padding on the same cards/data instead of just widening
+   them — reads as a deliberately bigger desktop composition rather than
+   a stretched phone layout. All !important since every value below is
+   overriding an inline style (mobile keeps those inline defaults
+   untouched). Chart/graph work on this page is separate, tracked
+   independently. */
+@media(min-width:900px){
+  #page-dashboard{max-width:1320px}
+  .dash-grid{gap:16px!important}
+  .dash-greeting-inner,.dash-today-inner{padding:20px 26px!important;border-radius:18px!important}
+  .dash-avatar{width:56px!important;height:56px!important}
+  .dash-avatar svg{width:26px!important;height:26px!important}
+  .dash-greeting-text{font-size:24px!important}
+  .dash-greeting-date{font-size:13px!important}
+  .dash-today-label{font-size:11px!important;margin-bottom:6px!important}
+  .dash-today-name{font-size:24px!important}
+  .dash-start-btn{padding:15px 28px!important;font-size:13px!important;border-radius:11px!important}
+  .dash-vol-label{font-size:10px!important}
+  .dash-vol-total{font-size:12px!important}
+  .dash-wp-chart{height:64px!important}
+  #acc-progress{padding:22px 26px!important;border-radius:18px!important}
+  .dash-overview-label{font-size:11px!important;margin-bottom:16px!important}
+  .dash-ring-grid{gap:14px!important;margin-bottom:18px!important}
+  .dash-ring-box{padding:16px 8px!important;border-radius:16px!important}
+  .dash-ring-svg{width:104px!important;height:104px!important}
+  .dash-ring-cat{font-size:10.5px!important;margin-top:6px!important}
+  .dash-nutri-bar-row{margin-bottom:12px!important}
+  .nutri-bar-label{width:60px!important;font-size:11px!important}
+  .nutri-bar-track{height:9px!important;border-radius:5px!important}
+  .dash-quote-inner{padding:22px 26px!important;border-radius:18px!important}
+  .dash-quote-mark{font-size:56px!important;top:0!important;left:16px!important}
+  .dash-quote-label{font-size:10.5px!important;margin-bottom:8px!important}
+  .dash-quote-text{font-size:18px!important;margin-bottom:10px!important;-webkit-line-clamp:3!important}
+  .dash-quote-attrib{font-size:12px!important;margin-bottom:14px!important}
+}
 
 /* DASHBOARD HEADER ROW — compact avatar + greeting + date, replacing the
    old oversized standalone name block so the primary content (today's
@@ -1740,17 +1780,17 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        so real content starts higher on the screen. Streak/XP already
        live permanently in the app's own topbar, so they aren't repeated
        here. -->
-  <div style="background:linear-gradient(135deg,rgba(255,90,0,.06),rgba(255,255,255,.01));border:1px solid rgba(255,90,0,.08);border-radius:14px;padding:9px 14px;height:100%;box-sizing:border-box">
+  <div class="dash-greeting-inner" style="background:linear-gradient(135deg,rgba(255,90,0,.06),rgba(255,255,255,.01));border:1px solid rgba(255,90,0,.08);border-radius:14px;padding:9px 14px;height:100%;box-sizing:border-box">
     <div class="dash-header-row">
       <div class="dash-avatar">
         <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="rgba(238,240,255,.45)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.5 4-7 8-7s8 2.5 8 7"/></svg>
       </div>
       <div style="flex:1;min-width:0">
-        <div style="font-size:14px;font-weight:900;color:var(--white);letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+        <div class="dash-greeting-text" style="font-size:14px;font-weight:900;color:var(--white);letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
           <span id="dash-greeting" style="color:rgba(255,122,46,.9)">Good morning</span>, <span id="dash-name">Athlete</span>!
         </div>
       </div>
-      <div style="font-size:9.5px;color:var(--muted);flex-shrink:0;text-align:right" id="dash-date"></div>
+      <div class="dash-greeting-date" style="font-size:9.5px;color:var(--muted);flex-shrink:0;text-align:right" id="dash-date"></div>
     </div>
   </div>
   </div>
@@ -1762,21 +1802,21 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        real tonnageLog line-chart data as before, just shrunk. View
        Workouts dropped — it pointed at the exact same page as Start
        already does, so it was a duplicate button, not lost functionality. -->
-  <div style="background:linear-gradient(160deg,rgba(255,90,0,.09),rgba(11,11,11,.9));border:1.5px solid rgba(255,90,0,.3);border-radius:14px;padding:11px 14px;box-shadow:0 0 24px -16px rgba(255,90,0,.35)">
+  <div class="dash-today-inner" style="background:linear-gradient(160deg,rgba(255,90,0,.09),rgba(11,11,11,.9));border:1.5px solid rgba(255,90,0,.3);border-radius:14px;padding:11px 14px;box-shadow:0 0 24px -16px rgba(255,90,0,.35)">
     <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
       <div style="min-width:0">
-        <div style="font-size:8px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,90,0,.55);margin-bottom:2px">Today</div>
-        <div style="font-size:14px;font-weight:900;color:var(--white);line-height:1.2;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="d-next-full">Push Upper — Day 1</div>
+        <div class="dash-today-label" style="font-size:8px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,90,0,.55);margin-bottom:2px">Today</div>
+        <div class="dash-today-name" style="font-size:14px;font-weight:900;color:var(--white);line-height:1.2;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="d-next-full">Push Upper — Day 1</div>
       </div>
-      <button onclick="showPage('workout')" style="flex-shrink:0;background:linear-gradient(135deg,#FF5A00,#FF7A2E);border:none;border-radius:9px;padding:9px 16px;color:#2B0E00;font-family:'Outfit',sans-serif;font-size:11px;font-weight:900;letter-spacing:.03em;text-transform:uppercase;cursor:pointer;box-shadow:0 8px 18px -8px rgba(255,90,0,.5);white-space:nowrap">▶ Start</button>
+      <button class="dash-start-btn" onclick="showPage('workout')" style="flex-shrink:0;background:linear-gradient(135deg,#FF5A00,#FF7A2E);border:none;border-radius:9px;padding:9px 16px;color:#2B0E00;font-family:'Outfit',sans-serif;font-size:11px;font-weight:900;letter-spacing:.03em;text-transform:uppercase;cursor:pointer;box-shadow:0 8px 18px -8px rgba(255,90,0,.5);white-space:nowrap">▶ Start</button>
     </div>
     <div id="vol-daily-card" style="display:none;margin-top:7px;padding-top:7px;border-top:1px solid rgba(255,255,255,.08)">
       <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:2px">
-        <span style="font-size:7.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:rgba(238,240,255,.35)">This week's volume</span>
-        <div style="font-size:9px;font-weight:800;color:var(--muted)" id="vol-daily-total"></div>
+        <span class="dash-vol-label" style="font-size:7.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:rgba(238,240,255,.35)">This week's volume</span>
+        <div class="dash-vol-total" style="font-size:9px;font-weight:800;color:var(--muted)" id="vol-daily-total"></div>
       </div>
       <div class="wp-chart-wrap">
-        <svg viewBox="0 0 280 100" preserveAspectRatio="none" style="width:100%;height:36px;display:block">
+        <svg viewBox="0 0 280 100" preserveAspectRatio="none" style="width:100%;height:36px;display:block" class="dash-wp-chart">
           <polyline id="wp-avg-line" fill="none" stroke="#44CFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity=".8" vector-effect="non-scaling-stroke" points=""/>
           <polyline id="wp-vol-line" fill="none" stroke="#FF7A2E" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke" points=""/>
           <g id="wp-dots"></g>
@@ -1798,43 +1838,43 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        nothing here is fabricated to fill a slot a real pedometer/GPS
        would need. -->
   <div id="acc-progress" style="background:var(--panel);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:12px 14px;height:100%;box-sizing:border-box">
-  <div style="font-size:9px;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:rgba(238,240,255,.35);margin-bottom:8px">Today's Overview</div>
-  <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-bottom:9px">
-    <div style="background:rgba(255,90,0,.045);border:1px solid rgba(255,90,0,.1);border-radius:13px;padding:7px 4px;text-align:center">
-      <svg width="64" height="64" viewBox="0 0 72 72" style="display:block;margin:0 auto;max-width:100%;height:auto">
+  <div class="dash-overview-label" style="font-size:9px;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:rgba(238,240,255,.35);margin-bottom:8px">Today's Overview</div>
+  <div class="dash-ring-grid" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-bottom:9px">
+    <div class="dash-ring-box" style="background:rgba(255,90,0,.045);border:1px solid rgba(255,90,0,.1);border-radius:13px;padding:7px 4px;text-align:center">
+      <svg class="dash-ring-svg" width="64" height="64" viewBox="0 0 72 72" style="display:block;margin:0 auto;max-width:100%;height:auto">
         <circle cx="36" cy="36" r="29" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="6.5"/>
         <circle id="sess-gauge-arc" cx="36" cy="36" r="29" fill="none" stroke="url(#sessGaugeGrad)" stroke-width="6.5" stroke-linecap="round" transform="rotate(-90 36 36)" stroke-dasharray="182.2" stroke-dashoffset="182.2" style="transition:stroke-dashoffset .6s cubic-bezier(.16,1,.3,1)"/>
         <defs><linearGradient id="sessGaugeGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#FF7A2E"/><stop offset="100%" stop-color="#FF5A00"/></linearGradient></defs>
         <text x="36" y="40" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-weight="700" font-size="13" fill="#fff" id="d-sessions-brief">0/0</text>
       </svg>
-      <div style="font-size:7px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,122,46,.65);margin-top:2px">Sessions</div>
+      <div class="dash-ring-cat" style="font-size:7px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,122,46,.65);margin-top:2px">Sessions</div>
     </div>
-    <div style="background:rgba(255,90,0,.045);border:1px solid rgba(255,90,0,.1);border-radius:13px;padding:7px 4px;text-align:center">
-      <svg width="64" height="64" viewBox="0 0 72 72" style="display:block;margin:0 auto;max-width:100%;height:auto">
+    <div class="dash-ring-box" style="background:rgba(255,90,0,.045);border:1px solid rgba(255,90,0,.1);border-radius:13px;padding:7px 4px;text-align:center">
+      <svg class="dash-ring-svg" width="64" height="64" viewBox="0 0 72 72" style="display:block;margin:0 auto;max-width:100%;height:auto">
         <circle cx="36" cy="36" r="29" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="6.5"/>
         <circle id="d-cals-ring" cx="36" cy="36" r="29" fill="none" stroke="url(#dCalsGrad)" stroke-width="6.5" stroke-linecap="round" transform="rotate(-90 36 36)" stroke-dasharray="182.2" stroke-dashoffset="182.2" style="transition:stroke-dashoffset .5s cubic-bezier(.16,1,.3,1)"/>
         <defs><linearGradient id="dCalsGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#FF8C47"/><stop offset="100%" stop-color="#FF5A00"/></linearGradient></defs>
         <text x="36" y="33" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-weight="700" font-size="12" fill="#fff" id="d-cals-brief">0</text>
         <text x="36" y="46" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="7.5" fill="rgba(238,240,255,.55)">/ <tspan id="d-cals-target">—</tspan></text>
       </svg>
-      <div style="font-size:7px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,122,46,.65);margin-top:2px">Calories</div>
+      <div class="dash-ring-cat" style="font-size:7px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,122,46,.65);margin-top:2px">Calories</div>
     </div>
-    <div style="background:rgba(68,212,255,.045);border:1px solid rgba(68,212,255,.1);border-radius:13px;padding:7px 4px;text-align:center">
-      <svg width="64" height="64" viewBox="0 0 72 72" style="display:block;margin:0 auto;max-width:100%;height:auto">
+    <div class="dash-ring-box" style="background:rgba(68,212,255,.045);border:1px solid rgba(68,212,255,.1);border-radius:13px;padding:7px 4px;text-align:center">
+      <svg class="dash-ring-svg" width="64" height="64" viewBox="0 0 72 72" style="display:block;margin:0 auto;max-width:100%;height:auto">
         <circle cx="36" cy="36" r="29" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="6.5"/>
         <circle id="d-protein-ring" cx="36" cy="36" r="29" fill="none" stroke="url(#dProtGrad)" stroke-width="6.5" stroke-linecap="round" transform="rotate(-90 36 36)" stroke-dasharray="182.2" stroke-dashoffset="182.2" style="transition:stroke-dashoffset .5s cubic-bezier(.16,1,.3,1)"/>
         <defs><linearGradient id="dProtGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#8fe6ff"/><stop offset="100%" stop-color="#44CFFF"/></linearGradient></defs>
         <text x="36" y="33" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-weight="700" font-size="12" fill="#fff" id="d-protein-brief">0g</text>
         <text x="36" y="46" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="7.5" fill="rgba(238,240,255,.55)">/ <tspan id="d-protein-target">—</tspan></text>
       </svg>
-      <div style="font-size:7px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(68,212,255,.75);margin-top:2px">Protein</div>
+      <div class="dash-ring-cat" style="font-size:7px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(68,212,255,.75);margin-top:2px">Protein</div>
     </div>
   </div>
-  <div class="nutri-bar-row">
+  <div class="nutri-bar-row dash-nutri-bar-row">
     <div class="nutri-bar-label">Carbs</div>
     <div class="nutri-bar-track"><div class="nutri-bar-fill" id="dn-carbs-fill" style="width:0%;background:linear-gradient(90deg,#8fe6ff,#44CFFF)"></div></div>
   </div>
-  <div class="nutri-bar-row" style="margin-bottom:0">
+  <div class="nutri-bar-row dash-nutri-bar-row" style="margin-bottom:0">
     <div class="nutri-bar-label">Fat</div>
     <div class="nutri-bar-track"><div class="nutri-bar-fill" id="dn-fats-fill" style="width:0%;background:linear-gradient(90deg,#FFD24A,#FF9A2E)"></div></div>
   </div>
@@ -1859,15 +1899,15 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        scrolling. Recent Activity removed per request — sessionHistory
        still drives the Workout Builder's reload list, just no longer
        duplicated as a dashboard feed. -->
-  <div style="background:linear-gradient(135deg,rgba(255,90,0,.05),rgba(255,255,255,.012));border:1px solid rgba(255,90,0,.12);border-radius:16px;padding:10px 14px;position:relative;overflow:hidden;height:100%;box-sizing:border-box">
-    <div style="position:absolute;top:-2px;left:10px;font-size:36px;font-family:Georgia,serif;color:rgba(255,90,0,.14);line-height:1;pointer-events:none">&ldquo;</div>
-    <div style="font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,122,46,.7);margin-bottom:5px;font-weight:700;position:relative">Today's Perspective</div>
-    <div style="font-size:12.5px;color:var(--white);line-height:1.35;font-style:italic;font-weight:600;margin-bottom:4px;position:relative;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden" id="dash-quote-text">—</div>
-    <div style="font-size:9.5px;color:rgba(255,122,46,.8);font-weight:700;position:relative;margin-bottom:7px">— Areviax</div>
+  <div class="dash-quote-inner" style="background:linear-gradient(135deg,rgba(255,90,0,.05),rgba(255,255,255,.012));border:1px solid rgba(255,90,0,.12);border-radius:16px;padding:10px 14px;position:relative;overflow:hidden;height:100%;box-sizing:border-box">
+    <div class="dash-quote-mark" style="position:absolute;top:-2px;left:10px;font-size:36px;font-family:Georgia,serif;color:rgba(255,90,0,.14);line-height:1;pointer-events:none">&ldquo;</div>
+    <div class="dash-quote-label" style="font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,122,46,.7);margin-bottom:5px;font-weight:700;position:relative">Today's Perspective</div>
+    <div class="dash-quote-text" style="font-size:12.5px;color:var(--white);line-height:1.35;font-style:italic;font-weight:600;margin-bottom:4px;position:relative;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden" id="dash-quote-text">—</div>
+    <div class="dash-quote-attrib" style="font-size:9.5px;color:rgba(255,122,46,.8);font-weight:700;position:relative;margin-bottom:7px">— Areviax</div>
     <div id="assessment-card" onclick="viewAssessment()" style="cursor:pointer;position:relative;border-top:1px solid rgba(68,212,255,.14);padding-top:7px">
       <div id="assessment-new-badge" style="position:absolute;top:7px;right:0;width:8px;height:8px;border-radius:50%;background:#44CFFF;box-shadow:0 0 8px rgba(68,212,255,.7)"></div>
-      <div style="font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;color:rgba(68,212,255,.75);margin-bottom:4px;font-weight:700">This Week's Assessment</div>
-      <div style="font-size:11px;color:rgba(238,240,255,.85);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden" id="assessment-text">—</div>
+      <div class="dash-quote-label" style="font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;color:rgba(68,212,255,.75);margin-bottom:4px;font-weight:700">This Week's Assessment</div>
+      <div class="dash-quote-text" style="font-size:11px;color:rgba(238,240,255,.85);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden" id="assessment-text">—</div>
     </div>
   </div>
   </div>
@@ -9813,6 +9853,414 @@ const RECIPES_DB=[
     ingredients:['30g mixed nuts and dried fruit','2 rice cakes','30g beef jerky'],
     steps:['No prep needed — portion the trail mix and jerky, and eat alongside the rice cakes.'],
     why:'The jerky is what makes this one work — same grab-and-go convenience, but now with a real protein source instead of just nuts and dried fruit carrying the whole snack.'},
+
+  // — Extended set (100 recipes, user-supplied) — Breakfast/Lunch/Dinner
+  // as-is; Shake/Mini Snack/Pudding categories folded into 'snack' since
+  // the Meal Plan generator only understands the 4 canonical slot types.
+  // carbs/fats weren't in the source data — estimated from cals/protein
+  // using a per-category macro-split heuristic (see gen_recipes.py),
+  // same approach already used for quick-add food estimates elsewhere.
+  // effort inferred from whether the instructions call for real cooking.
+  {name:'Mega Peanut Butter Oats',type:'breakfast',cals:780,prot:42,carbs:84,fats:31,effort:'some-effort',
+    ingredients:['100g oats','2 tbsp peanut butter','1 scoop whey','300ml whole milk','1 banana'],
+    steps:['Boil oats in milk.','Stir in whey and peanut butter.','Top with sliced banana.'],
+    why:'A 42g-protein breakfast that\'s simple enough to make on a rushed morning.'},
+  {name:'Steak and Avocado Eggs',type:'breakfast',cals:690,prot:52,carbs:66,fats:24,effort:'quick',
+    ingredients:['150g lean steak','3 whole eggs','1/2 avocado','spinach'],
+    steps:['Pan-sear steak and scramble eggs.','Serve with sliced avocado and wilted spinach.'],
+    why:'Gets real protein and calories in early, so the rest of the day isn\'t playing catch-up.'},
+  {name:'Triple Cheese Omelette',type:'breakfast',cals:650,prot:44,carbs:65,fats:24,effort:'quick',
+    ingredients:['4 whole eggs','30g cheddar','30g mozzarella','2 slices whole-wheat toast'],
+    steps:['Whisk eggs, cook in a pan, add cheeses, fold.','Serve with toasted bread.'],
+    why:'Straightforward ingredients, 650 kcal, and enough protein to actually count toward the day\'s target.'},
+  {name:'Berry Almond Yogurt Power Bowl',type:'breakfast',cals:620,prot:35,carbs:66,fats:24,effort:'no-cook',
+    ingredients:['300g 5% Greek yogurt','50g granola','20g honey','30g almonds','berries'],
+    steps:['Layer yogurt, granola, almonds, and berries in a bowl.','Drizzle with honey.'],
+    why:'A 35g-protein breakfast that\'s simple enough to make on a rushed morning.'},
+  {name:'Loaded Breakfast Burrito',type:'breakfast',cals:710,prot:38,carbs:77,fats:28,effort:'some-effort',
+    ingredients:['2 large tortillas','3 scrambled eggs','50g black beans','30g cheese','salsa'],
+    steps:['Scramble eggs with beans.','Wrap in tortillas with cheese and salsa.','Toast.'],
+    why:'Gets real protein and calories in early, so the rest of the day isn\'t playing catch-up.'},
+  {name:'Salmon and Cream Cheese Bagel',type:'breakfast',cals:540,prot:35,carbs:55,fats:20,effort:'quick',
+    ingredients:['1 wholemeal bagel','100g smoked salmon','30g cream cheese','capers'],
+    steps:['Toast bagel.','Spread cream cheese, layer salmon, top with capers.'],
+    why:'Straightforward ingredients, 540 kcal, and enough protein to actually count toward the day\'s target.'},
+  {name:'Classic Protein Pancakes',type:'breakfast',cals:580,prot:40,carbs:58,fats:21,effort:'some-effort',
+    ingredients:['1 banana','2 eggs','1 scoop whey','50g oat flour','10ml maple syrup'],
+    steps:['Blend ingredients.','Fry pancakes in a pan.','Top with maple syrup.'],
+    why:'A 40g-protein breakfast that\'s simple enough to make on a rushed morning.'},
+  {name:'Almond Butter Honey Toast',type:'breakfast',cals:640,prot:18,carbs:78,fats:28,effort:'quick',
+    ingredients:['3 slices thick wholemeal bread','3 tbsp almond butter','1 tbsp honey'],
+    steps:['Toast bread.','Spread almond butter evenly and drizzle with honey.'],
+    why:'Gets real protein and calories in early, so the rest of the day isn\'t playing catch-up.'},
+  {name:'Cottage Cheese Fruit Toast',type:'breakfast',cals:510,prot:32,carbs:53,fats:19,effort:'quick',
+    ingredients:['2 slices sourdough','200g cottage cheese','1 sliced peach','10g walnuts'],
+    steps:['Toast sourdough.','Spread cottage cheese, top with peach slices and walnuts.'],
+    why:'Straightforward ingredients, 510 kcal, and enough protein to actually count toward the day\'s target.'},
+  {name:'Turkey Bacon Egg Cups',type:'breakfast',cals:420,prot:36,carbs:38,fats:14,effort:'quick',
+    ingredients:['4 slices turkey bacon','4 whole eggs','20g spinach'],
+    steps:['Line muffin tins with bacon, crack an egg inside with spinach, bake at 200C.'],
+    why:'A 36g-protein breakfast that\'s simple enough to make on a rushed morning.'},
+  {name:'Mass Gainer Oatmeal Bake',type:'breakfast',cals:590,prot:38,carbs:60,fats:22,effort:'quick',
+    ingredients:['80g oats','1 scoop protein','1 egg','100ml almond milk','15g dark chocolate'],
+    steps:['Mix all ingredients in a dish.','Bake at 180C for 20 minutes.'],
+    why:'Gets real protein and calories in early, so the rest of the day isn\'t playing catch-up.'},
+  {name:'Mediterranean Scramble',type:'breakfast',cals:480,prot:26,carbs:52,fats:19,effort:'quick',
+    ingredients:['3 whole eggs','50g feta cheese','5 chopped olives','1 diced tomato'],
+    steps:['Scramble eggs with tomatoes and olives.','Stir in feta cheese at the end.'],
+    why:'Straightforward ingredients, 480 kcal, and enough protein to actually count toward the day\'s target.'},
+  {name:'Sweet Potato Breakfast Hash',type:'breakfast',cals:610,prot:42,carbs:61,fats:22,effort:'quick',
+    ingredients:['200g diced sweet potato','100g ground turkey','2 fried eggs'],
+    steps:['Pan-fry sweet potato and turkey until cooked.','Top with two fried eggs.'],
+    why:'A 42g-protein breakfast that\'s simple enough to make on a rushed morning.'},
+  {name:'Chia Seed Overnight Oats',type:'breakfast',cals:560,prot:39,carbs:56,fats:20,effort:'no-cook',
+    ingredients:['50g oats','2 tbsp chia seeds','250ml whole milk','1 scoop casein protein'],
+    steps:['Mix ingredients in a jar.','Leave in fridge overnight.','Eat cold.'],
+    why:'Gets real protein and calories in early, so the rest of the day isn\'t playing catch-up.'},
+  {name:'Savory Oatmeal',type:'breakfast',cals:520,prot:30,carbs:55,fats:20,effort:'quick',
+    ingredients:['80g oats cooked in chicken bone broth','2 fried eggs','1 tbsp parmesan'],
+    steps:['Cook oats in broth.','Top with fried eggs and sprinkle with parmesan.'],
+    why:'Straightforward ingredients, 520 kcal, and enough protein to actually count toward the day\'s target.'},
+  {name:'Classic Chicken Quinoa Bowl',type:'lunch',cals:750,prot:62,carbs:75,fats:22,effort:'some-effort',
+    ingredients:['200g chicken breast','100g dry quinoa','100g broccoli','1 tbsp olive oil'],
+    steps:['Cook quinoa.','Grill chicken and broccoli.','Toss together with olive oil.'],
+    why:'A 750 kcal / 62g protein midday meal built for a genuine surplus, not just filling space.'},
+  {name:'Beef Creamy Rice',type:'lunch',cals:810,prot:54,carbs:89,fats:26,effort:'quick',
+    ingredients:['200g 10% minced beef','100g jasmine rice','50g light cream cheese'],
+    steps:['Cook beef and rice.','Mix together hot with cream cheese until creamy.'],
+    why:'Solid enough to fuel an afternoon session without leaving you sluggish.'},
+  {name:'Tuna Mayo Pasta Salad',type:'lunch',cals:730,prot:44,carbs:83,fats:25,effort:'quick',
+    ingredients:['100g dry pasta','1 can drained tuna','2 tbsp olive oil mayo','sweetcorn'],
+    steps:['Boil pasta.','Cool down and mix with tuna, mayo, and sweetcorn.'],
+    why:'Cheap, repeatable, and easy to scale up in portion size when the target calls for more.'},
+  {name:'Turkey and Hummus Wrap',type:'lunch',cals:640,prot:45,carbs:69,fats:20,effort:'no-cook',
+    ingredients:['2 large wraps','150g sliced turkey breast','4 tbsp hummus','spinach'],
+    steps:['Spread hummus on wraps.','Layer turkey and spinach, roll tightly.'],
+    why:'A 640 kcal / 45g protein midday meal built for a genuine surplus, not just filling space.'},
+  {name:'Salmon Sweet Potato Mash',type:'lunch',cals:720,prot:48,carbs:79,fats:23,effort:'quick',
+    ingredients:['200g baked salmon','250g mashed sweet potato','10g butter'],
+    steps:['Mash sweet potato with butter.','Serve alongside grilled salmon fillets.'],
+    why:'Solid enough to fuel an afternoon session without leaving you sluggish.'},
+  {name:'Mexican Burrito Bowl',type:'lunch',cals:840,prot:50,carbs:96,fats:28,effort:'quick',
+    ingredients:['150g lean beef mince','100g white rice','50g black beans','30g cheese','sour cream'],
+    steps:['Layer cooked rice, seasoned beef, beans, cheese, and a dollop of sour cream.'],
+    why:'Cheap, repeatable, and easy to scale up in portion size when the target calls for more.'},
+  {name:'Shrimp Fried Rice',type:'lunch',cals:660,prot:42,carbs:74,fats:22,effort:'quick',
+    ingredients:['150g shrimp','120g jasmine rice','1 egg','peas','carrots','1 tbsp sesame oil'],
+    steps:['Stir-fry cold cooked rice with sesame oil, egg, veggies, and shrimp.'],
+    why:'A 660 kcal / 42g protein midday meal built for a genuine surplus, not just filling space.'},
+  {name:'Pesto Chicken Pasta',type:'lunch',cals:780,prot:55,carbs:84,fats:25,effort:'some-effort',
+    ingredients:['100g dry pasta','150g chicken breast','2 tbsp green pesto'],
+    steps:['Boil pasta.','Sauté chicken cubes.','Toss pasta and chicken with pesto.'],
+    why:'Solid enough to fuel an afternoon session without leaving you sluggish.'},
+  {name:'Cottage Cheese Chicken Salad',type:'lunch',cals:610,prot:65,carbs:52,fats:16,effort:'no-cook',
+    ingredients:['200g chicken breast','150g cottage cheese','diced celery','2 slices bread'],
+    steps:['Mix shredded chicken with cottage cheese and celery.','Serve on bread.'],
+    why:'Cheap, repeatable, and easy to scale up in portion size when the target calls for more.'},
+  {name:'BBQ Pulled Pork Rice Bowl',type:'lunch',cals:690,prot:46,carbs:76,fats:22,effort:'no-cook',
+    ingredients:['200g lean pulled pork','100g white rice','2 tbsp clean BBQ sauce'],
+    steps:['Serve tender pulled pork over warm rice, drizzled with BBQ sauce.'],
+    why:'A 690 kcal / 46g protein midday meal built for a genuine surplus, not just filling space.'},
+  {name:'Teriyaki Tofu Bowl',type:'lunch',cals:580,prot:28,carbs:70,fats:21,effort:'quick',
+    ingredients:['250g extra firm tofu','100g jasmine rice','100g snap peas','teriyaki sauce'],
+    steps:['Pan-fry cubed tofu until crispy.','Serve over rice with peas and sauce.'],
+    why:'Solid enough to fuel an afternoon session without leaving you sluggish.'},
+  {name:'Feta Olive Chicken Salad',type:'lunch',cals:590,prot:48,carbs:60,fats:18,effort:'quick',
+    ingredients:['180g chicken breast','50g feta','mixed greens','2 tbsp olive oil dressing'],
+    steps:['Toss greens, warm grilled chicken, crumbled feta, and olive oil.'],
+    why:'Cheap, repeatable, and easy to scale up in portion size when the target calls for more.'},
+  {name:'Lean Burger and Air-Fried Chips',type:'lunch',cals:680,prot:44,carbs:76,fats:22,effort:'some-effort',
+    ingredients:['150g lean beef patty','1 brioche bun','200g potatoes sliced into chips'],
+    steps:['Grill patty.','Air-fry potato chips with 1 tsp oil.','Assemble burger.'],
+    why:'A 680 kcal / 44g protein midday meal built for a genuine surplus, not just filling space.'},
+  {name:'Honey Mustard Chicken Wrap',type:'lunch',cals:530,prot:42,carbs:54,fats:16,effort:'quick',
+    ingredients:['1 large wrap','150g chicken breast','1 tbsp honey','1 tbsp mustard','lettuce'],
+    steps:['Mix honey and mustard.','Toss with cooked chicken, wrap with lettuce.'],
+    why:'Solid enough to fuel an afternoon session without leaving you sluggish.'},
+  {name:'Egg Salad Sandwich',type:'lunch',cals:620,prot:28,carbs:76,fats:23,effort:'no-cook',
+    ingredients:['4 hard-boiled eggs','1.5 tbsp mayo','2 thick slices sourdough bread'],
+    steps:['Mash eggs with mayo, salt, and pepper.','Sandwich between sourdough bread.'],
+    why:'Cheap, repeatable, and easy to scale up in portion size when the target calls for more.'},
+  {name:'Cod and Potato Wedges',type:'lunch',cals:550,prot:42,carbs:57,fats:17,effort:'quick',
+    ingredients:['200g cod loin','250g potato wedges','1 tbsp olive oil'],
+    steps:['Season cod and potato wedges.','Bake together at 200C for 25 minutes.'],
+    why:'A 550 kcal / 42g protein midday meal built for a genuine surplus, not just filling space.'},
+  {name:'Chili Con Carne',type:'lunch',cals:740,prot:48,carbs:82,fats:24,effort:'quick',
+    ingredients:['150g beef mince','100g kidney beans','tomato passata','80g white rice'],
+    steps:['Simmer beef, beans, and passata with chili spices.','Serve over rice.'],
+    why:'Solid enough to fuel an afternoon session without leaving you sluggish.'},
+  {name:'Peanut Chicken Noodles',type:'lunch',cals:820,prot:56,carbs:89,fats:26,effort:'no-cook',
+    ingredients:['100g egg noodles','150g chicken breast','2 tbsp peanut butter','soy sauce'],
+    steps:['Whisk peanut butter with warm water and soy sauce.','Toss with noodles and chicken.'],
+    why:'Cheap, repeatable, and easy to scale up in portion size when the target calls for more.'},
+  {name:'Sardine Rice Bowl',type:'lunch',cals:590,prot:34,carbs:68,fats:20,effort:'no-cook',
+    ingredients:['1 can sardines in olive oil','100g white rice','squeeze of lemon','spinach'],
+    steps:['Mix warm rice with whole sardines including their oil.','Add spinach.'],
+    why:'A 590 kcal / 34g protein midday meal built for a genuine surplus, not just filling space.'},
+  {name:'Greek Chicken Souvlaki Skewers',type:'lunch',cals:610,prot:50,carbs:62,fats:18,effort:'quick',
+    ingredients:['200g chicken breast cubes','1 flatbread','50g tzatziki'],
+    steps:['Grill skewered seasoned chicken.','Wrap in flatbread with tzatziki.'],
+    why:'Solid enough to fuel an afternoon session without leaving you sluggish.'},
+  {name:'Ribeye Steak Feast',type:'dinner',cals:890,prot:58,carbs:90,fats:33,effort:'quick',
+    ingredients:['250g ribeye steak','300g jacket potato','10g butter','asparagus'],
+    steps:['Pan-sear steak in butter.','Serve with baked jacket potato and asparagus.'],
+    why:'A 890 kcal / 58g protein dinner that closes out the day\'s targets properly.'},
+  {name:'Creamy Salmon Pasta',type:'dinner',cals:840,prot:46,carbs:90,fats:33,effort:'quick',
+    ingredients:['150g salmon fillet','100g dry pasta','50ml single cream','spinach'],
+    steps:['Flake cooked salmon into boiled pasta.','Stir in cream and let spinach wilt.'],
+    why:'Substantial enough to be the day\'s biggest meal without much extra effort.'},
+  {name:'Loaded Beef Lasagna',type:'dinner',cals:780,prot:42,carbs:84,fats:31,effort:'quick',
+    ingredients:['250g pre-prepared beef lasagna','extra 50g mozzarella on top'],
+    steps:['Bake lasagna with extra mozzarella sprinkled on top for extra calories.'],
+    why:'Real food, real portions — built to actually hit the numbers, not just look like a meal.'},
+  {name:'Chicken Alfredo',type:'dinner',cals:870,prot:54,carbs:90,fats:33,effort:'quick',
+    ingredients:['150g chicken breast','100g fettuccine','40g parmesan','30g butter'],
+    steps:['Cook pasta.','Toss with butter, parmesan, pasta water, and grilled chicken.'],
+    why:'A 870 kcal / 54g protein dinner that closes out the day\'s targets properly.'},
+  {name:'Turkey Meatballs and Spaghetti',type:'dinner',cals:760,prot:52,carbs:76,fats:28,effort:'some-effort',
+    ingredients:['180g turkey meatballs','100g spaghetti','marinara sauce','parmesan'],
+    steps:['Cook spaghetti.','Simmer meatballs in marinara sauce.','Combine and top with cheese.'],
+    why:'Substantial enough to be the day\'s biggest meal without much extra effort.'},
+  {name:'Slow Cooker Beef Stew',type:'dinner',cals:630,prot:48,carbs:60,fats:22,effort:'quick',
+    ingredients:['200g beef chuck cubes','150g potatoes','100g carrots','rich beef broth'],
+    steps:['Slow cook beef and vegetables in seasoned broth for 6 hours until tender.'],
+    why:'Real food, real portions — built to actually hit the numbers, not just look like a meal.'},
+  {name:'Honey Glazed Salmon Rice',type:'dinner',cals:740,prot:44,carbs:78,fats:28,effort:'quick',
+    ingredients:['180g salmon','1 tbsp honey','1 tbsp soy sauce','100g jasmine rice'],
+    steps:['Glaze salmon with honey/soy and bake.','Serve over hot jasmine rice.'],
+    why:'A 740 kcal / 44g protein dinner that closes out the day\'s targets properly.'},
+  {name:'Cheesy Chicken Rice Casserole',type:'dinner',cals:820,prot:56,carbs:82,fats:30,effort:'quick',
+    ingredients:['180g chicken breast','100g rice','50g cheddar','50ml chicken soup cream'],
+    steps:['Mix cooked chicken, rice, cream soup, and cheddar.','Bake until bubbly.'],
+    why:'Substantial enough to be the day\'s biggest meal without much extra effort.'},
+  {name:'Pork Chops with Apple Purée',type:'dinner',cals:680,prot:46,carbs:68,fats:25,effort:'quick',
+    ingredients:['200g pork chops','200g mashed potatoes','50g unsweetened apple purée'],
+    steps:['Pan-fry pork chops.','Serve alongside creamy mashed potatoes and apple purée.'],
+    why:'Real food, real portions — built to actually hit the numbers, not just look like a meal.'},
+  {name:'BBQ Chicken Pizza',type:'dinner',cals:730,prot:58,carbs:68,fats:25,effort:'quick',
+    ingredients:['1 protein pizza base','120g shredded chicken','50g mozzarella','BBQ sauce'],
+    steps:['Spread BBQ sauce on base, top with chicken and mozzarella, bake at 210C.'],
+    why:'A 730 kcal / 58g protein dinner that closes out the day\'s targets properly.'},
+  {name:'Lamb Chops and Couscous',type:'dinner',cals:790,prot:44,carbs:84,fats:31,effort:'some-effort',
+    ingredients:['200g lamb chops','80g dry couscous','10g butter','roasted zucchini'],
+    steps:['Grill lamb chops.','Prepare couscous with butter.','Serve together.'],
+    why:'Substantial enough to be the day\'s biggest meal without much extra effort.'},
+  {name:'Creamy Garlic Shrimp Pasta',type:'dinner',cals:790,prot:42,carbs:86,fats:31,effort:'quick',
+    ingredients:['150g shrimp','100g linguine','2 cloves garlic','50ml cream','10g butter'],
+    steps:['Sauté garlic and shrimp in butter, add cream, toss with cooked linguine.'],
+    why:'Real food, real portions — built to actually hit the numbers, not just look like a meal.'},
+  {name:'Chicken Katsu Curry',type:'dinner',cals:810,prot:48,carbs:85,fats:31,effort:'quick',
+    ingredients:['150g breaded chicken breast','100g white rice','100ml Japanese curry sauce'],
+    steps:['Bake breaded chicken, slice, and place over rice.','Pour warm curry sauce over.'],
+    why:'A 810 kcal / 48g protein dinner that closes out the day\'s targets properly.'},
+  {name:'Beef Stir-Fry with Udon Noodles',type:'dinner',cals:710,prot:44,carbs:73,fats:27,effort:'quick',
+    ingredients:['150g beef strips','200g fresh udon noodles','mixed stir-fry veg','dark soy'],
+    steps:['High-heat stir-fry beef and veggies.','Toss with udon noodles and soy sauce.'],
+    why:'Substantial enough to be the day\'s biggest meal without much extra effort.'},
+  {name:'Mexican Chicken Enchiladas',type:'dinner',cals:750,prot:52,carbs:75,fats:27,effort:'quick',
+    ingredients:['2 large tortillas','150g shredded chicken','tomato passata','50g cheese'],
+    steps:['Roll chicken in tortillas, top with passata and cheese, bake until golden.'],
+    why:'Real food, real portions — built to actually hit the numbers, not just look like a meal.'},
+  {name:'White Fish Piccata',type:'dinner',cals:560,prot:42,carbs:54,fats:20,effort:'quick',
+    ingredients:['200g white fish','1 tbsp butter','capers','lemon juice','250g boiled potatoes'],
+    steps:['Pan-fry fish in butter with lemon and capers.','Serve with potatoes.'],
+    why:'A 560 kcal / 42g protein dinner that closes out the day\'s targets properly.'},
+  {name:'Duck Breast with Sweet Potato',type:'dinner',cals:690,prot:36,carbs:75,fats:27,effort:'quick',
+    ingredients:['150g duck breast','250g roasted sweet potato wedges'],
+    steps:['Score duck skin, pan-sear until crispy.','Serve with sweet potato.'],
+    why:'Substantial enough to be the day\'s biggest meal without much extra effort.'},
+  {name:'Turkey Chili Rice',type:'dinner',cals:770,prot:50,carbs:78,fats:28,effort:'quick',
+    ingredients:['150g ground turkey','spiced tomato sauce','kidney beans','100g rice'],
+    steps:['Cook turkey with spices and beans in tomato sauce.','Serve over white rice.'],
+    why:'Real food, real portions — built to actually hit the numbers, not just look like a meal.'},
+  {name:'Cheesy Beef Macaroni',type:'dinner',cals:830,prot:52,carbs:86,fats:31,effort:'quick',
+    ingredients:['100g macaroni','150g beef mince','tomato paste','40g cheddar'],
+    steps:['Cook macaroni and beef mince.','Mix with tomato paste and melt cheddar inside.'],
+    why:'A 830 kcal / 52g protein dinner that closes out the day\'s targets properly.'},
+  {name:'Sesame Salmon Bowl',type:'dinner',cals:760,prot:46,carbs:79,fats:29,effort:'quick',
+    ingredients:['180g salmon fillet','100g brown rice','1 tbsp sesame seeds','edamame'],
+    steps:['Bake salmon with sesame oil and seeds.','Serve over warm brown rice.'],
+    why:'Substantial enough to be the day\'s biggest meal without much extra effort.'},
+  {name:'1000 Calorie Monster Shake',type:'snack',cals:1050,prot:68,carbs:132,fats:28,effort:'no-cook',
+    ingredients:['100g oats','2 scoops whey','2 tbsp peanut butter','400ml whole milk','1 banana'],
+    steps:['Blend all ingredients on high speed for 60 seconds until completely smooth.'],
+    why:'A fast, no-fuss way to add 1050 kcal and 68g protein when solid food isn\'t practical.'},
+  {name:'Berry Cream Mass',type:'snack',cals:480,prot:42,carbs:53,fats:11,effort:'no-cook',
+    ingredients:['150g frozen berries','1 scoop vanilla whey','200ml whole milk','100g Greek yogurt'],
+    steps:['Blend berries, whey, milk, and yogurt together for a refreshing high-protein shake.'],
+    why:'Blend-and-go — useful for closing a calorie gap late in the day with minimal effort.'},
+  {name:'Chocolate Avocado Silk',type:'snack',cals:540,prot:32,carbs:70,fats:15,effort:'no-cook',
+    ingredients:['1/2 avocado','1 scoop chocolate whey','300ml milk','1 tbsp honey'],
+    steps:['Blend avocado, chocolate protein, milk, and honey until silky smooth.'],
+    why:'Liquid calories are still calories — this one carries real protein alongside them, not just sugar.'},
+  {name:'Almond Joy Shake',type:'snack',cals:610,prot:36,carbs:79,fats:17,effort:'no-cook',
+    ingredients:['1 scoop chocolate whey','2 tbsp almond butter','20g shredded coconut','300ml milk'],
+    steps:['Blend together for a candy-bar flavored calorie-dense shake.'],
+    why:'A fast, no-fuss way to add 610 kcal and 36g protein when solid food isn\'t practical.'},
+  {name:'Coffee Booster Shake',type:'snack',cals:490,prot:35,carbs:60,fats:12,effort:'no-cook',
+    ingredients:['1 chilled espresso shot','1 scoop vanilla whey','50g oats','300ml whole milk'],
+    steps:['Blend cold coffee with oats, protein, and milk for a morning boost.'],
+    why:'Blend-and-go — useful for closing a calorie gap late in the day with minimal effort.'},
+  {name:'Tropical Weight Gainer',type:'snack',cals:510,prot:28,carbs:68,fats:14,effort:'no-cook',
+    ingredients:['100g frozen mango','50g pineapple','1 scoop whey','200ml coconut milk','1 tbsp honey'],
+    steps:['Blend tropical fruits with whey, coconut milk, and honey.'],
+    why:'Liquid calories are still calories — this one carries real protein alongside them, not just sugar.'},
+  {name:'Cinnamon Oat Crunch',type:'snack',cals:530,prot:36,carbs:66,fats:14,effort:'no-cook',
+    ingredients:['60g oats','1 scoop vanilla whey','1/2 tsp cinnamon','300ml whole milk'],
+    steps:['Blend until smooth.','Sprinkle a tiny bit of extra cinnamon on top.'],
+    why:'A fast, no-fuss way to add 530 kcal and 36g protein when solid food isn\'t practical.'},
+  {name:'Nutella Protein Dream',type:'snack',cals:620,prot:34,carbs:82,fats:17,effort:'no-cook',
+    ingredients:['2 tbsp Nutella','1 scoop whey protein','300ml whole milk'],
+    steps:['Blend Nutella, milk, and whey protein for an ultra-rich calorie kick.'],
+    why:'Blend-and-go — useful for closing a calorie gap late in the day with minimal effort.'},
+  {name:'Banana Nut Builder',type:'snack',cals:680,prot:38,carbs:90,fats:19,effort:'no-cook',
+    ingredients:['2 bananas','2 tbsp walnuts','1 scoop whey','300ml soy milk'],
+    steps:['Blend bananas, rich walnuts, protein powder, and soy milk together.'],
+    why:'Liquid calories are still calories — this one carries real protein alongside them, not just sugar.'},
+  {name:'Peanut Butter Jelly Shake',type:'snack',cals:610,prot:39,carbs:77,fats:16,effort:'no-cook',
+    ingredients:['2 tbsp peanut butter','100g frozen strawberries','1 scoop whey','300ml milk'],
+    steps:['Taste likes a PB&J sandwich in liquid form.','Blend fully.'],
+    why:'A fast, no-fuss way to add 610 kcal and 39g protein when solid food isn\'t practical.'},
+  {name:'Double Chocolate Gainer',type:'snack',cals:740,prot:62,carbs:84,fats:17,effort:'no-cook',
+    ingredients:['2 scoops chocolate whey','1 tbsp cocoa powder','400ml whole milk','30g oats'],
+    steps:['A dense chocolate shake filled with protein and slow-digesting oats.'],
+    why:'Blend-and-go — useful for closing a calorie gap late in the day with minimal effort.'},
+  {name:'Sweet Potato Pie Shake',type:'snack',cals:460,prot:32,carbs:56,fats:12,effort:'no-cook',
+    ingredients:['100g cooked cold sweet potato','1 scoop vanilla protein','300ml milk','nutmeg'],
+    steps:['Blend sweet potato, milk, protein powder, and a pinch of nutmeg.'],
+    why:'Liquid calories are still calories — this one carries real protein alongside them, not just sugar.'},
+  {name:'Cookie Dough Shake',type:'snack',cals:560,prot:35,carbs:71,fats:15,effort:'no-cook',
+    ingredients:['40g oats','1 scoop vanilla whey','15g chocolate chips','300ml whole milk'],
+    steps:['Blend oats, whey, and milk.','Stir in chocolate chips at the very end.'],
+    why:'A fast, no-fuss way to add 560 kcal and 35g protein when solid food isn\'t practical.'},
+  {name:'Vanilla Honey Malt',type:'snack',cals:670,prot:56,carbs:76,fats:16,effort:'no-cook',
+    ingredients:['2 scoops vanilla whey','2 tbsp honey','350ml whole milk'],
+    steps:['High-glycemic simple carbs mixed with premium whey and whole milk.'],
+    why:'Blend-and-go — useful for closing a calorie gap late in the day with minimal effort.'},
+  {name:'Mint Chocolate Chip',type:'snack',cals:510,prot:32,carbs:65,fats:14,effort:'no-cook',
+    ingredients:['1 scoop chocolate whey','2 drops mint extract','15g dark chocolate chips','300ml milk'],
+    steps:['Blend whey, milk, and mint extract.','Blend chips lightly at the end for texture.'],
+    why:'Liquid calories are still calories — this one carries real protein alongside them, not just sugar.'},
+  {name:'Rice Cakes with PB & Banana',type:'snack',cals:380,prot:10,carbs:42,fats:19,effort:'no-cook',
+    ingredients:['2 white rice cakes','2 tbsp peanut butter','1/2 sliced banana'],
+    steps:['Spread peanut butter over rice cakes and top with banana slices.'],
+    why:'An easy top-up for closing out a calorie or protein gap without a full meal.'},
+  {name:'Hard-Boiled Eggs & Almonds',type:'snack',cals:390,prot:24,carbs:37,fats:16,effort:'no-cook',
+    ingredients:['3 large hard-boiled eggs','30g whole almonds'],
+    steps:['Peel eggs and enjoy alongside a handful of crunchy almonds.'],
+    why:'Grab-and-go — no prep beyond opening a wrapper or portioning it out.'},
+  {name:'Biltong / Beef Jerky Pack',type:'snack',cals:220,prot:35,carbs:10,fats:4,effort:'no-cook',
+    ingredients:['70g beef biltong or high-quality beef jerky'],
+    steps:['Eat straight from the pack for pure portable lean muscle protein.'],
+    why:'Small enough to fit anywhere in the day, but still carries real protein, not just empty calories.'},
+  {name:'Cottage Cheese & Pineapple',type:'snack',cals:280,prot:24,carbs:23,fats:10,effort:'no-cook',
+    ingredients:['200g full-fat cottage cheese','100g pineapple chunks'],
+    steps:['Mix pineapple into the cottage cheese bowl for a sweet and savory snack.'],
+    why:'An easy top-up for closing out a calorie or protein gap without a full meal.'},
+  {name:'Cheddar Cheese & Rice Crackers',type:'snack',cals:340,prot:15,carbs:35,fats:16,effort:'quick',
+    ingredients:['50g cheddar cheese blocks','10 rice crackers'],
+    steps:['Slice cheese and eat together with crispy rice crackers.'],
+    why:'Grab-and-go — no prep beyond opening a wrapper or portioning it out.'},
+  {name:'Protein Bar & Apple',type:'snack',cals:310,prot:21,carbs:28,fats:13,effort:'no-cook',
+    ingredients:['1 high-protein bar (60g)','1 medium apple'],
+    steps:['Unwrap protein bar and enjoy with a fresh apple for fiber.'],
+    why:'Small enough to fit anywhere in the day, but still carries real protein, not just empty calories.'},
+  {name:'Mixed Nuts & Raisins',type:'snack',cals:410,prot:10,carbs:46,fats:21,effort:'no-cook',
+    ingredients:['50g mixed nuts','30g raisins'],
+    steps:['Mix together in a bag for a high-calorie trail mix on the go.'],
+    why:'An easy top-up for closing out a calorie or protein gap without a full meal.'},
+  {name:'Tuna Can & Crackers',type:'snack',cals:360,prot:26,carbs:32,fats:14,effort:'no-cook',
+    ingredients:['1 pre-flavored tuna can (in sunflower oil)','6 cream crackers'],
+    steps:['Eat tuna directly from the can using crackers to scoop it up.'],
+    why:'Grab-and-go — no prep beyond opening a wrapper or portioning it out.'},
+  {name:'Hummus & Wholemeal Pitta',type:'snack',cals:330,prot:11,carbs:36,fats:16,effort:'quick',
+    ingredients:['1 wholemeal pitta bread','4 tbsp classic hummus'],
+    steps:['Toast pitta bread, slice into strips, and dip into rich hummus.'],
+    why:'Small enough to fit anywhere in the day, but still carries real protein, not just empty calories.'},
+  {name:'Pumpkin Seeds Pocket',type:'snack',cals:340,prot:18,carbs:34,fats:15,effort:'no-cook',
+    ingredients:['60g roasted pumpkin seeds (pepitas)'],
+    steps:['An excellent source of magnesium, zinc, fats, and clean calories.'],
+    why:'An easy top-up for closing out a calorie or protein gap without a full meal.'},
+  {name:'Greek Yogurt Cup',type:'snack',cals:260,prot:20,carbs:22,fats:10,effort:'no-cook',
+    ingredients:['200g 5% Greek yogurt','15g honey'],
+    steps:['Stir honey into a single-serve Greek yogurt tub.'],
+    why:'Grab-and-go — no prep beyond opening a wrapper or portioning it out.'},
+  {name:'Turkey Breast Roll-Ups',type:'snack',cals:270,prot:32,carbs:18,fats:8,effort:'no-cook',
+    ingredients:['150g deli turkey slices','2 cheese strings'],
+    steps:['Roll turkey slices around the cheese strings for a quick snack.'],
+    why:'Small enough to fit anywhere in the day, but still carries real protein, not just empty calories.'},
+  {name:'Dark Chocolate & Almonds',type:'snack',cals:310,prot:7,carbs:35,fats:16,effort:'no-cook',
+    ingredients:['30g 85% dark chocolate','20g almonds'],
+    steps:['Eat together for a clean antioxidant-rich fat and calorie boost.'],
+    why:'An easy top-up for closing out a calorie or protein gap without a full meal.'},
+  {name:'Guacamole & Tortilla Chips',type:'snack',cals:420,prot:6,carbs:50,fats:22,effort:'no-cook',
+    ingredients:['100g fresh guacamole','50g corn tortilla chips'],
+    steps:['Dip corn tortilla chips straight into fresh calorie-dense guacamole.'],
+    why:'Grab-and-go — no prep beyond opening a wrapper or portioning it out.'},
+  {name:'Edamame Pods salted',type:'snack',cals:190,prot:17,carbs:15,fats:7,effort:'no-cook',
+    ingredients:['150g steamed edamame pods','sea salt flakes'],
+    steps:['Pop edamame out of pods for a clean plant-based protein snack.'],
+    why:'Small enough to fit anywhere in the day, but still carries real protein, not just empty calories.'},
+  {name:'Protein Chia Pudding',type:'snack',cals:390,prot:32,carbs:29,fats:16,effort:'no-cook',
+    ingredients:['3 tbsp chia seeds','200ml milk','1 scoop vanilla whey','10g honey'],
+    steps:['Whisk ingredients thoroughly.','Let sit in fridge for 2 hours to thicken.'],
+    why:'A dessert-style way to bank extra calories that still carries real protein, not just sugar.'},
+  {name:'Chocolate Avocado Pudding',type:'snack',cals:430,prot:6,carbs:46,fats:25,effort:'no-cook',
+    ingredients:['1 ripe avocado','2 tbsp cocoa powder','2 tbsp maple syrup','30ml milk'],
+    steps:['Blend all ingredients until completely thick and smooth like pudding.'],
+    why:'Feels like a treat, but the macros still count toward the day\'s actual targets.'},
+  {name:'Casein Fluff Nightcap',type:'snack',cals:380,prot:42,carbs:24,fats:13,effort:'no-cook',
+    ingredients:['1.5 scoops micellar casein','150ml milk','1 tbsp peanut butter'],
+    steps:['Whisk aggressively in a bowl with a fork until fluffy.','Eat with spoon.'],
+    why:'Useful for a day that\'s behind on calories and needs something genuinely enjoyable to close the gap.'},
+  {name:'Greek Yogurt Cheesecake Pot',type:'snack',cals:410,prot:20,carbs:37,fats:20,effort:'no-cook',
+    ingredients:['150g Greek yogurt','50g light cream cheese','2 crushed digestive biscuits'],
+    steps:['Put crushed biscuits at the bottom.','Mix yogurt and cream cheese, layer on top.'],
+    why:'A dessert-style way to bank extra calories that still carries real protein, not just sugar.'},
+  {name:'Warm Berry Compote & Yogurt',type:'snack',cals:320,prot:21,carbs:27,fats:14,effort:'quick',
+    ingredients:['150g frozen berries heated up','200g Greek yogurt','10g honey'],
+    steps:['Microwave berries until juicy.','Pour hot berries over cold Greek yogurt.'],
+    why:'Feels like a treat, but the macros still count toward the day\'s actual targets.'},
+  {name:'High-Protein Rice Pudding',type:'snack',cals:580,prot:34,carbs:50,fats:27,effort:'no-cook',
+    ingredients:['1 can commercial rice pudding (400g)','1 scoop vanilla whey protein'],
+    steps:['Warm up the rice pudding, stir in whey protein until fully incorporated.'],
+    why:'Useful for a day that\'s behind on calories and needs something genuinely enjoyable to close the gap.'},
+  {name:'Peanut Butter Mud Pot',type:'snack',cals:360,prot:32,carbs:26,fats:14,effort:'no-cook',
+    ingredients:['1 scoop chocolate whey','2 tbsp peanut butter','2 tbsp milk'],
+    steps:['Mix ingredients in a mug until a thick, cake-batter sludge forms.'],
+    why:'A dessert-style way to bank extra calories that still carries real protein, not just sugar.'},
+  {name:'Banana Custard Bowl',type:'snack',cals:340,prot:8,carbs:35,fats:19,effort:'no-cook',
+    ingredients:['200ml ready-to-eat custard','1 sliced banana'],
+    steps:['Warm custard up and top with sliced sweet banana.'],
+    why:'Feels like a treat, but the macros still count toward the day\'s actual targets.'},
+  {name:'Baked Cinnamon Apples',type:'snack',cals:260,prot:3,carbs:28,fats:15,effort:'quick',
+    ingredients:['1 core apple','1 tsp cinnamon','10g butter','15g walnuts'],
+    steps:['Fill apple center with butter, cinnamon, and walnuts.','Bake at 180C for 20m.'],
+    why:'Useful for a day that\'s behind on calories and needs something genuinely enjoyable to close the gap.'},
+  {name:'Cottage Cheese Cocoa Whip',type:'snack',cals:310,prot:25,carbs:24,fats:13,effort:'no-cook',
+    ingredients:['200g cottage cheese','1 tbsp cocoa powder','2 tbsp honey'],
+    steps:['Blend cottage cheese until silky smooth, stir in cocoa and honey.'],
+    why:'A dessert-style way to bank extra calories that still carries real protein, not just sugar.'},
+  {name:'Dark Chocolate Rice Cake Stack',type:'snack',cals:390,prot:8,carbs:40,fats:22,effort:'no-cook',
+    ingredients:['2 rice cakes','40g melted dark chocolate','1 tbsp peanut butter'],
+    steps:['Spread peanut butter, cover with melted chocolate, freeze for 10 minutes.'],
+    why:'Feels like a treat, but the macros still count toward the day\'s actual targets.'},
+  {name:'Protein Mug Cake',type:'snack',cals:290,prot:30,carbs:19,fats:10,effort:'quick',
+    ingredients:['1 egg','1 scoop whey','1 tbsp cocoa','2 tbsp milk','1/2 tsp baking powder'],
+    steps:['Mix in a mug and microwave on high for 50-60 seconds.'],
+    why:'Useful for a day that\'s behind on calories and needs something genuinely enjoyable to close the gap.'},
+  {name:'Silken Tofu Chocolate Mousse',type:'snack',cals:380,prot:18,carbs:35,fats:19,effort:'no-cook',
+    ingredients:['200g silken tofu','50g melted dark chocolate','1 tbsp maple syrup'],
+    steps:['Blend silken tofu, melted chocolate, and maple syrup until smooth.'],
+    why:'A dessert-style way to bank extra calories that still carries real protein, not just sugar.'},
+  {name:'Strawberries and Whipped Cream',type:'snack',cals:240,prot:2,carbs:26,fats:14,effort:'no-cook',
+    ingredients:['150g strawberries','50g heavy whipping cream'],
+    steps:['Whip cream until thick.','Serve with fresh whole sweet strawberries.'],
+    why:'Feels like a treat, but the macros still count toward the day\'s actual targets.'},
+  {name:'Proats Cookie Bowl',type:'snack',cals:410,prot:34,carbs:31,fats:17,effort:'quick',
+    ingredients:['40g oats','1 scoop whey','10g chocolate chips','milk'],
+    steps:['Cook oats in milk, mix in whey, top with chocolate chips to melt.'],
+    why:'Useful for a day that\'s behind on calories and needs something genuinely enjoyable to close the gap.'},
 ];
 
 // ── RECIPES PAGE — a real, browsable listing over RECIPES_DB (same data
