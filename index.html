@@ -1659,9 +1659,28 @@ window.addEventListener('error', function(e){
    are already used elsewhere on the page for a different, flat card. ═══ */
 .sc-wrap{position:relative}
 .sc-section{position:relative;height:250vh;padding:0}
+/* Column, not the old row (book left, copy right) — a row centers the
+   MOUNT+COPY PAIR as one block, which (copy being the wider of the two)
+   left the narrow book sitting well left of true page-center even
+   though the pair read as roughly centered — visible as a jump the
+   instant it opened into the now viewport-centered .sc-spread. Stacking
+   centers each independently, so the closed book sits at the exact same
+   horizontal center it opens into — matching what mobile already did
+   below (see that media query), just applied here too instead of only
+   on narrow screens. */
 .sc-stage{
-  position:relative;height:100vh;display:flex;align-items:center;justify-content:center;gap:7vw;
-  overflow:hidden;perspective:1400px;flex-wrap:wrap;padding:0 6vw;
+  /* justify-content:flex-start + a fixed padding-top (not :center) — the
+     Bundle section's satellite books fan up to ~290px above the cube's
+     own center as it opens, and centering the stack vertically put the
+     cube high enough that they clipped behind the fixed nav bar. A fixed
+     offset from the top guarantees the same headroom on every section
+     regardless of how tall that section's own copy text happens to be
+     (centering instead would shift the cube's position section to
+     section, so this also makes the closed book's vertical position on
+     the page consistent throughout the whole scroll, not just its
+     horizontal centering). */
+  position:relative;height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:24px;
+  overflow:hidden;perspective:1400px;flex-wrap:nowrap;padding:255px 6vw 0;
 }
 .sc-stage::before{
   content:'';position:absolute;inset:0;
@@ -1829,10 +1848,10 @@ window.addEventListener('error', function(e){
 
 .sc-copy{max-width:380px;flex-shrink:0;position:relative;z-index:2}
 .sc-copy .sc-k{font-family:'Outfit',sans-serif;font-size:11px;color:var(--cyan);letter-spacing:.12em;text-transform:uppercase;margin-bottom:12px;font-weight:700}
-.sc-copy h3{font-size:clamp(26px,3vw,38px);font-weight:800;margin:0 0 14px;letter-spacing:-.01em;color:var(--white);text-wrap:balance}
-.sc-copy p{font-size:15px;line-height:1.75;color:var(--muted);margin:0}
-.sc-copy .sc-price{margin-top:18px;font-family:'Outfit',sans-serif;font-size:14px;color:var(--orange2);font-weight:700}
-.sc-copy .sc-cta{display:inline-flex;align-items:center;gap:8px;margin-top:20px;padding:12px 22px;border-radius:100px;background:var(--orange);color:#fff;font-weight:700;font-size:14px;text-decoration:none;cursor:pointer;border:none;font-family:'Outfit',sans-serif}
+.sc-copy h3{font-size:clamp(24px,2.6vw,34px);font-weight:800;margin:0 0 10px;letter-spacing:-.01em;color:var(--white);text-wrap:balance}
+.sc-copy p{font-size:14.5px;line-height:1.65;color:var(--muted);margin:0}
+.sc-copy .sc-price{margin-top:14px;font-family:'Outfit',sans-serif;font-size:14px;color:var(--orange2);font-weight:700}
+.sc-copy .sc-cta{display:inline-flex;align-items:center;gap:8px;margin-top:14px;padding:11px 22px;border-radius:100px;background:var(--orange);color:#fff;font-weight:700;font-size:14px;text-decoration:none;cursor:pointer;border:none;font-family:'Outfit',sans-serif}
 
 .sc-rail{position:absolute;left:6vw;top:50%;transform:translateY(-50%);width:2px;height:150px;background:rgba(255,255,255,.08)}
 .sc-rail .sc-fill{position:absolute;left:0;top:0;width:100%;background:linear-gradient(180deg,var(--orange),var(--orange2));height:0%}
