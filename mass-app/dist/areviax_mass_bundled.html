@@ -2262,6 +2262,16 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        buried mid-scroll between the food-cards and Feeder Quest. -->
   <div class="companion" style="margin-bottom:14px"><div class="companion-msg" id="nutr-companion">Nutrition is 80% of this. Track it for 2 weeks before changing anything else.</div></div>
 
+  <!-- CONSEQUENCE BANNER — hidden until checkNutritionConsequenceWarning()
+       actually finds a real pattern (3 of the last 5 days missed, not one
+       bad day), see that function's comment. Dismissable, not blocking —
+       the point is to inform once, not nag. -->
+  <div id="nutr-consequence-banner" style="display:none;background:rgba(232,49,74,.07);border:1.5px solid rgba(232,49,74,.3);border-radius:12px;padding:14px 16px;margin-bottom:14px;position:relative">
+    <div onclick="dismissConsequenceBanner()" style="position:absolute;top:10px;right:12px;cursor:pointer;color:rgba(238,240,255,.4);font-size:15px;line-height:1">✕</div>
+    <div style="font-size:12.5px;font-weight:800;color:#E8314A;margin-bottom:6px;padding-right:20px" id="nutr-consequence-headline"></div>
+    <div style="font-size:11.5px;color:rgba(238,240,255,.75);line-height:1.6" id="nutr-consequence-body"></div>
+  </div>
+
   <!-- QUICK ACTIONS — a prominent two-button logging row above the fold:
        Log Meal (real, opens the Smart Log/Manual Entry accordion below)
        and AI Vision Scan. The scan button is intentionally NOT wired to
@@ -2471,6 +2481,21 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       <div class="nutr-shield-target" id="shield-target"></div>
       <div class="nutr-shield-status" id="shield-status-msg"></div>
     </div>
+  </div>
+  </div>
+
+  <div class="nutr-carousel-card">
+  <!-- NUTRITION TREND — 14-day water intake, colored by whether the
+       shield's calorie/protein target was ALSO hit that day, so hydration
+       and "fed well today" read as one connected trend rather than two
+       separate numbers. Real history (waterDayLog/nutritionDayLog), not
+       a decorative chart — see renderNutritionTrend(). -->
+  <div class="card" style="height:100%;box-sizing:border-box">
+    <div class="ch"><span class="ct">📈 14-Day Trend</span></div>
+    <div id="nutr-trend-empty" style="font-size:11px;color:var(--muted);padding:8px 0">Log a few days of water and meals to see your trend here.</div>
+    <div id="nutr-trend-chart" style="display:none;align-items:flex-end;gap:3px;height:110px;margin:10px 0 8px"></div>
+    <div id="nutr-trend-caption" style="font-size:10px;color:var(--muted);line-height:1.5"></div>
+    <div style="font-size:9.5px;color:rgba(255,255,255,.3);margin-top:10px;line-height:1.5">Bars = glasses of water that day. Orange = calorie/protein target hit, red = missed.</div>
   </div>
   </div>
 
@@ -4270,6 +4295,8 @@ let weightLog=[];
 let measurementsLog=[];
 let dayMacros={cals:0,prot:0,carbs:0,fats:0,water:0};
 let nutritionDayLog=[]; // [{date,hitTarget}] — powers the Caloric Shield's 3-day streak multiplier
+let waterDayLog=[]; // [{date,glasses}] — same idea, for the water history chart + consequence check
+let nutritionWarningShownDate=''; // guards checkNutritionConsequenceWarning to once per day it actually fires
 let timerOn=false,timerSecs=0,timerInt=null,timerStartedAt=0;
 let restSecs=0,restInt=null,restEndsAt=0;
 let totalVolume=0;
@@ -10633,6 +10660,7 @@ function renderNutrition(){
   renderFeederQuest();
   renderCaloricShield();
   renderWaterRow();
+  renderNutritionTrend();
   const p=profile;if(!p.cals)return;
 
   // TODAY'S OVERVIEW — calorie bar + Protein/Carbs/Fat wheels, same data
@@ -12274,6 +12302,87 @@ function renderCaloricShield(){
   }
 }
 
+// ── NUTRITION TREND — 14-day bar chart of water intake, colored by
+// whether that same day also hit the calorie+protein target (the two
+// things the Caloric Shield tracks), so "shield health over time" and
+// "hydration over time" read as one connected picture instead of two
+// separate numbers. Same bar-chart technique renderVolumeTrend already
+// uses (div height %, animated on next frame) rather than a new charting
+// approach. ──
+function renderNutritionTrend(){
+  const chartEl=document.getElementById('nutr-trend-chart');
+  const emptyEl=document.getElementById('nutr-trend-empty');
+  const capEl=document.getElementById('nutr-trend-caption');
+  if(!chartEl)return;
+  if(!waterDayLog.length&&!nutritionDayLog.length){
+    chartEl.style.display='none';
+    if(emptyEl)emptyEl.style.display='';
+    return;
+  }
+  chartEl.style.display='flex';
+  if(emptyEl)emptyEl.style.display='none';
+
+  const today=new Date();
+  const days=[];
+  for(let i=13;i>=0;i--){
+    const d=new Date(today);d.setDate(today.getDate()-i);
+    const dStr=localDateKey(d);
+    const w=waterDayLog.find(e=>e.date===dStr);
+    const n=nutritionDayLog.find(e=>e.date===dStr);
+    days.push({date:dStr,glasses:w?w.glasses:(dStr===nutritionLogDate?(dayMacros.water||0):0),hit:n?n.hitTarget:(dStr===nutritionLogDate?null:null)});
+  }
+  const max=Math.max(...days.map(d=>d.glasses),WATER_TARGET);
+  chartEl.innerHTML=days.map(d=>{
+    const col=d.hit===true?'linear-gradient(180deg,#FF9A2E,#FF5A00)':d.hit===false?'rgba(232,49,74,.45)':'rgba(255,255,255,.15)';
+    const h=d.glasses>0?Math.max(4,Math.round(d.glasses/max*100)):2;
+    return `<div style="flex:1;height:100%;display:flex;align-items:flex-end">
+      <div class="nutr-trend-bar" data-h="${h}" style="width:100%;height:0%;background:${col};border-radius:2px 2px 1px 1px;transition:height .6s cubic-bezier(.16,1,.3,1)" title="${d.date}: ${d.glasses} glasses${d.hit===true?', hit target':d.hit===false?', missed target':''}"></div>
+    </div>`;
+  }).join('');
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    chartEl.querySelectorAll('.nutr-trend-bar').forEach(b=>{b.style.height=b.dataset.h+'%';});
+  }));
+  const hitDays=days.filter(d=>d.hit===true).length;
+  const loggedDays=days.filter(d=>d.hit!==null).length;
+  if(capEl)capEl.textContent=loggedDays?`Target hit ${hitDays}/${loggedDays} days logged · orange = hit, red = missed`:'Log a few days to see the pattern';
+}
+
+// ── CONSEQUENCE WARNING — an honest, once-per-occurrence explanation of
+// why hitting the target actually matters, triggered by a genuine
+// pattern (3 of the last 5 real days missed) rather than a single bad
+// day, so it never punishes normal day-to-day variance. Pairs the
+// education with one concrete, immediate action rather than just
+// guilt — same "escape hatch" spirit as badDay()/missedSession()
+// elsewhere on Recovery: the point is to inform, not to shame. ──
+function checkNutritionConsequenceWarning(){
+  const today=localDateKey(new Date());
+  if(nutritionWarningShownDate===today)return;
+  const recent=nutritionDayLog.slice(-5);
+  if(recent.length<5)return; // not enough real history yet to call it a pattern
+  const missed=recent.filter(e=>!e.hitTarget).length;
+  if(missed<3)return;
+  nutritionWarningShownDate=today;
+  saveToStorage();
+  const recentWater=waterDayLog.slice(-5);
+  const lowWaterDays=recentWater.filter(e=>e.glasses<WATER_TARGET*0.5).length;
+  const waterNote=lowWaterDays>=3?' Hydration has been low too — that alone costs you strength and endurance in the gym before calories even factor in.':'';
+  showConsequenceBanner(
+    `You've missed your calorie/protein target ${missed} of the last 5 days.`,
+    `Missing it once in a while is nothing — the shield already forgives that. But a pattern like this, kept up for weeks, is exactly what stalls a bulk: no real surplus means no real signal for your body to build new muscle, so training volume stops translating into size no matter how hard the sessions are.${waterNote} Nothing to fix in the past — just log today's meals now and the pattern breaks.`
+  );
+}
+function showConsequenceBanner(headline,body){
+  const el=document.getElementById('nutr-consequence-banner');
+  if(!el)return;
+  document.getElementById('nutr-consequence-headline').textContent=headline;
+  document.getElementById('nutr-consequence-body').textContent=body;
+  el.style.display='';
+}
+function dismissConsequenceBanner(){
+  const el=document.getElementById('nutr-consequence-banner');
+  if(el)el.style.display='none';
+}
+
 
 function checkNutritionDay(){
   const today=localDateKey(new Date());
@@ -12286,11 +12395,19 @@ function checkNutritionDay(){
       nutritionDayLog.push({date:nutritionLogDate,hitTarget:hitCals&&hitProt});
       if(nutritionDayLog.length>60)nutritionDayLog=nutritionDayLog.slice(-60);
     }
+    // Same snapshot idea for water — dayMacros.water only ever holds
+    // TODAY's count, so without this there's no history to chart or to
+    // check for a real pattern (see checkNutritionConsequenceWarning).
+    if(nutritionLogDate){
+      waterDayLog.push({date:nutritionLogDate,glasses:dayMacros.water||0});
+      if(waterDayLog.length>60)waterDayLog=waterDayLog.slice(-60);
+    }
     nutritionLogDate=today;
     dayMacros={cals:0,prot:0,carbs:0,fats:0,water:0};
     todayLog=[];
     shieldAtRiskToday=false;
     shieldGreatSaveAwardedToday=false;
+    try{checkNutritionConsequenceWarning();}catch(e){console.error('checkNutritionConsequenceWarning:',e.message);}
   }
 }
 
@@ -13511,6 +13628,7 @@ function saveToStorage(){
     localStorage.setItem('arx_dayMacros', JSON.stringify(dayMacros));
     localStorage.setItem('arx_totalVolume', totalVolume);
     localStorage.setItem('arx_nutritionDayLog', JSON.stringify(nutritionDayLog));
+    localStorage.setItem('arx_waterDayLog', JSON.stringify(waterDayLog));
     localStorage.setItem('arx_tonnageLog', JSON.stringify(tonnageLog));
     localStorage.setItem('arx_feederQuestClaimedDate', feederQuestClaimedDate);
     localStorage.setItem('arx_questWeekStart', questWeekStart);
@@ -13612,6 +13730,8 @@ function loadFromStorage(){
     totalVolume=parseFloat(localStorage.getItem('arx_totalVolume')||'0');
     const ndl=localStorage.getItem('arx_nutritionDayLog');
     if(ndl){try{nutritionDayLog=JSON.parse(ndl);}catch(e){nutritionDayLog=[];}}
+    const wdl=localStorage.getItem('arx_waterDayLog');
+    if(wdl){try{waterDayLog=JSON.parse(wdl);}catch(e){waterDayLog=[];}}
     const tnl=localStorage.getItem('arx_tonnageLog');
     if(tnl){try{tonnageLog=JSON.parse(tnl);}catch(e){tonnageLog=[];}}
     feederQuestClaimedDate=localStorage.getItem('arx_feederQuestClaimedDate')||'';
