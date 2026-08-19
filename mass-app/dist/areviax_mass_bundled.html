@@ -604,7 +604,14 @@ input,input:focus,input:active,
    scrolling past all four every time. Each tab panel is exactly the
    existing card body that used to stand alone — same ids, same render
    functions, same onclick handlers — just moved, not rebuilt. */
-.data-terminal-tabs{display:flex;gap:4px;overflow-x:auto;margin-bottom:16px;padding-bottom:2px;-webkit-overflow-scrolling:touch}
+/* Right-edge fade hints there's more to scroll to instead of tabs just
+   cutting off mid-word at the viewport edge (Data Terminal's "Weight
+   Log"/"Tonnage" tabs were invisible/truncated on mobile with nothing
+   suggesting they were reachable by swiping). Only fades when actually
+   scrollable — a mask that never reaches content shorter than the
+   container renders as fully opaque, so this is a no-op on a tab row
+   that already fits. */
+.data-terminal-tabs{display:flex;gap:4px;overflow-x:auto;margin-bottom:16px;padding-bottom:2px;-webkit-overflow-scrolling:touch;-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 20px),transparent 100%);mask-image:linear-gradient(to right,#000 calc(100% - 20px),transparent 100%)}
 .data-terminal-tab{flex-shrink:0;display:flex;align-items:center;gap:6px;background:transparent;border:none;border-bottom:2px solid transparent;color:rgba(238,240,255,.45);font-family:'Outfit',sans-serif;font-size:11.5px;font-weight:700;padding:8px 4px;cursor:pointer;white-space:nowrap;transition:color .15s,border-color .15s}
 .data-terminal-tab.active{color:var(--white);border-bottom-color:var(--orange)}
 .data-terminal-panel{display:none}
@@ -2644,25 +2651,27 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
 <!-- PROGRESS -->
 <div class="page" id="page-progress">
 
-  <!-- WEEKLY CONSISTENCY HUB + DATA TERMINAL side by side — matches the
-       reference layout's top row instead of stacking as separate full-width
-       cards, which pushed the rest of the page down into a long scroll. -->
-  <div class="nutr-hero-grid" style="margin-bottom:14px;align-items:start">
-  <!-- THIS WEEK — moved here from Home, which was getting crowded. Weekly
-       consistency across training/nutrition/sleep fits naturally on the
-       page that's already about tracking progress over time. -->
-  <div class="card" style="margin-bottom:0">
+  <!-- THIS WEEK — the one-glance top summary, same treatment as the
+       Nutrition page's "Today's Overview": always visible, no swipe
+       needed. Everything else below (Data Terminal, Photos, Sleep,
+       XP source, cross-promo) moves into a horizontal carousel so this
+       top card is what actually fits on one mobile screen. -->
+  <div class="card" style="margin-bottom:14px">
     <div class="ch"><span class="ct">This week</span></div>
     <div id="consistency-wrap"></div>
   </div>
 
+  <div class="nutr-carousel-label">‹ Swipe for more ›</div>
+  <div class="nutr-carousel" id="progress-carousel">
+
+  <div class="nutr-carousel-card" style="flex-basis:88%">
   <!-- DATA TERMINAL — Personal Records / Body Measurements / Weight Log /
        Tonnage used to be four separate full-width cards stacked one after
        another; consolidated into one tabbed card so checking any one of
        them doesn't mean scrolling past the other three. Every id, render
        function, and onclick below is unchanged from when each was its own
        card — this is a container change, not a rebuild. -->
-  <div class="card" style="margin-bottom:0">
+  <div class="card" style="height:100%;box-sizing:border-box">
     <div class="ch"><span class="ct">📋 Data Terminal</span></div>
     <div class="data-terminal-tabs">
       <button class="data-terminal-tab active" id="dt-tab-pr" onclick="switchDataTerminalTab('pr')">🏆 Personal Records</button>
@@ -2709,53 +2718,68 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
   </div>
   </div>
 
-  <!-- Photos + Sleep quick-log side by side, the two things you'd check
-       right after your stats — matched to the same 2-column hero-row
-       pattern the Nutrition page already uses for its own top row. -->
-  <div class="nutr-hero-grid" style="margin-bottom:14px">
-    <div class="card" style="margin-bottom:0">
-      <div class="ch"><span class="ct">Progress Photos</span><span class="ca" onclick="document.getElementById('photo-file-input').click()">+ Add photo</span></div>
-      <input type="file" id="photo-file-input" accept="image/*" capture="environment" style="display:none" onchange="addProgressPhoto(this)">
-      <div id="photo-align-guide" style="display:none"></div>
-      <div id="photo-gallery" class="photo-gallery"></div>
+  <div class="nutr-carousel-card">
+  <div class="card" style="height:100%;box-sizing:border-box">
+    <div class="ch"><span class="ct">Progress Photos</span><span class="ca" onclick="document.getElementById('photo-file-input').click()">+ Add photo</span></div>
+    <input type="file" id="photo-file-input" accept="image/*" capture="environment" style="display:none" onchange="addProgressPhoto(this)">
+    <div id="photo-align-guide" style="display:none"></div>
+    <div id="photo-gallery" class="photo-gallery"></div>
 
-      <div id="photo-compare-section" style="display:none;margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,.06)">
-        <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Day 1 vs Now</div>
-        <div class="photo-slider-wrap">
-          <img id="photo-slider-before" class="photo-slider-img">
-          <div id="photo-slider-after-wrap" class="photo-slider-after-wrap">
-            <img id="photo-slider-after" class="photo-slider-img">
-          </div>
-          <div class="photo-slider-handle" id="photo-slider-handle"></div>
-          <input type="range" id="photo-slider-range" min="0" max="100" value="50" class="photo-slider-range" oninput="updatePhotoSlider(this.value)">
-          <div class="photo-slider-label-left" id="photo-compare-before-label"></div>
-          <div class="photo-slider-label-right" id="photo-compare-after-label"></div>
+    <div id="photo-compare-section" style="display:none;margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,.06)">
+      <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Day 1 vs Now</div>
+      <div class="photo-slider-wrap">
+        <img id="photo-slider-before" class="photo-slider-img">
+        <div id="photo-slider-after-wrap" class="photo-slider-after-wrap">
+          <img id="photo-slider-after" class="photo-slider-img">
         </div>
+        <div class="photo-slider-handle" id="photo-slider-handle"></div>
+        <input type="range" id="photo-slider-range" min="0" max="100" value="50" class="photo-slider-range" oninput="updatePhotoSlider(this.value)">
+        <div class="photo-slider-label-left" id="photo-compare-before-label"></div>
+        <div class="photo-slider-label-right" id="photo-compare-after-label"></div>
       </div>
     </div>
-
-    <!-- Real tracked numbers only (last night's hours + 7-day average) —
-         no fabricated "readiness %" or "wake score", since nothing here
-         measures either of those; renderSleepQuickLog() below computes
-         both from the same sleepLog the Recovery page already uses. -->
-    <div class="card" style="margin-bottom:0;cursor:pointer" onclick="showPage('recovery')">
-      <div class="ch"><span class="ct" style="display:flex;align-items:center;gap:7px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>Sleep &amp; Recovery</span></div>
-      <div id="sleep-quicklog-body"></div>
-      <button class="btn btn-out btn-sm" style="width:100%;margin-top:12px" onclick="event.stopPropagation();showPage('recovery')">Log sleep / full Recovery page →</button>
-    </div>
+  </div>
   </div>
 
+  <div class="nutr-carousel-card">
+  <!-- Real tracked numbers only (last night's hours + 7-day average) —
+       no fabricated "readiness %" or "wake score", since nothing here
+       measures either of those; renderSleepQuickLog() below computes
+       both from the same sleepLog the Recovery page already uses. -->
+  <div class="card" style="height:100%;box-sizing:border-box;cursor:pointer" onclick="showPage('recovery')">
+    <div class="ch"><span class="ct" style="display:flex;align-items:center;gap:7px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>Sleep &amp; Recovery</span></div>
+    <div id="sleep-quicklog-body"></div>
+    <button class="btn btn-out btn-sm" style="width:100%;margin-top:12px" onclick="event.stopPropagation();showPage('recovery')">Log sleep / full Recovery page →</button>
+  </div>
+  </div>
+
+  <div class="nutr-carousel-card">
   <!-- XP SOURCE BREAKDOWN — what's actually been driving XP lately, not
-       just the lifetime total ticking up with no context. Supplementary
-       detail, so it sits below the at-a-glance dashboard block above
-       rather than pushing that block further down the page. -->
-  <div class="card" style="margin-bottom:20px">
+       just the lifetime total ticking up with no context. -->
+  <div class="card" style="height:100%;box-sizing:border-box">
     <div class="ch"><span class="ct">⭐ Where your XP came from</span></div>
     <div id="xp-breakdown"></div>
   </div>
+  </div>
+
+  <div class="nutr-carousel-card">
+  <!-- CROSS-PROMO — sits last in the carousel, after someone's actually
+       reviewed their own real progress, rather than interrupting it up
+       top. -->
+  <div class="card" style="height:100%;box-sizing:border-box;border-color:rgba(255,90,0,.2);background:rgba(255,90,0,.03)">
+    <div style="font-size:9px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,90,0,.6);margin-bottom:8px">Beyond the gym</div>
+    <div style="font-size:13.5px;font-weight:800;color:var(--white);margin-bottom:6px">Building something outside the gym too?</div>
+    <div style="font-size:11.5px;color:rgba(238,240,255,.7);line-height:1.6;margin-bottom:12px">The same discipline that's driving your training numbers up works just as well on a side income — the Digital Product Blueprint and Income Playbook are built for exactly that.</div>
+    <button class="btn btn-g btn-sm" style="width:100%" onclick="window.open('https://areviax.netlify.app/products_page.html','_blank')">View the Library →</button>
+  </div>
+  </div>
+
+  </div>
 
   <!-- VOLUME TREND — the 8-week trend, longer-horizon than the weekly
-       tonnage tab above. -->
+       tonnage tab in the carousel above. Conditional (hidden until real
+       data exists), so it stays outside the carousel as a regular card
+       rather than occupying a swipe slide that's often empty. -->
   <div id="vol-trend-card" style="display:none;background:#0B0B0B;border:1px solid rgba(255,90,0,.08);border-radius:16px;padding:16px;margin-bottom:20px">
     <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px">
       <div style="display:flex;align-items:center;gap:6px">
@@ -2768,15 +2792,6 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
   </div>
 
   <div class="card" id="compare-card" style="display:none"><div class="ch"><span class="ct">You vs day 1</span></div><div id="compare-body"></div></div>
-
-  <!-- CROSS-PROMO — sits at the bottom, after someone's actually reviewed
-       their own real progress, rather than interrupting it up top. -->
-  <div class="card" style="border-color:rgba(255,90,0,.2);background:rgba(255,90,0,.03)">
-    <div style="font-size:9px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,90,0,.6);margin-bottom:8px">Beyond the gym</div>
-    <div style="font-size:13.5px;font-weight:800;color:var(--white);margin-bottom:6px">Building something outside the gym too?</div>
-    <div style="font-size:11.5px;color:rgba(238,240,255,.7);line-height:1.6;margin-bottom:12px">The same discipline that's driving your training numbers up works just as well on a side income — the Digital Product Blueprint and Income Playbook are built for exactly that.</div>
-    <button class="btn btn-g btn-sm" style="width:100%" onclick="window.open('https://areviax.netlify.app/products_page.html','_blank')">View the Library →</button>
-  </div>
 </div>
 
 <!-- RECOVERY — its own dedicated page. Sleep tracking, wind-down sounds, breathing, and the science of why this matters. -->
@@ -5650,7 +5665,13 @@ function renderProfile(){
   const pt=document.getElementById('profile-tenure');
   if(pt)pt.textContent=tenureText();
   const pjd=document.getElementById('profile-joindate');
-  if(pjd)pjd.textContent=joinDate?('Joined '+parseLocalDate(joinDate).toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'})):'';
+  // Skipped on day 0 — tenureText() above already says "Joined today", so
+  // this absolute-date line would just repeat "Joined <today's date>"
+  // directly under it, reading as a duplicated line rather than two
+  // genuinely different pieces of info (which is what it is for every
+  // other tenure — "Member for N days" + the actual join date).
+  const joinedToday=joinDate&&Math.floor((new Date()-parseLocalDate(joinDate))/86400000)<1;
+  if(pjd)pjd.textContent=(joinDate&&!joinedToday)?('Joined '+parseLocalDate(joinDate).toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'})):'';
   const pr=document.getElementById('profile-plaque-rank');
   if(pr){pr.textContent=unranked?'UNRANKED':r.name+' LIFTER';pr.style.color=unranked?'#8a8a94':r.col;}
   const pct2=document.getElementById('profile-pct');
