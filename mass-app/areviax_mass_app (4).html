@@ -456,18 +456,22 @@ input,input:focus,input:active,
    Native scroll-snap, no JS needed for the swipe itself — each card is a
    fixed width with the next one peeking at the edge. */
 .nutr-carousel-label{font-size:9px;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:rgba(238,240,255,.35);margin-bottom:10px;display:flex;align-items:center;gap:6px}
-/* align-items:flex-start (not the flex default stretch) so a tall slide
-   like Log Food/Meal Plan doesn't force every shorter card in the row —
-   Shield, Feeder Quest, Shake — to stretch to match its height. Each
-   card instead caps its own height and scrolls its own content if it
-   needs more room than that, which is what keeps the whole row from
-   reading as "too long" on the page. */
-.nutr-carousel{display:flex;align-items:flex-start;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:6px;margin-bottom:18px;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
+/* align-items:stretch (the flex default) so every card in a row is the
+   same height — the row's height is set by the tallest card, which the
+   max-height:360px cap below always pins to 360px (Log Food/Meal Plan/
+   Data Terminal are guaranteed to exceed that and scroll internally),
+   so every card — tall content or not — ends up exactly 360px, not just
+   "whatever its own content needs" like an unstretched row would give. */
+.nutr-carousel{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:6px;margin-bottom:18px;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
 .nutr-carousel::-webkit-scrollbar{height:5px}
 .nutr-carousel::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:3px}
+/* Same width for every card too — no per-card flex-basis overrides, so
+   a swipe always moves the same visual distance regardless of which
+   card used to need more room for its own content (it now scrolls
+   internally instead). */
 .nutr-carousel-card{flex:0 0 82%;scroll-snap-align:start;min-width:0}
 @media(min-width:560px){.nutr-carousel-card{flex-basis:340px}}
-.nutr-carousel-card .card,.nutr-carousel-card .nutr-shield-card{margin-bottom:0;box-sizing:border-box;max-height:360px;overflow-y:auto}
+.nutr-carousel-card .card,.nutr-carousel-card .nutr-shield-card{margin-bottom:0;box-sizing:border-box;height:360px;overflow-y:auto}
 .nutr-shield-card{display:flex;align-items:center;gap:16px;text-align:left;padding:20px}
 .nutr-shield-graphic{flex-shrink:0;position:relative;width:112px;height:112px}
 .nutr-shield-graphic .shield-ring-svg{position:absolute;inset:0;transform:rotate(-90deg)}
@@ -2468,7 +2472,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
   <!-- Quick-add foods — each item logs straight to today's macros via
        logQuickAdd() (see QUICK_ADD_FOODS + that function), same real
        logItem() flow as everything else on this page. -->
-  <div class="card" style="height:100%;box-sizing:border-box;overflow-y:auto">
+  <div class="card" style="box-sizing:border-box;overflow-y:auto">
     <div class="ch"><span class="ct">Quick Add</span></div>
     <div class="emergency-grid nutr-food-grid">
       <div class="em-item" onclick="logQuickAdd('peanut-butter')"><div class="em-photo">🥜</div><div class="em-body"><div class="em-food">Peanut butter (2 tbsp)</div><div class="em-cals">190 kcal · 8g protein</div></div></div>
@@ -2481,11 +2485,11 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
   </div>
   </div>
 
-  <div class="nutr-carousel-card" style="flex-basis:88%">
+  <div class="nutr-carousel-card">
   <!-- Log Food — the real Smart Log/Manual Entry tool, now a carousel
        slide itself (not a teaser linking to an accordion below) so it's
        usable in place with one swipe, matching Shield/Feeder Quest/Shake. -->
-  <div class="card" id="acc-logfood" style="height:100%;box-sizing:border-box">
+  <div class="card" id="acc-logfood" style="box-sizing:border-box">
     <div class="ch"><span class="ct ct-mint" style="display:flex;align-items:center;gap:7px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/></svg>Log food</span></div>
     <div style="display:flex;background:rgba(255,255,255,.03);border:1.5px solid rgba(255,255,255,.06);border-radius:11px;padding:4px;margin-bottom:18px;gap:4px">
       <button id="nt-smart" onclick="switchNutTab('smart',this)" style="flex:1;background:rgba(142,142,147,.12);border:none;border-radius:8px;color:rgba(142,142,147,.95);font-family:'Outfit',sans-serif;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:9px 0;cursor:pointer;transition:all .2s">Smart Log</button>
@@ -2521,10 +2525,10 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
   </div>
   </div>
 
-  <div class="nutr-carousel-card" style="flex-basis:88%">
+  <div class="nutr-carousel-card">
   <!-- Meal Plan — the real Generate/Build-My-Own builder, now a carousel
        slide itself for the same reason as Log Food above. -->
-  <div class="card" id="acc-mealplan" style="height:100%;box-sizing:border-box;border-color:rgba(142,142,147,.25)">
+  <div class="card" id="acc-mealplan" style="box-sizing:border-box;border-color:rgba(142,142,147,.25)">
     <div class="ch"><span class="ct" style="display:flex;align-items:center;gap:7px;color:rgba(142,142,147,.95)">🍽 Meal Plan</span></div>
     <div style="font-size:11.5px;color:rgba(238,240,255,.5);margin-bottom:16px;line-height:1.55">Generate full days against your targets, or build your own from scratch — full agency either way.</div>
 
@@ -2664,14 +2668,14 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
   <div class="nutr-carousel-label">‹ Swipe for more ›</div>
   <div class="nutr-carousel" id="progress-carousel">
 
-  <div class="nutr-carousel-card" style="flex-basis:88%">
+  <div class="nutr-carousel-card">
   <!-- DATA TERMINAL — Personal Records / Body Measurements / Weight Log /
        Tonnage used to be four separate full-width cards stacked one after
        another; consolidated into one tabbed card so checking any one of
        them doesn't mean scrolling past the other three. Every id, render
        function, and onclick below is unchanged from when each was its own
        card — this is a container change, not a rebuild. -->
-  <div class="card" style="height:100%;box-sizing:border-box">
+  <div class="card" style="box-sizing:border-box">
     <div class="ch"><span class="ct">📋 Data Terminal</span></div>
     <div class="data-terminal-tabs">
       <button class="data-terminal-tab active" id="dt-tab-pr" onclick="switchDataTerminalTab('pr')">🏆 Personal Records</button>
@@ -2719,7 +2723,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
   </div>
 
   <div class="nutr-carousel-card">
-  <div class="card" style="height:100%;box-sizing:border-box">
+  <div class="card" style="box-sizing:border-box">
     <div class="ch"><span class="ct">Progress Photos</span><span class="ca" onclick="document.getElementById('photo-file-input').click()">+ Add photo</span></div>
     <input type="file" id="photo-file-input" accept="image/*" capture="environment" style="display:none" onchange="addProgressPhoto(this)">
     <div id="photo-align-guide" style="display:none"></div>
@@ -2746,7 +2750,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        no fabricated "readiness %" or "wake score", since nothing here
        measures either of those; renderSleepQuickLog() below computes
        both from the same sleepLog the Recovery page already uses. -->
-  <div class="card" style="height:100%;box-sizing:border-box;cursor:pointer" onclick="showPage('recovery')">
+  <div class="card" style="box-sizing:border-box;cursor:pointer" onclick="showPage('recovery')">
     <div class="ch"><span class="ct" style="display:flex;align-items:center;gap:7px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>Sleep &amp; Recovery</span></div>
     <div id="sleep-quicklog-body"></div>
     <button class="btn btn-out btn-sm" style="width:100%;margin-top:12px" onclick="event.stopPropagation();showPage('recovery')">Log sleep / full Recovery page →</button>
@@ -2756,7 +2760,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
   <div class="nutr-carousel-card">
   <!-- XP SOURCE BREAKDOWN — what's actually been driving XP lately, not
        just the lifetime total ticking up with no context. -->
-  <div class="card" style="height:100%;box-sizing:border-box">
+  <div class="card" style="box-sizing:border-box">
     <div class="ch"><span class="ct">⭐ Where your XP came from</span></div>
     <div id="xp-breakdown"></div>
   </div>
@@ -2766,7 +2770,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
   <!-- CROSS-PROMO — sits last in the carousel, after someone's actually
        reviewed their own real progress, rather than interrupting it up
        top. -->
-  <div class="card" style="height:100%;box-sizing:border-box;border-color:rgba(255,90,0,.2);background:rgba(255,90,0,.03)">
+  <div class="card" style="box-sizing:border-box;border-color:rgba(255,90,0,.2);background:rgba(255,90,0,.03)">
     <div style="font-size:9px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,90,0,.6);margin-bottom:8px">Beyond the gym</div>
     <div style="font-size:13.5px;font-weight:800;color:var(--white);margin-bottom:6px">Building something outside the gym too?</div>
     <div style="font-size:11.5px;color:rgba(238,240,255,.7);line-height:1.6;margin-bottom:12px">The same discipline that's driving your training numbers up works just as well on a side income — the Digital Product Blueprint and Income Playbook are built for exactly that.</div>
@@ -12161,18 +12165,23 @@ function renderCaloricShield(){
   fillEl.style.opacity=brokenStage?'0.15':(crackedStage?'0.4':'1');
 
   // Ring gauge — same stroke-dasharray/dashoffset technique as the
-  // burn-meter ring elsewhere in this app. At full, both the ring and the
-  // shield icon itself pick up a warm gold glow (not the cyan used for
-  // most other "success" states in this app) since a bright gold shine is
-  // specifically what reads as "fed well today" here.
+  // burn-meter ring elsewhere in this app. At full, the SHIELD ITSELF
+  // (not the ring) carries the warm gold glow — a drop-shadow on an SVG
+  // element follows that element's own alpha silhouette, so putting the
+  // glow on .shield-inner traces the actual shield outline. The ring
+  // previously carried its own separate, brighter glow too, which being
+  // a plain circle visually dominated and read as "a glowing ring with a
+  // shield floating inside" rather than "a glowing shield" — the ring
+  // still visibly completes (full gold stroke) but no longer glows on
+  // its own, so the shield's own shape-hugging halo is what actually
+  // shows.
   const ring=document.getElementById('shield-ring');
   if(ring){
     const RING_CIRC=314.16;
     ring.setAttribute('stroke-dashoffset',String(RING_CIRC*(1-overall/100)));
-    ring.style.filter=overall>=100?'drop-shadow(0 0 6px rgba(255,180,50,.9))':'';
   }
   const innerSvg=document.querySelector('#acc-shield .shield-inner');
-  if(innerSvg)innerSvg.style.filter=overall>=100?'drop-shadow(0 0 8px rgba(255,180,50,.85)) drop-shadow(0 0 18px rgba(255,140,20,.5))':'';
+  if(innerSvg)innerSvg.style.filter=overall>=100?'drop-shadow(0 0 5px rgba(255,200,80,.9)) drop-shadow(0 0 14px rgba(255,160,40,.75)) drop-shadow(0 0 26px rgba(255,140,20,.5))':'';
 
   if(label){
     if(overall>=100)label.textContent=streakOk?'Shield Fortified 🛡️':'Shield Full';
