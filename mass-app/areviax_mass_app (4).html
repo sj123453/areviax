@@ -73,6 +73,19 @@ input,input:focus,input:active,
 .sidebar.expanded .sb-label{opacity:1}
 .sb-div{width:28px;height:1px;background:var(--border2);margin:5px auto;flex-shrink:0}
 .sb-bottom{margin-top:auto;width:100%;padding-bottom:6px}
+/* Desktop "More" used to reuse the mobile bottom sheet, which is a
+   fixed full-width panel — on a wide window it rendered as a popup
+   floating over the middle of the screen instead of belonging to the
+   210px sidebar column. This expands in place, inline, under the More
+   row, so it reads as part of the sidebar. */
+.sb-more-chevron{margin-left:auto;flex-shrink:0;opacity:0;transition:opacity .15s,transform .25s}
+.sidebar.expanded .sb-more-chevron{opacity:.6}
+.sb-item.more-open .sb-more-chevron{transform:rotate(180deg)}
+.sb-more-flyout{width:100%;max-height:0;overflow:hidden;transition:max-height .3s cubic-bezier(.22,1,.36,1)}
+.sb-more-flyout.show{max-height:480px}
+.sb-more-item{display:flex;align-items:center;gap:11px;width:100%;padding:8px 12px 8px 30px;color:var(--muted);font-size:11.5px;font-weight:500;white-space:nowrap;overflow:hidden;transition:all .2s;box-sizing:border-box}
+.sb-more-item:hover{color:var(--white);background:rgba(255,90,0,.06)}
+.sb-more-item svg{flex-shrink:0}
 
 /* MAIN */
 .main{flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden;position:relative}
@@ -375,24 +388,19 @@ input,input:focus,input:active,
    Two full up/down cycles packed into .6s, easing tightest at the
    direction changes (where a real shake snaps hardest) and fully
    relaxing back to rest at the end rather than stopping abruptly. */
-/* Every step re-states translateX(-50%) first — that's the shaker image's
-   own resting/centering transform (see .nutr-shake-bottle-img). A
-   keyframe's transform value REPLACES the element's transform entirely
-   rather than composing with it, so without repeating it here the shaker
-   would jump off-center the instant the animation starts. */
 @keyframes shakeBottle{
-  0%{transform:translateX(-50%) translate(0,0) rotate(0)}
-  8%{transform:translateX(-50%) translate(2px,-9px) rotate(-2deg)}
-  16%{transform:translateX(-50%) translate(-3px,3px) rotate(1.5deg)}
-  24%{transform:translateX(-50%) translate(2px,-10px) rotate(-2.5deg)}
-  32%{transform:translateX(-50%) translate(-2px,4px) rotate(2deg)}
-  40%{transform:translateX(-50%) translate(3px,-8px) rotate(-1.5deg)}
-  48%{transform:translateX(-50%) translate(-2px,3px) rotate(1.5deg)}
-  56%{transform:translateX(-50%) translate(2px,-6px) rotate(-1deg)}
-  64%{transform:translateX(-50%) translate(-1px,2px) rotate(1deg)}
-  72%{transform:translateX(-50%) translate(1px,-3px) rotate(-.5deg)}
-  84%{transform:translateX(-50%) translate(0,1px) rotate(.3deg)}
-  100%{transform:translateX(-50%) translate(0,0) rotate(0)}
+  0%{transform:translate(0,0) rotate(0)}
+  8%{transform:translate(2px,-9px) rotate(-2deg)}
+  16%{transform:translate(-3px,3px) rotate(1.5deg)}
+  24%{transform:translate(2px,-10px) rotate(-2.5deg)}
+  32%{transform:translate(-2px,4px) rotate(2deg)}
+  40%{transform:translate(3px,-8px) rotate(-1.5deg)}
+  48%{transform:translate(-2px,3px) rotate(1.5deg)}
+  56%{transform:translate(2px,-6px) rotate(-1deg)}
+  64%{transform:translate(-1px,2px) rotate(1deg)}
+  72%{transform:translate(1px,-3px) rotate(-.5deg)}
+  84%{transform:translate(0,1px) rotate(.3deg)}
+  100%{transform:translate(0,0) rotate(0)}
 }
 .shake-wiggling{animation:shakeBottle .6s cubic-bezier(.36,.07,.19,.97)}
 .shake-glow{filter:drop-shadow(0 0 10px rgba(255,90,0,.65)) drop-shadow(0 0 22px rgba(255,90,0,.35))}
@@ -448,16 +456,18 @@ input,input:focus,input:active,
    Native scroll-snap, no JS needed for the swipe itself — each card is a
    fixed width with the next one peeking at the edge. */
 .nutr-carousel-label{font-size:9px;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:rgba(238,240,255,.35);margin-bottom:10px;display:flex;align-items:center;gap:6px}
-.nutr-carousel{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:6px;margin-bottom:18px;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
+/* align-items:flex-start (not the flex default stretch) so a tall slide
+   like Log Food/Meal Plan doesn't force every shorter card in the row —
+   Shield, Feeder Quest, Shake — to stretch to match its height. Each
+   card instead caps its own height and scrolls its own content if it
+   needs more room than that, which is what keeps the whole row from
+   reading as "too long" on the page. */
+.nutr-carousel{display:flex;align-items:flex-start;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:6px;margin-bottom:18px;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
 .nutr-carousel::-webkit-scrollbar{height:5px}
 .nutr-carousel::-webkit-scrollbar-thumb{background:rgba(255,255,255,.15);border-radius:3px}
 .nutr-carousel-card{flex:0 0 82%;scroll-snap-align:start;min-width:0}
 @media(min-width:560px){.nutr-carousel-card{flex-basis:340px}}
-.nutr-carousel-card .card,.nutr-carousel-card .nutr-shield-card{height:100%;margin-bottom:0;box-sizing:border-box}
-.nutr-teaser-card{height:100%;box-sizing:border-box;cursor:pointer;display:flex;flex-direction:column;justify-content:center;text-align:center;gap:8px;padding:24px 18px}
-.nutr-teaser-icon{font-size:30px}
-.nutr-teaser-title{font-size:14px;font-weight:800;color:var(--white)}
-.nutr-teaser-sub{font-size:11px;color:var(--muted);line-height:1.5}
+.nutr-carousel-card .card,.nutr-carousel-card .nutr-shield-card{margin-bottom:0;box-sizing:border-box;max-height:360px;overflow-y:auto}
 .nutr-shield-card{display:flex;align-items:center;gap:16px;text-align:left;padding:20px}
 .nutr-shield-graphic{flex-shrink:0;position:relative;width:112px;height:112px}
 .nutr-shield-graphic .shield-ring-svg{position:absolute;inset:0;transform:rotate(-90deg)}
@@ -469,21 +479,11 @@ input,input:focus,input:active,
 .nutr-shield-status.ok{color:#2ECC71}
 .nutr-shield-status.warn{color:#FFC107}
 .nutr-shield-status.bad{color:#FF4455}
-/* Shake hero — the counter photo and the shaker bottle are now genuinely
-   separate layers (a static background <img> plus a transparent cutout
-   <img> of just the bottle, cut out from the original photo via a
-   focus-map + convex-hull matte — see the asset generation notes), not
-   one flat photo. That's what lets the shakeBottle animation move only
-   the bottle on tap while the counter/kitchen behind it stays put.
-   Element+class selectors below (not a blanket >* rule) so each layer's
-   z-index is unambiguous regardless of source order. */
-.nutr-shake-hero{position:relative;min-height:250px;padding:20px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;text-align:center;overflow:hidden;cursor:pointer;border-color:rgba(255,122,46,.1);box-shadow:0 0 32px -6px rgba(255,122,46,.35)}
-.nutr-shake-hero>img.nutr-shake-static-bg{position:absolute;inset:-6%;z-index:0;width:112%;height:112%;object-fit:cover;object-position:center 32%}
-.nutr-shake-hero>img.nutr-shake-bottle-img{position:absolute;left:50%;bottom:8%;transform:translateX(-50%);height:74%;width:auto;z-index:1;filter:drop-shadow(0 16px 20px rgba(0,0,0,.55))}
-.nutr-shake-hero::before{
-  content:'';position:absolute;inset:0;z-index:2;
-  background:linear-gradient(160deg,rgba(20,12,5,.55),rgba(10,7,3,.32) 42%,rgba(8,5,2,.8));
-}
+/* Shake hero — just the real Areviax-branded shaker (transparent cutout)
+   on the card's own background, no kitchen-counter photo behind it. The
+   shakeBottle animation still moves only the bottle on tap. */
+.nutr-shake-hero{position:relative;min-height:220px;padding:20px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;text-align:center;overflow:hidden;cursor:pointer;border-color:rgba(255,122,46,.18);box-shadow:0 0 32px -6px rgba(255,122,46,.35);background:radial-gradient(ellipse at 50% 28%,rgba(255,122,46,.1),transparent 65%)}
+.nutr-shake-hero>img.nutr-shake-bottle-img{max-height:140px;width:auto;object-fit:contain;filter:drop-shadow(0 16px 20px rgba(0,0,0,.55));margin-bottom:2px}
 .nutr-shake-hero>*{position:relative;z-index:3}
 .nutr-shake-title{font-size:13px;font-weight:800;color:#FF8C47;margin-top:6px}
 .nutr-shake-sub{font-size:10.5px;color:rgba(238,240,255,.55);margin-top:2px}
@@ -643,7 +643,7 @@ select option{background:var(--panel)}
 
 /* TOAST */
 #toast{position:fixed;bottom:76px;left:50%;transform:translateX(-50%) translateY(20px);z-index:600;background:rgba(13,11,32,.95);backdrop-filter:blur(12px);border:1.5px solid var(--purple-b);padding:10px 18px;display:flex;align-items:center;gap:10px;font-size:13px;font-family:"Outfit",sans-serif;color:var(--white);font-weight:500;opacity:0;pointer-events:none;transition:transform .3s ease,opacity .3s ease;border-radius:10px;white-space:normal;max-width:min(340px,calc(100vw - 32px));box-shadow:0 0 24px -8px rgba(142,142,147,.4)}
-#toast.show{opacity:1!important;transform:translateX(-50%) translateY(0)!important}
+#toast.show{opacity:1!important;transform:translateX(-50%) translateY(0)!important;pointer-events:auto;cursor:pointer}
 
 /* ONBOARDING */
 #onboarding{position:fixed;inset:0;background:var(--bg);z-index:900;display:flex;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;-webkit-overflow-scrolling:touch}
@@ -1367,7 +1367,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
   <div class="dp-attrib">— Areviax</div>
 </div>
 
-<div id="toast"><span id="ti">💪</span><span id="tm" style="font-weight:600">XP</span></div>
+<div id="toast" onclick="dismissToast()"><span id="ti">💪</span><span id="tm" style="font-weight:600">XP</span></div>
 
 <div id="rest-overlay">
   <div class="rest-ring">
@@ -1662,9 +1662,22 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     <!-- Recovery/Schedule/Leaderboard/Learn/Profile/Legal/Settings/Areviax OS
          used to all sit here flat, which made the sidebar the first thing
          that looked cluttered — same 5 primary destinations mobile already
-         settled on, with everything else one tap away in the same More
-         sheet mobile uses, instead of duplicating it as a separate list. -->
-    <div class="sb-item" onclick="toggleMoreSheet()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg><span class="sb-label">More</span></div>
+         settled on, with everything else one tap away via an inline flyout
+         that expands down this column (not the mobile bottom sheet, which
+         is a fixed full-width panel and reads as a popup over the middle
+         of a wide desktop window). -->
+    <div class="sb-item" id="sb-more-btn" onclick="toggleSidebarMore()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="19" cy="12" r="1.5"/></svg><span class="sb-label">More</span><svg class="sb-more-chevron" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg></div>
+    <div class="sb-more-flyout" id="sb-more-flyout">
+      <div class="sb-more-item" onclick="showPage('schedule')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span>Schedule</span></div>
+      <div class="sb-more-item" onclick="showPage('recipes')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg><span>Recipes</span></div>
+      <div class="sb-more-item" onclick="showPage('recovery')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg><span>Recovery</span></div>
+      <div class="sb-more-item" onclick="showPage('leaderboard')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg><span>Leaderboard</span></div>
+      <div class="sb-more-item" onclick="showPage('learn')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg><span>The Science</span></div>
+      <div class="sb-more-item" onclick="showPage('profile')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Profile</span></div>
+      <div class="sb-more-item" onclick="showPage('legal')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg><span>Legal</span></div>
+      <div class="sb-more-item" onclick="showPage('settings')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 110 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg><span>Settings</span></div>
+      <div class="sb-more-item" style="color:rgba(255,140,71,.85)" onclick="window.open('https://areviaxos.netlify.app/','_blank')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg><span>Areviax OS</span></div>
+    </div>
     <div class="sb-bottom"></div>
   </div>
 
@@ -2392,13 +2405,11 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
 
   <div class="nutr-carousel-card">
   <!-- SHAKE HERO — same logEmergencyShake()/toggleShakeTypes() wiring as
-       before. The photo itself is the shaker (not a background + separate
-       icon), so tapping visibly shakes the real bottle via the shakeBottle
-       keyframe on #shake-bottle-img — see that animation's comment for why
-       it's shaped the way it is. -->
+       before. Just the real Areviax-branded shaker on the card's own
+       background now (no kitchen-counter photo) — tapping still visibly
+       shakes the bottle via the shakeBottle keyframe on #shake-bottle-img. -->
   <div class="card nutr-shake-hero" id="shake-hero-card" onclick="logEmergencyShake()">
-    <img class="nutr-shake-static-bg" src="images/shake_bg.jpg" alt="">
-    <img id="shake-bottle-img" class="nutr-shake-bottle-img" src="images/shaker_cutout.png" alt="">
+    <img id="shake-bottle-img" class="nutr-shake-bottle-img" src="images/areviax_shaker_cutout.png" alt="">
     <div class="nutr-shake-title">Tap the shake — logs instantly</div>
     <div class="nutr-shake-sub" id="shake-hero-macros">113 kcal · 13g protein</div>
     <div onclick="event.stopPropagation();toggleShakeTypes()" style="font-size:10.5px;color:rgba(238,240,255,.5);text-decoration:underline;cursor:pointer;margin-top:8px">Or pick a different type →</div>
@@ -2407,86 +2418,33 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
   </div>
 
   <div class="nutr-carousel-card">
-  <!-- Quick-add foods — its own carousel slide (was the shake card's
-       neighbour in the old 2-column layout). Photo slots are empty
-       gradient+icon placeholders for now — each carries a data-food
-       attribute naming what image belongs there, so real photos can be
-       dropped in later via --em-photo without touching this markup again. -->
+  <!-- Quick-add foods — each item logs straight to today's macros via
+       logQuickAdd() (see QUICK_ADD_FOODS + that function), same real
+       logItem() flow as everything else on this page. -->
   <div class="card" style="height:100%;box-sizing:border-box;overflow-y:auto">
     <div class="ch"><span class="ct">Quick Add</span></div>
     <div class="emergency-grid nutr-food-grid">
-      <div class="em-item" data-food="peanut-butter"><div class="em-photo">🥜</div><div class="em-body"><div class="em-food">Peanut butter (2 tbsp)</div><div class="em-cals">190 kcal · 8g protein</div></div></div>
-      <div class="em-item" data-food="whole-milk"><div class="em-photo">🥛</div><div class="em-body"><div class="em-food">Whole milk (500ml)</div><div class="em-cals">310 kcal · 16g protein</div></div></div>
-      <div class="em-item" data-food="nuts"><div class="em-photo">🌰</div><div class="em-body"><div class="em-food">Nuts (handful)</div><div class="em-cals">170 kcal · 5g protein</div></div></div>
-      <div class="em-item" data-food="banana-pb"><div class="em-photo">🍌</div><div class="em-body"><div class="em-food">Banana + PB</div><div class="em-cals">280 kcal · 9g protein</div></div></div>
-      <div class="em-item" data-food="greek-yoghurt"><div class="em-photo">🥣</div><div class="em-body"><div class="em-food">Greek yoghurt</div><div class="em-cals">130 kcal · 17g protein</div></div></div>
-      <div class="em-item" data-food="oats-milk"><div class="em-photo">🥄</div><div class="em-body"><div class="em-food">Oats + milk</div><div class="em-cals">350 kcal · 14g protein</div></div></div>
+      <div class="em-item" onclick="logQuickAdd('peanut-butter')"><div class="em-photo">🥜</div><div class="em-body"><div class="em-food">Peanut butter (2 tbsp)</div><div class="em-cals">190 kcal · 8g protein</div></div></div>
+      <div class="em-item" onclick="logQuickAdd('whole-milk')"><div class="em-photo">🥛</div><div class="em-body"><div class="em-food">Whole milk (500ml)</div><div class="em-cals">310 kcal · 16g protein</div></div></div>
+      <div class="em-item" onclick="logQuickAdd('nuts')"><div class="em-photo">🌰</div><div class="em-body"><div class="em-food">Nuts (handful)</div><div class="em-cals">170 kcal · 5g protein</div></div></div>
+      <div class="em-item" onclick="logQuickAdd('banana-pb')"><div class="em-photo">🍌</div><div class="em-body"><div class="em-food">Banana + PB</div><div class="em-cals">280 kcal · 9g protein</div></div></div>
+      <div class="em-item" onclick="logQuickAdd('greek-yoghurt')"><div class="em-photo">🥣</div><div class="em-body"><div class="em-food">Greek yoghurt</div><div class="em-cals">130 kcal · 17g protein</div></div></div>
+      <div class="em-item" onclick="logQuickAdd('oats-milk')"><div class="em-photo">🥄</div><div class="em-body"><div class="em-food">Oats + milk</div><div class="em-cals">350 kcal · 14g protein</div></div></div>
     </div>
   </div>
   </div>
 
-  <div class="nutr-carousel-card">
-  <!-- Recipes teaser — the full browsable page lives at showPage('recipes'),
-       this is just a quick-glance entry point into the carousel flow. -->
-  <div class="card nutr-teaser-card" onclick="showPage('recipes')">
-    <div class="nutr-teaser-icon">📖</div>
-    <div class="nutr-teaser-title">Recipes</div>
-    <div class="nutr-teaser-sub">21 real meals with full ingredients &amp; steps — tap to browse</div>
-  </div>
-  </div>
-
-  <div class="nutr-carousel-card">
-  <!-- Meal Plan teaser — opens the real accordion below rather than
-       duplicating its (large, control-heavy) UI inside a swipe card. -->
-  <div class="card nutr-teaser-card" onclick="openMealPlanBuilder()">
-    <div class="nutr-teaser-icon">🍽</div>
-    <div class="nutr-teaser-title">Meal Plan</div>
-    <div class="nutr-teaser-sub">Generate full days against your targets, or build your own</div>
-  </div>
-  </div>
-
-  </div>
-
-  <!-- Logged Today — Calories/Protein already live in Today's Overview
-       above, so this card is just the log list + why-these-numbers detail
-       now, not a second set of the same bars. -->
-  <div class="card" id="acc-macros" style="margin-bottom:14px">
-    <div class="ch"><span class="ct ct-mint" style="display:flex;align-items:center;gap:7px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>Logged Today</span><span class="ca" onclick="resetDay()">Reset</span></div>
-    <div id="today-log-list"></div>
-    <div id="macro-alcohol-line" style="display:none;font-size:11.5px;color:var(--muted);margin-top:10px">🍷 <span id="macro-alcohol-val">0</span>g alcohol today</div>
-    <div id="macro-why-toggle" onclick="toggleMacroWhy()" style="font-size:10.5px;color:var(--muted);cursor:pointer;margin-top:10px;text-decoration:underline;text-underline-offset:2px;display:inline-block">Why these numbers?</div>
-    <div id="macro-why-panel" style="display:none;margin-top:10px;padding:12px 14px;background:rgba(255,255,255,.03);border:1.5px solid var(--border2);border-radius:8px;font-size:11.5px;line-height:1.7;color:rgba(238,240,255,.7)">
-      <div style="margin-bottom:8px"><strong style="color:var(--white)">Protein — 1g per lb of bodyweight.</strong> Training tears muscle fibres down; protein is the raw material your body uses to rebuild them thicker. This lands right at the top of what research shows actually helps — going higher doesn't build more muscle, it just crowds out the carbs your training needs.</div>
-      <div><strong style="color:var(--white)">Calories — a controlled surplus.</strong> Building new muscle costs energy on top of what you burn day to day. Too small a surplus and there's nothing to build with; too large and most of the extra goes to fat instead of muscle.</div>
-    </div>
-  </div>
-
-  <!-- CATCH-UP PROMPT — hidden unless actually behind on calories today.
-       A clickable question rather than a passive sentence, expanding into
-       real suggestions sized to the specific remaining gap. -->
-  <div id="catchup-card" class="card" style="display:none;margin-bottom:14px;cursor:pointer" onclick="toggleCatchup()">
-    <div style="display:flex;align-items:center;justify-content:space-between">
-      <div style="font-size:13px;font-weight:700" id="catchup-question">Need help catching up on calories?</div>
-      <span id="catchup-chevron" style="color:var(--muted);font-size:12px;transition:transform .2s">▼</span>
-    </div>
-    <div id="catchup-body" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--border2)" onclick="event.stopPropagation()"></div>
-  </div>
-
-  <!-- Unified log card with premium tabs -->
-  <div class="acc-header tile" onclick="toggleAccordion('acc-logfood',this)">
-    <div class="acc-tile-icon">📝</div>
-    <div style="flex:1;min-width:0"><div class="acc-header-title">Log Food</div><div class="acc-header-sub">Smart Log · Manual Entry</div></div>
-    <span class="acc-chev">▼</span>
-  </div>
-  <div class="card acc-body" id="acc-logfood" style="margin-bottom:14px">
+  <div class="nutr-carousel-card" style="flex-basis:88%">
+  <!-- Log Food — the real Smart Log/Manual Entry tool, now a carousel
+       slide itself (not a teaser linking to an accordion below) so it's
+       usable in place with one swipe, matching Shield/Feeder Quest/Shake. -->
+  <div class="card" id="acc-logfood" style="height:100%;box-sizing:border-box">
     <div class="ch"><span class="ct ct-mint" style="display:flex;align-items:center;gap:7px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/></svg>Log food</span></div>
-    <!-- Tab bar -->
     <div style="display:flex;background:rgba(255,255,255,.03);border:1.5px solid rgba(255,255,255,.06);border-radius:11px;padding:4px;margin-bottom:18px;gap:4px">
       <button id="nt-smart" onclick="switchNutTab('smart',this)" style="flex:1;background:rgba(142,142,147,.12);border:none;border-radius:8px;color:rgba(142,142,147,.95);font-family:'Outfit',sans-serif;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:9px 0;cursor:pointer;transition:all .2s">Smart Log</button>
       <button id="nt-manual" onclick="switchNutTab('manual',this)" style="flex:1;background:transparent;border:none;border-radius:8px;color:rgba(238,240,255,.4);font-family:'Outfit',sans-serif;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:9px 0;cursor:pointer;transition:all .2s">Manual Entry</button>
     </div>
 
-    <!-- Smart Log panel -->
     <div id="nt-panel-smart">
       <div style="font-size:11.5px;color:rgba(238,240,255,.5);margin-bottom:12px;line-height:1.55">Describe what you ate — we'll estimate the macros.</div>
       <div style="position:relative">
@@ -2503,7 +2461,6 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       </div>
     </div>
 
-    <!-- Manual Entry panel -->
     <div id="nt-panel-manual" style="display:none">
       <div style="display:flex;flex-direction:column;gap:10px">
         <div><label class="lbl" style="margin-top:0">What did you eat?</label><input type="text" id="food-name" placeholder="e.g. Chicken breast 200g"></div>
@@ -2515,19 +2472,12 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       </div>
     </div>
   </div>
-
-  <!-- MEAL PLAN — now its own large, dedicated card rather than one tab
-       among three, since planning ahead is a genuinely different task from
-       logging what you already ate. Extended day range, and a real
-       cooking-time preference that actually filters which recipes get
-       picked, plus each meal now includes real step-by-step cooking
-       instructions, not just an ingredients list. -->
-  <div class="acc-header tile" onclick="toggleAccordion('acc-mealplan',this)">
-    <div class="acc-tile-icon">🍽</div>
-    <div style="flex:1;min-width:0"><div class="acc-header-title">Meal Plan</div><div class="acc-header-sub">Generate or build your own</div></div>
-    <span class="acc-chev">▼</span>
   </div>
-  <div class="card acc-body" id="acc-mealplan" style="margin-bottom:14px;border-color:rgba(142,142,147,.25)">
+
+  <div class="nutr-carousel-card" style="flex-basis:88%">
+  <!-- Meal Plan — the real Generate/Build-My-Own builder, now a carousel
+       slide itself for the same reason as Log Food above. -->
+  <div class="card" id="acc-mealplan" style="height:100%;box-sizing:border-box;border-color:rgba(142,142,147,.25)">
     <div class="ch"><span class="ct" style="display:flex;align-items:center;gap:7px;color:rgba(142,142,147,.95)">🍽 Meal Plan</span></div>
     <div style="font-size:11.5px;color:rgba(238,240,255,.5);margin-bottom:16px;line-height:1.55">Generate full days against your targets, or build your own from scratch — full agency either way.</div>
 
@@ -2579,6 +2529,34 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       <button onclick="generateShoppingList()" style="width:100%;background:rgba(255,122,46,.1);border:1.5px solid rgba(255,122,46,.3);border-radius:8px;padding:11px;color:rgba(255,122,46,.9);font-family:'Outfit',sans-serif;font-size:11.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;cursor:pointer">🛒 Build Shopping List From This Plan</button>
     </div>
     <div id="shopping-list-output" style="margin-top:14px"></div>
+  </div>
+  </div>
+
+  </div>
+
+  <!-- Logged Today — Calories/Protein already live in Today's Overview
+       above, so this card is just the log list + why-these-numbers detail
+       now, not a second set of the same bars. -->
+  <div class="card" id="acc-macros" style="margin-bottom:14px">
+    <div class="ch"><span class="ct ct-mint" style="display:flex;align-items:center;gap:7px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>Logged Today</span><span class="ca" onclick="resetDay()">Reset</span></div>
+    <div id="today-log-list"></div>
+    <div id="macro-alcohol-line" style="display:none;font-size:11.5px;color:var(--muted);margin-top:10px">🍷 <span id="macro-alcohol-val">0</span>g alcohol today</div>
+    <div id="macro-why-toggle" onclick="toggleMacroWhy()" style="font-size:10.5px;color:var(--muted);cursor:pointer;margin-top:10px;text-decoration:underline;text-underline-offset:2px;display:inline-block">Why these numbers?</div>
+    <div id="macro-why-panel" style="display:none;margin-top:10px;padding:12px 14px;background:rgba(255,255,255,.03);border:1.5px solid var(--border2);border-radius:8px;font-size:11.5px;line-height:1.7;color:rgba(238,240,255,.7)">
+      <div style="margin-bottom:8px"><strong style="color:var(--white)">Protein — 1g per lb of bodyweight.</strong> Training tears muscle fibres down; protein is the raw material your body uses to rebuild them thicker. This lands right at the top of what research shows actually helps — going higher doesn't build more muscle, it just crowds out the carbs your training needs.</div>
+      <div><strong style="color:var(--white)">Calories — a controlled surplus.</strong> Building new muscle costs energy on top of what you burn day to day. Too small a surplus and there's nothing to build with; too large and most of the extra goes to fat instead of muscle.</div>
+    </div>
+  </div>
+
+  <!-- CATCH-UP PROMPT — hidden unless actually behind on calories today.
+       A clickable question rather than a passive sentence, expanding into
+       real suggestions sized to the specific remaining gap. -->
+  <div id="catchup-card" class="card" style="display:none;margin-bottom:14px;cursor:pointer" onclick="toggleCatchup()">
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <div style="font-size:13px;font-weight:700" id="catchup-question">Need help catching up on calories?</div>
+      <span id="catchup-chevron" style="color:var(--muted);font-size:12px;transition:transform .2s">▼</span>
+    </div>
+    <div id="catchup-body" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--border2)" onclick="event.stopPropagation()"></div>
   </div>
 </div>
 
@@ -4053,6 +4031,15 @@ function toggleMoreSheet(){
   const opening=!sheet.classList.contains('show');
   sheet.classList.toggle('show',opening);
   backdrop.classList.toggle('show',opening);
+}
+
+function toggleSidebarMore(){
+  const flyout=document.getElementById('sb-more-flyout');
+  const btn=document.getElementById('sb-more-btn');
+  if(!flyout||!btn)return;
+  const opening=!flyout.classList.contains('show');
+  flyout.classList.toggle('show',opening);
+  btn.classList.toggle('more-open',opening);
 }
 
 // ── MOBILE NAV ACTIVE STATE ──
@@ -6675,6 +6662,7 @@ function checkProteinQuest(){
 
 // ── TOAST ──
 function toast(icon,msg){const t=document.getElementById('toast');if(!t)return;const ti=document.getElementById('ti');const tm=document.getElementById('tm');if(ti)ti.textContent=icon;if(tm)tm.textContent=msg;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),3000)}
+function dismissToast(){const t=document.getElementById('toast');if(!t)return;clearTimeout(t._t);t.classList.remove('show')}
 // ── CELEBRATION BURST — reserved for genuinely meaningful moments (session
 // complete, a PR, good sleep, a full wind-down streak) — not every tap, or it
 // stops feeling special. ──
@@ -10131,16 +10119,13 @@ function toggleCatchup(){
   if(chevron)chevron.style.transform=opening?'rotate(180deg)':'rotate(0deg)';
 }
 function renderNutrition(){
-  if(!document.getElementById('macro-disp'))return;
+  if(!document.getElementById('nutr-cals-cur'))return;
   checkNutritionDay();
   renderTodayLog();
   renderFeederQuest();
   renderCaloricShield();
   renderWaterRow();
   const p=profile;if(!p.cals)return;
-  const macros=[{name:'Calories',icon:'🔥',cur:Math.round(dayMacros.cals),target:p.cals,unit:'kcal',col:'#FF7A2E'},{name:'Protein',icon:'🥩',cur:Math.round((dayMacros.prot||0)*10)/10,target:p.protein,unit:'g',col:'#FF5A00'}];
-  const _md=document.getElementById('macro-disp');if(!_md)return;
-  _md.innerHTML=macros.map(m=>`<div class="macro-row2"><div class="macro-row2-top"><div class="macro-row2-label"><span class="macro-row2-icon">${m.icon}</span>${m.name}</div><div class="macro-row2-nums"><span class="cur" style="color:${m.col}">${m.cur}${m.unit}</span><span class="tgt"> / ${m.target}${m.unit}</span></div></div><div class="macro-bar-wrap2"><div class="macro-bar-fill2" style="width:${Math.min(100,m.target>0?m.cur/m.target*100:0)}%;background:linear-gradient(90deg,${m.col}99,${m.col})"></div></div></div>`).join('');
 
   // TODAY'S OVERVIEW — calorie bar + Protein/Carbs/Fat wheels, same data
   // as the macros array above plus the two extra macros dayMacros now
@@ -11785,6 +11770,24 @@ function logItem(name,cals,prot,carbs,fats,alcohol){
   renderNutrition();
 }
 
+// ── QUICK ADD — Nutrition page carousel's one-tap common foods. Reuses
+// the real logItem() flow, same as everything else on this page.
+const QUICK_ADD_FOODS={
+  'peanut-butter':{name:'Peanut butter (2 tbsp)',cals:190,prot:8,carbs:6,fats:16},
+  'whole-milk':{name:'Whole milk (500ml)',cals:310,prot:16,carbs:24,fats:17},
+  'nuts':{name:'Nuts (handful)',cals:170,prot:5,carbs:5,fats:14},
+  'banana-pb':{name:'Banana + PB',cals:280,prot:9,carbs:32,fats:13},
+  'greek-yoghurt':{name:'Greek yoghurt',cals:130,prot:17,carbs:6,fats:4},
+  'oats-milk':{name:'Oats + milk',cals:350,prot:14,carbs:45,fats:12},
+};
+function logQuickAdd(key){
+  const f=QUICK_ADD_FOODS[key];
+  if(!f)return;
+  logItem(f.name,f.cals,f.prot,f.carbs,f.fats,0);
+  addXP(2,'Quick add');saveToStorage();
+  toast('✅',f.name+' logged');
+}
+
 // ── EMERGENCY PROTEIN SHAKE — one tap, no thinking required, for a day
 // where you're behind and just need something logged right now. Reuses
 // the real logItem() flow (same macro math, same log entry, same
@@ -12159,16 +12162,8 @@ function renderWaterRow(){
 }
 function logNutrition(){showPage('nutrition')}
 function openLogFood(){
-  const header=document.querySelector('.acc-header[onclick*="acc-logfood"]');
   const body=document.getElementById('acc-logfood');
-  if(header&&body&&!body.classList.contains('open'))toggleAccordion('acc-logfood',header);
-  if(body)body.scrollIntoView({behavior:'smooth',block:'start'});
-}
-function openMealPlanBuilder(){
-  const header=document.querySelector('.acc-header[onclick*="acc-mealplan"]');
-  const body=document.getElementById('acc-mealplan');
-  if(header&&body&&!body.classList.contains('open'))toggleAccordion('acc-mealplan',header);
-  if(body)body.scrollIntoView({behavior:'smooth',block:'start'});
+  if(body)body.scrollIntoView({behavior:'smooth',block:'nearest',inline:'start'});
 }
 function openAiVisionScan(){
   toast('📷','AI Vision Scan is coming soon — for now, Smart Log estimates macros from a text description in seconds.');
