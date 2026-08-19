@@ -1706,19 +1706,28 @@ window.addEventListener('error', function(e){
    reference's distinct closed-card / open-spread look instead of trying
    to physically simulate the page turn. */
 .sc-spread{
-  /* True centering (left:50%) put the spread's right half directly under
-     the headline copy that sits beside the book in the stage's flex
-     layout — .sc-mount is only 220px wide, so centering a 460px spread
-     on it overflows symmetrically into space the copy already occupies.
-     Right-anchored (matching the book's own right edge) keeps it clear
-     of that text; the hinge tilt below is what actually answers "open
-     toward the centre, not flat to one side" without colliding with
-     anything. */
-  position:absolute;right:0;top:50%;width:460px;height:100%;
-  transform:translateY(-50%) scale(.94);
+  /* Desktop (>820px, see the position:fixed media rule below) centers
+     this on the actual viewport, not on .sc-mount — .sc-mount is only
+     220px wide and sits in a flex row together with the headline copy,
+     so centering the spread ON THE MOUNT (left:50% as a normal absolute
+     child) put its right half directly under that copy text. Desktop is
+     scroll-pinned for this whole section, so the mount's on-screen
+     position is locked and fixed-centering it on the viewport is safe;
+     mobile ISN'T pinned (see the JS's one-shot IntersectionObserver
+     version), so the mount can be anywhere on screen when this plays —
+     there, position:absolute centered on the mount's own local box
+     (further down, in the max-width:820px rule) is what actually keeps
+     it visually attached to the book instead of floating independently
+     mid-viewport. Desktop's copy fade timing is what keeps things clear
+     of the centered spread there (fades out before it opens, back in
+     after it closes) — see the JS's copyKids comment. */
+  width:460px;
   display:flex;border-radius:8px;overflow:visible;background:#f7f5ee;
   box-shadow:0 30px 60px -16px rgba(0,0,0,.7),0 0 44px -12px var(--sc-glow,rgba(255,140,71,.3));
-  opacity:0;pointer-events:none;will-change:transform,opacity;
+  opacity:0;pointer-events:none;will-change:transform,opacity;z-index:5;
+}
+@media(min-width:821px){
+  .sc-spread{position:fixed;left:50%;top:50%;height:var(--h);transform:translate(-50%,-50%) scale(.94)}
 }
 /* Page-block thickness — a real open book shows the stacked-page edge
    along THREE sides (bottom + both outer edges; only the top/spine fold
@@ -1788,7 +1797,7 @@ window.addEventListener('error', function(e){
 .sc-spread-blurb{font-size:11px;line-height:1.55;color:rgba(23,22,15,.6);margin:0}
 .sc-spread-price{font-family:'Outfit',sans-serif;font-size:12px;font-weight:800;border-top:1px solid rgba(0,0,0,.1);padding-top:10px;margin-top:10px;color:#141309}
 @media(max-width:820px){
-  .sc-spread{width:290px;right:auto;left:50%;transform:translate(-50%,-50%) scale(.94)}
+  .sc-spread{width:290px;position:absolute;right:auto;left:50%;top:50%;height:100%;transform:translate(-50%,-50%) scale(.94)}
   .sc-spread-page{padding:16px 14px}
   .sc-spread-heading{font-size:14px}
   .sc-spread-blurb{font-size:10px}
@@ -2204,8 +2213,18 @@ window.addEventListener('error', function(e){
           // price"), then draw back in as it closes — the other two
           // sections have no .sc-sat elements, so these are silent no-ops.
           .to(sats, {x:(i,el)=>+el.dataset.tx, y:(i,el)=>+el.dataset.ty, rotate:(i,el)=>+el.dataset.rot, scale:1, opacity:1, duration:0.18, stagger:0.025, ease:'back.out(1.5)'}, 0.46)
-          .fromTo(copyKids, {opacity:0, x:-40}, {opacity:1, x:0, duration:0.22, ease:'power3.out', stagger:0.025}, 0.48)
-          .to(copyKids, {opacity:0, x:-30, duration:0.10, ease:'power1.in', stagger:0.015}, 0.85)
+          // Copy now shows in two beats bracketing the open spread instead
+          // of one continuous window through it — the spread is centered
+          // on the viewport now (see .sc-spread's comment), which is right
+          // where this copy used to sit for the whole open beat, so
+          // holding it visible there would ghost text through the book.
+          // Visible early while the cube still spins closed, hidden the
+          // moment the spread opens, back once it's closed again — same
+          // "product info while the book isn't the centered focal point"
+          // logic to old, just applied instead of overlapping it.
+          .fromTo(copyKids, {opacity:0, x:-40}, {opacity:1, x:0, duration:0.20, ease:'power3.out', stagger:0.02}, 0.10)
+          .to(copyKids, {opacity:0, x:-30, duration:0.08, ease:'power1.in', stagger:0.015}, 0.46)
+          .fromTo(copyKids, {opacity:0, x:-40}, {opacity:1, x:0, duration:0.16, ease:'power3.out', stagger:0.02}, 0.84)
           .to(sats, {x:0, y:0, rotate:0, scale:.25, opacity:0, duration:0.12, stagger:0.015, ease:'power1.in'}, 0.85)
           // Scale eases back to frame-one's 0.8 with its own dedicated
           // stretch, overlapping the tail of the cover closing rather than
