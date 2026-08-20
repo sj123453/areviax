@@ -691,6 +691,29 @@ select option{background:var(--panel)}
 .btn-sm{padding:6px 12px;font-size:10px}
 .btn-ghost{background:transparent;border:1.5px solid var(--border2);color:var(--muted);clip-path:none;font-size:10px;padding:5px 11px}.btn-ghost:hover{border-color:var(--border);color:var(--white)}
 
+/* DESKTOP CARD SCALE-UP — the dashboard got a bespoke bigger-not-just-
+   wider treatment (see .dash-grid's own scale-up block); every other
+   page uses these same shared .card, .ch, .ct, .acc-header-title, input
+   classes everywhere already, so scaling THOSE once here gets the same
+   "deliberately bigger desktop composition" result across the whole
+   app instead of a page-by-page repeat of the dashboard's work. No
+   !important needed — placed after the base rules above so it wins the
+   cascade at this breakpoint, and any page that already sets its own
+   inline style for one of these keeps that override untouched. */
+@media(min-width:900px){
+  .card{padding:26px 28px;border-radius:16px}
+  .ch{margin-bottom:16px}
+  .ct{font-size:12px}
+  .ca{font-size:12px}
+  .acc-header-title{font-size:15px}
+  .acc-header-sub{font-size:11.5px;margin-top:3px}
+  .acc-tile-icon{width:48px;height:48px;font-size:22px;border-radius:12px}
+  input[type=text],input[type=number],select{font-size:14px;padding:11px 15px}
+  label.lbl{font-size:11px}
+  .btn{font-size:12px;padding:10px 20px}
+  .equip-chip{font-size:12px;padding:8px 14px}
+}
+
 /* PROGRESSION PROMPT */
 .prog-prompt{background:linear-gradient(135deg,rgba(255,90,0,.08),rgba(255,122,46,.04));border:1.5px solid var(--border);border-radius:6px;padding:14px;margin-top:10px}
 .prog-q{font-weight:600;font-size:13px;margin-bottom:10px}
