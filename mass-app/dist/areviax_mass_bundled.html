@@ -1186,6 +1186,78 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     }
     #compass-main.pulse{animation:compassPulse .7s ease}
 
+    /* ── ACHIEVEMENTS GRID — trophies (existing ACHIEVEMENTS milestones)
+       on top, Legend Cards (Compass Drop collectibles) below, both as
+       compact horizontal-scroll rows of badges instead of Trophy Road's
+       old tall vertical list — same underlying unlock data, just laid
+       out so both collections fit one card without a page-length scroll. */
+    .ach-row{display:flex;gap:10px;overflow-x:auto;padding:2px 2px 8px;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
+    .ach-badge{
+      flex:0 0 auto;width:56px;display:flex;flex-direction:column;align-items:center;gap:5px;
+      cursor:pointer;-webkit-tap-highlight-color:transparent;
+    }
+    .ach-badge-icon{
+      width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+      font-size:20px;background:rgb(var(--bg-rgb));border:2px solid rgba(255,255,255,.1);
+      filter:grayscale(1) opacity(.5);transition:filter .2s,border-color .2s,box-shadow .2s;
+    }
+    .ach-badge.unlocked .ach-badge-icon{
+      filter:none;background:rgba(255,90,0,.1);border-color:var(--green);
+      box-shadow:0 0 14px rgba(255,90,0,.35);
+    }
+    .ach-badge-label{font-size:8.5px;font-weight:700;color:var(--muted);text-align:center;line-height:1.25;width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .ach-badge.unlocked .ach-badge-label{color:rgba(var(--white-rgb),.75)}
+
+    /* Legend Cards use rarity-coloured borders instead of a single lit
+       colour — common/rare/legendary reads at a glance without needing
+       the name visible yet, same idea as the priority-dial colour
+       system elsewhere in the app. */
+    .legend-card{
+      flex:0 0 auto;width:78px;border-radius:10px;padding:10px 6px 8px;text-align:center;
+      background:rgb(var(--bg-rgb));border:1.5px solid rgba(255,255,255,.1);cursor:pointer;
+      -webkit-tap-highlight-color:transparent;transition:transform .15s,box-shadow .2s;
+    }
+    .legend-card:active{transform:scale(.96)}
+    .legend-card-icon{font-size:26px;margin-bottom:6px;filter:grayscale(1) opacity(.4)}
+    .legend-card-name{font-size:9px;font-weight:800;color:var(--muted);line-height:1.3}
+    .legend-card.unlocked{background:rgba(255,255,255,.03)}
+    .legend-card.unlocked .legend-card-icon{filter:none}
+    .legend-card.unlocked .legend-card-name{color:var(--white)}
+    .legend-card.rarity-common.unlocked{border-color:rgba(142,142,147,.5)}
+    .legend-card.rarity-rare.unlocked{border-color:rgba(68,207,255,.55);box-shadow:0 0 12px rgba(68,207,255,.25)}
+    .legend-card.rarity-legendary.unlocked{border-color:rgba(255,215,0,.6);box-shadow:0 0 16px rgba(255,215,0,.3)}
+
+    .ach-drop-cta{
+      display:flex;align-items:center;justify-content:space-between;gap:12px;
+      background:linear-gradient(135deg,rgba(255,90,0,.1),rgba(68,207,255,.05));
+      border:1.5px solid rgba(255,90,0,.25);border-radius:10px;padding:12px 14px;margin-top:4px;
+    }
+    .ach-drop-cta-text{font-size:11.5px;font-weight:700;color:var(--white)}
+    .ach-drop-cta-sub{font-size:10px;color:var(--muted);margin-top:2px}
+    .ach-drop-btn{
+      flex-shrink:0;background:linear-gradient(135deg,#FF5A00,#FF7A2E);border:none;border-radius:8px;
+      padding:9px 16px;color:#2B0E00;font-family:'Outfit',sans-serif;font-size:11.5px;font-weight:900;
+      letter-spacing:.02em;cursor:pointer;white-space:nowrap;
+    }
+    .ach-drop-btn:disabled{background:var(--border2);color:var(--muted);cursor:not-allowed}
+
+    /* Compass Drop opening — a chest-shake wind-up before the burst,
+       borrowing the achievement overlay's dark celebratory backdrop so
+       the two "you got something" moments feel like the same system. */
+    @keyframes crateShake{
+      0%,100%{transform:rotate(0)}
+      20%{transform:rotate(-8deg)}
+      40%{transform:rotate(7deg)}
+      60%{transform:rotate(-6deg)}
+      80%{transform:rotate(4deg)}
+    }
+    .crate-shake{animation:crateShake .5s ease-in-out 3}
+    .legend-reveal-icon{font-size:56px;margin-bottom:12px;display:inline-block}
+    .legend-reveal-rarity{font-size:10px;font-weight:800;letter-spacing:.22em;margin-bottom:10px}
+    .legend-reveal-rarity.rarity-common{color:#B8B8BC}
+    .legend-reveal-rarity.rarity-rare{color:#44CFFF}
+    .legend-reveal-rarity.rarity-legendary{color:#FFD24A}
+
     /* ── TROPHY ROAD ── */
     .road-node{display:flex;gap:12px;position:relative;min-height:54px}
     .road-line{position:absolute;left:17px;top:0;bottom:0;width:2px;background:var(--border)}
@@ -3750,10 +3822,25 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     <div id="hall-of-statues" class="hall-grid"></div>
   </div>
 
-  <!-- TROPHY ROAD -->
+  <!-- ACHIEVEMENTS — trophies (milestone unlocks, same ACHIEVEMENTS data
+       Trophy Road used to show as a tall vertical list) on top, Legend
+       Cards (Compass Drop collectibles — spend a banked shard for a
+       chance at a bodybuilding great) below, so tapping "achievements"
+       shows both collections in one glance instead of two separate
+       hunts. -->
   <div class="card" style="margin-bottom:14px">
-    <div class="ch"><span class="ct">Trophy Road</span></div>
-    <div id="trophy-road" style="max-height:380px;overflow-y:auto;padding-right:4px"></div>
+    <div class="ch"><span class="ct">Achievements</span></div>
+    <div style="font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:4px">Trophies</div>
+    <div id="trophy-road" class="ach-row"></div>
+    <div style="font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:8px 0 4px">Legend Cards</div>
+    <div id="legend-row" class="ach-row"></div>
+    <div class="ach-drop-cta">
+      <div>
+        <div class="ach-drop-cta-text">🧭 Compass Drop</div>
+        <div class="ach-drop-cta-sub" id="ach-drop-sub">Spend a shard for a random legend card</div>
+      </div>
+      <button class="ach-drop-btn" id="ach-drop-btn" onclick="openCompassDrop()">Open</button>
+    </div>
   </div>
   </div>
   </div>
@@ -5809,7 +5896,7 @@ function renderProfile(){
   if(strk)strk.textContent=streak+' day'+(streak===1?'':'s');
   const prCount=document.getElementById('profile-prs');
   if(prCount)prCount.textContent=Object.keys(prs).length;
-  renderTrophyRoad();
+  renderAchievements();
   renderHallOfStatues();
   checkCloudBackup();
   renderInstallSection();
@@ -5950,21 +6037,94 @@ function tenureText(){
   return 'Member for '+years+' year'+(years===1?'':'s')+(months>0?', '+months+' month'+(months===1?'':'s'):'');
 }
 
-function renderTrophyRoad(){
+// \u2500\u2500 LEGEND CARDS \u2014 Compass Drop collectibles. Real bodybuilding
+// greats, factual titles only (no invented quotes attributed to real
+// people) \u2014 this is a nostalgic trivia-card collectible inside a
+// personal training app, not a claim of endorsement. Rarity weights
+// below in openCompassDrop() control drop odds, not this order.
+const LEGEND_CARDS=[
+  {key:'arnold',    name:'Arnold Schwarzenegger', title:'"The Austrian Oak" \u2014 7\u00d7 Mr. Olympia',        icon:'\ud83c\udfd4\ufe0f', rarity:'legendary'},
+  {key:'coleman',   name:'Ronnie Coleman',        title:'"Yeah Buddy!" \u2014 8\u00d7 Mr. Olympia',              icon:'\ud83d\udc51', rarity:'legendary'},
+  {key:'haney',     name:'Lee Haney',              title:'8\u00d7 Mr. Olympia (1984\u20131991)',              icon:'\ud83c\udfc6', rarity:'rare'},
+  {key:'yates',     name:'Dorian Yates',           title:'"The Shadow" \u2014 6\u00d7 Mr. Olympia',               icon:'\ud83c\udf11', rarity:'rare'},
+  {key:'cutler',    name:'Jay Cutler',             title:'4\u00d7 Mr. Olympia',                              icon:'\u26a1', rarity:'rare'},
+  {key:'heath',     name:'Phil Heath',             title:'"The Gift" \u2014 7\u00d7 Mr. Olympia',                 icon:'\ud83c\udf81', rarity:'common'},
+  {key:'oliva',     name:'Sergio Oliva',           title:'"The Myth" \u2014 3\u00d7 Mr. Olympia',                 icon:'\ud83e\uddbe', rarity:'common'},
+  {key:'columbu',   name:'Franco Columbu',         title:'2\u00d7 Mr. Olympia',                              icon:'\ud83d\udcaa', rarity:'common'},
+];
+let unlockedLegends=[]; // persistent \u2014 keys from LEGEND_CARDS the user has actually pulled
+
+function renderAchievements(){
   const cont=document.getElementById('trophy-road');
-  if(!cont)return;
-  const sorted=[...ACHIEVEMENTS].sort((a,b)=>a.order-b.order);
-  cont.innerHTML=sorted.map((a,i)=>{
-    const unlocked=unlockedAchievements.includes(a.key);
-    return '<div class="road-node'+(unlocked?' unlocked':'')+'">'+
-      '<div class="road-line'+(i===0?' first':'')+(unlocked?' lit':'')+'"></div>'+
-      '<div class="road-dot'+(unlocked?' lit':'')+'">'+(unlocked?a.icon:'\ud83d\udd12')+'</div>'+
-      '<div class="road-info">'+
-        '<div class="road-label">'+a.label+'</div>'+
-        '<div class="road-desc">'+(unlocked?a.desc:'Locked')+'</div>'+
-      '</div>'+
+  if(cont){
+    const sorted=[...ACHIEVEMENTS].sort((a,b)=>a.order-b.order);
+    cont.innerHTML=sorted.map(a=>{
+      const unlocked=unlockedAchievements.includes(a.key);
+      return `<div class="ach-badge${unlocked?' unlocked':''}" onclick="viewAchievementBadge('${a.key}')">
+        <div class="ach-badge-icon">${unlocked?a.icon:'\ud83d\udd12'}</div>
+        <div class="ach-badge-label">${unlocked?a.label:'Locked'}</div>
+      </div>`;
+    }).join('');
+  }
+  const legendCont=document.getElementById('legend-row');
+  if(legendCont){
+    legendCont.innerHTML=LEGEND_CARDS.map(l=>{
+      const unlocked=unlockedLegends.includes(l.key);
+      return `<div class="legend-card rarity-${l.rarity}${unlocked?' unlocked':''}" onclick="viewLegendCard('${l.key}')">
+        <div class="legend-card-icon">${unlocked?l.icon:'\u2753'}</div>
+        <div class="legend-card-name">${unlocked?l.name.split(' ').pop():'???'}</div>
+      </div>`;
+    }).join('');
+  }
+  const btn=document.getElementById('ach-drop-btn');
+  const sub=document.getElementById('ach-drop-sub');
+  if(btn){
+    btn.disabled=shardBank<=0;
+    btn.textContent=shardBank>0?'Open ('+shardBank+' \ud83d\udd37)':'Open';
+  }
+  if(sub)sub.textContent=shardBank>0?'Spend a shard for a random legend card':'Earn a shard with a perfect training week';
+}
+function viewAchievementBadge(key){
+  const a=ACHIEVEMENTS.find(x=>x.key===key);
+  if(!a)return;
+  const unlocked=unlockedAchievements.includes(key);
+  toast(unlocked?a.icon:'\ud83d\udd12',unlocked?a.label+' \u2014 '+a.desc:a.label+' \u2014 locked');
+}
+function viewLegendCard(key){
+  const l=LEGEND_CARDS.find(x=>x.key===key);
+  if(!l)return;
+  const unlocked=unlockedLegends.includes(key);
+  toast(unlocked?l.icon:'\u2753',unlocked?l.name+' \u2014 '+l.title:'Locked \u2014 open a Compass Drop for a chance at this card');
+}
+function openCompassDrop(){
+  if(shardBank<=0)return;
+  shardBank--;
+  // weighted pick: common 60%, rare 32%, legendary 8%
+  const roll=Math.random()*100;
+  const rarity=roll<8?'legendary':roll<40?'rare':'common';
+  const pool=LEGEND_CARDS.filter(l=>l.rarity===rarity);
+  const pick=pool[Math.floor(Math.random()*pool.length)];
+  const isNew=!unlockedLegends.includes(pick.key);
+  if(isNew)unlockedLegends.push(pick.key);
+  saveToStorage();
+  renderAchievements();
+  showLegendReveal(pick,isNew);
+}
+function showLegendReveal(l,isNew){
+  const overlay=document.createElement('div');
+  overlay.className='achievement-overlay';
+  overlay.innerHTML=
+    '<div class="achievement-modal">'+
+      '<div class="legend-reveal-icon crate-shake">'+l.icon+'</div>'+
+      '<div class="legend-reveal-rarity rarity-'+l.rarity+'">'+l.rarity.toUpperCase()+(isNew?' \u2014 NEW':' \u2014 DUPLICATE')+'</div>'+
+      '<div class="achievement-title">'+l.name+'</div>'+
+      '<div class="achievement-desc">'+l.title+'</div>'+
+      '<button class="achievement-close-btn" onclick="this.closest(\'.achievement-overlay\').remove()">Continue</button>'+
     '</div>';
-  }).join('');
+  document.body.appendChild(overlay);
+  requestAnimationFrame(()=>overlay.classList.add('show'));
+  addXP(isNew?25:10,isNew?'New legend card':'Compass Drop');
+  if(isNew)celebrateBurst(['\ud83d\udd25','\u2b50','\ud83c\udfc6'],20);
 }
 
 // ── BACKUP REMINDER — nudges, doesn't nag. Shows once it's actually
@@ -13736,6 +13896,7 @@ function saveToStorage(){
     localStorage.setItem('arx_joinDate', joinDate);
     localStorage.setItem('arx_lastAnniversaryYear', lastAnniversaryYear);
     localStorage.setItem('arx_unlockedAchievements', JSON.stringify(unlockedAchievements));
+    localStorage.setItem('arx_unlockedLegends', JSON.stringify(unlockedLegends));
     localStorage.setItem('arx_lastSessionWorkoutName', lastSessionWorkoutName);
     localStorage.setItem('arx_lastBackupDate', lastBackupDate);
     localStorage.setItem('arx_photoLog', JSON.stringify(photoLog));
@@ -13851,6 +14012,8 @@ function loadFromStorage(){
     lastAnniversaryYear=parseInt(localStorage.getItem('arx_lastAnniversaryYear')||'0');
     const ua=localStorage.getItem('arx_unlockedAchievements');
     if(ua){unlockedAchievements=JSON.parse(ua)}
+    const ul=localStorage.getItem('arx_unlockedLegends');
+    if(ul){try{unlockedLegends=JSON.parse(ul);}catch(e){unlockedLegends=[];}}
     lastSessionWorkoutName=localStorage.getItem('arx_lastSessionWorkoutName')||'';
     lastBackupDate=localStorage.getItem('arx_lastBackupDate')||'';
     const pl=localStorage.getItem('arx_photoLog');
