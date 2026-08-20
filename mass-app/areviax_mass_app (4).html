@@ -512,7 +512,7 @@ input,input:focus,input:active,
    to be. At >=900px this restructures into a main+sidebar composition
    rather than just reflowing the same stack into two side-by-side
    columns. */
-.dash-grid{display:grid;gap:9px;grid-template-columns:1fr;
+.dash-grid{display:grid;gap:14px;grid-template-columns:1fr;
   grid-template-areas:"greeting" "today" "overview" "quote"}
 .dash-greeting{grid-area:greeting}
 .dash-today{grid-area:today}
@@ -575,11 +575,31 @@ input,input:focus,input:active,
   .dash-streak-link{font-size:11.5px!important}
 }
 
+/* STREAK DAY FLAME — a completed day used to just be a solid-colour
+   box; a lit flame reads instantly as "this day is burning" the way a
+   flat colour swatch doesn't, and the flicker keeps the weekly strip
+   feeling alive instead of static. Two keyframes layered on one
+   element: the outer wrapper does the flicker (scale/rotate/opacity),
+   the emoji itself gets a steady glow so the flicker doesn't also
+   visibly resize the drop-shadow every frame. */
+@keyframes streakFlameFlicker{
+  0%,100%{transform:scale(1) rotate(-2deg)}
+  25%{transform:scale(1.08) rotate(2deg)}
+  50%{transform:scale(.94) rotate(-1deg)}
+  75%{transform:scale(1.05) rotate(3deg)}
+}
+.streak-day-flame{
+  display:inline-flex;animation:streakFlameFlicker 1.6s ease-in-out infinite;
+  filter:drop-shadow(0 0 5px rgba(255,122,46,.65));
+  transform-origin:50% 85%;
+}
+.streak-day-box{aspect-ratio:1;border-radius:6px;display:flex;align-items:center;justify-content:center;overflow:hidden;transition:background .2s}
+
 /* DASHBOARD HEADER ROW — compact avatar + greeting + date, replacing the
    old oversized standalone name block so the primary content (today's
    session, this week's numbers) starts higher on the screen. */
 .dash-header-row{display:flex;align-items:center;gap:12px}
-.dash-avatar{width:40px;height:40px;border-radius:50%;flex-shrink:0;background:var(--border2);border:1.5px solid rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center}
+.dash-avatar{width:46px;height:46px;border-radius:50%;flex-shrink:0;background:var(--border2);border:1.5px solid rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center}
 
 /* WORKOUT PROGRESS LINE CHART — real tonnageLog data as an SVG polyline
    (orange = actual daily volume, cyan = 3-day rolling average) instead of
@@ -1838,17 +1858,17 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        so real content starts higher on the screen. Streak/XP already
        live permanently in the app's own topbar, so they aren't repeated
        here. -->
-  <div class="dash-greeting-inner" style="background:linear-gradient(135deg,rgba(255,90,0,.06),rgba(255,255,255,.01));border:1px solid rgba(255,90,0,.08);border-radius:14px;padding:9px 14px;height:100%;box-sizing:border-box">
+  <div class="dash-greeting-inner" style="background:linear-gradient(135deg,rgba(255,90,0,.06),rgba(255,255,255,.01));border:1px solid rgba(255,90,0,.08);border-radius:14px;padding:15px 18px;height:100%;box-sizing:border-box">
     <div class="dash-header-row">
       <div class="dash-avatar">
-        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="rgba(var(--white-rgb),.45)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.5 4-7 8-7s8 2.5 8 7"/></svg>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(var(--white-rgb),.45)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.5 4-7 8-7s8 2.5 8 7"/></svg>
       </div>
       <div style="flex:1;min-width:0">
-        <div class="dash-greeting-text" style="font-size:14px;font-weight:900;color:var(--white);letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+        <div class="dash-greeting-text" style="font-size:17px;font-weight:900;color:var(--white);letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
           <span id="dash-greeting" style="color:rgba(255,122,46,.9)">Good morning</span>, <span id="dash-name">Athlete</span>!
         </div>
       </div>
-      <div class="dash-greeting-date" style="font-size:9.5px;color:var(--muted);flex-shrink:0;text-align:right" id="dash-date"></div>
+      <div class="dash-greeting-date" style="font-size:11px;color:var(--muted);flex-shrink:0;text-align:right" id="dash-date"></div>
     </div>
   </div>
   </div>
@@ -1860,13 +1880,13 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        real tonnageLog line-chart data as before, just shrunk. View
        Workouts dropped — it pointed at the exact same page as Start
        already does, so it was a duplicate button, not lost functionality. -->
-  <div class="dash-today-inner" style="background:linear-gradient(160deg,rgba(255,90,0,.09),rgba(var(--bg-rgb),.9));border:1.5px solid rgba(255,90,0,.3);border-radius:14px;padding:11px 14px;box-shadow:0 0 24px -16px rgba(255,90,0,.35)">
+  <div class="dash-today-inner" style="background:linear-gradient(160deg,rgba(255,90,0,.09),rgba(var(--bg-rgb),.9));border:1.5px solid rgba(255,90,0,.3);border-radius:14px;padding:17px 18px;box-shadow:0 0 24px -16px rgba(255,90,0,.35)">
     <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
       <div style="min-width:0">
-        <div class="dash-today-label" style="font-size:8px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,90,0,.55);margin-bottom:2px">Today</div>
-        <div class="dash-today-name" style="font-size:14px;font-weight:900;color:var(--white);line-height:1.2;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="d-next-full">Push Upper — Day 1</div>
+        <div class="dash-today-label" style="font-size:9px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,90,0,.55);margin-bottom:4px">Today</div>
+        <div class="dash-today-name" style="font-size:18px;font-weight:900;color:var(--white);line-height:1.2;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="d-next-full">Push Upper — Day 1</div>
       </div>
-      <button class="dash-start-btn" onclick="showPage('workout')" style="flex-shrink:0;background:linear-gradient(135deg,#FF5A00,#FF7A2E);border:none;border-radius:9px;padding:9px 16px;color:#2B0E00;font-family:'Outfit',sans-serif;font-size:11px;font-weight:900;letter-spacing:.03em;text-transform:uppercase;cursor:pointer;box-shadow:0 8px 18px -8px rgba(255,90,0,.5);white-space:nowrap">▶ Start</button>
+      <button class="dash-start-btn" onclick="showPage('workout')" style="flex-shrink:0;background:linear-gradient(135deg,#FF5A00,#FF7A2E);border:none;border-radius:10px;padding:13px 22px;color:#2B0E00;font-family:'Outfit',sans-serif;font-size:12.5px;font-weight:900;letter-spacing:.03em;text-transform:uppercase;cursor:pointer;box-shadow:0 8px 18px -8px rgba(255,90,0,.5);white-space:nowrap">▶ Start</button>
     </div>
     <div id="vol-daily-card" style="display:none;margin-top:7px;padding-top:7px;border-top:1px solid var(--border)">
       <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:2px">
@@ -1895,37 +1915,37 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        the old Compass canvas concept is what "Sessions" already tracks —
        nothing here is fabricated to fill a slot a real pedometer/GPS
        would need. -->
-  <div id="acc-progress" style="background:var(--panel);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--border2);border-radius:16px;padding:12px 14px;height:100%;box-sizing:border-box">
-  <div class="dash-overview-label" style="font-size:9px;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:rgba(var(--white-rgb),.35);margin-bottom:8px">Today's Overview</div>
-  <div class="dash-ring-grid" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-bottom:9px">
-    <div class="dash-ring-box" style="background:rgba(255,90,0,.045);border:1px solid rgba(255,90,0,.1);border-radius:13px;padding:7px 4px;text-align:center">
-      <svg class="dash-ring-svg" width="64" height="64" viewBox="0 0 72 72" style="display:block;margin:0 auto;max-width:100%;height:auto">
+  <div id="acc-progress" style="background:var(--panel);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--border2);border-radius:16px;padding:17px 18px;height:100%;box-sizing:border-box">
+  <div class="dash-overview-label" style="font-size:10.5px;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:rgba(var(--white-rgb),.35);margin-bottom:14px">Today's Overview</div>
+  <div class="dash-ring-grid" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:16px">
+    <div class="dash-ring-box" style="background:rgba(255,90,0,.045);border:1px solid rgba(255,90,0,.1);border-radius:14px;padding:11px 5px;text-align:center">
+      <svg class="dash-ring-svg" width="78" height="78" viewBox="0 0 72 72" style="display:block;margin:0 auto;max-width:100%;height:auto">
         <circle cx="36" cy="36" r="29" fill="none" stroke="var(--border2)" stroke-width="6.5"/>
         <circle id="sess-gauge-arc" cx="36" cy="36" r="29" fill="none" stroke="url(#sessGaugeGrad)" stroke-width="6.5" stroke-linecap="round" transform="rotate(-90 36 36)" stroke-dasharray="182.2" stroke-dashoffset="182.2" style="transition:stroke-dashoffset .6s cubic-bezier(.16,1,.3,1)"/>
         <defs><linearGradient id="sessGaugeGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#FF7A2E"/><stop offset="100%" stop-color="#FF5A00"/></linearGradient></defs>
         <text x="36" y="40" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-weight="700" font-size="13" fill="var(--white)" id="d-sessions-brief">0/0</text>
       </svg>
-      <div class="dash-ring-cat" style="font-size:7px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,122,46,.65);margin-top:2px">Sessions</div>
+      <div class="dash-ring-cat" style="font-size:8.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,122,46,.65);margin-top:2px">Sessions</div>
     </div>
-    <div class="dash-ring-box" style="background:rgba(255,90,0,.045);border:1px solid rgba(255,90,0,.1);border-radius:13px;padding:7px 4px;text-align:center">
-      <svg class="dash-ring-svg" width="64" height="64" viewBox="0 0 72 72" style="display:block;margin:0 auto;max-width:100%;height:auto">
+    <div class="dash-ring-box" style="background:rgba(255,90,0,.045);border:1px solid rgba(255,90,0,.1);border-radius:14px;padding:11px 5px;text-align:center">
+      <svg class="dash-ring-svg" width="78" height="78" viewBox="0 0 72 72" style="display:block;margin:0 auto;max-width:100%;height:auto">
         <circle cx="36" cy="36" r="29" fill="none" stroke="var(--border2)" stroke-width="6.5"/>
         <circle id="d-cals-ring" cx="36" cy="36" r="29" fill="none" stroke="url(#dCalsGrad)" stroke-width="6.5" stroke-linecap="round" transform="rotate(-90 36 36)" stroke-dasharray="182.2" stroke-dashoffset="182.2" style="transition:stroke-dashoffset .5s cubic-bezier(.16,1,.3,1)"/>
         <defs><linearGradient id="dCalsGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#FF8C47"/><stop offset="100%" stop-color="#FF5A00"/></linearGradient></defs>
         <text x="36" y="33" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-weight="700" font-size="12" fill="var(--white)" id="d-cals-brief">0</text>
         <text x="36" y="46" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="7.5" fill="rgba(var(--white-rgb),.55)">/ <tspan id="d-cals-target">—</tspan></text>
       </svg>
-      <div class="dash-ring-cat" style="font-size:7px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,122,46,.65);margin-top:2px">Calories</div>
+      <div class="dash-ring-cat" style="font-size:8.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,122,46,.65);margin-top:2px">Calories</div>
     </div>
-    <div class="dash-ring-box" style="background:rgba(68,212,255,.045);border:1px solid rgba(68,212,255,.1);border-radius:13px;padding:7px 4px;text-align:center">
-      <svg class="dash-ring-svg" width="64" height="64" viewBox="0 0 72 72" style="display:block;margin:0 auto;max-width:100%;height:auto">
+    <div class="dash-ring-box" style="background:rgba(68,212,255,.045);border:1px solid rgba(68,212,255,.1);border-radius:14px;padding:11px 5px;text-align:center">
+      <svg class="dash-ring-svg" width="78" height="78" viewBox="0 0 72 72" style="display:block;margin:0 auto;max-width:100%;height:auto">
         <circle cx="36" cy="36" r="29" fill="none" stroke="var(--border2)" stroke-width="6.5"/>
         <circle id="d-protein-ring" cx="36" cy="36" r="29" fill="none" stroke="url(#dProtGrad)" stroke-width="6.5" stroke-linecap="round" transform="rotate(-90 36 36)" stroke-dasharray="182.2" stroke-dashoffset="182.2" style="transition:stroke-dashoffset .5s cubic-bezier(.16,1,.3,1)"/>
         <defs><linearGradient id="dProtGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#8fe6ff"/><stop offset="100%" stop-color="#44CFFF"/></linearGradient></defs>
         <text x="36" y="33" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-weight="700" font-size="12" fill="var(--white)" id="d-protein-brief">0g</text>
         <text x="36" y="46" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="7.5" fill="rgba(var(--white-rgb),.55)">/ <tspan id="d-protein-target">—</tspan></text>
       </svg>
-      <div class="dash-ring-cat" style="font-size:7px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(68,212,255,.75);margin-top:2px">Protein</div>
+      <div class="dash-ring-cat" style="font-size:8.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(68,212,255,.75);margin-top:2px">Protein</div>
     </div>
   </div>
   <div class="nutri-bar-row dash-nutri-bar-row">
@@ -1957,15 +1977,15 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        scrolling. Recent Activity removed per request — sessionHistory
        still drives the Workout Builder's reload list, just no longer
        duplicated as a dashboard feed. -->
-  <div class="dash-quote-inner" style="background:linear-gradient(135deg,rgba(255,90,0,.05),rgba(255,255,255,.012));border:1px solid rgba(255,90,0,.12);border-radius:16px;padding:10px 14px;position:relative;overflow:hidden;height:100%;box-sizing:border-box">
-    <div class="dash-quote-mark" style="position:absolute;top:-2px;left:10px;font-size:36px;font-family:Georgia,serif;color:rgba(255,90,0,.14);line-height:1;pointer-events:none">&ldquo;</div>
-    <div class="dash-quote-label" style="font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,122,46,.7);margin-bottom:5px;font-weight:700;position:relative">Today's Perspective</div>
-    <div class="dash-quote-text" style="font-size:12.5px;color:var(--white);line-height:1.35;font-style:italic;font-weight:600;margin-bottom:4px;position:relative;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden" id="dash-quote-text">—</div>
-    <div class="dash-quote-attrib" style="font-size:9.5px;color:rgba(255,122,46,.8);font-weight:700;position:relative;margin-bottom:7px">— Areviax</div>
-    <div id="assessment-card" onclick="viewAssessment()" style="cursor:pointer;position:relative;border-top:1px solid rgba(68,212,255,.14);padding-top:7px">
-      <div id="assessment-new-badge" style="position:absolute;top:7px;right:0;width:8px;height:8px;border-radius:50%;background:#44CFFF;box-shadow:0 0 8px rgba(68,212,255,.7)"></div>
-      <div class="dash-quote-label" style="font-size:8.5px;letter-spacing:.14em;text-transform:uppercase;color:rgba(68,212,255,.75);margin-bottom:4px;font-weight:700">This Week's Assessment</div>
-      <div class="dash-quote-text" style="font-size:11px;color:rgba(var(--white-rgb),.85);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden" id="assessment-text">—</div>
+  <div class="dash-quote-inner" style="background:linear-gradient(135deg,rgba(255,90,0,.05),rgba(255,255,255,.012));border:1px solid rgba(255,90,0,.12);border-radius:16px;padding:16px 18px;position:relative;overflow:hidden;height:100%;box-sizing:border-box">
+    <div class="dash-quote-mark" style="position:absolute;top:-2px;left:14px;font-size:44px;font-family:Georgia,serif;color:rgba(255,90,0,.14);line-height:1;pointer-events:none">&ldquo;</div>
+    <div class="dash-quote-label" style="font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,122,46,.7);margin-bottom:7px;font-weight:700;position:relative">Today's Perspective</div>
+    <div class="dash-quote-text" style="font-size:14px;color:var(--white);line-height:1.4;font-style:italic;font-weight:600;margin-bottom:6px;position:relative;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden" id="dash-quote-text">—</div>
+    <div class="dash-quote-attrib" style="font-size:10.5px;color:rgba(255,122,46,.8);font-weight:700;position:relative;margin-bottom:11px">— Areviax</div>
+    <div id="assessment-card" onclick="viewAssessment()" style="cursor:pointer;position:relative;border-top:1px solid rgba(68,212,255,.14);padding-top:11px">
+      <div id="assessment-new-badge" style="position:absolute;top:11px;right:0;width:8px;height:8px;border-radius:50%;background:#44CFFF;box-shadow:0 0 8px rgba(68,212,255,.7)"></div>
+      <div class="dash-quote-label" style="font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:rgba(68,212,255,.75);margin-bottom:6px;font-weight:700">This Week's Assessment</div>
+      <div class="dash-quote-text" style="font-size:12.5px;color:rgba(var(--white-rgb),.85);line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden" id="assessment-text">—</div>
     </div>
   </div>
   </div>
@@ -9503,6 +9523,30 @@ function checkCompassWeek(){
     sessThisWeek=0; // was never resetting weekly before — silently grew forever
   }
 }
+// ── STREAK ENFORCEMENT — checkStreakBroken() below only ever drew a
+// repair banner; the `streak` number itself kept sitting at its old
+// value indefinitely until the next time the user logged any activity
+// (the lazy reset inside updateStreakFromActivity), which reads as "the
+// streak never actually breaks" if you just stay away. This runs on
+// load (and right after a repair is dismissed) and really zeroes it
+// out once the gap is confirmed and no repair is currently offered —
+// same-day if there are no shards to spend, or the day after a
+// dismissed repair banner.
+function applyStreakBreak(){
+  if(!lastActiveDate||streak<=0)return;
+  const today=localDateKey(new Date());
+  if(lastActiveDate===today)return; // already active today, streak stands
+  const yesterday=new Date();yesterday.setDate(yesterday.getDate()-1);
+  const yStr=localDateKey(yesterday);
+  if(lastActiveDate===yStr)return; // still inside today's grace window, not broken yet
+  const repairStillLive=shardBank>0&&streakRepairDismissedDate!==today;
+  if(repairStillLive)return; // give them the chance to see/use the repair banner first
+  streak=0;
+  const sv=document.getElementById('streak-val');if(sv)sv.textContent=streak;
+  const fv=document.getElementById('flame-val');if(fv)fv.textContent=streak;
+  const dsn=document.getElementById('dash-streak-num');if(dsn)dsn.textContent=streak;
+  saveToStorage();
+}
 // ── SHARD-FUNDED STREAK REPAIR — a broken streak was only ever visible
 // after the fact (streak silently drops to 1 the next time any XP is
 // earned, inside updateStreakFromActivity). This checks for the gap
@@ -9528,6 +9572,7 @@ function dismissStreakRepair(){
   streakRepairDismissedDate=localDateKey(new Date());
   const banner=document.getElementById('streak-repair-banner');
   if(banner)banner.style.display='none';
+  applyStreakBreak(); // dismissed without repairing — the streak is actually gone now, not just at risk
 }
 function repairStreak(){
   if(shardBank<=0)return;
@@ -11761,7 +11806,7 @@ function renderWeeklyRecap(){
     const isToday=dStr===todayStr;
     return `<div style="text-align:center">
       <div style="font-size:8.5px;color:var(--muted);margin-bottom:3px">${dayNames[d.getDay()]}</div>
-      <div style="aspect-ratio:1;border-radius:5px;background:${active?'rgba(74,232,136,.85)':'var(--border2)'};${isToday?'box-shadow:0 0 0 1.5px rgba(255,90,0,.7);':''}"></div>
+      <div class="streak-day-box" style="background:${active?'linear-gradient(160deg,rgba(255,122,46,.22),rgba(255,90,0,.08))':'var(--border2)'};${isToday?'box-shadow:0 0 0 1.5px rgba(255,90,0,.7);':''}">${active?'<span class="streak-day-flame" style="font-size:14px">🔥</span>':''}</div>
     </div>`;
   }).join('');
   daysEl.innerHTML=dayBoxes;
@@ -11790,7 +11835,7 @@ function renderWeeklyRecap(){
       const isToday=dStr===todayStr;
       return `<div style="text-align:center">
         <div style="font-size:8.5px;color:var(--muted);margin-bottom:3px">${dayNames[d.getDay()]}</div>
-        <div style="aspect-ratio:1;border-radius:5px;background:${active?'rgba(255,122,46,.85)':'var(--border2)'};${isToday?'box-shadow:0 0 0 1.5px rgba(255,90,0,.7);':''}"></div>
+        <div class="streak-day-box" style="background:${active?'linear-gradient(160deg,rgba(255,122,46,.22),rgba(255,90,0,.08))':'var(--border2)'};${isToday?'box-shadow:0 0 0 1.5px rgba(255,90,0,.7);':''}">${active?'<span class="streak-day-flame" style="font-size:14px">🔥</span>':''}</div>
       </div>`;
     }).join('');
   }
@@ -13853,6 +13898,7 @@ document.addEventListener('DOMContentLoaded', function(){
   }
   try {
   loadFromStorage();
+  try{applyStreakBreak();}catch(e){console.error('applyStreakBreak:',e.message);}
   if(profile.name&&profile.cals>0){
     const ob=document.getElementById('onboarding');
     const ma=document.getElementById('main-app');
