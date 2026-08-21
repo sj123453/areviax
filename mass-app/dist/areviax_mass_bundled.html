@@ -11269,6 +11269,17 @@ function viewAssessment(){
   assessmentViewed=true;
   renderAssessmentCard();
   saveToStorage();
+  const overlay=document.createElement('div');
+  overlay.className='achievement-overlay';
+  overlay.innerHTML=
+    '<div class="achievement-modal" style="border-color:rgba(68,212,255,.35);max-width:340px">'+
+      '<div class="achievement-unlocked-label" style="color:#44CFFF">This Week’s Assessment</div>'+
+      '<div class="achievement-desc" style="font-size:13.5px;line-height:1.7;text-align:left">'+(assessmentText||'Check back Monday for your next assessment.')+'</div>'+
+      '<button class="achievement-close-btn" onclick="this.closest(\'.achievement-overlay\').remove()">Close</button>'+
+    '</div>';
+  overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.remove();});
+  document.body.appendChild(overlay);
+  requestAnimationFrame(()=>overlay.classList.add('show'));
 }
 
 // ── SLEEP LOG — the app teaches that 80% of growth hormone releases
