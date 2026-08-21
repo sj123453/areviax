@@ -630,7 +630,7 @@ input,input:focus,input:active,
 }
 
 .settings-grid,.profile-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;align-items:start}
-@media(max-width:899px){.settings-grid,.profile-grid{grid-template-columns:1fr}}
+@media(max-width:899px){.settings-grid,.profile-grid{grid-template-columns:minmax(0,1fr)}}
 
 /* PROGRESS */
 .pr-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}
@@ -1191,7 +1191,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        compact horizontal-scroll rows of badges instead of Trophy Road's
        old tall vertical list — same underlying unlock data, just laid
        out so both collections fit one card without a page-length scroll. */
-    .ach-row{display:flex;gap:10px;overflow-x:auto;padding:2px 2px 8px;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
+    .ach-row{display:flex;gap:10px;overflow-x:auto;min-width:0;padding:2px 2px 8px;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
     .ach-badge{
       flex:0 0 auto;width:56px;display:flex;flex-direction:column;align-items:center;gap:5px;
       cursor:pointer;-webkit-tap-highlight-color:transparent;
@@ -1219,6 +1219,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     }
     .legend-card:active{transform:scale(.96)}
     .legend-card-icon{font-size:26px;margin-bottom:6px;filter:grayscale(1) opacity(.4)}
+    .legend-card-icon img{width:32px;height:32px;object-fit:contain;filter:inherit}
     .legend-card-name{font-size:9px;font-weight:800;color:var(--muted);line-height:1.3}
     .legend-card.unlocked{background:rgba(255,255,255,.03)}
     .legend-card.unlocked .legend-card-icon{filter:none}
@@ -1227,32 +1228,63 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .legend-card.rarity-rare.unlocked{border-color:rgba(68,207,255,.55);box-shadow:0 0 12px rgba(68,207,255,.25)}
     .legend-card.rarity-legendary.unlocked{border-color:rgba(255,215,0,.6);box-shadow:0 0 16px rgba(255,215,0,.3)}
 
-    .ach-drop-cta{
-      display:flex;align-items:center;justify-content:space-between;gap:12px;
-      background:linear-gradient(135deg,rgba(255,90,0,.1),rgba(68,207,255,.05));
-      border:1.5px solid rgba(255,90,0,.25);border-radius:10px;padding:12px 14px;margin-top:4px;
+    /* ── COMPASS DROP CRATES — a Brawl-Stars-Star-Drop-style capsule
+       (hexagonal gem, tier-tinted gradient + glow, gentle float when
+       ready to open) rather than a plain "Open" button. Two tiers side
+       by side: Bronze fills for free from regular training days, Gold
+       spends a banked Compass Shard for meaningfully better odds — see
+       openCompassDrop()'s odds tables. Not-ready state shows progress
+       instead of the capsule glowing, so it reads as "still filling",
+       not "broken". */
+    .crate-row{display:flex;gap:12px;margin-top:4px;min-width:0}
+    .crate-slot{
+      flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:6px;
+      background:rgba(255,255,255,.02);border:1.5px solid var(--border2);border-radius:12px;
+      padding:14px 8px 10px;cursor:pointer;-webkit-tap-highlight-color:transparent;
+      transition:border-color .2s,background .2s;
     }
-    .ach-drop-cta-text{font-size:11.5px;font-weight:700;color:var(--white)}
-    .ach-drop-cta-sub{font-size:10px;color:var(--muted);margin-top:2px}
-    .ach-drop-btn{
-      flex-shrink:0;background:linear-gradient(135deg,#FF5A00,#FF7A2E);border:none;border-radius:8px;
-      padding:9px 16px;color:#2B0E00;font-family:'Outfit',sans-serif;font-size:11.5px;font-weight:900;
-      letter-spacing:.02em;cursor:pointer;white-space:nowrap;
+    .crate-slot:active{transform:scale(.97)}
+    .crate-slot.not-ready{cursor:default}
+    .compass-crate{
+      width:56px;height:56px;position:relative;
+      clip-path:polygon(50% 0%,93% 25%,93% 75%,50% 100%,7% 75%,7% 25%);
+      display:flex;align-items:center;justify-content:center;
     }
-    .ach-drop-btn:disabled{background:var(--border2);color:var(--muted);cursor:not-allowed}
+    .compass-crate::after{
+      content:'';position:absolute;inset:0;
+      clip-path:polygon(50% 0%,93% 25%,93% 75%,50% 100%,7% 75%,7% 25%);
+      background:linear-gradient(160deg,rgba(255,255,255,.35),transparent 55%);
+      pointer-events:none;
+    }
+    .compass-crate .crate-icon{font-size:24px;filter:drop-shadow(0 1px 2px rgba(0,0,0,.35));position:relative;z-index:1}
+    .compass-crate.bronze{background:linear-gradient(160deg,#E8A85C,#B8622A)}
+    .compass-crate.gold{background:linear-gradient(160deg,#FFE58A,#D4970A)}
+    .compass-crate.locked{filter:grayscale(1) opacity(.35)}
+    @keyframes crateFloat{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-4px) rotate(-4deg)}}
+    .compass-crate.ready{animation:crateFloat 2.4s ease-in-out infinite}
+    .compass-crate.bronze.ready{box-shadow:0 0 18px rgba(184,98,42,.55)}
+    .compass-crate.gold.ready{box-shadow:0 0 20px rgba(255,215,0,.55)}
+    .crate-slot-label{font-size:10px;font-weight:800;color:var(--white);letter-spacing:.02em}
+    .crate-slot-sub{font-size:9px;color:var(--muted);text-align:center;line-height:1.4}
+    .crate-slot-sub.ready-text{color:var(--orange);font-weight:700}
 
-    /* Compass Drop opening — a chest-shake wind-up before the burst,
-       borrowing the achievement overlay's dark celebratory backdrop so
-       the two "you got something" moments feel like the same system. */
+    /* Compass Drop opening — the crate itself shakes and glows before
+       cracking open into the card reveal (two-stage swap inside one
+       modal), borrowing the achievement overlay's dark celebratory
+       backdrop so the two "you got something" moments feel like the
+       same system. */
     @keyframes crateShake{
-      0%,100%{transform:rotate(0)}
-      20%{transform:rotate(-8deg)}
-      40%{transform:rotate(7deg)}
-      60%{transform:rotate(-6deg)}
-      80%{transform:rotate(4deg)}
+      0%,100%{transform:rotate(0) scale(1)}
+      20%{transform:rotate(-10deg) scale(1.03)}
+      40%{transform:rotate(9deg) scale(1.05)}
+      60%{transform:rotate(-8deg) scale(1.03)}
+      80%{transform:rotate(5deg) scale(1.01)}
     }
     .crate-shake{animation:crateShake .5s ease-in-out 3}
+    .crate-reveal-stage .compass-crate{width:84px;height:84px;margin:0 auto 14px}
+    .crate-reveal-stage .compass-crate .crate-icon{font-size:36px}
     .legend-reveal-icon{font-size:56px;margin-bottom:12px;display:inline-block}
+    .legend-reveal-icon img{width:64px;height:64px;object-fit:contain}
     .legend-reveal-rarity{font-size:10px;font-weight:800;letter-spacing:.22em;margin-bottom:10px}
     .legend-reveal-rarity.rarity-common{color:#B8B8BC}
     .legend-reveal-rarity.rarity-rare{color:#44CFFF}
@@ -3834,13 +3866,8 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     <div id="trophy-road" class="ach-row"></div>
     <div style="font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:8px 0 4px">Legend Cards</div>
     <div id="legend-row" class="ach-row"></div>
-    <div class="ach-drop-cta">
-      <div>
-        <div class="ach-drop-cta-text">🧭 Compass Drop</div>
-        <div class="ach-drop-cta-sub" id="ach-drop-sub">Spend a shard for a random legend card</div>
-      </div>
-      <button class="ach-drop-btn" id="ach-drop-btn" onclick="openCompassDrop()">Open</button>
-    </div>
+    <div style="font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:8px 0 4px">Compass Drops</div>
+    <div class="crate-row" id="crate-row"></div>
   </div>
   </div>
   </div>
@@ -4322,6 +4349,15 @@ let xp=0,streak=0,compassPts=0,totalSess=0,sessThisWeek=0;
 // 7-day week, spendable on repairing a broken streak.
 let shardBank=0;
 let streakRepairDismissedDate='';
+// Bronze Compass Drops — a second, free-and-frequent track alongside the
+// shard-funded Gold Drop, so the Legend Card collection keeps moving for
+// everyone training regularly, not just people who complete a full
+// perfect week. bronzeDropProgress counts real trained days (via
+// markTrainedToday) toward the next banked drop, resetting at the
+// threshold; bronzeDropBank is how many are sitting there ready to open.
+let bronzeDropBank=0;
+let bronzeDropProgress=0;
+const BRONZE_DROP_DAYS=5;
 // Every addXP() call already carries a human label ('Session complete',
 // 'Sleep logged', etc) — logging each award here (capped, oldest first
 // out) is what lets a breakdown view answer "what's actually been
@@ -6043,16 +6079,33 @@ function tenureText(){
 // personal training app, not a claim of endorsement. Rarity weights
 // below in openCompassDrop() control drop odds, not this order.
 const LEGEND_CARDS=[
-  {key:'arnold',    name:'Arnold Schwarzenegger', title:'"The Austrian Oak" \u2014 7\u00d7 Mr. Olympia',        icon:'\ud83c\udfd4\ufe0f', rarity:'legendary'},
-  {key:'coleman',   name:'Ronnie Coleman',        title:'"Yeah Buddy!" \u2014 8\u00d7 Mr. Olympia',              icon:'\ud83d\udc51', rarity:'legendary'},
-  {key:'haney',     name:'Lee Haney',              title:'8\u00d7 Mr. Olympia (1984\u20131991)',              icon:'\ud83c\udfc6', rarity:'rare'},
-  {key:'yates',     name:'Dorian Yates',           title:'"The Shadow" \u2014 6\u00d7 Mr. Olympia',               icon:'\ud83c\udf11', rarity:'rare'},
-  {key:'cutler',    name:'Jay Cutler',             title:'4\u00d7 Mr. Olympia',                              icon:'\u26a1', rarity:'rare'},
-  {key:'heath',     name:'Phil Heath',             title:'"The Gift" \u2014 7\u00d7 Mr. Olympia',                 icon:'\ud83c\udf81', rarity:'common'},
-  {key:'oliva',     name:'Sergio Oliva',           title:'"The Myth" \u2014 3\u00d7 Mr. Olympia',                 icon:'\ud83e\uddbe', rarity:'common'},
-  {key:'columbu',   name:'Franco Columbu',         title:'2\u00d7 Mr. Olympia',                              icon:'\ud83d\udcaa', rarity:'common'},
+  // img is optional \u2014 leave unset to use the emoji icon; once real
+  // trophy art exists per card, set img to its path/URL and it takes
+  // over automatically in every place a card renders (row, reveal).
+  {key:'arnold',    name:'Arnold Schwarzenegger', title:'"The Austrian Oak" \u2014 7\u00d7 Mr. Olympia',        icon:'\ud83c\udfd4\ufe0f', img:null, rarity:'legendary'},
+  {key:'coleman',   name:'Ronnie Coleman',        title:'"Yeah Buddy!" \u2014 8\u00d7 Mr. Olympia',              icon:'\ud83d\udc51', img:null, rarity:'legendary'},
+  {key:'haney',     name:'Lee Haney',              title:'8\u00d7 Mr. Olympia (1984\u20131991)',              icon:'\ud83c\udfc6', img:null, rarity:'rare'},
+  {key:'yates',     name:'Dorian Yates',           title:'"The Shadow" \u2014 6\u00d7 Mr. Olympia',               icon:'\ud83c\udf11', img:null, rarity:'rare'},
+  {key:'cutler',    name:'Jay Cutler',             title:'4\u00d7 Mr. Olympia',                              icon:'\u26a1', img:null, rarity:'rare'},
+  {key:'heath',     name:'Phil Heath',             title:'"The Gift" \u2014 7\u00d7 Mr. Olympia',                 icon:'\ud83c\udf81', img:null, rarity:'common'},
+  {key:'oliva',     name:'Sergio Oliva',           title:'"The Myth" \u2014 3\u00d7 Mr. Olympia',                 icon:'\ud83e\uddbe', img:null, rarity:'common'},
+  {key:'columbu',   name:'Franco Columbu',         title:'2\u00d7 Mr. Olympia',                              icon:'\ud83d\udcaa', img:null, rarity:'common'},
 ];
 let unlockedLegends=[]; // persistent \u2014 keys from LEGEND_CARDS the user has actually pulled
+
+// Two crate tiers, mirroring Brawl Stars' frequent Star Drop vs rarer
+// Mega Box split \u2014 Bronze is free and fills from ordinary training
+// (bronzeDropProgress/Bank, see markTrainedToday), Gold spends a
+// banked Compass Shard for meaningfully better odds. Same currency
+// tension as streak repair already spending shards \u2014 a shard is worth
+// choosing what to do with, not just a formality.
+const CRATE_TIERS={
+  bronze:{label:'Bronze Drop',icon:'\ud83e\udded',odds:{common:75,rare:22,legendary:3}},
+  gold:{label:'Gold Drop',icon:'\ud83e\udded',odds:{common:40,rare:45,legendary:15}},
+};
+function legendIconHTML(l){
+  return l.img?'<img src="'+l.img+'" alt="'+l.name+'">':l.icon;
+}
 
 function renderAchievements(){
   const cont=document.getElementById('trophy-road');
@@ -6071,18 +6124,27 @@ function renderAchievements(){
     legendCont.innerHTML=LEGEND_CARDS.map(l=>{
       const unlocked=unlockedLegends.includes(l.key);
       return `<div class="legend-card rarity-${l.rarity}${unlocked?' unlocked':''}" onclick="viewLegendCard('${l.key}')">
-        <div class="legend-card-icon">${unlocked?l.icon:'\u2753'}</div>
+        <div class="legend-card-icon">${unlocked?legendIconHTML(l):'\u2753'}</div>
         <div class="legend-card-name">${unlocked?l.name.split(' ').pop():'???'}</div>
       </div>`;
     }).join('');
   }
-  const btn=document.getElementById('ach-drop-btn');
-  const sub=document.getElementById('ach-drop-sub');
-  if(btn){
-    btn.disabled=shardBank<=0;
-    btn.textContent=shardBank>0?'Open ('+shardBank+' \ud83d\udd37)':'Open';
+  const crateRow=document.getElementById('crate-row');
+  if(crateRow){
+    const bronzeReady=bronzeDropBank>0;
+    const goldReady=shardBank>0;
+    crateRow.innerHTML=`
+      <div class="crate-slot${bronzeReady?'':' not-ready'}" onclick="${bronzeReady?"openCompassDrop('bronze')":''}">
+        <div class="compass-crate bronze${bronzeReady?' ready':' locked'}"><span class="crate-icon">\ud83e\udded</span></div>
+        <div class="crate-slot-label">Bronze${bronzeDropBank>1?' \u00d7 '+bronzeDropBank:''}</div>
+        <div class="crate-slot-sub${bronzeReady?' ready-text':''}">${bronzeReady?'Tap to open':bronzeDropProgress+'/'+BRONZE_DROP_DAYS+' training days'}</div>
+      </div>
+      <div class="crate-slot${goldReady?'':' not-ready'}" onclick="${goldReady?"openCompassDrop('gold')":''}">
+        <div class="compass-crate gold${goldReady?' ready':' locked'}"><span class="crate-icon">\ud83e\udded</span></div>
+        <div class="crate-slot-label">Gold${shardBank>1?' \u00d7 '+shardBank:''}</div>
+        <div class="crate-slot-sub${goldReady?' ready-text':''}">${goldReady?'Tap to open':'Earn a shard with a perfect week'}</div>
+      </div>`;
   }
-  if(sub)sub.textContent=shardBank>0?'Spend a shard for a random legend card':'Earn a shard with a perfect training week';
 }
 function viewAchievementBadge(key){
   const a=ACHIEVEMENTS.find(x=>x.key===key);
@@ -6096,35 +6158,43 @@ function viewLegendCard(key){
   const unlocked=unlockedLegends.includes(key);
   toast(unlocked?l.icon:'\u2753',unlocked?l.name+' \u2014 '+l.title:'Locked \u2014 open a Compass Drop for a chance at this card');
 }
-function openCompassDrop(){
-  if(shardBank<=0)return;
-  shardBank--;
-  // weighted pick: common 60%, rare 32%, legendary 8%
+function openCompassDrop(tier){
+  const cfg=CRATE_TIERS[tier];
+  if(!cfg)return;
+  if(tier==='bronze'){ if(bronzeDropBank<=0)return; bronzeDropBank--; }
+  else{ if(shardBank<=0)return; shardBank--; }
+  const odds=cfg.odds;
   const roll=Math.random()*100;
-  const rarity=roll<8?'legendary':roll<40?'rare':'common';
+  const rarity=roll<odds.legendary?'legendary':roll<odds.legendary+odds.rare?'rare':'common';
   const pool=LEGEND_CARDS.filter(l=>l.rarity===rarity);
   const pick=pool[Math.floor(Math.random()*pool.length)];
   const isNew=!unlockedLegends.includes(pick.key);
   if(isNew)unlockedLegends.push(pick.key);
   saveToStorage();
   renderAchievements();
-  showLegendReveal(pick,isNew);
+  showLegendReveal(pick,isNew,tier);
 }
-function showLegendReveal(l,isNew){
+function showLegendReveal(l,isNew,tier){
   const overlay=document.createElement('div');
   overlay.className='achievement-overlay';
   overlay.innerHTML=
-    '<div class="achievement-modal">'+
-      '<div class="legend-reveal-icon crate-shake">'+l.icon+'</div>'+
-      '<div class="legend-reveal-rarity rarity-'+l.rarity+'">'+l.rarity.toUpperCase()+(isNew?' \u2014 NEW':' \u2014 DUPLICATE')+'</div>'+
-      '<div class="achievement-title">'+l.name+'</div>'+
-      '<div class="achievement-desc">'+l.title+'</div>'+
-      '<button class="achievement-close-btn" onclick="this.closest(\'.achievement-overlay\').remove()">Continue</button>'+
+    '<div class="achievement-modal crate-reveal-stage">'+
+      '<div class="compass-crate '+tier+' crate-shake" id="reveal-crate"><span class="crate-icon">\ud83e\udded</span></div>'+
     '</div>';
   document.body.appendChild(overlay);
   requestAnimationFrame(()=>overlay.classList.add('show'));
-  addXP(isNew?25:10,isNew?'New legend card':'Compass Drop');
-  if(isNew)celebrateBurst(['\ud83d\udd25','\u2b50','\ud83c\udfc6'],20);
+  setTimeout(()=>{
+    const modal=overlay.querySelector('.achievement-modal');
+    if(!modal)return;
+    modal.innerHTML=
+      '<div class="legend-reveal-icon">'+legendIconHTML(l)+'</div>'+
+      '<div class="legend-reveal-rarity rarity-'+l.rarity+'">'+l.rarity.toUpperCase()+(isNew?' \u2014 NEW':' \u2014 DUPLICATE')+'</div>'+
+      '<div class="achievement-title">'+l.name+'</div>'+
+      '<div class="achievement-desc">'+l.title+'</div>'+
+      '<button class="achievement-close-btn" onclick="this.closest(\'.achievement-overlay\').remove()">Continue</button>';
+    addXP(isNew?25:10,isNew?'New legend card':'Compass Drop');
+    if(isNew)celebrateBurst(['\ud83d\udd25','\u2b50','\ud83c\udfc6'],20);
+  },1500);
 }
 
 // ── BACKUP REMINDER — nudges, doesn't nag. Shows once it's actually
@@ -9515,6 +9585,12 @@ function markTrainedToday(){
   totalSess++;
   if(!trainingCompletedDates.includes(today))trainingCompletedDates.push(today);
   weekCompletedDays[today]=true;
+  bronzeDropProgress++;
+  if(bronzeDropProgress>=BRONZE_DROP_DAYS){
+    bronzeDropProgress=0;
+    bronzeDropBank++;
+    toast('🧭','Bronze Compass Drop earned!');
+  }
 }
 
 function logSet(ei,si,name,muscle){
@@ -13851,6 +13927,8 @@ function saveToStorage(){
     localStorage.setItem('arx_streak', streak);
     localStorage.setItem('arx_xpLog', JSON.stringify(xpLog));
     localStorage.setItem('arx_shardBank', shardBank);
+    localStorage.setItem('arx_bronzeDropBank', bronzeDropBank);
+    localStorage.setItem('arx_bronzeDropProgress', bronzeDropProgress);
     localStorage.setItem('arx_streakRepairDismissedDate', streakRepairDismissedDate);
     localStorage.setItem('arx_weightUnit', weightUnit);
     localStorage.setItem('arx_heightUnit', heightUnit);
@@ -13948,6 +14026,8 @@ function loadFromStorage(){
     streak=parseInt(localStorage.getItem('arx_streak')||'0');
     { const xl=localStorage.getItem('arx_xpLog'); if(xl){try{xpLog=JSON.parse(xl);}catch(e){xpLog=[];}} }
     shardBank=parseInt(localStorage.getItem('arx_shardBank')||'0');
+    bronzeDropBank=parseInt(localStorage.getItem('arx_bronzeDropBank')||'0');
+    bronzeDropProgress=parseInt(localStorage.getItem('arx_bronzeDropProgress')||'0');
     streakRepairDismissedDate=localStorage.getItem('arx_streakRepairDismissedDate')||'';
     weightUnit=localStorage.getItem('arx_weightUnit')||'lbs';
     heightUnit=localStorage.getItem('arx_heightUnit')||'cm';
