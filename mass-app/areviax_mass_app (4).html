@@ -644,15 +644,6 @@ input,input:focus,input:active,
 .pr-card.empty .pr-card-val{color:var(--muted2);font-size:15px}
 .pr-card-sub{font-size:9px;color:var(--muted);margin-top:3px;font-family:'JetBrains Mono',monospace;position:relative}
 .pr-card-badge{display:inline-block;margin-top:8px;font-size:8px;font-weight:800;background:rgba(255,215,0,.15);color:var(--yellow);border:1.5px solid rgba(255,215,0,.28);padding:2px 8px;border-radius:10px;letter-spacing:.05em;position:relative}
-/* Lift weight milestones — cumulative lifetime tonnage per lift,
-   compared against real objects (car/elephant/whale/...) instead of
-   just a growing kg number. Same six icons reused across every lift,
-   each lift progresses through them independently. */
-.lift-milestone-row{display:flex;justify-content:center;gap:3px;margin-top:8px;position:relative}
-.lift-milestone-icon{font-size:12px;filter:grayscale(1) opacity(.35)}
-.lift-milestone-icon img{width:14px;height:14px;object-fit:contain;filter:inherit}
-.lift-milestone-icon.reached{filter:none}
-.lift-milestone-sub{font-size:7.5px;color:var(--muted);margin-top:4px;line-height:1.4;position:relative}
 .pr-card-empty{margin-top:8px;font-size:8.5px;color:var(--muted2);position:relative}
 
 /* DATA TERMINAL — consolidates what used to be four separate stacked
@@ -1214,6 +1205,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       filter:none;background:rgba(255,90,0,.1);border-color:var(--green);
       box-shadow:0 0 14px rgba(255,90,0,.35);
     }
+    .ach-badge-icon img{width:28px;height:28px;object-fit:contain;filter:inherit}
     .ach-badge-label{font-size:8.5px;font-weight:700;color:var(--muted);text-align:center;line-height:1.25;width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     .ach-badge.unlocked .ach-badge-label{color:rgba(var(--white-rgb),.75)}
 
@@ -3074,6 +3066,9 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     <div class="ch"><span class="ct">Achievements</span></div>
     <div style="font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:4px">Trophies</div>
     <div id="trophy-road" class="ach-row"></div>
+    <div style="font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:8px 0 4px">Weight Milestones</div>
+    <div id="weight-milestone-row" class="ach-row"></div>
+    <div style="font-size:9px;color:var(--muted);margin:-4px 0 4px" id="weight-milestone-sub"></div>
     <div style="font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:8px 0 4px">Legend Cards</div>
     <div id="legend-row" class="ach-row"></div>
     <div style="font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:8px 0 4px">Compass Drops</div>
@@ -6122,12 +6117,11 @@ function tenureText(){
   return 'Member for '+years+' year'+(years===1?'':'s')+(months>0?', '+months+' month'+(months===1?'':'s'):'');
 }
 
-// \u2500\u2500 LIFT WEIGHT MILESTONES \u2014 cumulative lifetime tonnage per lift,
-// compared against real objects instead of a growing kg number alone.
-// Same five lifts already shown on the Personal Records tab; same six
-// milestone objects reused for every lift, each progressing through
-// them independently based on its own accumulated volume.
-const LIFT_MILESTONE_LIFTS=['Barbell Bench Press','Barbell Back Squat','Conventional Deadlift','Overhead Press','Barbell Row'];
+// \u2500\u2500 WEIGHT MILESTONES \u2014 cumulative lifetime tonnage across every lift
+// you've ever logged (totalVolume, already tracked for the tonnage
+// achievements below), compared against real objects instead of a
+// growing kg number alone. One shared ladder for all your training,
+// not one per exercise \u2014 add more tiers here any time.
 const WEIGHT_MILESTONES=[
   {kg:1000,   icon:'\ud83c\udfb9', img:'images/trophies/piano.jpg',    name:'Grand Piano'},
   {kg:3000,   icon:'\ud83d\ude97', img:'images/trophies/car.jpg',      name:'Small Car'},
@@ -6136,7 +6130,6 @@ const WEIGHT_MILESTONES=[
   {kg:60000,  icon:'\ud83d\udc33', img:'images/trophies/whale.jpg',    name:'Blue Whale'},
   {kg:150000, icon:'\ud83d\uddfd', img:'images/trophies/liberty.jpg',  name:'Statue of Liberty'},
 ];
-let liftVolume={}; // persistent \u2014 {exerciseName: cumulativeKg}, only accumulates for LIFT_MILESTONE_LIFTS
 function milestoneIconHTML(m){
   return m.img?'<img src="'+m.img+'" alt="'+m.name+'">':m.icon;
 }
@@ -6271,6 +6264,20 @@ function renderAchievements(){
         <div class="ach-badge-label">${unlocked?a.label:'Locked'}</div>
       </div>`;
     }).join('');
+  }
+  const milestoneRow=document.getElementById('weight-milestone-row');
+  if(milestoneRow){
+    const vol=totalVolume||0;
+    milestoneRow.innerHTML=WEIGHT_MILESTONES.map(m=>{
+      const reached=vol>=m.kg;
+      return `<div class="ach-badge${reached?' unlocked':''}" title="${m.name} — ${m.kg.toLocaleString()}kg lifetime">
+        <div class="ach-badge-icon">${reached?milestoneIconHTML(m):'🔒'}</div>
+        <div class="ach-badge-label">${reached?m.name:m.kg.toLocaleString()+'kg'}</div>
+      </div>`;
+    }).join('');
+    const next=WEIGHT_MILESTONES.find(m=>vol<m.kg);
+    const sub=document.getElementById('weight-milestone-sub');
+    if(sub)sub.textContent=next?vol.toLocaleString()+' / '+next.kg.toLocaleString()+'kg lifetime to '+next.name:'All milestones hit — '+vol.toLocaleString()+'kg lifetime';
   }
   const legendCont=document.getElementById('legend-row');
   if(legendCont){
@@ -9755,15 +9762,12 @@ function logSet(ei,si,name,muscle){
   chip.classList.add('done');
   chip.textContent=w>0?`✓ ${w}×${r}`:'✓';
   markTrainedToday();
+  const prevTotalVolume=totalVolume;
   totalVolume+=w*r;
-  if(LIFT_MILESTONE_LIFTS.includes(name)){
-    const prevVol=liftVolume[name]||0;
-    liftVolume[name]=prevVol+w*r;
-    const justPassed=WEIGHT_MILESTONES.find(m=>prevVol<m.kg&&liftVolume[name]>=m.kg);
-    if(justPassed){
-      const article=/^[aeiou]/i.test(justPassed.name)?'an':'a';
-      toast(justPassed.icon,name+': you\'ve now moved the weight of '+article+' '+justPassed.name+'!');
-    }
+  const justPassed=WEIGHT_MILESTONES.find(m=>prevTotalVolume<m.kg&&totalVolume>=m.kg);
+  if(justPassed){
+    const article=/^[aeiou]/i.test(justPassed.name)?'an':'a';
+    toast(justPassed.icon,'You\'ve now moved the weight of '+article+' '+justPassed.name+' — lifetime total!');
   }
   if(w>0&&muscle){
     const today=localDateKey(new Date());
@@ -13590,19 +13594,12 @@ function renderProgress(){
   prEl.innerHTML=`<div class="pr-grid">`+prData.map(p=>{
     const hit=prs[p.k];
     const perf=lastPerformance[p.k];
-    const vol=liftVolume[p.k]||0;
-    const next=WEIGHT_MILESTONES.find(m=>vol<m.kg);
-    const milestoneRow=WEIGHT_MILESTONES.map(m=>{
-      const reached=vol>=m.kg;
-      return `<span class="lift-milestone-icon${reached?' reached':''}" title="${m.name} — ${m.kg.toLocaleString()}kg lifetime">${reached?milestoneIconHTML(m):'🔒'}</span>`;
-    }).join('');
     return `<div class="pr-card ${hit?'hit':'empty'}">
       <div class="pr-card-icon">${p.icon}</div>
       <div class="pr-card-name">${p.n}</div>
       <div class="pr-card-val">${hit?hit:'—'}${hit?'<span>kg</span>':''}</div>
       ${hit&&perf&&perf.reps&&perf.weight===hit?`<div class="pr-card-sub">${perf.weight}kg × ${perf.reps}</div>`:''}
       ${hit?'<div class="pr-card-badge">🏆 PR</div>':'<div class="pr-card-empty">Log a session</div>'}
-      ${vol>0?`<div class="lift-milestone-row">${milestoneRow}</div><div class="lift-milestone-sub">${next?vol.toLocaleString()+'/'+next.kg.toLocaleString()+'kg to '+next.name:'All milestones hit — '+vol.toLocaleString()+'kg lifetime'}</div>`:''}
     </div>`;
   }).join('')+`</div>`;
   // Compare
@@ -14118,7 +14115,6 @@ function saveToStorage(){
     localStorage.setItem('arx_totalSess', totalSess);
     localStorage.setItem('arx_dayMacros', JSON.stringify(dayMacros));
     localStorage.setItem('arx_totalVolume', totalVolume);
-    localStorage.setItem('arx_liftVolume', JSON.stringify(liftVolume));
     localStorage.setItem('arx_nutritionDayLog', JSON.stringify(nutritionDayLog));
     localStorage.setItem('arx_waterDayLog', JSON.stringify(waterDayLog));
     localStorage.setItem('arx_tonnageLog', JSON.stringify(tonnageLog));
@@ -14224,8 +14220,6 @@ function loadFromStorage(){
     const dm=localStorage.getItem('arx_dayMacros');
     if(dm){dayMacros=JSON.parse(dm)}
     totalVolume=parseFloat(localStorage.getItem('arx_totalVolume')||'0');
-    const lv=localStorage.getItem('arx_liftVolume');
-    if(lv){try{liftVolume=JSON.parse(lv);}catch(e){liftVolume={};}}
     const ndl=localStorage.getItem('arx_nutritionDayLog');
     if(ndl){try{nutritionDayLog=JSON.parse(ndl);}catch(e){nutritionDayLog=[];}}
     const wdl=localStorage.getItem('arx_waterDayLog');
