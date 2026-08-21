@@ -1223,19 +1223,35 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        system elsewhere in the app. */
     .legend-card{
       flex:0 0 auto;width:78px;border-radius:10px;padding:10px 6px 8px;text-align:center;
-      background:rgb(var(--bg-rgb));border:1.5px solid rgba(255,255,255,.1);cursor:pointer;
-      -webkit-tap-highlight-color:transparent;transition:transform .15s,box-shadow .2s;
+      background:transparent;border:none;cursor:pointer;
+      -webkit-tap-highlight-color:transparent;transition:transform .15s;
     }
     .legend-card:active{transform:scale(.96)}
-    .legend-card-icon{font-size:26px;margin-bottom:6px;filter:grayscale(1) opacity(.4)}
-    .legend-card-icon img{width:32px;height:32px;object-fit:contain;filter:inherit}
+    /* Hexagon badge — same capsule silhouette as .compass-crate so a
+       card reads as "something that came out of that crate" at a
+       glance. Locked = flat dark grey hex; unlocked = rarity-tinted
+       gradient hex with a soft glow ring, echoing the reference art's
+       neon hexagon badges. */
+    .legend-card-icon{
+      width:46px;height:46px;margin:0 auto 6px;position:relative;
+      clip-path:polygon(50% 0%,93% 25%,93% 75%,50% 100%,7% 75%,7% 25%);
+      display:flex;align-items:center;justify-content:center;font-size:22px;
+      background:linear-gradient(160deg,#2A2A38,#18181F);transition:box-shadow .2s;
+      filter:grayscale(1) opacity(.4);
+    }
+    .legend-card-icon::after{
+      content:'';position:absolute;inset:0;
+      clip-path:polygon(50% 0%,93% 25%,93% 75%,50% 100%,7% 75%,7% 25%);
+      background:linear-gradient(160deg,rgba(255,255,255,.22),transparent 55%);
+      pointer-events:none;
+    }
+    .legend-card-icon img{width:30px;height:30px;object-fit:contain;filter:inherit;position:relative;z-index:1}
     .legend-card-name{font-size:9px;font-weight:800;color:var(--muted);line-height:1.3}
-    .legend-card.unlocked{background:rgba(255,255,255,.03)}
     .legend-card.unlocked .legend-card-icon{filter:none}
     .legend-card.unlocked .legend-card-name{color:var(--white)}
-    .legend-card.rarity-common.unlocked{border-color:rgba(142,142,147,.5)}
-    .legend-card.rarity-rare.unlocked{border-color:rgba(68,207,255,.55);box-shadow:0 0 12px rgba(68,207,255,.25)}
-    .legend-card.rarity-legendary.unlocked{border-color:rgba(255,215,0,.6);box-shadow:0 0 16px rgba(255,215,0,.3)}
+    .legend-card.rarity-common.unlocked .legend-card-icon{background:linear-gradient(160deg,#9A9AA4,#5C5C64);box-shadow:0 0 10px rgba(142,142,147,.4)}
+    .legend-card.rarity-rare.unlocked .legend-card-icon{background:linear-gradient(160deg,#7FE3FF,#0E8FBD);box-shadow:0 0 14px rgba(68,207,255,.55)}
+    .legend-card.rarity-legendary.unlocked .legend-card-icon{background:linear-gradient(160deg,#FFE58A,#D4970A);box-shadow:0 0 18px rgba(255,215,0,.6)}
 
     /* ── COMPASS DROP CRATES — a Brawl-Stars-Star-Drop-style capsule
        (hexagonal gem, tier-tinted gradient + glow, gentle float when
@@ -1292,8 +1308,21 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .crate-shake{animation:crateShake .5s ease-in-out 3}
     .crate-reveal-stage .compass-crate{width:84px;height:84px;margin:0 auto 14px}
     .crate-reveal-stage .compass-crate .crate-icon{font-size:36px}
-    .legend-reveal-icon{font-size:56px;margin-bottom:12px;display:inline-block}
-    .legend-reveal-icon img{width:64px;height:64px;object-fit:contain}
+    .legend-reveal-icon{
+      width:88px;height:88px;margin:0 auto 14px;position:relative;
+      clip-path:polygon(50% 0%,93% 25%,93% 75%,50% 100%,7% 75%,7% 25%);
+      display:flex;align-items:center;justify-content:center;font-size:44px;
+    }
+    .legend-reveal-icon::after{
+      content:'';position:absolute;inset:0;
+      clip-path:polygon(50% 0%,93% 25%,93% 75%,50% 100%,7% 75%,7% 25%);
+      background:linear-gradient(160deg,rgba(255,255,255,.28),transparent 55%);
+      pointer-events:none;
+    }
+    .legend-reveal-icon img{width:56px;height:56px;object-fit:contain;position:relative;z-index:1}
+    .legend-reveal-icon.rarity-common{background:linear-gradient(160deg,#9A9AA4,#5C5C64);box-shadow:0 0 18px rgba(142,142,147,.5)}
+    .legend-reveal-icon.rarity-rare{background:linear-gradient(160deg,#7FE3FF,#0E8FBD);box-shadow:0 0 24px rgba(68,207,255,.65)}
+    .legend-reveal-icon.rarity-legendary{background:linear-gradient(160deg,#FFE58A,#D4970A);box-shadow:0 0 28px rgba(255,215,0,.7)}
     .legend-reveal-rarity{font-size:10px;font-weight:800;letter-spacing:.22em;margin-bottom:10px}
     .legend-reveal-rarity.rarity-common{color:#B8B8BC}
     .legend-reveal-rarity.rarity-rare{color:#44CFFF}
@@ -6126,9 +6155,15 @@ const LEGEND_CARDS=[
   {key:'haney',     name:'Lee Haney',              title:'8\u00d7 Mr. Olympia (1984\u20131991)',              icon:'\ud83c\udfc6', img:null, rarity:'rare'},
   {key:'yates',     name:'Dorian Yates',           title:'"The Shadow" \u2014 6\u00d7 Mr. Olympia',               icon:'\ud83c\udf11', img:null, rarity:'rare'},
   {key:'cutler',    name:'Jay Cutler',             title:'4\u00d7 Mr. Olympia',                              icon:'\u26a1', img:null, rarity:'rare'},
-  {key:'heath',     name:'Phil Heath',             title:'"The Gift" \u2014 7\u00d7 Mr. Olympia',                 icon:'\ud83c\udf81', img:null, rarity:'common'},
-  {key:'oliva',     name:'Sergio Oliva',           title:'"The Myth" \u2014 3\u00d7 Mr. Olympia',                 icon:'\ud83e\uddbe', img:null, rarity:'common'},
-  {key:'columbu',   name:'Franco Columbu',         title:'2\u00d7 Mr. Olympia',                              icon:'\ud83d\udcaa', img:null, rarity:'common'},
+  {key:'heath',     name:'Phil Heath',             title:'"The Gift" \u2014 7\u00d7 Mr. Olympia',                 icon:'\ud83c\udf81', img:null, rarity:'rare'},
+  {key:'oliva',     name:'Sergio Oliva',           title:'"The Myth" \u2014 3\u00d7 Mr. Olympia',                 icon:'\ud83e\uddbe', img:null, rarity:'rare'},
+  {key:'columbu',   name:'Franco Columbu',         title:'2\u00d7 Mr. Olympia',                              icon:'\ud83d\udcaa', img:null, rarity:'rare'},
+  // common tier \u2014 gym gear trinkets, not people; bronze-toned relics
+  // that still feel worth pulling even on the cheap drop.
+  {key:'dumbbell',  name:'Iron Dumbbell',          title:'Every set starts somewhere',                  icon:'\ud83c\udfcb\ufe0f', img:'images/legends/dumbbell.jpg', rarity:'common'},
+  {key:'kettlebell',name:'Kettlebell',              title:'Old-school conditioning staple',              icon:'\ud83e\uddb6', img:'images/legends/kettlebell.jpg', rarity:'common'},
+  {key:'plate',     name:'Weight Plate',            title:'Load it up',                                  icon:'\u2b55', img:'images/legends/plate.jpg', rarity:'common'},
+  {key:'stopwatch', name:'Stopwatch',                title:'Rest timer, respected',                       icon:'\u23f1\ufe0f', img:'images/legends/stopwatch.jpg', rarity:'common'},
 ];
 let unlockedLegends=[]; // persistent \u2014 keys from LEGEND_CARDS the user has actually pulled
 
@@ -6305,7 +6340,7 @@ function showLegendReveal(l,isNew,tier){
     const modal=overlay.querySelector('.achievement-modal');
     if(!modal)return;
     modal.innerHTML=
-      '<div class="legend-reveal-icon">'+legendIconHTML(l)+'</div>'+
+      '<div class="legend-reveal-icon rarity-'+l.rarity+'">'+legendIconHTML(l)+'</div>'+
       '<div class="legend-reveal-rarity rarity-'+l.rarity+'">'+l.rarity.toUpperCase()+(isNew?' \u2014 NEW':' \u2014 DUPLICATE')+'</div>'+
       '<div class="achievement-title">'+l.name+'</div>'+
       '<div class="achievement-desc">'+l.title+'</div>'+
