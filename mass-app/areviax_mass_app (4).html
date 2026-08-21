@@ -644,6 +644,15 @@ input,input:focus,input:active,
 .pr-card.empty .pr-card-val{color:var(--muted2);font-size:15px}
 .pr-card-sub{font-size:9px;color:var(--muted);margin-top:3px;font-family:'JetBrains Mono',monospace;position:relative}
 .pr-card-badge{display:inline-block;margin-top:8px;font-size:8px;font-weight:800;background:rgba(255,215,0,.15);color:var(--yellow);border:1.5px solid rgba(255,215,0,.28);padding:2px 8px;border-radius:10px;letter-spacing:.05em;position:relative}
+/* Lift weight milestones — cumulative lifetime tonnage per lift,
+   compared against real objects (car/elephant/whale/...) instead of
+   just a growing kg number. Same six icons reused across every lift,
+   each lift progresses through them independently. */
+.lift-milestone-row{display:flex;justify-content:center;gap:3px;margin-top:8px;position:relative}
+.lift-milestone-icon{font-size:12px;filter:grayscale(1) opacity(.35)}
+.lift-milestone-icon img{width:14px;height:14px;object-fit:contain;filter:inherit}
+.lift-milestone-icon.reached{filter:none}
+.lift-milestone-sub{font-size:7.5px;color:var(--muted);margin-top:4px;line-height:1.4;position:relative}
 .pr-card-empty{margin-top:8px;font-size:8.5px;color:var(--muted2);position:relative}
 
 /* DATA TERMINAL — consolidates what used to be four separate stacked
@@ -3015,6 +3024,32 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
   </div>
 
   <div class="card" id="compare-card" style="display:none"><div class="ch"><span class="ct">You vs day 1</span></div><div id="compare-body"></div></div>
+
+  <!-- XP ROAD — checkpoints along lifetime XP, each unlocking something
+       real (a Compass Drop, spare shards, or a guaranteed Legend Card at
+       the big ones) instead of XP just being a number that goes up. Reuses
+       the road-line/road-dot styling Trophy Road used to use before it
+       became a compact badge grid. -->
+  <div class="card" style="margin-bottom:14px">
+    <div class="ch"><span class="ct">🛤️ XP Road</span></div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:4px" id="xp-road-sub"></div>
+    <div id="xp-road" style="max-height:320px;overflow-y:auto;padding-right:4px"></div>
+  </div>
+
+  <!-- ACHIEVEMENTS — trophies (milestone unlocks) on top, Legend Cards
+       (Compass Drop collectibles) below, moved here from Profile — this
+       page is already "your journey" (PRs, streaks, tonnage), so the
+       collection stuff belongs next to it instead of buried under
+       Compare/Backup/Install. -->
+  <div class="card" style="margin-bottom:14px">
+    <div class="ch"><span class="ct">Achievements</span></div>
+    <div style="font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:4px">Trophies</div>
+    <div id="trophy-road" class="ach-row"></div>
+    <div style="font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:8px 0 4px">Legend Cards</div>
+    <div id="legend-row" class="ach-row"></div>
+    <div style="font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:8px 0 4px">Compass Drops</div>
+    <div class="crate-row" id="crate-row"></div>
+  </div>
 </div>
 
 <!-- RECOVERY — its own dedicated page. Sleep tracking, wind-down sounds, breathing, and the science of why this matters. -->
@@ -3854,21 +3889,6 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     <div id="hall-of-statues" class="hall-grid"></div>
   </div>
 
-  <!-- ACHIEVEMENTS — trophies (milestone unlocks, same ACHIEVEMENTS data
-       Trophy Road used to show as a tall vertical list) on top, Legend
-       Cards (Compass Drop collectibles — spend a banked shard for a
-       chance at a bodybuilding great) below, so tapping "achievements"
-       shows both collections in one glance instead of two separate
-       hunts. -->
-  <div class="card" style="margin-bottom:14px">
-    <div class="ch"><span class="ct">Achievements</span></div>
-    <div style="font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:4px">Trophies</div>
-    <div id="trophy-road" class="ach-row"></div>
-    <div style="font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:8px 0 4px">Legend Cards</div>
-    <div id="legend-row" class="ach-row"></div>
-    <div style="font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:8px 0 4px">Compass Drops</div>
-    <div class="crate-row" id="crate-row"></div>
-  </div>
   </div>
   </div>
 
@@ -6073,6 +6093,25 @@ function tenureText(){
   return 'Member for '+years+' year'+(years===1?'':'s')+(months>0?', '+months+' month'+(months===1?'':'s'):'');
 }
 
+// \u2500\u2500 LIFT WEIGHT MILESTONES \u2014 cumulative lifetime tonnage per lift,
+// compared against real objects instead of a growing kg number alone.
+// Same five lifts already shown on the Personal Records tab; same six
+// milestone objects reused for every lift, each progressing through
+// them independently based on its own accumulated volume.
+const LIFT_MILESTONE_LIFTS=['Barbell Bench Press','Barbell Back Squat','Conventional Deadlift','Overhead Press','Barbell Row'];
+const WEIGHT_MILESTONES=[
+  {kg:1000,   icon:'\ud83c\udfb9', img:null, name:'Grand Piano'},
+  {kg:3000,   icon:'\ud83d\ude97', img:null, name:'Small Car'},
+  {kg:8000,   icon:'\ud83d\udc18', img:null, name:'Elephant'},
+  {kg:20000,  icon:'\ud83d\udc0b', img:null, name:'Orca'},
+  {kg:60000,  icon:'\ud83d\udc33', img:null, name:'Blue Whale'},
+  {kg:150000, icon:'\ud83d\uddfd', img:null, name:'Statue of Liberty'},
+];
+let liftVolume={}; // persistent \u2014 {exerciseName: cumulativeKg}, only accumulates for LIFT_MILESTONE_LIFTS
+function milestoneIconHTML(m){
+  return m.img?'<img src="'+m.img+'" alt="'+m.name+'">':m.icon;
+}
+
 // \u2500\u2500 LEGEND CARDS \u2014 Compass Drop collectibles. Real bodybuilding
 // greats, factual titles only (no invented quotes attributed to real
 // people) \u2014 this is a nostalgic trivia-card collectible inside a
@@ -6092,6 +6131,85 @@ const LEGEND_CARDS=[
   {key:'columbu',   name:'Franco Columbu',         title:'2\u00d7 Mr. Olympia',                              icon:'\ud83d\udcaa', img:null, rarity:'common'},
 ];
 let unlockedLegends=[]; // persistent \u2014 keys from LEGEND_CARDS the user has actually pulled
+
+// \u2500\u2500 XP ROAD \u2014 checkpoints along lifetime XP, each unlocking something
+// real instead of XP just being a number that goes up. type is what
+// grantXpRoadReward() hands out; extra is an optional second grant on
+// the same node (the 3000 XP checkpoint pays out both a shard and a
+// bronze drop). Getting rarer/bigger as the road goes on mirrors how
+// the rest of the app's currencies already scale (shard > bronze drop).
+const XP_ROAD=[
+  {xp:50,   type:'bronze', amount:1},
+  {xp:150,  type:'shard',  amount:1},
+  {xp:300,  type:'bronze', amount:1},
+  {xp:500,  type:'shard',  amount:1},
+  {xp:750,  type:'bronze', amount:2},
+  {xp:1000, type:'legend', rarity:'rare'},
+  {xp:1500, type:'shard',  amount:2},
+  {xp:2200, type:'bronze', amount:3},
+  {xp:3000, type:'shard',  amount:1, extra:{type:'bronze',amount:1}},
+  {xp:4000, type:'legend', rarity:'legendary'},
+];
+let claimedXpRoad=[]; // persistent \u2014 xp thresholds already paid out, so crossing one twice (or loading old data) can't double-grant
+function xpRoadRewardLabel(node){
+  if(node.type==='bronze')return node.amount+' Bronze Drop'+(node.amount>1?'s':'');
+  if(node.type==='shard')return node.amount+' Compass Shard'+(node.amount>1?'s':'')+(node.extra?' + 1 Bronze Drop':'');
+  if(node.type==='legend')return 'Guaranteed '+node.rarity[0].toUpperCase()+node.rarity.slice(1)+' Legend Card';
+  return '';
+}
+function xpRoadRewardIcon(node){
+  return node.type==='legend'?(node.rarity==='legendary'?'\ud83d\udc51':'\ud83c\udfc6'):'\ud83e\udded';
+}
+function grantXpRoadReward(node){
+  if(node.type==='bronze'){bronzeDropBank+=node.amount;}
+  else if(node.type==='shard'){shardBank+=node.amount;}
+  else if(node.type==='legend'){
+    const pool=LEGEND_CARDS.filter(l=>l.rarity===node.rarity);
+    const pick=pool[Math.floor(Math.random()*pool.length)];
+    const isNew=!unlockedLegends.includes(pick.key);
+    if(isNew)unlockedLegends.push(pick.key);
+    if(!document.querySelector('.achievement-overlay')){
+      showLegendReveal(pick,isNew,'gold');
+    }else{
+      toast(pick.icon,'XP Road prize: '+pick.name);
+    }
+  }
+  if(node.extra){
+    if(node.extra.type==='bronze')bronzeDropBank+=node.extra.amount;
+    else if(node.extra.type==='shard')shardBank+=node.extra.amount;
+  }
+}
+function checkXpRoad(){
+  let claimedAny=false;
+  XP_ROAD.forEach(node=>{
+    if(xp>=node.xp&&!claimedXpRoad.includes(node.xp)){
+      claimedXpRoad.push(node.xp);
+      grantXpRoadReward(node);
+      claimedAny=true;
+      if(node.type!=='legend')toast(xpRoadRewardIcon(node),'XP Road: '+xpRoadRewardLabel(node));
+    }
+  });
+  if(claimedAny){saveToStorage();renderAchievements();renderXpRoad();}
+}
+function renderXpRoad(){
+  const cont=document.getElementById('xp-road');
+  const sub=document.getElementById('xp-road-sub');
+  if(!cont)return;
+  const sorted=[...XP_ROAD].sort((a,b)=>a.xp-b.xp);
+  const next=sorted.find(n=>!claimedXpRoad.includes(n.xp));
+  if(sub)sub.textContent=next?xp+' / '+next.xp+' XP to next checkpoint':'All checkpoints claimed \u2014 legendary consistency.';
+  cont.innerHTML=sorted.map((node,i)=>{
+    const claimed=claimedXpRoad.includes(node.xp);
+    return '<div class="road-node'+(claimed?' unlocked':'')+'">'+
+      '<div class="road-line'+(i===0?' first':'')+(claimed?' lit':'')+'"></div>'+
+      '<div class="road-dot'+(claimed?' lit':'')+'">'+(claimed?xpRoadRewardIcon(node):'\ud83d\udd12')+'</div>'+
+      '<div class="road-info">'+
+        '<div class="road-label">'+node.xp+' XP</div>'+
+        '<div class="road-desc">'+xpRoadRewardLabel(node)+'</div>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+}
 
 // Two crate tiers, mirroring Brawl Stars' frequent Star Drop vs rarer
 // Mega Box split \u2014 Bronze is free and fills from ordinary training
@@ -7106,6 +7224,7 @@ function addXP(n,l=''){
   updateStreakFromActivity();
   try{checkStreakAtRisk();}catch(e){}
   try{renderXpBreakdown();}catch(e){}
+  try{checkXpRoad();}catch(e){console.error('checkXpRoad:',e.message);}
 }
 // ── XP SOURCE BREAKDOWN — sums xpLog by label over a trailing 7-day
 // window, so "why did my XP go up this week" has a real answer instead
@@ -9602,6 +9721,15 @@ function logSet(ei,si,name,muscle){
   chip.textContent=w>0?`✓ ${w}×${r}`:'✓';
   markTrainedToday();
   totalVolume+=w*r;
+  if(LIFT_MILESTONE_LIFTS.includes(name)){
+    const prevVol=liftVolume[name]||0;
+    liftVolume[name]=prevVol+w*r;
+    const justPassed=WEIGHT_MILESTONES.find(m=>prevVol<m.kg&&liftVolume[name]>=m.kg);
+    if(justPassed){
+      const article=/^[aeiou]/i.test(justPassed.name)?'an':'a';
+      toast(justPassed.icon,name+': you\'ve now moved the weight of '+article+' '+justPassed.name+'!');
+    }
+  }
   if(w>0&&muscle){
     const today=localDateKey(new Date());
     muscle.split('+').map(m=>m.trim()).filter(Boolean).forEach(m=>{
@@ -13368,6 +13496,8 @@ function renderProgress(){
   renderPhotoGallery();
   renderMeasurements();
   renderTonnageBreakdown();
+  try{renderAchievements();}catch(e){console.error('renderAchievements:',e.message);}
+  try{renderXpRoad();}catch(e){console.error('renderXpRoad:',e.message);}
   try{renderVolumeTrend();}catch(e){console.error('renderVolumeTrend:',e.message);}
   try{renderXpBreakdown();}catch(e){console.error('renderXpBreakdown:',e.message);}
   try{renderSleepQuickLog();}catch(e){console.error('renderSleepQuickLog:',e.message);}
@@ -13425,12 +13555,19 @@ function renderProgress(){
   prEl.innerHTML=`<div class="pr-grid">`+prData.map(p=>{
     const hit=prs[p.k];
     const perf=lastPerformance[p.k];
+    const vol=liftVolume[p.k]||0;
+    const next=WEIGHT_MILESTONES.find(m=>vol<m.kg);
+    const milestoneRow=WEIGHT_MILESTONES.map(m=>{
+      const reached=vol>=m.kg;
+      return `<span class="lift-milestone-icon${reached?' reached':''}" title="${m.name} — ${m.kg.toLocaleString()}kg lifetime">${reached?milestoneIconHTML(m):'🔒'}</span>`;
+    }).join('');
     return `<div class="pr-card ${hit?'hit':'empty'}">
       <div class="pr-card-icon">${p.icon}</div>
       <div class="pr-card-name">${p.n}</div>
       <div class="pr-card-val">${hit?hit:'—'}${hit?'<span>kg</span>':''}</div>
       ${hit&&perf&&perf.reps&&perf.weight===hit?`<div class="pr-card-sub">${perf.weight}kg × ${perf.reps}</div>`:''}
       ${hit?'<div class="pr-card-badge">🏆 PR</div>':'<div class="pr-card-empty">Log a session</div>'}
+      ${vol>0?`<div class="lift-milestone-row">${milestoneRow}</div><div class="lift-milestone-sub">${next?vol.toLocaleString()+'/'+next.kg.toLocaleString()+'kg to '+next.name:'All milestones hit — '+vol.toLocaleString()+'kg lifetime'}</div>`:''}
     </div>`;
   }).join('')+`</div>`;
   // Compare
@@ -13946,6 +14083,7 @@ function saveToStorage(){
     localStorage.setItem('arx_totalSess', totalSess);
     localStorage.setItem('arx_dayMacros', JSON.stringify(dayMacros));
     localStorage.setItem('arx_totalVolume', totalVolume);
+    localStorage.setItem('arx_liftVolume', JSON.stringify(liftVolume));
     localStorage.setItem('arx_nutritionDayLog', JSON.stringify(nutritionDayLog));
     localStorage.setItem('arx_waterDayLog', JSON.stringify(waterDayLog));
     localStorage.setItem('arx_tonnageLog', JSON.stringify(tonnageLog));
@@ -13975,6 +14113,7 @@ function saveToStorage(){
     localStorage.setItem('arx_lastAnniversaryYear', lastAnniversaryYear);
     localStorage.setItem('arx_unlockedAchievements', JSON.stringify(unlockedAchievements));
     localStorage.setItem('arx_unlockedLegends', JSON.stringify(unlockedLegends));
+    localStorage.setItem('arx_claimedXpRoad', JSON.stringify(claimedXpRoad));
     localStorage.setItem('arx_lastSessionWorkoutName', lastSessionWorkoutName);
     localStorage.setItem('arx_lastBackupDate', lastBackupDate);
     localStorage.setItem('arx_photoLog', JSON.stringify(photoLog));
@@ -14050,6 +14189,8 @@ function loadFromStorage(){
     const dm=localStorage.getItem('arx_dayMacros');
     if(dm){dayMacros=JSON.parse(dm)}
     totalVolume=parseFloat(localStorage.getItem('arx_totalVolume')||'0');
+    const lv=localStorage.getItem('arx_liftVolume');
+    if(lv){try{liftVolume=JSON.parse(lv);}catch(e){liftVolume={};}}
     const ndl=localStorage.getItem('arx_nutritionDayLog');
     if(ndl){try{nutritionDayLog=JSON.parse(ndl);}catch(e){nutritionDayLog=[];}}
     const wdl=localStorage.getItem('arx_waterDayLog');
@@ -14094,6 +14235,8 @@ function loadFromStorage(){
     if(ua){unlockedAchievements=JSON.parse(ua)}
     const ul=localStorage.getItem('arx_unlockedLegends');
     if(ul){try{unlockedLegends=JSON.parse(ul);}catch(e){unlockedLegends=[];}}
+    const cxr=localStorage.getItem('arx_claimedXpRoad');
+    if(cxr){try{claimedXpRoad=JSON.parse(cxr);}catch(e){claimedXpRoad=[];}}
     lastSessionWorkoutName=localStorage.getItem('arx_lastSessionWorkoutName')||'';
     lastBackupDate=localStorage.getItem('arx_lastBackupDate')||'';
     const pl=localStorage.getItem('arx_photoLog');
