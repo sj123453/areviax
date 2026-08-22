@@ -1271,6 +1271,37 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       animation:holoShift 3.6s linear infinite,rarityPulseStrong 1.4s ease-in-out infinite;
     }
 
+    /* ── TROPHY CABINET — dedicated collection room reached from the
+       Progress page. The peak trophy sits alone up top, then each of
+       the 7 layers stacks below as its own labelled shelf, descending
+       in rarity toward Equipment at the bottom. Reuses the exact
+       .legend-card/.legend-card-icon component (and every rarity-*
+       gradient/glow/animation rule above) rather than a parallel set —
+       these are just sized-up modifiers, so a card looks identical
+       whether it's in the compact Achievements row or here. */
+    .cabinet-hero{text-align:center;padding:18px 0 26px;position:relative}
+    .cabinet-hero::after{
+      content:'';position:absolute;left:50%;bottom:0;transform:translateX(-50%);
+      width:70%;height:1px;background:linear-gradient(90deg,transparent,rgba(255,210,74,.3),transparent);
+    }
+    .cabinet-hero-label{font-size:9.5px;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,210,74,.75);margin-bottom:16px}
+    .cabinet-hero-sub{font-size:11px;color:var(--muted);margin-top:12px;max-width:280px;margin-left:auto;margin-right:auto}
+    .legend-card.cabinet-peak{width:auto;padding:0;margin:0 auto}
+    .legend-card.cabinet-peak .legend-card-icon{width:108px;height:108px;font-size:46px;margin:0 auto 12px}
+    .legend-card.cabinet-peak .legend-card-icon img{width:76px;height:76px}
+    .legend-card.cabinet-peak .legend-card-name{font-size:12px;letter-spacing:.04em;text-transform:uppercase}
+
+    .cabinet-tier{margin-bottom:24px}
+    .cabinet-tier-plaque{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:2px}
+    .cabinet-tier-name{font-size:13.5px;font-weight:900;color:var(--white);letter-spacing:-.01em}
+    .cabinet-tier-count{font-size:10px;font-weight:800;color:var(--muted);white-space:nowrap;flex-shrink:0}
+    .cabinet-tier-sub{font-size:10.5px;color:var(--muted);margin-bottom:13px}
+    .cabinet-row{display:flex;gap:13px;overflow-x:auto;padding:4px 2px 10px;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
+    .legend-card.cabinet-slot{width:106px;padding:14px 8px 10px;flex:0 0 auto}
+    .legend-card.cabinet-slot .legend-card-icon{width:68px;height:68px;font-size:28px;margin:0 auto 9px}
+    .legend-card.cabinet-slot .legend-card-icon img{width:46px;height:46px}
+    .legend-card.cabinet-slot .legend-card-name{font-size:10.5px}
+
     /* ── COMPASS DROP CRATES — a Brawl-Stars-Star-Drop-style capsule
        (hexagonal gem, tier-tinted gradient + glow, gentle float when
        ready to open) rather than a plain "Open" button. Two tiers side
@@ -2087,6 +2118,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     <div class="sb-more-flyout" id="sb-more-flyout">
       <div class="sb-more-item" onclick="showPage('schedule')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg><span>Schedule</span></div>
       <div class="sb-more-item" onclick="showPage('recipes')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg><span>Recipes</span></div>
+      <div class="sb-more-item" onclick="showPage('trophycabinet')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 01-10 0V4z"/><path d="M7 5H3v2a4 4 0 004 4M17 5h4v2a4 4 0 01-4 4"/></svg><span>Trophy Cabinet</span></div>
       <div class="sb-more-item" onclick="showPage('recovery')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg><span>Recovery</span></div>
       <div class="sb-more-item" onclick="showPage('leaderboard')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg><span>Leaderboard</span></div>
       <div class="sb-more-item" onclick="showPage('learn')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg><span>The Science</span></div>
@@ -3239,6 +3271,37 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     <div style="font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:8px 0 4px">Compass Drops</div>
     <div class="crate-row" id="crate-row"></div>
   </div>
+
+  <!-- TROPHY CABINET CROSS-LINK — the full collection lives on its own
+       page now (7 labelled layers, larger trophy art), reached from
+       here rather than being crammed into this card. -->
+  <div class="card" style="margin-bottom:14px;cursor:pointer" onclick="showPage('trophycabinet')">
+    <div class="ch"><span class="ct" style="display:flex;align-items:center;gap:7px">🏆 Trophy Cabinet</span></div>
+    <div style="font-size:11.5px;color:var(--muted);line-height:1.6">Step into the full collection room — every layer, every rarity, all in one place.</div>
+    <button class="btn btn-out btn-sm" style="width:100%;margin-top:12px" onclick="event.stopPropagation();showPage('trophycabinet')">Enter Trophy Cabinet →</button>
+  </div>
+</div>
+
+<!-- TROPHY CABINET — dedicated collection room. The peak trophy (the
+     1-of-1 Areviax Trophy) sits alone at the top, then each of the 7
+     layers stacks below as its own labelled shelf in descending
+     rarity, ending at Equipment. Only Layer 1 (Equipment) has real
+     unlock-aware content today — Layers 2-7 render as correctly
+     labelled/counted locked shelves until that art exists, per
+     renderTrophyCabinet()/TROPHY_LAYERS. -->
+<div class="page" id="page-trophycabinet">
+  <div class="companion"><div class="companion-msg">Every rep, every rarity — this is the collection you're building.</div></div>
+
+  <div class="cabinet-hero">
+    <div class="cabinet-hero-label">The Areviax Trophy</div>
+    <div class="legend-card cabinet-peak rarity-ultralegendary" id="cabinet-peak-slot" onclick="viewCabinetLocked('The Areviax Trophy')">
+      <div class="legend-card-icon">🔒</div>
+      <div class="legend-card-name">1-of-1</div>
+    </div>
+    <div class="cabinet-hero-sub">The single rarest reward in the game — still ahead of you.</div>
+  </div>
+
+  <div id="cabinet-tiers"></div>
 </div>
 
 <!-- RECOVERY — its own dedicated page. Sleep tracking, wind-down sounds, breathing, and the science of why this matters. -->
@@ -6509,6 +6572,52 @@ function viewLegendCard(key){
   const unlocked=unlockedLegends.includes(key);
   toast(unlocked?l.icon:'\u2753',unlocked?l.name+' \u2014 '+l.title:'Locked \u2014 open a Compass Drop for a chance at this card');
 }
+
+// \u2500\u2500 TROPHY CABINET \u2014 the full 7-layer collection plan, in
+// descending-rarity display order (peak trophy is its own hero block
+// above this list, not row 1 here). Layer 1 (Equipment) is the only
+// layer with real content right now, so it points at the actual
+// common-tier LEGEND_CARDS entries; Layers 2-7 are correctly
+// labelled/counted locked shelves until that art exists \u2014 wiring in
+// each new layer later is adding an `items` array here, nothing else.
+const TROPHY_LAYERS=[
+  {rarity:'legendary', label:'Mythic',           sub:'Layer 6 \u00b7 The rarest pulls in the game',      count:2},
+  {rarity:'mythic',    label:'Hall of Masters',   sub:'Layer 5 \u00b7 Legendary physiques',               count:4},
+  {rarity:'epic',      label:'Pro Stage',         sub:'Layer 4 \u00b7 Competition-ready',                 count:6},
+  {rarity:'superrare', label:'Training Crests',   sub:'Layer 3 \u00b7 Earned through the grind',          count:8},
+  {rarity:'rare',      label:'Mindset Auras',     sub:'Layer 2 \u00b7 The discipline behind the physique',count:10},
+  {rarity:'common',    label:'Equipment',         sub:'Layer 1 \u00b7 Where it all starts',               count:13, items:LEGEND_CARDS.filter(l=>l.rarity==='common')},
+];
+function viewCabinetLocked(label){
+  toast('\ud83d\udd12',label+' \u2014 coming soon.');
+}
+function renderTrophyCabinet(){
+  const cont=document.getElementById('cabinet-tiers');
+  if(!cont)return;
+  cont.innerHTML=TROPHY_LAYERS.map(layer=>{
+    const slots=layer.items?layer.items.map(l=>{
+      const unlocked=unlockedLegends.includes(l.key);
+      return `<div class="legend-card cabinet-slot rarity-${l.rarity}${unlocked?' unlocked':''}" onclick="viewLegendCard('${l.key}')">
+        <div class="legend-card-icon">${unlocked?legendIconHTML(l):'\u2753'}</div>
+        <div class="legend-card-name">${unlocked?l.name.split(' ').pop():'???'}</div>
+      </div>`;
+    }).join(''):Array.from({length:layer.count}).map(()=>
+      `<div class="legend-card cabinet-slot rarity-${layer.rarity}" onclick="viewCabinetLocked('${layer.label}')">
+        <div class="legend-card-icon">\ud83d\udd12</div>
+        <div class="legend-card-name">???</div>
+      </div>`
+    ).join('');
+    const countLabel=layer.items?unlockedLegends.filter(k=>layer.items.some(l=>l.key===k)).length+'/'+layer.count:'Coming soon';
+    return `<div class="cabinet-tier">
+      <div class="cabinet-tier-plaque">
+        <span class="cabinet-tier-name">${layer.label}</span>
+        <span class="cabinet-tier-count">${countLabel}</span>
+      </div>
+      <div class="cabinet-tier-sub">${layer.sub}</div>
+      <div class="cabinet-row">${slots}</div>
+    </div>`;
+  }).join('');
+}
 function rollRarity(odds){
   const roll=Math.random()*100;
   let acc=0;
@@ -7779,7 +7888,7 @@ function showPage(id){
   if(pg)pg.classList.add('active');
   document.querySelectorAll('.sb-item').forEach(i=>{if(i.getAttribute('onclick')?.includes(id))i.classList.add('active')});
   try{
-    const titles={dashboard:['Home','Let\'s get to work.'],workout:['Workout','Build your session.'],session:['Session','Time to work.'],nutrition:['Nutrition','Hit your targets.'],recipes:['Recipes','Real meals, built for the surplus.'],progress:['Progress','See how far you\'ve come.'],recovery:['Recovery','Sleep, breathing, and how to actually recover.'],schedule:['Schedule','Plan your week.'],leaderboard:['Leaderboard','See how you rank.'],learn:['Science','Understand the why.'],profile:['Profile','Your stats, on display.'],legal:['Legal','Privacy, terms, and health info.'],settings:['Settings','Update your details anytime.']};
+    const titles={dashboard:['Home','Let\'s get to work.'],workout:['Workout','Build your session.'],session:['Session','Time to work.'],nutrition:['Nutrition','Hit your targets.'],recipes:['Recipes','Real meals, built for the surplus.'],progress:['Progress','See how far you\'ve come.'],trophycabinet:['Trophy Cabinet','Every rarity, every layer, all in one room.'],recovery:['Recovery','Sleep, breathing, and how to actually recover.'],schedule:['Schedule','Plan your week.'],leaderboard:['Leaderboard','See how you rank.'],learn:['Science','Understand the why.'],profile:['Profile','Your stats, on display.'],legal:['Legal','Privacy, terms, and health info.'],settings:['Settings','Update your details anytime.']};
     const[t,s]=titles[id]||[id,''];
     const tte=document.getElementById('tb-title');if(tte)tte.textContent=t;
     const tse=document.getElementById('tb-sub');if(tse)tse.textContent=s;
@@ -7827,6 +7936,7 @@ function showPage(id){
     safeRender(buildSession,'session');
   }
   if(id==='progress')safeRender(renderProgress,'progress');
+  if(id==='trophycabinet')safeRender(renderTrophyCabinet,'trophycabinet');
   if(id==='recovery')safeRender(renderRecoveryPage,'recovery');
   if(id==='schedule')safeRender(renderSchedule,'schedule');
   if(id==='leaderboard')safeRender(renderLB,'leaderboard');
@@ -14771,6 +14881,10 @@ document.addEventListener('DOMContentLoaded', function(){
     <div class="more-sheet-item" onclick="showPage('recipes');toggleMoreSheet()">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
       <span>Recipes</span>
+    </div>
+    <div class="more-sheet-item" onclick="showPage('trophycabinet');toggleMoreSheet()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 01-10 0V4z"/><path d="M7 5H3v2a4 4 0 004 4M17 5h4v2a4 4 0 01-4 4"/></svg>
+      <span>Trophy Cabinet</span>
     </div>
     <div class="more-sheet-item" onclick="showPage('recovery');toggleMoreSheet()">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
