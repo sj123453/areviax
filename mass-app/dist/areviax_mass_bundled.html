@@ -1243,6 +1243,8 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .legend-card.unlocked .legend-card-name{color:var(--white)}
     .legend-card.rarity-common.unlocked .legend-card-icon{background:linear-gradient(160deg,#9A9AA4,#5C5C64);box-shadow:0 0 10px rgba(142,142,147,.4)}
     .legend-card.rarity-rare.unlocked .legend-card-icon{background:linear-gradient(160deg,#7FE3FF,#0E8FBD);box-shadow:0 0 14px rgba(68,207,255,.55)}
+    .legend-card.rarity-epic.unlocked .legend-card-icon{background:linear-gradient(160deg,#C98CFF,#7A2FC4);box-shadow:0 0 16px rgba(158,68,242,.6)}
+    .legend-card.rarity-mythic.unlocked .legend-card-icon{background:linear-gradient(160deg,#FF7AD9,#B0158A);box-shadow:0 0 18px rgba(230,32,175,.65)}
     .legend-card.rarity-legendary.unlocked .legend-card-icon{background:linear-gradient(160deg,#FFE58A,#D4970A);box-shadow:0 0 18px rgba(255,215,0,.6)}
 
     /* ── COMPASS DROP CRATES — a Brawl-Stars-Star-Drop-style capsule
@@ -1300,6 +1302,64 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .crate-shake{animation:crateShake .5s ease-in-out 3}
     .crate-reveal-stage .compass-crate{width:84px;height:84px;margin:0 auto 14px}
     .crate-reveal-stage .compass-crate .crate-icon{font-size:36px}
+
+    /* ── PREMIUM REVEAL — ambient rarity-tinted glow behind the modal
+       (set via --reveal-glow once the rarity is known), a serif accent
+       on the won card's name matching the app's Outfit/Fraunces
+       pairing elsewhere, and a one-shot light sweep across the hex so
+       the reveal has a bit of shine instead of just popping in flat. */
+    .achievement-modal{position:relative;overflow:hidden}
+    .achievement-modal::before{
+      content:'';position:absolute;inset:-40%;z-index:0;pointer-events:none;
+      background:radial-gradient(circle,var(--reveal-glow,transparent) 0%,transparent 62%);
+      opacity:0;transition:opacity .6s ease;
+    }
+    .achievement-modal.glow::before{opacity:1}
+    .achievement-modal>*{position:relative;z-index:1}
+    .reveal-name-serif{font-family:'Fraunces',serif;font-style:italic;font-weight:300}
+    .legend-reveal-icon.shine::after{
+      content:'';position:absolute;inset:0;z-index:2;
+      clip-path:polygon(50% 0%,93% 25%,93% 75%,50% 100%,7% 75%,7% 25%);
+      background:linear-gradient(115deg,transparent 35%,rgba(255,255,255,.75) 48%,transparent 60%);
+      background-size:260% 260%;background-position:-140% -140%;
+      animation:revealShine 1.1s .15s ease-out 1;
+    }
+    @keyframes revealShine{to{background-position:140% 140%}}
+
+    /* ── SPIN REEL — a slot-style strip of hexagon cards that cycles
+       past a center pointer and decelerates onto the actual prize,
+       instead of the card just appearing. Cards reuse the same
+       hexagon-capsule + rarity-gradient language as everywhere else
+       collectibles show up in the app. */
+    .crate-spin-viewport{
+      position:relative;width:264px;height:82px;margin:0 auto 4px;overflow:hidden;
+      -webkit-mask-image:linear-gradient(90deg,transparent,#000 16%,#000 84%,transparent);
+      mask-image:linear-gradient(90deg,transparent,#000 16%,#000 84%,transparent);
+    }
+    .crate-spin-track{position:absolute;top:0;left:50%;height:100%;display:flex;align-items:center;gap:8px;margin-left:-30px}
+    .crate-spin-card{
+      flex:0 0 auto;width:60px;height:60px;position:relative;
+      clip-path:polygon(50% 0%,93% 25%,93% 75%,50% 100%,7% 75%,7% 25%);
+      display:flex;align-items:center;justify-content:center;font-size:24px;
+      background:linear-gradient(160deg,#2A2A38,#18181F);
+    }
+    .crate-spin-card img{width:38px;height:38px;object-fit:contain}
+    .crate-spin-card.rarity-common{background:linear-gradient(160deg,#9A9AA4,#5C5C64)}
+    .crate-spin-card.rarity-rare{background:linear-gradient(160deg,#7FE3FF,#0E8FBD)}
+    .crate-spin-card.rarity-epic{background:linear-gradient(160deg,#C98CFF,#7A2FC4)}
+    .crate-spin-card.rarity-mythic{background:linear-gradient(160deg,#FF7AD9,#B0158A)}
+    .crate-spin-card.rarity-legendary{background:linear-gradient(160deg,#FFE58A,#D4970A)}
+    .crate-spin-slot{
+      position:absolute;top:2px;left:50%;width:68px;height:calc(100% - 4px);transform:translateX(-50%);
+      border:1.5px solid rgba(255,90,0,.4);border-radius:12px;pointer-events:none;z-index:3;
+      box-shadow:0 0 16px rgba(255,90,0,.3),inset 0 0 10px rgba(255,90,0,.12);
+    }
+    .crate-spin-pointer{
+      position:absolute;left:50%;top:-8px;transform:translateX(-50%);z-index:3;
+      width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;
+      border-top:8px solid var(--orange);
+    }
+    .crate-spin-pointer.bottom{top:auto;bottom:-8px;transform:translateX(-50%) rotate(180deg)}
     .legend-reveal-icon{
       width:88px;height:88px;margin:0 auto 14px;position:relative;
       clip-path:polygon(50% 0%,93% 25%,93% 75%,50% 100%,7% 75%,7% 25%);
@@ -1314,10 +1374,14 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .legend-reveal-icon img{width:56px;height:56px;object-fit:contain;position:relative;z-index:1}
     .legend-reveal-icon.rarity-common{background:linear-gradient(160deg,#9A9AA4,#5C5C64);box-shadow:0 0 18px rgba(142,142,147,.5)}
     .legend-reveal-icon.rarity-rare{background:linear-gradient(160deg,#7FE3FF,#0E8FBD);box-shadow:0 0 24px rgba(68,207,255,.65)}
-    .legend-reveal-icon.rarity-legendary{background:linear-gradient(160deg,#FFE58A,#D4970A);box-shadow:0 0 28px rgba(255,215,0,.7)}
+    .legend-reveal-icon.rarity-epic{background:linear-gradient(160deg,#C98CFF,#7A2FC4);box-shadow:0 0 26px rgba(158,68,242,.7)}
+    .legend-reveal-icon.rarity-mythic{background:linear-gradient(160deg,#FF7AD9,#B0158A);box-shadow:0 0 28px rgba(230,32,175,.75)}
+    .legend-reveal-icon.rarity-legendary{background:linear-gradient(160deg,#FFE58A,#D4970A);box-shadow:0 0 32px rgba(255,215,0,.8)}
     .legend-reveal-rarity{font-size:10px;font-weight:800;letter-spacing:.22em;margin-bottom:10px}
     .legend-reveal-rarity.rarity-common{color:#B8B8BC}
     .legend-reveal-rarity.rarity-rare{color:#44CFFF}
+    .legend-reveal-rarity.rarity-epic{color:#C98CFF}
+    .legend-reveal-rarity.rarity-mythic{color:#FF6FD8}
     .legend-reveal-rarity.rarity-legendary{color:#FFD24A}
 
     /* ── XP ROAD — a winding path of hexagon waypoints instead of a
@@ -6185,10 +6249,10 @@ const LEGEND_CARDS=[
   // over automatically in every place a card renders (row, reveal).
   {key:'arnold',    name:'Arnold Schwarzenegger', title:'"The Austrian Oak" \u2014 7\u00d7 Mr. Olympia',        icon:'\ud83c\udfd4\ufe0f', img:null, rarity:'legendary'},
   {key:'coleman',   name:'Ronnie Coleman',        title:'"Yeah Buddy!" \u2014 8\u00d7 Mr. Olympia',              icon:'\ud83d\udc51', img:null, rarity:'legendary'},
-  {key:'haney',     name:'Lee Haney',              title:'8\u00d7 Mr. Olympia (1984\u20131991)',              icon:'\ud83c\udfc6', img:null, rarity:'rare'},
-  {key:'yates',     name:'Dorian Yates',           title:'"The Shadow" \u2014 6\u00d7 Mr. Olympia',               icon:'\ud83c\udf11', img:null, rarity:'rare'},
-  {key:'cutler',    name:'Jay Cutler',             title:'4\u00d7 Mr. Olympia',                              icon:'\u26a1', img:null, rarity:'rare'},
-  {key:'heath',     name:'Phil Heath',             title:'"The Gift" \u2014 7\u00d7 Mr. Olympia',                 icon:'\ud83c\udf81', img:null, rarity:'rare'},
+  {key:'haney',     name:'Lee Haney',              title:'8\u00d7 Mr. Olympia (1984\u20131991)',              icon:'\ud83c\udfc6', img:null, rarity:'mythic'},
+  {key:'yates',     name:'Dorian Yates',           title:'"The Shadow" \u2014 6\u00d7 Mr. Olympia',               icon:'\ud83c\udf11', img:null, rarity:'mythic'},
+  {key:'cutler',    name:'Jay Cutler',             title:'4\u00d7 Mr. Olympia',                              icon:'\u26a1', img:null, rarity:'epic'},
+  {key:'heath',     name:'Phil Heath',             title:'"The Gift" \u2014 7\u00d7 Mr. Olympia',                 icon:'\ud83c\udf81', img:null, rarity:'epic'},
   {key:'oliva',     name:'Sergio Oliva',           title:'"The Myth" \u2014 3\u00d7 Mr. Olympia',                 icon:'\ud83e\uddbe', img:null, rarity:'rare'},
   {key:'columbu',   name:'Franco Columbu',         title:'2\u00d7 Mr. Olympia',                              icon:'\ud83d\udcaa', img:null, rarity:'rare'},
   // common tier \u2014 gym gear trinkets, not people; bronze-toned relics
@@ -6296,9 +6360,10 @@ function renderXpRoad(){
 // tension as streak repair already spending shards \u2014 a shard is worth
 // choosing what to do with, not just a formality.
 const CRATE_TIERS={
-  bronze:{label:'Bronze Drop',icon:'\ud83e\udded',odds:{common:75,rare:22,legendary:3}},
-  gold:{label:'Gold Drop',icon:'\ud83e\udded',odds:{common:40,rare:45,legendary:15}},
+  bronze:{label:'Bronze Drop',icon:'\ud83e\udded',odds:{common:60,rare:25,epic:10,mythic:4,legendary:1}},
+  gold:{label:'Gold Drop',icon:'\ud83e\udded',odds:{common:25,rare:35,epic:25,mythic:10,legendary:5}},
 };
+const RARITY_ORDER=['legendary','mythic','epic','rare','common']; // rarest first \u2014 matches roll-resolution order everywhere a rarity is picked from odds
 function legendIconHTML(l){
   return l.img?'<img src="'+l.img+'" alt="'+l.name+'">':l.icon;
 }
@@ -6368,14 +6433,21 @@ function viewLegendCard(key){
   const unlocked=unlockedLegends.includes(key);
   toast(unlocked?l.icon:'\u2753',unlocked?l.name+' \u2014 '+l.title:'Locked \u2014 open a Compass Drop for a chance at this card');
 }
+function rollRarity(odds){
+  const roll=Math.random()*100;
+  let acc=0;
+  for(const r of RARITY_ORDER){
+    acc+=odds[r]||0;
+    if(roll<acc)return r;
+  }
+  return 'common';
+}
 function openCompassDrop(tier){
   const cfg=CRATE_TIERS[tier];
   if(!cfg)return;
   if(tier==='bronze'){ if(bronzeDropBank<=0)return; bronzeDropBank--; }
   else{ if(shardBank<=0)return; shardBank--; }
-  const odds=cfg.odds;
-  const roll=Math.random()*100;
-  const rarity=roll<odds.legendary?'legendary':roll<odds.legendary+odds.rare?'rare':'common';
+  const rarity=rollRarity(cfg.odds);
   const pool=LEGEND_CARDS.filter(l=>l.rarity===rarity);
   const pick=pool[Math.floor(Math.random()*pool.length)];
   const isNew=!unlockedLegends.includes(pick.key);
@@ -6383,6 +6455,105 @@ function openCompassDrop(tier){
   saveToStorage();
   renderAchievements();
   showLegendReveal(pick,isNew,tier);
+}
+// \u2500\u2500 CRATE SOUND \u2014 procedurally synthesized (no audio files), same
+// Web Audio API pattern already used for ambient/sleep sounds
+// elsewhere in this file. A tick per card during the spin, slowing
+// down as it decelerates, then a reveal chime whose length/brightness
+// scales with rarity \u2014 common gets a soft single pop, legendary gets
+// a full ascending fanfare with a shimmer tail.
+let crateAudioCtx=null;
+function getCrateAudioCtx(){
+  if(!crateAudioCtx){
+    try{ crateAudioCtx=new (window.AudioContext||window.webkitAudioContext)(); }
+    catch(e){ return null; }
+  }
+  if(crateAudioCtx.state==='suspended')crateAudioCtx.resume().catch(()=>{});
+  return crateAudioCtx;
+}
+function playCrateTick(ctx,strength){
+  const t=ctx.currentTime;
+  const bufSize=Math.floor(ctx.sampleRate*0.03);
+  const buf=ctx.createBuffer(1,bufSize,ctx.sampleRate);
+  const data=buf.getChannelData(0);
+  for(let i=0;i<bufSize;i++)data[i]=(Math.random()*2-1)*(1-i/bufSize);
+  const src=ctx.createBufferSource();
+  src.buffer=buf;
+  const bp=ctx.createBiquadFilter();
+  bp.type='bandpass';bp.frequency.value=2500;bp.Q.value=3;
+  const g=ctx.createGain();
+  g.gain.setValueAtTime(0.45*strength,t);
+  g.gain.exponentialRampToValueAtTime(0.001,t+0.045);
+  src.connect(bp);bp.connect(g);g.connect(ctx.destination);
+  src.start(t);src.stop(t+0.05);
+}
+function playCrateSpinTicks(durationMs){
+  const ctx=getCrateAudioCtx();
+  if(!ctx)return;
+  let elapsed=0,interval=55;
+  (function schedule(){
+    if(elapsed>=durationMs-100)return;
+    playCrateTick(ctx,0.35+0.65*(1-elapsed/durationMs));
+    interval=Math.min(interval*1.09,260);
+    elapsed+=interval;
+    setTimeout(schedule,interval);
+  })();
+}
+function playCrateRevealChime(rarity){
+  const ctx=getCrateAudioCtx();
+  if(!ctx)return;
+  const notesByRarity={
+    common:[523.25],
+    rare:[523.25,659.25],
+    epic:[440,554.37,659.25],
+    mythic:[523.25,659.25,783.99,1046.5],
+    legendary:[440,554.37,659.25,880,1108.73],
+  };
+  const notes=notesByRarity[rarity]||notesByRarity.common;
+  const t0=ctx.currentTime;
+  notes.forEach((freq,i)=>{
+    const start=t0+i*0.09;
+    const isLast=i===notes.length-1;
+    const osc=ctx.createOscillator();
+    osc.type=isLast?'triangle':'sine';
+    osc.frequency.setValueAtTime(freq,start);
+    const g=ctx.createGain();
+    const peak=isLast?0.32:0.22;
+    g.gain.setValueAtTime(0,start);
+    g.gain.linearRampToValueAtTime(peak,start+0.02);
+    g.gain.exponentialRampToValueAtTime(0.001,start+(isLast?0.9:0.45));
+    osc.connect(g);g.connect(ctx.destination);
+    osc.start(start);osc.stop(start+(isLast?0.95:0.5));
+  });
+  if(rarity==='legendary'||rarity==='mythic'){
+    const shimmerStart=t0+notes.length*0.09;
+    const shimmer=ctx.createOscillator();
+    shimmer.type='sine';
+    shimmer.frequency.setValueAtTime(notes[notes.length-1]*2,shimmerStart);
+    const sg=ctx.createGain();
+    sg.gain.setValueAtTime(0,shimmerStart);
+    sg.gain.linearRampToValueAtTime(0.06,shimmerStart+0.05);
+    sg.gain.exponentialRampToValueAtTime(0.001,shimmerStart+1.1);
+    shimmer.connect(sg);sg.connect(ctx.destination);
+    shimmer.start(shimmerStart);shimmer.stop(shimmerStart+1.15);
+  }
+}
+const RARITY_GLOW={
+  common:'rgba(154,154,164,.32)',
+  rare:'rgba(68,207,255,.38)',
+  epic:'rgba(158,68,242,.4)',
+  mythic:'rgba(230,32,175,.45)',
+  legendary:'rgba(255,210,74,.5)',
+};
+const RARITY_BORDER={
+  common:'rgba(154,154,164,.4)',
+  rare:'rgba(68,207,255,.4)',
+  epic:'rgba(158,68,242,.42)',
+  mythic:'rgba(230,32,175,.42)',
+  legendary:'rgba(255,210,74,.4)',
+};
+function spinCardHTML(card){
+  return '<div class="crate-spin-card rarity-'+card.rarity+'">'+legendIconHTML(card)+'</div>';
 }
 function showLegendReveal(l,isNew,tier){
   const overlay=document.createElement('div');
@@ -6396,14 +6567,41 @@ function showLegendReveal(l,isNew,tier){
   setTimeout(()=>{
     const modal=overlay.querySelector('.achievement-modal');
     if(!modal)return;
+    // Spin phase \u2014 a strip of random filler cards with the actual prize
+    // placed last, scrolled past a center pointer and decelerated onto
+    // the winner, like a slot reel settling.
+    const FILLER=16, STRIDE=68, SPIN_MS=2400;
+    const strip=[];
+    for(let i=0;i<FILLER;i++)strip.push(LEGEND_CARDS[Math.floor(Math.random()*LEGEND_CARDS.length)]);
+    strip.push(l);
+    const targetIndex=strip.length-1;
     modal.innerHTML=
-      '<div class="legend-reveal-icon rarity-'+l.rarity+'">'+legendIconHTML(l)+'</div>'+
-      '<div class="legend-reveal-rarity rarity-'+l.rarity+'">'+l.rarity.toUpperCase()+(isNew?' \u2014 NEW':' \u2014 DUPLICATE')+'</div>'+
-      '<div class="achievement-title">'+l.name+'</div>'+
-      '<div class="achievement-desc">'+l.title+'</div>'+
-      '<button class="achievement-close-btn" onclick="this.closest(\'.achievement-overlay\').remove()">Continue</button>';
-    addXP(isNew?25:10,isNew?'New legend card':'Compass Drop');
-    if(isNew)celebrateBurst(['\ud83d\udd25','\u2b50','\ud83c\udfc6'],20);
+      '<div class="crate-spin-viewport">'+
+        '<div class="crate-spin-slot"></div>'+
+        '<div class="crate-spin-pointer"></div>'+
+        '<div class="crate-spin-pointer bottom"></div>'+
+        '<div class="crate-spin-track" id="spin-track">'+strip.map(spinCardHTML).join('')+'</div>'+
+      '</div>';
+    const track=modal.querySelector('#spin-track');
+    playCrateSpinTicks(SPIN_MS);
+    requestAnimationFrame(()=>{
+      track.style.transition='transform '+(SPIN_MS/1000)+'s cubic-bezier(.1,.7,.15,1)';
+      track.style.transform='translateX(-'+(targetIndex*STRIDE)+'px)';
+    });
+    setTimeout(()=>{
+      modal.style.setProperty('--reveal-glow',RARITY_GLOW[l.rarity]);
+      modal.style.borderColor=RARITY_BORDER[l.rarity];
+      modal.classList.add('glow');
+      modal.innerHTML=
+        '<div class="legend-reveal-icon shine rarity-'+l.rarity+'">'+legendIconHTML(l)+'</div>'+
+        '<div class="legend-reveal-rarity rarity-'+l.rarity+'">'+l.rarity.toUpperCase()+(isNew?' \u2014 NEW':' \u2014 DUPLICATE')+'</div>'+
+        '<div class="achievement-title reveal-name-serif">'+l.name+'</div>'+
+        '<div class="achievement-desc">'+l.title+'</div>'+
+        '<button class="achievement-close-btn" onclick="this.closest(\'.achievement-overlay\').remove()">Continue</button>';
+      playCrateRevealChime(l.rarity);
+      addXP(isNew?25:10,isNew?'New legend card':'Compass Drop');
+      if(isNew)celebrateBurst(['\ud83d\udd25','\u2b50','\ud83c\udfc6'],20);
+    },SPIN_MS+60);
   },1500);
 }
 
