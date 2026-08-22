@@ -15280,6 +15280,23 @@ function computeLeagueGroupForWeek(weekKey,tierIndex,userPoints){
 // completion) plus whenever the Leagues page opens — same "cheap check,
 // runs often" shape as that function. First-ever call just seeds
 // leagueWeekStart with no promotion/relegation (nothing to compare yet).
+// Promotion reward — the crate tier scales with the league you've just
+// reached rather than always paying the same thing, so climbing higher
+// keeps feeling worth it. Reuses the exact bank/currency each crate
+// tier already uses elsewhere (bronzeDropBank, shardBank, etc.) —
+// Areviax is the one exception, opened immediately for free instead of
+// banked, same as its only other source (the daily spin's rarest slot).
+const LEAGUE_PROMOTION_CRATE={
+  bronze:'bronze', silver:'bronze', gold:'silver', sapphire:'gold',
+  emerald:'gold', ruby:'diamond', diamond:'diamond', areviax:'areviax',
+};
+function grantLeaguePromotionCrate(tier){
+  if(tier==='bronze')bronzeDropBank++;
+  else if(tier==='silver')silverDropBank++;
+  else if(tier==='gold')shardBank++;
+  else if(tier==='diamond')diamondDropBank++;
+  // areviax: not banked — showLeagueResultReveal's Continue button opens it directly.
+}
 function checkLeagueWeek(){
   const thisMonday=getMonday(new Date());
   if(leagueWeekStart&&leagueWeekStart!==thisMonday){
@@ -15290,7 +15307,10 @@ function checkLeagueWeek(){
     const fromLabel=LEAGUE_TIERS[userLeagueTier].label;
     if(rank<promoCut&&userLeagueTier<LEAGUE_TIERS.length-1){
       userLeagueTier++;
-      pendingLeagueResult={outcome:'promoted',from:fromLabel,to:LEAGUE_TIERS[userLeagueTier].label,rank:rank+1,groupSize:group.length};
+      const newLeague=LEAGUE_TIERS[userLeagueTier];
+      const crateTier=LEAGUE_PROMOTION_CRATE[newLeague.key]||'bronze';
+      grantLeaguePromotionCrate(crateTier);
+      pendingLeagueResult={outcome:'promoted',from:fromLabel,to:newLeague.label,rank:rank+1,groupSize:group.length,crateTier};
     }else if(rank>=relegateCut&&group.length>3&&userLeagueTier>0){
       userLeagueTier--;
       pendingLeagueResult={outcome:'relegated',from:fromLabel,to:LEAGUE_TIERS[userLeagueTier].label,rank:rank+1,groupSize:group.length};
@@ -15355,6 +15375,7 @@ function showLeagueResultReveal(result){
   overlay.className='achievement-overlay';
   const isPromo=result.outcome==='promoted';
   const isRelegate=result.outcome==='relegated';
+  const isAreviaxPromo=isPromo&&result.crateTier==='areviax';
   const icon=isPromo?'⬆️':isRelegate?'⬇️':'🛡️';
   const title=isPromo?'Promoted!':isRelegate?'Relegated':'Held your ground';
   const desc=isPromo?
@@ -15362,17 +15383,28 @@ function showLeagueResultReveal(result){
     :isRelegate?
     'Finished #'+result.rank+' of '+result.groupSize+' in '+result.from+' — dropping to '+result.to+' this week. Come back stronger.'
     :'Finished #'+result.rank+' of '+result.groupSize+' in '+result.from+' — safely in the middle, staying put.';
+  const crateLine=isPromo&&result.crateTier?(
+    isAreviaxPromo
+      ? '<div style="font-size:11.5px;font-weight:700;color:#FFB347;margin-top:10px">🔥 Reaching the top league unlocks the Areviax Drop — opening next.</div>'
+      : '<div style="font-size:11.5px;font-weight:700;color:#44CFFF;margin-top:10px">🎁 +1 '+CRATE_TIERS[result.crateTier].label+' — find it under Compass Drops</div>'
+  ):'';
+  const closeAction=isAreviaxPromo?'closeLeagueRevealThenOpenAreviax(this)':'this.closest(\'.achievement-overlay\').remove()';
   overlay.innerHTML=
     '<div class="achievement-modal">'+
       '<div class="achievement-icon">'+icon+'</div>'+
       '<div class="achievement-unlocked-label">LAST WEEK\'S LEAGUE</div>'+
       '<div class="achievement-title">'+title+'</div>'+
       '<div class="achievement-desc">'+desc+'</div>'+
-      '<button class="achievement-close-btn" onclick="this.closest(\'.achievement-overlay\').remove()">Continue</button>'+
+      crateLine+
+      '<button class="achievement-close-btn" onclick="'+closeAction+'">Continue</button>'+
     '</div>';
   document.body.appendChild(overlay);
   requestAnimationFrame(()=>overlay.classList.add('show'));
   if(isPromo)celebrateBurst(['⬆️','✨','🏆'],20);
+}
+function closeLeagueRevealThenOpenAreviax(btn){
+  btn.closest('.achievement-overlay').remove();
+  setTimeout(()=>openCompassDrop('areviax'),300);
 }
 function switchLegal(btn,id){
   document.querySelectorAll('.legal-tab').forEach(t=>t.classList.remove('active'));
