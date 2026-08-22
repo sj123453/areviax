@@ -1241,11 +1241,35 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .legend-card-name{font-size:9px;font-weight:800;color:var(--muted);line-height:1.3}
     .legend-card.unlocked .legend-card-icon{filter:none}
     .legend-card.unlocked .legend-card-name{color:var(--white)}
-    .legend-card.rarity-common.unlocked .legend-card-icon{background:linear-gradient(160deg,#9A9AA4,#5C5C64);box-shadow:0 0 10px rgba(142,142,147,.4)}
-    .legend-card.rarity-rare.unlocked .legend-card-icon{background:linear-gradient(160deg,#7FE3FF,#0E8FBD);box-shadow:0 0 14px rgba(68,207,255,.55)}
-    .legend-card.rarity-epic.unlocked .legend-card-icon{background:linear-gradient(160deg,#C98CFF,#7A2FC4);box-shadow:0 0 16px rgba(158,68,242,.6)}
-    .legend-card.rarity-mythic.unlocked .legend-card-icon{background:linear-gradient(160deg,#FF7AD9,#B0158A);box-shadow:0 0 18px rgba(230,32,175,.65)}
-    .legend-card.rarity-legendary.unlocked .legend-card-icon{background:linear-gradient(160deg,#FFE58A,#D4970A);box-shadow:0 0 18px rgba(255,215,0,.6)}
+    /* ── RARITY LADDER — seven tiers, each meant to feel a genuine step
+       up from the last: colour moves from a dull physical metal
+       (bronze/silver) through progressively less "real" materials
+       (gold, diamond) into pure light (mythic/legendary/ultra), and
+       glow + motion escalate in lockstep. Common/Rare are static and
+       quiet on purpose — the higher tiers earn their animation by
+       contrast. Ultra Legendary is the one true showpiece: a slow
+       holographic-foil colour shift nothing else in the app does. */
+    @keyframes rarityPulseSoft{0%,100%{filter:brightness(1)}50%{filter:brightness(1.12)}}
+    @keyframes rarityPulseStrong{0%,100%{filter:brightness(1)}50%{filter:brightness(1.22)}}
+    @keyframes rarityShimmerSweep{
+      0%{background-position:-120% 0}
+      100%{background-position:220% 0}
+    }
+    @keyframes holoShift{
+      0%{background-position:0% 50%}
+      100%{background-position:200% 50%}
+    }
+    .legend-card.rarity-common.unlocked .legend-card-icon{background:linear-gradient(160deg,#C79A5B,#6B4A25);box-shadow:0 0 8px rgba(176,141,87,.35)}
+    .legend-card.rarity-rare.unlocked .legend-card-icon{background:linear-gradient(160deg,#EEF2F6,#96A1B0);box-shadow:0 0 12px rgba(180,190,205,.45)}
+    .legend-card.rarity-superrare.unlocked .legend-card-icon{background:linear-gradient(160deg,#FFE9A6,#C68A0A);box-shadow:0 0 18px rgba(230,155,10,.55);animation:rarityPulseSoft 2.6s ease-in-out infinite}
+    .legend-card.rarity-epic.unlocked .legend-card-icon{background:linear-gradient(115deg,#F0FCFF,#8FE0F5,#F0FCFF,#6FCFEC);background-size:260% 100%;box-shadow:0 0 22px rgba(111,207,236,.6);animation:rarityShimmerSweep 3.2s linear infinite}
+    .legend-card.rarity-mythic.unlocked .legend-card-icon{background:linear-gradient(160deg,#FF7AD9,#9B1F7A);box-shadow:0 0 24px rgba(230,32,175,.6);animation:rarityPulseStrong 2s ease-in-out infinite}
+    .legend-card.rarity-legendary.unlocked .legend-card-icon{background:linear-gradient(160deg,#FF9A5C,#D4370A);box-shadow:0 0 28px rgba(255,122,46,.65);animation:rarityPulseStrong 1.6s ease-in-out infinite}
+    .legend-card.rarity-ultralegendary.unlocked .legend-card-icon{
+      background:linear-gradient(115deg,#FFD24A,#FF6FD8,#7FE3FF,#FF9A3D,#FFD24A);
+      background-size:300% 100%;box-shadow:0 0 34px rgba(255,180,80,.75);
+      animation:holoShift 3.6s linear infinite,rarityPulseStrong 1.4s ease-in-out infinite;
+    }
 
     /* ── COMPASS DROP CRATES — a Brawl-Stars-Star-Drop-style capsule
        (hexagonal gem, tier-tinted gradient + glow, gentle float when
@@ -1344,11 +1368,13 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       background:linear-gradient(160deg,#2A2A38,#18181F);
     }
     .crate-spin-card img{width:38px;height:38px;object-fit:contain}
-    .crate-spin-card.rarity-common{background:linear-gradient(160deg,#9A9AA4,#5C5C64)}
-    .crate-spin-card.rarity-rare{background:linear-gradient(160deg,#7FE3FF,#0E8FBD)}
-    .crate-spin-card.rarity-epic{background:linear-gradient(160deg,#C98CFF,#7A2FC4)}
-    .crate-spin-card.rarity-mythic{background:linear-gradient(160deg,#FF7AD9,#B0158A)}
-    .crate-spin-card.rarity-legendary{background:linear-gradient(160deg,#FFE58A,#D4970A)}
+    .crate-spin-card.rarity-common{background:linear-gradient(160deg,#C79A5B,#6B4A25)}
+    .crate-spin-card.rarity-rare{background:linear-gradient(160deg,#EEF2F6,#96A1B0)}
+    .crate-spin-card.rarity-superrare{background:linear-gradient(160deg,#FFE9A6,#C68A0A)}
+    .crate-spin-card.rarity-epic{background:linear-gradient(160deg,#F0FCFF,#6FCFEC)}
+    .crate-spin-card.rarity-mythic{background:linear-gradient(160deg,#FF7AD9,#9B1F7A)}
+    .crate-spin-card.rarity-legendary{background:linear-gradient(160deg,#FF9A5C,#D4370A)}
+    .crate-spin-card.rarity-ultralegendary{background:linear-gradient(115deg,#FFD24A,#FF6FD8,#7FE3FF,#FF9A3D);background-size:260% 100%;animation:holoShift 1.6s linear infinite}
     .crate-spin-slot{
       position:absolute;top:2px;left:50%;width:68px;height:calc(100% - 4px);transform:translateX(-50%);
       border:1.5px solid rgba(255,90,0,.4);border-radius:12px;pointer-events:none;z-index:3;
@@ -1372,17 +1398,29 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       pointer-events:none;
     }
     .legend-reveal-icon img{width:56px;height:56px;object-fit:contain;position:relative;z-index:1}
-    .legend-reveal-icon.rarity-common{background:linear-gradient(160deg,#9A9AA4,#5C5C64);box-shadow:0 0 18px rgba(142,142,147,.5)}
-    .legend-reveal-icon.rarity-rare{background:linear-gradient(160deg,#7FE3FF,#0E8FBD);box-shadow:0 0 24px rgba(68,207,255,.65)}
-    .legend-reveal-icon.rarity-epic{background:linear-gradient(160deg,#C98CFF,#7A2FC4);box-shadow:0 0 26px rgba(158,68,242,.7)}
-    .legend-reveal-icon.rarity-mythic{background:linear-gradient(160deg,#FF7AD9,#B0158A);box-shadow:0 0 28px rgba(230,32,175,.75)}
-    .legend-reveal-icon.rarity-legendary{background:linear-gradient(160deg,#FFE58A,#D4970A);box-shadow:0 0 32px rgba(255,215,0,.8)}
+    .legend-reveal-icon.rarity-common{background:linear-gradient(160deg,#C79A5B,#6B4A25);box-shadow:0 0 16px rgba(176,141,87,.45)}
+    .legend-reveal-icon.rarity-rare{background:linear-gradient(160deg,#EEF2F6,#96A1B0);box-shadow:0 0 20px rgba(180,190,205,.55)}
+    .legend-reveal-icon.rarity-superrare{background:linear-gradient(160deg,#FFE9A6,#C68A0A);box-shadow:0 0 26px rgba(230,155,10,.65);animation:rarityPulseSoft 2.6s ease-in-out infinite}
+    .legend-reveal-icon.rarity-epic{background:linear-gradient(115deg,#F0FCFF,#8FE0F5,#F0FCFF,#6FCFEC);background-size:260% 100%;box-shadow:0 0 30px rgba(111,207,236,.7);animation:rarityShimmerSweep 3s linear infinite}
+    .legend-reveal-icon.rarity-mythic{background:linear-gradient(160deg,#FF7AD9,#9B1F7A);box-shadow:0 0 34px rgba(230,32,175,.75);animation:rarityPulseStrong 2s ease-in-out infinite}
+    .legend-reveal-icon.rarity-legendary{background:linear-gradient(160deg,#FF9A5C,#D4370A);box-shadow:0 0 38px rgba(255,122,46,.8);animation:rarityPulseStrong 1.6s ease-in-out infinite}
+    .legend-reveal-icon.rarity-ultralegendary{
+      background:linear-gradient(115deg,#FFD24A,#FF6FD8,#7FE3FF,#FF9A3D,#FFD24A);
+      background-size:300% 100%;box-shadow:0 0 46px rgba(255,180,80,.85);
+      animation:holoShift 3.6s linear infinite,rarityPulseStrong 1.4s ease-in-out infinite;
+    }
     .legend-reveal-rarity{font-size:10px;font-weight:800;letter-spacing:.22em;margin-bottom:10px}
-    .legend-reveal-rarity.rarity-common{color:#B8B8BC}
-    .legend-reveal-rarity.rarity-rare{color:#44CFFF}
-    .legend-reveal-rarity.rarity-epic{color:#C98CFF}
+    .legend-reveal-rarity.rarity-common{color:#C79A5B}
+    .legend-reveal-rarity.rarity-rare{color:#C3CCD8}
+    .legend-reveal-rarity.rarity-superrare{color:#FFD24A}
+    .legend-reveal-rarity.rarity-epic{color:#8FE0F5}
     .legend-reveal-rarity.rarity-mythic{color:#FF6FD8}
-    .legend-reveal-rarity.rarity-legendary{color:#FFD24A}
+    .legend-reveal-rarity.rarity-legendary{color:#FF9A5C}
+    .legend-reveal-rarity.rarity-ultralegendary{
+      background:linear-gradient(90deg,#FFD24A,#FF6FD8,#7FE3FF,#FF9A3D,#FFD24A);
+      background-size:300% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;
+      animation:holoShift 2.4s linear infinite;
+    }
 
     /* ── XP ROAD — a winding path of hexagon waypoints instead of a
        flat list, reusing the same hexagon-capsule + dashed-connector
@@ -6369,10 +6407,16 @@ function renderXpRoad(){
 // tension as streak repair already spending shards \u2014 a shard is worth
 // choosing what to do with, not just a formality.
 const CRATE_TIERS={
-  bronze:{label:'Bronze Drop',icon:'\ud83e\udded',odds:{common:60,rare:25,epic:10,mythic:4,legendary:1}},
-  gold:{label:'Gold Drop',icon:'\ud83e\udded',odds:{common:25,rare:35,epic:25,mythic:10,legendary:5}},
+  bronze:{label:'Bronze Drop',icon:'\ud83e\udded',odds:{common:60,rare:25,superrare:0,epic:10,mythic:4,legendary:1,ultralegendary:0}},
+  gold:{label:'Gold Drop',icon:'\ud83e\udded',odds:{common:25,rare:35,superrare:0,epic:25,mythic:10,legendary:5,ultralegendary:0}},
 };
-const RARITY_ORDER=['legendary','mythic','epic','rare','common']; // rarest first \u2014 matches roll-resolution order everywhere a rarity is picked from odds
+// rarest-first, matches roll-resolution order everywhere a rarity is
+// picked from odds. superrare/ultralegendary sit at 0% odds above
+// until real items are assigned to them \u2014 the tier and its full
+// colour/glow/motion treatment already exist (see rarity-superrare
+// and rarity-ultralegendary throughout the CSS), so turning them on
+// later is a one-line odds change, not new design work.
+const RARITY_ORDER=['ultralegendary','legendary','mythic','epic','superrare','rare','common'];
 function legendIconHTML(l){
   return l.img?'<img src="'+l.img+'" alt="'+l.name+'">':l.icon;
 }
@@ -6514,9 +6558,11 @@ function playCrateRevealChime(rarity){
   const notesByRarity={
     common:[523.25],
     rare:[523.25,659.25],
-    epic:[440,554.37,659.25],
+    superrare:[523.25,659.25,783.99],
+    epic:[440,554.37,659.25,880],
     mythic:[523.25,659.25,783.99,1046.5],
     legendary:[440,554.37,659.25,880,1108.73],
+    ultralegendary:[392,493.88,587.33,739.99,987.77,1174.66],
   };
   const notes=notesByRarity[rarity]||notesByRarity.common;
   const t0=ctx.currentTime;
@@ -6534,32 +6580,38 @@ function playCrateRevealChime(rarity){
     osc.connect(g);g.connect(ctx.destination);
     osc.start(start);osc.stop(start+(isLast?0.95:0.5));
   });
-  if(rarity==='legendary'||rarity==='mythic'){
-    const shimmerStart=t0+notes.length*0.09;
+  const shimmerTiers={superrare:1,epic:1,mythic:1,legendary:1,ultralegendary:2};
+  const shimmerLayers=shimmerTiers[rarity]||0;
+  for(let layer=0;layer<shimmerLayers;layer++){
+    const shimmerStart=t0+notes.length*0.09+layer*0.12;
     const shimmer=ctx.createOscillator();
     shimmer.type='sine';
-    shimmer.frequency.setValueAtTime(notes[notes.length-1]*2,shimmerStart);
+    shimmer.frequency.setValueAtTime(notes[notes.length-1]*(layer===0?2:3),shimmerStart);
     const sg=ctx.createGain();
     sg.gain.setValueAtTime(0,shimmerStart);
-    sg.gain.linearRampToValueAtTime(0.06,shimmerStart+0.05);
+    sg.gain.linearRampToValueAtTime(layer===0?0.06:0.035,shimmerStart+0.05);
     sg.gain.exponentialRampToValueAtTime(0.001,shimmerStart+1.1);
     shimmer.connect(sg);sg.connect(ctx.destination);
     shimmer.start(shimmerStart);shimmer.stop(shimmerStart+1.15);
   }
 }
 const RARITY_GLOW={
-  common:'rgba(154,154,164,.32)',
-  rare:'rgba(68,207,255,.38)',
-  epic:'rgba(158,68,242,.4)',
-  mythic:'rgba(230,32,175,.45)',
-  legendary:'rgba(255,210,74,.5)',
+  common:'rgba(176,141,87,.3)',
+  rare:'rgba(180,190,205,.38)',
+  superrare:'rgba(230,155,10,.45)',
+  epic:'rgba(111,207,236,.48)',
+  mythic:'rgba(230,32,175,.5)',
+  legendary:'rgba(255,122,46,.55)',
+  ultralegendary:'rgba(255,180,80,.65)',
 };
 const RARITY_BORDER={
-  common:'rgba(154,154,164,.4)',
-  rare:'rgba(68,207,255,.4)',
-  epic:'rgba(158,68,242,.42)',
+  common:'rgba(176,141,87,.4)',
+  rare:'rgba(180,190,205,.4)',
+  superrare:'rgba(230,155,10,.42)',
+  epic:'rgba(111,207,236,.45)',
   mythic:'rgba(230,32,175,.42)',
-  legendary:'rgba(255,210,74,.4)',
+  legendary:'rgba(255,122,46,.42)',
+  ultralegendary:'rgba(255,180,80,.5)',
 };
 function spinCardHTML(card){
   return '<div class="crate-spin-card rarity-'+card.rarity+'">'+legendIconHTML(card)+'</div>';
