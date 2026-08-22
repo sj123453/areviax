@@ -261,6 +261,34 @@ input,input:focus,input:active,
 .ex-action-btn:hover{background:var(--border);color:var(--white)}
 .ex-swap-btn{font-weight:800;background:rgba(255,90,0,.14);border-color:rgba(255,90,0,.35);color:rgba(var(--white-rgb),.7)}
 .ex-swap-btn:hover{background:rgba(142,142,147,.2)}
+.ex-skip-btn{background:rgba(142,142,147,.1);border-color:rgba(142,142,147,.3);color:var(--muted)}
+.ex-skip-btn:hover{background:rgba(142,142,147,.2);color:var(--white)}
+.ex-card.ex-skipped{opacity:.55;border-style:dashed}
+.ex-skipped-tag{display:none;font-size:9.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:-4px 0 8px}
+.ex-card.ex-skipped .ex-skipped-tag{display:block}
+/* ── COMPASS POINT CLAIM — sits between the exercise list and the
+   Complete Session button. Three states: still finishing up (muted,
+   informational), ready (a real tappable button, same green language
+   as other primary actions), already claimed today (quiet confirmation). */
+.compass-claim{display:block;width:100%;box-sizing:border-box;border-radius:10px;padding:11px 14px;font-size:11.5px;font-weight:700;text-align:center;margin-top:10px;font-family:'Outfit',sans-serif}
+.compass-claim-pending{background:rgba(255,255,255,.03);border:1.5px dashed var(--border2);color:var(--muted)}
+.compass-claim-ready{background:linear-gradient(135deg,rgba(68,207,255,.18),rgba(68,207,255,.08));border:1.5px solid rgba(68,207,255,.5);color:#8FE8FF;cursor:pointer;box-shadow:0 0 16px rgba(68,207,255,.2);animation:compassClaimPulse 2s ease-in-out infinite}
+.compass-claim-ready:active{transform:scale(.98)}
+@keyframes compassClaimPulse{0%,100%{box-shadow:0 0 16px rgba(68,207,255,.2)}50%{box-shadow:0 0 26px rgba(68,207,255,.4)}}
+.compass-claim-done{background:rgba(68,207,255,.06);border:1.5px solid rgba(68,207,255,.25);color:rgba(143,232,255,.85)}
+/* One-shot reward flourish on claim — see playShardFlyAnimation(). */
+@keyframes shardFly{
+  0%{transform:translateY(0) scale(.6) rotate(0deg);opacity:0}
+  15%{opacity:1;transform:translateY(-6px) scale(1.15) rotate(-8deg)}
+  100%{transform:translateY(-150px) scale(.4) rotate(22deg);opacity:0}
+}
+.shard-fly-icon{
+  position:fixed;z-index:6000;pointer-events:none;width:34px;height:34px;
+  clip-path:polygon(50% 0%,93% 25%,93% 75%,50% 100%,7% 75%,7% 25%);
+  background:linear-gradient(160deg,#8FE0F5,#1D8FC7);
+  box-shadow:0 0 18px rgba(68,207,255,.7);
+  animation:shardFly 1s cubic-bezier(.2,.7,.3,1) forwards;
+}
 .ex-cue-label{font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--green);display:block;margin-bottom:4px}
 .ex-card.open .ex-cue{display:block}
 .ex-ts-toggle{
@@ -1193,19 +1221,19 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        out so both collections fit one card without a page-length scroll. */
     .ach-row{display:flex;gap:10px;overflow-x:auto;min-width:0;padding:2px 2px 8px;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
     .ach-badge{
-      flex:0 0 auto;width:56px;display:flex;flex-direction:column;align-items:center;gap:5px;
+      flex:0 0 auto;width:76px;display:flex;flex-direction:column;align-items:center;gap:5px;
       cursor:pointer;-webkit-tap-highlight-color:transparent;
     }
     .ach-badge-icon{
-      width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;
-      font-size:20px;background:rgb(var(--bg-rgb));border:2px solid rgba(255,255,255,.1);
+      width:68px;height:68px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+      font-size:30px;background:rgb(var(--bg-rgb));border:2px solid rgba(255,255,255,.1);
       filter:grayscale(1) opacity(.5);transition:filter .2s,border-color .2s,box-shadow .2s;
     }
     .ach-badge.unlocked .ach-badge-icon{
       filter:none;background:rgba(255,90,0,.1);border-color:var(--green);
       box-shadow:0 0 14px rgba(255,90,0,.35);
     }
-    .ach-badge-icon img{width:28px;height:28px;object-fit:contain;filter:inherit}
+    .ach-badge-icon img{width:42px;height:42px;object-fit:contain;filter:inherit}
     .ach-badge-label{font-size:8.5px;font-weight:700;color:var(--muted);text-align:center;line-height:1.25;width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     .ach-badge.unlocked .ach-badge-label{color:rgba(var(--white-rgb),.75)}
 
@@ -1214,7 +1242,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        the name visible yet, same idea as the priority-dial colour
        system elsewhere in the app. */
     .legend-card{
-      flex:0 0 auto;width:78px;border-radius:10px;padding:10px 6px 8px;text-align:center;
+      flex:0 0 auto;width:92px;border-radius:10px;padding:10px 6px 8px;text-align:center;
       background:transparent;border:none;cursor:pointer;
       -webkit-tap-highlight-color:transparent;transition:transform .15s;
     }
@@ -1225,9 +1253,9 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        gradient hex with a soft glow ring, echoing the reference art's
        neon hexagon badges. */
     .legend-card-icon{
-      width:46px;height:46px;margin:0 auto 6px;position:relative;
+      width:64px;height:64px;margin:0 auto 6px;position:relative;
       clip-path:polygon(50% 0%,93% 25%,93% 75%,50% 100%,7% 75%,7% 25%);
-      display:flex;align-items:center;justify-content:center;font-size:22px;
+      display:flex;align-items:center;justify-content:center;font-size:30px;
       background:linear-gradient(160deg,#2A2A38,#18181F);transition:box-shadow .2s;
       filter:grayscale(1) opacity(.4);
     }
@@ -1237,7 +1265,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       background:linear-gradient(160deg,rgba(255,255,255,.22),transparent 55%);
       pointer-events:none;
     }
-    .legend-card-icon img{width:30px;height:30px;object-fit:contain;filter:inherit;position:relative;z-index:1}
+    .legend-card-icon img{width:46px;height:46px;object-fit:contain;filter:inherit;position:relative;z-index:1}
     .legend-card-name{font-size:9px;font-weight:800;color:var(--muted);line-height:1.3}
     .legend-card.unlocked .legend-card-icon{filter:none}
     .legend-card.unlocked .legend-card-name{color:var(--white)}
@@ -1291,8 +1319,8 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .cabinet-hero-label{font-size:9.5px;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,210,74,.75);margin-bottom:16px}
     .cabinet-hero-sub{font-size:11px;color:var(--muted);margin-top:12px;max-width:280px;margin-left:auto;margin-right:auto}
     .legend-card.cabinet-peak{width:auto;padding:0;margin:0 auto}
-    .legend-card.cabinet-peak .legend-card-icon{width:108px;height:108px;font-size:46px;margin:0 auto 12px}
-    .legend-card.cabinet-peak .legend-card-icon img{width:76px;height:76px}
+    .legend-card.cabinet-peak .legend-card-icon{width:150px;height:150px;font-size:64px;margin:0 auto 12px}
+    .legend-card.cabinet-peak .legend-card-icon img{width:106px;height:106px}
     .legend-card.cabinet-peak .legend-card-name{font-size:12px;letter-spacing:.04em;text-transform:uppercase}
 
     .cabinet-tier{margin-bottom:24px}
@@ -1301,9 +1329,9 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .cabinet-tier-count{font-size:10px;font-weight:800;color:var(--muted);white-space:nowrap;flex-shrink:0}
     .cabinet-tier-sub{font-size:10.5px;color:var(--muted);margin-bottom:13px}
     .cabinet-row{display:flex;gap:13px;overflow-x:auto;padding:4px 2px 10px;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
-    .legend-card.cabinet-slot{width:106px;padding:14px 8px 10px;flex:0 0 auto}
-    .legend-card.cabinet-slot .legend-card-icon{width:68px;height:68px;font-size:28px;margin:0 auto 9px}
-    .legend-card.cabinet-slot .legend-card-icon img{width:46px;height:46px}
+    .legend-card.cabinet-slot{width:130px;padding:16px 8px 10px;flex:0 0 auto}
+    .legend-card.cabinet-slot .legend-card-icon{width:92px;height:92px;font-size:36px;margin:0 auto 9px}
+    .legend-card.cabinet-slot .legend-card-icon img{width:64px;height:64px}
     .legend-card.cabinet-slot .legend-card-name{font-size:10.5px}
 
     /* ── COMPASS DROP CRATES — a Brawl-Stars-Star-Drop-style capsule
@@ -1578,18 +1606,18 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       background:repeating-linear-gradient(180deg,rgba(255,140,50,.65) 0 6px,transparent 6px 13px);
       box-shadow:0 0 10px rgba(255,90,0,.35);
     }
-    .xp-node{position:relative;min-height:88px}
+    .xp-node{position:relative;min-height:108px}
     .xp-node-hex{
-      position:absolute;top:7px;width:44px;height:44px;z-index:2;
+      position:absolute;top:12px;width:64px;height:64px;z-index:2;
       clip-path:polygon(50% 0%,93% 25%,93% 75%,50% 100%,7% 75%,7% 25%);
-      display:flex;align-items:center;justify-content:center;font-size:18px;
+      display:flex;align-items:center;justify-content:center;font-size:26px;
       background:linear-gradient(160deg,#2A2A38,#18181F);
       box-shadow:inset 0 1px 1px rgba(255,255,255,.06);
       filter:grayscale(1) opacity(.4);transition:filter .2s;
     }
-    .xp-node-hex img{width:58%;height:58%;object-fit:contain;filter:none;position:relative;z-index:1}
-    .xp-node-connector{position:absolute;top:28px;height:2px;width:9px;background:rgba(255,255,255,.12);z-index:1}
-    .xp-node-body{position:absolute;top:8px;width:112px;line-height:1.3}
+    .xp-node-hex img{width:62%;height:62%;object-fit:contain;filter:none;position:relative;z-index:1}
+    .xp-node-connector{position:absolute;top:43px;height:2px;width:9px;background:rgba(255,255,255,.12);z-index:1}
+    .xp-node-body{position:absolute;top:14px;width:112px;line-height:1.3}
     .xp-node.side-l .xp-node-hex,.xp-node.side-l .xp-node-connector,.xp-node.side-l .xp-node-body{right:50%;left:auto}
     .xp-node.side-l .xp-node-hex{margin-right:8px}
     .xp-node.side-l .xp-node-connector{margin-right:0}
@@ -1603,7 +1631,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     }
     .xp-node.claimed .xp-node-connector{background:rgba(255,90,0,.35)}
     .xp-node.next .xp-node-hex{
-      width:62px;height:62px;top:-2px;filter:none;font-size:24px;
+      width:88px;height:88px;top:0;filter:none;font-size:34px;
       background:linear-gradient(160deg,#FFD6A8,var(--green));
       animation:xpNextPulse 2.2s ease-in-out infinite;
     }
@@ -2738,7 +2766,8 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       <button class="btn btn-out btn-sm" onclick="progResponse('down')">Too heavy — drop it</button>
     </div>
   </div>
-  <button class="btn btn-g" style="width:100%;justify-content:center;margin-top:4px" onclick="completeSession()">Complete session — earn your compass point ✓</button>
+  <div id="compass-claim-card"></div>
+  <button class="btn btn-g" style="width:100%;justify-content:center;margin-top:10px" onclick="completeSession()">Complete session ✓</button>
 </div>
 
 <!-- NUTRITION -->
@@ -4906,6 +4935,16 @@ let lastActiveDate=''; // last calendar date any XP was earned — drives the "s
 let bestStreak=0; // longest streak ever, separate from the current one — survives a streak breaking
 let activeDates=[]; // unique dates any activity happened — powers the consistency heatmap
 let compassWeekStart='';
+// ── SESSION COMPLETION SHARD GATE — a compass point (and, on the 7th of
+// the week, the shard it banks) now only counts once every exercise in
+// the session has either had all its sets logged or been explicitly
+// marked skipped — "started a session" no longer earns the same credit
+// as "actually finished it". skippedExercises resets every time the
+// Session page is (re)built; compassPointDate is a real per-day guard
+// like autoCountedDate, so it survives across re-renders/reloads.
+let skippedExercises=new Set();
+let compassPointDate='';
+let perfectWeekShardBanked=false; // true once this week's 7th-point shard has already been paid out immediately (see claimCompassPoint) — stops checkCompassWeek() paying it out a second time at rollover
 let scheduleWeekStart='',scheduleOverrides={},weekCompletedDays={};
 // Auto-generated training week — null until the user opts in from the
 // Schedule page. Each of the 7 entries is either {type:'rest'} or
@@ -10364,6 +10403,7 @@ function buildSession(){
     exs=spreadByMuscle(pool,maxExForTime(weekSessionLength,pool.length));
     plannedSessionExs=exs;plannedSessionType='upper-push';plannedSessionName=getSessionTypeLabel('upper-push');
   }
+  skippedExercises=new Set();
   const cont=document.getElementById('sess-exercises');if(!cont)return;
   cont.innerHTML=exs.map((e,i)=>{
     const sug=suggestNextWeight(e);
@@ -10381,6 +10421,7 @@ function buildSession(){
           <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);margin-top:2px" id="e1rm-d-${i}" data-val="${e1rm||0}" title="Estimated 1-rep max (Epley formula) from your heaviest logged set">${e1rm?`Est 1RM: ${e1rm}kg`:''}</div>
         </div>
       </div>
+      <div class="ex-skipped-tag" id="skip-tag-${i}">Skipped — counts toward your compass point</div>
       <div style="display:flex;gap:8px;margin-bottom:7px">
         <div style="flex:1"><label class="lbl" style="margin-top:0">${weightInputLabel(e)}</label><input type="number" id="sw-${i}" style="padding:7px 9px" placeholder="${sug?sug.weight:'kg'}" value="${saved?saved.weight:''}"></div>
         <div style="width:80px"><label class="lbl" style="margin-top:0">Reps</label><input type="number" id="sr-${i}" style="padding:7px 9px" placeholder="${e.reps.split('–')[0]}" value="${saved?saved.reps:''}"></div>
@@ -10400,6 +10441,7 @@ function buildSession(){
         <button class="ex-action-btn" onclick="openHowTo(${i})" title="Step-by-step guide">▶ How to do it</button>
         <button class="ex-action-btn" onclick="openWatch(${i})" title="Watch the movement">🎬 Watch</button>
         <button class="ex-action-btn ex-swap-btn" onclick="toggleSwapPanel(${i})" title="Swap this exercise">🔄 Swap</button>
+        <button class="ex-action-btn ex-skip-btn" onclick="toggleSkipExercise(${i})" id="skip-btn-${i}" title="Not doing this one today — still counts toward your compass point">⏭ Skip</button>
       </div>
       <div class="swap-panel" id="swap-panel-${i}">
         <div style="font-weight:800;font-size:12.5px;margin-bottom:3px">Swap this exercise</div>
@@ -10409,8 +10451,87 @@ function buildSession(){
       </div>
     </div>`;
   }).join('');
+  renderCompassClaimStatus();
 }
 function toggleWarmup(ei,wi){document.getElementById('wc-'+ei+'-'+wi)?.classList.toggle('done')}
+function toggleSkipExercise(i){
+  if(skippedExercises.has(i))skippedExercises.delete(i);else skippedExercises.add(i);
+  const skipped=skippedExercises.has(i);
+  const card=document.getElementById('sex-'+i);if(card)card.classList.toggle('ex-skipped',skipped);
+  const btn=document.getElementById('skip-btn-'+i);if(btn)btn.textContent=skipped?'↩ Unskip':'⏭ Skip';
+  renderCompassClaimStatus();
+}
+// A session is "fully accounted for" once every exercise in it has
+// either had every one of its sets logged, or been explicitly skipped —
+// starting a session and logging one set no longer looks the same as
+// finishing it.
+function sessionFullyAccountedFor(){
+  const exs=plannedSessionExs;
+  if(!exs||!exs.length)return false;
+  return exs.every((e,i)=>{
+    if(skippedExercises.has(i))return true;
+    const chips=document.querySelectorAll('[id^="sc-'+i+'-"]');
+    return chips.length>0&&Array.from(chips).every(c=>c.classList.contains('done'));
+  });
+}
+function renderCompassClaimStatus(){
+  const card=document.getElementById('compass-claim-card');
+  if(!card)return;
+  const exs=plannedSessionExs||[];
+  const today=localDateKey(new Date());
+  if(compassPointDate===today){
+    card.innerHTML='<div class="compass-claim compass-claim-done">🧭 Compass point already claimed today ✓</div>';
+    return;
+  }
+  const doneCount=exs.filter((e,i)=>skippedExercises.has(i)||(()=>{
+    const chips=document.querySelectorAll('[id^="sc-'+i+'-"]');
+    return chips.length>0&&Array.from(chips).every(c=>c.classList.contains('done'));
+  })()).length;
+  const ready=exs.length>0&&doneCount>=exs.length;
+  if(ready){
+    card.innerHTML='<button class="compass-claim compass-claim-ready" id="compass-claim-btn" onclick="claimCompassPoint()">🧭 Claim your compass point</button>';
+  }else{
+    card.innerHTML='<div class="compass-claim compass-claim-pending">🧭 '+doneCount+'/'+exs.length+' exercises accounted for — finish every set or skip the rest to claim your compass point</div>';
+  }
+}
+function claimCompassPoint(){
+  const today=localDateKey(new Date());
+  if(compassPointDate===today)return;
+  if(sessionEnteredAt&&Date.now()-sessionEnteredAt<MIN_SESSION_MS_FOR_CREDIT)return;
+  if(!sessionFullyAccountedFor())return;
+  compassPointDate=today;
+  checkCompassWeek();
+  compassPts=Math.min(7,compassPts+1);
+  const justPerfected=compassPts>=7&&!perfectWeekShardBanked;
+  if(justPerfected){
+    perfectWeekShardBanked=true;
+    shardBank++;
+  }
+  saveToStorage();
+  const btn=document.getElementById('compass-claim-btn');
+  playShardFlyAnimation(btn);
+  renderCompassClaimStatus();
+  if(justPerfected){
+    toast('🔷','Compass point earned — perfect week! +1 Compass Shard');
+    celebrateBurst(['🔷','✨'],16);
+  }else{
+    toast('🧭','Compass point earned — '+compassPts+'/7 this week');
+  }
+}
+// Clean one-shot reward flourish — a hexagon "shard" pops from the claim
+// button, rises with a little rotation, and fades. No persistent visible
+// shard counter exists to fly it "into" (the topbar indicator is legacy/
+// hidden — see #shard-bank-indicator), so this reads as the reward
+// itself rather than a literal delivery animation into a specific balance.
+function playShardFlyAnimation(originEl){
+  const rect=originEl?originEl.getBoundingClientRect():{left:window.innerWidth/2,top:window.innerHeight/2,width:0,height:0};
+  const el=document.createElement('div');
+  el.className='shard-fly-icon';
+  el.style.left=(rect.left+rect.width/2-17)+'px';
+  el.style.top=(rect.top+rect.height/2-17)+'px';
+  document.body.appendChild(el);
+  setTimeout(()=>el.remove(),1100);
+}
 function toggleSessEx(i){document.getElementById('sex-'+i)?.classList.toggle('open')}
 function toggleSessTroubleshoot(i){const panel=document.getElementById('sts-'+i);if(panel)panel.classList.toggle('open')}
 
@@ -10604,10 +10725,14 @@ function markTrainedToday(){
   // Session), which deliberately skips this gate — it's already its own
   // rate-limited (1/day) shortcut, not a farming route.
   if(sessionEnteredAt&&Date.now()-sessionEnteredAt<MIN_SESSION_MS_FOR_CREDIT)return;
-  checkCompassWeek(); // must run first so a new week resets sessThisWeek before incrementing
+  checkCompassWeek(); // resets sessThisWeek/compassPts if a new week has started, and pays out any perfect-week shard that wasn't already claimed live via claimCompassPoint()
   autoCountedDate=today;
   sessThisWeek++;
-  compassPts=Math.min(7,compassPts+1);
+  // compassPts no longer increments here — it's earned explicitly via
+  // claimCompassPoint(), which requires every exercise in the session to
+  // be fully logged or skipped. "Started training today" (this function)
+  // and "finished today's session properly" (compass point) are
+  // deliberately different bars now.
   totalSess++;
   if(!trainingCompletedDates.includes(today))trainingCompletedDates.push(today);
   weekCompletedDays[today]=true;
@@ -10689,6 +10814,7 @@ function logSet(ei,si,name,muscle){
   }
   const focusRest={strength:120,hypertrophy:90,pump:45}[sessionFocus]||90;
   startRest(focusRest);addXP(3,'Set logged');saveToStorage();
+  renderCompassClaimStatus();
   const total=document.querySelectorAll('[id^="sc-'+ei+'-"]').length;
   if(si===total-1){
     const pp=document.getElementById('prog-prompt');if(pp)pp.style.display='';
@@ -10779,15 +10905,19 @@ document.addEventListener('visibilitychange',()=>{
 function checkCompassWeek(){
   const thisMonday=getMonday(new Date());
   if(compassWeekStart!==thisMonday){
-    // A perfect week (trained all 7 days) banks a spendable shard before
-    // compassPts resets — otherwise that achievement just evaporates into
-    // next week's counter with nothing to show for it.
-    if(compassPts>=7){
+    // A perfect week (7 fully-completed sessions) banks a spendable shard
+    // before compassPts resets. Usually this already happened live —
+    // claimCompassPoint() pays it out the moment the 7th point lands and
+    // sets perfectWeekShardBanked so it isn't paid twice here — this is
+    // just the safety net for whoever hit 7 without the app being open
+    // to fire that moment.
+    if(compassPts>=7&&!perfectWeekShardBanked){
       shardBank++;
       toast('🔷','Perfect week — banked a Compass Shard!');
     }
     compassWeekStart=thisMonday;
     compassPts=0;
+    perfectWeekShardBanked=false;
     sessThisWeek=0; // was never resetting weekly before — silently grew forever
   }
 }
@@ -10942,7 +11072,11 @@ function completeSession(nameOverride){
   }
   addXP(50,'Session complete');
   checkQuestWeek();questProgress.sessions=(questProgress.sessions||0)+1;renderQuests();renderRank();
-  toast(alreadyTrainedToday?'💪':'🧭', alreadyTrainedToday?'Extra session logged!':'Session done! Compass point earned.');
+  // Compass point is a separate explicit claim now (see claimCompassPoint)
+  // — only call it "earned" here if they'd already claimed it before
+  // hitting Complete.
+  const compassAlreadyClaimed=!alreadyTrainedToday&&compassPointDate===today;
+  toast(alreadyTrainedToday?'💪':(compassAlreadyClaimed?'🧭':'💪'), alreadyTrainedToday?'Extra session logged!':(compassAlreadyClaimed?'Session done! Compass point earned.':'Session done!'));
   celebrateBurst(['💪','🔥','⚡'],alreadyTrainedToday?10:18);
   saveToStorage();
   showPage('dashboard');
@@ -15026,6 +15160,8 @@ function saveToStorage(){
     localStorage.setItem('arx_customShakeTemplates', JSON.stringify(customShakeTemplates));
     localStorage.setItem('arx_lastSessionDate', lastSessionDate);
     localStorage.setItem('arx_autoCountedDate', autoCountedDate);
+    localStorage.setItem('arx_compassPointDate', compassPointDate);
+    localStorage.setItem('arx_perfectWeekShardBanked', perfectWeekShardBanked?'1':'');
     localStorage.setItem('arx_lastActiveDate', lastActiveDate);
     localStorage.setItem('arx_compassWeekStart', compassWeekStart);
     localStorage.setItem('arx_lastEmergencyWorkoutDate', lastEmergencyWorkoutDate);
@@ -15142,6 +15278,8 @@ function loadFromStorage(){
     if(cst){try{customShakeTemplates=JSON.parse(cst);}catch(e){customShakeTemplates=[];}}
     lastSessionDate=localStorage.getItem('arx_lastSessionDate')||'';
     autoCountedDate=localStorage.getItem('arx_autoCountedDate')||'';
+    compassPointDate=localStorage.getItem('arx_compassPointDate')||'';
+    perfectWeekShardBanked=localStorage.getItem('arx_perfectWeekShardBanked')==='1';
     lastActiveDate=localStorage.getItem('arx_lastActiveDate')||'';
     compassWeekStart=localStorage.getItem('arx_compassWeekStart')||'';
     lastEmergencyWorkoutDate=localStorage.getItem('arx_lastEmergencyWorkoutDate')||'';
