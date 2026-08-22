@@ -736,6 +736,72 @@ input,input:focus,input:active,
 .lb-val{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:13px;color:var(--green)}
 .lb-you{border-color:rgba(255,90,0,.25);background:rgba(255,90,0,.04)}
 
+/* ── LEAGUES — a weekly promotion ladder above the plain leaderboard.
+   Materials reuse bronze/silver/gold outright from the crate system
+   ("bronze" should look the same everywhere it appears), add three
+   original gem tiers above Gold, and top out with the Areviax tier
+   reusing that Drop's own black/gold/ember identity as the app's one
+   true prestige mark — same principle as everywhere else this session:
+   one shared visual language, not five unrelated palettes. */
+.league-hero{position:relative;text-align:center;padding:26px 0 20px}
+.league-hero-emblem{
+  width:140px;height:140px;margin:0 auto 14px;position:relative;
+  clip-path:polygon(50% 0%,93% 25%,93% 75%,50% 100%,7% 75%,7% 25%);
+  box-shadow:0 16px 40px -16px rgba(0,0,0,.65);
+}
+.league-hero-emblem::before{
+  content:'';position:absolute;inset:0;
+  clip-path:polygon(50% 0%,93% 25%,93% 75%,50% 100%,7% 75%,7% 25%);
+  background:linear-gradient(160deg,rgba(255,255,255,.32),transparent 58%);
+  pointer-events:none;
+}
+.league-hero-name{font-size:21px;font-weight:900;color:var(--white);letter-spacing:-.01em}
+.league-hero-tag{font-size:11.5px;color:var(--muted);margin-top:4px}
+
+.league-bronze .league-hero-emblem,.league-bronze .league-ladder-emblem{background:linear-gradient(160deg,#E8A85C,#B8622A)}
+.league-silver .league-hero-emblem,.league-silver .league-ladder-emblem{background:linear-gradient(160deg,#F2F5F9,#9AA7B4)}
+.league-gold .league-hero-emblem,.league-gold .league-ladder-emblem{background:linear-gradient(160deg,#FFE58A,#D4970A)}
+.league-sapphire .league-hero-emblem,.league-sapphire .league-ladder-emblem{background:linear-gradient(160deg,#7FB2FF,#123E9E)}
+.league-emerald .league-hero-emblem,.league-emerald .league-ladder-emblem{background:linear-gradient(160deg,#6EEAB0,#0C6E47)}
+.league-ruby .league-hero-emblem,.league-ruby .league-ladder-emblem{background:linear-gradient(160deg,#FF7A93,#8E0F31)}
+.league-diamond .league-hero-emblem,.league-diamond .league-ladder-emblem{background:linear-gradient(115deg,#EAFBFF,#9FE8FF,#EAFBFF,#5FD0F2);background-size:260% 100%;animation:rarityShimmerSweep 3.4s linear infinite}
+.league-areviax .league-hero-emblem,.league-areviax .league-ladder-emblem{background:linear-gradient(160deg,#2A1206,#0A0503);box-shadow:0 0 0 2px rgba(255,170,60,.55) inset;animation:areviaxAura 2.4s ease-in-out infinite}
+.league-hero.league-bronze .league-hero-emblem{box-shadow:0 0 30px rgba(184,98,42,.55)}
+.league-hero.league-silver .league-hero-emblem{box-shadow:0 0 30px rgba(154,167,180,.55)}
+.league-hero.league-gold .league-hero-emblem{box-shadow:0 0 32px rgba(212,151,10,.6)}
+.league-hero.league-sapphire .league-hero-emblem{box-shadow:0 0 32px rgba(30,90,220,.6)}
+.league-hero.league-emerald .league-hero-emblem{box-shadow:0 0 32px rgba(20,160,110,.6)}
+.league-hero.league-ruby .league-hero-emblem{box-shadow:0 0 32px rgba(200,20,60,.6)}
+.league-hero.league-diamond .league-hero-emblem{box-shadow:0 0 36px rgba(95,208,242,.65)}
+.league-hero.league-areviax .league-hero-emblem{box-shadow:0 0 36px rgba(255,140,40,.75)}
+
+.league-ladder{display:flex;justify-content:space-between;gap:5px;padding:14px 2px;overflow-x:auto}
+.league-ladder-node{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;opacity:.4;transition:opacity .2s}
+.league-ladder-node.passed{opacity:.75}
+.league-ladder-node.current{opacity:1}
+.league-ladder-emblem{width:28px;height:28px;clip-path:polygon(50% 0%,93% 25%,93% 75%,50% 100%,7% 75%,7% 25%)}
+.league-ladder-node.locked .league-ladder-emblem{filter:grayscale(.55) brightness(.75)}
+@keyframes leagueCurrentPulse{0%,100%{filter:brightness(1)}50%{filter:brightness(1.35)}}
+.league-ladder-node.current .league-ladder-emblem{animation:leagueCurrentPulse 1.8s ease-in-out infinite}
+
+.league-countdown{text-align:center;font-size:11px;color:var(--muted);margin:2px 0 14px;font-family:'JetBrains Mono',monospace}
+.league-zone-legend{display:flex;justify-content:center;gap:18px;font-size:9.5px;color:var(--muted);margin-bottom:8px}
+.league-zone-legend i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;vertical-align:middle}
+.league-zone-legend i.promo{background:#4ADE80}
+.league-zone-legend i.relegate{background:#FF6B7A}
+.league-group{background:rgba(255,255,255,.02);border:1.5px solid var(--border2);border-radius:12px;overflow:hidden}
+.league-row{display:flex;align-items:center;gap:12px;padding:11px 14px;border-bottom:1px solid var(--border2);font-size:12.5px;border-left:2px solid transparent}
+.league-row:last-child{border-bottom:none}
+.league-row-rank{width:22px;font-weight:800;color:var(--muted);font-family:'JetBrains Mono',monospace}
+.league-row-name{flex:1;min-width:0;color:rgba(var(--white-rgb),.85);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.league-row-pts{font-weight:800;color:var(--white);font-family:'JetBrains Mono',monospace;flex-shrink:0}
+.league-row.promo{background:rgba(74,222,128,.06);border-left-color:#4ADE80}
+.league-row.promo .league-row-rank{color:#4ADE80}
+.league-row.relegate{background:rgba(255,107,122,.06);border-left-color:#FF6B7A}
+.league-row.relegate .league-row-rank{color:#FF6B7A}
+.league-row-you{background:rgba(255,90,0,.09)!important;border-left-color:var(--orange)!important}
+.league-row-you .league-row-name{color:var(--white)}
+
 /* FORM */
 label.lbl{font-size:9px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--white);opacity:.55;display:block;margin-bottom:5px;margin-top:12px}
 input[type=text],input[type=number],select{width:100%;background:var(--panel2);border:1.5px solid var(--border);color:var(--white);font-family:'Outfit',sans-serif;font-size:13px;padding:9px 13px;border-radius:8px;transition:all .18s;text-overflow:ellipsis;white-space:nowrap;overflow:hidden}
@@ -2243,6 +2309,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       <div class="sb-more-item" onclick="showPage('trophycabinet')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 01-10 0V4z"/><path d="M7 5H3v2a4 4 0 004 4M17 5h4v2a4 4 0 01-4 4"/></svg><span>Trophy Cabinet</span></div>
       <div class="sb-more-item" onclick="showPage('recovery')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg><span>Recovery</span></div>
       <div class="sb-more-item" onclick="showPage('leaderboard')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg><span>Leaderboard</span></div>
+      <div class="sb-more-item" onclick="showPage('leagues')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 01-10 0V4z"/><path d="M7 5H3v2a4 4 0 004 4M17 5h4v2a4 4 0 01-4 4"/></svg><span>Leagues</span></div>
       <div class="sb-more-item" onclick="showPage('learn')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg><span>The Science</span></div>
       <div class="sb-more-item" onclick="showPage('profile')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Profile</span></div>
       <div class="sb-more-item" onclick="showPage('legal')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg><span>Legal</span></div>
@@ -3765,6 +3832,14 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       <button class="btn btn-ghost btn-sm" onclick="toast('👤','You\'re watching anonymously.')">Stay anonymous</button>
     </div>
   </div>
+  <!-- LEAGUES CROSS-LINK — the weekly promotion ladder lives on its own
+       page, reached from here the same way Trophy Cabinet is reached
+       from Progress. -->
+  <div class="card" style="margin-bottom:14px;cursor:pointer;border-color:rgba(68,207,255,.2);background:rgba(68,207,255,.03)" onclick="showPage('leagues')">
+    <div class="ch"><span class="ct" style="display:flex;align-items:center;gap:7px">🏅 Leagues</span></div>
+    <div style="font-size:11.5px;color:var(--muted);line-height:1.6">Weekly promotion ladder — climb through 8 tiers by outpacing your group, right up to the Areviax League.</div>
+    <button class="btn btn-out btn-sm" style="width:100%;margin-top:12px" onclick="event.stopPropagation();showPage('leagues')">Enter Leagues →</button>
+  </div>
   <div class="lb-tabs">
     <button class="lb-tab active" onclick="switchLB(this,'lb-gained')">Most gained</button>
     <button class="lb-tab" onclick="switchLB(this,'lb-improved')">Most improved</button>
@@ -3773,6 +3848,12 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
   <div id="lb-gained"><div id="lb-list"></div></div>
   <div id="lb-improved" style="display:none"><div id="lb-improved-list"></div></div>
   <div id="lb-streak" style="display:none"><div id="lb-streak-list"></div></div>
+</div>
+
+<!-- LEAGUES — dedicated weekly promotion-ladder page. -->
+<div class="page" id="page-leagues">
+  <div class="companion"><div class="companion-msg">Same idea as the leaderboard, with real stakes each week — finish strong and climb, coast and you'll slip back down.</div></div>
+  <div id="leagues-body"></div>
 </div>
 
 <!-- LEARN / SCIENCE EDUCATION -->
@@ -4940,6 +5021,17 @@ let compassWeekStart='';
 // and tell the user who they just passed or got passed by, instead of
 // the standings silently shifting underneath them. See checkLBRankChange.
 let lbLastRanks={};
+// ── LEAGUES — a Duolingo/Gizmo-style weekly ladder layered on top of the
+// leaderboard: everyone sits in one of 8 tiers, competes on points
+// earned THIS week only (real xpLog, Monday-reset — see
+// getWeeklyLeaguePoints), and gets promoted/relegated at week's end
+// based on where they finished within their own tier's group. Both
+// persisted so a promotion survives a reload; pendingLeagueResult is
+// transient — it only needs to live long enough for the Leagues page to
+// show the reveal once, then it's cleared.
+let userLeagueTier=0; // index into LEAGUE_TIERS — starts at Bronze
+let leagueWeekStart='';
+let pendingLeagueResult=null;
 // ── SESSION COMPLETION SHARD GATE — a compass point (and, on the 7th of
 // the week, the shard it banks) now only counts once every exercise in
 // the session has either had all its sets logged or been explicitly
@@ -8286,7 +8378,7 @@ function showPage(id){
   if(pg)pg.classList.add('active');
   document.querySelectorAll('.sb-item').forEach(i=>{if(i.getAttribute('onclick')?.includes(id))i.classList.add('active')});
   try{
-    const titles={dashboard:['Home','Let\'s get to work.'],workout:['Workout','Build your session.'],session:['Session','Time to work.'],nutrition:['Nutrition','Hit your targets.'],recipes:['Recipes','Real meals, built for the surplus.'],progress:['Progress','See how far you\'ve come.'],trophycabinet:['Trophy Cabinet','Every rarity, every layer, all in one room.'],recovery:['Recovery','Sleep, breathing, and how to actually recover.'],schedule:['Schedule','Plan your week.'],leaderboard:['Leaderboard','See how you rank.'],learn:['Science','Understand the why.'],profile:['Profile','Your stats, on display.'],legal:['Legal','Privacy, terms, and health info.'],settings:['Settings','Update your details anytime.']};
+    const titles={dashboard:['Home','Let\'s get to work.'],workout:['Workout','Build your session.'],session:['Session','Time to work.'],nutrition:['Nutrition','Hit your targets.'],recipes:['Recipes','Real meals, built for the surplus.'],progress:['Progress','See how far you\'ve come.'],trophycabinet:['Trophy Cabinet','Every rarity, every layer, all in one room.'],recovery:['Recovery','Sleep, breathing, and how to actually recover.'],schedule:['Schedule','Plan your week.'],leaderboard:['Leaderboard','See how you rank.'],leagues:['Leagues','Climb the weekly ladder.'],learn:['Science','Understand the why.'],profile:['Profile','Your stats, on display.'],legal:['Legal','Privacy, terms, and health info.'],settings:['Settings','Update your details anytime.']};
     const[t,s]=titles[id]||[id,''];
     const tte=document.getElementById('tb-title');if(tte)tte.textContent=t;
     const tse=document.getElementById('tb-sub');if(tse)tse.textContent=s;
@@ -8337,6 +8429,7 @@ function showPage(id){
   }
   if(id==='progress')safeRender(renderProgress,'progress');
   if(id==='trophycabinet')safeRender(renderTrophyCabinet,'trophycabinet');
+  if(id==='leagues')safeRender(renderLeagues,'leagues');
   if(id==='recovery')safeRender(renderRecoveryPage,'recovery');
   if(id==='schedule')safeRender(renderSchedule,'schedule');
   if(id==='leaderboard')safeRender(renderLB,'leaderboard');
@@ -8883,6 +8976,7 @@ function initApp(){
   // right after onboarding greets them as "Athlete" instead of their name.
   updateGreeting();
   checkCompassWeek(); // resets sessThisWeek/compassPts if a new week has started since last open
+  try{checkLeagueWeek();}catch(e){} // resolves any pending promotion/relegation early so it's ready the moment Leagues is opened
   const dca=document.getElementById('d-cals');if(dca)dca.textContent=profile.cals.toLocaleString();
   const dcs=document.getElementById('d-cals-sub');if(dcs)dcs.textContent=profile.weight+'lbs × '+(profile.goal==='bulk'?19:18);
   const dprot=document.getElementById('d-protein');if(dprot)dprot.textContent=profile.protein+'g';
@@ -15122,6 +15216,164 @@ if(!window._lbTickInterval){
     if(lbPage&&lbPage.classList.contains('active'))renderLB();
   },45000+Math.random()*45000);
 }
+
+// ── LEAGUES — a weekly promotion ladder above the leaderboard's plain
+// rankings. Everyone sits in one of 8 tiers and competes on points
+// earned since this Monday only (real xpLog, not a synthetic counter —
+// see getWeeklyLeaguePoints); top 3 of your group promote a tier at
+// week's end, bottom 3 relegate, the middle holds. Materials echo the
+// same bronze→gold→gem language the crate system already established
+// (bronze/silver/gold reused outright — "bronze" should look like
+// bronze wherever it shows up), with three original gem tiers above
+// Gold and the Areviax tier reusing that drop's own black/gold/ember
+// identity as the app's one true prestige mark.
+const LEAGUE_TIERS=[
+  {key:'bronze',  label:'Bronze League',   tag:'Everyone starts here'},
+  {key:'silver',  label:'Silver League',   tag:'Consistency is showing'},
+  {key:'gold',    label:'Gold League',     tag:'Genuinely competitive'},
+  {key:'sapphire',label:'Sapphire League', tag:'Above the pack'},
+  {key:'emerald', label:'Emerald League',  tag:'Elite territory'},
+  {key:'ruby',    label:'Ruby League',     tag:'Near the summit'},
+  {key:'diamond', label:'Diamond League',  tag:'The very best'},
+  {key:'areviax', label:'Areviax League',  tag:'The single top tier — 1-of-1'},
+];
+function weekHash(str){let h=0;for(let i=0;i<str.length;i++)h=(h*31+str.charCodeAt(i))>>>0;return h;}
+// Bots drift near their historical quality (bot.tier 0-3) but not
+// identically week to week — same "alive, not static" idea as the
+// leaderboard's own daily jitter.
+function leagueIndexForBot(bot,weekKey){
+  const base=[1,3,5,6][bot.tier]||1;
+  const seed=weekHash(bot.name+weekKey);
+  const jitter=(seed%3)-1; // -1, 0, or +1
+  return Math.max(0,Math.min(LEAGUE_TIERS.length-1,base+jitter));
+}
+function botWeeklyPoints(bot,weekKey){
+  const seed=weekHash(bot.name+weekKey+'pts');
+  const jitter=0.75+((seed%50)/100); // 0.75x-1.24x
+  return Math.round(bot.sessRate*55*jitter+bot.rate*20*jitter);
+}
+function getWeeklyLeaguePointsForWeek(mondayKey){
+  const start=parseLocalDate(mondayKey);
+  const end=new Date(start);end.setDate(end.getDate()+7);
+  return xpLog.filter(e=>{const d=parseLocalDate(e.date);return d>=start&&d<end;}).reduce((s,e)=>s+e.amount,0);
+}
+function getWeeklyLeaguePoints(){return getWeeklyLeaguePointsForWeek(getMonday(new Date()));}
+function leagueUserName(){return profile.lbName||profile.name||'You';}
+// 20 bots spread across 8 tiers averages ~2-3 per tier — too sparse to
+// feel like a real group. Widens to ±1 then ±2 neighbouring tiers,
+// stopping as soon as there's a reasonable-sized group, rather than
+// showing "you vs one other person" most weeks.
+function computeLeagueGroupForWeek(weekKey,tierIndex,userPoints){
+  const botsAt=(idx)=>BOT_ROSTER.filter(b=>leagueIndexForBot(b,weekKey)===idx);
+  let pool=botsAt(tierIndex);
+  for(const spread of[1,2]){
+    if(pool.length>=6)break;
+    const wider=BOT_ROSTER.filter(b=>Math.abs(leagueIndexForBot(b,weekKey)-tierIndex)<=spread);
+    pool=wider;
+  }
+  const members=pool.map(b=>({name:b.name,points:botWeeklyPoints(b,weekKey),isBot:true,tier:b.tier}));
+  members.push({name:leagueUserName(),points:userPoints,isYou:true});
+  members.sort((a,b)=>b.points-a.points);
+  return members;
+}
+// Called wherever checkCompassWeek() already is (dashboard load, session
+// completion) plus whenever the Leagues page opens — same "cheap check,
+// runs often" shape as that function. First-ever call just seeds
+// leagueWeekStart with no promotion/relegation (nothing to compare yet).
+function checkLeagueWeek(){
+  const thisMonday=getMonday(new Date());
+  if(leagueWeekStart&&leagueWeekStart!==thisMonday){
+    const lastWeekPoints=getWeeklyLeaguePointsForWeek(leagueWeekStart);
+    const group=computeLeagueGroupForWeek(leagueWeekStart,userLeagueTier,lastWeekPoints);
+    const rank=group.findIndex(m=>m.isYou);
+    const promoCut=3,relegateCut=Math.max(promoCut,group.length-3);
+    const fromLabel=LEAGUE_TIERS[userLeagueTier].label;
+    if(rank<promoCut&&userLeagueTier<LEAGUE_TIERS.length-1){
+      userLeagueTier++;
+      pendingLeagueResult={outcome:'promoted',from:fromLabel,to:LEAGUE_TIERS[userLeagueTier].label,rank:rank+1,groupSize:group.length};
+    }else if(rank>=relegateCut&&group.length>3&&userLeagueTier>0){
+      userLeagueTier--;
+      pendingLeagueResult={outcome:'relegated',from:fromLabel,to:LEAGUE_TIERS[userLeagueTier].label,rank:rank+1,groupSize:group.length};
+    }else{
+      pendingLeagueResult={outcome:'held',from:fromLabel,to:fromLabel,rank:rank+1,groupSize:group.length};
+    }
+    saveToStorage();
+  }
+  leagueWeekStart=thisMonday;
+}
+function weekCountdownText(){
+  const monday=parseLocalDate(getMonday(new Date()));
+  const end=new Date(monday);end.setDate(end.getDate()+7);
+  const msLeft=end-new Date();
+  const days=Math.max(0,Math.floor(msLeft/86400000));
+  const hours=Math.max(0,Math.floor((msLeft%86400000)/3600000));
+  return days>0?days+'d '+hours+'h left this week':hours+'h left this week';
+}
+function renderLeagueLadder(){
+  return '<div class="league-ladder">'+LEAGUE_TIERS.map((lg,i)=>{
+    const state=i===userLeagueTier?'current':i<userLeagueTier?'passed':'locked';
+    return '<div class="league-ladder-node league-'+lg.key+' '+state+'" title="'+lg.label+'">'+
+      '<div class="league-ladder-emblem"></div>'+
+    '</div>';
+  }).join('')+'</div>';
+}
+function renderLeagues(){
+  checkLeagueWeek();
+  const cont=document.getElementById('leagues-body');
+  if(!cont)return;
+  const league=LEAGUE_TIERS[userLeagueTier];
+  const weekKey=getMonday(new Date());
+  const userPoints=getWeeklyLeaguePoints();
+  const group=computeLeagueGroupForWeek(weekKey,userLeagueTier,userPoints);
+  const promoCut=3,relegateCut=Math.max(promoCut,group.length-3);
+  const rows=group.map((m,i)=>{
+    const zone=i<promoCut?'promo':(i>=relegateCut&&group.length>3)?'relegate':'';
+    return '<div class="league-row '+zone+(m.isYou?' league-row-you':'')+'">'+
+      '<div class="league-row-rank">'+(i+1)+'</div>'+
+      '<div class="league-row-name">'+m.name+(m.isYou?' (you)':'')+'</div>'+
+      '<div class="league-row-pts">'+m.points+' pts</div>'+
+    '</div>';
+  }).join('');
+  cont.innerHTML=
+    '<div class="league-hero league-'+league.key+'">'+
+      '<div class="league-hero-emblem"></div>'+
+      '<div class="league-hero-name">'+league.label+'</div>'+
+      '<div class="league-hero-tag">'+league.tag+'</div>'+
+    '</div>'+
+    renderLeagueLadder()+
+    '<div class="league-countdown">⏳ '+weekCountdownText()+'</div>'+
+    '<div class="league-zone-legend"><span><i class="promo"></i>Promotion zone</span>'+(group.length>3?'<span><i class="relegate"></i>Relegation zone</span>':'')+'</div>'+
+    '<div class="league-group">'+rows+'</div>';
+  if(pendingLeagueResult){
+    showLeagueResultReveal(pendingLeagueResult);
+    pendingLeagueResult=null;
+    saveToStorage();
+  }
+}
+function showLeagueResultReveal(result){
+  const overlay=document.createElement('div');
+  overlay.className='achievement-overlay';
+  const isPromo=result.outcome==='promoted';
+  const isRelegate=result.outcome==='relegated';
+  const icon=isPromo?'⬆️':isRelegate?'⬇️':'🛡️';
+  const title=isPromo?'Promoted!':isRelegate?'Relegated':'Held your ground';
+  const desc=isPromo?
+    'Finished #'+result.rank+' of '+result.groupSize+' in '+result.from+' — you\'re moving up to '+result.to+'.'
+    :isRelegate?
+    'Finished #'+result.rank+' of '+result.groupSize+' in '+result.from+' — dropping to '+result.to+' this week. Come back stronger.'
+    :'Finished #'+result.rank+' of '+result.groupSize+' in '+result.from+' — safely in the middle, staying put.';
+  overlay.innerHTML=
+    '<div class="achievement-modal">'+
+      '<div class="achievement-icon">'+icon+'</div>'+
+      '<div class="achievement-unlocked-label">LAST WEEK\'S LEAGUE</div>'+
+      '<div class="achievement-title">'+title+'</div>'+
+      '<div class="achievement-desc">'+desc+'</div>'+
+      '<button class="achievement-close-btn" onclick="this.closest(\'.achievement-overlay\').remove()">Continue</button>'+
+    '</div>';
+  document.body.appendChild(overlay);
+  requestAnimationFrame(()=>overlay.classList.add('show'));
+  if(isPromo)celebrateBurst(['⬆️','✨','🏆'],20);
+}
 function switchLegal(btn,id){
   document.querySelectorAll('.legal-tab').forEach(t=>t.classList.remove('active'));
   btn.classList.add('active');
@@ -15193,6 +15445,8 @@ function saveToStorage(){
     localStorage.setItem('arx_lastSessionDate', lastSessionDate);
     localStorage.setItem('arx_autoCountedDate', autoCountedDate);
     localStorage.setItem('arx_lbLastRanks', JSON.stringify(lbLastRanks));
+    localStorage.setItem('arx_userLeagueTier', userLeagueTier);
+    localStorage.setItem('arx_leagueWeekStart', leagueWeekStart);
     localStorage.setItem('arx_compassPointDate', compassPointDate);
     localStorage.setItem('arx_perfectWeekShardBanked', perfectWeekShardBanked?'1':'');
     localStorage.setItem('arx_lastActiveDate', lastActiveDate);
@@ -15313,6 +15567,8 @@ function loadFromStorage(){
     autoCountedDate=localStorage.getItem('arx_autoCountedDate')||'';
     const lbr=localStorage.getItem('arx_lbLastRanks');
     if(lbr){try{lbLastRanks=JSON.parse(lbr);}catch(e){lbLastRanks={};}}
+    userLeagueTier=parseInt(localStorage.getItem('arx_userLeagueTier')||'0');
+    leagueWeekStart=localStorage.getItem('arx_leagueWeekStart')||'';
     compassPointDate=localStorage.getItem('arx_compassPointDate')||'';
     perfectWeekShardBanked=localStorage.getItem('arx_perfectWeekShardBanked')==='1';
     lastActiveDate=localStorage.getItem('arx_lastActiveDate')||'';
@@ -15457,6 +15713,10 @@ document.addEventListener('DOMContentLoaded', function(){
     <div class="more-sheet-item" onclick="showPage('leaderboard');toggleMoreSheet()">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
       <span>Leaderboard</span>
+    </div>
+    <div class="more-sheet-item" onclick="showPage('leagues');toggleMoreSheet()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 01-10 0V4z"/><path d="M7 5H3v2a4 4 0 004 4M17 5h4v2a4 4 0 01-4 4"/></svg>
+      <span>Leagues</span>
     </div>
     <div class="more-sheet-item" onclick="showPage('learn');toggleMoreSheet()">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>
