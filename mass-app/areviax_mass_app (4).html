@@ -1708,11 +1708,13 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       50%{box-shadow:0 0 26px rgba(255,90,0,.65),inset 0 1px 2px rgba(255,255,255,.3)}
     }
     .xp-node-check{
-      position:absolute;top:-3px;right:-3px;width:15px;height:15px;border-radius:50%;
-      background:var(--green);border:2px solid #0B0B0B;z-index:3;
+      position:absolute;top:-5px;right:-5px;width:24px;height:24px;border-radius:50%;
+      background:var(--green);border:2.5px solid #0B0B0B;z-index:3;
       display:flex;align-items:center;justify-content:center;
+      box-shadow:0 2px 6px rgba(0,0,0,.45);
     }
-    .xp-node-check svg{width:8px;height:8px}
+    .xp-node-check svg{width:13px;height:13px}
+    .xp-node-hex svg{width:58%;height:58%;position:relative;z-index:1}
     .xp-node-xp{
       display:inline-block;font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;
       letter-spacing:.03em;color:rgba(255,255,255,.4);background:rgba(255,255,255,.04);
@@ -6683,8 +6685,25 @@ function xpRoadRewardLabel(node){
   if(node.type==='legend')return 'Guaranteed '+node.rarity[0].toUpperCase()+node.rarity.slice(1)+' Legend Card';
   return '';
 }
+// Distinct per reward type instead of the same compass glyph for
+// everything \u2014 Bronze Drop nodes reuse the actual crate icon (same
+// glyph you'll see when you open it), Compass Shard gets its own
+// crystal mark (so it doesn't get confused with the Diamond Drop's
+// gem icon), Legend Card nodes keep their crown/trophy split by rarity.
+const SHARD_ICON_SVG='<svg viewBox="-12 -12 24 24" fill="none" stroke="#44CFFF" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M0-9l7.8 4.5v9L0 9l-7.8-4.5v-9L0-9z"/><path d="M0-9v18M-7.8-4.5L7.8 4.5M7.8-4.5L-7.8 4.5"/></svg>';
 function xpRoadRewardIcon(node){
-  return node.type==='legend'?(node.rarity==='legendary'?'\ud83d\udc51':'\ud83c\udfc6'):'\ud83e\udded';
+  if(node.type==='legend')return node.rarity==='legendary'?'\ud83d\udc51':'\ud83c\udfc6';
+  if(node.type==='bronze')return crateIconSVG('bronze');
+  if(node.type==='shard')return SHARD_ICON_SVG;
+  return '\ud83e\udded';
+}
+// toast()'s icon is set via textContent, not innerHTML \u2014 it can't render
+// the SVG markup xpRoadRewardIcon() returns for bronze/shard, so the
+// toast call site needs its own plain-emoji version.
+function xpRoadRewardToastEmoji(node){
+  if(node.type==='legend')return node.rarity==='legendary'?'\ud83d\udc51':'\ud83c\udfc6';
+  if(node.type==='shard')return '\ud83d\udd37';
+  return '\ud83e\udded';
 }
 function grantXpRoadReward(node){
   if(node.type==='bronze'){bronzeDropBank+=node.amount;}
@@ -6712,7 +6731,7 @@ function checkXpRoad(){
       claimedXpRoad.push(node.xp);
       grantXpRoadReward(node);
       claimedAny=true;
-      if(node.type!=='legend')toast(xpRoadRewardIcon(node),'XP Road: '+xpRoadRewardLabel(node));
+      if(node.type!=='legend')toast(xpRoadRewardToastEmoji(node),'XP Road: '+xpRoadRewardLabel(node));
     }
   });
   if(claimedAny){saveToStorage();renderAchievements();renderXpRoad();}
