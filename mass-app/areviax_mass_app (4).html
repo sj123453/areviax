@@ -1324,8 +1324,31 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       80%{transform:rotate(5deg) scale(1.01)}
     }
     .crate-shake{animation:crateShake .5s ease-in-out 3}
+    /* Gold gets a longer, harder shake than Bronze — same beat, more
+       weight behind it, matching the extra ceremony a shard-spent
+       pull deserves over a free one. */
+    .compass-crate.gold.crate-shake{animation:crateShake .46s ease-in-out 4}
     .crate-reveal-stage .compass-crate{width:84px;height:84px;margin:0 auto 14px}
     .crate-reveal-stage .compass-crate .crate-icon{font-size:36px}
+
+    /* Gold-only pre-shake charge — a beat of anticipation (glow
+       building, no movement yet) before the shake even starts.
+       Bronze skips straight to the shake; it's the frequent, low-
+       ceremony tier and shouldn't make you wait for it. */
+    @keyframes crateCharge{
+      0%{box-shadow:0 0 0 rgba(255,215,0,0)}
+      100%{box-shadow:0 0 34px rgba(255,215,0,.85)}
+    }
+    .compass-crate.charging{animation:crateCharge .55s ease-in forwards}
+
+    /* One-shot full-bleed flash at the crack moment — Gold only, the
+       payoff for the charge-up beat. */
+    .crate-flash{
+      position:fixed;inset:0;z-index:5001;pointer-events:none;
+      background:radial-gradient(circle,rgba(255,225,150,.9),rgba(255,180,60,.25) 45%,transparent 75%);
+      opacity:0;animation:crateFlashPop .5s cubic-bezier(.16,1,.3,1) forwards;
+    }
+    @keyframes crateFlashPop{0%{opacity:0}12%{opacity:1}100%{opacity:0}}
 
     /* ── PREMIUM REVEAL — ambient rarity-tinted glow behind the modal
        (set via --reveal-glow once the rarity is known), a serif accent
@@ -6540,6 +6563,36 @@ function playCrateTick(ctx,strength){
   src.connect(bp);bp.connect(g);g.connect(ctx.destination);
   src.start(t);src.stop(t+0.05);
 }
+function playCrateCrackSound(tier){
+  const ctx=getCrateAudioCtx();
+  if(!ctx)return;
+  const big=tier==='gold';
+  const t=ctx.currentTime;
+  // Noise burst — the "crack" transient.
+  const bufSize=Math.floor(ctx.sampleRate*0.09);
+  const buf=ctx.createBuffer(1,bufSize,ctx.sampleRate);
+  const data=buf.getChannelData(0);
+  for(let i=0;i<bufSize;i++)data[i]=(Math.random()*2-1)*Math.pow(1-i/bufSize,1.5);
+  const src=ctx.createBufferSource();
+  src.buffer=buf;
+  const hp=ctx.createBiquadFilter();
+  hp.type='highpass';hp.frequency.value=big?900:1400;
+  const ng=ctx.createGain();
+  ng.gain.setValueAtTime(big?0.5:0.32,t);
+  ng.gain.exponentialRampToValueAtTime(0.001,t+(big?0.16:0.09));
+  src.connect(hp);hp.connect(ng);ng.connect(ctx.destination);
+  src.start(t);src.stop(t+0.2);
+  // Low thump underneath — gives the crack physical weight.
+  const osc=ctx.createOscillator();
+  osc.type='sine';
+  osc.frequency.setValueAtTime(big?150:110,t);
+  osc.frequency.exponentialRampToValueAtTime(big?42:38,t+(big?0.22:0.14));
+  const og=ctx.createGain();
+  og.gain.setValueAtTime(big?0.4:0.26,t);
+  og.gain.exponentialRampToValueAtTime(0.001,t+(big?0.28:0.16));
+  osc.connect(og);og.connect(ctx.destination);
+  osc.start(t);osc.stop(t+0.3);
+}
 function playCrateSpinTicks(durationMs){
   const ctx=getCrateAudioCtx();
   if(!ctx)return;
@@ -6616,22 +6669,47 @@ const RARITY_BORDER={
 function spinCardHTML(card){
   return '<div class="crate-spin-card rarity-'+card.rarity+'">'+legendIconHTML(card)+'</div>';
 }
+// Bronze and Gold deliberately choreograph differently, not just a
+// different crate colour \u2014 Bronze is the free, every-5-days tier and
+// should feel quick and clean; Gold costs a banked shard and earns a
+// proper build-up: a silent charge beat before it even shakes, a
+// longer/harder shake, a crack sound + full-bleed flash at the split,
+// and a longer spin. Same underlying data flow either way.
+const CRATE_OPEN_TIMING={
+  bronze:{chargeMs:0, shakeMs:1500, spinMs:1900, burstCount:12},
+  gold:{chargeMs:550, shakeMs:1840, spinMs:2800, burstCount:24},
+};
 function showLegendReveal(l,isNew,tier){
+  const cfg=CRATE_OPEN_TIMING[tier]||CRATE_OPEN_TIMING.bronze;
   const overlay=document.createElement('div');
   overlay.className='achievement-overlay';
   overlay.innerHTML=
     '<div class="achievement-modal crate-reveal-stage">'+
-      '<div class="compass-crate '+tier+' crate-shake" id="reveal-crate"><span class="crate-icon">\ud83e\udded</span></div>'+
+      '<div class="compass-crate '+tier+(cfg.chargeMs?' charging':' crate-shake')+'" id="reveal-crate"><span class="crate-icon">\ud83e\udded</span></div>'+
     '</div>';
   document.body.appendChild(overlay);
   requestAnimationFrame(()=>overlay.classList.add('show'));
+
+  function startShake(){
+    const crateEl=overlay.querySelector('#reveal-crate');
+    if(crateEl){crateEl.classList.remove('charging');crateEl.classList.add('crate-shake');}
+  }
+  if(cfg.chargeMs)setTimeout(startShake,cfg.chargeMs);
+
   setTimeout(()=>{
     const modal=overlay.querySelector('.achievement-modal');
     if(!modal)return;
+    playCrateCrackSound(tier);
+    if(tier==='gold'){
+      const flash=document.createElement('div');
+      flash.className='crate-flash';
+      document.body.appendChild(flash);
+      setTimeout(()=>flash.remove(),550);
+    }
     // Spin phase \u2014 a strip of random filler cards with the actual prize
     // placed last, scrolled past a center pointer and decelerated onto
     // the winner, like a slot reel settling.
-    const FILLER=16, STRIDE=68, SPIN_MS=2400;
+    const FILLER=16, STRIDE=68, SPIN_MS=cfg.spinMs;
     const strip=[];
     for(let i=0;i<FILLER;i++)strip.push(LEGEND_CARDS[Math.floor(Math.random()*LEGEND_CARDS.length)]);
     strip.push(l);
@@ -6646,7 +6724,10 @@ function showLegendReveal(l,isNew,tier){
     const track=modal.querySelector('#spin-track');
     playCrateSpinTicks(SPIN_MS);
     requestAnimationFrame(()=>{
-      track.style.transition='transform '+(SPIN_MS/1000)+'s cubic-bezier(.1,.7,.15,1)';
+      // Bronze settles clean (no overshoot, a confident power3-style
+      // deceleration) \u2014 Gold gets a hair of overshoot on landing, the
+      // slot-reel equivalent of a satisfied little bounce.
+      track.style.transition='transform '+(SPIN_MS/1000)+'s '+(tier==='gold'?'cubic-bezier(.1,.82,.18,1.06)':'cubic-bezier(.16,.68,.24,1)');
       track.style.transform='translateX(-'+(targetIndex*STRIDE)+'px)';
     });
     setTimeout(()=>{
@@ -6661,9 +6742,9 @@ function showLegendReveal(l,isNew,tier){
         '<button class="achievement-close-btn" onclick="this.closest(\'.achievement-overlay\').remove()">Continue</button>';
       playCrateRevealChime(l.rarity);
       addXP(isNew?25:10,isNew?'New legend card':'Compass Drop');
-      if(isNew)celebrateBurst(['\ud83d\udd25','\u2b50','\ud83c\udfc6'],20);
+      if(isNew)celebrateBurst(['\ud83d\udd25','\u2b50','\ud83c\udfc6'],cfg.burstCount);
     },SPIN_MS+60);
-  },1500);
+  },cfg.chargeMs+cfg.shakeMs);
 }
 
 // ── BACKUP REMINDER — nudges, doesn't nag. Shows once it's actually
