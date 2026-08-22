@@ -4935,6 +4935,11 @@ let lastActiveDate=''; // last calendar date any XP was earned — drives the "s
 let bestStreak=0; // longest streak ever, separate from the current one — survives a streak breaking
 let activeDates=[]; // unique dates any activity happened — powers the consistency heatmap
 let compassWeekStart='';
+// Last-known rank per leaderboard the user actually appeared on — lets
+// renderLB() notice a rank change since the last time it was computed
+// and tell the user who they just passed or got passed by, instead of
+// the standings silently shifting underneath them. See checkLBRankChange.
+let lbLastRanks={};
 // ── SESSION COMPLETION SHARD GATE — a compass point (and, on the 7th of
 // the week, the shard it banks) now only counts once every exercise in
 // the session has either had all its sets logged or been explicitly
@@ -15043,6 +15048,29 @@ function renderLBRow(e,i){
   '</div>';
 }
 
+// ── RANK CHANGE NOTIFICATIONS — healthy competition only works if you
+// actually notice the standings move. Compares this computation's rank
+// against the last one this device saw for that board; a real (not
+// first-ever) change fires a toast naming whoever's now closest on the
+// wrong side of you — the trailing name if you climbed, the leading
+// name if you dropped. Bot-vs-bot movement is irrelevant and never
+// checked; this only fires for the user's own row.
+const LB_BOARD_LABELS={gained:'Most Gained',improved:'Most Improved',streak:'Best Streak'};
+function checkLBRankChange(boardKey,sortedList){
+  const newRank=sortedList.findIndex(e=>e.isYou);
+  if(newRank<0)return; // no lbName set yet — nothing to track
+  const lastRank=lbLastRanks[boardKey];
+  lbLastRanks[boardKey]=newRank;
+  if(lastRank===undefined||lastRank===newRank)return; // first-ever look, or unchanged
+  const label=LB_BOARD_LABELS[boardKey]||boardKey;
+  if(newRank<lastRank){
+    const passed=sortedList[newRank+1];
+    toast('🔥',passed?'You just passed '+passed.name+' on '+label+' — #'+(newRank+1)+' now!':'You climbed to #'+(newRank+1)+' on '+label+'!');
+  }else{
+    const overtaker=sortedList[newRank-1];
+    toast('😤',overtaker?overtaker.name+' just passed you on '+label+' — close the gap!':'You dropped to #'+(newRank+1)+' on '+label+'.');
+  }
+}
 async function renderLB(){
   const list=document.getElementById('lb-list');if(!list)return;
   let stored=[];
@@ -15065,12 +15093,14 @@ async function renderLB(){
 
   // MOST GAINED
   const byGained=[...entries].sort((a,b)=>b.gained-a.gained);
+  checkLBRankChange('gained',byGained);
   list.innerHTML=byGained.slice(0,10).map((e,i)=>renderLBRow({...e,valLabel:'+'+e.gained+' lbs'},i)).join('');
 
   // MOST IMPROVED — weekly rate of gain, rewards velocity not just total time
   const improvedList=document.getElementById('lb-improved-list');
   if(improvedList){
     const byRate=[...entries].sort((a,b)=>b.rate-a.rate);
+    checkLBRankChange('improved',byRate);
     improvedList.innerHTML=byRate.slice(0,10).map((e,i)=>renderLBRow({...e,valLabel:'+'+e.rate.toFixed(2)+' lbs/wk'},i)).join('');
   }
 
@@ -15078,8 +15108,10 @@ async function renderLB(){
   const streakList=document.getElementById('lb-streak-list');
   if(streakList){
     const byStreak=[...entries].sort((a,b)=>b.streak-a.streak);
+    checkLBRankChange('streak',byStreak);
     streakList.innerHTML=byStreak.slice(0,10).map((e,i)=>renderLBRow({...e,valLabel:e.streak+' days'},i)).join('');
   }
+  saveToStorage();
 }
 
 // Light live-tick: every 45-90s while the leaderboard might be open, nudge
@@ -15160,6 +15192,7 @@ function saveToStorage(){
     localStorage.setItem('arx_customShakeTemplates', JSON.stringify(customShakeTemplates));
     localStorage.setItem('arx_lastSessionDate', lastSessionDate);
     localStorage.setItem('arx_autoCountedDate', autoCountedDate);
+    localStorage.setItem('arx_lbLastRanks', JSON.stringify(lbLastRanks));
     localStorage.setItem('arx_compassPointDate', compassPointDate);
     localStorage.setItem('arx_perfectWeekShardBanked', perfectWeekShardBanked?'1':'');
     localStorage.setItem('arx_lastActiveDate', lastActiveDate);
@@ -15278,6 +15311,8 @@ function loadFromStorage(){
     if(cst){try{customShakeTemplates=JSON.parse(cst);}catch(e){customShakeTemplates=[];}}
     lastSessionDate=localStorage.getItem('arx_lastSessionDate')||'';
     autoCountedDate=localStorage.getItem('arx_autoCountedDate')||'';
+    const lbr=localStorage.getItem('arx_lbLastRanks');
+    if(lbr){try{lbLastRanks=JSON.parse(lbr);}catch(e){lbLastRanks={};}}
     compassPointDate=localStorage.getItem('arx_compassPointDate')||'';
     perfectWeekShardBanked=localStorage.getItem('arx_perfectWeekShardBanked')==='1';
     lastActiveDate=localStorage.getItem('arx_lastActiveDate')||'';
