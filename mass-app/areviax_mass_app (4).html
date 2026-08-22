@@ -1314,15 +1314,24 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        openCompassDrop()'s odds tables. Not-ready state shows progress
        instead of the capsule glowing, so it reads as "still filling",
        not "broken". */
-    .crate-row{display:flex;gap:12px;margin-top:4px;min-width:0}
+    .crate-row{display:flex;gap:8px;margin-top:4px;min-width:0}
     .crate-slot{
-      flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:6px;
+      position:relative;flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:6px;
       background:rgba(255,255,255,.02);border:1.5px solid var(--border2);border-radius:12px;
-      padding:14px 8px 10px;cursor:pointer;-webkit-tap-highlight-color:transparent;
+      padding:14px 6px 10px;cursor:pointer;-webkit-tap-highlight-color:transparent;
       transition:border-color .2s,background .2s;
     }
     .crate-slot:active{transform:scale(.97)}
     .crate-slot.not-ready{cursor:default}
+    .crate-info-btn{
+      position:absolute;top:5px;right:7px;width:15px;height:15px;border-radius:50%;
+      display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;
+      background:rgba(255,255,255,.06);color:var(--muted);cursor:pointer;z-index:2;
+      -webkit-tap-highlight-color:transparent;
+    }
+    .crate-info-btn:active{background:rgba(255,255,255,.14)}
+    .crate-row .compass-crate{width:46px;height:46px}
+    .crate-row .compass-crate .crate-icon svg{width:21px;height:21px}
     .compass-crate{
       width:56px;height:56px;position:relative;
       clip-path:polygon(50% 0%,93% 25%,93% 75%,50% 100%,7% 75%,7% 25%);
@@ -1334,16 +1343,28 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       background:linear-gradient(160deg,rgba(255,255,255,.35),transparent 55%);
       pointer-events:none;
     }
-    .compass-crate .crate-icon{font-size:24px;filter:drop-shadow(0 1px 2px rgba(0,0,0,.35));position:relative;z-index:1}
+    .compass-crate .crate-icon{position:relative;z-index:1;display:flex;filter:drop-shadow(0 1px 2px rgba(0,0,0,.35))}
+    .compass-crate .crate-icon svg{width:26px;height:26px;color:#fff}
     .compass-crate.bronze{background:linear-gradient(160deg,#E8A85C,#B8622A)}
+    .compass-crate.silver{background:linear-gradient(160deg,#F2F5F9,#9AA7B4)}
     .compass-crate.gold{background:linear-gradient(160deg,#FFE58A,#D4970A)}
+    .compass-crate.diamond{background:linear-gradient(115deg,#EAFBFF,#9FE8FF,#EAFBFF,#5FD0F2);background-size:260% 100%;animation:rarityShimmerSweep 3.4s linear infinite}
+    .compass-crate.areviax{background:linear-gradient(160deg,#241006,#0A0503);box-shadow:inset 0 0 0 1.5px rgba(255,170,60,.55)}
+    .compass-crate.areviax .crate-icon svg{color:#FFB347}
     .compass-crate.locked{filter:grayscale(1) opacity(.35)}
     @keyframes crateFloat{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-4px) rotate(-4deg)}}
     .compass-crate.ready{animation:crateFloat 2.4s ease-in-out infinite}
     .compass-crate.bronze.ready{box-shadow:0 0 18px rgba(184,98,42,.55)}
+    .compass-crate.silver.ready{box-shadow:0 0 18px rgba(154,167,180,.6)}
     .compass-crate.gold.ready{box-shadow:0 0 20px rgba(255,215,0,.55)}
+    .compass-crate.diamond.ready{box-shadow:0 0 24px rgba(95,208,242,.65)}
+    @keyframes areviaxAura{0%,100%{filter:brightness(1)}50%{filter:brightness(1.3)}}
+    .compass-crate.areviax.ready{
+      box-shadow:0 0 30px rgba(255,140,40,.85),0 0 52px rgba(255,180,80,.4);
+      animation:crateFloat 2.2s ease-in-out infinite,areviaxAura 2.4s ease-in-out infinite;
+    }
     .crate-slot-label{font-size:10px;font-weight:800;color:var(--white);letter-spacing:.02em}
-    .crate-slot-sub{font-size:9px;color:var(--muted);text-align:center;line-height:1.4}
+    .crate-slot-sub{font-size:8.5px;color:var(--muted);text-align:center;line-height:1.35}
     .crate-slot-sub.ready-text{color:var(--orange);font-weight:700}
 
     /* Compass Drop opening — the crate itself shakes and glows before
@@ -1359,31 +1380,80 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       80%{transform:rotate(5deg) scale(1.01)}
     }
     .crate-shake{animation:crateShake .5s ease-in-out 3}
-    /* Gold gets a longer, harder shake than Bronze — same beat, more
-       weight behind it, matching the extra ceremony a shard-spent
-       pull deserves over a free one. */
+    /* Each tier above Bronze shakes longer/harder than the last — same
+       beat, escalating weight, matching the extra ceremony a costlier
+       or rarer pull deserves over a free one. Areviax gets its own
+       bigger-amplitude keyframe entirely, not just a faster loop of
+       the same shake. */
+    .compass-crate.silver.crate-shake{animation:crateShake .48s ease-in-out 3}
     .compass-crate.gold.crate-shake{animation:crateShake .46s ease-in-out 4}
-    .crate-reveal-stage .compass-crate{width:84px;height:84px;margin:0 auto 14px}
-    .crate-reveal-stage .compass-crate .crate-icon{font-size:36px}
-
-    /* Gold-only pre-shake charge — a beat of anticipation (glow
-       building, no movement yet) before the shake even starts.
-       Bronze skips straight to the shake; it's the frequent, low-
-       ceremony tier and shouldn't make you wait for it. */
-    @keyframes crateCharge{
-      0%{box-shadow:0 0 0 rgba(255,215,0,0)}
-      100%{box-shadow:0 0 34px rgba(255,215,0,.85)}
+    .compass-crate.diamond.crate-shake{animation:crateShake .42s ease-in-out 5}
+    @keyframes crateShakeBig{
+      0%,100%{transform:rotate(0) scale(1)}
+      15%{transform:rotate(-14deg) scale(1.07)}
+      30%{transform:rotate(13deg) scale(1.1)}
+      45%{transform:rotate(-12deg) scale(1.08)}
+      60%{transform:rotate(10deg) scale(1.05)}
+      75%{transform:rotate(-6deg) scale(1.02)}
+      90%{transform:rotate(3deg) scale(1.01)}
     }
-    .compass-crate.charging{animation:crateCharge .55s ease-in forwards}
+    .compass-crate.areviax.crate-shake{animation:crateShakeBig .4s ease-in-out 6}
+    .crate-reveal-stage .compass-crate{width:84px;height:84px;margin:0 auto 14px}
+    .crate-reveal-stage .compass-crate .crate-icon svg{width:42px;height:42px}
 
-    /* One-shot full-bleed flash at the crack moment — Gold only, the
-       payoff for the charge-up beat. */
+    /* Pre-shake charge — a beat of anticipation (glow building, no
+       movement yet) before the shake even starts, on every tier above
+       Bronze. Bronze skips straight to the shake; it's the frequent,
+       low-ceremony tier and shouldn't make you wait for it. Glow
+       colour matches each tier's own material instead of one shared
+       gold tint. */
+    @keyframes crateCharge{0%{box-shadow:0 0 0 rgba(255,255,255,0)}100%{box-shadow:0 0 34px var(--charge-glow,rgba(255,215,0,.85))}}
+    .compass-crate.charging{animation:crateCharge .55s ease-in forwards}
+    .compass-crate.silver.charging{--charge-glow:rgba(200,210,220,.85)}
+    .compass-crate.gold.charging{--charge-glow:rgba(255,215,0,.85)}
+    .compass-crate.diamond.charging{--charge-glow:rgba(95,208,242,.9)}
+    .compass-crate.areviax.charging{--charge-glow:rgba(255,140,40,.95)}
+
+    /* One-shot full-bleed flash at the crack moment — the payoff for
+       the charge-up beat, tinted per tier (Gold stays warm-amber;
+       Diamond and Areviax get their own colour so the flash reads as
+       part of that tier's identity, not a recolour of Gold's). */
     .crate-flash{
       position:fixed;inset:0;z-index:5001;pointer-events:none;
-      background:radial-gradient(circle,rgba(255,225,150,.9),rgba(255,180,60,.25) 45%,transparent 75%);
+      background:radial-gradient(circle,var(--flash-c1,rgba(255,225,150,.9)),var(--flash-c2,rgba(255,180,60,.25)) 45%,transparent 75%);
       opacity:0;animation:crateFlashPop .5s cubic-bezier(.16,1,.3,1) forwards;
     }
+    .crate-flash.diamond{--flash-c1:rgba(210,245,255,.92);--flash-c2:rgba(95,208,242,.3)}
+    .crate-flash.areviax{--flash-c1:rgba(255,220,170,.95);--flash-c2:rgba(255,120,30,.35)}
     @keyframes crateFlashPop{0%{opacity:0}12%{opacity:1}100%{opacity:0}}
+
+    /* ── DAILY SPIN WHEEL — one free spin a day, weighted toward the
+       common tiers with a razor-thin sliver for the Areviax Drop, same
+       "rare thing needs a rare-feeling wedge" logic as the rarity
+       ladder's own escalating odds. The wheel itself is a plain SVG
+       pie (five <path> wedges, one per tier) rotated by JS on spin —
+       no external chart lib needed for five slices. */
+    .spin-wheel-card{text-align:center}
+    .spin-wheel-wrap{position:relative;width:186px;max-width:66vw;margin:6px auto 0;aspect-ratio:1/1}
+    .spin-wheel-dial{width:100%;height:100%;display:block;transform-origin:50% 50%;filter:drop-shadow(0 10px 22px rgba(0,0,0,.55))}
+    .spin-wedge{stroke:rgba(0,0,0,.28);stroke-width:1}
+    .spin-wedge-bronze{fill:#B8622A}
+    .spin-wedge-silver{fill:#9AA7B4}
+    .spin-wedge-gold{fill:#D4970A}
+    .spin-wedge-diamond{fill:#3FB8DE}
+    .spin-wheel-rim{fill:none;stroke:rgba(255,255,255,.16);stroke-width:3}
+    .spin-wheel-hub{fill:#0B0B0B;stroke:rgba(255,255,255,.28);stroke-width:2}
+    .spin-wheel-hub-icon{stroke:rgba(255,140,50,.85);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+    .spin-wedge-icon{color:#fff;opacity:.94}
+    .spin-wheel-pointer{
+      position:absolute;top:-7px;left:50%;transform:translateX(-50%);z-index:3;
+      width:0;height:0;border-left:9px solid transparent;border-right:9px solid transparent;
+      border-top:15px solid var(--orange);filter:drop-shadow(0 2px 4px rgba(0,0,0,.45));
+    }
+    .spin-wheel-btn{width:100%;margin-top:14px}
+    .spin-wheel-legend{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 12px;margin-top:10px}
+    .spin-wheel-legend span{display:flex;align-items:center;gap:4px;font-size:9px;font-weight:700;color:var(--muted)}
+    .spin-wheel-legend i{width:8px;height:8px;border-radius:50%;display:inline-block}
 
     /* ── PREMIUM REVEAL — ambient rarity-tinted glow behind the modal
        (set via --reveal-glow once the rarity is known), a serif accent
@@ -1488,41 +1558,61 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        a live progress bar so it's unmistakably "you are here" —
        rewards still auto-grant on crossing the threshold (no manual
        collect step), this is purely the path visualization. */
-    .xp-road-track{position:relative;padding:8px 0 4px}
+    /* Road bed — a faint recessed panel behind the whole path so nodes
+       read as sitting IN a lane, not floating loose on the card
+       background, plus a ticked (not just dashed-border) spine that
+       actually glows once progress exists instead of only recolouring
+       a 2px line. Shared by both roads that use this component (XP
+       Road and the Weight Road) — reusing one system is what makes
+       either read as "designed", not two thin one-off tracks. */
+    .xp-road-track{
+      position:relative;padding:10px 0 6px;border-radius:14px;
+      background:linear-gradient(180deg,rgba(255,255,255,.018),transparent 45%);
+    }
     .xp-road-track::before{
-      content:'';position:absolute;left:50%;top:4px;bottom:4px;
-      border-left:2px dashed rgba(255,255,255,.12);
+      content:'';position:absolute;left:50%;top:6px;bottom:6px;width:3px;margin-left:-1.5px;
+      background:repeating-linear-gradient(180deg,rgba(255,255,255,.16) 0 6px,transparent 6px 13px);
+      border-radius:3px;
     }
     .xp-road-track.has-progress::before{
-      border-left-color:rgba(255,90,0,.3);
+      background:repeating-linear-gradient(180deg,rgba(255,140,50,.65) 0 6px,transparent 6px 13px);
+      box-shadow:0 0 10px rgba(255,90,0,.35);
     }
-    .xp-node{position:relative;min-height:80px}
+    .xp-node{position:relative;min-height:88px}
     .xp-node-hex{
-      position:absolute;top:8px;width:40px;height:40px;z-index:2;
+      position:absolute;top:7px;width:44px;height:44px;z-index:2;
       clip-path:polygon(50% 0%,93% 25%,93% 75%,50% 100%,7% 75%,7% 25%);
-      display:flex;align-items:center;justify-content:center;font-size:16px;
+      display:flex;align-items:center;justify-content:center;font-size:18px;
       background:linear-gradient(160deg,#2A2A38,#18181F);
+      box-shadow:inset 0 1px 1px rgba(255,255,255,.06);
       filter:grayscale(1) opacity(.4);transition:filter .2s;
     }
-    .xp-node-connector{position:absolute;top:26px;height:2px;width:8px;background:rgba(255,255,255,.12);z-index:1}
-    .xp-node-body{position:absolute;top:6px;width:112px;line-height:1.3}
+    .xp-node-hex img{width:58%;height:58%;object-fit:contain;filter:none;position:relative;z-index:1}
+    .xp-node-connector{position:absolute;top:28px;height:2px;width:9px;background:rgba(255,255,255,.12);z-index:1}
+    .xp-node-body{position:absolute;top:8px;width:112px;line-height:1.3}
     .xp-node.side-l .xp-node-hex,.xp-node.side-l .xp-node-connector,.xp-node.side-l .xp-node-body{right:50%;left:auto}
     .xp-node.side-l .xp-node-hex{margin-right:8px}
     .xp-node.side-l .xp-node-connector{margin-right:0}
-    .xp-node.side-l .xp-node-body{margin-right:56px;text-align:right}
+    .xp-node.side-l .xp-node-body{margin-right:58px;text-align:right}
     .xp-node.side-r .xp-node-hex,.xp-node.side-r .xp-node-connector,.xp-node.side-r .xp-node-body{left:50%;right:auto}
     .xp-node.side-r .xp-node-hex{margin-left:8px}
-    .xp-node.side-r .xp-node-body{margin-left:56px;text-align:left}
-    .xp-node.claimed .xp-node-hex{filter:none;background:linear-gradient(160deg,#FFB27A,var(--green))}
+    .xp-node.side-r .xp-node-body{margin-left:58px;text-align:left}
+    .xp-node.claimed .xp-node-hex{
+      filter:none;background:linear-gradient(160deg,#FFB27A,var(--green));
+      box-shadow:0 0 14px rgba(255,140,60,.35),inset 0 1px 1px rgba(255,255,255,.25);
+    }
     .xp-node.claimed .xp-node-connector{background:rgba(255,90,0,.35)}
     .xp-node.next .xp-node-hex{
-      width:52px;height:52px;top:2px;filter:none;
+      width:62px;height:62px;top:-2px;filter:none;font-size:24px;
       background:linear-gradient(160deg,#FFD6A8,var(--green));
       animation:xpNextPulse 2.2s ease-in-out infinite;
     }
     .xp-node.side-l.next .xp-node-hex{margin-right:4px}
     .xp-node.side-r.next .xp-node-hex{margin-left:4px}
-    @keyframes xpNextPulse{0%,100%{box-shadow:0 0 0 rgba(255,90,0,.45)}50%{box-shadow:0 0 20px rgba(255,90,0,.55)}}
+    @keyframes xpNextPulse{
+      0%,100%{box-shadow:0 0 0 rgba(255,90,0,.4),inset 0 1px 2px rgba(255,255,255,.3)}
+      50%{box-shadow:0 0 26px rgba(255,90,0,.65),inset 0 1px 2px rgba(255,255,255,.3)}
+    }
     .xp-node-check{
       position:absolute;top:-3px;right:-3px;width:15px;height:15px;border-radius:50%;
       background:var(--green);border:2px solid #0B0B0B;z-index:3;
@@ -2177,6 +2267,12 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     <span style="font-size:15px">🚶</span>
     <span style="flex:1">Mostly-sitting day today — sneak in a short walk. Keeps joints mobile and circulation up, separate from whatever training you're doing.</span>
     <span onclick="dismissWalkTip()" style="cursor:pointer;color:var(--muted);font-size:15px;padding:0 2px 0 8px">✕</span>
+  </div>
+
+  <div id="daily-spin-banner" style="display:none;align-items:center;gap:10px;cursor:pointer;background:linear-gradient(135deg,rgba(255,90,0,.1),rgba(255,255,255,.02));border:1.5px solid rgba(255,90,0,.3);border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:11.5px;color:rgba(var(--white-rgb),.85)" onclick="showPage('progress');setTimeout(()=>{const el=document.getElementById('daily-spin-card');if(el)el.scrollIntoView({behavior:'smooth',block:'center'});},350)">
+    <span style="font-size:16px">🎡</span>
+    <span style="flex:1">Your free Daily Spin is ready — Bronze, Silver, Gold, even a Diamond crate up for grabs.</span>
+    <span style="color:var(--orange);font-weight:800;white-space:nowrap">Spin →</span>
   </div>
 
   <!-- DASHBOARD GRID — named-area layout: mobile stacks single-column
@@ -3258,21 +3354,21 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     <div id="xp-road" style="max-height:320px;overflow-y:auto;padding-right:4px"></div>
   </div>
 
-  <!-- ACHIEVEMENTS — trophies (milestone unlocks) on top, Legend Cards
-       (Compass Drop collectibles) below, moved here from Profile — this
-       page is already "your journey" (PRs, streaks, tonnage), so the
-       collection stuff belongs next to it instead of buried under
-       Compare/Backup/Install. -->
+  <!-- ACHIEVEMENTS — trophies (milestone unlocks) on top, then the
+       Weight Road (moved here from Profile). Legend Cards moved out
+       to their own "Legends" section in the Trophy Cabinet — this
+       card stays real achievements only now. -->
   <div class="card" style="margin-bottom:14px">
     <div class="ch"><span class="ct">Achievements</span></div>
     <div style="font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:4px">Trophies</div>
     <div id="trophy-road" class="ach-row"></div>
-    <div style="font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:8px 0 4px">Weight Milestones</div>
-    <div id="weight-milestone-row" class="ach-row"></div>
-    <div style="font-size:9px;color:var(--muted);margin:-4px 0 4px" id="weight-milestone-sub"></div>
-    <div style="font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:8px 0 4px">Legend Cards</div>
-    <div id="legend-row" class="ach-row"></div>
-    <div style="font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:8px 0 4px">Compass Drops</div>
+    <div style="font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:14px 0 4px">Weight Milestones</div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:4px" id="weight-road-sub"></div>
+    <div id="weight-road" style="max-height:340px;overflow-y:auto;padding-right:4px"></div>
+    <div style="font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:14px 0 4px" id="daily-spin-card">Daily Spin</div>
+    <div style="font-size:10.5px;color:var(--muted);margin-bottom:2px">One free spin a day — Bronze, Silver, Gold, Diamond, even the Areviax Drop.</div>
+    <div id="daily-spin-wheel" class="spin-wheel-card"></div>
+    <div style="font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:14px 0 4px">Compass Drops</div>
     <div class="crate-row" id="crate-row"></div>
   </div>
 
@@ -3306,6 +3402,15 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
   </div>
 
   <div id="cabinet-tiers"></div>
+
+  <div class="cabinet-tier">
+    <div class="cabinet-tier-plaque">
+      <span class="cabinet-tier-name">Legends</span>
+      <span class="cabinet-tier-count" id="cabinet-legends-count"></span>
+    </div>
+    <div class="cabinet-tier-sub">Bodybuilding's greatest — pulled from any Compass Drop, not one of the 7 layers above</div>
+    <div class="cabinet-row" id="cabinet-legends-row"></div>
+  </div>
 </div>
 
 <!-- RECOVERY — its own dedicated page. Sleep tracking, wind-down sounds, breathing, and the science of why this matters. -->
@@ -4634,6 +4739,15 @@ let streakRepairDismissedDate='';
 let bronzeDropBank=0;
 let bronzeDropProgress=0;
 const BRONZE_DROP_DAYS=5;
+// Silver and Diamond are new tiers introduced alongside the Daily Spin
+// wheel below — for now the wheel is their only earn path (same "one
+// banked count, tap to open" shape as bronzeDropBank), so wiring in a
+// second earn method later is additive, not a rework. dailySpinDate
+// gates one free spin per calendar day, same pattern as the app's
+// other once-a-day mechanics (winddownDate, nutritionLogDate).
+let silverDropBank=0;
+let diamondDropBank=0;
+let dailySpinDate='';
 // Every addXP() call already carries a human label ('Session complete',
 // 'Sleep logged', etc) — logging each award here (capped, oldest first
 // out) is what lets a breakdown view answer "what's actually been
@@ -4753,6 +4867,13 @@ let nutritionDayLog=[]; // [{date,hitTarget}] — powers the Caloric Shield's 3-
 let waterDayLog=[]; // [{date,glasses}] — same idea, for the water history chart + consequence check
 let nutritionWarningShownDate=''; // guards checkNutritionConsequenceWarning to once per day it actually fires
 let timerOn=false,timerSecs=0,timerInt=null,timerStartedAt=0;
+// Real wall-clock time the Session page was actually opened — set on every
+// showPage('session') visit, independent of the optional stopwatch (timerOn
+// is opt-in, so it can't be trusted as the sole anti-farming signal). Gates
+// markTrainedToday()'s crate/streak credit so tapping "log set" once, the
+// instant the page opens, can't fake a whole day of training — see there.
+let sessionEnteredAt=0;
+const MIN_SESSION_MS_FOR_CREDIT=90000; // 90s — shorter than any real set (setup+work+breathe), long enough that instant-tap farming gains nothing
 let restSecs=0,restInt=null,restEndsAt=0;
 let totalVolume=0;
 let tonnageLog=[];
@@ -6496,9 +6617,20 @@ function renderXpRoad(){
 // banked Compass Shard for meaningfully better odds. Same currency
 // tension as streak repair already spending shards \u2014 a shard is worth
 // choosing what to do with, not just a formality.
+// Five tiers now, each strictly better odds than the last. superrare
+// and ultralegendary still sit at 0% everywhere below \u2014 no LEGEND_CARDS
+// entries exist at those rarities yet (Training Crests / the Areviax
+// Trophy), so rolling into either would draw from an empty pool.
+// Turning them on later is still the one-line odds change the ladder
+// was built for. Areviax Drop is deliberately not a gamble at all \u2014
+// 100% legendary, the best tier that DOES have real content \u2014 see
+// openCompassDrop() for how it bypasses the normal currency cost too.
 const CRATE_TIERS={
-  bronze:{label:'Bronze Drop',icon:'\ud83e\udded',odds:{common:60,rare:25,superrare:0,epic:10,mythic:4,legendary:1,ultralegendary:0}},
-  gold:{label:'Gold Drop',icon:'\ud83e\udded',odds:{common:25,rare:35,superrare:0,epic:25,mythic:10,legendary:5,ultralegendary:0}},
+  bronze:{label:'Bronze Drop',odds:{common:62,rare:24,superrare:0,epic:10,mythic:3,legendary:1,ultralegendary:0}},
+  silver:{label:'Silver Drop',odds:{common:40,rare:32,superrare:0,epic:18,mythic:8,legendary:2,ultralegendary:0}},
+  gold:{label:'Gold Drop',odds:{common:25,rare:35,superrare:0,epic:25,mythic:10,legendary:5,ultralegendary:0}},
+  diamond:{label:'Diamond Drop',odds:{common:8,rare:22,superrare:0,epic:35,mythic:25,legendary:10,ultralegendary:0}},
+  areviax:{label:'Areviax Drop',odds:{common:0,rare:0,superrare:0,epic:0,mythic:0,legendary:100,ultralegendary:0}},
 };
 // rarest-first, matches roll-resolution order everywhere a rarity is
 // picked from odds. superrare/ultralegendary sit at 0% odds above
@@ -6507,8 +6639,30 @@ const CRATE_TIERS={
 // and rarity-ultralegendary throughout the CSS), so turning them on
 // later is a one-line odds change, not new design work.
 const RARITY_ORDER=['ultralegendary','legendary','mythic','epic','superrare','rare','common'];
+const RARITY_TEXT={
+  common:'#B0B5BC',rare:'#4ADE80',superrare:'#60A5FA',epic:'#C084FC',
+  mythic:'#FF6B7A',legendary:'#FFD400',ultralegendary:'#FFD24A',
+};
 function legendIconHTML(l){
   return l.img?'<img src="'+l.img+'" alt="'+l.name+'">':l.icon;
+}
+// \u2500\u2500 CRATE ICONS \u2014 one bespoke line-art glyph per tier instead of a
+// reused compass emoji, so "what tier is this" reads at a glance even
+// before the material-gradient shell registers. Every path is centred
+// on (0,0) in a ~20x20 box so the same coordinates work standalone
+// (wrapped in a viewBox="-12 -12 24 24" <svg>, see crateIconSVG) and
+// embedded inside the spin wheel (wrapped in a translated/scaled <g>,
+// see renderDailySpin) without redrawing anything.
+const CRATE_ICON_PATHS={
+  bronze:'<path d="M-8-2h16v7.5a1.5 1.5 0 01-1.5 1.5h-13A1.5 1.5 0 01-8 5.5V-2z"/><path d="M-8-2 Q0-7 8-2"/><circle cx="0" cy="2.5" r="1.6"/><path d="M0 4v1.5"/>',
+  silver:'<path d="M0-9l7 3v5c0 5-3 8.5-7 10-4-1.5-7-5-7-10v-5l7-3z"/><path d="M-3 0l2 2 4-4.5"/>',
+  gold:'<path d="M-8-1.5h16v7.5a1.5 1.5 0 01-1.5 1.5h-13A1.5 1.5 0 01-8 5.5v-7z"/><path d="M-8-1.5 Q0-7.5 8-1.5"/><path d="M0-9.5l1.4 2.4 2.6.5-2 1.7.5 2.6L0-3.7l-2.5 1.4.5-2.6-2-1.7 2.6-.5L0-9.5z"/><circle cx="0" cy="3" r="1.6"/>',
+  diamond:'<path d="M-5-8h10l4 5-9 11-9-11 4-5z"/><path d="M-9-3h18M-3.5-3L0 8M3.5-3L0 8"/>',
+  areviax:'<circle cx="0" cy="0" r="9"/><path d="M0-9v2.4M0 6.6V9M-9 0h2.4M6.6 0H9"/><path d="M0-5.5c2.4 2 3.6 4 3.2 6.4-.3 1.9-1.8 3.3-3.2 3.6-1.4-.3-2.9-1.7-3.2-3.6-.4-2.4.8-4.4 3.2-6.4z"/>',
+};
+function crateIconSVG(tier){
+  const paths=CRATE_ICON_PATHS[tier]||CRATE_ICON_PATHS.bronze;
+  return '<svg viewBox="-12 -12 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">'+paths+'</svg>';
 }
 
 function renderAchievements(){
@@ -6523,46 +6677,60 @@ function renderAchievements(){
       </div>`;
     }).join('');
   }
-  const milestoneRow=document.getElementById('weight-milestone-row');
-  if(milestoneRow){
-    const vol=totalVolume||0;
-    milestoneRow.innerHTML=WEIGHT_MILESTONES.map(m=>{
-      const reached=vol>=m.kg;
-      return `<div class="ach-badge${reached?' unlocked':''}" title="${m.name} — ${m.kg.toLocaleString()}kg lifetime">
-        <div class="ach-badge-icon">${reached?milestoneIconHTML(m):'🔒'}</div>
-        <div class="ach-badge-label">${reached?m.name:m.kg.toLocaleString()+'kg'}</div>
-      </div>`;
-    }).join('');
-    const next=WEIGHT_MILESTONES.find(m=>vol<m.kg);
-    const sub=document.getElementById('weight-milestone-sub');
-    if(sub)sub.textContent=next?vol.toLocaleString()+' / '+next.kg.toLocaleString()+'kg lifetime to '+next.name:'All milestones hit — '+vol.toLocaleString()+'kg lifetime';
-  }
-  const legendCont=document.getElementById('legend-row');
-  if(legendCont){
-    legendCont.innerHTML=LEGEND_CARDS.map(l=>{
-      const unlocked=unlockedLegends.includes(l.key);
-      return `<div class="legend-card rarity-${l.rarity}${unlocked?' unlocked':''}" onclick="viewLegendCard('${l.key}')">
-        <div class="legend-card-icon">${unlocked?legendIconHTML(l):'\u2753'}</div>
-        <div class="legend-card-name">${unlocked?l.name.split(' ').pop():'???'}</div>
-      </div>`;
-    }).join('');
-  }
+  renderWeightRoad();
+  renderDailySpin();
   const crateRow=document.getElementById('crate-row');
   if(crateRow){
-    const bronzeReady=bronzeDropBank>0;
-    const goldReady=shardBank>0;
-    crateRow.innerHTML=`
-      <div class="crate-slot${bronzeReady?'':' not-ready'}" onclick="${bronzeReady?"openCompassDrop('bronze')":''}">
-        <div class="compass-crate bronze${bronzeReady?' ready':' locked'}"><span class="crate-icon">\ud83e\udded</span></div>
-        <div class="crate-slot-label">Bronze${bronzeDropBank>1?' \u00d7 '+bronzeDropBank:''}</div>
-        <div class="crate-slot-sub${bronzeReady?' ready-text':''}">${bronzeReady?'Tap to open':bronzeDropProgress+'/'+BRONZE_DROP_DAYS+' training days'}</div>
-      </div>
-      <div class="crate-slot${goldReady?'':' not-ready'}" onclick="${goldReady?"openCompassDrop('gold')":''}">
-        <div class="compass-crate gold${goldReady?' ready':' locked'}"><span class="crate-icon">\ud83e\udded</span></div>
-        <div class="crate-slot-label">Gold${shardBank>1?' \u00d7 '+shardBank:''}</div>
-        <div class="crate-slot-sub${goldReady?' ready-text':''}">${goldReady?'Tap to open':'Earn a shard with a perfect week'}</div>
+    const states={
+      bronze:{ready:bronzeDropBank>0,label:'Bronze'+(bronzeDropBank>1?' \u00d7'+bronzeDropBank:''),sub:bronzeDropBank>0?'Tap to open':bronzeDropProgress+'/'+BRONZE_DROP_DAYS+' training days'},
+      silver:{ready:silverDropBank>0,label:'Silver'+(silverDropBank>1?' \u00d7'+silverDropBank:''),sub:silverDropBank>0?'Tap to open':'Win one from the Daily Spin'},
+      gold:{ready:shardBank>0,label:'Gold'+(shardBank>1?' \u00d7'+shardBank:''),sub:shardBank>0?'Tap to open':'Earn a shard with a perfect week'},
+      diamond:{ready:diamondDropBank>0,label:'Diamond'+(diamondDropBank>1?' \u00d7'+diamondDropBank:''),sub:diamondDropBank>0?'Tap to open':'Win one from the Daily Spin'},
+    };
+    crateRow.innerHTML=Object.keys(states).map(tier=>{
+      const s=states[tier];
+      return `<div class="crate-slot${s.ready?'':' not-ready'}" onclick="${s.ready?"openCompassDrop('"+tier+"')":''}">
+        <span class="crate-info-btn" onclick="viewDropInfo('${tier}',event)">i</span>
+        <div class="compass-crate ${tier}${s.ready?' ready':' locked'}"><span class="crate-icon">${crateIconSVG(tier)}</span></div>
+        <div class="crate-slot-label">${s.label}</div>
+        <div class="crate-slot-sub${s.ready?' ready-text':''}">${s.sub}</div>
       </div>`;
+    }).join('');
   }
+}
+// Weight Road \u2014 same winding-path component the XP Road uses
+// (.xp-road-track/.xp-node), driven by WEIGHT_MILESTONES + lifetime
+// tonnage instead of XP checkpoints, so the two read as one family
+// instead of a road sitting next to an unrelated flat badge row.
+function renderWeightRoad(){
+  const cont=document.getElementById('weight-road');
+  const sub=document.getElementById('weight-road-sub');
+  if(!cont)return;
+  const vol=totalVolume||0;
+  const sorted=[...WEIGHT_MILESTONES].sort((a,b)=>a.kg-b.kg);
+  const next=sorted.find(m=>vol<m.kg);
+  if(sub)sub.textContent=next?vol.toLocaleString()+' / '+next.kg.toLocaleString()+'kg lifetime to '+next.name:'All milestones hit \u2014 '+vol.toLocaleString()+'kg lifetime';
+  const anyClaimed=sorted.some(m=>vol>=m.kg);
+  cont.className='xp-road-track'+(anyClaimed?' has-progress':'');
+  cont.innerHTML=sorted.map((m,i)=>{
+    const claimed=vol>=m.kg;
+    const isNext=!claimed&&m===next;
+    const side=i%2===0?'side-l':'side-r';
+    const state=claimed?' claimed':isNext?' next':'';
+    const prevKg=i===0?0:sorted[i-1].kg;
+    const pct=isNext?Math.max(0,Math.min(100,Math.round((vol-prevKg)/(m.kg-prevKg)*100))):0;
+    return '<div class="xp-node '+side+state+'">'+
+      '<div class="xp-node-hex">'+(claimed||isNext?milestoneIconHTML(m):'\ud83d\udd12')+
+        (claimed?'<span class="xp-node-check"><svg viewBox="0 0 24 24" fill="none" stroke="#0B0B0B" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>':'')+
+      '</div>'+
+      '<div class="xp-node-connector"></div>'+
+      '<div class="xp-node-body">'+
+        '<span class="xp-node-xp">'+m.kg.toLocaleString()+'kg</span>'+
+        '<div class="xp-node-desc">'+m.name+'</div>'+
+        (isNext?'<div class="xp-node-bar"><div class="xp-node-bar-fill" style="width:'+pct+'%"></div></div>':'')+
+      '</div>'+
+    '</div>';
+  }).join('');
 }
 function viewAchievementBadge(key){
   const a=ACHIEVEMENTS.find(x=>x.key===key);
@@ -6621,6 +6789,23 @@ function renderTrophyCabinet(){
       <div class="cabinet-row">${slots}</div>
     </div>`;
   }).join('');
+  // LEGENDS — a separate bonus section, not one of the 7 numbered
+  // layers: the bodybuilder cards that already exist in LEGEND_CARDS
+  // and already drop from Compass Drops today, moved out of the
+  // compact Achievements-card row and given real room here instead.
+  const legendsRow=document.getElementById('cabinet-legends-row');
+  if(legendsRow){
+    const legends=LEGEND_CARDS.filter(l=>l.rarity!=='common');
+    legendsRow.innerHTML=legends.map(l=>{
+      const unlocked=unlockedLegends.includes(l.key);
+      return `<div class="legend-card cabinet-slot rarity-${l.rarity}${unlocked?' unlocked':''}" onclick="viewLegendCard('${l.key}')">
+        <div class="legend-card-icon">${unlocked?legendIconHTML(l):'❓'}</div>
+        <div class="legend-card-name">${unlocked?l.name.split(' ').pop():'???'}</div>
+      </div>`;
+    }).join('');
+    const countEl=document.getElementById('cabinet-legends-count');
+    if(countEl)countEl.textContent=legends.filter(l=>unlockedLegends.includes(l.key)).length+'/'+legends.length;
+  }
 }
 function rollRarity(odds){
   const roll=Math.random()*100;
@@ -6635,12 +6820,16 @@ function openCompassDrop(tier){
   const cfg=CRATE_TIERS[tier];
   if(!cfg)return;
   if(tier==='bronze'){ if(bronzeDropBank<=0)return; bronzeDropBank--; }
-  else{ if(shardBank<=0)return; shardBank--; }
+  else if(tier==='silver'){ if(silverDropBank<=0)return; silverDropBank--; }
+  else if(tier==='gold'){ if(shardBank<=0)return; shardBank--; }
+  else if(tier==='diamond'){ if(diamondDropBank<=0)return; diamondDropBank--; }
+  // areviax: free — only ever granted by the Daily Spin, no bank to spend.
   const rarity=rollRarity(cfg.odds);
   const pool=LEGEND_CARDS.filter(l=>l.rarity===rarity);
   const pick=pool[Math.floor(Math.random()*pool.length)];
   const isNew=!unlockedLegends.includes(pick.key);
   if(isNew)unlockedLegends.push(pick.key);
+  if(tier==='areviax')shardBank+=2; // the best drop in the app pays a bonus on top of the guaranteed card
   saveToStorage();
   renderAchievements();
   showLegendReveal(pick,isNew,tier);
@@ -6676,35 +6865,40 @@ function playCrateTick(ctx,strength){
   src.connect(bp);bp.connect(g);g.connect(ctx.destination);
   src.start(t);src.stop(t+0.05);
 }
+// Intensity (0..1) scales the crack sound continuously across all five
+// tiers instead of a binary big/small split — Bronze barely thumps,
+// Areviax hits hardest, everything between interpolates cleanly, so a
+// new tier slotting in later is one number, not a new branch.
+const CRATE_SOUND_INTENSITY={bronze:0.3,silver:0.48,gold:0.65,diamond:0.82,areviax:1};
 function playCrateCrackSound(tier){
   const ctx=getCrateAudioCtx();
   if(!ctx)return;
-  const big=tier==='gold';
+  const k=CRATE_SOUND_INTENSITY[tier]!=null?CRATE_SOUND_INTENSITY[tier]:0.3;
   const t=ctx.currentTime;
   // Noise burst — the "crack" transient.
-  const bufSize=Math.floor(ctx.sampleRate*0.09);
+  const bufSize=Math.floor(ctx.sampleRate*(0.07+0.05*k));
   const buf=ctx.createBuffer(1,bufSize,ctx.sampleRate);
   const data=buf.getChannelData(0);
   for(let i=0;i<bufSize;i++)data[i]=(Math.random()*2-1)*Math.pow(1-i/bufSize,1.5);
   const src=ctx.createBufferSource();
   src.buffer=buf;
   const hp=ctx.createBiquadFilter();
-  hp.type='highpass';hp.frequency.value=big?900:1400;
+  hp.type='highpass';hp.frequency.value=1500-650*k;
   const ng=ctx.createGain();
-  ng.gain.setValueAtTime(big?0.5:0.32,t);
-  ng.gain.exponentialRampToValueAtTime(0.001,t+(big?0.16:0.09));
+  ng.gain.setValueAtTime(0.28+0.28*k,t);
+  ng.gain.exponentialRampToValueAtTime(0.001,t+(0.08+0.14*k));
   src.connect(hp);hp.connect(ng);ng.connect(ctx.destination);
-  src.start(t);src.stop(t+0.2);
+  src.start(t);src.stop(t+0.32);
   // Low thump underneath — gives the crack physical weight.
   const osc=ctx.createOscillator();
   osc.type='sine';
-  osc.frequency.setValueAtTime(big?150:110,t);
-  osc.frequency.exponentialRampToValueAtTime(big?42:38,t+(big?0.22:0.14));
+  osc.frequency.setValueAtTime(160-45*k,t);
+  osc.frequency.exponentialRampToValueAtTime(46-9*k,t+(0.12+0.16*k));
   const og=ctx.createGain();
-  og.gain.setValueAtTime(big?0.4:0.26,t);
-  og.gain.exponentialRampToValueAtTime(0.001,t+(big?0.28:0.16));
+  og.gain.setValueAtTime(0.24+0.22*k,t);
+  og.gain.exponentialRampToValueAtTime(0.001,t+(0.14+0.18*k));
   osc.connect(og);og.connect(ctx.destination);
-  osc.start(t);osc.stop(t+0.3);
+  osc.start(t);osc.stop(t+0.34);
 }
 function playCrateSpinTicks(durationMs){
   const ctx=getCrateAudioCtx();
@@ -6782,15 +6976,21 @@ const RARITY_BORDER={
 function spinCardHTML(card){
   return '<div class="crate-spin-card rarity-'+card.rarity+'">'+legendIconHTML(card)+'</div>';
 }
-// Bronze and Gold deliberately choreograph differently, not just a
-// different crate colour \u2014 Bronze is the free, every-5-days tier and
-// should feel quick and clean; Gold costs a banked shard and earns a
-// proper build-up: a silent charge beat before it even shakes, a
-// longer/harder shake, a crack sound + full-bleed flash at the split,
-// and a longer spin. Same underlying data flow either way.
+// Every tier above Bronze choreographs a step further than the last,
+// not just a different crate colour \u2014 Bronze is the free, frequent
+// tier and should feel quick and clean; each tier after it earns more
+// build-up: a silent charge beat before the shake even starts (longer
+// each time), a longer/harder shake, a crack sound + full-bleed flash
+// at the split, a longer spin with a landing overshoot, and a bigger
+// confetti burst. Areviax gets the most of everything \u2014 it's the best
+// drop in the app and should feel like it. Same underlying data flow
+// either way (flash/overshoot are just flags cfg carries per tier).
 const CRATE_OPEN_TIMING={
-  bronze:{chargeMs:0, shakeMs:1500, spinMs:1900, burstCount:12},
-  gold:{chargeMs:550, shakeMs:1840, spinMs:2800, burstCount:24},
+  bronze:{chargeMs:0,    shakeMs:1500, spinMs:1900, burstCount:12, flash:false, overshoot:false},
+  silver:{chargeMs:320,  shakeMs:1680, spinMs:2200, burstCount:16, flash:false, overshoot:false},
+  gold:  {chargeMs:550,  shakeMs:1840, spinMs:2800, burstCount:24, flash:true,  overshoot:true},
+  diamond:{chargeMs:800, shakeMs:2050, spinMs:3200, burstCount:32, flash:true,  overshoot:true},
+  areviax:{chargeMs:1150,shakeMs:2450, spinMs:3900, burstCount:56, flash:true,  overshoot:true},
 };
 function showLegendReveal(l,isNew,tier){
   const cfg=CRATE_OPEN_TIMING[tier]||CRATE_OPEN_TIMING.bronze;
@@ -6798,7 +6998,7 @@ function showLegendReveal(l,isNew,tier){
   overlay.className='achievement-overlay';
   overlay.innerHTML=
     '<div class="achievement-modal crate-reveal-stage">'+
-      '<div class="compass-crate '+tier+(cfg.chargeMs?' charging':' crate-shake')+'" id="reveal-crate"><span class="crate-icon">\ud83e\udded</span></div>'+
+      '<div class="compass-crate '+tier+(cfg.chargeMs?' charging':' crate-shake')+'" id="reveal-crate"><span class="crate-icon">'+crateIconSVG(tier)+'</span></div>'+
     '</div>';
   document.body.appendChild(overlay);
   requestAnimationFrame(()=>overlay.classList.add('show'));
@@ -6813,9 +7013,9 @@ function showLegendReveal(l,isNew,tier){
     const modal=overlay.querySelector('.achievement-modal');
     if(!modal)return;
     playCrateCrackSound(tier);
-    if(tier==='gold'){
+    if(cfg.flash){
       const flash=document.createElement('div');
-      flash.className='crate-flash';
+      flash.className='crate-flash'+(tier==='diamond'?' diamond':tier==='areviax'?' areviax':'');
       document.body.appendChild(flash);
       setTimeout(()=>flash.remove(),550);
     }
@@ -6837,10 +7037,10 @@ function showLegendReveal(l,isNew,tier){
     const track=modal.querySelector('#spin-track');
     playCrateSpinTicks(SPIN_MS);
     requestAnimationFrame(()=>{
-      // Bronze settles clean (no overshoot, a confident power3-style
-      // deceleration) \u2014 Gold gets a hair of overshoot on landing, the
-      // slot-reel equivalent of a satisfied little bounce.
-      track.style.transition='transform '+(SPIN_MS/1000)+'s '+(tier==='gold'?'cubic-bezier(.1,.82,.18,1.06)':'cubic-bezier(.16,.68,.24,1)');
+      // Bronze/Silver settle clean (no overshoot, a confident power3-
+      // style deceleration) \u2014 Gold and above get a hair of overshoot
+      // on landing, the slot-reel equivalent of a satisfied bounce.
+      track.style.transition='transform '+(SPIN_MS/1000)+'s '+(cfg.overshoot?'cubic-bezier(.1,.82,.18,1.06)':'cubic-bezier(.16,.68,.24,1)');
       track.style.transform='translateX(-'+(targetIndex*STRIDE)+'px)';
     });
     setTimeout(()=>{
@@ -6852,12 +7052,162 @@ function showLegendReveal(l,isNew,tier){
         '<div class="legend-reveal-rarity rarity-'+l.rarity+'">'+l.rarity.toUpperCase()+(isNew?' \u2014 NEW':' \u2014 DUPLICATE')+'</div>'+
         '<div class="achievement-title reveal-name-serif">'+l.name+'</div>'+
         '<div class="achievement-desc">'+l.title+'</div>'+
+        (tier==='areviax'?'<div style="font-size:11px;font-weight:700;color:#FFB347;margin-top:8px">\ud83d\udd25 The Areviax Drop \u2014 +2 bonus Compass Shards</div>':'')+
         '<button class="achievement-close-btn" onclick="this.closest(\'.achievement-overlay\').remove()">Continue</button>';
       playCrateRevealChime(l.rarity);
       addXP(isNew?25:10,isNew?'New legend card':'Compass Drop');
       if(isNew)celebrateBurst(['\ud83d\udd25','\u2b50','\ud83c\udfc6'],cfg.burstCount);
     },SPIN_MS+60);
   },cfg.chargeMs+cfg.shakeMs);
+}
+
+// ── DAILY SPIN WHEEL — one free spin a day, weighted heavily toward
+// Bronze with a razor-thin sliver for the Areviax Drop, same "a rare
+// thing needs a rare-feeling wedge" logic as the rarity ladder's own
+// odds. Pure SVG pie built from DAILY_SPIN_WEIGHTS at render time —
+// five slices don't need a charting library.
+const DAILY_SPIN_ORDER=['bronze','silver','gold','diamond','areviax'];
+const DAILY_SPIN_WEIGHTS={bronze:50,silver:28,gold:15,diamond:6,areviax:1};
+function spinWheelSegments(){
+  const total=DAILY_SPIN_ORDER.reduce((s,k)=>s+DAILY_SPIN_WEIGHTS[k],0);
+  let acc=0;
+  return DAILY_SPIN_ORDER.map(key=>{
+    const span=DAILY_SPIN_WEIGHTS[key]/total*360;
+    const seg={key,start:acc,end:acc+span,mid:acc+span/2};
+    acc+=span;
+    return seg;
+  });
+}
+function rollDailySpinTier(){
+  const total=DAILY_SPIN_ORDER.reduce((s,k)=>s+DAILY_SPIN_WEIGHTS[k],0);
+  const roll=Math.random()*total;
+  let acc=0;
+  for(const k of DAILY_SPIN_ORDER){
+    acc+=DAILY_SPIN_WEIGHTS[k];
+    if(roll<acc)return k;
+  }
+  return 'bronze';
+}
+// angleDeg=0 is straight up (12 o'clock), increasing clockwise — matches
+// where the fixed pointer sits and how CSS rotate() turns the dial.
+function spinPolarToXY(cx,cy,r,angleDeg){
+  const a=(angleDeg-90)*Math.PI/180;
+  return {x:cx+r*Math.cos(a),y:cy+r*Math.sin(a)};
+}
+function spinWedgePath(cx,cy,r,startDeg,endDeg){
+  const s=spinPolarToXY(cx,cy,r,startDeg), e=spinPolarToXY(cx,cy,r,endDeg);
+  const largeArc=endDeg-startDeg>180?1:0;
+  return 'M'+cx+','+cy+' L'+s.x+','+s.y+' A'+r+','+r+' 0 '+largeArc+' 1 '+e.x+','+e.y+' Z';
+}
+function isDailySpinReady(){
+  return dailySpinDate!==localDateKey(new Date());
+}
+function renderDailySpin(){
+  const cont=document.getElementById('daily-spin-wheel');
+  if(!cont)return;
+  const ready=isDailySpinReady();
+  const segs=spinWheelSegments();
+  const cx=100,cy=100,r=96;
+  const wedges=segs.map(seg=>'<path class="spin-wedge spin-wedge-'+seg.key+'"'+(seg.key==='areviax'?' style="fill:url(#areviaxWedgeGrad)"':'')+' d="'+spinWedgePath(cx,cy,r,seg.start,seg.end)+'"/>').join('');
+  // The Areviax sliver is ~3.6° — too thin for an inline icon, so it
+  // reads through colour + shimmer alone; the other four get their
+  // crate glyph placed at each wedge's mid-angle.
+  const icons=segs.filter(s=>s.key!=='areviax').map(seg=>{
+    const pos=spinPolarToXY(cx,cy,r*0.62,seg.mid);
+    const paths=CRATE_ICON_PATHS[seg.key]||CRATE_ICON_PATHS.bronze;
+    return '<g class="spin-wedge-icon" transform="translate('+pos.x+','+pos.y+') scale(0.95)" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+paths+'</g>';
+  }).join('');
+  cont.innerHTML=
+    '<div class="spin-wheel-wrap">'+
+      '<svg class="spin-wheel-dial" id="spin-wheel-dial" viewBox="0 0 200 200">'+
+        '<defs><linearGradient id="areviaxWedgeGrad" x1="0" y1="0" x2="1" y2="1">'+
+          '<stop offset="0%" stop-color="#FFD24A"/><stop offset="50%" stop-color="#FF7A2E"/><stop offset="100%" stop-color="#FFD24A"/>'+
+        '</linearGradient></defs>'+
+        '<g>'+wedges+'</g>'+
+        '<circle cx="100" cy="100" r="96" class="spin-wheel-rim"/>'+
+        icons+
+        '<circle cx="100" cy="100" r="23" class="spin-wheel-hub"/>'+
+        '<g class="spin-wheel-hub-icon" transform="translate(100,100)"><circle cx="0" cy="0" r="9"/><path d="M0-9v2.4M0 6.6V9M-9 0h2.4M6.6 0H9"/><path d="M0-5.5c2.4 2 3.6 4 3.2 6.4-.3 1.9-1.8 3.3-3.2 3.6-1.4-.3-2.9-1.7-3.2-3.6-.4-2.4.8-4.4 3.2-6.4z"/></g>'+
+      '</svg>'+
+      '<div class="spin-wheel-pointer"></div>'+
+    '</div>'+
+    '<button class="btn btn-g btn-sm spin-wheel-btn" id="spin-wheel-btn" '+(ready?'':'disabled')+' onclick="spinDailyWheel()">'+(ready?'🎡 Free Spin':'Come back tomorrow')+'</button>'+
+    '<div class="spin-wheel-legend">'+
+      DAILY_SPIN_ORDER.map(k=>'<span><i style="background:'+({bronze:'#B8622A',silver:'#9AA7B4',gold:'#D4970A',diamond:'#3FB8DE',areviax:'linear-gradient(90deg,#FFD24A,#FF7A2E)'})[k]+'"></i>'+CRATE_TIERS[k].label.replace(' Drop','')+' '+DAILY_SPIN_WEIGHTS[k]+'%</span>').join('')+
+    '</div>';
+}
+function spinDailyWheel(){
+  if(!isDailySpinReady())return;
+  const btn=document.getElementById('spin-wheel-btn');
+  if(btn){btn.disabled=true;btn.textContent='Spinning…';}
+  const dial=document.getElementById('spin-wheel-dial');
+  const tier=rollDailySpinTier();
+  const seg=spinWheelSegments().find(s=>s.key===tier);
+  const baseSpins=6+Math.floor(Math.random()*3);
+  const targetDeg=baseSpins*360-seg.mid;
+  if(dial){
+    dial.style.transition='transform 3.6s cubic-bezier(.1,.83,.14,1)';
+    dial.style.transform='rotate('+targetDeg+'deg)';
+  }
+  playCrateSpinTicks(3600);
+  dailySpinDate=localDateKey(new Date());
+  saveToStorage();
+  checkDailySpinBanner();
+  setTimeout(()=>{
+    playCrateCrackSound(tier);
+    if(tier==='areviax'){
+      openCompassDrop('areviax');
+    }else{
+      if(tier==='bronze')bronzeDropBank++;
+      else if(tier==='silver')silverDropBank++;
+      else if(tier==='gold')shardBank++;
+      else if(tier==='diamond')diamondDropBank++;
+      saveToStorage();
+      renderAchievements();
+      toast(tier==='gold'?'🔷':'🧭',(tier==='gold'?'+1 Compass Shard':'Won a '+CRATE_TIERS[tier].label)+' — tap it below to open');
+    }
+  },3650);
+}
+// ── DROP INFO — odds breakdown + how-to-earn for any crate tier, so
+// the crate row isn't a black box about what you're actually chasing.
+function viewDropInfo(tier,event){
+  if(event)event.stopPropagation();
+  const cfg=CRATE_TIERS[tier];
+  if(!cfg)return;
+  const oddsRows=RARITY_ORDER.filter(r=>cfg.odds[r]>0).map(r=>
+    '<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border2);font-size:11.5px">'+
+      '<span style="font-weight:800;text-transform:capitalize;color:'+RARITY_TEXT[r]+'">'+r+'</span>'+
+      '<span style="color:var(--muted)">'+cfg.odds[r]+'%</span>'+
+    '</div>'
+  ).join('');
+  const earnText={
+    bronze:'Free — fills automatically after '+BRONZE_DROP_DAYS+' training days, or win one from the Daily Spin ('+DAILY_SPIN_WEIGHTS.bronze+'% chance).',
+    silver:'Win one from the Daily Spin ('+DAILY_SPIN_WEIGHTS.silver+'% chance) — its only source for now.',
+    gold:'Costs 1 Compass Shard, earned with a perfect training week — or win a free shard from the Daily Spin ('+DAILY_SPIN_WEIGHTS.gold+'% chance).',
+    diamond:'Win one from the Daily Spin ('+DAILY_SPIN_WEIGHTS.diamond+'% chance) — the rarest crate you can bank.',
+    areviax:'The best drop in the app — only from the Daily Spin, a '+DAILY_SPIN_WEIGHTS.areviax+'% chance. Guarantees a Legendary card plus 2 bonus Compass Shards, opens immediately, free.',
+  };
+  const overlay=document.createElement('div');
+  overlay.className='achievement-overlay';
+  overlay.innerHTML=
+    '<div class="achievement-modal" style="max-width:300px;text-align:left">'+
+      '<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">'+
+        '<div class="compass-crate '+tier+'" style="width:44px;height:44px"><span class="crate-icon">'+crateIconSVG(tier)+'</span></div>'+
+        '<div style="font-size:15px;font-weight:900;color:var(--white)">'+cfg.label+'</div>'+
+      '</div>'+
+      '<div style="font-size:9px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:6px">Odds</div>'+
+      oddsRows+
+      '<div style="font-size:9px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:14px 0 6px">How to earn it</div>'+
+      '<div style="font-size:11.5px;color:rgba(var(--white-rgb),.75);line-height:1.6">'+earnText[tier]+'</div>'+
+      '<button class="achievement-close-btn" style="margin-top:16px" onclick="this.closest(\'.achievement-overlay\').remove()">Close</button>'+
+    '</div>';
+  document.body.appendChild(overlay);
+  requestAnimationFrame(()=>overlay.classList.add('show'));
+}
+function checkDailySpinBanner(){
+  const banner=document.getElementById('daily-spin-banner');
+  if(!banner)return;
+  banner.style.display=isDailySpinReady()?'flex':'none';
 }
 
 // ── BACKUP REMINDER — nudges, doesn't nag. Shows once it's actually
@@ -7919,6 +8269,7 @@ function showPage(id){
     try{checkStreakBroken();}catch(e){}
     try{checkSleepReminder();}catch(e){}
     try{checkSittingJobTip();}catch(e){}
+    try{checkDailySpinBanner();}catch(e){}
   }
   if(id==='workout'){safeRender(renderExercises,'workout');safeRender(renderSessionHistory,'workout');safeRender(renderTodayPlanBanner,'workout');}
   if(id==='session'){
@@ -7937,6 +8288,7 @@ function showPage(id){
       plannedSessionExs=autoPreviewExs;plannedSessionType=autoPreviewType;plannedSessionName=autoPreviewName;saveToStorage();
       const dnf=document.getElementById('d-next-full');if(dnf)dnf.textContent=plannedSessionName;
     }
+    sessionEnteredAt=Date.now();
     safeRender(buildSession,'session');
   }
   if(id==='progress')safeRender(renderProgress,'progress');
@@ -8518,6 +8870,7 @@ function initApp(){
   try{checkStreakBroken();}catch(e){console.error('checkStreakBroken:',e.message);}
   try{checkSleepReminder();}catch(e){console.error('checkSleepReminder:',e.message);}
   try{checkSittingJobTip();}catch(e){console.error('checkSittingJobTip:',e.message);}
+  try{checkDailySpinBanner();}catch(e){console.error('checkDailySpinBanner:',e.message);}
   try{buildTodayPreview();}catch(e){console.error('buildTodayPreview:',e.message);}
   try{renderNutrition();}catch(e){console.error('renderNutrition:',e.message);}
   try{renderRank();}catch(e){console.error('renderRank:',e.message);}
@@ -10243,6 +10596,14 @@ function pickSwap(i,name){
 function markTrainedToday(){
   const today=localDateKey(new Date());
   if(autoCountedDate===today)return;
+  // Anti-farm: a set logged within seconds of opening the Session page
+  // can't be real training — skip silently (no autoCountedDate write) so
+  // the very next logged set, once enough real time has passed, retries
+  // and grants credit normally. sessionEnteredAt is 0 for paths that
+  // never open the Session page at all (e.g. the 3-Minute Rescue
+  // Session), which deliberately skips this gate — it's already its own
+  // rate-limited (1/day) shortcut, not a farming route.
+  if(sessionEnteredAt&&Date.now()-sessionEnteredAt<MIN_SESSION_MS_FOR_CREDIT)return;
   checkCompassWeek(); // must run first so a new week resets sessThisWeek before incrementing
   autoCountedDate=today;
   sessThisWeek++;
@@ -11590,8 +11951,9 @@ function updateSmartLogPreview(){
 function logSmartFood(cals,prot,carbs,fats,alcohol){
   if(!smartLogFood)return;
   logItem(smartLogFood.name+' (~'+Math.round(smartLogGrams)+'g)',cals,prot,carbs,fats,alcohol);
-  addXP(5,'Food logged');
-  toast('✅',smartLogFood.name+' logged (~'+Math.round(smartLogGrams)+'g)');
+  const xp=foodXPForName(smartLogFood.name,5);
+  addXP(xp,'Food logged');
+  if(xp>=5)toast('✅',smartLogFood.name+' logged (~'+Math.round(smartLogGrams)+'g)');
   checkProteinQuest();saveToStorage();
   // reset
   smartLogFood=null;smartLogGrams=0;
@@ -13418,6 +13780,24 @@ function logItem(name,cals,prot,carbs,fats,alcohol){
   todayLog.push({name,cals,prot,carbs,fats,alcohol,time:new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})});
   renderNutrition();
 }
+// ── FOOD VARIETY GUARD — the same item logged over and over (living on
+// shakes all day, say) still tracks calories/protein normally, but XP for
+// it tapers off instead of paying full XP forever for zero variety. Call
+// AFTER logItem() so todayLog already includes the entry being scored.
+// Logging something different immediately pays full XP again — there's
+// no lasting penalty, just no reward for repeating the same thing.
+function normalizeFoodName(name){
+  return (name||'').replace(/\s*\([^)]*\)\s*$/,'').trim().toLowerCase(); // strips a trailing "(~150g)"-style suffix so the same food logged at different estimated portions still counts as a repeat
+}
+function foodXPForName(name,baseAmount){
+  const norm=normalizeFoodName(name);
+  const sameCount=todayLog.filter(it=>normalizeFoodName(it.name)===norm).length;
+  if(sameCount>=3){
+    toast('🥗','Logged — that\'s '+sameCount+'x the same thing today. Mixing in different foods covers a wider range of nutrients (and pays full XP again).');
+    return 1;
+  }
+  return baseAmount;
+}
 
 // ── QUICK ADD — Nutrition page carousel's one-tap common foods. Reuses
 // the real logItem() flow, same as everything else on this page.
@@ -13433,8 +13813,9 @@ function logQuickAdd(key){
   const f=QUICK_ADD_FOODS[key];
   if(!f)return;
   logItem(f.name,f.cals,f.prot,f.carbs,f.fats,0);
-  addXP(2,'Quick add');saveToStorage();
-  toast('✅',f.name+' logged');
+  const xp=foodXPForName(f.name,2);
+  addXP(xp,'Quick add');saveToStorage();
+  if(xp>=2)toast('✅',f.name+' logged');
 }
 
 // ── EMERGENCY PROTEIN SHAKE — one tap, no thinking required, for a day
@@ -13773,8 +14154,8 @@ function renderTodayLog(){
   ).join('');
 }
 
-function addMeal(cals,prot,name){logItem(name,cals,prot);addXP(5,'Meal logged');toast('🍽',name+' logged');checkProteinQuest();saveToStorage();}
-function logFood(){const n=document.getElementById('food-name').value||'Food';const c=parseInt(document.getElementById('food-cals').value)||0;const p=parseInt(document.getElementById('food-prot').value)||0;if(!c){toast('⚠️','Enter calories');return}logItem(n,c,p);document.getElementById('food-name').value='';document.getElementById('food-cals').value='';document.getElementById('food-prot').value='';addXP(5,'Food logged');toast('✅','Logged');checkProteinQuest();saveToStorage();}
+function addMeal(cals,prot,name){logItem(name,cals,prot);const xp=foodXPForName(name,5);addXP(xp,'Meal logged');if(xp>=5)toast('🍽',name+' logged');checkProteinQuest();saveToStorage();}
+function logFood(){const n=document.getElementById('food-name').value||'Food';const c=parseInt(document.getElementById('food-cals').value)||0;const p=parseInt(document.getElementById('food-prot').value)||0;if(!c){toast('⚠️','Enter calories');return}logItem(n,c,p);document.getElementById('food-name').value='';document.getElementById('food-cals').value='';document.getElementById('food-prot').value='';const xp=foodXPForName(n,5);addXP(xp,'Food logged');if(xp>=5)toast('✅','Logged');checkProteinQuest();saveToStorage();}
 // Water is a separate hydration habit from food logging — "Reset" clearing
 // a mis-logged meal shouldn't also wipe glasses already drunk today.
 function resetDay(){if(!confirm('Clear everything logged today?'))return;dayMacros={cals:0,prot:0,carbs:0,fats:0,water:dayMacros.water||0};todayLog=[];renderNutrition();saveToStorage();toast('🔄','Day reset')}
@@ -14612,6 +14993,9 @@ function saveToStorage(){
     localStorage.setItem('arx_xpLog', JSON.stringify(xpLog));
     localStorage.setItem('arx_shardBank', shardBank);
     localStorage.setItem('arx_bronzeDropBank', bronzeDropBank);
+    localStorage.setItem('arx_silverDropBank', silverDropBank);
+    localStorage.setItem('arx_diamondDropBank', diamondDropBank);
+    localStorage.setItem('arx_dailySpinDate', dailySpinDate);
     localStorage.setItem('arx_bronzeDropProgress', bronzeDropProgress);
     localStorage.setItem('arx_streakRepairDismissedDate', streakRepairDismissedDate);
     localStorage.setItem('arx_weightUnit', weightUnit);
@@ -14712,6 +15096,9 @@ function loadFromStorage(){
     { const xl=localStorage.getItem('arx_xpLog'); if(xl){try{xpLog=JSON.parse(xl);}catch(e){xpLog=[];}} }
     shardBank=parseInt(localStorage.getItem('arx_shardBank')||'0');
     bronzeDropBank=parseInt(localStorage.getItem('arx_bronzeDropBank')||'0');
+    silverDropBank=parseInt(localStorage.getItem('arx_silverDropBank')||'0');
+    diamondDropBank=parseInt(localStorage.getItem('arx_diamondDropBank')||'0');
+    dailySpinDate=localStorage.getItem('arx_dailySpinDate')||'';
     bronzeDropProgress=parseInt(localStorage.getItem('arx_bronzeDropProgress')||'0');
     streakRepairDismissedDate=localStorage.getItem('arx_streakRepairDismissedDate')||'';
     weightUnit=localStorage.getItem('arx_weightUnit')||'lbs';
