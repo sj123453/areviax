@@ -7395,10 +7395,15 @@ function legendIconHTML(l){
 // (wrapped in a viewBox="-12 -12 24 24" <svg>, see crateIconSVG) and
 // embedded inside the spin wheel (wrapped in a translated/scaled <g>,
 // see renderDailySpin) without redrawing anything.
+// Bronze/silver/gold now share a coin silhouette (double ring) instead
+// of a money-bag/shield/star-bag mix that didn't read as any particular
+// metal — the ring reads as "a coin made of this tier's material" under
+// its color fill regardless of tier, and the engraving inside (none,
+// star, crown) climbs with value the same way the tiers themselves do.
 const CRATE_ICON_PATHS={
-  bronze:'<path d="M-8-2h16v7.5a1.5 1.5 0 01-1.5 1.5h-13A1.5 1.5 0 01-8 5.5V-2z"/><path d="M-8-2 Q0-7 8-2"/><circle cx="0" cy="2.5" r="1.6"/><path d="M0 4v1.5"/>',
-  silver:'<path d="M0-9l7 3v5c0 5-3 8.5-7 10-4-1.5-7-5-7-10v-5l7-3z"/><path d="M-3 0l2 2 4-4.5"/>',
-  gold:'<path d="M-8-1.5h16v7.5a1.5 1.5 0 01-1.5 1.5h-13A1.5 1.5 0 01-8 5.5v-7z"/><path d="M-8-1.5 Q0-7.5 8-1.5"/><path d="M0-9.5l1.4 2.4 2.6.5-2 1.7.5 2.6L0-3.7l-2.5 1.4.5-2.6-2-1.7 2.6-.5L0-9.5z"/><circle cx="0" cy="3" r="1.6"/>',
+  bronze:'<circle cx="0" cy="0" r="8.5"/><circle cx="0" cy="0" r="6"/>',
+  silver:'<circle cx="0" cy="0" r="8.5"/><circle cx="0" cy="0" r="6"/><path d="M0-4 0.94-1.29 3.8-1.24 1.52 0.49 2.35 3.24 0 1.6 -2.35 3.24 -1.52 0.49 -3.8-1.24 -0.94-1.29Z"/>',
+  gold:'<circle cx="0" cy="0" r="8.5"/><circle cx="0" cy="0" r="6"/><path d="M-4 3-4-1-2 1.4 0-2.6 2 1.4 4-1 4 3Z"/>',
   diamond:'<path d="M-5-8h10l4 5-9 11-9-11 4-5z"/><path d="M-9-3h18M-3.5-3L0 8M3.5-3L0 8"/>',
   areviax:'<circle cx="0" cy="0" r="9"/><path d="M0-9v2.4M0 6.6V9M-9 0h2.4M6.6 0H9"/><path d="M0-5.5c2.4 2 3.6 4 3.2 6.4-.3 1.9-1.8 3.3-3.2 3.6-1.4-.3-2.9-1.7-3.2-3.6-.4-2.4.8-4.4 3.2-6.4z"/>',
 };
