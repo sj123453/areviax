@@ -1321,10 +1321,21 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        system elsewhere in the app. */
     .legend-card{
       flex:0 0 auto;width:78px;border-radius:10px;padding:8px 4px 6px;text-align:center;
-      background:transparent;border:none;cursor:pointer;
+      background:transparent;border:none;cursor:pointer;position:relative;
       -webkit-tap-highlight-color:transparent;transition:transform .15s;
     }
     .legend-card:active{transform:scale(.96)}
+    /* Sibling of .legend-card-icon rather than a child of it — the icon
+       has its own clip-path (hexagon silhouette), so anything nested
+       inside gets clipped to that shape (same class of bug already fixed
+       once this session for the road nodes' checkmark badge). */
+    .legend-info-btn{
+      position:absolute;top:2px;right:2px;width:15px;height:15px;border-radius:50%;
+      background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.25);
+      color:rgba(255,255,255,.8);font-size:9px;font-weight:800;font-style:italic;
+      font-family:Georgia,serif;display:flex;align-items:center;justify-content:center;
+      z-index:2;cursor:pointer;
+    }
     /* Hexagon badge — same capsule silhouette as .compass-crate so a
        card reads as "something that came out of that crate" at a
        glance. Locked = flat dark grey hex; unlocked = rarity-tinted
@@ -7450,6 +7461,14 @@ function viewLegendCard(key){
   const unlocked=unlockedLegends.includes(key);
   toast(unlocked?l.icon:'\u2753',unlocked?l.name+' \u2014 '+l.title:'Locked \u2014 open a Compass Drop for a chance at this card');
 }
+// Small "i" badge on every real trophy card \u2014 same reveal as tapping the
+// card itself (viewLegendCard already correctly withholds the
+// description for anything still locked), just a visible, dedicated
+// affordance instead of the description only being discoverable by
+// tapping the card at large.
+function legendInfoBadgeHTML(key){
+  return `<div class="legend-info-btn" onclick="event.stopPropagation();viewLegendCard('${key}')">i</div>`;
+}
 
 // \u2500\u2500 TROPHY CABINET \u2014 the full 7-layer collection plan, in
 // descending-rarity display order (peak trophy is its own hero block
@@ -7477,6 +7496,7 @@ function renderTrophyCabinet(){
     const slots=layer.items?layer.items.map(l=>{
       const unlocked=unlockedLegends.includes(l.key);
       return `<div class="legend-card cabinet-slot rarity-${l.rarity}${unlocked?' unlocked':''}" onclick="viewLegendCard('${l.key}')">
+        ${legendInfoBadgeHTML(l.key)}
         <div class="legend-card-icon">${unlocked?legendIconHTML(l):'\u2753'}</div>
         <div class="legend-card-name">${unlocked?l.name:'???'}</div>
       </div>`;
@@ -7510,7 +7530,8 @@ function renderTrophyCabinet(){
     const unlocked=trophy&&unlockedLegends.includes('areviax_trophy');
     peak.classList.toggle('unlocked',!!unlocked);
     peak.setAttribute('onclick',unlocked?"viewLegendCard('areviax_trophy')":"viewCabinetLocked('The Areviax Trophy')");
-    peak.innerHTML=`<div class="legend-card-icon">${unlocked?legendIconHTML(trophy):'🔒'}</div>
+    peak.innerHTML=`${legendInfoBadgeHTML('areviax_trophy')}
+      <div class="legend-card-icon">${unlocked?legendIconHTML(trophy):'🔒'}</div>
       <div class="legend-card-name">1-of-1</div>`;
   }
   const legendsRow=document.getElementById('cabinet-legends-row');
@@ -7522,6 +7543,7 @@ function renderTrophyCabinet(){
     legendsRow.innerHTML=legends.map(l=>{
       const unlocked=unlockedLegends.includes(l.key);
       return `<div class="legend-card cabinet-slot rarity-${l.rarity}${unlocked?' unlocked':''}" onclick="viewLegendCard('${l.key}')">
+        ${legendInfoBadgeHTML(l.key)}
         <div class="legend-card-icon">${unlocked?legendIconHTML(l):'❓'}</div>
         <div class="legend-card-name">${unlocked?l.name:'???'}</div>
       </div>`;
