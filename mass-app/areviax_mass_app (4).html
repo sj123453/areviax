@@ -542,9 +542,10 @@ input,input:focus,input:active,
    rather than just reflowing the same stack into two side-by-side
    columns. */
 .dash-grid{display:grid;gap:14px;grid-template-columns:1fr;
-  grid-template-areas:"greeting" "today" "overview" "quote"}
+  grid-template-areas:"greeting" "today" "plan" "overview" "quote"}
 .dash-greeting{grid-area:greeting}
 .dash-today{grid-area:today}
+.dash-plan{grid-area:plan;min-width:0}
 .dash-rings{grid-area:overview}
 .dash-quote{grid-area:quote}
 /* Streak card is desktop-only — mobile's single column is already using
@@ -555,7 +556,7 @@ input,input:focus,input:active,
 @media(min-width:900px){
   #page-dashboard{max-width:1120px}
   .dash-grid{grid-template-columns:1.4fr 1fr;align-items:start;
-    grid-template-areas:"greeting overview" "today overview" "streak quote"}
+    grid-template-areas:"greeting overview" "today overview" "plan plan" "streak quote"}
   .dash-streak{display:block;grid-area:streak}
 }
 /* DESKTOP DASHBOARD SCALE-UP — the dashboard's cards were sized tight
@@ -2600,6 +2601,22 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       </div>
     </div>
     <div id="vol-daily-empty" style="margin-top:7px;padding-top:7px;border-top:1px solid var(--border);font-size:9.5px;color:var(--muted);line-height:1.4">Log your first set and this week's volume trend shows up here.</div>
+  </div>
+  </div>
+
+  <!-- THE PLAN — the session's actual exercise breakdown before you start
+       it, not just its name. Real prescribed scheme + the same suggested
+       working weight the live session screen itself will prefill, plus a
+       PR flag when today's suggested weight would tie/beat the recorded
+       PR for that lift (never fabricated — no flag if there's no PR on
+       file yet to compare against). -->
+  <div class="dash-plan">
+  <div id="dash-plan-card" style="display:none;background:var(--panel);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--border2);border-radius:16px;padding:17px 18px">
+    <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px">
+      <div style="font-size:15px;font-weight:900;color:var(--white)">The Plan</div>
+      <div style="font-size:10px;color:rgba(var(--white-rgb),.4)" id="dash-plan-sets"></div>
+    </div>
+    <div id="dash-plan-list"></div>
   </div>
   </div>
 
@@ -9552,6 +9569,7 @@ function initApp(){
       dnsub.textContent='';
     }
   }
+  renderDashPlan();
   const dcb=document.getElementById('d-cals-brief');if(dcb)dcb.textContent=(dayMacros.cals||0).toLocaleString();
   const dct=document.getElementById('d-cals-target');if(dct)dct.textContent=(profile.cals||0).toLocaleString();
   const dcring=document.getElementById('d-cals-ring');if(dcring){const p=Math.min(1,profile.cals?(dayMacros.cals||0)/profile.cals:0);dcring.style.strokeDashoffset=(182.2*(1-p)).toFixed(1);}
@@ -14131,6 +14149,47 @@ function renderMuscleReadiness(){
       <div class="muscle-status-val" style="color:${col}">${val}</div>
     </div>`;
   }).join('');
+}
+// THE PLAN — dashboard preview of today's actual exercise breakdown,
+// reusing the exact same suggested-weight logic (suggestNextWeight) the
+// live session screen prefills its inputs with, and the same real prs{}
+// PR tracker — so nothing shown here can drift out of sync with what the
+// session itself will actually show.
+function renderDashPlan(){
+  const card=document.getElementById('dash-plan-card');
+  const list=document.getElementById('dash-plan-list');
+  const setsEl=document.getElementById('dash-plan-sets');
+  if(!card||!list)return;
+  const exs=plannedSessionExs;
+  if(!exs||!exs.length){card.style.display='none';return;}
+  card.style.display='';
+  const totalSets=exs.reduce((s,e)=>s+effectiveSets(e),0);
+  if(setsEl)setsEl.textContent=totalSets+' sets';
+  list.innerHTML=exs.map((e,i)=>{
+    const sug=suggestNextWeight(e);
+    const isPR=!!(sug&&prs[e.name]&&sug.weight>=prs[e.name]);
+    return`<div style="display:flex;align-items:center;gap:11px;padding:10px 0;border-bottom:1px solid var(--border2)">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:rgba(var(--white-rgb),.3);width:16px;flex-shrink:0">${String(i+1).padStart(2,'0')}</div>
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:6px;min-width:0">
+          <div style="font-size:13px;font-weight:800;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0">${e.name}</div>
+          ${isPR?'<span style="background:rgba(255,196,0,.15);color:#FFC400;font-size:8.5px;font-weight:800;padding:2px 6px;border-radius:5px;flex-shrink:0">🏆 PR</span>':''}
+        </div>
+        <div style="font-size:10.5px;color:rgba(var(--white-rgb),.4);margin-top:2px">${effectiveSets(e)} × ${e.reps}${sug?' · '+sug.weight+'kg':''}</div>
+      </div>
+      <div onclick="startSessionAt(${i})" style="flex-shrink:0;white-space:nowrap;font-size:10.5px;font-weight:800;color:#FF9A5C;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;padding:6px 10px">Go</div>
+    </div>`;
+  }).join('');
+}
+// Jumps straight into the exercise's own session card rather than just
+// the top of the session page, matching what tapping "Go" on a specific
+// lift in The Plan actually implies.
+function startSessionAt(i){
+  showPage('session');
+  setTimeout(()=>{
+    const el=document.getElementById('sex-'+i);
+    if(el)el.scrollIntoView({behavior:'smooth',block:'start'});
+  },350);
 }
 function renderReadiness(){
   const card=document.getElementById('readiness-card');
