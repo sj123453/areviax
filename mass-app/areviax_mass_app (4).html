@@ -1705,20 +1705,20 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       position:relative;padding:10px 0 6px;border-radius:14px;
       background:linear-gradient(180deg,rgba(255,255,255,.018),transparent 45%);
     }
-    .xp-road-track::before{
-      content:'';position:absolute;left:50%;top:6px;bottom:6px;width:3px;margin-left:-1.5px;
-      background:repeating-linear-gradient(180deg,rgba(255,255,255,.16) 0 6px,transparent 6px 13px);
-      border-radius:3px;
-    }
-    .xp-road-track.has-progress::before{
-      background:repeating-linear-gradient(180deg,rgba(255,140,50,.65) 0 6px,transparent 6px 13px);
-      box-shadow:0 0 10px rgba(255,90,0,.35);
-    }
+    .road-trail-svg{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:visible}
     .xp-node{position:relative;min-height:108px;animation:xpNodeEntrance .5s cubic-bezier(.16,1,.3,1) both;animation-delay:var(--stagger,0ms)}
     @keyframes xpNodeEntrance{0%{opacity:0;transform:translateY(14px) scale(.85)}100%{opacity:1;transform:translateY(0) scale(1)}}
     @media(prefers-reduced-motion:reduce){.xp-node,.road-ember{animation:none!important}}
+    /* Hex + checkmark badge live in a wrapper, not one inside the other —
+       .xp-node-hex applies a clip-path polygon to draw the hexagon, and
+       clip-path clips EVERY descendant to that same shape. The checkmark
+       badge is deliberately positioned poking outside the hex's own
+       edge (top:-5px;right:-5px), so nesting it inside the clipped hex
+       silently sliced most of the circle off. Wrapping them as siblings
+       inside an unclipped wrapper is what makes the badge fully visible. */
+    .xp-node-hexwrap{position:absolute;top:12px;width:64px;height:64px;z-index:2}
     .xp-node-hex{
-      position:absolute;top:12px;width:64px;height:64px;z-index:2;
+      position:relative;width:100%;height:100%;
       clip-path:polygon(50% 0%,93% 25%,93% 75%,50% 100%,7% 75%,7% 25%);
       display:flex;align-items:center;justify-content:center;font-size:26px;
       background:linear-gradient(160deg,#2A2A38,#18181F);
@@ -1728,25 +1728,22 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .xp-node-hex img{width:62%;height:62%;object-fit:contain;filter:none;position:relative;z-index:1}
     .xp-node-connector{position:absolute;top:43px;height:2px;width:9px;background:rgba(255,255,255,.12);z-index:1}
     .xp-node-body{position:absolute;top:14px;width:112px;line-height:1.3}
-    .xp-node.side-l .xp-node-hex,.xp-node.side-l .xp-node-connector,.xp-node.side-l .xp-node-body{right:50%;left:auto}
-    .xp-node.side-l .xp-node-hex{margin-right:8px}
+    .xp-node.side-l .xp-node-hexwrap,.xp-node.side-l .xp-node-connector,.xp-node.side-l .xp-node-body{right:50%;left:auto}
+    .xp-node.side-l .xp-node-hexwrap{margin-right:8px}
     .xp-node.side-l .xp-node-connector{margin-right:0}
     .xp-node.side-l .xp-node-body{margin-right:58px;text-align:right}
-    .xp-node.side-r .xp-node-hex,.xp-node.side-r .xp-node-connector,.xp-node.side-r .xp-node-body{left:50%;right:auto}
-    .xp-node.side-r .xp-node-hex{margin-left:8px}
+    .xp-node.side-r .xp-node-hexwrap,.xp-node.side-r .xp-node-connector,.xp-node.side-r .xp-node-body{left:50%;right:auto}
+    .xp-node.side-r .xp-node-hexwrap{margin-left:8px}
     .xp-node.side-r .xp-node-body{margin-left:58px;text-align:left}
     .xp-node.claimed .xp-node-hex{
       filter:none;background:linear-gradient(160deg,#FFB27A,var(--green));
       box-shadow:0 0 14px rgba(255,140,60,.35),inset 0 1px 1px rgba(255,255,255,.25);
     }
     .xp-node.claimed .xp-node-connector{background:rgba(255,90,0,.35)}
-    .xp-node.next .xp-node-hex{
-      width:88px;height:88px;top:0;filter:none;font-size:34px;
-      background:linear-gradient(160deg,#FFD6A8,var(--green));
-      animation:xpNextPulse 2.2s ease-in-out infinite;
-    }
-    .xp-node.side-l.next .xp-node-hex{margin-right:4px}
-    .xp-node.side-r.next .xp-node-hex{margin-left:4px}
+    .xp-node.next .xp-node-hexwrap{width:88px;height:88px;top:0}
+    .xp-node.next .xp-node-hex{filter:none;font-size:34px;background:linear-gradient(160deg,#FFD6A8,var(--green));animation:xpNextPulse 2.2s ease-in-out infinite}
+    .xp-node.side-l.next .xp-node-hexwrap{margin-right:4px}
+    .xp-node.side-r.next .xp-node-hexwrap{margin-left:4px}
     @keyframes xpNextPulse{
       0%,100%{box-shadow:0 0 0 rgba(255,90,0,.4),inset 0 1px 2px rgba(255,255,255,.3)}
       50%{box-shadow:0 0 26px rgba(255,90,0,.65),inset 0 1px 2px rgba(255,255,255,.3)}
@@ -6890,6 +6887,41 @@ function checkXpRoad(){
     saveToStorage();renderAchievements();renderXpRoad();
   }
 }
+// Shared by XP/Weight/Trophy Road — the nodes zigzag left/right, but the
+// track only ever drew a straight dashed line down the dead centre, so
+// whichever side a given node ISN'T on read as flat empty space. Draws
+// a real winding trail by reading each node's actual on-screen hex
+// position (post-render, so it always matches the live layout) and
+// curving a path through them, replacing the straight spine with
+// something that actually fills that side gap.
+function drawRoadTrail(cont){
+  if(!cont)return;
+  const hexes=[...cont.querySelectorAll('.xp-node-hexwrap')];
+  if(hexes.length<2)return;
+  const contRect=cont.getBoundingClientRect();
+  const pts=hexes.map(h=>{
+    const r=h.getBoundingClientRect();
+    return {x:r.left+r.width/2-contRect.left,y:r.top+r.height/2-contRect.top};
+  });
+  let d='M'+pts[pts.length-1].x.toFixed(1)+','+pts[pts.length-1].y.toFixed(1);
+  for(let i=pts.length-2;i>=0;i--){
+    const p0=pts[i+1],p1=pts[i];
+    const midY=((p0.y+p1.y)/2).toFixed(1);
+    d+=' C'+p0.x.toFixed(1)+','+midY+' '+p1.x.toFixed(1)+','+midY+' '+p1.x.toFixed(1)+','+p1.y.toFixed(1);
+  }
+  let svg=cont.querySelector('.road-trail-svg');
+  if(!svg){
+    svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
+    svg.setAttribute('class','road-trail-svg');
+    cont.insertBefore(svg,cont.firstChild);
+  }
+  svg.setAttribute('width',contRect.width);
+  svg.setAttribute('height',contRect.height);
+  const lit=cont.classList.contains('has-progress');
+  svg.innerHTML=
+    '<path d="'+d+'" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="4" stroke-linecap="round" stroke-dasharray="1 13"/>'+
+    (lit?'<path d="'+d+'" fill="none" stroke="rgba(255,140,50,.6)" stroke-width="4" stroke-linecap="round" stroke-dasharray="1 13" style="filter:drop-shadow(0 0 5px rgba(255,90,0,.4))"/>':'');
+}
 function renderXpRoad(){
   const cont=document.getElementById('xp-road');
   const sub=document.getElementById('xp-road-sub');
@@ -6911,7 +6943,7 @@ function renderXpRoad(){
     const prevXp=i===sorted.length-1?0:sorted[i+1].xp;
     const pct=isNext?Math.max(0,Math.min(100,Math.round((xp-prevXp)/(node.xp-prevXp)*100))):0;
     return '<div class="xp-node '+side+state+'" style="--stagger:'+Math.min(i*45,450)+'ms">'+
-      '<div class="xp-node-hex">'+(claimed||isNext?xpRoadRewardIcon(node):'\ud83d\udd12')+
+      '<div class="xp-node-hexwrap"><div class="xp-node-hex">'+(claimed||isNext?xpRoadRewardIcon(node):'\ud83d\udd12')+'</div>'+
         (claimed?'<span class="xp-node-check"><svg viewBox="0 0 24 24" fill="none" stroke="#0B0B0B" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>':'')+
       '</div>'+
       '<div class="xp-node-connector"></div>'+
@@ -6923,6 +6955,7 @@ function renderXpRoad(){
     '</div>';
   }).join('');
   requestAnimationFrame(()=>{
+    drawRoadTrail(cont);
     const nextEl=cont.querySelector('.xp-node.next');
     if(nextEl)nextEl.scrollIntoView({block:'center'});
   });
@@ -7026,7 +7059,7 @@ function renderTrophyRoad(){
     const side=i%2===0?'side-l':'side-r';
     const state=claimed?' claimed':isNext?' next':'';
     return '<div class="xp-node '+side+state+'" style="--stagger:'+Math.min(i*45,450)+'ms" onclick="viewAchievementBadge(\''+a.key+'\')">'+
-      '<div class="xp-node-hex">'+(claimed||isNext?a.icon:'\ud83d\udd12')+
+      '<div class="xp-node-hexwrap"><div class="xp-node-hex">'+(claimed||isNext?a.icon:'\ud83d\udd12')+'</div>'+
         (claimed?'<span class="xp-node-check"><svg viewBox="0 0 24 24" fill="none" stroke="#0B0B0B" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>':'')+
       '</div>'+
       '<div class="xp-node-connector"></div>'+
@@ -7037,6 +7070,7 @@ function renderTrophyRoad(){
     '</div>';
   }).join('');
   requestAnimationFrame(()=>{
+    drawRoadTrail(cont);
     const nextEl=cont.querySelector('.xp-node.next');
     if(nextEl)nextEl.scrollIntoView({block:'center'});
   });
@@ -7064,7 +7098,7 @@ function renderWeightRoad(){
     const prevKg=i===sorted.length-1?0:sorted[i+1].kg;
     const pct=isNext?Math.max(0,Math.min(100,Math.round((vol-prevKg)/(m.kg-prevKg)*100))):0;
     return '<div class="xp-node '+side+state+'" style="--stagger:'+Math.min(i*45,450)+'ms">'+
-      '<div class="xp-node-hex">'+(claimed||isNext?milestoneIconHTML(m):'\ud83d\udd12')+
+      '<div class="xp-node-hexwrap"><div class="xp-node-hex">'+(claimed||isNext?milestoneIconHTML(m):'\ud83d\udd12')+'</div>'+
         (claimed?'<span class="xp-node-check"><svg viewBox="0 0 24 24" fill="none" stroke="#0B0B0B" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>':'')+
       '</div>'+
       '<div class="xp-node-connector"></div>'+
@@ -7076,6 +7110,7 @@ function renderWeightRoad(){
     '</div>';
   }).join('');
   requestAnimationFrame(()=>{
+    drawRoadTrail(cont);
     const nextEl=cont.querySelector('.xp-node.next');
     if(nextEl)nextEl.scrollIntoView({block:'center'});
   });
