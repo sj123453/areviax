@@ -1383,6 +1383,11 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .legend-card.rarity-epic.unlocked .legend-card-icon{background:linear-gradient(115deg,#F1DCFF,#D8A6FF,#F1DCFF,#B266FF);background-size:260% 100%;box-shadow:0 0 22px rgba(168,85,247,.55);animation:rarityShimmerSweep 3.2s linear infinite}
     .legend-card.rarity-mythic.unlocked .legend-card-icon{background:linear-gradient(160deg,#FF8A93,#C81E3A);box-shadow:0 0 24px rgba(239,68,68,.55);animation:rarityPulseStrong 2s ease-in-out infinite}
     .legend-card.rarity-legendary.unlocked .legend-card-icon{background:linear-gradient(160deg,#FFE066,#E8B400);box-shadow:0 0 28px rgba(255,212,0,.6);animation:rarityPulseStrong 1.6s ease-in-out infinite}
+    /* Weight Milestones aren't gacha-pull rarities — no rarity field,
+       so they get their own flat "iron" material instead of a
+       rarity-X class, matching the steel palette Weight Road used
+       before it moved into the Cabinet. */
+    .legend-card.iron.unlocked .legend-card-icon{background:linear-gradient(160deg,#8FD8FF,#1B4F73);box-shadow:0 0 12px rgba(90,170,255,.4)}
     .legend-card.rarity-ultralegendary.unlocked .legend-card-icon{
       background:linear-gradient(115deg,#FFD24A,#FF6FD8,#7FE3FF,#FF9A3D,#FFD24A);
       background-size:300% 100%;box-shadow:0 0 34px rgba(255,180,80,.75);
@@ -3642,27 +3647,12 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     </div>
   </div>
 
-  <!-- REWARDS — Weight Milestones, Daily Spin, Compass Drops. Was
-       shared with Trophy Road under one "Achievements" card; trophies
-       now have their own dedicated card above, so this one stays
-       focused on weight-lifted progress and the currency/reward loop. -->
+  <!-- REWARDS — Daily Spin, Compass Drops. Weight Milestones moved to
+       the Trophy Cabinet (it's a trophy collection, same as everything
+       else there) so this card stays focused on the currency/reward loop. -->
   <div class="card" style="margin-bottom:14px">
     <div class="ch"><span class="ct">Rewards</span></div>
-    <div class="glow-title weight" style="font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px">🏋️ Weight Milestones</div>
-    <div style="font-size:11px;color:var(--muted);margin-bottom:4px" id="weight-road-sub"></div>
-    <div class="road-scenery theme-iron">
-      <div class="road-ember" style="left:10%;animation-delay:.4s;animation-duration:7.4s"></div>
-      <div class="road-ember" style="left:26%;animation-delay:2.8s;animation-duration:6.6s"></div>
-      <div class="road-ember" style="left:44%;animation-delay:1.1s;animation-duration:7.8s"></div>
-      <div class="road-ember" style="left:63%;animation-delay:3.6s;animation-duration:6.3s"></div>
-      <div class="road-ember" style="left:80%;animation-delay:.2s;animation-duration:8.1s"></div>
-      <div class="road-ember" style="left:94%;animation-delay:2s;animation-duration:7s"></div>
-      <div class="road-ridge back"></div>
-      <div class="road-ridge front"></div>
-      <div id="weight-road" style="max-height:340px;overflow-y:auto;padding-right:4px"></div>
-    </div>
-    <div class="road-expand-btn" style="display:block;text-align:center;margin-top:6px" onclick="openRoadFullscreen('weight-road','🏋️ Weight Road')">⤢ View fullscreen</div>
-    <div style="font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:14px 0 4px" id="daily-spin-card">Daily Spin</div>
+    <div style="font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:4px" id="daily-spin-card">Daily Spin</div>
     <div style="font-size:10.5px;color:var(--muted);margin-bottom:2px">One free spin a day — Bronze, Silver, Gold, Diamond, even the Areviax Drop.</div>
     <div id="daily-spin-wheel" class="spin-wheel-card"></div>
     <div style="font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:14px 0 4px">Compass Drops</div>
@@ -3707,6 +3697,15 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     </div>
     <div class="cabinet-tier-sub">Bodybuilding's greatest — pulled from any Compass Drop, not one of the 7 layers above</div>
     <div class="cabinet-row" id="cabinet-legends-row"></div>
+  </div>
+
+  <div class="cabinet-tier">
+    <div class="cabinet-tier-plaque">
+      <span class="cabinet-tier-name">Weight Milestones</span>
+      <span class="cabinet-tier-count" id="cabinet-weight-count"></span>
+    </div>
+    <div class="cabinet-tier-sub" id="cabinet-weight-sub">Earned by lifetime volume, not a Compass Drop</div>
+    <div class="cabinet-row" id="cabinet-weight-row"></div>
   </div>
 </div>
 
@@ -7225,7 +7224,6 @@ function crateIconSVG(tier){
 
 function renderAchievements(){
   renderTrophyRoad();
-  renderWeightRoad();
   renderDailySpin();
   const crateRow=document.getElementById('crate-row');
   if(crateRow){
@@ -7283,45 +7281,36 @@ function renderTrophyRoad(){
     if(nextEl)nextEl.scrollIntoView({block:'center'});
   });
 }
-// Weight Road \u2014 same winding-path component the XP Road uses
-// (.xp-road-track/.xp-node), driven by WEIGHT_MILESTONES + lifetime
-// tonnage instead of XP checkpoints, so the two read as one family
-// instead of a road sitting next to an unrelated flat badge row.
-function renderWeightRoad(){
-  const cont=document.getElementById('weight-road');
-  const sub=document.getElementById('weight-road-sub');
+// Weight Milestones \u2014 lives in the Trophy Cabinet now (it's a trophy
+// collection like everything else there), rendered as the same
+// cabinet-slot grid the numbered layers use rather than its own
+// vertical road, so it reads as one more shelf in the room instead of
+// a different kind of component bolted on.
+function renderCabinetWeightMilestones(){
+  const cont=document.getElementById('cabinet-weight-row');
+  const sub=document.getElementById('cabinet-weight-sub');
+  const countEl=document.getElementById('cabinet-weight-count');
   if(!cont)return;
   const vol=totalVolume||0;
-  const ascending=[...WEIGHT_MILESTONES].sort((a,b)=>a.kg-b.kg);
-  const next=ascending.find(m=>vol<m.kg);
+  const sorted=[...WEIGHT_MILESTONES].sort((a,b)=>a.kg-b.kg);
+  const next=sorted.find(m=>vol<m.kg);
+  const unlockedCount=sorted.filter(m=>vol>=m.kg).length;
+  if(countEl)countEl.textContent=unlockedCount+'/'+sorted.length;
   if(sub)sub.textContent=next?vol.toLocaleString()+' / '+next.kg.toLocaleString()+'kg lifetime to '+next.name:'All milestones hit \u2014 '+vol.toLocaleString()+'kg lifetime';
-  const anyClaimed=ascending.some(m=>vol>=m.kg);
-  cont.className='xp-road-track'+(anyClaimed?' has-progress':'');
-  const sorted=[...ascending].reverse();
-  cont.innerHTML=sorted.map((m,i)=>{
+  cont.innerHTML=sorted.map(m=>{
     const claimed=vol>=m.kg;
-    const isNext=!claimed&&m===next;
-    const side=i%2===0?'side-l':'side-r';
-    const state=claimed?' claimed':isNext?' next':'';
-    const prevKg=i===sorted.length-1?0:sorted[i+1].kg;
-    const pct=isNext?Math.max(0,Math.min(100,Math.round((vol-prevKg)/(m.kg-prevKg)*100))):0;
-    return '<div class="xp-node '+side+state+'" style="--stagger:'+Math.min(i*45,450)+'ms">'+
-      '<div class="xp-node-hexwrap"><div class="xp-node-hex">'+(claimed||isNext?milestoneIconHTML(m):'\ud83d\udd12')+'</div>'+
-        (claimed?'<span class="xp-node-check"><svg viewBox="0 0 24 24" fill="none" stroke="#0B0B0B" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>':'')+
-      '</div>'+
-      '<div class="xp-node-connector"></div>'+
-      '<div class="xp-node-body">'+
-        '<span class="xp-node-xp">'+formatCompactNum(m.kg)+'kg</span>'+
-        '<div class="xp-node-desc">'+m.name+'</div>'+
-        (isNext?'<div class="xp-node-bar"><div class="xp-node-bar-fill" style="width:'+pct+'%"></div></div>':'')+
-      '</div>'+
-    '</div>';
+    return `<div class="legend-card cabinet-slot iron${claimed?' unlocked':''}" onclick="viewWeightMilestone(${m.kg})">
+      <div class="legend-card-icon">${claimed?milestoneIconHTML(m):'\ud83d\udd12'}</div>
+      <div class="legend-card-name">${claimed?m.name:'???'}</div>
+    </div>`;
   }).join('');
-  requestAnimationFrame(()=>{
-    drawRoadTrail(cont);
-    const nextEl=cont.querySelector('.xp-node.next');
-    if(nextEl)nextEl.scrollIntoView({block:'center'});
-  });
+}
+function viewWeightMilestone(kg){
+  const m=WEIGHT_MILESTONES.find(x=>x.kg===kg);
+  if(!m)return;
+  const vol=totalVolume||0;
+  const unlocked=vol>=m.kg;
+  toast(unlocked?'\ud83c\udfcb\ufe0f':'\ud83d\udd12',unlocked?m.name+' \u2014 '+m.kg.toLocaleString()+'kg lifetime':m.name+' \u2014 '+m.kg.toLocaleString()+'kg lifetime needed');
 }
 function viewAchievementBadge(key){
   const a=ACHIEVEMENTS.find(x=>x.key===key);
@@ -7357,6 +7346,7 @@ function viewCabinetLocked(label){
 function renderTrophyCabinet(){
   const cont=document.getElementById('cabinet-tiers');
   if(!cont)return;
+  renderCabinetWeightMilestones();
   cont.innerHTML=TROPHY_LAYERS.map(layer=>{
     const slots=layer.items?layer.items.map(l=>{
       const unlocked=unlockedLegends.includes(l.key);
@@ -7399,7 +7389,10 @@ function renderTrophyCabinet(){
   }
   const legendsRow=document.getElementById('cabinet-legends-row');
   if(legendsRow){
-    const legends=LEGEND_CARDS.filter(l=>l.rarity!=='common'&&l.rarity!=='superrare'&&l.rarity!=='ultralegendary');
+    // The "big 4" only — legendary + mythic. Epic/rare cards (Cutler,
+    // Heath, Oliva, Columbu) still exist and still drop from Compass
+    // Drops, they just don't get a dedicated showcase slot here.
+    const legends=LEGEND_CARDS.filter(l=>l.rarity==='legendary'||l.rarity==='mythic');
     legendsRow.innerHTML=legends.map(l=>{
       const unlocked=unlockedLegends.includes(l.key);
       return `<div class="legend-card cabinet-slot rarity-${l.rarity}${unlocked?' unlocked':''}" onclick="viewLegendCard('${l.key}')">
