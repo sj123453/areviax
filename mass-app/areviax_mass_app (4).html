@@ -11694,7 +11694,16 @@ function skipRest(){
   const ro=document.getElementById('rest-overlay');if(ro)ro.classList.remove('show');
 }
 document.addEventListener('visibilitychange',()=>{
-  if(!document.hidden&&restInt)updateRestDisplay();
+  if(document.hidden)return;
+  if(restInt)updateRestDisplay();
+  // Daily Spin's "come back tomorrow" state is only recomputed on
+  // render, not on a timer — so if the app is left open (or just
+  // backgrounded) across midnight, the button stays stuck showing
+  // yesterday's disabled state until something re-renders it. Recheck
+  // the instant the tab regains focus rather than waiting for the user
+  // to navigate away and back.
+  checkDailySpinBanner();
+  if(document.getElementById('daily-spin-wheel'))renderDailySpin();
 });
 
 function checkCompassWeek(){
