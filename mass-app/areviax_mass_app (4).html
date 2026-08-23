@@ -4887,6 +4887,12 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
   <button class="btn btn-g" style="width:100%;justify-content:center" onclick="saveSettings()">Save Changes</button>
   <div style="font-size:10.5px;color:var(--muted);text-align:center;margin-top:8px">Calories and macros recalculate automatically when you save.</div>
 
+  <div class="card" style="margin-top:14px">
+    <div class="ch"><span class="ct">Testing</span></div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:10px">Banks one Bronze/Silver/Gold/Diamond crate so you can check the open/reveal flow without waiting to earn them.</div>
+    <button class="btn btn-out" style="width:100%" onclick="grantTestCrates()">🎁 Grant test crates</button>
+  </div>
+
 </div>
 
   </div><!-- /content -->
@@ -7635,6 +7641,19 @@ function rollRarity(odds){
     if(roll<acc)return r;
   }
   return 'common';
+}
+// Settings → Testing button — a real tappable control instead of a
+// typed URL param, since that turned out to be too easy to fumble on a
+// phone keyboard (mobile Safari can auto-capitalize while typing, and a
+// mistyped key/value fails with no visible error). No server exists to
+// gate this behind regardless — every value here is already plain
+// client-side state a technical user could edit directly, so this
+// doesn't change what's actually enforceable, just makes testing easier.
+function grantTestCrates(){
+  bronzeDropBank++;silverDropBank++;shardBank++;diamondDropBank++;
+  saveToStorage();
+  renderAchievements();
+  toast('🎁','Test crates granted — check Compass Drops');
 }
 function openCompassDrop(tier){
   const cfg=CRATE_TIERS[tier];
@@ -16573,7 +16592,14 @@ document.addEventListener('DOMContentLoaded', function(){
   // enforceable, just makes self-testing easier. Strips the param
   // immediately so a shared/bookmarked link doesn't re-trigger it.
   try{
-    if(new URLSearchParams(location.search).get('grantTestCrates')==='1'){
+    // Matched case-insensitively on both key and value — mobile Safari's
+    // address bar can auto-capitalize the first letter while typing, and
+    // an exact-case match would silently do nothing with no visible error.
+    let _grantHit=false;
+    for(const [k,v] of new URLSearchParams(location.search)){
+      if(k.toLowerCase()==='granttestcrates'&&v.trim()==='1'){_grantHit=true;break;}
+    }
+    if(_grantHit){
       bronzeDropBank++;silverDropBank++;shardBank++;diamondDropBank++;
       saveToStorage();
       history.replaceState(null,'',location.pathname+location.hash);
