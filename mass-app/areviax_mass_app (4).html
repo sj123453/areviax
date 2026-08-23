@@ -1744,8 +1744,22 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .glow-title.xp{color:#FFB27A;text-shadow:0 0 12px rgba(255,140,60,.55),0 0 26px rgba(255,90,0,.25)}
     .glow-title.trophy{color:#FFDE94;text-shadow:0 0 12px rgba(255,210,90,.6),0 0 26px rgba(255,180,50,.3);animation:titleGlowPulse 3.2s ease-in-out infinite}
     .glow-title.weight{color:#8FD8FF;text-shadow:0 0 10px rgba(143,216,255,.55),0 0 22px rgba(90,170,255,.25)}
+    /* Recovery page's own accent is already the quiet grey/silver family
+       (sleep card, wind-down list) rather than the gamified orange/gold
+       used elsewhere — a clinical, calm glow fits what this page is,
+       distinct from XP/Trophy's louder colors. */
+    .glow-title.recovery{color:#C7C7CE;text-shadow:0 0 10px rgba(180,180,190,.5),0 0 22px rgba(150,150,160,.25)}
     @keyframes titleGlowPulse{0%,100%{filter:brightness(1)}50%{filter:brightness(1.25)}}
     @media(prefers-reduced-motion:reduce){.glow-title.trophy{animation:none!important}}
+    /* MUSCLE READINESS — body-map hero card on the Recovery page */
+    .muscle-map-card{background:linear-gradient(160deg,rgba(142,142,147,.07),rgba(var(--bg-rgb),.9));border:1.5px solid rgba(142,142,147,.22);border-radius:18px;padding:20px;margin-bottom:16px}
+    .muscle-map-svg-wrap{position:relative;width:100%;max-width:340px;margin:0 auto;aspect-ratio:880/824}
+    .muscle-status-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid rgba(142,142,147,.12)}
+    .muscle-status-row:last-child{border-bottom:none}
+    .muscle-status-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+    .muscle-status-name{flex:1;font-size:12.5px;font-weight:700;color:var(--white)}
+    .muscle-status-sub{font-size:10px;color:rgba(var(--white-rgb),.4)}
+    .muscle-status-val{font-family:'JetBrains Mono',monospace;font-size:11.5px;font-weight:700;text-align:right;white-space:nowrap}
     .road-expand-btn{
       float:right;font-size:11px;font-weight:700;color:var(--muted);cursor:pointer;
       padding:2px 8px;border-radius:20px;border:1px solid var(--border2);
@@ -3732,6 +3746,24 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
 
   <div id="readiness-card" style="display:none;background:rgba(142,142,147,.06);border:1.5px solid rgba(142,142,147,.2);border-radius:12px;padding:14px 16px;margin-bottom:16px;font-size:12px;color:rgba(var(--white-rgb),.8);line-height:1.6"></div>
 
+  <!-- MUSCLE READINESS — "when can I train this again", built from real
+       logged tonnage per muscle (tonnageLog), not a fabricated countdown.
+       The page's hero: this is the single most actionable answer someone
+       opens Recovery looking for, so it leads rather than sitting as just
+       another accordion tile. -->
+  <div class="muscle-map-card">
+    <div class="glow-title recovery" style="font-size:15px;font-weight:900;margin-bottom:2px">💪 Muscle Readiness</div>
+    <div style="font-size:11px;color:rgba(var(--white-rgb),.45);margin-bottom:16px">Based on what you've actually lifted, not a generic timer</div>
+    <div id="muscle-readiness-empty" style="display:none;font-size:12px;color:var(--muted);line-height:1.6;text-align:center;padding:24px 12px">Log your first set and this fills in with real per-muscle recovery times.</div>
+    <div id="muscle-readiness-body">
+      <div class="muscle-map-svg-wrap">
+        <div class="ex-body-img"></div>
+        <div id="muscle-map-wrap" style="position:absolute;inset:0"></div>
+      </div>
+      <div id="muscle-status-list" style="margin-top:8px"></div>
+    </div>
+  </div>
+
   <!-- RECOVERY TILE GRID — every section below as a compact tile in a
        responsive grid instead of a full-width vertical stack, matching the
        reference layout's dense dashboard feel. Whichever tile is tapped
@@ -5155,6 +5187,63 @@ const MUSCLE_GROUPS={
   biceps:['biceps'],triceps:['triceps'],quads:['quads'],hamstrings:['hamstrings','full posterior chain'],
   glutes:['glutes'],calves:['calves'],core:['core']
 };
+
+// ── MUSCLE READINESS — "when can I train this again", computed from real
+// logged tonnage (tonnageLog), not a fabricated timer. Base windows are
+// rough, defensible hypertrophy-recovery norms (bigger/compound-heavy
+// groups take longer); the actual window then scales against the user's
+// OWN rolling average tonnage for that muscle — same "relative to your
+// own baseline" philosophy the CNS score already uses, rather than a
+// fake universal number that ignores how hard THAT session actually was.
+const MUSCLE_RECOVERY_BASE_HOURS={
+  chest:48,back:48,quads:48,shoulders:36,hamstrings:36,glutes:36,
+  biceps:24,triceps:24,calves:24,core:24
+};
+const MUSCLE_GROUP_LABEL={
+  chest:'Chest',back:'Back',shoulders:'Shoulders',biceps:'Biceps',triceps:'Triceps',
+  quads:'Quads',hamstrings:'Hamstrings',glutes:'Glutes',calves:'Calves',core:'Core'
+};
+// Real ellipse coordinates lifted from getMuscleHighlight()'s known-good
+// per-movement highlights (same 0 0 880 824 dual front/back figure space)
+// rather than re-measuring the artwork a second time.
+const MUSCLE_GROUP_BODY_COORDS={
+  chest:{fp:[[180,222,68,62],[274,222,68,62]],bp:[]},
+  shoulders:{fp:[[106,181,35,44],[348,181,35,44]],bp:[[676,164,75,55]]},
+  triceps:{fp:[],bp:[[558,263,30,75],[796,263,30,75]]},
+  biceps:{fp:[[100,258,20,46],[354,258,20,46]],bp:[]},
+  back:{fp:[],bp:[[598,300,38,90],[754,300,38,90],[676,280,48,55]]},
+  core:{fp:[[227,360,68,92],[140,375,28,68],[314,375,28,68]],bp:[]},
+  quads:{fp:[[162,543,70,113],[292,543,70,113]],bp:[]},
+  hamstrings:{fp:[],bp:[[614,593,36,72],[738,593,36,72]]},
+  glutes:{fp:[],bp:[[620,502,46,52],[732,502,46,52]]},
+  calves:{fp:[[158,675,38,61],[296,675,38,61]],bp:[[614,675,44,64],[738,675,44,64]]}
+};
+function computeMuscleReadiness(){
+  return Object.keys(MUSCLE_GROUPS).map(group=>{
+    const synonyms=MUSCLE_GROUPS[group];
+    const entries=tonnageLog.filter(e=>synonyms.includes(e.muscle));
+    if(!entries.length)return{group,label:MUSCLE_GROUP_LABEL[group],neverTrained:true};
+    // Sum tonnage per distinct date this muscle was trained, most recent last
+    const byDate={};
+    entries.forEach(e=>{byDate[e.date]=(byDate[e.date]||0)+e.tonnage;});
+    const dates=Object.keys(byDate).sort();
+    const lastDate=dates[dates.length-1];
+    const lastTonnage=byDate[lastDate];
+    const priorDates=dates.slice(0,-1).slice(-5);
+    const rollingAvg=priorDates.length?priorDates.reduce((s,d)=>s+byDate[d],0)/priorDates.length:null;
+    let windowHours=MUSCLE_RECOVERY_BASE_HOURS[group];
+    if(rollingAvg&&rollingAvg>0){
+      const ratio=lastTonnage/rollingAvg;
+      if(ratio>1.3)windowHours*=1.25;
+      else if(ratio<0.7)windowHours*=0.75;
+    }
+    const daysSince=Math.floor((parseLocalDate(localDateKey(new Date()))-parseLocalDate(lastDate))/86400000);
+    const hoursElapsed=Math.max(0,daysSince*24);
+    const hoursLeft=Math.max(0,Math.round(windowHours-hoursElapsed));
+    const pctRecovered=Math.min(1,hoursElapsed/windowHours);
+    return{group,label:MUSCLE_GROUP_LABEL[group],neverTrained:false,lastDate,daysSince,hoursLeft,pctRecovered,ready:hoursLeft<=0};
+  });
+}
 
 // (equipOkSession removed — equipOk() now handles the session override directly, avoiding the two-functions-drift-apart bug)
 
@@ -13871,6 +13960,7 @@ function renderRecoveryPage(){
   renderBrainDump();
   renderReadiness();
   renderRecoveryTilePreviews();
+  renderMuscleReadiness();
 }
 // Populates the CNS/Sleep tile subtitles with the last real value (score,
 // hours) instead of a static description — an "at a glance" preview like
@@ -13981,6 +14071,73 @@ function renderSleepQuickLog(){
       <div style="font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:800;color:var(--white)">${avg?avg.toFixed(1)+'h':'—'}</div>
     </div>
   </div>`;
+}
+// Time-since label matching how the rest of the app phrases relative
+// dates (e.g. "4d ago" pattern already used for last-session displays).
+function muscleAgoLabel(daysSince){
+  if(daysSince<=0)return'today';
+  if(daysSince===1)return'yesterday';
+  return daysSince+'d ago';
+}
+function renderMuscleReadiness(){
+  const wrap=document.getElementById('muscle-map-wrap');
+  const list=document.getElementById('muscle-status-list');
+  if(!wrap||!list)return;
+  const emptyEl=document.getElementById('muscle-readiness-empty');
+  const bodyEl=document.getElementById('muscle-readiness-body');
+  if(!tonnageLog.length){
+    if(emptyEl)emptyEl.style.display='';
+    if(bodyEl)bodyEl.style.display='none';
+    return;
+  }
+  if(emptyEl)emptyEl.style.display='none';
+  if(bodyEl)bodyEl.style.display='';
+  const data=computeMuscleReadiness();
+  const _uid='_mr'+(_figIdSeq++);
+  const colorFor=m=>m.neverTrained?'#5A5A62':m.ready?'#33D17A':m.pctRecovered<0.5?'#FF4455':'#FFC107';
+  let defs='',ellipses='';
+  data.forEach(m=>{
+    if(m.neverTrained)return; // no glow for a muscle with no data — nothing to show yet, not a false "ready"
+    const coords=MUSCLE_GROUP_BODY_COORDS[m.group];
+    if(!coords)return;
+    const col=colorFor(m);
+    const gid='rgM'+m.group+_uid;
+    const opacity=m.ready?0.55:0.35+m.pctRecovered*0.4; // fresher fatigue reads brighter/more saturated, fading toward ready
+    defs+=`<radialGradient id="${gid}" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="${col}" stop-opacity="${opacity}"/>
+      <stop offset="55%" stop-color="${col}" stop-opacity="${opacity*0.6}"/>
+      <stop offset="100%" stop-color="${col}" stop-opacity="0"/>
+    </radialGradient>`;
+    [...coords.fp,...coords.bp].forEach(([cx,cy,rx,ry])=>{
+      ellipses+=`<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="url(#${gid})">`+
+        (m.ready?'':`<animate attributeName="opacity" values="1;0.7;1" dur="2.8s" repeatCount="indefinite"/>`)+
+        `</ellipse>`;
+    });
+  });
+  wrap.innerHTML=`<svg viewBox="0 0 880 824" preserveAspectRatio="xMidYMid meet" style="position:absolute;inset:0;width:100%;height:100%">
+    <defs>${defs}</defs>
+    ${ellipses}
+  </svg>`;
+  // List sorted so the actionable answer to "what can I train today" reads
+  // top-to-bottom: ready muscles first, then whichever recovering muscle
+  // will free up soonest, never-trained last (nothing to report yet).
+  const sorted=[...data].sort((a,b)=>{
+    if(a.neverTrained!==b.neverTrained)return a.neverTrained?1:-1;
+    if(a.neverTrained)return 0;
+    if(a.ready!==b.ready)return a.ready?-1:1;
+    return a.hoursLeft-b.hoursLeft;
+  });
+  list.innerHTML=sorted.map(m=>{
+    const col=colorFor(m);
+    const sub=m.neverTrained?'Not trained yet':'Last trained '+muscleAgoLabel(m.daysSince);
+    const val=m.neverTrained?'—':m.ready?'Ready':(m.hoursLeft<1?'<1h left':m.hoursLeft+'h left');
+    return`<div class="muscle-status-row">
+      <div class="muscle-status-dot" style="background:${col};box-shadow:0 0 6px ${col}"></div>
+      <div><div class="muscle-status-name">${m.label}</div><div class="muscle-status-sub">${sub}</div></div>
+      <div style="flex:1"></div>
+      <div class="muscle-status-val" style="color:${col}">${val}</div>
+    </div>`;
+  }).join('');
 }
 function renderReadiness(){
   const card=document.getElementById('readiness-card');
