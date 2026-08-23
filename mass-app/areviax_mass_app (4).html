@@ -4439,6 +4439,17 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
   </div>
   </div>
 
+  <!-- TROPHY CABINET SUMMARY — a real glance at what you've actually
+       pulled, not just a link out to the full room. Preview strip reuses
+       the same .legend-card/.legend-card-icon markup the Cabinet itself
+       uses so an unlocked card looks identical in both places. -->
+  <div class="card" style="margin-bottom:14px;cursor:pointer" onclick="showPage('trophycabinet')">
+    <div class="ch"><span class="ct" style="display:flex;align-items:center;gap:7px">🏆 Trophy Cabinet</span><span style="font-size:11px;font-weight:800;color:var(--muted)" id="profile-trophy-count"></span></div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:12px">Every card you've pulled from a Compass Drop, all in one room.</div>
+    <div id="profile-trophy-preview" style="display:flex;gap:8px;overflow-x:auto;padding-bottom:2px"></div>
+    <button class="btn btn-out btn-sm" style="width:100%;margin-top:12px" onclick="event.stopPropagation();showPage('trophycabinet')">Enter Trophy Cabinet →</button>
+  </div>
+
   <!-- COMPARE WITH OTHERS -->
   <div class="card">
     <div class="ch"><span class="ct">Compare With Others</span></div>
@@ -6543,8 +6554,34 @@ function renderProfile(){
   if(prCount)prCount.textContent=Object.keys(prs).length;
   renderAchievements();
   renderHallOfStatues();
+  renderProfileTrophySummary();
   checkCloudBackup();
   renderInstallSection();
+}
+// Trophy Cabinet summary card — a real preview of owned cards (not just
+// a bare link), reusing the exact .legend-card/.legend-card-icon markup
+// the Cabinet page itself uses. Shows the rarest few first so the
+// preview leads with whatever's most impressive, not insertion order.
+function renderProfileTrophySummary(){
+  const countEl=document.getElementById('profile-trophy-count');
+  const cont=document.getElementById('profile-trophy-preview');
+  if(!cont)return;
+  const total=LEGEND_CARDS.length;
+  const owned=unlockedLegends.length;
+  if(countEl)countEl.textContent=owned+'/'+total;
+  if(owned===0){
+    cont.innerHTML='<div style="font-size:11px;color:var(--muted);padding:10px 0">No cards yet — open a Compass Drop to start your collection.</div>';
+    return;
+  }
+  const ownedCards=LEGEND_CARDS.filter(l=>unlockedLegends.includes(l.key))
+    .sort((a,b)=>RARITY_ORDER.indexOf(a.rarity)-RARITY_ORDER.indexOf(b.rarity))
+    .slice(0,10);
+  cont.innerHTML=ownedCards.map(l=>
+    `<div class="legend-card rarity-${l.rarity} unlocked" onclick="event.stopPropagation();viewLegendCard('${l.key}')">
+      <div class="legend-card-icon">${legendIconHTML(l)}</div>
+      <div class="legend-card-name">${l.name.split(' ').pop()}</div>
+    </div>`
+  ).join('');
 }
 
 function renderHallOfStatues(){
