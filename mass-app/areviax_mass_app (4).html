@@ -1346,22 +1346,27 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        glance. Locked = flat dark grey hex; unlocked = rarity-tinted
        gradient hex with a soft glow ring, echoing the reference art's
        neon hexagon badges. */
-    /* Metal-rim bezel + tier accent ring composed through custom
-       properties into one box-shadow declared here, same trick used
-       for the compass crates — .rarity-X.unlocked rules below only set
-       the glow/ring variables, so the rim itself doesn't need repeating
-       (or fighting a later box-shadow override) on every tier. */
+    /* Clash-style medallion frame: a thick metal-colour band (--lgi-ring)
+       sandwiched between a bright bevel highlight and a dark bevel
+       shadow, plus a hard offset drop-shadow so the badge reads as a
+       raised, stamped medallion instead of a flat tinted hex. Every
+       tier gets a visible frame now (common included — dull steel
+       instead of transparent), escalating in richness with rarity;
+       composed through custom properties so .rarity-X.unlocked rules
+       below only set the ring colour/glow, not a competing box-shadow. */
     .legend-card-icon{
       width:52px;height:52px;margin:0 auto 6px;position:relative;
       clip-path:polygon(50% 0%,93% 25%,93% 75%,50% 100%,7% 75%,7% 25%);
       display:flex;align-items:center;justify-content:center;font-size:24px;
       background:linear-gradient(160deg,#2A2A38,#18181F);transition:box-shadow .2s;
       filter:grayscale(1) opacity(.4);
-      --lgi-ring:transparent;--lgi-glow-blur:0px;--lgi-glow-color:transparent;
+      --lgi-ring:#6B6B75;--lgi-glow-blur:0px;--lgi-glow-color:transparent;
       box-shadow:
-        inset 0 0 0 1.5px rgba(255,255,255,.4),
-        inset 0 0 0 3px rgba(0,0,0,.4),
-        inset 0 0 0 4.5px var(--lgi-ring),
+        inset 0 0 0 2px rgba(0,0,0,.55),
+        inset 0 0 0 7px var(--lgi-ring),
+        inset 0 0 0 9px rgba(255,255,255,.55),
+        inset 0 0 0 10.5px rgba(0,0,0,.4),
+        0 4px 0 -1px rgba(0,0,0,.5),
         0 0 var(--lgi-glow-blur) var(--lgi-glow-color);
     }
     /* Shade first (bottom-right, gives the facet weight), sheen on top
@@ -1380,7 +1385,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       background:linear-gradient(160deg,rgba(255,255,255,.28),transparent 55%);
       pointer-events:none;
     }
-    .legend-card-icon img{width:42px;height:42px;object-fit:contain;filter:inherit;position:relative;z-index:1}
+    .legend-card-icon img{width:32px;height:32px;object-fit:contain;filter:inherit;position:relative;z-index:1}
     /* Full names, not just the last word — several cards legitimately
        share a last word (every Training Crest ends in "Crest", Jump
        Rope/Battle Rope both end in "Rope"), which made them read as
@@ -1416,19 +1421,19 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       100%{background-position:200% 50%}
     }
     .legend-card.rarity-common.unlocked .legend-card-icon{background:linear-gradient(160deg,#C7CBD1,#5B5F66);--lgi-glow-blur:8px;--lgi-glow-color:rgba(170,176,184,.35)}
-    .legend-card.rarity-rare.unlocked .legend-card-icon{background:linear-gradient(160deg,#6EE7A0,#16803D);--lgi-glow-blur:12px;--lgi-glow-color:rgba(46,204,113,.45);--lgi-ring:rgba(110,231,160,.55)}
-    .legend-card.rarity-superrare.unlocked .legend-card-icon{background:linear-gradient(160deg,#8FC1FF,#1D4ED8);--lgi-glow-blur:18px;--lgi-glow-color:rgba(59,130,246,.5);--lgi-ring:rgba(143,193,255,.6);animation:rarityPulseSoft 2.6s ease-in-out infinite}
-    .legend-card.rarity-epic.unlocked .legend-card-icon{background:linear-gradient(115deg,#F1DCFF,#D8A6FF,#F1DCFF,#B266FF);background-size:260% 100%;--lgi-glow-blur:22px;--lgi-glow-color:rgba(168,85,247,.55);--lgi-ring:rgba(216,166,255,.65);animation:rarityShimmerSweep 3.2s linear infinite}
-    .legend-card.rarity-mythic.unlocked .legend-card-icon{background:linear-gradient(160deg,#FF8A93,#C81E3A);--lgi-glow-blur:24px;--lgi-glow-color:rgba(239,68,68,.55);--lgi-ring:rgba(255,138,147,.65);animation:rarityPulseStrong 2s ease-in-out infinite}
-    .legend-card.rarity-legendary.unlocked .legend-card-icon{background:linear-gradient(160deg,#FFE066,#E8B400);--lgi-glow-blur:28px;--lgi-glow-color:rgba(255,212,0,.6);--lgi-ring:rgba(255,224,102,.7);animation:rarityPulseStrong 1.6s ease-in-out infinite}
+    .legend-card.rarity-rare.unlocked .legend-card-icon{background:linear-gradient(160deg,#6EE7A0,#16803D);--lgi-glow-blur:14px;--lgi-glow-color:rgba(46,204,113,.6);--lgi-ring:#2FA35C}
+    .legend-card.rarity-superrare.unlocked .legend-card-icon{background:linear-gradient(160deg,#8FC1FF,#1D4ED8);--lgi-glow-blur:20px;--lgi-glow-color:rgba(59,130,246,.65);--lgi-ring:#2E7BDB;animation:rarityPulseSoft 2.6s ease-in-out infinite}
+    .legend-card.rarity-epic.unlocked .legend-card-icon{background:linear-gradient(115deg,#F1DCFF,#D8A6FF,#F1DCFF,#B266FF);background-size:260% 100%;--lgi-glow-blur:24px;--lgi-glow-color:rgba(168,85,247,.7);--lgi-ring:#A855F7;animation:rarityShimmerSweep 3.2s linear infinite}
+    .legend-card.rarity-mythic.unlocked .legend-card-icon{background:linear-gradient(160deg,#FF8A93,#C81E3A);--lgi-glow-blur:26px;--lgi-glow-color:rgba(239,68,68,.7);--lgi-ring:#E23B4E;animation:rarityPulseStrong 2s ease-in-out infinite}
+    .legend-card.rarity-legendary.unlocked .legend-card-icon{background:linear-gradient(160deg,#FFE066,#E8B400);--lgi-glow-blur:30px;--lgi-glow-color:rgba(255,212,0,.75);--lgi-ring:#E8B400;animation:rarityPulseStrong 1.6s ease-in-out infinite}
     /* Weight Milestones aren't gacha-pull rarities — no rarity field,
        so they get their own flat "iron" material instead of a
        rarity-X class, matching the steel palette Weight Road used
        before it moved into the Cabinet. */
-    .legend-card.iron.unlocked .legend-card-icon{background:linear-gradient(160deg,#8FD8FF,#1B4F73);--lgi-glow-blur:12px;--lgi-glow-color:rgba(90,170,255,.4);--lgi-ring:rgba(143,216,255,.5)}
+    .legend-card.iron.unlocked .legend-card-icon{background:linear-gradient(160deg,#8FD8FF,#1B4F73);--lgi-glow-blur:14px;--lgi-glow-color:rgba(90,170,255,.55);--lgi-ring:#4A9FD8}
     .legend-card.rarity-ultralegendary.unlocked .legend-card-icon{
       background:linear-gradient(115deg,#FFD24A,#FF6FD8,#7FE3FF,#FF9A3D,#FFD24A);
-      background-size:300% 100%;--lgi-glow-blur:34px;--lgi-glow-color:rgba(255,180,80,.75);--lgi-ring:rgba(255,210,160,.75);
+      background-size:300% 100%;--lgi-glow-blur:36px;--lgi-glow-color:rgba(255,180,80,.85);--lgi-ring:#FF9A3D;
       animation:holoShift 3.6s linear infinite,rarityPulseStrong 1.4s ease-in-out infinite;
     }
 
@@ -1449,7 +1454,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .cabinet-hero-sub{font-size:11px;color:var(--muted);margin-top:12px;max-width:280px;margin-left:auto;margin-right:auto}
     .legend-card.cabinet-peak{width:auto;padding:0;margin:0 auto}
     .legend-card.cabinet-peak .legend-card-icon{width:104px;height:104px;font-size:46px;margin:0 auto 10px}
-    .legend-card.cabinet-peak .legend-card-icon img{width:74px;height:74px}
+    .legend-card.cabinet-peak .legend-card-icon img{width:64px;height:64px}
     .legend-card.cabinet-peak .legend-card-name{font-size:11px;letter-spacing:.04em;text-transform:uppercase}
 
     .cabinet-tier{margin-bottom:20px}
