@@ -11172,16 +11172,8 @@ function renderHowToStep(exIdx){
   ];
   const s=stepList[howToStep];
   const dots=stepList.map((_,si)=>`<div class="howto-dot${si===howToStep?' active':''}"></div>`).join('');
-  // Reuses the same thumbnail diagram the exercise card already shows
-  // (getCardThumb) instead of the separate 27-panel muscle_full set —
-  // that set had several broken/inconsistent source images, so this
-  // keeps the how-to view limited to whichever diagrams are known-clean.
-  const _panelImg=`<div style="background:#111;border-radius:12px;padding:10px;margin-bottom:14px">
-    <div style="width:100%;height:280px;border-radius:8px;overflow:hidden">${getCardThumb(e)}</div>
-  </div>`;
   document.getElementById('howto-body').innerHTML=`
     <div class="howto-name">${e.name}</div>
-    ${_panelImg}
     <div class="howto-dots">${dots}</div>
     <div class="howto-step">
       <div class="howto-step-label">${s.icon} ${s.label}</div>
