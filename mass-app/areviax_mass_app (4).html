@@ -1768,7 +1768,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        Road and the Weight Road) — reusing one system is what makes
        either read as "designed", not two thin one-off tracks. */
     .xp-road-track{
-      position:relative;padding:10px 0 6px;border-radius:14px;
+      position:relative;padding:10px 0 6px;border-radius:14px;overflow-x:hidden;
       background:linear-gradient(180deg,rgba(255,255,255,.018),transparent 45%);
     }
     .road-trail-svg{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:visible}
@@ -1815,6 +1815,31 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        staying inside the same overall footprint as the default case. */
     .xp-node.next.side-l .xp-node-body{margin-right:100px;width:70px}
     .xp-node.next.side-r .xp-node-body{margin-left:100px;width:70px}
+    /* Below ~480px the 170px-per-side footprint above (hex + gap + body)
+       no longer fits within half the track's width — the body box's
+       outer edge was running off the left/right of the screen on
+       narrower phones, which is what actually enabled the "side to
+       side scroll" the roads were never supposed to have (overflow-y:
+       auto computes overflow-x to auto too once content overflows).
+       Scale hex/body down together here instead of just squeezing
+       text into whatever room the full-size hex left. */
+    @media(max-width:480px){
+      .xp-node-hexwrap{width:50px;height:50px}
+      .xp-node.side-l .xp-node-hexwrap{margin-right:6px}
+      .xp-node.side-r .xp-node-hexwrap{margin-left:6px}
+      .xp-node.next .xp-node-hexwrap{width:70px;height:70px}
+      .xp-node.side-l.next .xp-node-hexwrap{margin-right:3px}
+      .xp-node.side-r.next .xp-node-hexwrap{margin-left:3px}
+      .xp-node-connector{top:37px}
+      .xp-node-body{width:54px}
+      .xp-node.side-l .xp-node-body{margin-right:64px}
+      .xp-node.side-r .xp-node-body{margin-left:64px}
+      .xp-node.next.side-l .xp-node-body{margin-right:80px;width:38px}
+      .xp-node.next.side-r .xp-node-body{margin-left:80px;width:38px}
+      .xp-node-check{width:20px;height:20px}
+      .xp-node-check svg{width:11px;height:11px}
+      .xp-node{min-height:132px}
+    }
     .xp-node.claimed .xp-node-hex{
       filter:none;background:linear-gradient(160deg,#FFB27A,var(--green));
       box-shadow:0 0 14px rgba(255,140,60,.35),inset 0 1px 1px rgba(255,255,255,.25);
@@ -1837,7 +1862,9 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .xp-node-check svg{width:13px;height:13px}
     .xp-node-hex svg{width:58%;height:58%;position:relative;z-index:1}
     .xp-node-xp{
-      display:inline-block;font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;
+      display:inline-block;max-width:100%;box-sizing:border-box;
+      overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+      font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;
       letter-spacing:.03em;color:rgba(255,255,255,.4);background:rgba(255,255,255,.04);
       border:1px solid var(--border2);border-radius:20px;padding:1px 8px;margin-bottom:3px;
     }
@@ -3666,7 +3693,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
 
   <div class="cabinet-tier">
     <div class="cabinet-tier-plaque">
-      <span class="cabinet-tier-name">Legends</span>
+      <span class="cabinet-tier-name">Icons</span>
       <span class="cabinet-tier-count" id="cabinet-legends-count"></span>
     </div>
     <div class="cabinet-tier-sub">Bodybuilding's greatest — pulled from any Compass Drop, not one of the 7 layers above</div>
@@ -6926,9 +6953,12 @@ let unlockedLegends=[]; // persistent \u2014 keys from LEGEND_CARDS the user has
 // the rest of the app's currencies already scale (shard > bronze drop).
 // 19 checkpoints spanning 50-35,000 XP (up from 10 topping out at
 // 4,000) — enough that the road is still handing out real, varied
-// rewards well past the point a dedicated user reaches it, ending on
-// a guaranteed pull of the same ultralegendary Areviax Trophy the
-// Areviax Drop can roll, as the road's own long-term summit prize.
+// rewards well past the point a dedicated user reaches it. The summit
+// prize is Diamond Drops rather than a guaranteed Ultra Legendary —
+// there's only ONE ultralegendary item in the whole game (the Areviax
+// Trophy), so handing it out for free on a deterministic checkpoint
+// would flatten it into "just log enough XP" instead of the real,
+// chance-driven pull it's meant to be everywhere else it can drop.
 const XP_ROAD=[
   {xp:50,    type:'bronze', amount:1},
   {xp:150,   type:'shard',  amount:1},
@@ -6949,7 +6979,7 @@ const XP_ROAD=[
   {xp:18000, type:'diamond',amount:2},
   {xp:22000, type:'shard',  amount:5, extra:{type:'silver',amount:1}},
   {xp:27000, type:'legend', rarity:'mythic'},
-  {xp:35000, type:'legend', rarity:'ultralegendary'},
+  {xp:35000, type:'diamond',amount:3},
 ];
 let claimedXpRoad=[]; // persistent \u2014 xp thresholds already paid out, so crossing one twice (or loading old data) can't double-grant
 function xpRoadRewardExtraLabel(extra){
@@ -6963,7 +6993,7 @@ function xpRoadRewardLabel(node){
   if(node.type==='silver')return node.amount+' Silver Drop'+(node.amount>1?'s':'');
   if(node.type==='diamond')return node.amount+' Diamond Drop'+(node.amount>1?'s':'');
   if(node.type==='shard')return node.amount+' Compass Shard'+(node.amount>1?'s':'')+xpRoadRewardExtraLabel(node.extra);
-  if(node.type==='legend')return 'Guaranteed '+node.rarity[0].toUpperCase()+node.rarity.slice(1)+' Legend Card';
+  if(node.type==='legend')return 'Guaranteed '+node.rarity[0].toUpperCase()+node.rarity.slice(1)+' Trophy';
   return '';
 }
 // Distinct per reward type instead of the same compass glyph for
@@ -7610,7 +7640,7 @@ function showLegendReveal(l,isNew,tier){
         (tier==='areviax'?'<div style="font-size:11px;font-weight:700;color:#FFB347;margin-top:8px">\ud83d\udd25 The Areviax Drop \u2014 +2 bonus Compass Shards</div>':'')+
         '<button class="achievement-close-btn" onclick="this.closest(\'.achievement-overlay\').remove()">Continue</button>';
       playCrateRevealChime(l.rarity);
-      addXP(isNew?25:10,isNew?'New legend card':'Compass Drop');
+      addXP(isNew?25:10,isNew?'New trophy':'Compass Drop');
       if(isNew)celebrateBurst(['\ud83d\udd25','\u2b50','\ud83c\udfc6'],cfg.burstCount);
     },SPIN_MS+60);
   },cfg.chargeMs+cfg.shakeMs);
@@ -7740,7 +7770,7 @@ function viewDropInfo(tier,event){
     silver:'Win one from the Daily Spin ('+DAILY_SPIN_WEIGHTS.silver+'% chance) — its only source for now.',
     gold:'Costs 1 Compass Shard, earned with a perfect training week — or win a free shard from the Daily Spin ('+DAILY_SPIN_WEIGHTS.gold+'% chance).',
     diamond:'Win one from the Daily Spin ('+DAILY_SPIN_WEIGHTS.diamond+'% chance) — the rarest crate you can bank.',
-    areviax:'The best drop in the app — only from the Daily Spin, a '+DAILY_SPIN_WEIGHTS.areviax+'% chance. Guarantees a Legendary card plus 2 bonus Compass Shards, opens immediately, free.',
+    areviax:'The best drop in the app — only from the Daily Spin, a '+DAILY_SPIN_WEIGHTS.areviax+'% chance. Guarantees a Legendary-or-better trophy plus 2 bonus Compass Shards, opens immediately, free.',
   };
   const overlay=document.createElement('div');
   overlay.className='achievement-overlay';
