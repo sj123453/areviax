@@ -49,7 +49,13 @@
 }
 [data-theme="light"] html{background:#F5F5F2}
 [data-theme="light"] body{background:linear-gradient(160deg,#F5F5F2 0%,#EAEAE5 100%) fixed;background-color:#F5F5F2}
-html{height:100%;background:#0B0B0B;overscroll-behavior-y:none}body{height:100%;background:linear-gradient(160deg,#0B0B0B 0%,#000000 100%) fixed;background-color:#0B0B0B;color:var(--white);font-family:'Outfit',sans-serif;font-weight:400;overflow:hidden;overscroll-behavior-y:none}
+html{height:100%;background:#0B0B0B;overscroll-behavior-y:none}body{height:100%;background:linear-gradient(160deg,#0B0B0B 0%,#000000 100%) fixed;background-color:#0B0B0B;color:var(--white);font-family:'Outfit',sans-serif;font-weight:400;overflow:hidden;overscroll-behavior-y:none;touch-action:manipulation}
+/* No maximum-scale/user-scalable=no on the viewport meta, so without this
+   the browser has to wait to tell a tap apart from the start of a
+   double-tap-to-zoom gesture on every single tap — the likely cause of
+   taps occasionally needing a second press to register (worst on small
+   targets like the crate row). manipulation keeps normal scroll/pan,
+   just drops the double-tap-zoom disambiguation delay. */
 input,input:focus,input:active,
     textarea,textarea:focus,
     select,select:focus{
@@ -1477,11 +1483,16 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     }
     .compass-crate .crate-icon{position:relative;z-index:1;display:flex;filter:drop-shadow(0 1px 2px rgba(0,0,0,.35))}
     .compass-crate .crate-icon svg{width:26px;height:26px;color:#fff}
+    /* Centered circular badge rather than full-bleed — the emblem's own
+       dark starfield background would otherwise fight the crate's solid
+       orange, reading as a near-black tile instead of "an orange crate
+       with the logo on it". */
+    .compass-crate .crate-icon-emblem{width:72%;height:72%;border-radius:50%;object-fit:cover;box-shadow:0 0 0 1.5px rgba(255,255,255,.25)}
     .compass-crate.bronze{background:linear-gradient(160deg,#E8A85C,#B8622A)}
     .compass-crate.silver{background:linear-gradient(160deg,#F2F5F9,#9AA7B4)}
     .compass-crate.gold{background:linear-gradient(160deg,#FFE58A,#D4970A)}
     .compass-crate.diamond{background:linear-gradient(115deg,#EAFBFF,#9FE8FF,#EAFBFF,#5FD0F2);background-size:260% 100%;animation:rarityShimmerSweep 3.4s linear infinite}
-    .compass-crate.areviax{background:linear-gradient(160deg,#241006,#0A0503);box-shadow:inset 0 0 0 1.5px rgba(255,170,60,.55)}
+    .compass-crate.areviax{background:linear-gradient(160deg,#FF9A42,#FF5A00);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.35)}
     .compass-crate.areviax .crate-icon svg{color:#FFB347}
     .compass-crate.locked{filter:grayscale(1) opacity(.35)}
     @keyframes crateFloat{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-4px) rotate(-4deg)}}
@@ -7358,6 +7369,13 @@ function crateIconSVG(tier){
   const paths=CRATE_ICON_PATHS[tier]||CRATE_ICON_PATHS.bronze;
   return '<svg viewBox="-12 -12 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">'+paths+'</svg>';
 }
+// areviax gets the real emblem art instead of the generic line-icon set
+// every other tier shares — fills the whole hex, clipped to it by
+// .compass-crate's own clip-path same as the icon it replaces.
+function crateIconHTML(tier){
+  if(tier==='areviax')return '<img src="images/legends/areviax_emblem.png" alt="" class="crate-icon-emblem">';
+  return crateIconSVG(tier);
+}
 
 function renderAchievements(){
   renderTrophyRoad();
@@ -7369,12 +7387,21 @@ function renderAchievements(){
       silver:{ready:silverDropBank>0,label:'Silver'+(silverDropBank>1?' \u00d7'+silverDropBank:''),sub:silverDropBank>0?'Tap to open':'Win one from the Daily Spin'},
       gold:{ready:shardBank>0,label:'Gold'+(shardBank>1?' \u00d7'+shardBank:''),sub:shardBank>0?'Tap to open':'Earn a shard with a perfect week'},
       diamond:{ready:diamondDropBank>0,label:'Diamond'+(diamondDropBank>1?' \u00d7'+diamondDropBank:''),sub:diamondDropBank>0?'Tap to open':'Win one from the Daily Spin'},
+      // Never banked/tap-to-open (see openCompassDrop's areviax branch \u2014
+      // it has no bank guard at all, so wiring the tile to it the normal
+      // way would hand out a free legendary-or-better on every tap).
+      // Shown full-color rather than the grayscale "locked" treatment the
+      // other tiers use while unready \u2014 it's not something you're saving
+      // up for, it's the aspirational tier you're shown what you're
+      // chasing. Tapping it opens the odds/how-to-earn info instead.
+      areviax:{ready:false,always:true,label:'Areviax',sub:'Reach the top league, or win it from the Daily Spin'},
     };
     crateRow.innerHTML=Object.keys(states).map(tier=>{
       const s=states[tier];
-      return `<div class="crate-slot${s.ready?'':' not-ready'}" onclick="${s.ready?"openCompassDrop('"+tier+"')":''}">
+      const onclick=s.always?"viewDropInfo('"+tier+"')":(s.ready?"openCompassDrop('"+tier+"')":'');
+      return `<div class="crate-slot${s.ready?'':' not-ready'}" onclick="${onclick}"${s.always?' style="cursor:pointer"':''}>
         <span class="crate-info-btn" onclick="viewDropInfo('${tier}',event)">i</span>
-        <div class="compass-crate ${tier}${s.ready?' ready':' locked'}"><span class="crate-icon">${crateIconSVG(tier)}</span></div>
+        <div class="compass-crate ${tier}${s.ready?' ready':s.always?'':' locked'}"><span class="crate-icon">${crateIconHTML(tier)}</span></div>
         <div class="crate-slot-label">${s.label}</div>
         <div class="crate-slot-sub${s.ready?' ready-text':''}">${s.sub}</div>
       </div>`;
@@ -7743,7 +7770,7 @@ function showLegendReveal(l,isNew,tier){
   overlay.className='achievement-overlay';
   overlay.innerHTML=
     '<div class="achievement-modal crate-reveal-stage">'+
-      '<div class="compass-crate '+tier+(cfg.chargeMs?' charging':' crate-shake')+'" id="reveal-crate"><span class="crate-icon">'+crateIconSVG(tier)+'</span></div>'+
+      '<div class="compass-crate '+tier+(cfg.chargeMs?' charging':' crate-shake')+'" id="reveal-crate"><span class="crate-icon">'+crateIconHTML(tier)+'</span></div>'+
     '</div>';
   document.body.appendChild(overlay);
   requestAnimationFrame(()=>overlay.classList.add('show'));
@@ -7937,7 +7964,7 @@ function viewDropInfo(tier,event){
   overlay.innerHTML=
     '<div class="achievement-modal" style="max-width:300px;text-align:left">'+
       '<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">'+
-        '<div class="compass-crate '+tier+'" style="width:44px;height:44px"><span class="crate-icon">'+crateIconSVG(tier)+'</span></div>'+
+        '<div class="compass-crate '+tier+'" style="width:44px;height:44px"><span class="crate-icon">'+crateIconHTML(tier)+'</span></div>'+
         '<div style="font-size:15px;font-weight:900;color:var(--white)">'+cfg.label+'</div>'+
       '</div>'+
       '<div style="font-size:9px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:6px">Odds</div>'+
