@@ -6698,12 +6698,29 @@ const LEGEND_CARDS=[
   // img is optional \u2014 leave unset to use the emoji icon; once real
   // trophy art exists per card, set img to its path/URL and it takes
   // over automatically in every place a card renders (row, reveal).
+  // The Areviax Trophy \u2014 the single peak pull, ultralegendary, sits
+  // above every real-person card. Only obtainable from the Areviax
+  // Drop (see CRATE_TIERS) at a deliberately small chance, matching
+  // its "1-of-1" framing on the Trophy Cabinet's peak slot.
+  {key:'areviax_trophy', name:'The Areviax Trophy', title:'1-of-1 \u2014 the single rarest pull in the game', icon:'\ud83e\udded', img:null, rarity:'ultralegendary'},
   {key:'arnold',    name:'Arnold Schwarzenegger', title:'"The Austrian Oak" \u2014 7\u00d7 Mr. Olympia',        icon:'\ud83c\udfd4\ufe0f', img:null, rarity:'legendary'},
   {key:'coleman',   name:'Ronnie Coleman',        title:'"Yeah Buddy!" \u2014 8\u00d7 Mr. Olympia',              icon:'\ud83d\udc51', img:null, rarity:'legendary'},
   {key:'haney',     name:'Lee Haney',              title:'8\u00d7 Mr. Olympia (1984\u20131991)',              icon:'\ud83c\udfc6', img:null, rarity:'mythic'},
   {key:'yates',     name:'Dorian Yates',           title:'"The Shadow" \u2014 6\u00d7 Mr. Olympia',               icon:'\ud83c\udf11', img:null, rarity:'mythic'},
   {key:'cutler',    name:'Jay Cutler',             title:'4\u00d7 Mr. Olympia',                              icon:'\u26a1', img:null, rarity:'epic'},
   {key:'heath',     name:'Phil Heath',             title:'"The Gift" \u2014 7\u00d7 Mr. Olympia',                 icon:'\ud83c\udf81', img:null, rarity:'epic'},
+  // Training Crests \u2014 superrare. Earned-feeling badges rather than
+  // real people, matching the Trophy Cabinet's Layer 3 flavor ("earned
+  // through the grind") the same way the common tier's gear trinkets
+  // match Layer 1.
+  {key:'crest_iron',      name:'Iron Discipline Crest', title:'Showed up when it was easier not to',     icon:'\ud83d\udee1\ufe0f', img:null, rarity:'superrare'},
+  {key:'crest_streak',    name:'No Days Off Crest',     title:'Consistency, stacked week after week',    icon:'\u26d3\ufe0f', img:null, rarity:'superrare'},
+  {key:'crest_pr',        name:'PR Breaker Crest',      title:'The number went up. Again.',              icon:'\ud83d\udcc8', img:null, rarity:'superrare'},
+  {key:'crest_volume',    name:'Volume Crest',          title:'Tonnage that adds up to something real',  icon:'\ud83c\udfcb\ufe0f', img:null, rarity:'superrare'},
+  {key:'crest_grind',     name:"Grinder's Crest",       title:'Not the fastest set. Just the last rep.', icon:'\u2694\ufe0f', img:null, rarity:'superrare'},
+  {key:'crest_comeback',  name:'Comeback Crest',        title:'Missed a week. Came back anyway.',        icon:'\ud83c\udf05', img:null, rarity:'superrare'},
+  {key:'crest_focus',     name:'Ironclad Focus Crest',  title:'Every set, every rep, on purpose',        icon:'\ud83c\udfaf', img:null, rarity:'superrare'},
+  {key:'crest_summit',    name:'Summit Crest',          title:'Earned at the top of a hard training block', icon:'\ud83d\uddfb', img:null, rarity:'superrare'},
   {key:'oliva',     name:'Sergio Oliva',           title:'"The Myth" \u2014 3\u00d7 Mr. Olympia',                 icon:'\ud83e\uddbe', img:null, rarity:'rare'},
   {key:'columbu',   name:'Franco Columbu',         title:'2\u00d7 Mr. Olympia',                              icon:'\ud83d\udcaa', img:null, rarity:'rare'},
   // common tier \u2014 gym gear trinkets, not people; bronze-toned relics
@@ -6879,11 +6896,11 @@ function renderXpRoad(){
 // 100% legendary, the best tier that DOES have real content \u2014 see
 // openCompassDrop() for how it bypasses the normal currency cost too.
 const CRATE_TIERS={
-  bronze:{label:'Bronze Drop',odds:{common:62,rare:24,superrare:0,epic:10,mythic:3,legendary:1,ultralegendary:0}},
-  silver:{label:'Silver Drop',odds:{common:40,rare:32,superrare:0,epic:18,mythic:8,legendary:2,ultralegendary:0}},
-  gold:{label:'Gold Drop',odds:{common:25,rare:35,superrare:0,epic:25,mythic:10,legendary:5,ultralegendary:0}},
-  diamond:{label:'Diamond Drop',odds:{common:8,rare:22,superrare:0,epic:35,mythic:25,legendary:10,ultralegendary:0}},
-  areviax:{label:'Areviax Drop',odds:{common:0,rare:0,superrare:0,epic:0,mythic:0,legendary:100,ultralegendary:0}},
+  bronze:{label:'Bronze Drop',odds:{common:54,rare:24,superrare:9,epic:10,mythic:2,legendary:1,ultralegendary:0}},
+  silver:{label:'Silver Drop',odds:{common:33,rare:28,superrare:12,epic:17,mythic:7,legendary:2,ultralegendary:1}},
+  gold:{label:'Gold Drop',odds:{common:18,rare:30,superrare:16,epic:22,mythic:10,legendary:3,ultralegendary:1}},
+  diamond:{label:'Diamond Drop',odds:{common:5,rare:15,superrare:20,epic:30,mythic:20,legendary:8,ultralegendary:2}},
+  areviax:{label:'Areviax Drop',odds:{common:0,rare:0,superrare:0,epic:0,mythic:0,legendary:92,ultralegendary:8}},
 };
 // rarest-first, matches roll-resolution order everywhere a rarity is
 // picked from odds. superrare/ultralegendary sit at 0% odds above
@@ -7040,7 +7057,7 @@ const TROPHY_LAYERS=[
   {rarity:'legendary', label:'Mythic',           sub:'Layer 6 \u00b7 The rarest pulls in the game',      count:2},
   {rarity:'mythic',    label:'Hall of Masters',   sub:'Layer 5 \u00b7 Legendary physiques',               count:4},
   {rarity:'epic',      label:'Pro Stage',         sub:'Layer 4 \u00b7 Competition-ready',                 count:6},
-  {rarity:'superrare', label:'Training Crests',   sub:'Layer 3 \u00b7 Earned through the grind',          count:8},
+  {rarity:'superrare', label:'Training Crests',   sub:'Layer 3 \u00b7 Earned through the grind',          count:8, items:LEGEND_CARDS.filter(l=>l.rarity==='superrare')},
   {rarity:'rare',      label:'Mindset Auras',     sub:'Layer 2 \u00b7 The discipline behind the physique',count:10},
   {rarity:'common',    label:'Equipment',         sub:'Layer 1 \u00b7 Where it all starts',               count:13, items:LEGEND_CARDS.filter(l=>l.rarity==='common')},
 ];
@@ -7077,9 +7094,22 @@ function renderTrophyCabinet(){
   // layers: the bodybuilder cards that already exist in LEGEND_CARDS
   // and already drop from Compass Drops today, moved out of the
   // compact Achievements-card row and given real room here instead.
+  // Peak slot — The Areviax Trophy (ultralegendary, 1-of-1) — now real
+  // content instead of an eternally-locked placeholder. Updates in
+  // place rather than through the generic .cabinet-tier map above
+  // since it's a single hero slot outside the 7 numbered layers.
+  const peak=document.getElementById('cabinet-peak-slot');
+  if(peak){
+    const trophy=LEGEND_CARDS.find(l=>l.key==='areviax_trophy');
+    const unlocked=trophy&&unlockedLegends.includes('areviax_trophy');
+    peak.classList.toggle('unlocked',!!unlocked);
+    peak.setAttribute('onclick',unlocked?"viewLegendCard('areviax_trophy')":"viewCabinetLocked('The Areviax Trophy')");
+    peak.innerHTML=`<div class="legend-card-icon">${unlocked?legendIconHTML(trophy):'🔒'}</div>
+      <div class="legend-card-name">1-of-1</div>`;
+  }
   const legendsRow=document.getElementById('cabinet-legends-row');
   if(legendsRow){
-    const legends=LEGEND_CARDS.filter(l=>l.rarity!=='common');
+    const legends=LEGEND_CARDS.filter(l=>l.rarity!=='common'&&l.rarity!=='superrare'&&l.rarity!=='ultralegendary');
     legendsRow.innerHTML=legends.map(l=>{
       const unlocked=unlockedLegends.includes(l.key);
       return `<div class="legend-card cabinet-slot rarity-${l.rarity}${unlocked?' unlocked':''}" onclick="viewLegendCard('${l.key}')">
