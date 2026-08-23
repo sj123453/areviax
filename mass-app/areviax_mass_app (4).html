@@ -749,6 +749,8 @@ input,input:focus,input:active,
   width:140px;height:140px;margin:0 auto 14px;position:relative;
   clip-path:polygon(50% 0%,93% 25%,93% 75%,50% 100%,7% 75%,7% 25%);
   box-shadow:0 16px 40px -16px rgba(0,0,0,.65);
+  display:flex;align-items:center;justify-content:center;
+  animation:leagueHeroIn .6s cubic-bezier(.16,1,.3,1) both;
 }
 .league-hero-emblem::before{
   content:'';position:absolute;inset:0;
@@ -756,17 +758,20 @@ input,input:focus,input:active,
   background:linear-gradient(160deg,rgba(255,255,255,.32),transparent 58%);
   pointer-events:none;
 }
+.league-hero-emblem svg{width:52%;height:52%;position:relative;z-index:1;filter:drop-shadow(0 2px 6px rgba(0,0,0,.35))}
+.league-ladder-emblem svg{width:56%;height:56%;position:relative;z-index:1}
+@keyframes leagueHeroIn{0%{transform:scale(.6) rotate(-12deg);opacity:0}100%{transform:scale(1) rotate(0deg);opacity:1}}
 .league-hero-name{font-size:21px;font-weight:900;color:var(--white);letter-spacing:-.01em}
 .league-hero-tag{font-size:11.5px;color:var(--muted);margin-top:4px}
 
-.league-bronze .league-hero-emblem,.league-bronze .league-ladder-emblem{background:linear-gradient(160deg,#E8A85C,#B8622A)}
-.league-silver .league-hero-emblem,.league-silver .league-ladder-emblem{background:linear-gradient(160deg,#F2F5F9,#9AA7B4)}
-.league-gold .league-hero-emblem,.league-gold .league-ladder-emblem{background:linear-gradient(160deg,#FFE58A,#D4970A)}
-.league-sapphire .league-hero-emblem,.league-sapphire .league-ladder-emblem{background:linear-gradient(160deg,#7FB2FF,#123E9E)}
-.league-emerald .league-hero-emblem,.league-emerald .league-ladder-emblem{background:linear-gradient(160deg,#6EEAB0,#0C6E47)}
-.league-ruby .league-hero-emblem,.league-ruby .league-ladder-emblem{background:linear-gradient(160deg,#FF7A93,#8E0F31)}
-.league-diamond .league-hero-emblem,.league-diamond .league-ladder-emblem{background:linear-gradient(115deg,#EAFBFF,#9FE8FF,#EAFBFF,#5FD0F2);background-size:260% 100%;animation:rarityShimmerSweep 3.4s linear infinite}
-.league-areviax .league-hero-emblem,.league-areviax .league-ladder-emblem{background:linear-gradient(160deg,#2A1206,#0A0503);box-shadow:0 0 0 2px rgba(255,170,60,.55) inset;animation:areviaxAura 2.4s ease-in-out infinite}
+.league-bronze .league-hero-emblem,.league-bronze .league-ladder-emblem{background:linear-gradient(160deg,#E8A85C,#B8622A);color:#5A2F0E}
+.league-silver .league-hero-emblem,.league-silver .league-ladder-emblem{background:linear-gradient(160deg,#F2F5F9,#9AA7B4);color:#3B4552}
+.league-gold .league-hero-emblem,.league-gold .league-ladder-emblem{background:linear-gradient(160deg,#FFE58A,#D4970A);color:#6B4700;animation:rarityPulseSoft 2.8s ease-in-out infinite}
+.league-sapphire .league-hero-emblem,.league-sapphire .league-ladder-emblem{background:linear-gradient(160deg,#7FB2FF,#123E9E);color:#EAF3FF;animation:rarityPulseSoft 2.6s ease-in-out infinite}
+.league-emerald .league-hero-emblem,.league-emerald .league-ladder-emblem{background:linear-gradient(160deg,#6EEAB0,#0C6E47);color:#EAFFF5;animation:rarityPulseSoft 2.6s ease-in-out infinite}
+.league-ruby .league-hero-emblem,.league-ruby .league-ladder-emblem{background:linear-gradient(160deg,#FF7A93,#8E0F31);color:#FFEAF0;animation:rarityPulseStrong 2.2s ease-in-out infinite}
+.league-diamond .league-hero-emblem,.league-diamond .league-ladder-emblem{background:linear-gradient(115deg,#EAFBFF,#9FE8FF,#EAFBFF,#5FD0F2);background-size:260% 100%;color:#0B4C66;animation:rarityShimmerSweep 3.4s linear infinite}
+.league-areviax .league-hero-emblem,.league-areviax .league-ladder-emblem{background:linear-gradient(160deg,#2A1206,#0A0503);color:#FFB347;box-shadow:0 0 0 2px rgba(255,170,60,.55) inset;animation:areviaxAura 2.4s ease-in-out infinite}
 .league-hero.league-bronze .league-hero-emblem{box-shadow:0 0 30px rgba(184,98,42,.55)}
 .league-hero.league-silver .league-hero-emblem{box-shadow:0 0 30px rgba(154,167,180,.55)}
 .league-hero.league-gold .league-hero-emblem{box-shadow:0 0 32px rgba(212,151,10,.6)}
@@ -778,12 +783,17 @@ input,input:focus,input:active,
 
 .league-ladder{display:flex;justify-content:space-between;gap:5px;padding:14px 2px;overflow-x:auto}
 .league-ladder-node{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;opacity:.4;transition:opacity .2s}
+.league-ladder-node .league-ladder-emblem{animation:leagueNodeIn .45s cubic-bezier(.16,1,.3,1) both;animation-delay:var(--stagger,0ms)}
+@keyframes leagueNodeIn{0%{transform:translateY(8px) scale(.7)}100%{transform:translateY(0) scale(1)}}
 .league-ladder-node.passed{opacity:.75}
 .league-ladder-node.current{opacity:1}
-.league-ladder-emblem{width:28px;height:28px;clip-path:polygon(50% 0%,93% 25%,93% 75%,50% 100%,7% 75%,7% 25%)}
+.league-ladder-emblem{width:28px;height:28px;clip-path:polygon(50% 0%,93% 25%,93% 75%,50% 100%,7% 75%,7% 25%);display:flex;align-items:center;justify-content:center}
 .league-ladder-node.locked .league-ladder-emblem{filter:grayscale(.55) brightness(.75)}
-@keyframes leagueCurrentPulse{0%,100%{filter:brightness(1)}50%{filter:brightness(1.35)}}
-.league-ladder-node.current .league-ladder-emblem{animation:leagueCurrentPulse 1.8s ease-in-out infinite}
+@keyframes leagueCurrentPulse{0%,100%{filter:brightness(1);transform:scale(1)}50%{filter:brightness(1.35);transform:scale(1.08)}}
+.league-ladder-node.current .league-ladder-emblem{animation:leagueNodeIn .45s cubic-bezier(.16,1,.3,1) both,leagueCurrentPulse 1.8s ease-in-out .45s infinite}
+.league-ladder-node.current .league-ladder-label{color:var(--orange);font-weight:800}
+.league-ladder-label{font-size:8px;color:var(--muted);margin-top:4px;white-space:nowrap}
+@media(prefers-reduced-motion:reduce){.league-ladder-node,.league-hero-emblem{animation:none!important}}
 
 .league-countdown{text-align:center;font-size:11px;color:var(--muted);margin:2px 0 14px;font-family:'JetBrains Mono',monospace}
 .league-zone-legend{display:flex;justify-content:center;gap:18px;font-size:9.5px;color:var(--muted);margin-bottom:8px}
@@ -15416,6 +15426,30 @@ const LEAGUE_TIERS=[
   {key:'diamond', label:'Diamond League',  tag:'The very best'},
   {key:'areviax', label:'Areviax League',  tag:'The single top tier — 1-of-1'},
 ];
+// ── LEAGUE EMBLEMS — one bespoke line-art badge per tier instead of an
+// empty gradient hexagon. Bronze/silver/gold share a plain star (medal
+// iconography — the material gradient alone carries the tier), the
+// three gem tiers share a faceted gem outline, and Diamond reuses the
+// Diamond Drop's own crateIconSVG so the crate and league genuinely
+// look like the same material. Areviax gets its own bespoke nova/
+// compass mark — an 8-point star (4 long cardinal spikes + 4 shorter
+// diagonal ones) with a bright core, echoing the compass motif used
+// everywhere else in the app (Compass Drops, Compass Points) since
+// this is the single most prestigious thing in the whole reward
+// economy and deserves its own mark rather than a recolored crate icon.
+const LEAGUE_ICON_SVG={
+  bronze:'<svg viewBox="-11 -11 22 22" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M0,-9 L2.1,-2.8 L8.6,-2.8 L3.4,1.1 L5.3,7.7 L0,3.6 L-5.3,7.7 L-3.4,1.1 L-8.6,-2.8 L-2.1,-2.8 Z"/></svg>',
+  silver:'<svg viewBox="-11 -11 22 22" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M0,-9 L2.1,-2.8 L8.6,-2.8 L3.4,1.1 L5.3,7.7 L0,3.6 L-5.3,7.7 L-3.4,1.1 L-8.6,-2.8 L-2.1,-2.8 Z"/></svg>',
+  gold:'<svg viewBox="-11 -11 22 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M0,-9 L2.1,-2.8 L8.6,-2.8 L3.4,1.1 L5.3,7.7 L0,3.6 L-5.3,7.7 L-3.4,1.1 L-8.6,-2.8 L-2.1,-2.8 Z"/><path d="M-9,5 Q-12,2 -10,-1 M9,5 Q12,2 10,-1"/></svg>',
+  sapphire:'<svg viewBox="-12 -12 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><path d="M-7,-4 L7,-4 L10.5,0.5 L0,10 L-10.5,0.5 Z"/><path d="M-7,-4 L0,0.5 L7,-4 M-10.5,0.5 L10.5,0.5"/></svg>',
+  emerald:'<svg viewBox="-12 -12 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><path d="M-7,-4 L7,-4 L10.5,0.5 L0,10 L-10.5,0.5 Z"/><path d="M-7,-4 L0,0.5 L7,-4 M-10.5,0.5 L10.5,0.5"/></svg>',
+  ruby:'<svg viewBox="-12 -12 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><path d="M-7,-4 L7,-4 L10.5,0.5 L0,10 L-10.5,0.5 Z"/><path d="M-7,-4 L0,0.5 L7,-4 M-10.5,0.5 L10.5,0.5"/></svg>',
+  areviax:'<svg viewBox="-13 -13 26 26" fill="currentColor"><path d="M0,-11 L2.6,-2.6 L11,0 L2.6,2.6 L0,11 L-2.6,2.6 L-11,0 L-2.6,-2.6 Z" opacity=".95"/><path d="M5.2,-5.2 L2,0 L5.2,5.2 L0,2 L-5.2,5.2 L-2,0 L-5.2,-5.2 L0,-2 Z" opacity=".7"/><circle r="1.7" fill="#FFF6E5"/></svg>',
+};
+function leagueIconSVG(key){
+  if(key==='diamond')return crateIconSVG('diamond');
+  return LEAGUE_ICON_SVG[key]||'';
+}
 function weekHash(str){let h=0;for(let i=0;i<str.length;i++)h=(h*31+str.charCodeAt(i))>>>0;return h;}
 // Bots drift near their historical quality (bot.tier 0-3) but not
 // identically week to week — same "alive, not static" idea as the
@@ -15512,7 +15546,8 @@ function renderLeagueLadder(){
   return '<div class="league-ladder">'+LEAGUE_TIERS.map((lg,i)=>{
     const state=i===userLeagueTier?'current':i<userLeagueTier?'passed':'locked';
     return '<div class="league-ladder-node league-'+lg.key+' '+state+'" title="'+lg.label+'">'+
-      '<div class="league-ladder-emblem"></div>'+
+      '<div class="league-ladder-emblem" style="--stagger:'+(i*55)+'ms">'+leagueIconSVG(lg.key)+'</div>'+
+      '<span class="league-ladder-label">'+lg.label.replace(' League','')+'</span>'+
     '</div>';
   }).join('')+'</div>';
 }
@@ -15535,7 +15570,7 @@ function renderLeagues(){
   }).join('');
   cont.innerHTML=
     '<div class="league-hero league-'+league.key+'">'+
-      '<div class="league-hero-emblem"></div>'+
+      '<div class="league-hero-emblem">'+leagueIconSVG(league.key)+'</div>'+
       '<div class="league-hero-name">'+league.label+'</div>'+
       '<div class="league-hero-tag">'+league.tag+'</div>'+
     '</div>'+
