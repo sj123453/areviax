@@ -1488,20 +1488,24 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        orange, reading as a near-black tile instead of "an orange crate
        with the logo on it". */
     .compass-crate .crate-icon-emblem{width:72%;height:72%;border-radius:50%;object-fit:cover;box-shadow:0 0 0 1.5px rgba(255,255,255,.25)}
-    .compass-crate.bronze{background:linear-gradient(160deg,#E8A85C,#B8622A)}
-    .compass-crate.silver{background:linear-gradient(160deg,#F2F5F9,#9AA7B4)}
-    .compass-crate.gold{background:linear-gradient(160deg,#FFE58A,#D4970A)}
-    .compass-crate.diamond{background:linear-gradient(115deg,#EAFBFF,#9FE8FF,#EAFBFF,#5FD0F2);background-size:260% 100%;animation:rarityShimmerSweep 3.4s linear infinite}
-    .compass-crate.areviax{background:linear-gradient(160deg,#FF9A42,#FF5A00);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.35)}
+    .compass-crate.bronze{background:linear-gradient(160deg,#E8A85C,#B8622A);box-shadow:0 0 12px rgba(184,98,42,.45)}
+    .compass-crate.silver{background:linear-gradient(160deg,#F2F5F9,#9AA7B4);box-shadow:0 0 12px rgba(154,167,180,.5)}
+    .compass-crate.gold{background:linear-gradient(160deg,#FFE58A,#D4970A);box-shadow:0 0 12px rgba(255,215,0,.45)}
+    .compass-crate.diamond{background:linear-gradient(115deg,#EAFBFF,#9FE8FF,#EAFBFF,#5FD0F2);background-size:260% 100%;animation:rarityShimmerSweep 3.4s linear infinite;box-shadow:0 0 14px rgba(95,208,242,.5)}
+    .compass-crate.areviax{background:linear-gradient(160deg,#FF9A42,#FF5A00);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.35),0 0 16px rgba(255,140,40,.55)}
     .compass-crate.areviax .crate-icon svg{color:#FFB347}
-    .compass-crate.locked{filter:grayscale(1) opacity(.35)}
+    /* Locked keeps each tier's own colour, just dimmer — a flat
+       grayscale filter would desaturate the glow above too, leaving
+       every locked crate looking like an identical grey nothing
+       instead of "an unopened bronze/silver/gold/diamond crate". */
+    .compass-crate.locked{opacity:.5;filter:saturate(.75)}
     @keyframes crateFloat{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-4px) rotate(-4deg)}}
     .compass-crate.ready{animation:crateFloat 2.4s ease-in-out infinite}
-    .compass-crate.bronze.ready{box-shadow:0 0 18px rgba(184,98,42,.55)}
-    .compass-crate.silver.ready{box-shadow:0 0 18px rgba(154,167,180,.6)}
-    .compass-crate.gold.ready{box-shadow:0 0 20px rgba(255,215,0,.55)}
-    .compass-crate.diamond.ready{box-shadow:0 0 24px rgba(95,208,242,.65)}
-    @keyframes areviaxAura{0%,100%{filter:brightness(1)}50%{filter:brightness(1.3)}}
+    .compass-crate.bronze.ready{box-shadow:0 0 18px rgba(184,98,42,.65)}
+    .compass-crate.silver.ready{box-shadow:0 0 18px rgba(154,167,180,.75)}
+    .compass-crate.gold.ready{box-shadow:0 0 20px rgba(255,215,0,.65)}
+    .compass-crate.diamond.ready{box-shadow:0 0 24px rgba(95,208,242,.75)}
+    @keyframes areviaxAura{0%,100%{filter:brightness(1) hue-rotate(0deg)}50%{filter:brightness(1.3) hue-rotate(-18deg)}}
     .compass-crate.areviax.ready{
       box-shadow:0 0 30px rgba(255,140,40,.85),0 0 52px rgba(255,180,80,.4);
       animation:crateFloat 2.2s ease-in-out infinite,areviaxAura 2.4s ease-in-out infinite;
@@ -1588,6 +1592,15 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .spin-wheel-hub{fill:#0B0B0B;stroke:rgba(255,255,255,.28);stroke-width:2}
     .spin-wheel-hub-icon{stroke:rgba(255,140,50,.85);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
     .spin-wedge-icon{color:#fff;opacity:.94}
+    /* Positioned via inline left/top (computed per-render from the
+       areviax wedge's actual mid-angle) — the badge sits just outside
+       the rim rather than crammed into a ~3.6° wedge no logo could ever
+       read inside, at any radius. */
+    .spin-wheel-areviax-badge{
+      position:absolute;width:24px;height:24px;border-radius:50%;
+      transform:translate(-50%,-50%);object-fit:cover;z-index:4;
+      box-shadow:0 0 0 1.5px rgba(255,255,255,.4),0 0 10px rgba(255,140,40,.7);
+    }
     .spin-wheel-pointer{
       position:absolute;top:-7px;left:50%;transform:translateX(-50%);z-index:3;
       width:0;height:0;border-left:9px solid transparent;border-right:9px solid transparent;
@@ -7900,14 +7913,25 @@ function renderDailySpin(){
   const segs=spinWheelSegments();
   const cx=100,cy=100,r=96;
   const wedges=segs.map(seg=>'<path class="spin-wedge spin-wedge-'+seg.key+'"'+(seg.key==='areviax'?' style="fill:url(#areviaxWedgeGrad)"':'')+' d="'+spinWedgePath(cx,cy,r,seg.start,seg.end)+'"/>').join('');
-  // The Areviax sliver is ~3.6° — too thin for an inline icon, so it
-  // reads through colour + shimmer alone; the other four get their
-  // crate glyph placed at each wedge's mid-angle.
+  // The Areviax sliver is ~3.6° — too thin for its logo to actually
+  // render at any readable size AT that angle, at ANY radius inside the
+  // wedge (wedge width scales with radius × angle, and 3.6° stays
+  // vanishingly thin the whole way out to the rim). Rather than skip it
+  // and lose the logo entirely, place a small badge just OUTSIDE the
+  // rim, at the wedge's own angle, as an absolutely-positioned <img>
+  // sibling of the SVG — not an inline SVG <image>, since the bundler's
+  // asset-inlining only rewrites <img src>, not SVG href.
   const icons=segs.filter(s=>s.key!=='areviax').map(seg=>{
     const pos=spinPolarToXY(cx,cy,r*0.62,seg.mid);
     const paths=CRATE_ICON_PATHS[seg.key]||CRATE_ICON_PATHS.bronze;
     return '<g class="spin-wedge-icon" transform="translate('+pos.x+','+pos.y+') scale(0.95)" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+paths+'</g>';
   }).join('');
+  const areviaxSeg=segs.find(s=>s.key==='areviax');
+  // Just inside the rim (not outside it) — an outside placement clipped
+  // against the card's own rounded-corner overflow since it's so close
+  // to the wheel's own top edge (the areviax wedge sits right at the
+  // 12 o'clock seam between it and bronze).
+  const areviaxPos=spinPolarToXY(cx,cy,r*0.88,areviaxSeg.mid);
   cont.innerHTML=
     '<div class="spin-wheel-wrap">'+
       '<svg class="spin-wheel-dial" id="spin-wheel-dial" viewBox="0 0 200 200">'+
@@ -7920,6 +7944,7 @@ function renderDailySpin(){
         '<circle cx="100" cy="100" r="23" class="spin-wheel-hub"/>'+
         '<g class="spin-wheel-hub-icon" transform="translate(100,100)"><circle cx="0" cy="0" r="9"/><path d="M0-9v2.4M0 6.6V9M-9 0h2.4M6.6 0H9"/><path d="M0-5.5c2.4 2 3.6 4 3.2 6.4-.3 1.9-1.8 3.3-3.2 3.6-1.4-.3-2.9-1.7-3.2-3.6-.4-2.4.8-4.4 3.2-6.4z"/></g>'+
       '</svg>'+
+      '<img class="spin-wheel-areviax-badge" src="images/legends/areviax_emblem.png" alt="Areviax Drop" style="left:'+(areviaxPos.x/2)+'%;top:'+(areviaxPos.y/2)+'%">'+
       '<div class="spin-wheel-pointer"></div>'+
     '</div>'+
     '<button class="btn btn-g btn-sm spin-wheel-btn" id="spin-wheel-btn" '+(ready?'':'disabled')+' onclick="spinDailyWheel()">'+(ready?'🎡 Free Spin':'Come back tomorrow')+'</button>'+
