@@ -7122,8 +7122,13 @@ function drawRoadTrail(cont){
     svg.setAttribute('class','road-trail-svg');
     cont.insertBefore(svg,cont.firstChild);
   }
+  // Sized to the container's full scrollable content height (not the
+  // clipped visible clientHeight from contRect) so the path renders
+  // completely without depending on the SVG's own CSS overflow:visible
+  // to paint past its layout box — that worked in Chromium but WebKit
+  // (iOS Safari) clips it, making the trail invisible on real devices.
   svg.setAttribute('width',contRect.width);
-  svg.setAttribute('height',contRect.height);
+  svg.setAttribute('height',cont.scrollHeight);
   const lit=cont.classList.contains('has-progress');
   svg.innerHTML=
     '<path d="'+d+'" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="4" stroke-linecap="round" stroke-dasharray="1 13"/>'+
