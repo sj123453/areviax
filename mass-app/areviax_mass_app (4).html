@@ -1592,13 +1592,13 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .spin-wheel-hub-icon{stroke:rgba(255,140,50,.85);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
     .spin-wedge-icon{color:#fff;opacity:.94}
     /* Positioned via inline left/top (computed per-render from the
-       areviax wedge's actual mid-angle) — the badge sits just outside
-       the rim rather than crammed into a ~3.6° wedge no logo could ever
-       read inside, at any radius. */
+       areviax wedge's actual mid-angle) — the badge sits mid-band like
+       the other tier icons rather than crammed into a ~3.6° wedge no
+       logo could ever read inside, at any radius. */
     .spin-wheel-areviax-badge{
-      position:absolute;width:24px;height:24px;border-radius:50%;
+      position:absolute;width:34px;height:34px;border-radius:50%;
       transform:translate(-50%,-50%);object-fit:cover;z-index:4;
-      box-shadow:0 0 0 1.5px rgba(255,255,255,.4),0 0 10px rgba(255,140,40,.7);
+      box-shadow:0 0 0 2px rgba(255,255,255,.5),0 0 0 4px rgba(255,140,40,.5),0 0 14px rgba(255,140,40,.85);
     }
     .spin-wheel-pointer{
       position:absolute;top:-7px;left:50%;transform:translateX(-50%);z-index:3;
@@ -7253,9 +7253,16 @@ function drawRoadTrail(cont){
   const hexes=[...cont.querySelectorAll('.xp-node-hexwrap')];
   if(hexes.length<2)return;
   const contRect=cont.getBoundingClientRect();
+  // cont's own box position is scroll-invariant (scrolling only shifts
+  // its content), but hex rects — and the SVG itself, an absolutely
+  // positioned descendant that scrolls right along with them — are
+  // NOT. Subtracting contRect alone double-counts that scroll offset
+  // once the auto-scroll-to-"next" runs, pushing the whole path off by
+  // -scrollTop; adding scrollLeft/scrollTop back converts to the
+  // scroll-invariant content-local space the SVG's own coordinates need.
   const pts=hexes.map(h=>{
     const r=h.getBoundingClientRect();
-    return {x:r.left+r.width/2-contRect.left,y:r.top+r.height/2-contRect.top};
+    return {x:r.left+r.width/2-contRect.left+cont.scrollLeft,y:r.top+r.height/2-contRect.top+cont.scrollTop};
   });
   let d='M'+pts[pts.length-1].x.toFixed(1)+','+pts[pts.length-1].y.toFixed(1);
   for(let i=pts.length-2;i>=0;i--){
@@ -7278,8 +7285,8 @@ function drawRoadTrail(cont){
   svg.setAttribute('height',cont.scrollHeight);
   const lit=cont.classList.contains('has-progress');
   svg.innerHTML=
-    '<path d="'+d+'" fill="none" stroke="rgba(255,255,255,.14)" stroke-width="4" stroke-linecap="round" stroke-dasharray="1 13"/>'+
-    (lit?'<path d="'+d+'" fill="none" stroke="rgba(255,140,50,.6)" stroke-width="4" stroke-linecap="round" stroke-dasharray="1 13" style="filter:drop-shadow(0 0 5px rgba(255,90,0,.4))"/>':'');
+    '<path d="'+d+'" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="3.5" stroke-linecap="round" stroke-dasharray="2 11"/>'+
+    (lit?'<path d="'+d+'" fill="none" stroke="rgba(255,140,50,.85)" stroke-width="3.5" stroke-linecap="round" stroke-dasharray="2 11" style="filter:drop-shadow(0 0 6px rgba(255,90,0,.6))"/>':'');
 }
 function renderXpRoad(){
   const cont=document.getElementById('xp-road');
@@ -7911,11 +7918,11 @@ function renderDailySpin(){
     return '<g class="spin-wedge-icon" transform="translate('+pos.x+','+pos.y+') scale(0.95)" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+paths+'</g>';
   }).join('');
   const areviaxSeg=segs.find(s=>s.key==='areviax');
-  // Just inside the rim (not outside it) — an outside placement clipped
-  // against the card's own rounded-corner overflow since it's so close
-  // to the wheel's own top edge (the areviax wedge sits right at the
-  // 12 o'clock seam between it and bronze).
-  const areviaxPos=spinPolarToXY(cx,cy,r*0.88,areviaxSeg.mid);
+  // Same radial band as the other tier icons (r*0.62) rather than out
+  // near the rim — sitting that close to the rim/pointer put it in the
+  // wheel's darkest, lowest-contrast area and made it read as an
+  // afterthought instead of the rarest tier's badge.
+  const areviaxPos=spinPolarToXY(cx,cy,r*0.68,areviaxSeg.mid);
   cont.innerHTML=
     '<div class="spin-wheel-wrap">'+
       '<svg class="spin-wheel-dial" id="spin-wheel-dial" viewBox="0 0 200 200">'+
