@@ -1343,7 +1343,16 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       pointer-events:none;
     }
     .legend-card-icon img{width:37px;height:37px;object-fit:contain;filter:inherit;position:relative;z-index:1}
-    .legend-card-name{font-size:8.5px;font-weight:800;color:var(--muted);line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    /* Full names, not just the last word — several cards legitimately
+       share a last word (every Training Crest ends in "Crest", Jump
+       Rope/Battle Rope both end in "Rope"), which made them read as
+       identical labels in the grid. Two-line clamp instead of a
+       single-line ellipsis so the distinguishing first word survives. */
+    .legend-card-name{
+      font-size:8.5px;font-weight:800;color:var(--muted);line-height:1.25;
+      display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
+      overflow:hidden;
+    }
     .legend-card.unlocked .legend-card-icon{filter:none}
     .legend-card.unlocked .legend-card-name{color:var(--white)}
     /* ── RARITY LADDER — seven tiers. The trophy art itself already
@@ -3664,7 +3673,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        page now (7 labelled layers, larger trophy art), reached from
        here rather than being crammed into this card. -->
   <div class="card" style="margin-bottom:14px;cursor:pointer" onclick="showPage('trophycabinet')">
-    <div class="ch"><span class="ct" style="display:flex;align-items:center;gap:7px">🏆 Trophy Cabinet</span></div>
+    <div class="ch"><span class="ct glow-title trophy" style="display:flex;align-items:center;gap:7px">🏆 Trophy Cabinet</span></div>
     <div style="font-size:11.5px;color:var(--muted);line-height:1.6">Step into the full collection room — every layer, every rarity, all in one place.</div>
     <button class="btn btn-out btn-sm" style="width:100%;margin-top:12px" onclick="event.stopPropagation();showPage('trophycabinet')">Enter Trophy Cabinet →</button>
   </div>
@@ -4560,7 +4569,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        the same .legend-card/.legend-card-icon markup the Cabinet itself
        uses so an unlocked card looks identical in both places. -->
   <div class="card" style="margin-bottom:14px;cursor:pointer" onclick="showPage('trophycabinet')">
-    <div class="ch"><span class="ct" style="display:flex;align-items:center;gap:7px">🏆 Trophy Cabinet</span><span style="font-size:11px;font-weight:800;color:var(--muted)" id="profile-trophy-count"></span></div>
+    <div class="ch"><span class="ct glow-title trophy" style="display:flex;align-items:center;gap:7px">🏆 Trophy Cabinet</span><span style="font-size:11px;font-weight:800;color:var(--muted)" id="profile-trophy-count"></span></div>
     <div style="font-size:11px;color:var(--muted);margin-bottom:12px">Every card you've pulled from a Compass Drop, all in one room.</div>
     <div id="profile-trophy-preview" style="display:flex;gap:8px;overflow-x:auto;padding-bottom:2px"></div>
     <button class="btn btn-out btn-sm" style="width:100%;margin-top:12px" onclick="event.stopPropagation();showPage('trophycabinet')">Enter Trophy Cabinet →</button>
@@ -6736,7 +6745,7 @@ function renderProfileTrophySummary(){
   cont.innerHTML=ownedCards.map(l=>
     `<div class="legend-card rarity-${l.rarity} unlocked" onclick="event.stopPropagation();viewLegendCard('${l.key}')">
       <div class="legend-card-icon">${legendIconHTML(l)}</div>
-      <div class="legend-card-name">${l.name.split(' ').pop()}</div>
+      <div class="legend-card-name">${l.name}</div>
     </div>`
   ).join('');
 }
@@ -7076,6 +7085,16 @@ function checkXpRoad(){
     saveToStorage();renderAchievements();renderXpRoad();
   }
 }
+// Shared by XP/Weight Road's node pill ("1,500 XP" / "8,000kg") — the
+// pill is a fixed-width badge that ellipsizes rather than overflows, but
+// a 5-6 digit comma-formatted number just gets chopped to "20,..." which
+// reads worse than a compact "20K" ever would, so large values switch
+// to that instead of relying on truncation to save them.
+function formatCompactNum(n){
+  if(n>=10000)return Math.round(n/1000)+'K';
+  if(n>=1000)return(n%1000===0?n/1000:(n/1000).toFixed(1))+'K';
+  return String(n);
+}
 // Shared by XP/Weight/Trophy Road — the nodes zigzag left/right, but the
 // track only ever drew a straight dashed line down the dead centre, so
 // whichever side a given node ISN'T on read as flat empty space. Draws
@@ -7137,7 +7156,7 @@ function renderXpRoad(){
       '</div>'+
       '<div class="xp-node-connector"></div>'+
       '<div class="xp-node-body">'+
-        '<span class="xp-node-xp">'+node.xp+' XP</span>'+
+        '<span class="xp-node-xp">'+formatCompactNum(node.xp)+' XP</span>'+
         '<div class="xp-node-desc">'+xpRoadRewardLabel(node)+'</div>'+
         (isNext?'<div class="xp-node-bar"><div class="xp-node-bar-fill" style="width:'+pct+'%"></div></div>':'')+
       '</div>'+
@@ -7292,7 +7311,7 @@ function renderWeightRoad(){
       '</div>'+
       '<div class="xp-node-connector"></div>'+
       '<div class="xp-node-body">'+
-        '<span class="xp-node-xp">'+m.kg.toLocaleString()+'kg</span>'+
+        '<span class="xp-node-xp">'+formatCompactNum(m.kg)+'kg</span>'+
         '<div class="xp-node-desc">'+m.name+'</div>'+
         (isNext?'<div class="xp-node-bar"><div class="xp-node-bar-fill" style="width:'+pct+'%"></div></div>':'')+
       '</div>'+
@@ -7343,7 +7362,7 @@ function renderTrophyCabinet(){
       const unlocked=unlockedLegends.includes(l.key);
       return `<div class="legend-card cabinet-slot rarity-${l.rarity}${unlocked?' unlocked':''}" onclick="viewLegendCard('${l.key}')">
         <div class="legend-card-icon">${unlocked?legendIconHTML(l):'\u2753'}</div>
-        <div class="legend-card-name">${unlocked?l.name.split(' ').pop():'???'}</div>
+        <div class="legend-card-name">${unlocked?l.name:'???'}</div>
       </div>`;
     }).join(''):Array.from({length:layer.count}).map(()=>
       `<div class="legend-card cabinet-slot rarity-${layer.rarity}" onclick="viewCabinetLocked('${layer.label}')">
@@ -7385,7 +7404,7 @@ function renderTrophyCabinet(){
       const unlocked=unlockedLegends.includes(l.key);
       return `<div class="legend-card cabinet-slot rarity-${l.rarity}${unlocked?' unlocked':''}" onclick="viewLegendCard('${l.key}')">
         <div class="legend-card-icon">${unlocked?legendIconHTML(l):'❓'}</div>
-        <div class="legend-card-name">${unlocked?l.name.split(' ').pop():'???'}</div>
+        <div class="legend-card-name">${unlocked?l.name:'???'}</div>
       </div>`;
     }).join('');
     const countEl=document.getElementById('cabinet-legends-count');
