@@ -3459,7 +3459,10 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     <div id="recipe-detail-ingredients" style="margin-bottom:18px"></div>
     <div class="ex-cue-label" style="margin-bottom:8px">Method</div>
     <div id="recipe-detail-steps"></div>
-    <button class="btn btn-g" style="width:100%;margin-top:20px" onclick="closeRecipeDetail()">Done</button>
+    <div style="display:flex;gap:8px;margin-top:20px">
+      <button class="btn btn-out" style="flex:1" onclick="closeRecipeDetail()">Close</button>
+      <button class="btn btn-g" style="flex:2" onclick="logRecipeMacros(currentRecipeDetailIdx)">🍽 I made this — log it</button>
+    </div>
   </div>
 </div>
 
@@ -12416,6 +12419,7 @@ const RECIPES_DB=[
 // <img> tags once images are provided, everything else stays the same.
 const RECIPE_TYPE_ICON={breakfast:'🍳',lunch:'🥗',dinner:'🍽',snack:'🍎'};
 let recipeTypeFilter='all';
+let currentRecipeDetailIdx=null;
 function switchRecipeType(type,btn){
   recipeTypeFilter=type;
   document.querySelectorAll('#recipe-type-tabs .data-terminal-tab').forEach(b=>b.classList.remove('active'));
@@ -12439,6 +12443,7 @@ function renderRecipesPage(){
 }
 function openRecipeDetail(idx){
   const r=RECIPES_DB[idx];if(!r)return;
+  currentRecipeDetailIdx=idx;
   const visEl=document.getElementById('recipe-detail-placeholder');if(visEl)visEl.textContent=RECIPE_TYPE_ICON[r.type]||'🍴';
   const typeEl=document.getElementById('recipe-detail-type');if(typeEl)typeEl.textContent=r.type;
   const nameEl=document.getElementById('recipe-detail-name');if(nameEl)nameEl.textContent=r.name;
@@ -12458,6 +12463,20 @@ function openRecipeDetail(idx){
 function closeRecipeDetail(){
   document.getElementById('recipe-detail-backdrop').style.display='none';
   document.getElementById('recipe-detail-modal').style.display='none';
+}
+// "I've cooked and eaten this" — logs the recipe's real macros through the
+// same logItem() pipeline every other food entry uses (quick-add, food
+// search, shakes), so it shows up in today's totals/history like anything
+// else, not a separate one-off number.
+function logRecipeMacros(idx){
+  const r=RECIPES_DB[idx];if(!r)return;
+  logItem(r.name,r.cals,r.prot,r.carbs,r.fats,0);
+  const xp=foodXPForName(r.name,5);
+  addXP(xp,'Meal logged');
+  checkProteinQuest();
+  saveToStorage();
+  if(xp>=5)toast('🍽',r.name+' logged');
+  closeRecipeDetail();
 }
 
 // ── FEEDER-MEAL DAILY QUEST — a small randomized daily micro-challenge for
