@@ -1484,26 +1484,31 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     }
     /* Bottom-right shade first (darker, gives the facet its own weight),
        then the top-left sheen on top — reads as a cut/beveled surface
-       catching light from one direction rather than a flat color fill. */
+       catching light from one direction rather than a flat color fill.
+       Both sit ABOVE the icon layer (z-index:2 vs the icon's 1) so the
+       Areviax emblem — full-bleed onto the hex below — still reads as a
+       lit, faceted surface rather than a flat sticker pasted over it. */
     .compass-crate::before{
-      content:'';position:absolute;inset:0;
+      content:'';position:absolute;inset:0;z-index:2;
       clip-path:polygon(50% 0%,93% 25%,93% 75%,50% 100%,7% 75%,7% 25%);
       background:linear-gradient(160deg,transparent 40%,rgba(0,0,0,.32) 100%);
       pointer-events:none;
     }
     .compass-crate::after{
-      content:'';position:absolute;inset:0;
+      content:'';position:absolute;inset:0;z-index:2;
       clip-path:polygon(50% 0%,93% 25%,93% 75%,50% 100%,7% 75%,7% 25%);
       background:linear-gradient(160deg,rgba(255,255,255,.4),transparent 50%);
       pointer-events:none;
     }
     .compass-crate .crate-icon{position:relative;z-index:1;display:flex;filter:drop-shadow(0 1px 2px rgba(0,0,0,.35))}
     .compass-crate .crate-icon svg{width:26px;height:26px;color:#fff}
-    /* Centered circular badge rather than full-bleed — the emblem's own
-       dark starfield background would otherwise fight the crate's solid
-       orange, reading as a near-black tile instead of "an orange crate
-       with the logo on it". */
-    .compass-crate .crate-icon-emblem{width:72%;height:72%;border-radius:50%;object-fit:cover;box-shadow:0 0 0 1.5px rgba(255,255,255,.25)}
+    /* Full-bleed onto the hex itself (clipped to it by .compass-crate's
+       own clip-path) instead of a small circular badge floating in the
+       middle — reads as the logo actually stamped onto the crate rather
+       than a sticker sitting on top of it. The sheen/shade overlays
+       above (z-index:2) give it the same lit-surface depth as every
+       other tier's plain color fill. */
+    .compass-crate .crate-icon-emblem{width:100%;height:100%;object-fit:cover}
     /* Ambient glow moved from box-shadow to filter:drop-shadow — box-shadow
        traces the element's rectangular box, so it bled out as a soft square
        behind the hex; drop-shadow traces the actual clipped hex silhouette,
