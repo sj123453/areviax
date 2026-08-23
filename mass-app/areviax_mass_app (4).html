@@ -133,6 +133,7 @@ input,input:focus,input:active,
 .topbar-inner{max-width:760px;margin:0 auto;height:100%;display:flex;align-items:center;justify-content:space-between;padding:0 20px;box-sizing:border-box}
 .tb-left{display:flex;flex-direction:column;gap:1px}
 .tb-title{font-family:'Outfit',sans-serif;font-weight:900;font-size:19px;letter-spacing:.02em;text-transform:uppercase;color:var(--white)}
+.tb-title.tb-title-sm{font-size:14px}
 .tb-sub{font-size:11px;color:var(--muted);letter-spacing:.02em}
 .tb-right{display:flex;align-items:center;gap:8px}
 .tb-pill{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;padding:9px 16px;border-radius:24px;white-space:nowrap}
@@ -8527,7 +8528,8 @@ function showPage(id){
   try{
     const titles={dashboard:['Home','Let\'s get to work.'],workout:['Workout','Build your session.'],session:['Session','Time to work.'],nutrition:['Nutrition','Hit your targets.'],recipes:['Recipes','Real meals, built for the surplus.'],progress:['Progress','See how far you\'ve come.'],trophycabinet:['Trophy Cabinet','Every rarity, every layer, all in one room.'],recovery:['Recovery','Sleep, breathing, and how to actually recover.'],schedule:['Schedule','Plan your week.'],leaderboard:['Leaderboard','See how you rank.'],leagues:['Leagues','Climb the weekly ladder.'],learn:['Science','Understand the why.'],profile:['Profile','Your stats, on display.'],legal:['Legal','Privacy, terms, and health info.'],settings:['Settings','Update your details anytime.']};
     const[t,s]=titles[id]||[id,''];
-    const tte=document.getElementById('tb-title');if(tte)tte.textContent=t;
+    const tte=document.getElementById('tb-title');
+    if(tte){tte.textContent=t;tte.classList.toggle('tb-title-sm',id==='trophycabinet');}
     const tse=document.getElementById('tb-sub');if(tse)tse.textContent=s;
   }catch(e){}
   function safeRender(fn,name){
