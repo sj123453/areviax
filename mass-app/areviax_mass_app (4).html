@@ -12126,6 +12126,29 @@ const FOODS_DB=[
   {name:'Rum (neat)',cals:231,prot:0,carbs:0,fats:0,alcohol:33,isLiquid:true},
   {name:'Champagne / Prosecco',cals:76,prot:0.2,carbs:1.5,fats:0,alcohol:9.9,isLiquid:true},
   {name:'Cider',cals:47,prot:0,carbs:4.6,fats:0,alcohol:4.5,isLiquid:true},
+  // — Dim sum —
+  {name:'Har gow (steamed shrimp dumpling)',cals:140,prot:9,carbs:17,fats:3.5,unitGrams:35,unitName:'dumpling'},
+  {name:'Siu mai (steamed pork & shrimp dumpling)',cals:195,prot:11,carbs:13,fats:11,unitGrams:20,unitName:'dumpling'},
+  {name:'Char siu bao (steamed BBQ pork bun)',cals:250,prot:8,carbs:39,fats:7,unitGrams:80,unitName:'bun'},
+  {name:'Char siu sou (baked BBQ pork puff pastry)',cals:355,prot:7,carbs:34,fats:21,unitGrams:50,unitName:'pastry'},
+  {name:'Cheung fun (rice noodle roll, shrimp)',cals:135,prot:5,carbs:24,fats:2},
+  {name:'Egg tart (dan tat)',cals:320,prot:5.5,carbs:32,fats:19,unitGrams:55,unitName:'tart'},
+  {name:'Spring roll (fried, pork & vegetable)',cals:225,prot:5,carbs:24,fats:12,unitGrams:40,unitName:'roll'},
+  {name:'Turnip cake (lo bak go, pan-fried)',cals:150,prot:3,carbs:15,fats:8.5,unitGrams:60,unitName:'cake'},
+  {name:'Sticky rice in lotus leaf (lo mai gai)',cals:180,prot:7,carbs:25,fats:5.5,unitGrams:200,unitName:'parcel'},
+  {name:'Phoenix claws (braised chicken feet)',cals:215,prot:19,carbs:3,fats:14},
+  {name:'Steamed spare ribs (black bean sauce)',cals:220,prot:18,carbs:3,fats:15},
+  {name:'Custard bun (liu sha bao, steamed)',cals:300,prot:6,carbs:42,fats:12,unitGrams:60,unitName:'bun'},
+  {name:'Wonton (shrimp & pork)',cals:140,prot:8,carbs:14,fats:5.5,unitGrams:15,unitName:'wonton'},
+  {name:'Vegetable dumpling (steamed)',cals:110,prot:3.5,carbs:17,fats:3,unitGrams:30,unitName:'dumpling'},
+  {name:'Taro dumpling (wu gok, deep fried)',cals:280,prot:4,carbs:29,fats:16,unitGrams:50,unitName:'dumpling'},
+  {name:'Sesame ball (jian dui)',cals:330,prot:5,carbs:44,fats:15,unitGrams:35,unitName:'ball'},
+  {name:'Congee (plain rice porridge)',cals:45,prot:1,carbs:9,fats:0.3},
+  {name:'Stuffed eggplant with shrimp paste',cals:150,prot:8,carbs:6,fats:10,unitGrams:40,unitName:'piece'},
+  {name:'Beef tripe (braised, black bean sauce)',cals:130,prot:15,carbs:2,fats:6},
+  {name:'Mango pudding',cals:110,prot:2,carbs:20,fats:2.5},
+  {name:'Lotus paste bun (dou sa bao)',cals:290,prot:6,carbs:54,fats:5,unitGrams:70,unitName:'bun'},
+  {name:'Prawn toast (fried)',cals:290,prot:9,carbs:22,fats:19,unitGrams:25,unitName:'piece'},
 ];
 
 // ── RECIPE DATABASE — for the meal plan generator ──
@@ -16509,6 +16532,22 @@ document.addEventListener('DOMContentLoaded', function(){
   }
   try {
   loadFromStorage();
+  // Dev/testing convenience — visiting the app with ?grantTestCrates=1
+  // in the URL banks one Bronze/Silver/Gold/Diamond crate (Areviax has
+  // no bank; call openCompassDrop('areviax') from the console for that
+  // one). No server exists to gate this behind — every value here is
+  // already plain client-side localStorage a technical user could edit
+  // directly regardless, so this doesn't change what's actually
+  // enforceable, just makes self-testing easier. Strips the param
+  // immediately so a shared/bookmarked link doesn't re-trigger it.
+  try{
+    if(new URLSearchParams(location.search).get('grantTestCrates')==='1'){
+      bronzeDropBank++;silverDropBank++;shardBank++;diamondDropBank++;
+      saveToStorage();
+      history.replaceState(null,'',location.pathname+location.hash);
+      setTimeout(()=>{try{toast('🎁','Test crates granted — check Compass Drops');}catch(e){}},800);
+    }
+  }catch(e){}
   try{applyStreakBreak();}catch(e){console.error('applyStreakBreak:',e.message);}
   if(profile.name&&profile.cals>0){
     const ob=document.getElementById('onboarding');
