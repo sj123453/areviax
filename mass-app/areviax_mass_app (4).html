@@ -3502,7 +3502,17 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
   <div class="card" style="margin-bottom:14px">
     <div class="ch"><span class="ct">Achievements</span></div>
     <div style="font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:4px">Trophies</div>
-    <div id="trophy-road" class="ach-row"></div>
+    <div class="road-scenery">
+      <div class="road-ember" style="left:8%;animation-delay:.6s;animation-duration:7.5s"></div>
+      <div class="road-ember" style="left:24%;animation-delay:3.4s;animation-duration:6.7s"></div>
+      <div class="road-ember" style="left:41%;animation-delay:1.9s;animation-duration:8.2s"></div>
+      <div class="road-ember" style="left:60%;animation-delay:.3s;animation-duration:7s"></div>
+      <div class="road-ember" style="left:77%;animation-delay:2.6s;animation-duration:6.5s"></div>
+      <div class="road-ember" style="left:92%;animation-delay:4s;animation-duration:7.8s"></div>
+      <div class="road-ridge back"></div>
+      <div class="road-ridge front"></div>
+      <div id="trophy-road" style="max-height:320px;overflow-y:auto;padding-right:4px"></div>
+    </div>
     <div style="font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:14px 0 4px">Weight Milestones</div>
     <div style="font-size:11px;color:var(--muted);margin-bottom:4px" id="weight-road-sub"></div>
     <div class="road-scenery">
@@ -6819,17 +6829,21 @@ function renderXpRoad(){
   const cont=document.getElementById('xp-road');
   const sub=document.getElementById('xp-road-sub');
   if(!cont)return;
-  const sorted=[...XP_ROAD].sort((a,b)=>a.xp-b.xp);
-  const next=sorted.find(n=>!claimedXpRoad.includes(n.xp));
+  const ascending=[...XP_ROAD].sort((a,b)=>a.xp-b.xp);
+  const next=ascending.find(n=>!claimedXpRoad.includes(n.xp));
   if(sub)sub.textContent=next?xp+' / '+next.xp+' XP to next checkpoint':'All checkpoints claimed \u2014 legendary consistency.';
   const anyClaimed=claimedXpRoad.length>0;
   cont.className='xp-road-track'+(anyClaimed?' has-progress':'');
+  // Rendered highest-checkpoint-first (bottom-to-top unlock direction) \u2014
+  // "next" is still computed from the ascending copy above so progress
+  // math and the sub-header stay correct regardless of DOM order.
+  const sorted=[...ascending].reverse();
   cont.innerHTML=sorted.map((node,i)=>{
     const claimed=claimedXpRoad.includes(node.xp);
     const isNext=!claimed&&node===next;
     const side=i%2===0?'side-l':'side-r';
     const state=claimed?' claimed':isNext?' next':'';
-    const prevXp=i===0?0:sorted[i-1].xp;
+    const prevXp=i===sorted.length-1?0:sorted[i+1].xp;
     const pct=isNext?Math.max(0,Math.min(100,Math.round((xp-prevXp)/(node.xp-prevXp)*100))):0;
     return '<div class="xp-node '+side+state+'" style="--stagger:'+Math.min(i*45,450)+'ms">'+
       '<div class="xp-node-hex">'+(claimed||isNext?xpRoadRewardIcon(node):'\ud83d\udd12')+
@@ -6843,6 +6857,10 @@ function renderXpRoad(){
       '</div>'+
     '</div>';
   }).join('');
+  requestAnimationFrame(()=>{
+    const nextEl=cont.querySelector('.xp-node.next');
+    if(nextEl)nextEl.scrollIntoView({block:'center'});
+  });
 }
 
 // Two crate tiers, mirroring Brawl Stars' frequent Star Drop vs rarer
@@ -6900,17 +6918,7 @@ function crateIconSVG(tier){
 }
 
 function renderAchievements(){
-  const cont=document.getElementById('trophy-road');
-  if(cont){
-    const sorted=[...ACHIEVEMENTS].sort((a,b)=>a.order-b.order);
-    cont.innerHTML=sorted.map(a=>{
-      const unlocked=unlockedAchievements.includes(a.key);
-      return `<div class="ach-badge${unlocked?' unlocked':''}" onclick="viewAchievementBadge('${a.key}')">
-        <div class="ach-badge-icon">${unlocked?a.icon:'\ud83d\udd12'}</div>
-        <div class="ach-badge-label">${unlocked?a.label:'Locked'}</div>
-      </div>`;
-    }).join('');
-  }
+  renderTrophyRoad();
   renderWeightRoad();
   renderDailySpin();
   const crateRow=document.getElementById('crate-row');
@@ -6932,6 +6940,42 @@ function renderAchievements(){
     }).join('');
   }
 }
+// Trophy Road \u2014 Achievements re-cast as the same winding vertical road
+// as XP/Weight, instead of the old horizontal-scrolling badge row.
+// Achievements have no single numeric threshold to bar-fill against
+// (ACHIEVEMENTS only carries a designed `order`, not a magnitude), so
+// unlike XP/Weight there's no progress bar \u2014 title+description are
+// always shown (matches the road's existing "you can always read what's
+// coming" pattern), only the icon itself stays behind a lock.
+function renderTrophyRoad(){
+  const cont=document.getElementById('trophy-road');
+  if(!cont)return;
+  const ascending=[...ACHIEVEMENTS].sort((a,b)=>a.order-b.order);
+  const next=ascending.find(a=>!unlockedAchievements.includes(a.key));
+  const anyClaimed=unlockedAchievements.length>0;
+  cont.className='xp-road-track'+(anyClaimed?' has-progress':'');
+  const sorted=[...ascending].reverse();
+  cont.innerHTML=sorted.map((a,i)=>{
+    const claimed=unlockedAchievements.includes(a.key);
+    const isNext=!claimed&&a===next;
+    const side=i%2===0?'side-l':'side-r';
+    const state=claimed?' claimed':isNext?' next':'';
+    return '<div class="xp-node '+side+state+'" style="--stagger:'+Math.min(i*45,450)+'ms" onclick="viewAchievementBadge(\''+a.key+'\')">'+
+      '<div class="xp-node-hex">'+(claimed||isNext?a.icon:'\ud83d\udd12')+
+        (claimed?'<span class="xp-node-check"><svg viewBox="0 0 24 24" fill="none" stroke="#0B0B0B" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>':'')+
+      '</div>'+
+      '<div class="xp-node-connector"></div>'+
+      '<div class="xp-node-body">'+
+        '<span class="xp-node-xp">'+a.label+'</span>'+
+        '<div class="xp-node-desc">'+a.desc+'</div>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+  requestAnimationFrame(()=>{
+    const nextEl=cont.querySelector('.xp-node.next');
+    if(nextEl)nextEl.scrollIntoView({block:'center'});
+  });
+}
 // Weight Road \u2014 same winding-path component the XP Road uses
 // (.xp-road-track/.xp-node), driven by WEIGHT_MILESTONES + lifetime
 // tonnage instead of XP checkpoints, so the two read as one family
@@ -6941,17 +6985,18 @@ function renderWeightRoad(){
   const sub=document.getElementById('weight-road-sub');
   if(!cont)return;
   const vol=totalVolume||0;
-  const sorted=[...WEIGHT_MILESTONES].sort((a,b)=>a.kg-b.kg);
-  const next=sorted.find(m=>vol<m.kg);
+  const ascending=[...WEIGHT_MILESTONES].sort((a,b)=>a.kg-b.kg);
+  const next=ascending.find(m=>vol<m.kg);
   if(sub)sub.textContent=next?vol.toLocaleString()+' / '+next.kg.toLocaleString()+'kg lifetime to '+next.name:'All milestones hit \u2014 '+vol.toLocaleString()+'kg lifetime';
-  const anyClaimed=sorted.some(m=>vol>=m.kg);
+  const anyClaimed=ascending.some(m=>vol>=m.kg);
   cont.className='xp-road-track'+(anyClaimed?' has-progress':'');
+  const sorted=[...ascending].reverse();
   cont.innerHTML=sorted.map((m,i)=>{
     const claimed=vol>=m.kg;
     const isNext=!claimed&&m===next;
     const side=i%2===0?'side-l':'side-r';
     const state=claimed?' claimed':isNext?' next':'';
-    const prevKg=i===0?0:sorted[i-1].kg;
+    const prevKg=i===sorted.length-1?0:sorted[i+1].kg;
     const pct=isNext?Math.max(0,Math.min(100,Math.round((vol-prevKg)/(m.kg-prevKg)*100))):0;
     return '<div class="xp-node '+side+state+'" style="--stagger:'+Math.min(i*45,450)+'ms">'+
       '<div class="xp-node-hex">'+(claimed||isNext?milestoneIconHTML(m):'\ud83d\udd12')+
@@ -6965,6 +7010,10 @@ function renderWeightRoad(){
       '</div>'+
     '</div>';
   }).join('');
+  requestAnimationFrame(()=>{
+    const nextEl=cont.querySelector('.xp-node.next');
+    if(nextEl)nextEl.scrollIntoView({block:'center'});
+  });
 }
 function viewAchievementBadge(key){
   const a=ACHIEVEMENTS.find(x=>x.key===key);
