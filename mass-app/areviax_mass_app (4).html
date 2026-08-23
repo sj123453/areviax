@@ -1461,23 +1461,40 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .crate-slot:active{transform:scale(.97)}
     .crate-slot.not-ready{cursor:default}
     .crate-info-btn{
-      position:absolute;top:5px;right:7px;width:15px;height:15px;border-radius:50%;
-      display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;
+      position:absolute;top:4px;right:5px;width:23px;height:23px;border-radius:50%;
+      display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;
       background:rgba(255,255,255,.06);color:var(--muted);cursor:pointer;z-index:2;
       -webkit-tap-highlight-color:transparent;
     }
     .crate-info-btn:active{background:rgba(255,255,255,.14)}
     .crate-row .compass-crate{width:46px;height:46px}
     .crate-row .compass-crate .crate-icon svg{width:21px;height:21px}
+    /* Glow color/blur and the locked-state desaturation are both routed
+       through custom properties into this one filter declaration —
+       filter doesn't merge across separate rules the way box-shadow
+       does, so a later .locked{filter:...} would otherwise wipe out
+       the tier's own drop-shadow glow entirely instead of just dimming
+       it (each rule setting a different custom property composes fine). */
     .compass-crate{
       width:56px;height:56px;position:relative;
       clip-path:polygon(50% 0%,93% 25%,93% 75%,50% 100%,7% 75%,7% 25%);
       display:flex;align-items:center;justify-content:center;
+      --crate-sat:1;
+      filter:saturate(var(--crate-sat)) drop-shadow(0 0 var(--crate-glow-blur,11px) var(--crate-glow-color,transparent));
+    }
+    /* Bottom-right shade first (darker, gives the facet its own weight),
+       then the top-left sheen on top — reads as a cut/beveled surface
+       catching light from one direction rather than a flat color fill. */
+    .compass-crate::before{
+      content:'';position:absolute;inset:0;
+      clip-path:polygon(50% 0%,93% 25%,93% 75%,50% 100%,7% 75%,7% 25%);
+      background:linear-gradient(160deg,transparent 40%,rgba(0,0,0,.32) 100%);
+      pointer-events:none;
     }
     .compass-crate::after{
       content:'';position:absolute;inset:0;
       clip-path:polygon(50% 0%,93% 25%,93% 75%,50% 100%,7% 75%,7% 25%);
-      background:linear-gradient(160deg,rgba(255,255,255,.35),transparent 55%);
+      background:linear-gradient(160deg,rgba(255,255,255,.4),transparent 50%);
       pointer-events:none;
     }
     .compass-crate .crate-icon{position:relative;z-index:1;display:flex;filter:drop-shadow(0 1px 2px rgba(0,0,0,.35))}
@@ -1487,17 +1504,21 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        orange, reading as a near-black tile instead of "an orange crate
        with the logo on it". */
     .compass-crate .crate-icon-emblem{width:72%;height:72%;border-radius:50%;object-fit:cover;box-shadow:0 0 0 1.5px rgba(255,255,255,.25)}
-    .compass-crate.bronze{background:linear-gradient(160deg,#E8A85C,#B8622A);box-shadow:0 0 12px rgba(184,98,42,.45)}
-    .compass-crate.silver{background:linear-gradient(160deg,#F2F5F9,#9AA7B4);box-shadow:0 0 12px rgba(154,167,180,.5)}
-    .compass-crate.gold{background:linear-gradient(160deg,#FFE58A,#D4970A);box-shadow:0 0 12px rgba(255,215,0,.45)}
-    .compass-crate.diamond{background:linear-gradient(115deg,#EAFBFF,#9FE8FF,#EAFBFF,#5FD0F2);background-size:260% 100%;animation:rarityShimmerSweep 3.4s linear infinite;box-shadow:0 0 14px rgba(95,208,242,.5)}
-    .compass-crate.areviax{background:linear-gradient(160deg,#FF9A42,#FF5A00);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.35),0 0 16px rgba(255,140,40,.55)}
+    /* Ambient glow moved from box-shadow to filter:drop-shadow — box-shadow
+       traces the element's rectangular box, so it bled out as a soft square
+       behind the hex; drop-shadow traces the actual clipped hex silhouette,
+       so the glow reads as coming from the hexagon itself. */
+    .compass-crate.bronze{background:linear-gradient(160deg,#E8A85C,#B8622A);--crate-glow-color:rgba(212,120,50,.65);--crate-glow-blur:11px}
+    .compass-crate.silver{background:linear-gradient(160deg,#F2F5F9,#9AA7B4);--crate-glow-color:rgba(180,195,210,.7);--crate-glow-blur:11px}
+    .compass-crate.gold{background:linear-gradient(160deg,#FFE58A,#D4970A);--crate-glow-color:rgba(255,215,0,.65);--crate-glow-blur:12px}
+    .compass-crate.diamond{background:linear-gradient(115deg,#EAFBFF,#9FE8FF,#EAFBFF,#5FD0F2);background-size:260% 100%;animation:rarityShimmerSweep 3.4s linear infinite;--crate-glow-color:rgba(95,208,242,.7);--crate-glow-blur:13px}
+    .compass-crate.areviax{background:linear-gradient(160deg,#FF9A42,#FF5A00);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.35);--crate-glow-color:rgba(255,140,40,.75);--crate-glow-blur:15px}
     .compass-crate.areviax .crate-icon svg{color:#FFB347}
     /* Locked keeps each tier's own colour, just dimmer — a flat
        grayscale filter would desaturate the glow above too, leaving
        every locked crate looking like an identical grey nothing
        instead of "an unopened bronze/silver/gold/diamond crate". */
-    .compass-crate.locked{opacity:.5;filter:saturate(.75)}
+    .compass-crate.locked{opacity:.5;--crate-sat:.75}
     @keyframes crateFloat{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-4px) rotate(-4deg)}}
     .compass-crate.ready{animation:crateFloat 2.4s ease-in-out infinite}
     .compass-crate.bronze.ready{box-shadow:0 0 18px rgba(184,98,42,.65)}
@@ -1591,15 +1612,9 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .spin-wheel-hub{fill:#0B0B0B;stroke:rgba(255,255,255,.28);stroke-width:2}
     .spin-wheel-hub-icon{stroke:rgba(255,140,50,.85);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
     .spin-wedge-icon{color:#fff;opacity:.94}
-    /* Positioned via inline left/top (computed per-render from the
-       areviax wedge's actual mid-angle) — the badge sits mid-band like
-       the other tier icons rather than crammed into a ~3.6° wedge no
-       logo could ever read inside, at any radius. */
-    .spin-wheel-areviax-badge{
-      position:absolute;width:34px;height:34px;border-radius:50%;
-      transform:translate(-50%,-50%);object-fit:cover;z-index:4;
-      box-shadow:0 0 0 2px rgba(255,255,255,.5),0 0 0 4px rgba(255,140,40,.5),0 0 14px rgba(255,140,40,.85);
-    }
+    /* Drawn in the SVG's own viewBox coordinates (same space as the
+       wedges), so it can't drift out of alignment with them. */
+    .spin-wheel-areviax-badge{filter:drop-shadow(0 0 5px rgba(255,140,40,.85))}
     .spin-wheel-pointer{
       position:absolute;top:-7px;left:50%;transform:translateX(-50%);z-index:3;
       width:0;height:0;border-left:9px solid transparent;border-right:9px solid transparent;
@@ -7904,38 +7919,42 @@ function renderDailySpin(){
   const segs=spinWheelSegments();
   const cx=100,cy=100,r=96;
   const wedges=segs.map(seg=>'<path class="spin-wedge spin-wedge-'+seg.key+'"'+(seg.key==='areviax'?' style="fill:url(#areviaxWedgeGrad)"':'')+' d="'+spinWedgePath(cx,cy,r,seg.start,seg.end)+'"/>').join('');
-  // The Areviax sliver is ~3.6° — too thin for its logo to actually
-  // render at any readable size AT that angle, at ANY radius inside the
-  // wedge (wedge width scales with radius × angle, and 3.6° stays
-  // vanishingly thin the whole way out to the rim). Rather than skip it
-  // and lose the logo entirely, place a small badge just OUTSIDE the
-  // rim, at the wedge's own angle, as an absolutely-positioned <img>
-  // sibling of the SVG — not an inline SVG <image>, since the bundler's
-  // asset-inlining only rewrites <img src>, not SVG href.
   const icons=segs.filter(s=>s.key!=='areviax').map(seg=>{
     const pos=spinPolarToXY(cx,cy,r*0.62,seg.mid);
     const paths=CRATE_ICON_PATHS[seg.key]||CRATE_ICON_PATHS.bronze;
     return '<g class="spin-wedge-icon" transform="translate('+pos.x+','+pos.y+') scale(0.95)" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+paths+'</g>';
   }).join('');
   const areviaxSeg=segs.find(s=>s.key==='areviax');
-  // Same radial band as the other tier icons (r*0.62) rather than out
-  // near the rim — sitting that close to the rim/pointer put it in the
-  // wheel's darkest, lowest-contrast area and made it read as an
-  // afterthought instead of the rarest tier's badge.
+  // The Areviax sliver is ~3.6° — too thin for its logo to read AT
+  // that angle at any radius, so the badge sits at the same radial
+  // band as the other tier icons (r*0.62) instead. Drawn as an inline
+  // SVG <image> in the same 0-200 viewBox as the wedges themselves
+  // (not a separately percentage-positioned <img> sibling) — that
+  // earlier approach depended on .spin-wheel-wrap's CSS aspect-ratio
+  // resolving to an exact square before the position was read, which
+  // isn't reliable on every device, and any mismatch there put the
+  // badge and the wedges out of alignment with each other.
   const areviaxPos=spinPolarToXY(cx,cy,r*0.68,areviaxSeg.mid);
+  const areviaxBadgeR=17;
   cont.innerHTML=
     '<div class="spin-wheel-wrap">'+
       '<svg class="spin-wheel-dial" id="spin-wheel-dial" viewBox="0 0 200 200">'+
         '<defs><linearGradient id="areviaxWedgeGrad" x1="0" y1="0" x2="1" y2="1">'+
           '<stop offset="0%" stop-color="#FFD24A"/><stop offset="50%" stop-color="#FF7A2E"/><stop offset="100%" stop-color="#FFD24A"/>'+
-        '</linearGradient></defs>'+
+        '</linearGradient>'+
+        '<clipPath id="areviaxBadgeClip"><circle cx="'+areviaxPos.x+'" cy="'+areviaxPos.y+'" r="'+areviaxBadgeR+'"/></clipPath>'+
+        '</defs>'+
         '<g>'+wedges+'</g>'+
         '<circle cx="100" cy="100" r="96" class="spin-wheel-rim"/>'+
         icons+
         '<circle cx="100" cy="100" r="23" class="spin-wheel-hub"/>'+
         '<g class="spin-wheel-hub-icon" transform="translate(100,100)"><circle cx="0" cy="0" r="9"/><path d="M0-9v2.4M0 6.6V9M-9 0h2.4M6.6 0H9"/><path d="M0-5.5c2.4 2 3.6 4 3.2 6.4-.3 1.9-1.8 3.3-3.2 3.6-1.4-.3-2.9-1.7-3.2-3.6-.4-2.4.8-4.4 3.2-6.4z"/></g>'+
+        '<g class="spin-wheel-areviax-badge">'+
+          '<circle cx="'+areviaxPos.x+'" cy="'+areviaxPos.y+'" r="'+(areviaxBadgeR+4)+'" fill="none" stroke="rgba(255,140,40,.55)" stroke-width="2.5"/>'+
+          '<image href="images/legends/areviax_emblem.png" x="'+(areviaxPos.x-areviaxBadgeR)+'" y="'+(areviaxPos.y-areviaxBadgeR)+'" width="'+(areviaxBadgeR*2)+'" height="'+(areviaxBadgeR*2)+'" clip-path="url(#areviaxBadgeClip)" preserveAspectRatio="xMidYMid slice"/>'+
+          '<circle cx="'+areviaxPos.x+'" cy="'+areviaxPos.y+'" r="'+areviaxBadgeR+'" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="1.6"/>'+
+        '</g>'+
       '</svg>'+
-      '<img class="spin-wheel-areviax-badge" src="images/legends/areviax_emblem.png" alt="Areviax Drop" style="left:'+(areviaxPos.x/2)+'%;top:'+(areviaxPos.y/2)+'%">'+
       '<div class="spin-wheel-pointer"></div>'+
     '</div>'+
     '<button class="btn btn-g btn-sm spin-wheel-btn" id="spin-wheel-btn" '+(ready?'':'disabled')+' onclick="spinDailyWheel()">'+(ready?'🎡 Free Spin':'Come back tomorrow')+'</button>'+
