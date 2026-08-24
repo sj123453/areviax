@@ -1348,26 +1348,47 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        neon hexagon badges. */
     /* Clash-style medallion frame: a thick metal-colour band (--lgi-ring)
        sandwiched between a bright bevel highlight and a dark bevel
-       shadow, plus a hard offset drop-shadow so the badge reads as a
-       raised, stamped medallion instead of a flat tinted hex. Every
-       tier gets a visible frame now (common included — dull steel
-       instead of transparent), escalating in richness with rarity;
-       composed through custom properties so .rarity-X.unlocked rules
-       below only set the ring colour/glow, not a competing box-shadow. */
+       shadow, so the badge reads as a raised, stamped medallion instead
+       of a flat tinted hex. Every tier gets a visible frame now (common
+       included — dull steel instead of transparent), escalating in
+       richness with rarity; composed through custom properties so
+       .rarity-X.unlocked rules below only set the ring colour, not a
+       competing box-shadow.
+       The vars live on .legend-card (not .legend-card-icon) because the
+       outer glow/aura needs them too, and clip-path on .legend-card-icon
+       silently deletes any box-shadow that isn't inset — confirmed via a
+       standalone Chromium test (a plain box-shadow blur on a clipped hex
+       renders completely invisible, on- or off-screen). The glow is a
+       separate unclipped sibling (.legend-card-icon-glow) that reads the
+       same vars, positioned to sit behind the hex. */
+    .legend-card{
+      --lgi-ring:#6B6B75;--lgi-ring-light:#8A8A94;--lgi-glow-blur:0px;--lgi-glow-color:transparent;
+      --lgi-aura-spread:0px;--lgi-aura-color:transparent;
+    }
     .legend-card-icon{
-      width:52px;height:52px;margin:0 auto 6px;position:relative;
+      width:52px;height:52px;margin:0 auto 6px;position:relative;z-index:1;
       clip-path:polygon(50% 0%,93% 25%,93% 75%,50% 100%,7% 75%,7% 25%);
       display:flex;align-items:center;justify-content:center;font-size:24px;
       background:linear-gradient(160deg,#2A2A38,#18181F);transition:box-shadow .2s;
       filter:grayscale(1) opacity(.4);
-      --lgi-ring:#6B6B75;--lgi-glow-blur:0px;--lgi-glow-color:transparent;
       box-shadow:
         inset 0 0 0 2px rgba(0,0,0,.55),
+        inset 0 0 0 4.5px var(--lgi-ring-light),
         inset 0 0 0 7px var(--lgi-ring),
         inset 0 0 0 9px rgba(255,255,255,.55),
-        inset 0 0 0 10.5px rgba(0,0,0,.4),
-        0 4px 0 -1px rgba(0,0,0,.5),
-        0 0 var(--lgi-glow-blur) var(--lgi-glow-color);
+        inset 0 0 0 10.5px rgba(0,0,0,.4);
+    }
+    /* Unclipped glow layer, painted behind the hex (DOM order, no
+       z-index needed against the icon) — a soft blurred radial bloom
+       plus a crisp hard-edged aura ring, both driven by the --lgi-glow-*
+       / --lgi-aura-* vars so higher rarities just turn the knobs up. */
+    .legend-card-icon-glow{
+      position:absolute;top:8px;left:0;right:0;margin:0 auto;z-index:0;
+      width:52px;height:52px;border-radius:50%;pointer-events:none;
+      background:radial-gradient(circle,var(--lgi-glow-color) 0%,transparent 72%);
+      filter:blur(var(--lgi-glow-blur));
+      box-shadow:0 0 0 var(--lgi-aura-spread) var(--lgi-aura-color);
+      transition:filter .2s,box-shadow .2s;
     }
     /* Shade first (bottom-right, gives the facet weight), sheen on top
        (top-left) — both above the icon (z-index:2 vs the icon's 1) so
@@ -1420,22 +1441,51 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       0%{background-position:0% 50%}
       100%{background-position:200% 50%}
     }
-    .legend-card.rarity-common.unlocked .legend-card-icon{background:linear-gradient(160deg,#C7CBD1,#5B5F66);--lgi-glow-blur:8px;--lgi-glow-color:rgba(170,176,184,.35)}
-    .legend-card.rarity-rare.unlocked .legend-card-icon{background:linear-gradient(160deg,#6EE7A0,#16803D);--lgi-glow-blur:14px;--lgi-glow-color:rgba(46,204,113,.6);--lgi-ring:#2FA35C}
-    .legend-card.rarity-superrare.unlocked .legend-card-icon{background:linear-gradient(160deg,#8FC1FF,#1D4ED8);--lgi-glow-blur:20px;--lgi-glow-color:rgba(59,130,246,.65);--lgi-ring:#2E7BDB;animation:rarityPulseSoft 2.6s ease-in-out infinite}
-    .legend-card.rarity-epic.unlocked .legend-card-icon{background:linear-gradient(115deg,#F1DCFF,#D8A6FF,#F1DCFF,#B266FF);background-size:260% 100%;--lgi-glow-blur:24px;--lgi-glow-color:rgba(168,85,247,.7);--lgi-ring:#A855F7;animation:rarityShimmerSweep 3.2s linear infinite}
-    .legend-card.rarity-mythic.unlocked .legend-card-icon{background:linear-gradient(160deg,#FF8A93,#C81E3A);--lgi-glow-blur:26px;--lgi-glow-color:rgba(239,68,68,.7);--lgi-ring:#E23B4E;animation:rarityPulseStrong 2s ease-in-out infinite}
-    .legend-card.rarity-legendary.unlocked .legend-card-icon{background:linear-gradient(160deg,#FFE066,#E8B400);--lgi-glow-blur:30px;--lgi-glow-color:rgba(255,212,0,.75);--lgi-ring:#E8B400;animation:rarityPulseStrong 1.6s ease-in-out infinite}
+    /* Glow-layer pulses — separate from the rarityPulse*/rarityShimmerSweep
+       filter animations above (those run on .legend-card-icon itself,
+       brightening the metal); these run on the unclipped glow sibling so
+       the outer bloom visibly breathes/sweeps too, not just the medallion. */
+    @keyframes glowPulseSoft{0%,100%{opacity:.75}50%{opacity:1}}
+    @keyframes glowPulseStrong{0%,100%{opacity:.7;transform:scale(1)}50%{opacity:1;transform:scale(1.08)}}
+    .legend-card.rarity-common.unlocked{--lgi-glow-blur:8px;--lgi-glow-color:rgba(170,176,184,.35)}
+    .legend-card.rarity-common.unlocked .legend-card-icon{background:linear-gradient(160deg,#C7CBD1,#5B5F66)}
+    .legend-card.rarity-rare.unlocked{--lgi-glow-blur:14px;--lgi-glow-color:rgba(46,204,113,.6);--lgi-ring:#2FA35C}
+    .legend-card.rarity-rare.unlocked .legend-card-icon{background:linear-gradient(160deg,#6EE7A0,#16803D)}
+    /* Superrare and up get a second, lighter bevel ring (two-tone metal
+       instead of flat colour) plus a crisp outer aura ring on top of the
+       soft glow blur — the combination is what actually reads as
+       "premium tier" rather than "same badge, different paint". From here
+       up the glow sibling itself pulses/breathes too, escalating with
+       rarity, so the intensity jump is felt outside the hex, not just on
+       its metal — this is the part that was completely invisible before
+       (clip-path was silently deleting every non-inset shadow). */
+    .legend-card.rarity-superrare.unlocked{--lgi-glow-blur:30px;--lgi-glow-color:rgba(59,130,246,.9);--lgi-ring:#2E7BDB;--lgi-ring-light:#8FC1FF;--lgi-aura-spread:4px;--lgi-aura-color:rgba(59,130,246,.5)}
+    .legend-card.rarity-superrare.unlocked .legend-card-icon{background:linear-gradient(160deg,#8FC1FF,#1D4ED8);animation:rarityPulseSoft 2.6s ease-in-out infinite}
+    .legend-card.rarity-superrare.unlocked .legend-card-icon-glow{animation:glowPulseSoft 2.6s ease-in-out infinite}
+    .legend-card.rarity-epic.unlocked{--lgi-glow-blur:38px;--lgi-glow-color:rgba(168,85,247,1);--lgi-ring:#A855F7;--lgi-ring-light:#E4C4FF;--lgi-aura-spread:5px;--lgi-aura-color:rgba(168,85,247,.55)}
+    .legend-card.rarity-epic.unlocked .legend-card-icon{background:linear-gradient(115deg,#F1DCFF,#D8A6FF,#F1DCFF,#B266FF);background-size:260% 100%;animation:rarityShimmerSweep 3.2s linear infinite}
+    .legend-card.rarity-epic.unlocked .legend-card-icon-glow{animation:glowPulseStrong 2.8s ease-in-out infinite}
+    .legend-card.rarity-mythic.unlocked{--lgi-glow-blur:42px;--lgi-glow-color:rgba(239,68,68,1);--lgi-ring:#E23B4E;--lgi-ring-light:#FFAEB5;--lgi-aura-spread:5px;--lgi-aura-color:rgba(239,68,68,.6)}
+    .legend-card.rarity-mythic.unlocked .legend-card-icon{background:linear-gradient(160deg,#FF8A93,#C81E3A);animation:rarityPulseStrong 2s ease-in-out infinite}
+    .legend-card.rarity-mythic.unlocked .legend-card-icon-glow{animation:glowPulseStrong 2s ease-in-out infinite}
+    .legend-card.rarity-legendary.unlocked{--lgi-glow-blur:46px;--lgi-glow-color:rgba(255,212,0,1);--lgi-ring:#E8B400;--lgi-ring-light:#FFEB99;--lgi-aura-spread:6px;--lgi-aura-color:rgba(255,212,0,.65)}
+    .legend-card.rarity-legendary.unlocked .legend-card-icon{background:linear-gradient(160deg,#FFE066,#E8B400);animation:rarityPulseStrong 1.6s ease-in-out infinite}
+    .legend-card.rarity-legendary.unlocked .legend-card-icon-glow{animation:glowPulseStrong 1.6s ease-in-out infinite}
     /* Weight Milestones aren't gacha-pull rarities — no rarity field,
        so they get their own flat "iron" material instead of a
        rarity-X class, matching the steel palette Weight Road used
        before it moved into the Cabinet. */
-    .legend-card.iron.unlocked .legend-card-icon{background:linear-gradient(160deg,#8FD8FF,#1B4F73);--lgi-glow-blur:14px;--lgi-glow-color:rgba(90,170,255,.55);--lgi-ring:#4A9FD8}
+    .legend-card.iron.unlocked{--lgi-glow-blur:14px;--lgi-glow-color:rgba(90,170,255,.55);--lgi-ring:#4A9FD8;--lgi-ring-light:#B8E4FF}
+    .legend-card.iron.unlocked .legend-card-icon{background:linear-gradient(160deg,#8FD8FF,#1B4F73)}
+    .legend-card.rarity-ultralegendary.unlocked{
+      --lgi-glow-blur:54px;--lgi-glow-color:rgba(255,180,80,1);--lgi-ring:#FF9A3D;--lgi-ring-light:#FFD9A8;--lgi-aura-spread:7px;--lgi-aura-color:rgba(255,180,80,.7);
+    }
     .legend-card.rarity-ultralegendary.unlocked .legend-card-icon{
       background:linear-gradient(115deg,#FFD24A,#FF6FD8,#7FE3FF,#FF9A3D,#FFD24A);
-      background-size:300% 100%;--lgi-glow-blur:36px;--lgi-glow-color:rgba(255,180,80,.85);--lgi-ring:#FF9A3D;
+      background-size:300% 100%;
       animation:holoShift 3.6s linear infinite,rarityPulseStrong 1.4s ease-in-out infinite;
     }
+    .legend-card.rarity-ultralegendary.unlocked .legend-card-icon-glow{animation:glowPulseStrong 1.4s ease-in-out infinite}
 
     /* ── TROPHY CABINET — dedicated collection room reached from the
        Progress page. The peak trophy sits alone up top, then each of
@@ -1455,6 +1505,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .legend-card.cabinet-peak{width:auto;padding:0;margin:0 auto}
     .legend-card.cabinet-peak .legend-card-icon{width:104px;height:104px;font-size:46px;margin:0 auto 10px}
     .legend-card.cabinet-peak .legend-card-icon img{width:64px;height:64px}
+    .legend-card.cabinet-peak .legend-card-icon-glow{top:0;width:104px;height:104px}
     .legend-card.cabinet-peak .legend-card-name{font-size:11px;letter-spacing:.04em;text-transform:uppercase}
 
     .cabinet-tier{margin-bottom:20px}
@@ -3786,7 +3837,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
   <div class="cabinet-hero">
     <div class="cabinet-hero-label">The Areviax Trophy</div>
     <div class="legend-card cabinet-peak rarity-ultralegendary" id="cabinet-peak-slot" onclick="viewCabinetLocked('The Areviax Trophy')">
-      <div class="legend-card-icon">🔒</div>
+      <div class="legend-card-icon-glow"></div><div class="legend-card-icon">🔒</div>
       <div class="legend-card-name">1-of-1</div>
     </div>
     <div class="cabinet-hero-sub">The single rarest reward in the game — still ahead of you.</div>
@@ -6928,7 +6979,7 @@ function renderProfileTrophySummary(){
     .slice(0,10);
   cont.innerHTML=ownedCards.map(l=>
     `<div class="legend-card rarity-${l.rarity} unlocked" onclick="event.stopPropagation();viewLegendCard('${l.key}')">
-      <div class="legend-card-icon">${legendIconHTML(l)}</div>
+      <div class="legend-card-icon-glow"></div><div class="legend-card-icon">${legendIconHTML(l)}</div>
       <div class="legend-card-name">${l.name}</div>
     </div>`
   ).join('');
@@ -7549,7 +7600,7 @@ function renderCabinetWeightMilestones(){
   cont.innerHTML=sorted.map(m=>{
     const claimed=vol>=m.kg;
     return `<div class="legend-card cabinet-slot iron${claimed?' unlocked':''}" onclick="viewWeightMilestone(${m.kg})">
-      <div class="legend-card-icon">${claimed?milestoneIconHTML(m):'\ud83d\udd12'}</div>
+      <div class="legend-card-icon-glow"></div><div class="legend-card-icon">${claimed?milestoneIconHTML(m):'\ud83d\udd12'}</div>
       <div class="legend-card-name">${claimed?m.name:'???'}</div>
     </div>`;
   }).join('');
@@ -7609,12 +7660,12 @@ function renderTrophyCabinet(){
       const unlocked=unlockedLegends.includes(l.key);
       return `<div class="legend-card cabinet-slot rarity-${l.rarity}${unlocked?' unlocked':''}" onclick="viewLegendCard('${l.key}')">
         ${legendInfoBadgeHTML(l.key)}
-        <div class="legend-card-icon">${unlocked?legendIconHTML(l):'\u2753'}</div>
+        <div class="legend-card-icon-glow"></div><div class="legend-card-icon">${unlocked?legendIconHTML(l):'\u2753'}</div>
         <div class="legend-card-name">${unlocked?l.name:'???'}</div>
       </div>`;
     }).join(''):Array.from({length:layer.count}).map(()=>
       `<div class="legend-card cabinet-slot rarity-${layer.rarity}" onclick="viewCabinetLocked('${layer.label}')">
-        <div class="legend-card-icon">\ud83d\udd12</div>
+        <div class="legend-card-icon-glow"></div><div class="legend-card-icon">\ud83d\udd12</div>
         <div class="legend-card-name">???</div>
       </div>`
     ).join('');
@@ -7643,7 +7694,7 @@ function renderTrophyCabinet(){
     peak.classList.toggle('unlocked',!!unlocked);
     peak.setAttribute('onclick',unlocked?"viewLegendCard('areviax_trophy')":"viewCabinetLocked('The Areviax Trophy')");
     peak.innerHTML=`${legendInfoBadgeHTML('areviax_trophy')}
-      <div class="legend-card-icon">${unlocked?legendIconHTML(trophy):'🔒'}</div>
+      <div class="legend-card-icon-glow"></div><div class="legend-card-icon">${unlocked?legendIconHTML(trophy):'🔒'}</div>
       <div class="legend-card-name">1-of-1</div>`;
   }
   const legendsRow=document.getElementById('cabinet-legends-row');
@@ -7656,7 +7707,7 @@ function renderTrophyCabinet(){
       const unlocked=unlockedLegends.includes(l.key);
       return `<div class="legend-card cabinet-slot rarity-${l.rarity}${unlocked?' unlocked':''}" onclick="viewLegendCard('${l.key}')">
         ${legendInfoBadgeHTML(l.key)}
-        <div class="legend-card-icon">${unlocked?legendIconHTML(l):'❓'}</div>
+        <div class="legend-card-icon-glow"></div><div class="legend-card-icon">${unlocked?legendIconHTML(l):'❓'}</div>
         <div class="legend-card-name">${unlocked?l.name:'???'}</div>
       </div>`;
     }).join('');
