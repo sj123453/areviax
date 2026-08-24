@@ -1414,6 +1414,11 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       pointer-events:none;
     }
     .legend-card-icon img{width:32px;height:32px;object-fit:contain;filter:inherit;position:relative;z-index:1}
+    /* The Areviax Trophy's icon is the real brand mark (inline SVG, same
+       markup as the sidebar/splash logo) rather than an emoji — svg
+       doesn't pick up the img sizing rule above since it isn't an img
+       tag, so it needs its own matching rule. */
+    .legend-card-icon svg.lgi-brand-mark{width:32px;height:32px;position:relative;z-index:1}
     /* Full names, not just the last word — several cards legitimately
        share a last word (every Training Crest ends in "Crest", Jump
        Rope/Battle Rope both end in "Rope"), which made them read as
@@ -1493,36 +1498,45 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       animation:holoShift 3.6s linear infinite,rarityPulseStrong 1.4s ease-in-out infinite;
     }
     .legend-card.rarity-ultralegendary.unlocked .legend-card-icon-glow{animation:glowPulseStrong 1.4s ease-in-out infinite}
-    /* Ornamentation OUTSIDE the hex — a crown perched on top for
-       legendary+, swept wings flanking the sides for epic and up —
-       same idea as the Clash Royale reference badges (crown/laurel
-       flourishes reading as importance at a glance, before you even
-       register the card underneath). Both are plain siblings of
-       .legend-card-icon (not children of it), same reason the glow
-       had to move out: anything with a clip-path silently eats parts
-       of anything painted inside it, and these need to bleed outside
-       the hex's own silhouette, not be trapped by it. Hidden by
-       default, only display:block'd for the tiers that earn them. */
-    .legend-card-crown{
-      position:absolute;top:-9px;left:0;right:0;margin:0 auto;width:34px;height:16px;
-      display:none;pointer-events:none;z-index:3;
-      clip-path:polygon(0% 90%,0% 32%,25% 58%,40% 6%,50% 42%,60% 6%,75% 58%,100% 32%,100% 90%);
-      filter:drop-shadow(0 2px 2px rgba(0,0,0,.55));
-    }
-    .legend-card-wings{
-      position:absolute;left:0;right:0;margin:0 auto;width:88px;height:28px;
-      display:none;pointer-events:none;z-index:0;
-      clip-path:polygon(20% 22%,40% 42%,50% 36%,60% 42%,80% 22%,100% 50%,80% 78%,60% 58%,50% 64%,40% 58%,20% 78%,0% 50%);
-      filter:drop-shadow(0 2px 3px rgba(0,0,0,.4));
-    }
-    .legend-card-wings{top:18px}
-    .legend-card.rarity-epic.unlocked .legend-card-wings{display:block;background:linear-gradient(160deg,#E4C4FF,#A855F7)}
-    .legend-card.rarity-mythic.unlocked .legend-card-wings{display:block;background:linear-gradient(160deg,#FFAEB5,#E23B4E)}
-    .legend-card.rarity-legendary.unlocked .legend-card-crown{display:block;background:linear-gradient(160deg,#FFE066,#C98A00)}
-    .legend-card.rarity-ultralegendary.unlocked .legend-card-crown{display:block;background:linear-gradient(115deg,#FFD24A,#FF6FD8,#7FE3FF,#FF9A3D);background-size:260% 100%;animation:holoShift 3.6s linear infinite}
-    .legend-card.rarity-ultralegendary.unlocked .legend-card-wings{display:block;background:linear-gradient(115deg,#FFD24A,#FF6FD8,#7FE3FF,#FF9A3D);background-size:260% 100%;animation:holoShift 3.6s linear infinite}
-    .legend-card.cabinet-peak .legend-card-crown{top:-16px;width:60px;height:28px}
-    .legend-card.cabinet-peak .legend-card-wings{top:38px;width:150px;height:46px}
+    /* Ornamentation OUTSIDE the hex — a jewelled crown perched on top
+       for legendary+, a fanned feather wing flanking each side for
+       epic and up — same idea as the Clash Royale reference badges
+       (crown/laurel flourishes reading as importance at a glance,
+       before you even register the card underneath). Real SVG paths
+       now (a hand-drawn zigzag crown with gem accents, four individual
+       tapered feathers per wing instead of one flat diamond silhouette)
+       rather than a single CSS clip-path blob — that read as too
+       minimal/flat at real size per direct feedback. Both are plain
+       siblings of .legend-card-icon (not children of it), same reason
+       the glow had to move out: a clip-path silently eats anything
+       painted inside it, and these need to bleed outside the hex's own
+       silhouette. Hidden by default, only shown for the tiers that
+       earn them; --orn-c1 (light)/--orn-c2 (base) feed both the crown
+       and the wings so one pair of rarity rules covers both. */
+    .legend-card-crown,.legend-card-wings{position:absolute;pointer-events:none;filter:drop-shadow(0 2px 2px rgba(0,0,0,.5))}
+    .legend-card-crown svg,.legend-card-wings svg{display:block;overflow:visible}
+    .legend-card-crown{display:none;top:-10px;left:0;right:0;margin:0 auto;width:34px;height:17px;z-index:3}
+    .legend-card-crown svg{width:100%;height:100%}
+    .lgi-crown-body{fill:var(--orn-c2,#8E8E93)}
+    .lgi-crown-rim{fill:none;stroke:var(--orn-c1,#fff);stroke-width:4;stroke-linejoin:round;stroke-linecap:round}
+    .lgi-crown-jewel{fill:#fff;opacity:.92}
+    .legend-card-wings{display:none;top:18px;left:-30px;right:-30px;height:26px;z-index:0;align-items:center;justify-content:space-between}
+    .legend-card-wings svg{width:46px;height:38px;flex-shrink:0}
+    .legend-card-wings .lgi-wing-r{transform:scaleX(-1)}
+    .lgw-a{fill:var(--orn-c2,#8E8E93)}
+    .lgw-b{fill:var(--orn-c1,#fff)}
+    .legend-card.rarity-epic.unlocked{--orn-c1:#E4C4FF;--orn-c2:#A855F7}
+    .legend-card.rarity-epic.unlocked .legend-card-wings{display:flex}
+    .legend-card.rarity-mythic.unlocked{--orn-c1:#FFAEB5;--orn-c2:#E23B4E}
+    .legend-card.rarity-mythic.unlocked .legend-card-wings{display:flex}
+    .legend-card.rarity-legendary.unlocked{--orn-c1:#FFEB99;--orn-c2:#E8B400}
+    .legend-card.rarity-legendary.unlocked .legend-card-crown{display:block}
+    .legend-card.rarity-ultralegendary.unlocked{--orn-c1:url(#lgi-holo-grad);--orn-c2:url(#lgi-holo-grad)}
+    .legend-card.rarity-ultralegendary.unlocked .legend-card-crown{display:block}
+    .legend-card.rarity-ultralegendary.unlocked .legend-card-wings{display:flex}
+    .legend-card.cabinet-peak .legend-card-crown{top:-18px;width:64px;height:32px}
+    .legend-card.cabinet-peak .legend-card-wings{top:40px;left:-72px;right:-72px;height:48px}
+    .legend-card.cabinet-peak .legend-card-wings svg{width:88px;height:72px}
 
     /* ── TROPHY CABINET — dedicated collection room reached from the
        Progress page. The peak trophy sits alone up top, then each of
@@ -1542,6 +1556,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .legend-card.cabinet-peak{width:auto;padding:0;margin:0 auto}
     .legend-card.cabinet-peak .legend-card-icon{width:104px;height:104px;font-size:46px;margin:0 auto 10px}
     .legend-card.cabinet-peak .legend-card-icon img{width:64px;height:64px}
+    .legend-card.cabinet-peak .legend-card-icon svg.lgi-brand-mark{width:64px;height:64px}
     .legend-card.cabinet-peak .legend-card-icon-glow{top:0;width:104px;height:104px}
     .legend-card.cabinet-peak .legend-card-name{font-size:11px;letter-spacing:.04em;text-transform:uppercase}
 
@@ -1583,19 +1598,51 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .crate-info-btn:active{background:rgba(255,255,255,.14)}
     .crate-row .compass-crate{width:46px;height:46px}
     .crate-row .compass-crate .crate-icon svg{width:21px;height:21px}
-    /* Glow color/blur and the locked-state desaturation are both routed
-       through custom properties into this one filter declaration —
-       filter doesn't merge across separate rules the way box-shadow
-       does, so a later .locked{filter:...} would otherwise wipe out
-       the tier's own drop-shadow glow entirely instead of just dimming
-       it (each rule setting a different custom property composes fine). */
+    /* The locked-state desaturation is routed through a custom property
+       into this filter so a later .locked{filter:...} dims the tier's
+       gradient without wiping it out — same composition trick as the
+       glow used to use, before the glow moved out (see .crate-icon-glow
+       below): a clip-path on the same element silently deletes any
+       filter/box-shadow output that extends past its own edges — a
+       drop-shadow or box-shadow glow on a clipped hex is completely
+       invisible no matter how far you push blur/opacity, confirmed via
+       a standalone Chromium test — same bug class already found and
+       fixed once for the Trophy Cabinet hexagons, missed here because
+       this is a separate component that happens to share the silhouette. */
     .compass-crate{
-      width:56px;height:56px;position:relative;
+      width:56px;height:56px;position:relative;z-index:1;
       clip-path:polygon(50% 0%,93% 25%,93% 75%,50% 100%,7% 75%,7% 25%);
       display:flex;align-items:center;justify-content:center;
       --crate-sat:1;
-      filter:saturate(var(--crate-sat)) drop-shadow(0 0 var(--crate-glow-blur,11px) var(--crate-glow-color,transparent));
+      filter:saturate(var(--crate-sat));
     }
+    /* Unclipped glow, sized to whatever .compass-crate is (56px in most
+       places, 46px in the crate row, 44px in the drop-info modal) —
+       .crate-icon-wrap has no explicit size of its own, so it just
+       shrink-wraps to its one in-flow child and the absolutely
+       positioned glow inherits that box via inset:0, no per-context
+       pixel math needed the way the Trophy Cabinet fix required. */
+    .crate-icon-wrap{position:relative;display:inline-flex}
+    .crate-icon-glow{
+      position:absolute;inset:0;z-index:0;pointer-events:none;border-radius:50%;
+      background:radial-gradient(circle,var(--crate-glow-color,transparent) 0%,transparent 70%);
+      filter:blur(var(--crate-glow-blur,11px));
+      opacity:.85;transition:filter .2s;
+    }
+    .crate-icon-wrap.bronze{--crate-glow-color:rgba(212,120,50,.65);--crate-glow-blur:11px}
+    .crate-icon-wrap.silver{--crate-glow-color:rgba(180,195,210,.7);--crate-glow-blur:11px}
+    .crate-icon-wrap.gold{--crate-glow-color:rgba(255,215,0,.65);--crate-glow-blur:12px}
+    .crate-icon-wrap.diamond{--crate-glow-color:rgba(95,208,242,.7);--crate-glow-blur:13px}
+    .crate-icon-wrap.areviax{--crate-glow-color:rgba(255,140,40,.75);--crate-glow-blur:15px}
+    .crate-icon-wrap.locked{--crate-glow-color:transparent}
+    .crate-icon-wrap.bronze.ready{--crate-glow-blur:19px}
+    .crate-icon-wrap.silver.ready{--crate-glow-blur:19px}
+    .crate-icon-wrap.gold.ready{--crate-glow-blur:23px}
+    .crate-icon-wrap.diamond.ready{--crate-glow-blur:27px}
+    .crate-icon-wrap.ready .crate-icon-glow{animation:crateGlowPulse 2.2s ease-in-out infinite}
+    .crate-icon-wrap.areviax.ready{--crate-glow-blur:34px}
+    .crate-icon-wrap.areviax.ready .crate-icon-glow{animation:crateGlowPulse 1.8s ease-in-out infinite}
+    @keyframes crateGlowPulse{0%,100%{opacity:.7}50%{opacity:1}}
     /* Bottom-right shade first (darker, gives the facet its own weight),
        then the top-left sheen on top — reads as a cut/beveled surface
        catching light from one direction rather than a flat color fill.
@@ -1623,15 +1670,11 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        above (z-index:2) give it the same lit-surface depth as every
        other tier's plain color fill. */
     .compass-crate .crate-icon-emblem{width:100%;height:100%;object-fit:cover}
-    /* Ambient glow moved from box-shadow to filter:drop-shadow — box-shadow
-       traces the element's rectangular box, so it bled out as a soft square
-       behind the hex; drop-shadow traces the actual clipped hex silhouette,
-       so the glow reads as coming from the hexagon itself. */
-    .compass-crate.bronze{background:linear-gradient(160deg,#E8A85C,#B8622A);--crate-glow-color:rgba(212,120,50,.65);--crate-glow-blur:11px}
-    .compass-crate.silver{background:linear-gradient(160deg,#F2F5F9,#9AA7B4);--crate-glow-color:rgba(180,195,210,.7);--crate-glow-blur:11px}
-    .compass-crate.gold{background:linear-gradient(160deg,#FFE58A,#D4970A);--crate-glow-color:rgba(255,215,0,.65);--crate-glow-blur:12px}
-    .compass-crate.diamond{background:linear-gradient(115deg,#EAFBFF,#9FE8FF,#EAFBFF,#5FD0F2);background-size:260% 100%;animation:rarityShimmerSweep 3.4s linear infinite;--crate-glow-color:rgba(95,208,242,.7);--crate-glow-blur:13px}
-    .compass-crate.areviax{background:linear-gradient(160deg,#FF9A42,#FF5A00);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.35);--crate-glow-color:rgba(255,140,40,.75);--crate-glow-blur:15px}
+    .compass-crate.bronze{background:linear-gradient(160deg,#E8A85C,#B8622A)}
+    .compass-crate.silver{background:linear-gradient(160deg,#F2F5F9,#9AA7B4)}
+    .compass-crate.gold{background:linear-gradient(160deg,#FFE58A,#D4970A)}
+    .compass-crate.diamond{background:linear-gradient(115deg,#EAFBFF,#9FE8FF,#EAFBFF,#5FD0F2);background-size:260% 100%;animation:rarityShimmerSweep 3.4s linear infinite}
+    .compass-crate.areviax{background:linear-gradient(160deg,#FF9A42,#FF5A00);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.35)}
     .compass-crate.areviax .crate-icon svg{color:#FFB347}
     /* Locked keeps each tier's own colour, just dimmer — a flat
        grayscale filter would desaturate the glow above too, leaving
@@ -1640,13 +1683,8 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .compass-crate.locked{opacity:.5;--crate-sat:.75}
     @keyframes crateFloat{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-4px) rotate(-4deg)}}
     .compass-crate.ready{animation:crateFloat 2.4s ease-in-out infinite}
-    .compass-crate.bronze.ready{box-shadow:0 0 18px rgba(184,98,42,.65)}
-    .compass-crate.silver.ready{box-shadow:0 0 18px rgba(154,167,180,.75)}
-    .compass-crate.gold.ready{box-shadow:0 0 20px rgba(255,215,0,.65)}
-    .compass-crate.diamond.ready{box-shadow:0 0 24px rgba(95,208,242,.75)}
     @keyframes areviaxAura{0%,100%{filter:brightness(1) hue-rotate(0deg)}50%{filter:brightness(1.3) hue-rotate(-18deg)}}
     .compass-crate.areviax.ready{
-      box-shadow:0 0 30px rgba(255,140,40,.85),0 0 52px rgba(255,180,80,.4);
       animation:crateFloat 2.2s ease-in-out infinite,areviaxAura 2.4s ease-in-out infinite;
     }
     .crate-slot-label{font-size:10px;font-weight:800;color:var(--white);letter-spacing:.02em}
@@ -2322,6 +2360,20 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
 </style>
 </head>
 <body>
+<!-- Shared gradient defs for the ultralegendary trophy-cabinet ornaments
+     (crown/wings) — one definition referenced via url(#lgi-holo-grad)
+     from every card's fill:var(--orn-c1/c2) instead of duplicating a
+     <linearGradient> in each of the dozens of card instances. -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="lgi-holo-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#FFD24A"/>
+      <stop offset="35%" stop-color="#FF6FD8"/>
+      <stop offset="65%" stop-color="#7FE3FF"/>
+      <stop offset="100%" stop-color="#FF9A3D"/>
+    </linearGradient>
+  </defs>
+</svg>
 <!-- INTRO / LOADING SCREEN — deliberately the very first element in <body>.
      Browsers paint progressively as they parse; this used to sit near the
      end of a ~10,000-line document (after #onboarding, which is visible by
@@ -3874,7 +3926,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
   <div class="cabinet-hero">
     <div class="cabinet-hero-label">The Areviax Trophy</div>
     <div class="legend-card cabinet-peak rarity-ultralegendary" id="cabinet-peak-slot" onclick="viewCabinetLocked('The Areviax Trophy')">
-      <div class="legend-card-icon-glow"></div><div class="legend-card-crown"></div><div class="legend-card-wings"></div><div class="legend-card-icon">🔒</div>
+      <div class="legend-card-icon-glow"></div><div class="legend-card-crown"><svg viewBox="0 0 100 100" preserveAspectRatio="none"><path class="lgi-crown-body" d="M0,90 L0,32 L25,58 L40,6 L50,42 L60,6 L75,58 L100,32 L100,90 Z"/><path class="lgi-crown-rim" d="M0,32 L25,58 L40,6 L50,42 L60,6 L75,58 L100,32"/><circle class="lgi-crown-jewel" cx="40" cy="10" r="6"/><circle class="lgi-crown-jewel" cx="60" cy="10" r="6"/><circle class="lgi-crown-jewel" cx="50" cy="76" r="5"/></svg></div><div class="legend-card-wings"><svg class="lgi-wing-l" viewBox="-90 -40 95 80"><path class="lgw-a" d="M0,0 Q-32.7,-17.0 -69.5,-18.6 Q-36.9,-1.6 0,0 Z"/><path class="lgw-b" d="M0,0 Q-41.3,-6.6 -82.0,2.9 Q-40.7,9.4 0,0 Z"/><path class="lgw-b" d="M0,0 Q-41.5,5.0 -78.0,25.3 Q-36.5,20.3 0,0 Z"/><path class="lgw-a" d="M0,0 Q-33.1,11.2 -57.7,36.0 Q-24.6,24.8 0,0 Z"/></svg><svg class="lgi-wing-r" viewBox="-90 -40 95 80"><path class="lgw-a" d="M0,0 Q-32.7,-17.0 -69.5,-18.6 Q-36.9,-1.6 0,0 Z"/><path class="lgw-b" d="M0,0 Q-41.3,-6.6 -82.0,2.9 Q-40.7,9.4 0,0 Z"/><path class="lgw-b" d="M0,0 Q-41.5,5.0 -78.0,25.3 Q-36.5,20.3 0,0 Z"/><path class="lgw-a" d="M0,0 Q-33.1,11.2 -57.7,36.0 Q-24.6,24.8 0,0 Z"/></svg></div><div class="legend-card-icon">🔒</div>
       <div class="legend-card-name">1-of-1</div>
     </div>
     <div class="cabinet-hero-sub">The single rarest reward in the game — still ahead of you.</div>
@@ -7016,7 +7068,7 @@ function renderProfileTrophySummary(){
     .slice(0,10);
   cont.innerHTML=ownedCards.map(l=>
     `<div class="legend-card rarity-${l.rarity} unlocked" onclick="event.stopPropagation();viewLegendCard('${l.key}')">
-      <div class="legend-card-icon-glow"></div><div class="legend-card-crown"></div><div class="legend-card-wings"></div><div class="legend-card-icon">${legendIconHTML(l)}</div>
+      <div class="legend-card-icon-glow"></div><div class="legend-card-crown"><svg viewBox="0 0 100 100" preserveAspectRatio="none"><path class="lgi-crown-body" d="M0,90 L0,32 L25,58 L40,6 L50,42 L60,6 L75,58 L100,32 L100,90 Z"/><path class="lgi-crown-rim" d="M0,32 L25,58 L40,6 L50,42 L60,6 L75,58 L100,32"/><circle class="lgi-crown-jewel" cx="40" cy="10" r="6"/><circle class="lgi-crown-jewel" cx="60" cy="10" r="6"/><circle class="lgi-crown-jewel" cx="50" cy="76" r="5"/></svg></div><div class="legend-card-wings"><svg class="lgi-wing-l" viewBox="-90 -40 95 80"><path class="lgw-a" d="M0,0 Q-32.7,-17.0 -69.5,-18.6 Q-36.9,-1.6 0,0 Z"/><path class="lgw-b" d="M0,0 Q-41.3,-6.6 -82.0,2.9 Q-40.7,9.4 0,0 Z"/><path class="lgw-b" d="M0,0 Q-41.5,5.0 -78.0,25.3 Q-36.5,20.3 0,0 Z"/><path class="lgw-a" d="M0,0 Q-33.1,11.2 -57.7,36.0 Q-24.6,24.8 0,0 Z"/></svg><svg class="lgi-wing-r" viewBox="-90 -40 95 80"><path class="lgw-a" d="M0,0 Q-32.7,-17.0 -69.5,-18.6 Q-36.9,-1.6 0,0 Z"/><path class="lgw-b" d="M0,0 Q-41.3,-6.6 -82.0,2.9 Q-40.7,9.4 0,0 Z"/><path class="lgw-b" d="M0,0 Q-41.5,5.0 -78.0,25.3 Q-36.5,20.3 0,0 Z"/><path class="lgw-a" d="M0,0 Q-33.1,11.2 -57.7,36.0 Q-24.6,24.8 0,0 Z"/></svg></div><div class="legend-card-icon">${legendIconHTML(l)}</div>
       <div class="legend-card-name">${l.name}</div>
     </div>`
   ).join('');
@@ -7187,7 +7239,7 @@ const LEGEND_CARDS=[
   // above every real-person card. Only obtainable from the Areviax
   // Drop (see CRATE_TIERS) at a deliberately small chance, matching
   // its "1-of-1" framing on the Trophy Cabinet's peak slot.
-  {key:'areviax_trophy', name:'The Areviax Trophy', title:'1-of-1 \u2014 the single rarest pull in the game', icon:'\ud83e\udded', img:null, rarity:'ultralegendary'},
+  {key:'areviax_trophy', name:'The Areviax Trophy', title:'1-of-1 \u2014 the single rarest pull in the game', icon:'<svg class="lgi-brand-mark" viewBox="0 0 100 100" fill="none"><circle cx="50" cy="50" r="48" fill="#3D1F0A" stroke="#8A3010" stroke-width="1"/><path d="M50 14C50 14 45 42 18 50C45 58 50 86 50 86C50 86 55 58 82 50C55 42 50 14 50 14Z" fill="#FF5A00" opacity=".9"/><circle cx="50" cy="50" r="4" fill="#EEF0FF"/></svg>', img:null, rarity:'ultralegendary'},
   {key:'arnold',    name:'The Classic',           title:'A physique-era icon, cast in bronze',         icon:'\ud83c\udfd4\ufe0f', img:'images/legends/classic.png', rarity:'legendary'},
   {key:'coleman',   name:'The Monarch',           title:'"Yeah Buddy!" energy, cast in bronze',        icon:'\ud83d\udc51', img:'images/legends/monarch.png', rarity:'legendary'},
   {key:'haney',     name:'Lee Haney',              title:'8\u00d7 Mr. Olympia (1984\u20131991)',              icon:'\ud83c\udfc6', img:null, rarity:'mythic'},
@@ -7568,7 +7620,10 @@ function renderAchievements(){
       const onclick=s.always?"viewDropInfo('"+tier+"')":(s.ready?"openCompassDrop('"+tier+"')":'');
       return `<div class="crate-slot${s.ready?'':' not-ready'}" onclick="${onclick}"${s.always?' style="cursor:pointer"':''}>
         <span class="crate-info-btn" onclick="viewDropInfo('${tier}',event)">i</span>
-        <div class="compass-crate ${tier}${s.ready?' ready':s.always?'':' locked'}"><span class="crate-icon">${crateIconHTML(tier)}</span></div>
+        <div class="crate-icon-wrap ${tier}${s.ready?' ready':s.always?'':' locked'}">
+          <div class="crate-icon-glow"></div>
+          <div class="compass-crate ${tier}${s.ready?' ready':s.always?'':' locked'}"><span class="crate-icon">${crateIconHTML(tier)}</span></div>
+        </div>
         <div class="crate-slot-label">${s.label}</div>
         <div class="crate-slot-sub${s.ready?' ready-text':''}">${s.sub}</div>
       </div>`;
@@ -7637,7 +7692,7 @@ function renderCabinetWeightMilestones(){
   cont.innerHTML=sorted.map(m=>{
     const claimed=vol>=m.kg;
     return `<div class="legend-card cabinet-slot iron${claimed?' unlocked':''}" onclick="viewWeightMilestone(${m.kg})">
-      <div class="legend-card-icon-glow"></div><div class="legend-card-crown"></div><div class="legend-card-wings"></div><div class="legend-card-icon">${claimed?milestoneIconHTML(m):'\ud83d\udd12'}</div>
+      <div class="legend-card-icon-glow"></div><div class="legend-card-crown"><svg viewBox="0 0 100 100" preserveAspectRatio="none"><path class="lgi-crown-body" d="M0,90 L0,32 L25,58 L40,6 L50,42 L60,6 L75,58 L100,32 L100,90 Z"/><path class="lgi-crown-rim" d="M0,32 L25,58 L40,6 L50,42 L60,6 L75,58 L100,32"/><circle class="lgi-crown-jewel" cx="40" cy="10" r="6"/><circle class="lgi-crown-jewel" cx="60" cy="10" r="6"/><circle class="lgi-crown-jewel" cx="50" cy="76" r="5"/></svg></div><div class="legend-card-wings"><svg class="lgi-wing-l" viewBox="-90 -40 95 80"><path class="lgw-a" d="M0,0 Q-32.7,-17.0 -69.5,-18.6 Q-36.9,-1.6 0,0 Z"/><path class="lgw-b" d="M0,0 Q-41.3,-6.6 -82.0,2.9 Q-40.7,9.4 0,0 Z"/><path class="lgw-b" d="M0,0 Q-41.5,5.0 -78.0,25.3 Q-36.5,20.3 0,0 Z"/><path class="lgw-a" d="M0,0 Q-33.1,11.2 -57.7,36.0 Q-24.6,24.8 0,0 Z"/></svg><svg class="lgi-wing-r" viewBox="-90 -40 95 80"><path class="lgw-a" d="M0,0 Q-32.7,-17.0 -69.5,-18.6 Q-36.9,-1.6 0,0 Z"/><path class="lgw-b" d="M0,0 Q-41.3,-6.6 -82.0,2.9 Q-40.7,9.4 0,0 Z"/><path class="lgw-b" d="M0,0 Q-41.5,5.0 -78.0,25.3 Q-36.5,20.3 0,0 Z"/><path class="lgw-a" d="M0,0 Q-33.1,11.2 -57.7,36.0 Q-24.6,24.8 0,0 Z"/></svg></div><div class="legend-card-icon">${claimed?milestoneIconHTML(m):'\ud83d\udd12'}</div>
       <div class="legend-card-name">${claimed?m.name:'???'}</div>
     </div>`;
   }).join('');
@@ -7697,12 +7752,12 @@ function renderTrophyCabinet(){
       const unlocked=unlockedLegends.includes(l.key);
       return `<div class="legend-card cabinet-slot rarity-${l.rarity}${unlocked?' unlocked':''}" onclick="viewLegendCard('${l.key}')">
         ${legendInfoBadgeHTML(l.key)}
-        <div class="legend-card-icon-glow"></div><div class="legend-card-crown"></div><div class="legend-card-wings"></div><div class="legend-card-icon">${unlocked?legendIconHTML(l):'\u2753'}</div>
+        <div class="legend-card-icon-glow"></div><div class="legend-card-crown"><svg viewBox="0 0 100 100" preserveAspectRatio="none"><path class="lgi-crown-body" d="M0,90 L0,32 L25,58 L40,6 L50,42 L60,6 L75,58 L100,32 L100,90 Z"/><path class="lgi-crown-rim" d="M0,32 L25,58 L40,6 L50,42 L60,6 L75,58 L100,32"/><circle class="lgi-crown-jewel" cx="40" cy="10" r="6"/><circle class="lgi-crown-jewel" cx="60" cy="10" r="6"/><circle class="lgi-crown-jewel" cx="50" cy="76" r="5"/></svg></div><div class="legend-card-wings"><svg class="lgi-wing-l" viewBox="-90 -40 95 80"><path class="lgw-a" d="M0,0 Q-32.7,-17.0 -69.5,-18.6 Q-36.9,-1.6 0,0 Z"/><path class="lgw-b" d="M0,0 Q-41.3,-6.6 -82.0,2.9 Q-40.7,9.4 0,0 Z"/><path class="lgw-b" d="M0,0 Q-41.5,5.0 -78.0,25.3 Q-36.5,20.3 0,0 Z"/><path class="lgw-a" d="M0,0 Q-33.1,11.2 -57.7,36.0 Q-24.6,24.8 0,0 Z"/></svg><svg class="lgi-wing-r" viewBox="-90 -40 95 80"><path class="lgw-a" d="M0,0 Q-32.7,-17.0 -69.5,-18.6 Q-36.9,-1.6 0,0 Z"/><path class="lgw-b" d="M0,0 Q-41.3,-6.6 -82.0,2.9 Q-40.7,9.4 0,0 Z"/><path class="lgw-b" d="M0,0 Q-41.5,5.0 -78.0,25.3 Q-36.5,20.3 0,0 Z"/><path class="lgw-a" d="M0,0 Q-33.1,11.2 -57.7,36.0 Q-24.6,24.8 0,0 Z"/></svg></div><div class="legend-card-icon">${unlocked?legendIconHTML(l):'\u2753'}</div>
         <div class="legend-card-name">${unlocked?l.name:'???'}</div>
       </div>`;
     }).join(''):Array.from({length:layer.count}).map(()=>
       `<div class="legend-card cabinet-slot rarity-${layer.rarity}" onclick="viewCabinetLocked('${layer.label}')">
-        <div class="legend-card-icon-glow"></div><div class="legend-card-crown"></div><div class="legend-card-wings"></div><div class="legend-card-icon">\ud83d\udd12</div>
+        <div class="legend-card-icon-glow"></div><div class="legend-card-crown"><svg viewBox="0 0 100 100" preserveAspectRatio="none"><path class="lgi-crown-body" d="M0,90 L0,32 L25,58 L40,6 L50,42 L60,6 L75,58 L100,32 L100,90 Z"/><path class="lgi-crown-rim" d="M0,32 L25,58 L40,6 L50,42 L60,6 L75,58 L100,32"/><circle class="lgi-crown-jewel" cx="40" cy="10" r="6"/><circle class="lgi-crown-jewel" cx="60" cy="10" r="6"/><circle class="lgi-crown-jewel" cx="50" cy="76" r="5"/></svg></div><div class="legend-card-wings"><svg class="lgi-wing-l" viewBox="-90 -40 95 80"><path class="lgw-a" d="M0,0 Q-32.7,-17.0 -69.5,-18.6 Q-36.9,-1.6 0,0 Z"/><path class="lgw-b" d="M0,0 Q-41.3,-6.6 -82.0,2.9 Q-40.7,9.4 0,0 Z"/><path class="lgw-b" d="M0,0 Q-41.5,5.0 -78.0,25.3 Q-36.5,20.3 0,0 Z"/><path class="lgw-a" d="M0,0 Q-33.1,11.2 -57.7,36.0 Q-24.6,24.8 0,0 Z"/></svg><svg class="lgi-wing-r" viewBox="-90 -40 95 80"><path class="lgw-a" d="M0,0 Q-32.7,-17.0 -69.5,-18.6 Q-36.9,-1.6 0,0 Z"/><path class="lgw-b" d="M0,0 Q-41.3,-6.6 -82.0,2.9 Q-40.7,9.4 0,0 Z"/><path class="lgw-b" d="M0,0 Q-41.5,5.0 -78.0,25.3 Q-36.5,20.3 0,0 Z"/><path class="lgw-a" d="M0,0 Q-33.1,11.2 -57.7,36.0 Q-24.6,24.8 0,0 Z"/></svg></div><div class="legend-card-icon">\ud83d\udd12</div>
         <div class="legend-card-name">???</div>
       </div>`
     ).join('');
@@ -7731,7 +7786,7 @@ function renderTrophyCabinet(){
     peak.classList.toggle('unlocked',!!unlocked);
     peak.setAttribute('onclick',unlocked?"viewLegendCard('areviax_trophy')":"viewCabinetLocked('The Areviax Trophy')");
     peak.innerHTML=`${legendInfoBadgeHTML('areviax_trophy')}
-      <div class="legend-card-icon-glow"></div><div class="legend-card-crown"></div><div class="legend-card-wings"></div><div class="legend-card-icon">${unlocked?legendIconHTML(trophy):'🔒'}</div>
+      <div class="legend-card-icon-glow"></div><div class="legend-card-crown"><svg viewBox="0 0 100 100" preserveAspectRatio="none"><path class="lgi-crown-body" d="M0,90 L0,32 L25,58 L40,6 L50,42 L60,6 L75,58 L100,32 L100,90 Z"/><path class="lgi-crown-rim" d="M0,32 L25,58 L40,6 L50,42 L60,6 L75,58 L100,32"/><circle class="lgi-crown-jewel" cx="40" cy="10" r="6"/><circle class="lgi-crown-jewel" cx="60" cy="10" r="6"/><circle class="lgi-crown-jewel" cx="50" cy="76" r="5"/></svg></div><div class="legend-card-wings"><svg class="lgi-wing-l" viewBox="-90 -40 95 80"><path class="lgw-a" d="M0,0 Q-32.7,-17.0 -69.5,-18.6 Q-36.9,-1.6 0,0 Z"/><path class="lgw-b" d="M0,0 Q-41.3,-6.6 -82.0,2.9 Q-40.7,9.4 0,0 Z"/><path class="lgw-b" d="M0,0 Q-41.5,5.0 -78.0,25.3 Q-36.5,20.3 0,0 Z"/><path class="lgw-a" d="M0,0 Q-33.1,11.2 -57.7,36.0 Q-24.6,24.8 0,0 Z"/></svg><svg class="lgi-wing-r" viewBox="-90 -40 95 80"><path class="lgw-a" d="M0,0 Q-32.7,-17.0 -69.5,-18.6 Q-36.9,-1.6 0,0 Z"/><path class="lgw-b" d="M0,0 Q-41.3,-6.6 -82.0,2.9 Q-40.7,9.4 0,0 Z"/><path class="lgw-b" d="M0,0 Q-41.5,5.0 -78.0,25.3 Q-36.5,20.3 0,0 Z"/><path class="lgw-a" d="M0,0 Q-33.1,11.2 -57.7,36.0 Q-24.6,24.8 0,0 Z"/></svg></div><div class="legend-card-icon">${unlocked?legendIconHTML(trophy):'🔒'}</div>
       <div class="legend-card-name">1-of-1</div>`;
   }
   const legendsRow=document.getElementById('cabinet-legends-row');
@@ -7744,7 +7799,7 @@ function renderTrophyCabinet(){
       const unlocked=unlockedLegends.includes(l.key);
       return `<div class="legend-card cabinet-slot rarity-${l.rarity}${unlocked?' unlocked':''}" onclick="viewLegendCard('${l.key}')">
         ${legendInfoBadgeHTML(l.key)}
-        <div class="legend-card-icon-glow"></div><div class="legend-card-crown"></div><div class="legend-card-wings"></div><div class="legend-card-icon">${unlocked?legendIconHTML(l):'❓'}</div>
+        <div class="legend-card-icon-glow"></div><div class="legend-card-crown"><svg viewBox="0 0 100 100" preserveAspectRatio="none"><path class="lgi-crown-body" d="M0,90 L0,32 L25,58 L40,6 L50,42 L60,6 L75,58 L100,32 L100,90 Z"/><path class="lgi-crown-rim" d="M0,32 L25,58 L40,6 L50,42 L60,6 L75,58 L100,32"/><circle class="lgi-crown-jewel" cx="40" cy="10" r="6"/><circle class="lgi-crown-jewel" cx="60" cy="10" r="6"/><circle class="lgi-crown-jewel" cx="50" cy="76" r="5"/></svg></div><div class="legend-card-wings"><svg class="lgi-wing-l" viewBox="-90 -40 95 80"><path class="lgw-a" d="M0,0 Q-32.7,-17.0 -69.5,-18.6 Q-36.9,-1.6 0,0 Z"/><path class="lgw-b" d="M0,0 Q-41.3,-6.6 -82.0,2.9 Q-40.7,9.4 0,0 Z"/><path class="lgw-b" d="M0,0 Q-41.5,5.0 -78.0,25.3 Q-36.5,20.3 0,0 Z"/><path class="lgw-a" d="M0,0 Q-33.1,11.2 -57.7,36.0 Q-24.6,24.8 0,0 Z"/></svg><svg class="lgi-wing-r" viewBox="-90 -40 95 80"><path class="lgw-a" d="M0,0 Q-32.7,-17.0 -69.5,-18.6 Q-36.9,-1.6 0,0 Z"/><path class="lgw-b" d="M0,0 Q-41.3,-6.6 -82.0,2.9 Q-40.7,9.4 0,0 Z"/><path class="lgw-b" d="M0,0 Q-41.5,5.0 -78.0,25.3 Q-36.5,20.3 0,0 Z"/><path class="lgw-a" d="M0,0 Q-33.1,11.2 -57.7,36.0 Q-24.6,24.8 0,0 Z"/></svg></div><div class="legend-card-icon">${unlocked?legendIconHTML(l):'❓'}</div>
         <div class="legend-card-name">${unlocked?l.name:'???'}</div>
       </div>`;
     }).join('');
@@ -7966,7 +8021,10 @@ function showLegendReveal(l,isNew,tier){
   overlay.className='achievement-overlay';
   overlay.innerHTML=
     '<div class="achievement-modal crate-reveal-stage">'+
-      '<div class="compass-crate '+tier+(cfg.chargeMs?' charging':' crate-shake')+'" id="reveal-crate"><span class="crate-icon">'+crateIconHTML(tier)+'</span></div>'+
+      '<div class="crate-icon-wrap '+tier+'">'+
+        '<div class="crate-icon-glow"></div>'+
+        '<div class="compass-crate '+tier+(cfg.chargeMs?' charging':' crate-shake')+'" id="reveal-crate"><span class="crate-icon">'+crateIconHTML(tier)+'</span></div>'+
+      '</div>'+
     '</div>';
   document.body.appendChild(overlay);
   requestAnimationFrame(()=>overlay.classList.add('show'));
@@ -8176,7 +8234,10 @@ function viewDropInfo(tier,event){
   overlay.innerHTML=
     '<div class="achievement-modal" style="max-width:300px;text-align:left">'+
       '<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">'+
-        '<div class="compass-crate '+tier+'" style="width:44px;height:44px"><span class="crate-icon">'+crateIconHTML(tier)+'</span></div>'+
+        '<div class="crate-icon-wrap '+tier+'">'+
+          '<div class="crate-icon-glow"></div>'+
+          '<div class="compass-crate '+tier+'" style="width:44px;height:44px"><span class="crate-icon">'+crateIconHTML(tier)+'</span></div>'+
+        '</div>'+
         '<div style="font-size:15px;font-weight:900;color:var(--white)">'+cfg.label+'</div>'+
       '</div>'+
       '<div style="font-size:9px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:6px">Odds</div>'+
