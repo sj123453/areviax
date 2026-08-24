@@ -1693,6 +1693,52 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .crate-icon-wrap.diamond .crate-wreath{display:block}
     .crate-icon-wrap.areviax{--orn-c1:url(#lgi-holo-grad);--orn-c2:url(#lgi-holo-grad)}
     .crate-icon-wrap.areviax .crate-crown,.crate-icon-wrap.areviax .crate-wreath{display:block}
+    /* LIFT RANK badges — a circular medallion (not the hex used
+       everywhere else) so this reads as its own system, closer to a
+       rank insignia than a collectible pull. Built from the same
+       medallion-frame recipe as .legend-card-icon (dark disc + layered
+       inset rings), but round via border-radius instead of clip-path —
+       which means, unlike the hex badges, its own box-shadow/glow does
+       NOT get silently eaten and can live directly on .lrk-badge with
+       no separate unclipped sibling needed for the ring itself. The
+       wreath still gets its own glow sibling since the wreath is a
+       big transparent-background SVG, not a clipped shape. */
+    .lift-rank-card{flex:0 0 auto;width:120px;text-align:center;background:rgba(255,255,255,.025);border:1.5px solid var(--border2);border-radius:14px;padding:13px 8px 11px}
+    .lrk-name{font-size:10px;font-weight:800;color:rgba(var(--white-rgb),.55);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px}
+    .lrk-badge-wrap{position:relative;width:100px;height:104px;margin:0 auto 8px}
+    .lrk-badge-glow{position:absolute;top:50%;left:0;right:0;margin:0 auto;transform:translateY(-50%);width:74px;height:74px;border-radius:50%;pointer-events:none;background:radial-gradient(circle,var(--lrk-ring2,#8E8E93) 0%,transparent 70%);opacity:.5;filter:blur(15px);z-index:0}
+    .lrk-wreath{position:absolute;top:50%;left:0;right:0;margin:0 auto;transform:translateY(-50%);width:100px;height:104px;pointer-events:none;filter:drop-shadow(0 2px 3px rgba(0,0,0,.5));z-index:1}
+    .lrk-wreath svg{width:100%;height:100%;display:block;overflow:visible}
+    .lrk-badge{
+      position:absolute;top:50%;left:0;right:0;margin:0 auto;transform:translateY(-50%);
+      z-index:2;width:72px;height:72px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+      background:linear-gradient(160deg,#2A2A38,#18181F);
+      box-shadow:
+        inset 0 0 0 2px rgba(0,0,0,.55),
+        inset 0 0 0 4.5px var(--lrk-ring1,#8A8A94),
+        inset 0 0 0 7px var(--lrk-ring2,#6B6B75),
+        inset 0 0 0 8.5px rgba(255,255,255,.5),
+        inset 0 0 0 10px rgba(0,0,0,.4),
+        0 0 16px -2px var(--lrk-ring2,transparent);
+    }
+    .lrk-badge.locked{box-shadow:inset 0 0 0 2px rgba(0,0,0,.55),inset 0 0 0 4.5px rgba(255,255,255,.16),inset 0 0 0 7px rgba(255,255,255,.08);filter:grayscale(1) opacity(.45)}
+    .lrk-icon-svg{width:34px;height:auto;position:relative;z-index:1}
+    .lrk-bar{fill:rgba(255,255,255,.9)}
+    .lrk-plate{fill:var(--orn-c2,#8E8E93)}
+    .lrk-plate-sm{fill:var(--orn-c1,#E4E7EC)}
+    .lrk-numeral{
+      position:absolute;z-index:3;bottom:-8px;left:50%;transform:translateX(-50%);
+      width:25px;height:19px;border-radius:6px;
+      background:linear-gradient(160deg,#26262F,#17171D);border:1.5px solid var(--lrk-ring2,#6B6B75);
+      display:flex;align-items:center;justify-content:center;
+      font-size:10px;font-weight:900;color:var(--white);font-family:'Space Grotesk',sans-serif;
+    }
+    .lrk-tier-label{font-size:12px;font-weight:900;color:var(--white);letter-spacing:.01em;margin-bottom:1px}
+    .lrk-tier-label.unranked{color:var(--muted);font-weight:700}
+    .lrk-percentile{font-size:9px;color:var(--muted);margin-bottom:8px}
+    .lrk-progress-track{height:5px;border-radius:3px;background:var(--border2);overflow:hidden;margin-bottom:6px}
+    .lrk-progress-fill{height:100%;border-radius:3px;background:var(--lrk-ring2,var(--green))}
+    .lrk-stat{font-size:8.5px;color:var(--muted);font-family:'JetBrains Mono',monospace;line-height:1.4}
     /* Bottom-right shade first (darker, gives the facet its own weight),
        then the top-left sheen on top — reads as a cut/beveled surface
        catching light from one direction rather than a flat color fill.
@@ -3979,6 +4025,20 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       <div class="legend-card-name">1-of-1</div>
     </div>
     <div class="cabinet-hero-sub">The single rarest reward in the game — still ahead of you.</div>
+  </div>
+
+  <!-- LIFT RANKS — a live ladder per lift (Wood → Olympian, each with
+       a I/II/III sub-rank), driven by real estimated-1RM vs bodyweight
+       rather than a Compass Drop pull. Sits above the collectible tiers
+       since it's the one section that updates from actual training,
+       not luck — the same "rank leads, collectibles follow" ordering
+       Liftoff uses. -->
+  <div class="cabinet-tier">
+    <div class="cabinet-tier-plaque">
+      <span class="cabinet-tier-name">Lift Ranks</span>
+    </div>
+    <div class="cabinet-tier-sub">Your estimated 1-rep max, ranked against your bodyweight</div>
+    <div class="cabinet-row" id="cabinet-liftranks-row"></div>
   </div>
 
   <div id="cabinet-tiers"></div>
@@ -7792,7 +7852,44 @@ const TROPHY_LAYERS=[
 function viewCabinetLocked(label){
   toast('\ud83d\udd12',label+' \u2014 coming soon.');
 }
+// Same laurel wreath markup as the Trophy Cabinet's legend cards (see
+// .legend-card-wreath) \u2014 reused verbatim rather than re-derived so the
+// badge language stays identical across the app.
+const LGR_WREATH_SVG='<svg viewBox="-5 -5 110 115"><path class="lgr-stem" d="M46.2,95.8 L29.9,91.2 L16.6,80.7 L8.3,66.0 L6.1,49.3 L10.4,32.9 L20.5,19.4 L35.0,10.7"/><path class="lgr-stem" d="M53.8,95.8 L70.1,91.2 L83.4,80.7 L91.7,66.0 L93.9,49.3 L89.6,32.9 L79.5,19.4 L65.0,10.7"/><path class="lgr-leaf" d="M47.6,94.1 Q38.5,95.5 38.2,105.8 Q48.2,103.2 47.6,94.1 Z"/><path class="lgr-vein" d="M47.6,94.1 L38.2,105.8"/><path class="lgr-leaf" d="M31.8,90.1 Q23.4,88.1 19.4,97.0 Q29.1,98.3 31.8,90.1 Z"/><path class="lgr-vein" d="M31.8,90.1 L19.4,97.0"/><path class="lgr-leaf" d="M18.6,80.5 Q12.0,75.7 5.4,82.1 Q13.4,86.6 18.6,80.5 Z"/><path class="lgr-vein" d="M18.6,80.5 L5.4,82.1"/><path class="lgr-leaf" d="M10.1,66.5 Q6.0,60.1 -1.9,63.3 Q3.4,70.0 10.1,66.5 Z"/><path class="lgr-vein" d="M10.1,66.5 L-1.9,63.3"/><path class="lgr-leaf" d="M7.5,50.3 Q6.2,43.4 -1.7,43.3 Q0.4,51.0 7.5,50.3 Z"/><path class="lgr-vein" d="M7.5,50.3 L-1.7,43.3"/><path class="lgr-leaf" d="M11.2,34.3 Q12.5,27.9 5.7,25.1 Q4.9,32.4 11.2,34.3 Z"/><path class="lgr-vein" d="M11.2,34.3 L5.7,25.1"/><path class="lgr-leaf" d="M20.7,20.8 Q24.1,15.9 19.2,11.1 Q16.0,17.0 20.7,20.8 Z"/><path class="lgr-vein" d="M20.7,20.8 L19.2,11.1"/><path class="lgr-leaf" d="M34.6,12.0 Q39.2,8.9 36.8,3.2 Q32.0,7.1 34.6,12.0 Z"/><path class="lgr-vein" d="M34.6,12.0 L36.8,3.2"/><path class="lgr-leaf" d="M52.4,94.1 Q51.8,103.2 61.8,105.8 Q61.5,95.5 52.4,94.1 Z"/><path class="lgr-vein" d="M52.4,94.1 L61.8,105.8"/><path class="lgr-leaf" d="M68.2,90.1 Q70.9,98.3 80.6,97.0 Q76.6,88.1 68.2,90.1 Z"/><path class="lgr-vein" d="M68.2,90.1 L80.6,97.0"/><path class="lgr-leaf" d="M81.4,80.5 Q86.6,86.6 94.6,82.1 Q88.0,75.7 81.4,80.5 Z"/><path class="lgr-vein" d="M81.4,80.5 L94.6,82.1"/><path class="lgr-leaf" d="M89.9,66.5 Q96.6,70.0 101.9,63.3 Q94.0,60.1 89.9,66.5 Z"/><path class="lgr-vein" d="M89.9,66.5 L101.9,63.3"/><path class="lgr-leaf" d="M92.5,50.3 Q99.6,51.0 101.7,43.3 Q93.8,43.4 92.5,50.3 Z"/><path class="lgr-vein" d="M92.5,50.3 L101.7,43.3"/><path class="lgr-leaf" d="M88.8,34.3 Q95.1,32.4 94.3,25.1 Q87.5,27.9 88.8,34.3 Z"/><path class="lgr-vein" d="M88.8,34.3 L94.3,25.1"/><path class="lgr-leaf" d="M79.3,20.8 Q84.0,17.0 80.8,11.1 Q75.9,15.9 79.3,20.8 Z"/><path class="lgr-vein" d="M79.3,20.8 L80.8,11.1"/><path class="lgr-leaf" d="M65.4,12.0 Q68.0,7.1 63.2,3.2 Q60.8,8.9 65.4,12.0 Z"/><path class="lgr-vein" d="M65.4,12.0 L63.2,3.2"/></svg>';
+const LRK_BARBELL_SVG='<svg viewBox="0 0 64 24" class="lrk-icon-svg"><rect x="27" y="9" width="10" height="6" rx="1" class="lrk-bar"/><rect x="1" y="1" width="11" height="22" rx="2.5" class="lrk-plate"/><rect x="52" y="1" width="11" height="22" rx="2.5" class="lrk-plate"/><rect x="13" y="5" width="7" height="14" rx="2" class="lrk-plate-sm"/><rect x="44" y="5" width="7" height="14" rx="2" class="lrk-plate-sm"/></svg>';
+function renderLiftRanks(){
+  const row=document.getElementById('cabinet-liftranks-row');
+  if(!row)return;
+  row.innerHTML=LIFT_RANK_LIFTS.map(lift=>{
+    const r=getLiftRank(lift);
+    if(!r){
+      return `<div class="lift-rank-card">
+        <div class="lrk-name">${lift.label}</div>
+        <div class="lrk-badge-wrap">
+          <div class="lrk-badge locked">${LRK_BARBELL_SVG}</div>
+        </div>
+        <div class="lrk-tier-label unranked">Unranked</div>
+        <div class="lrk-percentile">Log a set to get ranked</div>
+      </div>`;
+    }
+    const t=r.tier;
+    const nextText=r.atLadderTop?'Ladder maxed \u2014 Olympian I':(r.kgToNext>0?`+${r.kgToNext}kg \u2192 ${r.nextLabel}`:r.nextLabel);
+    return `<div class="lift-rank-card" style="--orn-c1:${t.c1};--orn-c2:${t.c2};--lrk-ring1:${t.ring1};--lrk-ring2:${t.ring2}">
+      <div class="lrk-name">${lift.label}</div>
+      <div class="lrk-badge-wrap">
+        <div class="lrk-badge-glow"></div>
+        <div class="lrk-wreath">${LGR_WREATH_SVG}</div>
+        <div class="lrk-badge">${LRK_BARBELL_SVG}<div class="lrk-numeral">${r.sub}</div></div>
+      </div>
+      <div class="lrk-tier-label">${t.name} ${r.sub}</div>
+      <div class="lrk-percentile">${t.pct}</div>
+      <div class="lrk-progress-track"><div class="lrk-progress-fill" style="width:${r.progressPct}%"></div></div>
+      <div class="lrk-stat">${r.e1rm}kg e1RM \u00b7 ${nextText}</div>
+    </div>`;
+  }).join('');
+}
 function renderTrophyCabinet(){
+  renderLiftRanks();
   const cont=document.getElementById('cabinet-tiers');
   if(!cont)return;
   renderCabinetWeightMilestones();
@@ -11413,6 +11510,67 @@ function estimate1RM(name){
   let best=0;
   hist.forEach(h=>{ if(h.weight>0&&h.reps>0){ const e=h.weight*(1+h.reps/30); if(e>best)best=e; } });
   return best>0?Math.round(best*10)/10:null;
+}
+// ── LIFT RANKS — a per-lift ladder (Wood → Olympian, each with a
+// I/II/III sub-rank) driven by estimated 1RM relative to bodyweight,
+// the same relative-strength logic real strength-standard charts use.
+// Colours reuse the exact rarity ladder already proven in the Trophy
+// Cabinet (silver/gold/champion-red/titan-purple/holo) rather than
+// inventing a second palette, so a Titan lift badge and a Titan-rarity
+// crate read as the same tier language at a glance.
+// c1/c2 feed the wreath SVG fills (url() is valid there, so Olympian's
+// wreath is genuinely holographic). ring1/ring2 feed the badge's own
+// box-shadow ring/glow — CSS box-shadow rejects url() as a colour and
+// silently drops the WHOLE shadow list if any layer is invalid, so the
+// ring always gets a real solid colour, same split the legend-card
+// medallion ring (--lgi-ring) already uses against the same holo sprite.
+const LIFT_RANK_TIERS=[
+  {name:'Wood',    c1:'#C9A377', c2:'#6B4226', ring1:'#C9A377', ring2:'#6B4226', pct:'Just getting started'},
+  {name:'Bronze',  c1:'#F0C08E', c2:'#9A5522', ring1:'#F0C08E', ring2:'#9A5522', pct:'Top 75%'},
+  {name:'Silver',  c1:'#E4E7EC', c2:'#8E8E93', ring1:'#E4E7EC', ring2:'#8E8E93', pct:'Top 55%'},
+  {name:'Gold',    c1:'#FFEB99', c2:'#E8B400', ring1:'#FFEB99', ring2:'#E8B400', pct:'Top 35%'},
+  {name:'Platinum',c1:'#EAF6FF', c2:'#6E9BC2', ring1:'#EAF6FF', ring2:'#6E9BC2', pct:'Top 20%'},
+  {name:'Elite',   c1:'#B8FFE0', c2:'#16A37A', ring1:'#B8FFE0', ring2:'#16A37A', pct:'Top 10%'},
+  {name:'Champion',c1:'#FFAEB5', c2:'#E23B4E', ring1:'#FFAEB5', ring2:'#E23B4E', pct:'Top 5%'},
+  {name:'Titan',   c1:'#E4C4FF', c2:'#A855F7', ring1:'#E4C4FF', ring2:'#A855F7', pct:'Top 1.5%'},
+  {name:'Olympian',c1:'url(#lgi-holo-grad)', c2:'url(#lgi-holo-grad)', ring1:'#FFD9A8', ring2:'#FF9A3D', pct:'Top 0.3%'},
+];
+// Ratio curves are estimated-1RM ÷ bodyweight(kg) at the START of each
+// tier above. Squat/deadlift standards sit higher than press standards
+// at every equivalent tier since the whole body (not just one joint
+// group) shares the load — flavour numbers for gamification, not a
+// clinical standard, but shaped on real published strength-standard
+// ratios so the tiers still feel earned.
+const LIFT_RANK_LIFTS=[
+  {key:'bench',   label:'Bench Press',    exName:'Barbell Bench Press', curve:[0.3,0.5,0.75,1.0,1.25,1.5,1.75,2.0,2.25]},
+  {key:'squat',   label:'Back Squat',     exName:'Barbell Back Squat',  curve:[0.4,0.65,1.0,1.35,1.65,2.0,2.3,2.6,3.0]},
+  {key:'deadlift',label:'Deadlift',       exName:'Sumo Deadlift',       curve:[0.5,0.75,1.15,1.5,1.85,2.25,2.6,3.0,3.4]},
+  {key:'ohp',     label:'Overhead Press', exName:'Overhead Press',     curve:[0.2,0.35,0.5,0.65,0.8,0.95,1.1,1.25,1.4]},
+];
+const LIFT_RANK_SUB=['III','II','I'];
+function getLiftRank(lift){
+  const e1rm=estimate1RM(lift.exName);
+  if(!e1rm||!profile.weight)return null;
+  const bwKg=profile.weight*0.453592;
+  const ratio=e1rm/bwKg;
+  const curve=lift.curve;
+  let tierIdx=0;
+  for(let i=curve.length-1;i>=0;i--){ if(ratio>=curve[i]){tierIdx=i;break;} }
+  const tierStart=curve[tierIdx];
+  const tierEnd=tierIdx<curve.length-1?curve[tierIdx+1]:tierStart*1.15;
+  const span=tierEnd-tierStart;
+  const withinTier=Math.max(0,Math.min(1,(ratio-tierStart)/span));
+  const subIdx=Math.min(2,Math.floor(withinTier*3));
+  const subProgress=Math.min(1,withinTier*3-subIdx);
+  const atLadderTop=tierIdx===curve.length-1&&subIdx===2;
+  const nextSubRatio=tierStart+span*((subIdx+1)/3);
+  const kgToNext=atLadderTop?0:Math.max(0,Math.round(nextSubRatio*bwKg-e1rm));
+  const nextLabel=atLadderTop?null:(subIdx<2?LIFT_RANK_TIERS[tierIdx].name+' '+LIFT_RANK_SUB[subIdx+1]:LIFT_RANK_TIERS[tierIdx+1].name+' III');
+  return {
+    tier:LIFT_RANK_TIERS[tierIdx],tierIdx,sub:LIFT_RANK_SUB[subIdx],subIdx,
+    progressPct:atLadderTop?100:Math.round(subProgress*100),
+    e1rm:Math.round(e1rm),kgToNext,nextLabel,atLadderTop,
+  };
 }
 function renderTonnageBreakdown(){
   const wrap=document.getElementById('tonnage-breakdown');
