@@ -1767,7 +1767,6 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .spin-wedge-diamond{fill:#3FB8DE}
     .spin-wheel-rim{fill:none;stroke:rgba(255,255,255,.16);stroke-width:3}
     .spin-wheel-hub{fill:#0B0B0B;stroke:rgba(255,255,255,.28);stroke-width:2}
-    .spin-wheel-hub-icon{stroke:rgba(255,140,50,.85);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
     .spin-wedge-icon{color:#fff;opacity:.94}
     /* Drawn in the SVG's own viewBox coordinates (same space as the
        wedges), so it can't drift out of alignment with them. */
@@ -8159,12 +8158,17 @@ function renderDailySpin(){
           '<stop offset="0%" stop-color="#FFD24A"/><stop offset="50%" stop-color="#FF7A2E"/><stop offset="100%" stop-color="#FFD24A"/>'+
         '</linearGradient>'+
         '<clipPath id="areviaxBadgeClip"><circle cx="'+areviaxPos.x+'" cy="'+areviaxPos.y+'" r="'+areviaxBadgeR+'"/></clipPath>'+
+        '<clipPath id="spinHubClip"><circle cx="100" cy="100" r="18"/></clipPath>'+
         '</defs>'+
         '<g>'+wedges+'</g>'+
         '<circle cx="100" cy="100" r="96" class="spin-wheel-rim"/>'+
         icons+
         '<circle cx="100" cy="100" r="23" class="spin-wheel-hub"/>'+
-        '<g class="spin-wheel-hub-icon" transform="translate(100,100)"><circle cx="0" cy="0" r="9"/><path d="M0-9v2.4M0 6.6V9M-9 0h2.4M6.6 0H9"/><path d="M0-5.5c2.4 2 3.6 4 3.2 6.4-.3 1.9-1.8 3.3-3.2 3.6-1.4-.3-2.9-1.7-3.2-3.6-.4-2.4.8-4.4 3.2-6.4z"/></g>'+
+        // Was a hand-drawn crosshair+droplet icon that read as an
+        // unrelated aim/target glyph sitting right next to the real
+        // compass emblem on the Areviax wedge — same artwork here
+        // instead of a second, different-looking mark on one wheel.
+        '<image href="images/legends/areviax_emblem.png" x="82" y="82" width="36" height="36" clip-path="url(#spinHubClip)" preserveAspectRatio="xMidYMid slice"/>'+
         '<g class="spin-wheel-areviax-badge">'+
           '<circle cx="'+areviaxPos.x+'" cy="'+areviaxPos.y+'" r="'+(areviaxBadgeR+4)+'" fill="none" stroke="rgba(255,140,40,.55)" stroke-width="2.5"/>'+
           '<image href="images/legends/areviax_emblem.png" x="'+(areviaxPos.x-areviaxBadgeR)+'" y="'+(areviaxPos.y-areviaxBadgeR)+'" width="'+(areviaxBadgeR*2)+'" height="'+(areviaxBadgeR*2)+'" clip-path="url(#areviaxBadgeClip)" preserveAspectRatio="xMidYMid slice"/>'+
