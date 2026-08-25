@@ -1005,6 +1005,13 @@ html{background:var(--bg);overscroll-behavior-y:none}
           <p>Most products that eventually sell well had an unremarkable first attempt. Find which failure point applied, fix that one thing specifically, and run the sequence again — a second attempt with one specific fix outperforms a first attempt repeated identically.</p>
         </div>
 
+        <div class="ch-h3">Before You Diagnose</div>
+        <div class="checklist">
+          <div class="check-item" onclick="toggleCheck(this,5)"><div class="check-box"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span class="check-text">I know which of the six failure points I'd check first if my launch stalled</span></div>
+          <div class="check-item" onclick="toggleCheck(this,5)"><div class="check-box"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span class="check-text">I have a way to see clicks/views, not just likes and comments, before launch day</span></div>
+          <div class="check-item" onclick="toggleCheck(this,5)"><div class="check-box"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span class="check-text">I've decided a quiet first attempt gets one specific fix and a second run, not a full stop</span></div>
+        </div>
+
         <div class="ch-complete" id="ch-complete-7">
           <div class="ch-complete-icon">🔍</div>
           <div class="xp-pop">+25 XP — Chapter Complete</div>
@@ -1247,9 +1254,21 @@ function quiz(btn, type, idx){
 }
 
 // ── CHECK ITEMS ──
+// Also reveals that chapter's completion panel once every item on the page is
+// checked — without this, chapters whose only interactive element is a
+// checklist had no way to ever surface their "Continue" button.
 function toggleCheck(el, xpVal){
   el.classList.toggle('checked');
   if(el.classList.contains('checked')) addXP(xpVal,'Checklist item');
+  const page=el.closest('.chapter-page');
+  if(page){
+    const n=parseInt(page.id.replace('ch-',''),10);
+    const items=page.querySelectorAll('.check-item');
+    if(items.length && [...items].every(i=>i.classList.contains('checked'))){
+      const cc=document.getElementById('ch-complete-'+n);
+      if(cc) cc.classList.add('show');
+    }
+  }
 }
 
 // ── CONTENT BATCH GENERATOR ──
@@ -1353,6 +1372,7 @@ function generateSalesPage(){
     </div>
     <div style="font-size:12px;color:var(--muted);margin-top:12px;padding-top:10px;border-top:1px solid var(--border);line-height:1.6"><strong style="color:var(--white)">This is a first draft, not a final page.</strong> With 30 days on the clock, a rough page that's live today beats a polished one that's still being tweaked next week — you can improve the wording after ${product} has actually made a sale, not before.</div>`;
   addXP(10,'Sales page outlined');
+  document.getElementById('ch-complete-4')?.classList.add('show');
 }
 
 // ── LAUNCH CALENDAR ──
@@ -1362,7 +1382,9 @@ function generateLaunchCalendar(){
   if(!dateVal){toast('⚠️','Pick a cart-open date first');return}
   const cartDate=new Date(dateVal+'T00:00:00');
   const days=['Day 1-2: The Problem','Day 3: The Announcement','Day 4-5: Proof & Behind the Scenes','Day 6: Cart Opens','Day 7: Last Call'];
-  const offsets=[-6,-4,-3,0,1];
+  // Offsets are relative to cart-open day (Day 6 = 0), matching Chapter 5's
+  // own Day 1-7 template numbering — e.g. Day 3 is exactly 3 days before Day 6.
+  const offsets=[-5,-3,-2,0,1];
   const out=document.getElementById('launchcal-output');
   out.className='tool-output show';
   let rows='';
