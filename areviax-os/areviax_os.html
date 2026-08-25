@@ -592,12 +592,25 @@ body{background:linear-gradient(160deg,#0B0B0B 0%,#0B0B0B 100%) fixed;background
 
 /* ── WORKOUT BUILDER ── */
 .exercise-row{
-  display:flex;align-items:center;gap:10px;
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
   padding:10px 14px;background:var(--panel2);
   border:1.5px solid var(--border2);border-radius:6px;margin-bottom:8px;
 }
-.ex-name{font-size:13px;font-weight:500;flex:1}
-.ex-input{
+/* flex-basis:100% puts the name on its own full-width line rather than
+   squeezing into whatever's left after 3 fixed-width number inputs —
+   that squeeze is what was wrapping 2-word names ("Incline DB Press")
+   across 2-3 cramped lines and making rows uneven heights. Ellipsis is
+   just a safety net for a genuinely long name, not the normal case. */
+.ex-name{font-size:13px;font-weight:500;flex:1 1 100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* .exercise-row .ex-input (two classes, specificity 0,2,0) rather than
+   just .ex-input (0,1,0) — the generic form-field rule further down
+   (`select,input[type=text],input[type=number],textarea{width:100%}`)
+   is an attribute selector, which outranks a single class (0,1,1 beats
+   0,1,0) and sits later in the file, so it was always winning both on
+   specificity and source order. These sets/reps/weight steppers were
+   never actually 52px; they were only ever cramped down by flex-shrink
+   competing against .ex-name's flex:1 for space in the same row. */
+.exercise-row .ex-input{
   width:52px;background:var(--bg);border:1.5px solid var(--border);
   border-radius:4px;padding:4px 8px;font-size:12px;font-family:'JetBrains Mono',monospace;
   color:var(--white);text-align:center;
