@@ -9813,16 +9813,33 @@ function showPage(id){
     // they're still assembling or adjusting it (see renderCustomSelected
     // and renderExercises/pickBuilderSwap for the in-builder preview
     // state this reads from).
+    //
+    // BUT that commit used to fire unconditionally on every visit to this
+    // page — including just resuming an already-in-progress session (e.g.
+    // reopening the app, or tapping the bottom-nav Start button again
+    // mid-workout). That silently swapped plannedSessionExs for whatever
+    // the builder currently previews (which can differ — equipment/recovery
+    // state moves on, auto mode can reroll), and unconditionally reset both
+    // skippedExercises and sessionEnteredAt — from the person's side, their
+    // in-progress workout just vanished. sessionInProgress() below is the
+    // guard: if today's planned session already has a logged set, treat
+    // this as a resume and leave everything exactly as it is.
     if(startingScheduledSession){
       startingScheduledSession=false;
+      skippedExercises=new Set();sessionEnteredAt=Date.now();saveToStorage();
+    }else if(sessionInProgress()){
+      // resuming — plannedSessionExs/skippedExercises/sessionEnteredAt stay untouched
     }else if(builderMode==='custom'&&customSessionExs.length){
-      plannedSessionExs=customSessionExs;plannedSessionType='custom';plannedSessionName='Custom Session';saveToStorage();
+      plannedSessionExs=customSessionExs;plannedSessionType='custom';plannedSessionName='Custom Session';
+      skippedExercises=new Set();sessionEnteredAt=Date.now();saveToStorage();
       const dnf=document.getElementById('d-next-full');if(dnf)dnf.textContent=plannedSessionName;
     }else if(builderMode==='auto'&&autoPreviewExs.length){
-      plannedSessionExs=autoPreviewExs;plannedSessionType=autoPreviewType;plannedSessionName=autoPreviewName;saveToStorage();
+      plannedSessionExs=autoPreviewExs;plannedSessionType=autoPreviewType;plannedSessionName=autoPreviewName;
+      skippedExercises=new Set();sessionEnteredAt=Date.now();saveToStorage();
       const dnf=document.getElementById('d-next-full');if(dnf)dnf.textContent=plannedSessionName;
+    }else if(!sessionEnteredAt){
+      sessionEnteredAt=Date.now();
     }
-    sessionEnteredAt=Date.now();
     safeRender(buildSession,'session');
   }
   if(id==='progress')safeRender(renderProgress,'progress');
@@ -10962,12 +10979,20 @@ function clearMuscleTargets(){
   const cl=document.getElementById('muscle-clear');if(cl)cl.style.display='none';
   renderExercises();
 }
+// Matching on "any selected muscle appears in this tag" let compound lifts
+// leak in on a muscle the person deliberately left out — picking Triceps
+// without Chest still surfaced "Dumbbell Bench Press" (muscle: 'chest +
+// triceps') because triceps alone was enough to pass. Someone excluding a
+// muscle (e.g. it's still recovering — see MUSCLE_RECOVERY_BASE_HOURS) means
+// that muscle shouldn't get worked at all, not just not be the main target.
+// Require every muscle group actually present in the tag to be selected.
+function musclesPresentInTag(muscleTag){
+  return Object.keys(MUSCLE_GROUPS).filter(key=>MUSCLE_GROUPS[key].some(syn=>muscleTag.includes(syn)));
+}
 function matchesMuscleTargets(muscleTag){
-  for(const m of selectedMuscles){
-    const syns=MUSCLE_GROUPS[m]||[];
-    if(syns.some(syn=>muscleTag.includes(syn)))return true;
-  }
-  return false;
+  const present=musclesPresentInTag(muscleTag);
+  if(!present.length)return false;
+  return present.every(key=>selectedMuscles.has(key));
 }
 // ── SESSION NAMING — reflects what was actually picked, not a fixed template.
 // If specific muscles are targeted via the muscle picker, name the session
@@ -11978,8 +12003,12 @@ function buildSession(){
     const pool=(EX['upper-push']||[]).filter(e=>equipOk(e));
     exs=spreadByMuscle(pool,maxExForTime(weekSessionLength,pool.length));
     plannedSessionExs=exs;plannedSessionType='upper-push';plannedSessionName=getSessionTypeLabel('upper-push');
+    skippedExercises=new Set(); // genuinely new fallback plan just got created above
   }
-  skippedExercises=new Set();
+  // skippedExercises is NOT reset here otherwise — buildSession() re-runs on
+  // every visit to this page (including a resume), and used to wipe skip
+  // state on each one. showPage('session')'s own new-vs-resume branching is
+  // now the single place that decides when a fresh skip slate is warranted.
   const cont=document.getElementById('sess-exercises');if(!cont)return;
   cont.innerHTML=exs.map((e,i)=>{
     const sug=suggestNextWeight(e);
@@ -11987,8 +12016,9 @@ function buildSession(){
     const saved=liveSessionProgress[e.name]&&liveSessionProgress[e.name].date===localDateKey(new Date())?liveSessionProgress[e.name]:null;
     const warmup=warmupSets(sug?sug.weight:null);
     const e1rm=estimate1RM(e.name);
+    const isSkipped=skippedExercises.has(i);
     return `
-    <div class="ex-card" id="sex-${i}">
+    <div class="ex-card${isSkipped?' ex-skipped':''}" id="sex-${i}">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:9px">
         <div class="ex-fig">${getCardThumb(e)}</div>
         <div style="flex:1;min-width:0"><div class="ex-name">${e.name}</div><div class="ex-meta">${e.muscle} · ${effectiveSets(e)}×${e.reps}</div></div>
@@ -12017,7 +12047,7 @@ function buildSession(){
         <button class="ex-action-btn" onclick="openHowTo(${i})" title="Step-by-step guide">▶ How to do it</button>
         <button class="ex-action-btn" onclick="openWatch(${i})" title="Watch the movement">🎬 Watch</button>
         <button class="ex-action-btn ex-swap-btn" onclick="toggleSwapPanel(${i})" title="Swap this exercise">🔄 Swap</button>
-        <button class="ex-action-btn ex-skip-btn" onclick="toggleSkipExercise(${i})" id="skip-btn-${i}" title="Not doing this one today — still counts toward your compass point">⏭ Skip</button>
+        <button class="ex-action-btn ex-skip-btn" onclick="toggleSkipExercise(${i})" id="skip-btn-${i}" title="Not doing this one today — still counts toward your compass point">${isSkipped?'↩ Unskip':'⏭ Skip'}</button>
       </div>
       <div class="swap-panel" id="swap-panel-${i}">
         <div style="font-weight:800;font-size:12.5px;margin-bottom:3px">Swap this exercise</div>
@@ -12033,12 +12063,24 @@ function buildSession(){
   });
   renderCompassClaimStatus();
 }
+// True once today's planned session has at least one real logged set —
+// the signal showPage('session') uses to tell "resuming an in-progress
+// workout" apart from "starting a fresh one" (see its own comment).
+function sessionInProgress(){
+  if(!plannedSessionExs||!plannedSessionExs.length)return false;
+  const today=localDateKey(new Date());
+  return plannedSessionExs.some(e=>{
+    const p=liveSessionProgress[e.name];
+    return p&&p.date===today&&p.doneSets&&p.doneSets.length>0;
+  });
+}
 function toggleWarmup(ei,wi){document.getElementById('wc-'+ei+'-'+wi)?.classList.toggle('done')}
 function toggleSkipExercise(i){
   if(skippedExercises.has(i))skippedExercises.delete(i);else skippedExercises.add(i);
   const skipped=skippedExercises.has(i);
   const card=document.getElementById('sex-'+i);if(card)card.classList.toggle('ex-skipped',skipped);
   const btn=document.getElementById('skip-btn-'+i);if(btn)btn.textContent=skipped?'↩ Unskip':'⏭ Skip';
+  saveToStorage(); // was never persisted at all — a skip silently reverted on any reload
   renderCompassClaimStatus();
 }
 // A session is "fully accounted for" once every exercise in it has
@@ -12077,7 +12119,15 @@ function renderCompassClaimStatus(){
 function claimCompassPoint(){
   const today=localDateKey(new Date());
   if(compassPointDate===today)return;
-  if(sessionEnteredAt&&Date.now()-sessionEnteredAt<MIN_SESSION_MS_FOR_CREDIT)return;
+  if(sessionEnteredAt){
+    const requiredMs=sessionTimeRequirementMs();
+    const elapsedMs=Date.now()-sessionEnteredAt;
+    if(elapsedMs<requiredMs){
+      const remainingMin=Math.ceil((requiredMs-elapsedMs)/60000);
+      toast('⏱️',`Give it a bit longer — about ${remainingMin} more min before this counts.`);
+      return;
+    }
+  }
   if(!sessionFullyAccountedFor())return;
   compassPointDate=today;
   checkCompassWeek();
@@ -12607,7 +12657,28 @@ function checkSessionPacing(actualSec,exs){
     toast('⏱️','Ran '+Math.round(actualMin-expectedMin)+'min longer than expected (rest time already factored in) — if this keeps happening, try capping rest to your focus\'s target or supersetting accessory work to keep momentum.');
   }
 }
+// Real elapsed time gate — currentElapsedSeconds() below tracks the manual
+// rest timer, which stays 0 all session for anyone who never taps it, so it
+// can't be what blocks instant-complete farming. sessionEnteredAt is set
+// automatically the moment the session page opens (see showPage), so it
+// keeps working whether or not the person ever touches the timer. Skipped
+// exercises don't count toward the requirement — estimateSessionMinutes()
+// only sees the ones actually done. nameOverride paths (the 3-minute
+// rescue session) are deliberately short by design and bypass this.
+function sessionTimeRequirementMs(){
+  const exs=(plannedSessionExs||[]).filter((e,i)=>!skippedExercises.has(i));
+  return Math.max(MIN_SESSION_MS_FOR_CREDIT,estimateSessionMinutes(exs)*60000);
+}
 function completeSession(nameOverride){
+  if(!nameOverride&&sessionEnteredAt){
+    const requiredMs=sessionTimeRequirementMs();
+    const elapsedMs=Date.now()-sessionEnteredAt;
+    if(elapsedMs<requiredMs){
+      const remainingMin=Math.ceil((requiredMs-elapsedMs)/60000);
+      toast('⏱️',`Give it a bit longer — this session needs about ${remainingMin} more min before it counts (skip an exercise to lower that). Rushing it won't earn the streak or shard.`);
+      return;
+    }
+  }
   const sessionDurationSec=currentElapsedSeconds();
   clearInterval(timerInt);timerOn=false;
 
@@ -17109,6 +17180,9 @@ function saveToStorage(){
     localStorage.setItem('arx_heightUnit', heightUnit);
     localStorage.setItem('arx_plannedSessionExs', JSON.stringify(plannedSessionExs));
     localStorage.setItem('arx_plannedSessionType', plannedSessionType);
+    localStorage.setItem('arx_plannedSessionName', plannedSessionName||'');
+    localStorage.setItem('arx_skippedExercises', JSON.stringify([...skippedExercises]));
+    localStorage.setItem('arx_sessionEnteredAt', String(sessionEnteredAt||0));
     localStorage.setItem('arx_sessionHistory', JSON.stringify(sessionHistory));
     localStorage.setItem('arx_cardioLog', JSON.stringify(cardioLog));
     localStorage.setItem('arx_cardioDistanceUnit', cardioDistanceUnit);
@@ -17218,6 +17292,10 @@ function loadFromStorage(){
     const pse=localStorage.getItem('arx_plannedSessionExs');
     if(pse){try{plannedSessionExs=JSON.parse(pse);}catch(e){plannedSessionExs=[];}}
     plannedSessionType=localStorage.getItem('arx_plannedSessionType')||'upper-push';
+    plannedSessionName=localStorage.getItem('arx_plannedSessionName')||'';
+    const skx=localStorage.getItem('arx_skippedExercises');
+    if(skx){try{skippedExercises=new Set(JSON.parse(skx));}catch(e){skippedExercises=new Set();}}
+    sessionEnteredAt=parseInt(localStorage.getItem('arx_sessionEnteredAt'))||0;
     const sh=localStorage.getItem('arx_sessionHistory');
     if(sh){try{sessionHistory=JSON.parse(sh);}catch(e){sessionHistory=[];}}
     const cl=localStorage.getItem('arx_cardioLog');
