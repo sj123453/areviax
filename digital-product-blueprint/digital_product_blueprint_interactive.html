@@ -751,7 +751,7 @@ html{background:var(--bg);overscroll-behavior-y:none}
         <p class="ch-lead">Most first-time sellers underprice out of fear, then wonder why the business doesn't feel worth the effort. Price isn't just a cost to the buyer — it's a signal. Too low and people assume low quality before they've even opened it. The right price isn't the lowest one; it's the one that matches what you're actually solving.</p>
 
         <div class="ch-h2">The <span>Anchoring Effect</span></div>
-        <p class="ch-body">The first number a person sees changes how every number after it feels. Show "$197 $47" and £47 feels like a steal. Show "£47" alone with nothing to compare it to, and the same exact price feels arbitrary or even expensive. This is why showing a struck-through "was" price works — not as a trick, but because price is never evaluated in isolation, only in comparison.</p>
+        <p class="ch-body">The first number a person sees changes how every number after it feels. Show "£197 £47" and £47 feels like a steal. Show "£47" alone with nothing to compare it to, and the same exact price feels arbitrary or even expensive. This is why showing a struck-through "was" price works — not as a trick, but because price is never evaluated in isolation, only in comparison.</p>
 
         <div class="hook-cards">
           <div class="hook-card" style="--accent:var(--orange)">
@@ -1094,6 +1094,13 @@ html{background:var(--bg);overscroll-behavior-y:none}
           <p>If your launch underperforms, the instinct is to take it personally. Don't. Look at which of the five killers above applied, fix that one thing specifically, and run it again. A launch that taught you exactly what to fix is more valuable long-term than a lucky first launch that taught you nothing.</p>
         </div>
 
+        <div class="ch-h3">Pre-Flight Check</div>
+        <div class="checklist">
+          <div class="check-item" onclick="toggleCheck(this,5)"><div class="check-box"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span class="check-text">I can name which of these five killers I'm most at risk of</span></div>
+          <div class="check-item" onclick="toggleCheck(this,5)"><div class="check-box"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span class="check-text">My positioning is specific enough that a stranger would know instantly if it's for them</span></div>
+          <div class="check-item" onclick="toggleCheck(this,5)"><div class="check-box"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span class="check-text">I've decided in advance that a quiet first week won't mean giving up</span></div>
+        </div>
+
         <div class="ch-complete" id="ch-complete-7">
           <div class="ch-complete-icon">🛑</div>
           <div class="xp-pop">+25 XP — Chapter Complete</div>
@@ -1336,9 +1343,21 @@ function quiz(btn, type, idx){
 }
 
 // ── CHECK ITEMS ──
+// Also reveals that chapter's completion panel once every item on the page is
+// checked — without this, chapters whose only interactive element is a
+// checklist had no way to ever surface their "Continue" button.
 function toggleCheck(el, xpVal){
   el.classList.toggle('checked');
   if(el.classList.contains('checked')) addXP(xpVal,'Checklist item');
+  const page=el.closest('.chapter-page');
+  if(page){
+    const n=parseInt(page.id.replace('ch-',''),10);
+    const items=page.querySelectorAll('.check-item');
+    if(items.length && [...items].every(i=>i.classList.contains('checked'))){
+      const cc=document.getElementById('ch-complete-'+n);
+      if(cc) cc.classList.add('show');
+    }
+  }
 }
 
 // ── CONTENT BATCH GENERATOR ──
@@ -1462,6 +1481,7 @@ function generateSalesPage(){
     </div>
     <div style="font-size:12px;color:var(--muted);margin-top:12px;padding-top:10px;border-top:1px solid var(--border);line-height:1.6"><strong style="color:var(--white)">Don't forget the thank-you page.</strong> The sale isn't the end of the funnel — a simple thank-you page for ${product} that delivers access instantly and sets expectations ("check your email, here's what happens next") is what stops a first buyer feeling like their money vanished into silence.</div>`;
   addXP(10,'Sales page outlined');
+  document.getElementById('ch-complete-4')?.classList.add('show');
 }
 
 // ── LAUNCH CALENDAR ──
@@ -1471,7 +1491,9 @@ function generateLaunchCalendar(){
   if(!dateVal){toast('⚠️','Pick a cart-open date first');return}
   const cartDate=new Date(dateVal+'T00:00:00');
   const days=['Day 1-2: The Problem','Day 3: The Announcement','Day 4-5: Proof & Behind the Scenes','Day 6: Cart Opens','Day 7: Last Call'];
-  const offsets=[-6,-4,-3,0,1];
+  // Offsets are relative to cart-open day (Day 6 = 0), matching the chapter's
+  // own Day 1-7 numbering — e.g. Day 3 is exactly 3 days before Day 6.
+  const offsets=[-5,-3,-2,0,1];
   const out=document.getElementById('launchcal-output');
   out.className='tool-output show';
   let rows='';
@@ -1483,6 +1505,7 @@ function generateLaunchCalendar(){
   out.innerHTML=`<div class="tool-output-label">7-Day Launch Sequence for ${product}</div><div style="margin-top:6px">${rows}</div>
     <div style="font-size:12px;color:var(--muted);margin-top:12px;padding-top:10px;border-top:1px solid var(--border);line-height:1.6">This first run-through is the manual version. Once ${product} has sold a handful of times off this exact sequence, that's your cue to automate it — an email sequence or scheduled posts that fire on these same offsets without you rebuilding it from scratch for every future launch.</div>`;
   addXP(10,'Launch calendar generated');
+  document.getElementById('ch-complete-5')?.classList.add('show');
 }
 
 // ── LAUNCH PLAN GENERATOR ──
