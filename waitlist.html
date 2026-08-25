@@ -96,27 +96,29 @@ a{color:inherit}
      mark on this page isn't just a static badge. ── */
 .hero-visual{position:relative;display:flex;align-items:center;justify-content:center;min-height:340px}
 #hero-compass-canvas{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:460px;height:460px;pointer-events:none;z-index:0}
-.founder-badge-wrap{position:relative;z-index:1;width:180px;height:180px}
+.founder-badge-wrap{position:relative;z-index:1;width:180px;height:180px;--orn-c1:url(#lgi-holo-grad);--orn-c2:url(#lgi-holo-grad)}
 .founder-badge-glow{
   position:absolute;top:14px;left:0;right:0;margin:0 auto;width:180px;height:180px;border-radius:50%;
   background:radial-gradient(circle,rgba(255,180,80,1) 0%,transparent 70%);
   filter:blur(60px);opacity:.9;animation:badgeGlowPulse 2.4s ease-in-out infinite;
 }
 @keyframes badgeGlowPulse{0%,100%{opacity:.7;transform:scale(1)}50%{opacity:1;transform:scale(1.06)}}
-.founder-badge-crown{
-  position:absolute;top:-14px;left:0;right:0;margin:0 auto;width:66px;height:30px;z-index:3;
-  clip-path:polygon(0% 90%,0% 32%,25% 58%,40% 6%,50% 42%,60% 6%,75% 58%,100% 32%,100% 90%);
-  background:linear-gradient(115deg,#FFD24A,#FF6FD8,#7FE3FF,#FF9A3D);background-size:260% 100%;
-  animation:holoShift 3.6s linear infinite;
-  filter:drop-shadow(0 3px 3px rgba(0,0,0,.55));
-}
-.founder-badge-wings{
-  position:absolute;top:76px;left:0;right:0;margin:0 auto;width:266px;height:60px;z-index:0;
-  clip-path:polygon(20% 22%,40% 42%,50% 36%,60% 42%,80% 22%,100% 50%,80% 78%,60% 58%,50% 64%,40% 58%,20% 78%,0% 50%);
-  background:linear-gradient(115deg,#FFD24A,#FF6FD8,#7FE3FF,#FF9A3D);background-size:260% 100%;
-  animation:holoShift 3.6s linear infinite;
-  filter:drop-shadow(0 3px 4px rgba(0,0,0,.4));
-}
+/* Real medallion crown + laurel wreath — same SVG language and CSS
+   classes as the Mass App's Trophy Cabinet (see design-dna skill),
+   ported here rather than the old flat clip-path "wings" polygon this
+   page used to use. --orn-c1/--orn-c2 feed both the crown/wreath SVG
+   fills (url(#lgi-holo-grad) is valid there) via the shared sprite
+   defined near the top of <body>. */
+.founder-badge-crown{position:absolute;top:-30px;left:0;right:0;margin:0 auto;width:118px;height:59px;z-index:3;pointer-events:none;filter:drop-shadow(0 3px 3px rgba(0,0,0,.55))}
+.founder-badge-crown svg{width:100%;height:100%;display:block}
+.lgi-crown-body{fill:var(--orn-c2,#8E8E93)}
+.lgi-crown-rim{fill:none;stroke:var(--orn-c1,#fff);stroke-width:4;stroke-linejoin:round;stroke-linecap:round}
+.lgi-crown-jewel{fill:#fff;opacity:.92}
+.founder-badge-wreath{position:absolute;top:-25px;left:0;right:0;margin:0 auto;width:270px;height:284px;z-index:0;pointer-events:none;filter:drop-shadow(0 3px 4px rgba(0,0,0,.4))}
+.founder-badge-wreath svg{width:100%;height:100%;display:block;overflow:visible}
+.lgr-stem{fill:none;stroke:var(--orn-c2,#8E8E93);stroke-width:2.4;stroke-linecap:round;opacity:.85}
+.lgr-leaf{fill:var(--orn-c2,#8E8E93);stroke:rgba(0,0,0,.4);stroke-width:0.8}
+.lgr-vein{fill:none;stroke:var(--orn-c1,#fff);stroke-width:0.9;opacity:.75}
 @keyframes holoShift{0%{background-position:0% 50%}100%{background-position:200% 50%}}
 .founder-badge{
   position:absolute;top:14px;left:0;right:0;margin:0 auto;width:180px;height:180px;z-index:1;
@@ -248,6 +250,20 @@ footer{position:relative;z-index:1;padding:32px 0 50px;text-align:center}
 </head>
 <body>
 
+<!-- Shared holographic gradient — same sprite/id as the Mass App's
+     ultralegendary rarity tier, so the Founder badge's crown/wreath can
+     reference it via fill:url(#lgi-holo-grad) exactly like the app does. -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="lgi-holo-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#FFD24A"/>
+      <stop offset="35%" stop-color="#FF6FD8"/>
+      <stop offset="65%" stop-color="#7FE3FF"/>
+      <stop offset="100%" stop-color="#FF9A3D"/>
+    </linearGradient>
+  </defs>
+</svg>
+
 <div class="ambient"></div>
 
 <div class="wrap">
@@ -288,8 +304,8 @@ footer{position:relative;z-index:1;padding:32px 0 50px;text-align:center}
       <canvas id="hero-compass-canvas" width="700" height="700"></canvas>
       <div class="founder-badge-wrap">
         <div class="founder-badge-glow"></div>
-        <div class="founder-badge-wings"></div>
-        <div class="founder-badge-crown"></div>
+        <div class="founder-badge-wreath"><svg viewBox="-5 -5 110 115"><path class="lgr-stem" d="M46.2,95.8 L29.9,91.2 L16.6,80.7 L8.3,66.0 L6.1,49.3 L10.4,32.9 L20.5,19.4 L35.0,10.7"/><path class="lgr-stem" d="M53.8,95.8 L70.1,91.2 L83.4,80.7 L91.7,66.0 L93.9,49.3 L89.6,32.9 L79.5,19.4 L65.0,10.7"/><path class="lgr-leaf" d="M47.6,94.1 Q38.5,95.5 38.2,105.8 Q48.2,103.2 47.6,94.1 Z"/><path class="lgr-vein" d="M47.6,94.1 L38.2,105.8"/><path class="lgr-leaf" d="M31.8,90.1 Q23.4,88.1 19.4,97.0 Q29.1,98.3 31.8,90.1 Z"/><path class="lgr-vein" d="M31.8,90.1 L19.4,97.0"/><path class="lgr-leaf" d="M18.6,80.5 Q12.0,75.7 5.4,82.1 Q13.4,86.6 18.6,80.5 Z"/><path class="lgr-vein" d="M18.6,80.5 L5.4,82.1"/><path class="lgr-leaf" d="M10.1,66.5 Q6.0,60.1 -1.9,63.3 Q3.4,70.0 10.1,66.5 Z"/><path class="lgr-vein" d="M10.1,66.5 L-1.9,63.3"/><path class="lgr-leaf" d="M7.5,50.3 Q6.2,43.4 -1.7,43.3 Q0.4,51.0 7.5,50.3 Z"/><path class="lgr-vein" d="M7.5,50.3 L-1.7,43.3"/><path class="lgr-leaf" d="M11.2,34.3 Q12.5,27.9 5.7,25.1 Q4.9,32.4 11.2,34.3 Z"/><path class="lgr-vein" d="M11.2,34.3 L5.7,25.1"/><path class="lgr-leaf" d="M20.7,20.8 Q24.1,15.9 19.2,11.1 Q16.0,17.0 20.7,20.8 Z"/><path class="lgr-vein" d="M20.7,20.8 L19.2,11.1"/><path class="lgr-leaf" d="M34.6,12.0 Q39.2,8.9 36.8,3.2 Q32.0,7.1 34.6,12.0 Z"/><path class="lgr-vein" d="M34.6,12.0 L36.8,3.2"/><path class="lgr-leaf" d="M52.4,94.1 Q51.8,103.2 61.8,105.8 Q61.5,95.5 52.4,94.1 Z"/><path class="lgr-vein" d="M52.4,94.1 L61.8,105.8"/><path class="lgr-leaf" d="M68.2,90.1 Q70.9,98.3 80.6,97.0 Q76.6,88.1 68.2,90.1 Z"/><path class="lgr-vein" d="M68.2,90.1 L80.6,97.0"/><path class="lgr-leaf" d="M81.4,80.5 Q86.6,86.6 94.6,82.1 Q88.0,75.7 81.4,80.5 Z"/><path class="lgr-vein" d="M81.4,80.5 L94.6,82.1"/><path class="lgr-leaf" d="M89.9,66.5 Q96.6,70.0 101.9,63.3 Q94.0,60.1 89.9,66.5 Z"/><path class="lgr-vein" d="M89.9,66.5 L101.9,63.3"/><path class="lgr-leaf" d="M92.5,50.3 Q99.6,51.0 101.7,43.3 Q93.8,43.4 92.5,50.3 Z"/><path class="lgr-vein" d="M92.5,50.3 L101.7,43.3"/><path class="lgr-leaf" d="M88.8,34.3 Q95.1,32.4 94.3,25.1 Q87.5,27.9 88.8,34.3 Z"/><path class="lgr-vein" d="M88.8,34.3 L94.3,25.1"/><path class="lgr-leaf" d="M79.3,20.8 Q84.0,17.0 80.8,11.1 Q75.9,15.9 79.3,20.8 Z"/><path class="lgr-vein" d="M79.3,20.8 L80.8,11.1"/><path class="lgr-leaf" d="M65.4,12.0 Q68.0,7.1 63.2,3.2 Q60.8,8.9 65.4,12.0 Z"/><path class="lgr-vein" d="M65.4,12.0 L63.2,3.2"/></svg></div>
+        <div class="founder-badge-crown"><svg viewBox="0 0 100 100" preserveAspectRatio="none"><path class="lgi-crown-body" d="M0,90 L0,32 L25,58 L40,6 L50,42 L60,6 L75,58 L100,32 L100,90 Z"/><path class="lgi-crown-rim" d="M0,32 L25,58 L40,6 L50,42 L60,6 L75,58 L100,32"/><circle class="lgi-crown-jewel" cx="40" cy="10" r="6"/><circle class="lgi-crown-jewel" cx="60" cy="10" r="6"/><circle class="lgi-crown-jewel" cx="50" cy="76" r="5"/></svg></div>
         <div class="founder-badge">
           <svg class="founder-badge-mark" viewBox="0 0 100 100" fill="none"><circle cx="50" cy="50" r="48" fill="#3D1F0A" stroke="#8A3010" stroke-width="1"/><path d="M50 14C50 14 45 42 18 50C45 58 50 86 50 86C50 86 55 58 82 50C55 42 50 14 50 14Z" fill="#FF5A00" opacity=".9"/><circle cx="50" cy="50" r="4" fill="#EEF0FF"/></svg>
         </div>
