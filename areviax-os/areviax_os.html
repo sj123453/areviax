@@ -84,7 +84,7 @@ body{background:linear-gradient(160deg,#0B0B0B 0%,#0B0B0B 100%) fixed;background
 .sb-level{background:linear-gradient(135deg,rgba(59,91,255,.14),rgba(255,90,0,.06));border:1.5px solid var(--border);padding:10px 12px;border-radius:6px;box-shadow:0 4px 16px -8px rgba(59,91,255,.3)}
 .level-name{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--blue-l);margin-bottom:6px}
 .level-bar-wrap{height:4px;background:var(--border);border-radius:2px;overflow:hidden}
-.level-bar{height:100%;background:linear-gradient(to right,var(--blue),var(--cyan));border-radius:2px;transition:width .8s ease}
+.level-bar{height:100%;background:linear-gradient(to right,var(--lvl-ring,var(--blue)),var(--lvl-ring-l,var(--cyan)));border-radius:2px;transition:width .8s ease,background .5s ease}
 
 /* MAIN */
 .main{flex:1;display:flex;flex-direction:column;overflow:hidden;position:relative}
@@ -1267,7 +1267,7 @@ textarea{resize:vertical;min-height:72px}
           <div class="streak-label">day streak</div>
         </div>
       </div>
-      <div class="sb-level">
+      <div class="sb-level lvl-common" id="sb-level">
         <div class="level-name" id="level-name">Navigator</div>
         <div class="level-bar-wrap"><div class="level-bar" id="level-bar" style="width:0%"></div></div>
         <div style="font-size:10px;color:var(--muted);margin-top:4px"><span id="xp-val" style="font-family:'JetBrains Mono',monospace">0</span> / 1000 XP</div>
@@ -2627,6 +2627,8 @@ function updateLevel(){
   document.getElementById('level-bar').style.width = pct + '%';
   const row = document.getElementById('prog-level-row');
   if(row) row.className = 'prog-level-row lvl-'+lvl.tier;
+  const sbLevel = document.getElementById('sb-level');
+  if(sbLevel) sbLevel.className = 'sb-level lvl-'+lvl.tier;
 }
 
 // ── TOAST ──
