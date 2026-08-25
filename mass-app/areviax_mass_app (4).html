@@ -826,6 +826,26 @@ input[type=text]:focus,input[type=number]:focus,select:focus{outline:none;border
 input:focus,select:focus{outline:none;border-color:var(--green)}
 select option{background:var(--panel)}
 
+/* SCROLL PICKER — drag-to-select ruler for numeric inputs (bodyweight,
+   workout weight/reps, measurements, sleep hours, etc.), replacing the
+   plain type=number field with a horizontally-draggable tick strip and
+   a big live value readout, the same interaction language as native
+   iOS pickers. The original <input> is kept in the DOM as type=hidden
+   (not removed) so every existing call site that reads/writes its
+   .value or listens for input/change events keeps working untouched —
+   mountScrollPicker() is purely an additive visual layer on top.
+   Built generically (mountScrollPicker(input,{min,max,step,decimals,
+   unit})) so one component covers every numeric field in the app
+   rather than a bespoke picker per screen. */
+.sp{margin:2px 0 4px;-webkit-tap-highlight-color:transparent}
+.sp-value{display:flex;align-items:baseline;justify-content:center;gap:3px;font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:30px;color:var(--white);line-height:1;margin-bottom:8px;letter-spacing:-.01em}
+.sp-unit{font-size:13px;font-weight:700;color:var(--muted);text-transform:lowercase}
+.sp-ruler{position:relative;height:46px;overflow:hidden;-webkit-mask-image:linear-gradient(to right,transparent 0,#000 18%,#000 82%,transparent 100%);mask-image:linear-gradient(to right,transparent 0,#000 18%,#000 82%,transparent 100%);cursor:grab;touch-action:pan-y}
+.sp-ruler.dragging{cursor:grabbing}
+.sp-track{position:absolute;top:0;bottom:0;left:50%;will-change:transform}
+.sp-indicator{position:absolute;left:50%;top:0;bottom:6px;width:2px;margin-left:-1px;background:var(--orange);border-radius:1px;pointer-events:none;box-shadow:0 0 8px rgba(255,90,0,.6)}
+.sp-indicator::after{content:'';position:absolute;left:50%;bottom:-4px;width:0;height:0;margin-left:-4px;border-left:4px solid transparent;border-right:4px solid transparent;border-bottom:4px solid var(--orange)}
+
 /* BUTTONS */
 .btn{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:8px 16px;border:none;font-family:'Plus Jakarta Sans',sans-serif;clip-path:polygon(0 0,calc(100% - 7px) 0,100% 7px,100% 100%,0 100%);transition:background .2s,color .2s,box-shadow .2s,transform .08s cubic-bezier(.16,1,.3,1);transform:translateY(0)}
 .btn:active{transform:translateY(3px);filter:brightness(.92)}
@@ -5483,6 +5503,7 @@ function setWeightUnit(u,isSettings){
   const t=document.getElementById(toggleId);
   if(t)t.querySelectorAll('.equip-chip').forEach(b=>b.classList.toggle('active',b.dataset.u===u));
   if(inp)inp.placeholder=u==='kg'?'e.g. 66':'e.g. 145';
+  if(typeof mountWeightPickers==='function')mountWeightPickers();
 }
 function setHeightUnit(u,isSettings){
   const cmWrapId=isSettings?'set-height-cm-wrap':'ob-height-cm-wrap';
@@ -5512,6 +5533,7 @@ function setHeightUnit(u,isSettings){
   const ftinWrap=document.getElementById(ftinWrapId);if(ftinWrap)ftinWrap.style.display=u==='ftin'?'flex':'none';
   const t=document.getElementById(toggleId);
   if(t)t.querySelectorAll('.equip-chip').forEach(b=>b.classList.toggle('active',b.dataset.u===u));
+  if(typeof mountHeightPickers==='function')mountHeightPickers(isSettings);
 }
 
 // ── Per-session overrides (don't touch the stored profile) ──
@@ -8512,6 +8534,9 @@ function renderSettings(){
   document.getElementById('set-injuries').value=profile.injuries||'';
   const iws=document.getElementById('injury-warning-status');
   if(iws)iws.innerHTML=injuryWarningsDisabled?'🔕 Injury conflict warnings are off — <span style="color:var(--cyan);text-decoration:underline;cursor:pointer" onclick="reenableInjuryWarnings()">turn back on</span>':'';
+  mountScrollPicker(document.getElementById('set-age'),{min:13,max:90,step:1,decimals:0,unit:'yrs',default:25});
+  mountWeightPickers();
+  mountHeightPickers(true);
   renderSettingsPreview();
 }
 
@@ -9294,6 +9319,174 @@ function checkProteinQuest(){
 // ── TOAST ──
 function toast(icon,msg){const t=document.getElementById('toast');if(!t)return;const ti=document.getElementById('ti');const tm=document.getElementById('tm');if(ti)ti.textContent=icon;if(tm)tm.textContent=msg;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),3000)}
 function dismissToast(){const t=document.getElementById('toast');if(!t)return;clearTimeout(t._t);t.classList.remove('show')}
+// ── SCROLL PICKER — a drag-to-select ruler that replaces a plain
+// type=number input. The original input is kept in the DOM (as
+// type=hidden) and stays the real source of truth: every existing call
+// site that reads .value or listens for input/change events keeps
+// working unmodified. Generic and reusable — one call per field:
+//   mountScrollPicker(document.getElementById('sw-0'),{min:0,max:400,step:0.5,decimals:1,unit:'kg'})
+// Safe to call more than once on the same element (re-render of a
+// dynamic card, e.g. the session exercise list) — it unmounts any
+// previous picker on that input first rather than stacking duplicates.
+const SP_PX_PER_STEP=13,SP_MAJOR_EVERY=5;
+function unmountScrollPicker(input){
+  if(input&&input._spWrap){input._spWrap.remove();input._spWrap=null;delete input.dataset.spMounted;}
+}
+function spSyncInput(id){const el=document.getElementById(id);if(el&&el._spSync)el._spSync();}
+// Mounts pickers onto every static (always-in-DOM, not template-rendered)
+// numeric field across onboarding, settings, and the various quick-log
+// modals. The dynamically re-rendered per-exercise workout weight/reps
+// fields are mounted separately, inside buildSession() itself, since
+// those elements don't exist until that template runs.
+function mountHeightPickers(isSettings){
+  const cmId=isSettings?'set-height':'ob-height',ftId=isSettings?'set-height-ft':'ob-height-ft',inId=isSettings?'set-height-in':'ob-height-in';
+  mountScrollPicker(document.getElementById(cmId),{min:100,max:230,step:1,decimals:0,unit:'cm',default:170});
+  mountScrollPicker(document.getElementById(ftId),{min:3,max:8,step:1,decimals:0,unit:'ft',default:5});
+  mountScrollPicker(document.getElementById(inId),{min:0,max:11,step:1,decimals:0,unit:'in',default:7});
+}
+function mountWeightPickers(){
+  const wu=weightUnit==='kg';
+  const opts={min:wu?25:55,max:wu?230:500,step:wu?0.5:1,decimals:wu?1:0,unit:weightUnit,default:wu?68:150};
+  mountScrollPicker(document.getElementById('ob-weight'),opts);
+  mountScrollPicker(document.getElementById('set-weight'),opts);
+}
+function mountCardioDistancePicker(){
+  mountScrollPicker(document.getElementById('cardio-distance'),{min:0,max:cardioDistanceUnit==='mi'?40:60,step:0.1,decimals:1,unit:cardioDistanceUnit||'km'});
+}
+function mountStaticScrollPickers(){
+  mountWeightPickers();
+  mountHeightPickers(false);
+  mountHeightPickers(true);
+  mountScrollPicker(document.getElementById('ob-age'),{min:13,max:90,step:1,decimals:0,unit:'yrs',default:25});
+  mountScrollPicker(document.getElementById('set-age'),{min:13,max:90,step:1,decimals:0,unit:'yrs',default:25});
+  mountScrollPicker(document.getElementById('ob-sleep-typed'),{min:0,max:14,step:0.5,decimals:1,unit:'hrs'});
+  mountScrollPicker(document.getElementById('log-sleep'),{min:0,max:14,step:0.5,decimals:1,unit:'hrs'});
+  mountScrollPicker(document.getElementById('log-sleep-yesterday'),{min:0,max:14,step:0.5,decimals:1,unit:'hrs'});
+  mountScrollPicker(document.getElementById('cardio-duration'),{min:0,max:240,step:1,decimals:0,unit:'min'});
+  mountCardioDistancePicker();
+  mountScrollPicker(document.getElementById('food-cals'),{min:0,max:2000,step:5,decimals:0,unit:'cal'});
+  mountScrollPicker(document.getElementById('food-prot'),{min:0,max:300,step:1,decimals:0,unit:'g'});
+  mountScrollPicker(document.getElementById('log-w'),{min:55,max:500,step:1,decimals:0,unit:'lbs'});
+  ['m-chest','m-waist','m-hips','m-arms','m-thighs'].forEach(id=>{
+    mountScrollPicker(document.getElementById(id),{min:0,max:200,step:0.1,decimals:1,unit:'cm'});
+  });
+}
+function mountScrollPicker(input,opts){
+  if(!input)return;
+  unmountScrollPicker(input);
+  const min=opts.min??0,max=opts.max??100,step=opts.step??1,decimals=opts.decimals??0,unit=opts.unit||'';
+  input.dataset.spMounted='1';
+  input.type='hidden';
+  const raw=parseFloat(input.value)||parseFloat(input.placeholder)||(opts.default??min);
+  let value=Math.min(max,Math.max(min,isNaN(raw)?min:raw));
+  const steps=Math.max(1,Math.round((max-min)/step));
+  const trackWidth=steps*SP_PX_PER_STEP;
+  const minorPeriod=SP_PX_PER_STEP,majorPeriod=SP_PX_PER_STEP*SP_MAJOR_EVERY;
+  const wrap=document.createElement('div');
+  wrap.className='sp';
+  wrap.innerHTML=`<div class="sp-value"><span class="sp-num">0</span><span class="sp-unit">${unit}</span></div>
+    <div class="sp-ruler"><div class="sp-track"></div><div class="sp-indicator"></div></div>`;
+  input.after(wrap);
+  input._spWrap=wrap;
+  const track=wrap.querySelector('.sp-track');
+  const ruler=wrap.querySelector('.sp-ruler');
+  const numEl=wrap.querySelector('.sp-num');
+  track.style.width=trackWidth+'px';
+  track.style.height='100%';
+  track.style.backgroundRepeat='repeat-x,repeat-x';
+  track.style.backgroundPosition='left bottom,left bottom';
+  track.style.backgroundSize=`auto 42%,auto 100%`;
+  track.style.backgroundImage=
+    `repeating-linear-gradient(to right,rgba(var(--white-rgb),.3) 0 1.5px,transparent 1.5px ${minorPeriod}px),`+
+    `repeating-linear-gradient(to right,rgba(var(--white-rgb),.8) 0 2.5px,transparent 2.5px ${majorPeriod}px)`;
+  function valueToTx(v){return -((v-min)/step)*SP_PX_PER_STEP;}
+  function txToValue(tx){const idx=-tx/SP_PX_PER_STEP;let v=min+idx*step;v=Math.round(v/step)*step;return Math.min(max,Math.max(min,v));}
+  function paint(tx){track.style.transform=`translateX(${tx}px)`;}
+  function commit(v,fire){
+    value=Math.min(max,Math.max(min,v));
+    const s=value.toFixed(decimals);
+    numEl.textContent=s;
+    input.value=s;
+    if(fire){input.dispatchEvent(new Event('input',{bubbles:true}));input.dispatchEvent(new Event('change',{bubbles:true}));}
+  }
+  let currentTx=valueToTx(value);
+  paint(currentTx);
+  commit(value,false);
+  // External code that sets input.value directly (e.g. clearing a quick-log
+  // form after submit) bypasses commit()/paint() entirely since the picker
+  // only listens for its OWN drag gestures, not writes to the underlying
+  // input — call input._spSync() (or the spSyncInput(id) helper) right
+  // after any such direct .value= write so the ruler snaps back in sync
+  // instead of silently showing a stale number.
+  input._spSync=function(){
+    const v=parseFloat(input.value);
+    value=Math.min(max,Math.max(min,isNaN(v)?min:v));
+    currentTx=valueToTx(value);
+    track.style.transition='none';
+    paint(currentTx);
+    numEl.textContent=value.toFixed(decimals);
+  };
+  let dragging=false,startX=0,startTx=0,lastX=0,lastT=0,velocity=0,momentumRAF=null;
+  function snap(tx,fire){
+    const v=txToValue(tx);
+    currentTx=valueToTx(v);
+    track.style.transition='transform .18s cubic-bezier(.16,1,.3,1)';
+    paint(currentTx);
+    commit(v,fire);
+  }
+  function stepMomentum(){
+    velocity*=0.94;
+    if(Math.abs(velocity)<0.4){momentumRAF=null;snap(currentTx,true);return;}
+    currentTx+=velocity;
+    const clampMin=valueToTx(max),clampMax=valueToTx(min);
+    currentTx=Math.min(clampMax,Math.max(clampMin,currentTx));
+    paint(currentTx);
+    commit(txToValue(currentTx),false);
+    momentumRAF=requestAnimationFrame(stepMomentum);
+  }
+  function pointerDown(e){
+    if(momentumRAF){cancelAnimationFrame(momentumRAF);momentumRAF=null;}
+    dragging=true;ruler.classList.add('dragging');
+    startX=e.clientX;startTx=currentTx;lastX=e.clientX;lastT=performance.now();velocity=0;
+    track.style.transition='none';
+    ruler.setPointerCapture&&e.pointerId!=null&&ruler.setPointerCapture(e.pointerId);
+  }
+  function pointerMove(e){
+    if(!dragging)return;
+    const dx=e.clientX-startX;
+    let tx=startTx+dx;
+    const clampMin=valueToTx(max),clampMax=valueToTx(min);
+    tx=Math.min(clampMax,Math.max(clampMin,tx));
+    currentTx=tx;
+    paint(tx);
+    commit(txToValue(tx),false);
+    const now=performance.now(),dt=now-lastT;
+    if(dt>0){velocity=(e.clientX-lastX)/dt*16;}
+    lastX=e.clientX;lastT=now;
+  }
+  function pointerUp(){
+    if(!dragging)return;
+    dragging=false;ruler.classList.remove('dragging');
+    if(Math.abs(velocity)>1.5){momentumRAF=requestAnimationFrame(stepMomentum);}
+    else{snap(currentTx,true);}
+  }
+  ruler.addEventListener('pointerdown',pointerDown);
+  ruler.addEventListener('pointermove',pointerMove);
+  ruler.addEventListener('pointerup',pointerUp);
+  ruler.addEventListener('pointercancel',pointerUp);
+  ruler.addEventListener('pointerleave',()=>{if(dragging)pointerUp();});
+  ruler.addEventListener('wheel',(e)=>{
+    e.preventDefault();
+    if(momentumRAF){cancelAnimationFrame(momentumRAF);momentumRAF=null;}
+    const delta=(e.deltaY!==0?e.deltaY:e.deltaX);
+    let tx=currentTx-delta*0.6;
+    const clampMin=valueToTx(max),clampMax=valueToTx(min);
+    tx=Math.min(clampMax,Math.max(clampMin,tx));
+    currentTx=tx;track.style.transition='none';paint(tx);commit(txToValue(tx),false);
+    clearTimeout(wrap._wheelSnapT);
+    wrap._wheelSnapT=setTimeout(()=>snap(currentTx,true),120);
+  },{passive:false});
+}
 // ── CELEBRATION BURST — reserved for genuinely meaningful moments (session
 // complete, a PR, good sleep, a full wind-down streak) — not every tap, or it
 // stops feeling special. ──
@@ -9948,6 +10141,7 @@ function setCardioDistanceUnit(u){
   cardioDistanceUnit=u;
   const t=document.getElementById('cardio-distance-unit-toggle');
   if(t)t.querySelectorAll('.equip-chip').forEach(b=>b.classList.toggle('active',b.dataset.u===u));
+  if(typeof mountCardioDistancePicker==='function')mountCardioDistancePicker();
   saveToStorage();
 }
 
@@ -11695,6 +11889,10 @@ function buildSession(){
       </div>
     </div>`;
   }).join('');
+  exs.forEach((e,i)=>{
+    mountScrollPicker(document.getElementById('sw-'+i),{min:0,max:400,step:0.5,decimals:1,unit:'kg'});
+    mountScrollPicker(document.getElementById('sr-'+i),{min:0,max:40,step:1,decimals:0,unit:'reps'});
+  });
   renderCompassClaimStatus();
 }
 function toggleWarmup(ei,wi){document.getElementById('wc-'+ei+'-'+wi)?.classList.toggle('done')}
@@ -15682,7 +15880,7 @@ function renderTodayLog(){
 }
 
 function addMeal(cals,prot,name){logItem(name,cals,prot);const xp=foodXPForName(name,5);addXP(xp,'Meal logged');if(xp>=5)toast('🍽',name+' logged');checkProteinQuest();saveToStorage();}
-function logFood(){const n=document.getElementById('food-name').value||'Food';const c=parseInt(document.getElementById('food-cals').value)||0;const p=parseInt(document.getElementById('food-prot').value)||0;if(!c){toast('⚠️','Enter calories');return}logItem(n,c,p);document.getElementById('food-name').value='';document.getElementById('food-cals').value='';document.getElementById('food-prot').value='';const xp=foodXPForName(n,5);addXP(xp,'Food logged');if(xp>=5)toast('✅','Logged');checkProteinQuest();saveToStorage();}
+function logFood(){const n=document.getElementById('food-name').value||'Food';const c=parseInt(document.getElementById('food-cals').value)||0;const p=parseInt(document.getElementById('food-prot').value)||0;if(!c){toast('⚠️','Enter calories');return}logItem(n,c,p);document.getElementById('food-name').value='';document.getElementById('food-cals').value='';document.getElementById('food-prot').value='';spSyncInput('food-cals');spSyncInput('food-prot');const xp=foodXPForName(n,5);addXP(xp,'Food logged');if(xp>=5)toast('✅','Logged');checkProteinQuest();saveToStorage();}
 // Water is a separate hydration habit from food logging — "Reset" clearing
 // a mis-logged meal shouldn't also wipe glasses already drunk today.
 function resetDay(){if(!confirm('Clear everything logged today?'))return;dayMacros={cals:0,prot:0,carbs:0,fats:0,water:dayMacros.water||0};todayLog=[];renderNutrition();saveToStorage();toast('🔄','Day reset')}
@@ -15927,7 +16125,7 @@ function logWeight(){
     }
   }
   weightLog.push(entry);
-  document.getElementById('log-w').value='';
+  document.getElementById('log-w').value='';spSyncInput('log-w');
   const dwt=document.getElementById('d-weight');if(dwt)dwt.textContent=w+'lbs';
   if(weightLog.length>=2){const cc=document.getElementById('compare-card');if(cc)cc.style.display=''}
   // Save first, render after — a chart-rendering bug should never be able
@@ -15946,7 +16144,7 @@ function confirmWeightLog(){
   if(!_pendingWeightLog)return;
   weightLog.push(_pendingWeightLog);
   _pendingWeightLog=null;
-  document.getElementById('log-w').value='';
+  document.getElementById('log-w').value='';spSyncInput('log-w');
   const bd=document.getElementById('weight-confirm-backdrop');if(bd)bd.style.display='none';
   const md=document.getElementById('weight-confirm-modal');if(md)md.style.display='none';
   if(weightLog.length>=2){const cc=document.getElementById('compare-card');if(cc)cc.style.display=''}
@@ -16995,6 +17193,7 @@ document.addEventListener('DOMContentLoaded', function(){
   }
   try {
   loadFromStorage();
+  try{mountStaticScrollPickers();}catch(e){console.error('mountStaticScrollPickers:',e.message);}
   // Dev/testing convenience — visiting the app with ?grantTestCrates=1
   // in the URL banks one Bronze/Silver/Gold/Diamond crate (Areviax has
   // no bank; call openCompassDrop('areviax') from the console for that
