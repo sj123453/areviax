@@ -2584,6 +2584,7 @@ const pageTitles={
   study:['Study Planner','Plan deep work and track study sessions'],
   mindfulness:['Mindfulness','Check in, breathe, and reset — on your terms'],
   tracking:['Tasks, Goals & Habits','Everything you\'re building, in one place'],
+  roulette:['Task Roulette','Can\'t decide? Let the wheel choose'],
   schedule:['Schedule','Plan your week, one day at a time'],
   journal:['Journal','Daily reflection and progress notes'],
   science:['The Science','Why the tracking here actually works'],
@@ -2606,6 +2607,13 @@ function showPage(id){
   document.getElementById('page-sub').textContent=s;
   // Populate the goal parent select whenever we land on tracking
   if(id==='tracking') renderGoalParentSelect();
+  // The wheel canvas was only ever drawn inside spinTaskRoulette() —
+  // meaning every visit to this page showed a blank dial with just the
+  // needle floating over it until the user had already spun once.
+  // Draw it on arrival too, same call the spin uses, so the wheel
+  // (ring + task wedges, or just the ring if there's nothing logged
+  // yet) is visible before any interaction.
+  if(id==='roulette') drawRouletteWheel(getOpenTasksForRoulette());
 }
 
 // ── TABS ──
