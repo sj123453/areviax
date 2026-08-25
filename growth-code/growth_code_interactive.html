@@ -915,7 +915,7 @@ html{background:var(--bg);overscroll-behavior-y:none}
         <!-- INTERACTIVE: Hook Builder -->
         <div class="tool-card">
           <div class="tool-title">Hook Builder</div>
-          <div class="tool-desc">Tell me your topic and your target audience. I'll generate a hook using each of the 5 formulas — personalised to your niche.</div>
+          <div class="tool-desc">Tell me your topic, your target audience, and which formula to use — I'll generate a hook, personalised to your niche. (The Visual Hook formula isn't here since it's wordless by design — there's no line to generate.)</div>
           <label class="tool-label">Your video topic</label>
           <input type="text" class="tool-input" id="hook-topic" placeholder="e.g. how to build muscle as a beginner">
           <label class="tool-label">Your target audience</label>
@@ -1187,6 +1187,13 @@ html{background:var(--bg);overscroll-behavior-y:none}
           </div>
         </div>
 
+        <div class="ch-h3">Set Up Your Loop</div>
+        <div class="checklist">
+          <div class="check-item" onclick="toggleCheck(this,5)"><div class="check-box"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span class="check-text">Picked one existing YouTube video (or planned one) to clip down for TikTok</span></div>
+          <div class="check-item" onclick="toggleCheck(this,5)"><div class="check-box"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span class="check-text">Added "full video on YouTube" (or the equivalent) to your TikTok caption template</span></div>
+          <div class="check-item" onclick="toggleCheck(this,5)"><div class="check-box"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div><span class="check-text">Noted one recurring TikTok comment/question as your next YouTube topic</span></div>
+        </div>
+
         <div class="ch-complete" id="ch-complete-7">
           <div class="ch-complete-icon">🔄</div>
           <div class="xp-pop">+25 XP — Chapter Complete</div>
@@ -1424,9 +1431,21 @@ function quiz(btn, type, idx){
 }
 
 // ── CHECK ITEMS ──
+// Also reveals that chapter's completion panel once every item on the page is
+// checked — without this, chapters whose only interactive element is a
+// checklist had no way to ever surface their "Continue" button.
 function toggleCheck(el, xpVal){
   el.classList.toggle('checked');
   if(el.classList.contains('checked')) addXP(xpVal,'Checklist item');
+  const page=el.closest('.chapter-page');
+  if(page){
+    const n=parseInt(page.id.replace('ch-',''),10);
+    const items=page.querySelectorAll('.check-item');
+    if(items.length && [...items].every(i=>i.classList.contains('checked'))){
+      const cc=document.getElementById('ch-complete-'+n);
+      if(cc) cc.classList.add('show');
+    }
+  }
 }
 
 // ── NICHE DETECTION — matches free-typed niche text to a real category, even
@@ -1618,6 +1637,7 @@ No pressure either way — just thought it was worth putting out there.
 ${myName.split('—')[0].trim()}</div>
     ${angleTip?`<div style="font-size:12px;color:var(--muted);border-top:1px solid var(--border);margin-top:12px;padding-top:10px;line-height:1.6"><span style="color:var(--orange);font-weight:600">Before you send it: </span>${angleTip}</div>`:''}`;
   addXP(10,'Outreach message generated');
+  document.getElementById('ch-complete-4')?.classList.add('show');
 }
 
 // ── COMMUNITY IDENTITY ──
@@ -1639,6 +1659,7 @@ function buildIdentity(){
       <div><span style="color:var(--green);font-weight:600">Bio hook: </span>Helping you go from ${transform?.split(' to ')[0]||'where you are'} to ${transform?.split(' to ')[1]||'where you want to be'}.</div>
     </div>`;
   addXP(10,'Community identity built');
+  document.getElementById('ch-complete-5')?.classList.add('show');
 }
 
 // ── 90-DAY PLAN GENERATOR ──
@@ -1648,7 +1669,8 @@ function generatePlan(){
   const goalType=document.getElementById('plan-goal-type').value;
   const name=userName||'You';
   const platform=userPlatform||'tiktok';
-  const platformLabel=platform==='youtube'?'YouTube':(platform==='both'?'TikTok & YouTube':'TikTok');
+  const PLATFORM_LABELS={tiktok:'TikTok',youtube:'YouTube',both:'TikTok & YouTube',instagram:'Instagram Reels'};
+  const platformLabel=PLATFORM_LABELS[platform]||'TikTok';
   const followerStage=userFollowers||'mid';
   const challenge=userChallenge||'consistency';
 
@@ -1723,9 +1745,9 @@ function generatePlan(){
       `Identify 5 potential collaboration partners in adjacent niches — reach out to 2`,
       goalType==='monetise'?`Launch your first digital product in ${niche} — the outline, not the final version`:`Create a free lead magnet in ${niche} — start building your email list`,
       `A/B test hooks and thumbnails — track which performs best over 2 weeks`,
-      `Establish your full repurpose workflow: one ${platform==='youtube'?'YouTube video into 3 TikToks':'TikTok series into one YouTube video'} every week`,
+      `Establish your full repurpose workflow: one ${platform==='youtube'?'YouTube video into 3 TikToks':platform==='instagram'?'long-form idea into 3 Reels':'TikTok series into one YouTube video'} every week`,
       `Start your community identity — give your audience a name, use it in every post`,
-      `Hit your first monetisation milestone — apply for ${platform==='youtube'?'YouTube Partner Programme':'TikTok Creator Fund'} if eligible`,
+      `Hit your first monetisation milestone — apply for ${platform==='youtube'?'the YouTube Partner Programme':platform==='instagram'?'Instagram's Bonuses / monetisation tools where available':'TikTok Creator Fund'} if eligible`,
     ]},
     {label:'DAYS 61–90 · MONETISE',col:'var(--green)',tasks:[
       goalType==='monetise'?`Launch your digital product. Use 2 ${platformLabel} posts and 1 longer video to promote it`:`Promote your lead magnet in every video description and pinned comment`,
