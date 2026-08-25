@@ -1680,12 +1680,19 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
          (top:4..27) physically overlapped the icon's own top-right
          corner by 23x13px. A real thumb aiming at the icon's corner
          landed on the info button instead and opened the odds modal
-         rather than the crate — the actual cause behind "tap area
-         doesn't work" reports, confirmed by measuring both elements'
-         real bounding boxes rather than guessing. Bumping this clears
-         the icon below the button with a real gap instead of shrinking
-         either control (which would just recreate a different mis-tap). */
-      padding:32px 6px 10px;cursor:pointer;-webkit-tap-highlight-color:transparent;
+         rather than the crate — confirmed by measuring both elements'
+         real bounding boxes rather than guessing.
+         That first bump (14px → 32px) still only left ~2-5px of real
+         gap in front of a moving target: .compass-crate.ready runs
+         crateFloat (translateY(-4px) at its peak, see @keyframes below),
+         so a ready crate — the exact ones someone is trying to tap open
+         — continuously drifts up toward the info button and back, on a
+         2.4s loop with no pause. Whether a tap landed depended on which
+         instant in that cycle it happened to hit, which reads as "have to
+         tap it 20 times" rather than a clean miss. 40px leaves a real
+         margin even at the float's peak instead of one only large enough
+         for a static frame. */
+      padding:40px 6px 10px;cursor:pointer;-webkit-tap-highlight-color:transparent;
       transition:border-color .2s,background .2s;
     }
     .crate-slot:active{transform:scale(.97)}
