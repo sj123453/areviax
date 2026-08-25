@@ -860,8 +860,20 @@ select option{background:var(--panel)}
    unit})) so one component covers every numeric field in the app
    rather than a bespoke picker per screen. */
 .sp{margin:2px 0 4px;-webkit-tap-highlight-color:transparent}
-.sp-value{display:flex;align-items:baseline;justify-content:center;gap:3px;font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:30px;color:var(--white);line-height:1;margin-bottom:8px;letter-spacing:-.01em}
+.sp-value{display:flex;align-items:baseline;justify-content:center;gap:3px;font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:30px;color:var(--white);line-height:1;margin-bottom:8px;letter-spacing:-.01em;cursor:text}
 .sp-unit{font-size:13px;font-weight:700;color:var(--muted);text-transform:lowercase}
+/* Tap the number to type an exact value — the ruler only ever snaps to its
+   configured step, which is too coarse for anyone tracking finer increments
+   (e.g. 0.25kg microplates) than the default. Reuses the picker's own
+   input element rather than a second node, toggled between hidden and a
+   real numeric field so it keeps working with any code reading its id. */
+.sp-edit-input{
+  width:100%;max-width:150px;background:transparent;border:none;border-bottom:1.5px solid var(--orange);
+  font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:30px;color:var(--white);
+  text-align:center;letter-spacing:-.01em;padding:0 0 2px;line-height:1;-moz-appearance:textfield;
+}
+.sp-edit-input::-webkit-outer-spin-button,.sp-edit-input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.sp-edit-input:focus{outline:none}
 .sp-ruler{position:relative;height:46px;overflow:hidden;-webkit-mask-image:linear-gradient(to right,transparent 0,#000 18%,#000 82%,transparent 100%);mask-image:linear-gradient(to right,transparent 0,#000 18%,#000 82%,transparent 100%);cursor:grab;touch-action:pan-y}
 .sp-ruler.dragging{cursor:grabbing}
 .sp-track{position:absolute;top:0;bottom:0;left:50%;will-change:transform}
@@ -9472,9 +9484,17 @@ function mountScrollPicker(input,opts){
   function valueToTx(v){return -((v-min)/step)*SP_PX_PER_STEP;}
   function txToValue(tx){const idx=-tx/SP_PX_PER_STEP;let v=min+idx*step;v=Math.round(v/step)*step;return Math.min(max,Math.max(min,v));}
   function paint(tx){track.style.transform=`translateX(${tx}px)`;}
+  // Strip trailing zeros a fixed decimals count would otherwise force onto
+  // whole/half numbers (e.g. "80.00", "7.0") — noise that gets worse the
+  // finer `decimals` needs to be for the rare value that actually uses it.
+  function fmt(v){
+    let s=v.toFixed(decimals);
+    if(s.indexOf('.')!==-1)s=s.replace(/0+$/,'').replace(/\.$/,'');
+    return s;
+  }
   function commit(v,fire){
     value=Math.min(max,Math.max(min,v));
-    const s=value.toFixed(decimals);
+    const s=fmt(value);
     numEl.textContent=s;
     input.value=s;
     if(fire){input.dispatchEvent(new Event('input',{bubbles:true}));input.dispatchEvent(new Event('change',{bubbles:true}));}
@@ -9482,6 +9502,50 @@ function mountScrollPicker(input,opts){
   let currentTx=valueToTx(value);
   paint(currentTx);
   commit(value,false);
+  // Tap the number to type an exact value — the ruler can only ever land on
+  // a multiple of `step`, which is too coarse for anyone tracking finer
+  // increments than the default (e.g. 0.25kg microplates on a 0.5kg-step
+  // picker). Swaps the same input between hidden and a real numeric field
+  // rather than adding a second node, so anything already reading its id
+  // keeps working unchanged.
+  const valueEl=wrap.querySelector('.sp-value');
+  const unitEl=wrap.querySelector('.sp-unit');
+  function openEdit(){
+    if(dragging)return;
+    numEl.style.display='none';
+    unitEl.style.display='none';
+    input.type='number';
+    input.inputMode='decimal';
+    input.step='any';
+    input.value=fmt(value);
+    input.className='sp-edit-input';
+    valueEl.appendChild(input);
+    input.focus();
+    input.select();
+  }
+  function closeEdit(){
+    const typed=parseFloat(input.value);
+    const v=isNaN(typed)?value:Math.min(max,Math.max(min,typed));
+    input.type='hidden';
+    input.removeAttribute('inputmode');
+    input.className='';
+    numEl.style.display='';
+    unitEl.style.display='';
+    currentTx=valueToTx(v);
+    track.style.transition='transform .18s cubic-bezier(.16,1,.3,1)';
+    paint(currentTx);
+    commit(v,true);
+  }
+  valueEl.addEventListener('click',openEdit);
+  // input itself (unlike wrap/valueEl) survives a remount on static pickers
+  // re-run after a unit toggle — drop any listener from a prior mount first
+  // so blur/Enter don't fire closeEdit() multiple times per event.
+  if(input._spBlurHandler)input.removeEventListener('blur',input._spBlurHandler);
+  if(input._spKeyHandler)input.removeEventListener('keydown',input._spKeyHandler);
+  input._spBlurHandler=()=>{if(input.type==='number')closeEdit();};
+  input._spKeyHandler=(e)=>{if(e.key==='Enter'){e.preventDefault();input.blur();}};
+  input.addEventListener('blur',input._spBlurHandler);
+  input.addEventListener('keydown',input._spKeyHandler);
   // External code that sets input.value directly (e.g. clearing a quick-log
   // form after submit) bypasses commit()/paint() entirely since the picker
   // only listens for its OWN drag gestures, not writes to the underlying
@@ -9494,7 +9558,7 @@ function mountScrollPicker(input,opts){
     currentTx=valueToTx(value);
     track.style.transition='none';
     paint(currentTx);
-    numEl.textContent=value.toFixed(decimals);
+    numEl.textContent=fmt(value);
   };
   let dragging=false,startX=0,startTx=0,lastX=0,lastT=0,velocity=0,momentumRAF=null;
   function snap(tx,fire){
@@ -10555,7 +10619,11 @@ function equipOk(ex){
     if(nonFull.length>0)return nonFull.some(tag=>customTagSatisfied(tag,owned));
     return customTagSatisfied('full',owned);
   }
-  if(e==='dumbbells_bench')return avail.some(v=>['dumbbells','dumbbells_bench','bodyweight','home'].includes(v));
+  // 'home' is a broad "works without a full gym" bucket that also covers
+  // pull-up-bar moves (Pull-ups, Chin-ups, Inverted Row) and band/bodyweight
+  // -only moves — none of which a dumbbells+bench setup actually provides.
+  // Matching on it here let those leak into dumbbells_bench sessions.
+  if(e==='dumbbells_bench')return avail.some(v=>['dumbbells','dumbbells_bench','bodyweight'].includes(v));
   if(e==='barbell')return avail.some(v=>['full','barbell','bodyweight'].includes(v));
   if(e==='bands')return avail.some(v=>['home','bodyweight','bands'].includes(v));
   if(e==='park')return avail.some(v=>['bodyweight','home','park'].includes(v));
@@ -11960,7 +12028,7 @@ function buildSession(){
     </div>`;
   }).join('');
   exs.forEach((e,i)=>{
-    mountScrollPicker(document.getElementById('sw-'+i),{min:0,max:400,step:0.5,decimals:1,unit:'kg'});
+    mountScrollPicker(document.getElementById('sw-'+i),{min:0,max:400,step:0.25,decimals:2,unit:'kg'});
     mountScrollPicker(document.getElementById('sr-'+i),{min:0,max:40,step:1,decimals:0,unit:'reps'});
   });
   renderCompassClaimStatus();
