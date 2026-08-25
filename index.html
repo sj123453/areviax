@@ -1666,7 +1666,11 @@ window.addEventListener('error', function(e){
    behind everything). Namespaced with sc- prefix since .book-face etc
    are already used elsewhere on the page for a different, flat card. ═══ */
 .sc-wrap{position:relative}
-.sc-section{position:relative;height:250vh;padding:0}
+/* 250vh → 320vh: more scroll distance has to pass for the same amount of
+   animated progress, which is the actual lever for "slower on scroll" —
+   scrub smoothing (see the JS timeline's scrub value) only smooths the
+   catch-up lag, it doesn't change how much scrolling the full cycle takes. */
+.sc-section{position:relative;height:320vh;padding:0}
 /* Column, not the old row (book left, copy right) — a row centers the
    MOUNT+COPY PAIR as one block, which (copy being the wider of the two)
    left the narrow book sitting well left of true page-center even
@@ -1804,17 +1808,47 @@ window.addEventListener('error', function(e){
    instead of a soft glow. Baking the fade into rgba() stops keeps the
    colour itself light while still fading out at the edges.
 */
+/* Stop order matters here, and it was inverted: scaleY(-1) mirrors the box
+   around its own centre, so whatever sits at the gradient's 100% stop (the
+   unflipped element's TOP edge) ends up rendered at the visual BOTTOM once
+   flipped, and vice versa. The old stops put full .5-alpha cream at 100%
+   (→ renders at the bottom, farthest from the book) and near-zero at 0%
+   (→ renders at the top, right where it meets the book) — backwards for a
+   reflection, which should be brightest right at the object and fade away
+   from it. That inversion is what read as a flat grey/brown block with a
+   hard-cut bottom edge rather than a soft light bleed: a .5-alpha cream
+   fill over this page's near-black background lands on a muddy mid-grey,
+   and stacking that solid tone at the box's own far edge (with nothing
+   past it to fade into) gave it a visible seam no blur radius fixed.
+   Correct order: bright at 0% (→ renders at the top, at the book) fading
+   to fully transparent by the midpoint and staying there — same "soft
+   bloom, not a mirrored copy" intent as before, just anchored to the
+   object instead of to empty space, and at a lower peak alpha so it reads
+   as ambient bounce light instead of a tinted panel. */
 .sc-spread-reflect{
-  position:absolute;left:6%;right:6%;top:100%;height:45%;margin-top:8px;
-  background:linear-gradient(to top,rgba(247,245,238,0) 0%,rgba(247,245,238,0) 20%,rgba(247,245,238,.5) 100%);
+  position:absolute;left:10%;right:10%;top:100%;height:38%;margin-top:6px;
+  background:linear-gradient(to top,rgba(247,245,238,.24) 0%,rgba(247,245,238,.05) 42%,rgba(247,245,238,0) 75%);
   border-radius:8px;
-  transform:scaleY(-1);filter:blur(6px);
+  transform:scaleY(-1);filter:blur(9px);
   pointer-events:none;
 }
-.sc-spread-page{flex:1;padding:24px 22px;color:#17160f;position:relative;min-width:0}
-.sc-spread-left{background:linear-gradient(to right,#e8e3d2,#f7f5ee 15%);border-radius:8px 0 0 8px}
-.sc-spread-right{background:linear-gradient(to left,#e8e3d2,#f7f5ee 15%);display:flex;flex-direction:column;justify-content:space-between;border-radius:0 8px 8px 0}
-.sc-spread-spine{width:10px;flex-shrink:0;background:linear-gradient(to right,rgba(0,0,0,.22),transparent,rgba(0,0,0,.22))}
+/* Real dihedral tilt — the two pages were dead flat next to each other,
+   which (even with the whole panel's permanent -10deg rotationX) read as
+   one flat card with a printed line down the middle rather than an
+   actually-open book. perspective+preserve-3d on the parent lets each page
+   rotate a few degrees away from the spine on its own axis — small enough
+   not to distort the copy, but enough that the two halves visibly meet at
+   an angle instead of lying in the same plane. This is what makes it an
+   actual "open V" rather than a flat two-up spread. */
+.sc-spread{transform-style:preserve-3d;perspective:1200px}
+.sc-spread-page{flex:1;padding:24px 22px;color:#17160f;position:relative;min-width:0;backface-visibility:hidden}
+.sc-spread-left{background:linear-gradient(to right,#e8e3d2,#f7f5ee 15%);border-radius:8px 0 0 8px;transform-origin:right center;transform:rotateY(5deg)}
+.sc-spread-right{background:linear-gradient(to left,#e8e3d2,#f7f5ee 15%);display:flex;flex-direction:column;justify-content:space-between;border-radius:0 8px 8px 0;transform-origin:left center;transform:rotateY(-5deg)}
+/* Gutter shadow deepened and recessed (translateZ, now that the parent is a
+   real 3D context) so the fold reads as the low point between the two
+   tilted pages, not just a printed stripe sitting on top of them. */
+.sc-spread-spine{width:13px;flex-shrink:0;position:relative;z-index:2;transform:translateZ(-7px);
+  background:linear-gradient(to right,rgba(0,0,0,.4) 0%,rgba(0,0,0,.08) 32%,rgba(0,0,0,.55) 50%,rgba(0,0,0,.08) 68%,rgba(0,0,0,.4) 100%)}
 .sc-spread-eyebrow{font-family:'Outfit',sans-serif;font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:rgba(23,22,15,.45);margin-bottom:14px}
 .sc-spread-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:10px}
 .sc-spread-list li{font-size:11.5px;line-height:1.4;color:rgba(23,22,15,.72);padding-left:18px;position:relative}
@@ -1832,6 +1866,23 @@ window.addEventListener('error', function(e){
 }
 .sc-face{position:absolute;inset:0;backface-visibility:hidden;border-radius:4px;overflow:hidden}
 .sc-face.sc-front{transform-origin:left center;display:flex;flex-direction:column;justify-content:space-between;padding:22px 18px;will-change:transform}
+/* Raking-light sheen + spine/outer-edge shading — the cover was a flat
+   tinted rectangle with only its own inline gradient for shape; these two
+   layers are what actually sell it as a stamped, slightly domed hardcover
+   catching light from one direction, same "cover-gloss" language the
+   bookshelf cards below already use elsewhere on this page. ::before carries
+   the diagonal sheen (z-index:2, painted above the tag/title/price content
+   like the shelf cards' own .cover-gloss does); ::after is inset box-shadow
+   only, so it can't clip past sc-face's own edges — no glow/clip-path
+   conflict here since neither pseudo extends outside sc-face's box. */
+.sc-face.sc-front::before{
+  content:'';position:absolute;inset:0;pointer-events:none;z-index:2;
+  background:linear-gradient(155deg,rgba(255,255,255,.16) 0%,transparent 32%,transparent 74%,rgba(0,0,0,.38) 100%);
+}
+.sc-face.sc-front::after{
+  content:'';position:absolute;inset:0;pointer-events:none;z-index:2;
+  box-shadow:inset 5px 0 9px -4px rgba(0,0,0,.6),inset -2px 0 6px -2px rgba(255,255,255,.08),inset 0 -14px 22px -12px rgba(0,0,0,.5);
+}
 .sc-face.sc-back{transform-origin:left center;background:#0d0b09;padding:22px 18px;display:flex;flex-direction:column;justify-content:space-between;will-change:transform,opacity}
 .sc-face.sc-spine{
   width:var(--d);height:100%;left:calc(var(--w) / 2 - var(--d) / 2);
@@ -2180,23 +2231,36 @@ window.addEventListener('error', function(e){
           gsap.timeline({
             scrollTrigger:{
               trigger: section, start:'top top', end:'bottom bottom',
-              scrub: 0.7, pin: section.querySelector('.sc-stage'),
+              // 0.7 → 1: a touch more catch-up lag behind the raw scroll
+              // input, so the motion reads as something with real mass
+              // easing after your hand rather than tracking the wheel 1:1.
+              // Paired with the taller 320vh section (see .sc-section) —
+              // that's the part that actually stretches out how much
+              // scrolling the full cycle takes; this only smooths it.
+              scrub: 1, pin: section.querySelector('.sc-stage'),
               invalidateOnRefresh: true,
               onUpdate: self => { if(rail) rail.style.height = (self.progress*100)+'%'; }
             }
           })
-          // Full cycle, built as a handful of continuous, overlapping
-          // motions rather than many short stitched segments — each phase
-          // begins slightly before the previous one finishes, so nothing
-          // ever comes to a dead stop before the next thing starts moving.
+          // Full cycle, rebuilt around a much longer dwell in the open
+          // state — the old version budgeted the open spread barely more
+          // scroll-time than the crossfade in and out of it (~0.10 of a
+          // ~1.07-unit cycle, well under a tenth of the whole thing), so a
+          // normal-speed scroll blew past "book is open" almost as fast as
+          // it passed through "book is edge-on mid-spin." Every stage below
+          // now gets room to actually register: spin reads as the closed-
+          // book stage, the two short crossfades read as distinct opening/
+          // closing beats instead of instant swaps, and the open spread
+          // gets a full third of the timeline (0.68→1.02) to sit still and
+          // be read before it closes again.
+          //
           // Spin is ONE tween across the whole 360° using spinEase (see
-          // above) instead of five separate rotateY segments — same "less
-          // time spent edge-on" pacing, but with no velocity kinks at
-          // segment boundaries. rotateY ends the spin at 340 (=-20 mod
-          // 360) and is never touched again, so it's already sitting at
-          // the literal frame-one angle for the rest of the cycle — only
-          // scale needs to ease back down at the very end to complete the
-          // loop.
+          // above) instead of five separate rotateY segments — "less time
+          // spent edge-on" pacing with no velocity kinks at segment
+          // boundaries. rotateY ends the spin at 340 (=-20 mod 360) and is
+          // never touched again, so it's already sitting at the literal
+          // frame-one angle for the rest of the cycle — only scale needs to
+          // ease back down at the very end to complete the loop.
           //
           // Tried steepening the starting angle (-20 → -38) to reveal more
           // of the spine/pages depth at rest — turned out the .sc-pages/
@@ -2208,9 +2272,9 @@ window.addEventListener('error', function(e){
           // deeper one than an angle tweak fixes, so reverted rather than
           // ship a steeper angle that buys nothing since the depth it's
           // supposed to reveal never actually renders.
-          .fromTo(cube, {rotateY:-20, scale:.8, x:0}, {rotateY:340, scale:1, duration:0.46, ease:spinEase}, 0)
-          .to(cube, {rotateX:8, duration:0.23, ease:'sine.inOut'}, 0)
-          .to(cube, {rotateX:0, duration:0.23, ease:'sine.inOut'}, 0.23)
+          .fromTo(cube, {rotateY:-20, scale:.8, x:0}, {rotateY:340, scale:1, duration:0.40, ease:spinEase}, 0)
+          .to(cube, {rotateX:8, duration:0.20, ease:'sine.inOut'}, 0)
+          .to(cube, {rotateX:0, duration:0.20, ease:'sine.inOut'}, 0.20)
           // Both final rotationY values must land on the SAME side of zero
           // (both negative here) — this isn't cosmetic, it's a real 3D
           // depth-ordering requirement — no longer relevant for the open
@@ -2223,25 +2287,37 @@ window.addEventListener('error', function(e){
           // spinning cube (front/back/spine/pages together) fades out in
           // place, and a separate flat two-page .sc-spread panel fades in
           // over it — a real "book lying open on a table" layout (CSS
-          // gradients faking the page curve at the spine, not a 3D
-          // rotation) instead of a tilted V. Far simpler than choreographing
+          // gradients faking the page curve at the spine, plus each page's
+          // own slight rotateY dihedral — see .sc-spread-left/right — for
+          // real 3D depth at the fold, not a fully flat V) instead of the
+          // old hinged-cover approach. Far simpler than choreographing
           // per-face rotation/depth-order, and matches the reference: the
           // open state reads as a distinct flat product shot, not a
           // continuation of the spinning 3D object.
           // Sequential, not overlapping — cube fully gone before spread
-          // starts fading in (a small gap between 0.5 and 0.54 where
-          // neither is visible), otherwise both sit at partial opacity
-          // over the same patch of screen at once and their text ghosts
-          // through each other.
-          .to(cube, {opacity:0, scale:.9, duration:0.1, ease:'power1.out'}, 0.42)
-          .fromTo(spread, {opacity:0, scale:.94}, {opacity:1, scale:1, duration:0.16, ease:'power2.out'}, 0.54)
-          .to(spread, {opacity:0, scale:.94, duration:0.1, ease:'power1.in'}, 0.8)
-          .to(cube, {opacity:1, scale:.8, duration:0.14, ease:'power2.inOut'}, 0.87)
+          // starts fading in (a gap between 0.46 and 0.50 where neither is
+          // visible), otherwise both sit at partial opacity over the same
+          // patch of screen at once and their text ghosts through each
+          // other. The spread's rotationX now animates too (-24 → -10)
+          // instead of sitting static at its resting tilt the whole time —
+          // it visibly settles into place as it fades in, like it's just
+          // fallen open, rather than simply materializing; the close beat
+          // mirrors it with a small tilt-up (-10 → -16) on the way out.
+          .to(cube, {opacity:0, scale:.9, duration:0.10, ease:'power1.out'}, 0.36)
+          .fromTo(spread, {opacity:0, scale:.94, rotationX:-24}, {opacity:1, scale:1, rotationX:-10, duration:0.18, ease:'power2.out'}, 0.50)
+          // HOLD — nothing scheduled between 0.68 and 1.02: the spread
+          // simply stays exactly as the tween above left it. This dead
+          // stretch of timeline (roughly a third of the whole cycle) is
+          // the actual fix for "the open book barely registers" — it's
+          // scroll-time spent with the book fully open and legible, not a
+          // pause that costs anything to build.
+          .to(spread, {opacity:0, scale:.94, rotationX:-16, duration:0.10, ease:'power1.in'}, 1.02)
+          .to(cube, {opacity:1, scale:.9, duration:0.14, ease:'power2.inOut'}, 1.10)
           // Bundle only: the other four products fan out from behind the
           // cube as it opens (standing in for "all five products, one
           // price"), then draw back in as it closes — the other two
           // sections have no .sc-sat elements, so these are silent no-ops.
-          .to(sats, {x:(i,el)=>+el.dataset.tx, y:(i,el)=>+el.dataset.ty, rotate:(i,el)=>+el.dataset.rot, scale:1, opacity:1, duration:0.18, stagger:0.025, ease:'back.out(1.5)'}, 0.46)
+          .to(sats, {x:(i,el)=>+el.dataset.tx, y:(i,el)=>+el.dataset.ty, rotate:(i,el)=>+el.dataset.rot, scale:1, opacity:1, duration:0.20, stagger:0.025, ease:'back.out(1.5)'}, 0.38)
           // Copy now shows in two beats bracketing the open spread instead
           // of one continuous window through it — the spread is centered
           // on the viewport now (see .sc-spread's comment), which is right
@@ -2251,15 +2327,15 @@ window.addEventListener('error', function(e){
           // moment the spread opens, back once it's closed again — same
           // "product info while the book isn't the centered focal point"
           // logic to old, just applied instead of overlapping it.
-          .fromTo(copyKids, {opacity:0, x:-40}, {opacity:1, x:0, duration:0.20, ease:'power3.out', stagger:0.02}, 0.10)
-          .to(copyKids, {opacity:0, x:-30, duration:0.08, ease:'power1.in', stagger:0.015}, 0.46)
-          .fromTo(copyKids, {opacity:0, x:-40}, {opacity:1, x:0, duration:0.16, ease:'power3.out', stagger:0.02}, 0.84)
-          .to(sats, {x:0, y:0, rotate:0, scale:.25, opacity:0, duration:0.12, stagger:0.015, ease:'power1.in'}, 0.85)
+          .fromTo(copyKids, {opacity:0, x:-40}, {opacity:1, x:0, duration:0.20, ease:'power3.out', stagger:0.02}, 0.06)
+          .to(copyKids, {opacity:0, x:-30, duration:0.08, ease:'power1.in', stagger:0.015}, 0.36)
+          .fromTo(copyKids, {opacity:0, x:-40}, {opacity:1, x:0, duration:0.18, ease:'power3.out', stagger:0.02}, 1.08)
+          .to(sats, {x:0, y:0, rotate:0, scale:.25, opacity:0, duration:0.14, stagger:0.015, ease:'power1.in'}, 1.03)
           // Scale eases back to frame-one's 0.8 with its own dedicated
           // stretch, overlapping the tail of the cover closing rather than
           // waiting for it — the book visibly recedes as it finishes
           // closing instead of two separate, sequential beats.
-          .to(cube, {scale:.8, duration:0.15, ease:'power1.inOut'}, 0.92);
+          .to(cube, {scale:.8, duration:0.16, ease:'power1.inOut'}, 1.24);
         },
         "(max-width: 820px)": function(){
           gsap.set(cube, {rotateY:-85, scale:.85, opacity:1});
@@ -2282,15 +2358,23 @@ window.addEventListener('error', function(e){
           function playBookOnce(){
             if(played) return;
             played = true;
+            // Durations stretched ~35-45% versus the original (0.5→0.68,
+            // 0.14→0.2, 0.28→0.4, 0.3→0.4) — this doesn't have a scroll-
+            // distance lever the way desktop's pinned version does (it's
+            // one fixed-pace playback, not scrubbed), so slowing it down
+            // means lengthening the tweens themselves. Same rotationX
+            // settle added to the spread's reveal as desktop (-22 → -10)
+            // so the open beat reads as the book dropping into its resting
+            // angle instead of just fading up at a static tilt.
             gsap.timeline()
-              .to(cube, {rotateY:0, scale:1, duration:0.5, ease:'power2.out'}, 0)
+              .to(cube, {rotateY:0, scale:1, duration:0.68, ease:'power2.out'}, 0)
               // Same crossfade as desktop: the spinning-closed cube fades
               // out and the flat .sc-spread panel fades in over it, instead
               // of hinging the covers apart in 3D — see the desktop
               // OPEN BEAT comment above for why.
-              .to(cube, {opacity:0, scale:.92, duration:0.14, ease:'power1.out'}, 0.5)
-              .fromTo(spread, {opacity:0, scale:.94}, {opacity:1, scale:1, duration:0.28, ease:'power2.out'}, 0.66)
-              .to(copy, {opacity:1, x:0, duration:0.3, ease:'power3.out'}, 0.66);
+              .to(cube, {opacity:0, scale:.92, duration:0.2, ease:'power1.out'}, 0.68)
+              .fromTo(spread, {opacity:0, scale:.94, rotationX:-22}, {opacity:1, scale:1, rotationX:-10, duration:0.4, ease:'power2.out'}, 0.86)
+              .to(copy, {opacity:1, x:0, duration:0.4, ease:'power3.out'}, 0.86);
             playOnce.disconnect();
             window.removeEventListener('scroll', scrollFallback);
           }
