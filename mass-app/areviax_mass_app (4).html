@@ -3028,6 +3028,8 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
 <!-- DASHBOARD -->
 <div class="page active" id="page-dashboard">
 
+  <div id="muscle-balance-banner" style="display:none;background:rgba(68,207,255,.06);border:1.5px solid rgba(68,207,255,.25);border-radius:8px;padding:12px 14px;margin-bottom:16px"></div>
+
   <div id="streak-risk-banner" style="display:none;align-items:center;gap:8px;background:rgba(255,122,46,.08);border:1.5px solid rgba(255,122,46,.25);border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:11.5px;color:rgba(var(--white-rgb),.85)">
     <span style="font-size:15px">🔥</span><span id="streak-risk-text"></span>
   </div>
@@ -5903,6 +5905,7 @@ let startingScheduledSession=false;
 // avoidance nudge below. Capped, not used to silently force anything.
 let deviationLog=[];
 let lowerBodyNudgeDismissedAt=null;
+let muscleBalanceNudgeDismissedDate='';
 let appTheme='dark';
 function setTheme(t){
   appTheme=t==='light'?'light':'dark';
@@ -9894,6 +9897,7 @@ function showPage(id){
     try{checkSleepReminder();}catch(e){}
     try{checkSittingJobTip();}catch(e){}
     try{checkDailySpinBanner();}catch(e){}
+    try{checkMuscleBalanceNudge();}catch(e){}
   }
   if(id==='workout'){safeRender(renderExercises,'workout');safeRender(renderSessionHistory,'workout');safeRender(renderTodayPlanBanner,'workout');}
   if(id==='session'){
@@ -10528,6 +10532,7 @@ function initApp(){
   try{checkSleepReminder();}catch(e){console.error('checkSleepReminder:',e.message);}
   try{checkSittingJobTip();}catch(e){console.error('checkSittingJobTip:',e.message);}
   try{checkDailySpinBanner();}catch(e){console.error('checkDailySpinBanner:',e.message);}
+  try{checkMuscleBalanceNudge();}catch(e){console.error('checkMuscleBalanceNudge:',e.message);}
   try{buildTodayPreview();}catch(e){console.error('buildTodayPreview:',e.message);}
   try{renderNutrition();}catch(e){console.error('renderNutrition:',e.message);}
   try{renderRank();}catch(e){console.error('renderRank:',e.message);}
@@ -16681,15 +16686,25 @@ function renderTodayPlanBanner(){
 // next open day and called out as the recommended next session, the same
 // way a genuinely missed day would be handled.
 function reconcileScheduleOnComplete(completedType,completedExs){
-  if(!generatedWeek)return;
+  // Used to bail out entirely unless someone had explicitly used "Generate
+  // My Training Week" — but getScheduleSlot() already falls back to a real
+  // Upper/Lower/Rest template for everyone else (that's the whole point of
+  // its own fallback), so anyone on that default path logging Upper on a
+  // day labelled Lower had it silently ignored: no deviation recorded, no
+  // reschedule, tomorrow's recommendation never adjusted. This only needs
+  // getScheduleSlot()'s type/name labels to work, which exist either way.
   const ti=new Date().getDay();const ti2=ti===0?6:ti-1;
   const todaySlot=getScheduleSlot(ti2);
   if(todaySlot.type==='rest'||todaySlot.type===completedType)return;
   // Log what actually happened instead of the allocated session — which
   // muscles, not just which type label — so a pattern (e.g. Lower keeps
   // getting swapped for Upper Push) is measurable rather than guessed at.
+  // allocatedName is stored alongside the type since the default fallback
+  // template's type is just 'legacy' (Upper A/Lower A/Upper B/Lower B all
+  // share it) — the human label is what actually distinguishes them for
+  // display and for picking a sensible Workout Builder type to recommend.
   const actualMuscles=[...new Set((completedExs||[]).flatMap(e=>(e.muscle||'').split('+').map(s=>s.trim()).filter(Boolean)))];
-  deviationLog.push({date:localDateKey(new Date()),allocatedType:todaySlot.type,actualType:completedType,actualMuscles});
+  deviationLog.push({date:localDateKey(new Date()),allocatedType:todaySlot.type,allocatedName:todaySlot.name,actualType:completedType,actualMuscles});
   if(deviationLog.length>60)deviationLog=deviationLog.slice(-60); // cap growth, keep it from growing forever
   checkLowerBodyAvoidance();
   const targetIdx=SCHED_DAYS.findIndex((_,j)=>j>ti2&&getScheduleSlot(j).type==='rest');
@@ -16708,8 +16723,14 @@ function reconcileScheduleOnComplete(completedType,completedExs){
 // last 4 deviations were away from an allocated Lower day) — a single
 // swapped day is normal life, not a pattern. Explains why it matters and
 // stops there; never forces or auto-inserts anything.
+// The default (never-generated-a-week) fallback template tags every day
+// 'legacy' regardless of whether its name is Upper A/Upper B/Lower A/Lower
+// B — allocatedType alone can't tell an allocated-Lower deviation apart
+// from an allocated-Upper one for those users, only allocatedName can.
+function isLowerSlotDeviation(d){return d.allocatedType==='lower'||/lower/i.test(d.allocatedName||'')}
+function isUpperSlotDeviation(d){return /^upper|push|pull/i.test(d.allocatedType||'')||/upper/i.test(d.allocatedName||'')}
 function checkLowerBodyAvoidance(){
-  const recentLowerDeviations=deviationLog.filter(d=>d.allocatedType==='lower').slice(-4);
+  const recentLowerDeviations=deviationLog.filter(isLowerSlotDeviation).slice(-4);
   if(recentLowerDeviations.length<3)return;
   const today=localDateKey(new Date());
   if(lowerBodyNudgeDismissedAt){
@@ -16720,6 +16741,59 @@ function checkLowerBodyAvoidance(){
   toast('🦵',`Lower body's been swapped out ${recentLowerDeviations.length} of your last few sessions (for ${swappedFor.map(getSessionTypeLabel).join('/')}). Legs are half your muscle mass and skipping them long-term caps upper body growth too, plus raises injury risk from the imbalance — but it's your call. If it's the fatigue rather than the muscles themselves, "Switch today's session to lighter" (2 sets/exercise, on the Workout page) makes it a lot less to face without skipping it outright.`);
   lowerBodyNudgeDismissedAt=today;
   saveToStorage();
+}
+const WB_TYPE_VALUES=['upper-push','upper-pull','upper-full','lower','full','arms'];
+// checkLowerBodyAvoidance above only speaks up after 3+ repeats, and only
+// as a one-off toast easy to miss. This is the immediate version: a single
+// fresh deviation, still visible the next morning as a real banner (not a
+// toast that vanished), naming exactly what happened in plain terms and
+// offering a one-tap way to actually act on it rather than just a warning.
+function checkMuscleBalanceNudge(){
+  const el=document.getElementById('muscle-balance-banner');
+  if(!el)return;
+  const yesterday=new Date();yesterday.setDate(yesterday.getDate()-1);
+  const yKey=localDateKey(yesterday);
+  const dev=[...deviationLog].reverse().find(d=>d.date===yKey);
+  const today=localDateKey(new Date());
+  if(!dev||weekCompletedDays[today]||muscleBalanceNudgeDismissedDate===today){
+    el.style.display='none';return;
+  }
+  const recommendType=WB_TYPE_VALUES.includes(dev.allocatedType)?dev.allocatedType
+    :isLowerSlotDeviation(dev)?'lower'
+    :isUpperSlotDeviation(dev)?'upper-full'
+    :null;
+  if(!recommendType){el.style.display='none';return;} // can't name anything concrete to switch to
+  el.dataset.recommendType=recommendType;
+  const allocatedLabel=dev.allocatedName||getSessionTypeLabel(dev.allocatedType);
+  const actualLabel=getSessionTypeLabel(dev.actualType);
+  el.style.display='block';
+  el.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+    <div style="font-size:11.5px;color:rgba(var(--white-rgb),.85)">🔄 We noticed you did <strong style="color:var(--cyan)">${actualLabel}</strong> yesterday instead of the planned <strong style="color:var(--cyan)">${allocatedLabel}</strong> — want to do that today instead?</div>
+    <div style="display:flex;gap:6px;flex-shrink:0">
+      <button class="btn btn-g btn-sm" onclick="switchToRecommendedType()">Switch today</button>
+      <button class="btn btn-ghost btn-sm" onclick="dismissMuscleBalanceNudge()">Not today</button>
+    </div>
+  </div>`;
+}
+function switchToRecommendedType(){
+  const type=document.getElementById('muscle-balance-banner')?.dataset.recommendType;
+  dismissMuscleBalanceNudge(); // acting on it counts as handled — don't keep showing it today
+  if(!type)return;
+  showPage('workout');
+  setTimeout(()=>{
+    const wbType=document.getElementById('wb-type');
+    if(wbType&&[...wbType.options].some(o=>o.value===type)){
+      wbType.value=type;
+      renderExercises();
+      wbType.scrollIntoView({behavior:'smooth',block:'center'});
+    }
+  },50);
+}
+function dismissMuscleBalanceNudge(){
+  muscleBalanceNudgeDismissedDate=localDateKey(new Date());
+  saveToStorage();
+  const el=document.getElementById('muscle-balance-banner');
+  if(el)el.style.display='none';
 }
 function renderSchedule(){
   const sg=document.getElementById('sched-grid');
@@ -17255,6 +17329,7 @@ function saveToStorage(){
     localStorage.setItem('arx_appTheme', appTheme);
     localStorage.setItem('arx_deviationLog', JSON.stringify(deviationLog));
     localStorage.setItem('arx_lowerBodyNudgeDismissedAt', lowerBodyNudgeDismissedAt||'');
+    localStorage.setItem('arx_muscleBalanceNudgeDismissedDate', muscleBalanceNudgeDismissedDate||'');
     localStorage.setItem('arx_liftHistory', JSON.stringify(liftHistory));
     localStorage.setItem('arx_lastPerformance', JSON.stringify(lastPerformance));
     localStorage.setItem('arx_streak', streak);
@@ -17364,6 +17439,7 @@ function loadFromStorage(){
     const dl=localStorage.getItem('arx_deviationLog');
     if(dl){try{deviationLog=JSON.parse(dl);}catch(e){deviationLog=[];}}
     lowerBodyNudgeDismissedAt=localStorage.getItem('arx_lowerBodyNudgeDismissedAt')||null;
+    muscleBalanceNudgeDismissedDate=localStorage.getItem('arx_muscleBalanceNudgeDismissedDate')||'';
     const lh=localStorage.getItem('arx_liftHistory');
     if(lh){try{liftHistory=JSON.parse(lh);}catch(e){liftHistory={};}}
     const lp=localStorage.getItem('arx_lastPerformance');
