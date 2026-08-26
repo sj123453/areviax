@@ -931,6 +931,16 @@ select option{background:var(--panel)}
 .rest-time{font-family:'JetBrains Mono',monospace;font-size:38px;font-weight:500}
 .rest-lbl{font-size:10px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase}
 
+/* SESSION BUILD OVERLAY — the deliberate beat between tapping Save and
+   landing on the session, so the save/build actually feels like it
+   happened instead of an instant, unexplained page jump. See
+   commitAndStartSession(). */
+#session-build-overlay{position:fixed;inset:0;background:rgba(var(--bg-rgb),.94);z-index:850;display:none;align-items:center;justify-content:center;flex-direction:column;gap:16px}
+#session-build-overlay.show{display:flex}
+.sbo-ring{width:46px;height:46px;border-radius:50%;border:3px solid rgba(255,90,0,.15);border-top-color:#FF5A00;animation:sboSpin .75s linear infinite}
+@keyframes sboSpin{to{transform:rotate(360deg)}}
+.sbo-label{font-size:12.5px;font-weight:700;color:var(--white)}
+
 /* TOAST */
 #toast{position:fixed;bottom:76px;left:50%;transform:translateX(-50%) translateY(20px);z-index:600;background:rgba(13,11,32,.95);backdrop-filter:blur(12px);border:1.5px solid var(--purple-b);padding:10px 18px;display:flex;align-items:center;gap:10px;font-size:13px;font-family:"Plus Jakarta Sans",sans-serif;color:var(--white);font-weight:500;opacity:0;pointer-events:none;transition:transform .3s cubic-bezier(.16,1,.3,1),opacity .3s cubic-bezier(.16,1,.3,1);border-radius:10px;white-space:normal;max-width:min(340px,calc(100vw - 32px));box-shadow:0 0 24px -8px rgba(142,142,147,.4)}
 #toast.show{opacity:1!important;transform:translateX(-50%) translateY(0)!important;pointer-events:auto;cursor:pointer}
@@ -2705,6 +2715,11 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
   <button class="btn btn-out btn-sm" onclick="skipRest()">Skip</button>
 </div>
 
+<div id="session-build-overlay">
+  <div class="sbo-ring"></div>
+  <div class="sbo-label" id="session-build-label">Building your session…</div>
+</div>
+
 <!-- ONBOARDING -->
 <div id="onboarding">
   <div class="ob-card">
@@ -3429,7 +3444,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
 
       <button class="btn btn-g" id="save-changes-btn" onclick="saveWorkoutChanges()" style="width:100%;margin-top:14px">💾 Save Changes</button>
     </div>
-    <div class="card"><div class="ch"><span style="display:flex;align-items:center;gap:8px"><span class="ct">Exercises</span><span id="ex-count-badge" style="font-size:10px;font-weight:700;color:var(--cyan)"></span></span><div style="display:flex;gap:8px;align-items:center"><button onclick="rerollWorkout()" style="background:var(--purple-d);border:1.5px solid var(--purple-b);color:var(--purple);border-radius:6px;padding:4px 10px;font-size:10.5px;font-weight:700;cursor:pointer;white-space:nowrap">🎲 New session</button><span class="ca" onclick="saveWorkout()">Save →</span></div></div>
+    <div class="card"><div class="ch"><span style="display:flex;align-items:center;gap:8px"><span class="ct">Exercises</span><span id="ex-count-badge" style="font-size:10px;font-weight:700;color:var(--cyan)"></span></span><div style="display:flex;gap:8px;align-items:center"><button onclick="rerollWorkout()" style="background:var(--purple-d);border:1.5px solid var(--purple-b);color:var(--purple);border-radius:6px;padding:4px 10px;font-size:10.5px;font-weight:700;cursor:pointer;white-space:nowrap">🎲 New session</button><span class="ca" onclick="saveWorkout()">Save &amp; Start →</span></div></div>
       <input type="text" id="ex-search" placeholder="Search exercises by name or muscle..." oninput="renderExercises()" style="width:100%;margin-bottom:10px;padding:9px 12px;background:var(--panel2);border:1.5px solid var(--border,rgba(255,255,255,.1));border-radius:6px;color:var(--white);font-size:13px;font-family:'Plus Jakarta Sans',sans-serif">
       <div id="ex-list"></div>
     </div>
@@ -3440,7 +3455,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     <div class="card">
       <div class="ch"><span class="ct">Your Session</span><span class="ca" onclick="saveCustomTemplate()">💾 Save as template</span></div>
       <div id="custom-selected"></div>
-      <button class="btn btn-g" onclick="saveWorkoutChanges()" style="width:100%;margin-top:12px">💾 Save Changes</button>
+      <button class="btn btn-g" onclick="commitAndStartSession()" style="width:100%;margin-top:12px">💾 Save & Start Session →</button>
     </div>
     <div class="card" style="margin-bottom:12px">
       <div class="ch"><span class="ct">Saved Templates</span></div>
@@ -3489,6 +3504,13 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       <div style="display:flex;gap:7px;justify-content:center;margin-top:8px">
         <button class="btn btn-g btn-sm" id="timer-btn" onclick="toggleTimer()">Start</button>
         <button class="btn btn-ghost btn-sm" onclick="resetTimer()">Reset</button>
+      </div>
+      <div style="margin-top:11px;font-size:10px;color:var(--muted);cursor:pointer;text-decoration:underline;text-underline-offset:2px" onclick="toggleBackfillTimePanel()">Forgot to tap it? Add some time!</div>
+      <div id="backfill-time-panel" style="display:none;gap:5px;justify-content:center;margin-top:8px;flex-wrap:wrap">
+        <button class="btn btn-ghost btn-sm" onclick="addBackfillTime(5)">+5 min</button>
+        <button class="btn btn-ghost btn-sm" onclick="addBackfillTime(10)">+10 min</button>
+        <button class="btn btn-ghost btn-sm" onclick="addBackfillTime(15)">+15 min</button>
+        <button class="btn btn-ghost btn-sm" onclick="addBackfillTime(20)">+20 min</button>
       </div>
     </div>
     <div class="card">
@@ -9908,36 +9930,24 @@ function showPage(id){
   }
   if(id==='workout'){safeRender(renderExercises,'workout');safeRender(renderSessionHistory,'workout');safeRender(renderTodayPlanBanner,'workout');}
   if(id==='session'){
-    // Commit whatever's live in the builder to the active session only
-    // now — actually navigating to Start Session is the real signal the
-    // user means it to run, not every incremental edit/reroll/swap while
-    // they're still assembling or adjusting it (see renderCustomSelected
-    // and renderExercises/pickBuilderSwap for the in-builder preview
-    // state this reads from).
-    //
-    // BUT that commit used to fire unconditionally on every visit to this
-    // page — including just resuming an already-in-progress session (e.g.
-    // reopening the app, or tapping the bottom-nav Start button again
-    // mid-workout). That silently swapped plannedSessionExs for whatever
-    // the builder currently previews (which can differ — equipment/recovery
-    // state moves on, auto mode can reroll), and unconditionally reset both
-    // skippedExercises and sessionEnteredAt — from the person's side, their
-    // in-progress workout just vanished. sessionInProgress() below is the
-    // guard: if today's planned session already has a logged set, treat
-    // this as a resume and leave everything exactly as it is.
+    // Building/committing a session happens in exactly one place now —
+    // commitAndStartSession(), fired only by an explicit Save tap — never
+    // as a side effect of just navigating here. This page always shows
+    // whatever was last explicitly saved (plannedSessionExs), falling back
+    // to buildSession()'s own sensible default if nothing has been saved
+    // yet. That used to be handled here instead: any visit to this page
+    // silently re-derived plannedSessionExs from whatever the builder
+    // happened to be previewing at that moment, which is exactly what made
+    // some builder controls feel like they "auto uploaded" while others
+    // only took effect once tapped — nothing was consistently gated on an
+    // explicit save. sessionInProgress() is still the resume guard, kept
+    // here as defense in depth even though commitAndStartSession() also
+    // never fires mid-session.
     if(startingScheduledSession){
       startingScheduledSession=false;
       skippedExercises=new Set();sessionEnteredAt=Date.now();saveToStorage();
     }else if(sessionInProgress()){
       // resuming — plannedSessionExs/skippedExercises/sessionEnteredAt stay untouched
-    }else if(builderMode==='custom'&&customSessionExs.length){
-      plannedSessionExs=customSessionExs;plannedSessionType='custom';plannedSessionName='Custom Session';
-      skippedExercises=new Set();sessionEnteredAt=Date.now();saveToStorage();
-      const dnf=document.getElementById('d-next-full');if(dnf)dnf.textContent=plannedSessionName;
-    }else if(builderMode==='auto'&&autoPreviewExs.length){
-      plannedSessionExs=autoPreviewExs;plannedSessionType=autoPreviewType;plannedSessionName=autoPreviewName;
-      skippedExercises=new Set();sessionEnteredAt=Date.now();saveToStorage();
-      const dnf=document.getElementById('d-next-full');if(dnf)dnf.textContent=plannedSessionName;
     }else if(!sessionEnteredAt){
       sessionEnteredAt=Date.now();
     }
@@ -11181,6 +11191,20 @@ function renderExercises(){
   // triceps/biceps/rear delts. Spread the pick across muscle groups instead, so even
   // a short version still touches push AND pull, not just whichever came first.
   let exs=(selectedMuscles.size>0&&!searchTerm) ? spreadBySelectedMuscle(filtered,maxEx) : ((type==='upper-full'||type==='full')&&!searchTerm) ? spreadByMuscle(filtered,maxEx) : filtered.slice(0,maxEx);
+  // 'lower' sessions don't get the full spread treatment above (deadlift/RDL variants
+  // score too well on safety+synergy for a naive spread to actually rebalance them —
+  // it ends up swapping "two hinge movements" for "glutes + calves", still no quad
+  // work). Guarantee a real quad compound gets a seat instead: only step in when the
+  // list genuinely has none, so a session that already earned a squat/lunge/Leg Press
+  // on its own merits is left alone.
+  if(type==='lower'&&!searchTerm&&exs.length){
+    const hasQuadWork=exs.some(e=>/quad/i.test(e.muscle));
+    if(!hasQuadWork){
+      const legPress=filtered.find(e=>e.name==='Leg Press'&&!exs.includes(e));
+      const quadPick=legPress||filtered.find(e=>/quad/i.test(e.muscle)&&!exs.includes(e));
+      if(quadPick){exs=exs.slice(0,Math.max(0,exs.length-1));exs.push(quadPick);}
+    }
+  }
   exs=applyCustomOrder(exs,type);
   const cont=document.getElementById('ex-list');
   if(!cont)return;
@@ -11891,7 +11915,39 @@ function saveWorkoutChanges(){
   }
   toast('💾','Changes saved');
 }
-function saveWorkout(){toast('💾','Session saved!');showPage('session')}
+// Single, explicit "build" moment for both builder modes — this used to be
+// split across three different paths (an implicit commit buried inside
+// showPage('session'), a "Save Changes" button that only persisted misc
+// settings and never actually saved the built session, and this Save link
+// which committed nothing itself). That's what made it feel like some
+// controls "auto uploaded" while others only changed once tapped: nothing
+// was ever consistently gated on an explicit save. Now this is the only
+// place plannedSessionExs gets written from a builder preview, and it always
+// runs before persisting or navigating anywhere.
+function commitAndStartSession(){
+  let exs,type,name;
+  if(builderMode==='custom'){
+    exs=customSessionExs;type='custom';name='Custom Session';
+  }else{
+    exs=autoPreviewExs;type=autoPreviewType;name=autoPreviewName;
+  }
+  if(!exs||!exs.length){
+    toast('⚠️',builderMode==='custom'?'Add some exercises first':'Pick a session type or muscle target with at least one matching exercise first');
+    return;
+  }
+  plannedSessionExs=exs;plannedSessionType=type;plannedSessionName=name;
+  skippedExercises=new Set();
+  sessionEnteredAt=Date.now();
+  saveToStorage();
+  const dnf=document.getElementById('d-next-full');if(dnf)dnf.textContent=plannedSessionName;
+  const ov=document.getElementById('session-build-overlay');
+  if(ov)ov.classList.add('show');
+  setTimeout(()=>{
+    if(ov)ov.classList.remove('show');
+    showPage('session');
+  },1200);
+}
+function saveWorkout(){commitAndStartSession()}
 
 // ── SESSION ──
 function buildTodayPreview(){
@@ -12770,6 +12826,24 @@ function checkSessionPacing(actualSec,exs){
 function sessionTimeRequirementMs(){
   const exs=(plannedSessionExs||[]).filter((e,i)=>!skippedExercises.has(i));
   return Math.max(MIN_SESSION_MS_FOR_CREDIT,estimateSessionMinutes(exs)*60000);
+}
+function toggleBackfillTimePanel(){
+  const p=document.getElementById('backfill-time-panel');
+  if(p)p.style.display=p.style.display==='none'?'flex':'none';
+}
+// Covers the person who's already been training a while before they get to
+// opening the app — sessionEnteredAt is stamped the moment this page loads,
+// so someone who walked in late (or just forgot to tap in) has the real-time
+// gate above measuring from the wrong start line. Pushing sessionEnteredAt
+// further into the past is the same fix used everywhere else time is
+// backfilled — it's the one field completeSession() actually reads.
+function addBackfillTime(mins){
+  if(!sessionEnteredAt)sessionEnteredAt=Date.now();
+  sessionEnteredAt-=mins*60000;
+  saveToStorage();
+  toast('⏱️',`Added ${mins} min — thanks for keeping it honest`);
+  const p=document.getElementById('backfill-time-panel');
+  if(p)p.style.display='none';
 }
 function completeSession(nameOverride){
   if(!nameOverride&&sessionEnteredAt){
