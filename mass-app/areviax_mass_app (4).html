@@ -922,6 +922,7 @@ select option{background:var(--panel)}
 /* PROGRESSION PROMPT */
 .prog-prompt{background:linear-gradient(135deg,rgba(255,90,0,.08),rgba(255,122,46,.04));border:1.5px solid var(--border);border-radius:6px;padding:14px;margin-top:10px}
 .prog-q{font-weight:600;font-size:13px;margin-bottom:10px}
+.prog-signal{font-size:11.5px;color:#FFB07A;background:rgba(255,90,0,.1);border:1px solid rgba(255,90,0,.3);border-radius:6px;padding:8px 10px;margin-bottom:10px;line-height:1.5;font-weight:600}
 .prog-btns{display:flex;gap:7px;flex-wrap:wrap}
 
 /* REST OVERLAY */
@@ -3541,6 +3542,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
   <div id="sess-exercises"></div>
   <div class="prog-prompt" id="prog-prompt" style="display:none">
     <div class="prog-q" id="prog-q">How did that feel?</div>
+    <div class="prog-signal" id="prog-signal" style="display:none"></div>
     <div class="prog-btns">
       <button class="btn btn-g btn-sm" onclick="progResponse('up')">Could do more weight</button>
       <button class="btn btn-out btn-sm" onclick="progResponse('same')">Weight felt right</button>
@@ -11996,11 +11998,20 @@ function weightInputLabel(e){
   if(equip.some(x=>MACHINE_CABLE_EQUIP.has(x)))return 'Weight (kg) — total stack';
   return 'Weight (kg)';
 }
+// The one rule the whole progressive-overload predictor runs on: hit the
+// top of an exercise's target rep range at your current weight, and that's
+// the signal you're ready to add weight next time. Shared so the pre-session
+// note (suggestNextWeight, from last session's numbers) and the real-time
+// in-session flag (logSet, from the set you just did) apply the exact same
+// threshold instead of two subtly different copies of the same parsing.
+function repRangeTop(repsStr){
+  const parts=(repsStr||'').split('–').map(n=>parseInt(n));
+  return parts.length>1?parts[1]:parts[0];
+}
 function suggestNextWeight(e){
   const last=lastPerformance[e.name];
   if(!last)return null;
-  const parts=e.reps.split('–').map(n=>parseInt(n));
-  const upper=parts.length>1?parts[1]:parts[0];
+  const upper=repRangeTop(e.reps);
   if(last.reps>=upper){
     const next=Math.round((last.weight+2.5)*10)/10;
     return {weight:next,note:`Last: ${last.weight}kg×${last.reps} — hit the top of your range. Try ${next}kg.`};
@@ -12600,6 +12611,24 @@ function logSet(ei,si,name,muscle){
   if(si===total-1){
     const pp=document.getElementById('prog-prompt');if(pp)pp.style.display='';
     const pqe=document.getElementById('prog-q');if(pqe)pqe.textContent='How did '+name+' feel? Go heavier next time?';
+    // Progressive overload predictor — the objective half of this prompt.
+    // progResponse() below is still the subjective "how did it feel"
+    // self-report, but this fires from the actual numbers just logged:
+    // reaching the top of the target rep range at a real weight is the
+    // standard signal you're ready to add load next session, so say that
+    // plainly right when it happens instead of only surfacing it as a
+    // small pre-session note read before the set was ever done.
+    const sigEl=document.getElementById('prog-signal');
+    if(sigEl){
+      const ex=plannedSessionExs&&plannedSessionExs[ei];
+      const top=ex?repRangeTop(ex.reps):null;
+      if(top&&w>0&&r>=top){
+        sigEl.style.display='block';
+        sigEl.textContent=`🎯 ${r} reps at ${w}kg — that's the top of your ${ex.reps} rep target (or past it). Classic sign you're ready to add weight next session.`;
+      }else{
+        sigEl.style.display='none';
+      }
+    }
   }
 }
 
