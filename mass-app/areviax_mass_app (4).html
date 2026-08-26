@@ -1463,15 +1463,28 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        above; still kept as an unclipped sibling anyway for consistency
        and so it can extend past the hex's own bounding box. */
     .legend-card-icon-burst{
-      position:absolute;top:8px;left:0;right:0;margin:0 auto;z-index:0;
+      /* left:0;right:0;margin:0 auto only actually centers an element
+         NARROWER than its positioning container — this is 100px, wider
+         than every icon it renders behind, so CSS's own resolution for
+         that over-constrained case pins it flush to the left edge instead
+         (zeroes margin-left, dumps the excess width as a negative
+         margin-right). left:50% + a translateX correction centers
+         correctly regardless of which one is wider. That correction has
+         to live in the *animation's own* keyframes (legendBurstSpin
+         below), not a static transform here — a CSS animation targeting
+         `transform` fully replaces the property's value for as long as
+         it runs, it doesn't compose with a separate non-animated
+         transform declaration, so a plain rotate-only keyframe silently
+         drops any translate this rule tries to set. */
+      position:absolute;top:8px;left:50%;z-index:0;
       width:100px;height:100px;margin-top:-24px;pointer-events:none;opacity:0;
       background:repeating-conic-gradient(from 0deg,var(--lgi-ring-light,transparent) 0deg 3deg,transparent 3deg 30deg);
       -webkit-mask-image:radial-gradient(circle,transparent 28%,#000 46%,#000 72%,transparent 100%);
       mask-image:radial-gradient(circle,transparent 28%,#000 46%,#000 72%,transparent 100%);
-      animation:lgiBurstSpin 14s linear infinite;
+      animation:legendBurstSpin 14s linear infinite;
       transition:opacity .25s;
     }
-    @keyframes lgiBurstSpin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+    @keyframes legendBurstSpin{from{transform:translateX(-50%) rotate(0deg)}to{transform:translateX(-50%) rotate(360deg)}}
     /* Shade first (bottom-right, gives the facet weight), sheen on top
        (top-left) — both above the icon (z-index:2 vs the icon's 1) so
        real trophy photography still reads as a lit, faceted badge
@@ -1793,17 +1806,28 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        is actually ready to open, matching the existing glow-pulse gate,
        so a locked/cooling-down crate stays comparatively quiet. */
     .crate-icon-burst{
-      position:absolute;top:50%;left:0;right:0;margin:0 auto;transform:translateY(-50%);
+      /* Same left:0;right:0;margin:0 auto centering bug as .crate-wreath
+         above (see its comment) — this is 96px, wider than every context
+         it renders in, so it was pinned flush-left rather than centered.
+         left:50% here isn't enough on its own, either — like
+         .legend-card-icon-burst, the translate that centers it has to
+         live inside crateBurstSpin's own keyframes below. A CSS animation
+         targeting `transform` replaces the property's value outright for
+         as long as it runs; it does not compose with a separate static
+         transform declaration on the same rule, so a rotate-only keyframe
+         silently drops any translate written here instead. */
+      position:absolute;top:50%;left:50%;
       width:96px;height:96px;pointer-events:none;opacity:0;z-index:0;
       background:repeating-conic-gradient(from 0deg,var(--crate-glow-color,transparent) 0deg 3deg,transparent 3deg 30deg);
       -webkit-mask-image:radial-gradient(circle,transparent 30%,#000 48%,#000 74%,transparent 100%);
       mask-image:radial-gradient(circle,transparent 30%,#000 48%,#000 74%,transparent 100%);
-      animation:lgiBurstSpin 13s linear infinite;
+      animation:crateBurstSpin 13s linear infinite;
       transition:opacity .25s;
     }
     .crate-icon-wrap.gold.ready .crate-icon-burst{opacity:.3}
     .crate-icon-wrap.diamond.ready .crate-icon-burst{opacity:.38}
     .crate-icon-wrap.areviax.ready .crate-icon-burst{opacity:.5;animation-duration:9s}
+    @keyframes crateBurstSpin{from{transform:translate(-50%,-50%) rotate(0deg)}to{transform:translate(-50%,-50%) rotate(360deg)}}
     /* Same crown/wreath ornament language as the Trophy Cabinet's rarity
        ladder (see .legend-card-crown/.legend-card-wreath) — the crates
        never got it, which is exactly why they read as flatter/more
@@ -1816,12 +1840,25 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        padding/name text below), so top:50%+translateY(-50%) centers
        the wreath correctly in every context it renders in — no need to
        hardcode a different top offset per size like the trophy card
-       version needs for its base/cabinet-peak variants. */
+       version needs for its base/cabinet-peak variants.
+       Horizontal centering used left:0;right:0;margin:0 auto, which
+       only actually centers when the element is NARROWER than its
+       positioning container. The wreath (62px) is wider than the icon
+       it centers on in every context (56px default, 46px crate row,
+       44px drop-info modal) — CSS's own resolution for that
+       over-constrained case is to zero out margin-left and dump 100%
+       of the excess width as a negative margin-right, i.e. pin the
+       element flush to the LEFT edge instead of centering it. It
+       looked "roughly centered" at a glance because the crown (26px,
+       genuinely narrower than every context) centers fine, masking
+       that the wreath sitting right behind it does not. left:50% plus
+       a translateX(-50%) centers correctly regardless of which one
+       is wider — same fix applied to .crate-icon-burst below. */
     .crate-crown,.crate-wreath{position:absolute;pointer-events:none;filter:drop-shadow(0 1.5px 2px rgba(0,0,0,.5))}
     .crate-crown svg,.crate-wreath svg{display:block;overflow:visible}
-    .crate-crown{display:none;top:-9px;left:0;right:0;margin:0 auto;width:26px;height:13px;z-index:3}
+    .crate-crown{display:none;top:-9px;left:50%;transform:translateX(-50%);width:26px;height:13px;z-index:3}
     .crate-crown svg{width:100%;height:100%}
-    .crate-wreath{display:none;top:50%;left:0;right:0;margin:0 auto;transform:translateY(-50%);width:62px;height:65px;z-index:0}
+    .crate-wreath{display:none;top:50%;left:50%;transform:translate(-50%,-50%);width:62px;height:65px;z-index:0}
     .crate-wreath svg{width:100%;height:100%}
     .crate-icon-wrap.gold{--orn-c1:#E4C4FF;--orn-c2:#A855F7}
     .crate-icon-wrap.gold .crate-wreath{display:block}
@@ -1919,7 +1956,17 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .compass-crate.areviax.ready{
       animation:crateFloat 2.2s ease-in-out infinite,areviaxAura 2.4s ease-in-out infinite;
     }
-    .crate-slot-label{font-size:10px;font-weight:800;color:var(--white);letter-spacing:.02em}
+    /* "Gold ×6" and "Areviax" fit on one line at this column width;
+       "Bronze ×4", "Silver ×7", and "Diamond ×3" are long enough to wrap
+       onto two — plain text height, so whichever tier wrapped pushed its
+       own Open button down relative to the tiers that didn't, and the
+       row read as uneven. min-height reserves 2 lines' worth of space
+       for every tile regardless of whether that tile's own label
+       actually needs it, so every Open button lands at the same height. */
+    .crate-slot-label{
+      font-size:10px;font-weight:800;color:var(--white);letter-spacing:.02em;
+      min-height:26px;display:flex;align-items:center;justify-content:center;line-height:1.3;
+    }
     .crate-slot-sub{font-size:8.5px;color:var(--muted);text-align:center;line-height:1.35}
 
     /* Compass Drop opening — the crate itself shakes and glows before
