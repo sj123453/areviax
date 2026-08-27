@@ -599,6 +599,27 @@ input,input:focus,input:active,
    overriding an inline style (mobile keeps those inline defaults
    untouched). Chart/graph work on this page is separate, tracked
    independently. */
+/* DASHBOARD NOTIFICATIONS — the banners above (muscle-balance, streak-risk,
+   streak-repair, sleep-reminder, walk-tip, daily-spin) used to sit
+   permanently inline, pushing everything below them down for as long as
+   they were relevant. Now they drop in from the top like a real
+   notification the moment the dashboard decides to show one, then slide
+   back out on their own — dashNotifWatch() below arms/disarms this per
+   element by watching its own display toggle, so none of the existing
+   "should I show this today" logic anywhere else in the file had to
+   change, only how the result is presented. Position only (not display,
+   background, etc.) so it layers on top of each banner's own inline
+   style without a specificity fight. */
+.dash-notif-fixed{
+  position:fixed;left:16px;right:16px;z-index:640;
+  top:calc(env(safe-area-inset-top,0px) + 62px);
+  transform:translateY(-130%);opacity:0;
+  transition:transform .42s cubic-bezier(.16,1,.3,1),opacity .3s ease,top .25s ease;
+  pointer-events:none;box-shadow:0 14px 30px -10px rgba(0,0,0,.55);
+}
+.dash-notif-fixed.dash-notif-in{transform:translateY(0);opacity:1;pointer-events:auto}
+@media(min-width:900px){.dash-notif-fixed{left:50%;right:auto;width:420px;transform:translate(-50%,-130%)}.dash-notif-fixed.dash-notif-in{transform:translate(-50%,0)}}
+
 @media(min-width:900px){
   #page-dashboard{max-width:1320px}
   .dash-grid{gap:16px!important}
@@ -3020,29 +3041,29 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
 <!-- DASHBOARD -->
 <div class="page active" id="page-dashboard">
 
-  <div id="muscle-balance-banner" style="display:none;background:rgba(68,207,255,.06);border:1.5px solid rgba(68,207,255,.25);border-radius:8px;padding:12px 14px;margin-bottom:16px"></div>
+  <div id="muscle-balance-banner" class="dash-notif-fixed" style="display:none;background:rgb(20,14,10);border:1.5px solid rgba(68,207,255,.35);border-radius:12px;padding:12px 14px"></div>
 
-  <div id="streak-risk-banner" style="display:none;align-items:center;gap:8px;background:rgba(255,122,46,.08);border:1.5px solid rgba(255,122,46,.25);border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:11.5px;color:rgba(var(--white-rgb),.85)">
+  <div id="streak-risk-banner" class="dash-notif-fixed" style="display:none;align-items:center;gap:8px;background:rgb(20,14,10);border:1.5px solid rgba(255,122,46,.4);border-radius:12px;padding:12px 14px;font-size:11.5px;color:rgba(var(--white-rgb),.85)">
     <span style="font-size:15px">🔥</span><span id="streak-risk-text"></span>
   </div>
 
-  <div id="streak-repair-banner" style="display:none;align-items:center;gap:8px;background:rgba(68,207,255,.08);border:1.5px solid rgba(68,207,255,.25);border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:11.5px;color:rgba(var(--white-rgb),.85)">
+  <div id="streak-repair-banner" class="dash-notif-fixed" style="display:none;align-items:center;gap:8px;background:rgb(20,14,10);border:1.5px solid rgba(68,207,255,.4);border-radius:12px;padding:12px 14px;font-size:11.5px;color:rgba(var(--white-rgb),.85)">
     <span style="font-size:15px">🔷</span><span id="streak-repair-text" style="flex:1"></span>
     <span onclick="repairStreak()" style="cursor:pointer;color:#44CFFF;font-weight:700;text-decoration:underline;text-underline-offset:2px;white-space:nowrap">Repair</span>
     <span onclick="dismissStreakRepair()" style="cursor:pointer;color:var(--muted);font-size:15px;padding:0 2px 0 8px">✕</span>
   </div>
 
-  <div id="sleep-reminder-banner" style="display:none;align-items:center;gap:8px;background:rgba(255,122,46,.08);border:1.5px solid rgba(255,122,46,.25);border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:11.5px;color:rgba(var(--white-rgb),.85)">
+  <div id="sleep-reminder-banner" class="dash-notif-fixed" style="display:none;align-items:center;gap:8px;background:rgb(20,14,10);border:1.5px solid rgba(255,122,46,.4);border-radius:12px;padding:12px 14px;font-size:11.5px;color:rgba(var(--white-rgb),.85)">
     <span style="font-size:15px">😴</span><span id="sleep-reminder-text"></span>
   </div>
 
-  <div id="walk-tip-card" style="display:none;align-items:center;gap:8px;background:rgba(255,255,255,.04);border:1.5px solid var(--border2);border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:11.5px;color:rgba(var(--white-rgb),.85)">
+  <div id="walk-tip-card" class="dash-notif-fixed" style="display:none;align-items:center;gap:8px;background:rgb(20,14,10);border:1.5px solid var(--border2);border-radius:12px;padding:12px 14px;font-size:11.5px;color:rgba(var(--white-rgb),.85)">
     <span style="font-size:15px">🚶</span>
     <span style="flex:1">Mostly-sitting day today — sneak in a short walk. Keeps joints mobile and circulation up, separate from whatever training you're doing.</span>
     <span onclick="dismissWalkTip()" style="cursor:pointer;color:var(--muted);font-size:15px;padding:0 2px 0 8px">✕</span>
   </div>
 
-  <div id="daily-spin-banner" style="display:none;align-items:center;gap:10px;cursor:pointer;background:linear-gradient(135deg,rgba(255,90,0,.1),rgba(255,255,255,.02));border:1.5px solid rgba(255,90,0,.3);border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:11.5px;color:rgba(var(--white-rgb),.85)" onclick="showPage('progress');setTimeout(()=>{const el=document.getElementById('daily-spin-card');if(el)el.scrollIntoView({behavior:'smooth',block:'center'});},350)">
+  <div id="daily-spin-banner" class="dash-notif-fixed" style="display:none;align-items:center;gap:10px;cursor:pointer;background:linear-gradient(135deg,rgba(255,90,0,.22),rgb(24,14,6));border:1.5px solid rgba(255,90,0,.4);border-radius:12px;padding:12px 14px;font-size:11.5px;color:rgba(var(--white-rgb),.85)" onclick="showPage('progress');setTimeout(()=>{const el=document.getElementById('daily-spin-card');if(el)el.scrollIntoView({behavior:'smooth',block:'center'});},350)">
     <span style="font-size:16px">🎡</span>
     <span style="flex:1">Your free Daily Spin is ready — Bronze, Silver, Gold, even a Diamond crate up for grabs.</span>
     <span style="color:var(--orange);font-weight:800;white-space:nowrap">Spin →</span>
@@ -3078,39 +3099,49 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        real tonnageLog line-chart data as before, just shrunk. View
        Workouts dropped — it pointed at the exact same page as Start
        already does, so it was a duplicate button, not lost functionality. -->
-  <div class="dash-today-inner" style="background:linear-gradient(160deg,rgba(255,90,0,.07),rgba(var(--bg-rgb),.9));border:1px solid rgba(255,90,0,.22);border-radius:14px;padding:18px 18px 17px;overflow:hidden;position:relative">
+  <div class="dash-today-inner" style="background:linear-gradient(160deg,rgba(255,90,0,.07),rgba(var(--bg-rgb),.9));border:1px solid rgba(255,90,0,.22);border-radius:16px;padding:24px 22px 22px;overflow:hidden;position:relative">
     <!-- HERO HEADLINE — solid word + hollow/outline word, giant faint
          session-number watermark behind. plannedSessionName is usually
          two words ("Push Upper", "Pull Lower"); renderTodaySessionName()
          splits it live so this stays in sync with everywhere else that
          sets d-next-full (kept, hidden, since other code still reads its
-         textContent as the plain session name). -->
-    <div aria-hidden="true" id="d-next-watermark" style="position:absolute;left:118px;top:6px;font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:84px;line-height:1;color:rgba(255,255,255,.05);pointer-events:none;user-select:none">1</div>
+         textContent as the plain session name). Card enlarged to fold in
+         the week's day-picker strip and a taller volume chart, matching
+         the reference's single big hero unit instead of a thin banner. -->
+    <div aria-hidden="true" id="d-next-watermark" style="position:absolute;left:134px;top:2px;font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:104px;line-height:1;color:rgba(255,255,255,.05);pointer-events:none;user-select:none">1</div>
     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;position:relative">
       <div style="min-width:0;flex:1">
-        <div class="dash-today-label" style="font-size:9px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,122,46,.65);margin-bottom:5px">Session <span id="d-next-idx" style="font-family:'JetBrains Mono',monospace">1</span>/<span id="d-next-total" style="font-family:'JetBrains Mono',monospace">1</span></div>
-        <div class="dash-today-name" style="font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:23px;line-height:1.05;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
-          <span id="d-next-word1" style="color:var(--white)">Push</span> <span id="d-next-word2" style="color:transparent;-webkit-text-stroke:1.2px rgba(var(--white-rgb),.55)">Upper</span>
+        <div class="dash-today-label" style="font-size:9.5px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,122,46,.65);margin-bottom:6px">Session <span id="d-next-idx" style="font-family:'JetBrains Mono',monospace">1</span>/<span id="d-next-total" style="font-family:'JetBrains Mono',monospace">1</span></div>
+        <div class="dash-today-name" style="font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:28px;line-height:1.05;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+          <span id="d-next-word1" style="color:var(--white)">Push</span> <span id="d-next-word2" style="color:transparent;-webkit-text-stroke:1.3px rgba(var(--white-rgb),.55)">Upper</span>
         </div>
         <div id="d-next-full" style="display:none">Push Upper</div>
-        <div class="dash-today-sub" style="font-size:10.5px;color:rgba(var(--white-rgb),.45);margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="d-next-sub"></div>
+        <div class="dash-today-sub" style="font-size:11px;color:rgba(var(--white-rgb),.45);margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="d-next-sub"></div>
       </div>
       <button class="dash-start-btn" onclick="showPage('workout')" style="flex-shrink:0;background:linear-gradient(135deg,#FF5A00,#FF7A2E);border:none;border-radius:999px;padding:13px 22px;color:#2B0E00;font-family:'Plus Jakarta Sans',sans-serif;font-size:12.5px;font-weight:900;letter-spacing:.03em;text-transform:uppercase;cursor:pointer;box-shadow:0 8px 18px -8px rgba(255,90,0,.5);white-space:nowrap">▶ Start</button>
     </div>
-    <div id="vol-daily-card" style="display:none;margin-top:7px;padding-top:7px;border-top:1px solid var(--border)">
-      <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:2px">
-        <span class="dash-vol-label" style="font-size:7.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:rgba(var(--white-rgb),.35)">This week's volume</span>
-        <div class="dash-vol-total" style="font-size:9px;font-weight:800;color:var(--muted)" id="vol-daily-total"></div>
+
+    <!-- DAY PICKER — this week's real trained/rest days, today highlighted.
+         Same trainingCompletedDates data renderWeeklyRecap() already uses
+         for the desktop streak card's day strip, just a second, capsule-
+         styled render target inside this card so it's visible on mobile
+         where that card is hidden. -->
+    <div id="d-next-daypicker" style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:16px;position:relative"></div>
+
+    <div id="vol-daily-card" style="display:none;margin-top:16px;padding-top:14px;border-top:1px solid var(--border)">
+      <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px">
+        <span class="dash-vol-label" style="font-size:9.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:rgba(var(--white-rgb),.4)">Weekly Volume</span>
+        <div class="dash-vol-total" style="font-size:13px;font-weight:800;color:var(--white);font-family:'JetBrains Mono',monospace" id="vol-daily-total"></div>
       </div>
       <div class="wp-chart-wrap">
-        <svg viewBox="0 0 280 100" preserveAspectRatio="none" style="width:100%;height:36px;display:block" class="dash-wp-chart">
+        <svg viewBox="0 0 280 100" preserveAspectRatio="none" style="width:100%;height:60px;display:block" class="dash-wp-chart">
           <polyline id="wp-avg-line" fill="none" stroke="#44CFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity=".8" vector-effect="non-scaling-stroke" points=""/>
           <polyline id="wp-vol-line" fill="none" stroke="#FF7A2E" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke" points=""/>
           <g id="wp-dots"></g>
         </svg>
       </div>
     </div>
-    <div id="vol-daily-empty" style="margin-top:7px;padding-top:7px;border-top:1px solid var(--border);font-size:9.5px;color:var(--muted);line-height:1.4">Log your first set and this week's volume trend shows up here.</div>
+    <div id="vol-daily-empty" style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border);font-size:10.5px;color:var(--muted);line-height:1.5">Log your first set and this week's volume trend shows up here.</div>
   </div>
   </div>
 
@@ -10491,6 +10522,60 @@ function renderTodaySessionName(name){
   if(w1)w1.textContent=parts[0]||'Session';
   if(w2)w2.textContent=parts.slice(1).join(' ');
 }
+// DASHBOARD NOTIFICATIONS — watches each banner's own display toggle
+// (set by checkMuscleBalanceNudge, checkStreakRisk, etc. — none of that
+// logic changed) and, the moment one goes from hidden to shown, slides it
+// in from the top like a real system notification, holds it, then slides
+// it back out on its own. A tap on the banner's own action, or its own
+// dismiss ✕, still works during that window — this only changes how it
+// enters and (if the user never touches it) how it leaves.
+const DASH_NOTIF_IDS=['muscle-balance-banner','streak-risk-banner','streak-repair-banner','sleep-reminder-banner','walk-tip-card','daily-spin-banner'];
+let _dashNotifArmed=false;
+function restackDashNotifs(){
+  let offset=62;
+  DASH_NOTIF_IDS.forEach(id=>{
+    const el=document.getElementById(id);
+    if(el&&el.classList.contains('dash-notif-in')){
+      el.style.top='calc(env(safe-area-inset-top,0px) + '+offset+'px)';
+      offset+=el.offsetHeight+10;
+    }
+  });
+}
+function armDashNotifWatchers(){
+  if(_dashNotifArmed)return;_dashNotifArmed=true;
+  DASH_NOTIF_IDS.forEach(id=>{
+    const el=document.getElementById(id);
+    if(!el)return;
+    let hideTimer=null;
+    const obs=new MutationObserver(()=>{
+      const visible=getComputedStyle(el).display!=='none';
+      if(visible&&!el.classList.contains('dash-notif-shown')){
+        el.classList.add('dash-notif-shown');
+        requestAnimationFrame(()=>{el.classList.add('dash-notif-in');restackDashNotifs();});
+        clearTimeout(hideTimer);
+        hideTimer=setTimeout(()=>dismissDashNotif(id),6000);
+      }else if(!visible){
+        el.classList.remove('dash-notif-shown','dash-notif-in');
+        clearTimeout(hideTimer);
+        restackDashNotifs();
+      }
+    });
+    obs.observe(el,{attributes:true,attributeFilter:['style']});
+  });
+}
+function dismissDashNotif(id){
+  const el=document.getElementById(id);
+  if(!el)return;
+  el.classList.remove('dash-notif-in');
+  setTimeout(restackDashNotifs,50);
+}
+// Armed immediately at script load, not inside initApp() — these banner
+// divs are already in the static HTML by the time this script runs, and
+// arming here (rather than waiting for the first initApp() call, which
+// itself runs after showPage() may already have set one banner's display)
+// guarantees the observers are attached before anything has a chance to
+// mutate a banner for the first time.
+armDashNotifWatchers();
 function initApp(){
   if(typeof profile==='undefined')return;
   if(!document.getElementById('dash-name'))return;
@@ -15191,6 +15276,24 @@ function renderWeeklyRecap(){
   }
   const dashStreakNum=document.getElementById('dash-streak-num');
   if(dashStreakNum)dashStreakNum.textContent=streak;
+
+  // Hero-card day picker — same week/training data as the strips above,
+  // rendered as capsule pills (today filled solid, trained days a ✓,
+  // untrained days their letter) so it reads like a real weekly picker
+  // rather than the flame-box streak strip this reuses data from.
+  const heroDaysEl=document.getElementById('d-next-daypicker');
+  if(heroDaysEl){
+    heroDaysEl.innerHTML=thisWeekDates.map((dStr)=>{
+      const d=new Date(dStr+'T00:00:00');
+      const active=trainingCompletedDates.includes(dStr);
+      const isToday=dStr===todayStr;
+      const bg=isToday?'linear-gradient(135deg,#FF5A00,#FF7A2E)':active?'rgba(255,122,46,.14)':'rgba(255,255,255,.04)';
+      const bd=isToday?'transparent':active?'rgba(255,122,46,.4)':'var(--border2)';
+      const col=isToday?'#2B0E00':active?'#FF9A52':'rgba(var(--white-rgb),.4)';
+      const label=active&&!isToday?'✓':dayNames[d.getDay()];
+      return `<div style="aspect-ratio:1;border-radius:999px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;font-family:'JetBrains Mono',monospace;background:${bg};border:1.5px solid ${bd};color:${col}">${label}</div>`;
+    }).join('');
+  }
 }
 function renderRecoveryPage(){
   renderSleepLog();
