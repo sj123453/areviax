@@ -5573,8 +5573,26 @@ document.addEventListener('DOMContentLoaded', function(){
     introEl.classList.add('done');
   }
 
-  requestAnimationFrame(introLoop);
-  setTimeout(closeIntro, 2800);
+  // Skip the whole thing outright for anyone who's already seen it today
+  // — this used to replay in full on every single app launch, making it
+  // the single most frequently paid "wait" in the whole app, more so than
+  // any crate open. transition:none avoids even the 0.7s fade-out CSS
+  // normally runs on dismiss, since there's nothing drawn underneath it
+  // to fade from on a skip.
+  const introKey='arx_introSeenDate', introToday=localDateKey(new Date());
+  if(localStorage.getItem(introKey)===introToday){
+    introEl.style.transition='none';
+    introEl.classList.add('done');
+  }else{
+    localStorage.setItem(introKey,introToday);
+    requestAnimationFrame(introLoop);
+    // 1080ms is the compass finishing its 800ms draw plus the wordmark's
+    // own 600ms fade-in starting at the 480ms/60%-progress mark (480+600).
+    // The extra ~400ms past that is a deliberate beat to actually register
+    // the settled brand moment before handing off, not a re-guessed
+    // constant — first-time-today only; every repeat visit skips it above.
+    setTimeout(closeIntro, 1500);
+  }
   if(introSkip) introSkip.addEventListener('click', closeIntro);
 });
 
