@@ -3078,14 +3078,24 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        real tonnageLog line-chart data as before, just shrunk. View
        Workouts dropped — it pointed at the exact same page as Start
        already does, so it was a duplicate button, not lost functionality. -->
-  <div class="dash-today-inner" style="background:linear-gradient(160deg,rgba(255,90,0,.09),rgba(var(--bg-rgb),.9));border:1.5px solid rgba(255,90,0,.3);border-radius:14px;padding:17px 18px;box-shadow:0 0 24px -16px rgba(255,90,0,.35)">
-    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
-      <div style="min-width:0">
-        <div class="dash-today-label" style="font-size:9px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,90,0,.55);margin-bottom:4px">Today</div>
-        <div class="dash-today-name" style="font-size:18px;font-weight:900;color:var(--white);line-height:1.2;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="d-next-full">Push Upper — Day 1</div>
-        <div class="dash-today-sub" style="font-size:10.5px;color:rgba(var(--white-rgb),.45);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="d-next-sub"></div>
+  <div class="dash-today-inner" style="background:linear-gradient(160deg,rgba(255,90,0,.07),rgba(var(--bg-rgb),.9));border:1px solid rgba(255,90,0,.22);border-radius:14px;padding:18px 18px 17px;overflow:hidden;position:relative">
+    <!-- HERO HEADLINE — solid word + hollow/outline word, giant faint
+         session-number watermark behind. plannedSessionName is usually
+         two words ("Push Upper", "Pull Lower"); renderTodaySessionName()
+         splits it live so this stays in sync with everywhere else that
+         sets d-next-full (kept, hidden, since other code still reads its
+         textContent as the plain session name). -->
+    <div aria-hidden="true" id="d-next-watermark" style="position:absolute;left:118px;top:6px;font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:84px;line-height:1;color:rgba(255,255,255,.05);pointer-events:none;user-select:none">1</div>
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;position:relative">
+      <div style="min-width:0;flex:1">
+        <div class="dash-today-label" style="font-size:9px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,122,46,.65);margin-bottom:5px">Session <span id="d-next-idx" style="font-family:'JetBrains Mono',monospace">1</span>/<span id="d-next-total" style="font-family:'JetBrains Mono',monospace">1</span></div>
+        <div class="dash-today-name" style="font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:23px;line-height:1.05;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
+          <span id="d-next-word1" style="color:var(--white)">Push</span> <span id="d-next-word2" style="color:transparent;-webkit-text-stroke:1.2px rgba(var(--white-rgb),.55)">Upper</span>
+        </div>
+        <div id="d-next-full" style="display:none">Push Upper</div>
+        <div class="dash-today-sub" style="font-size:10.5px;color:rgba(var(--white-rgb),.45);margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="d-next-sub"></div>
       </div>
-      <button class="dash-start-btn" onclick="showPage('workout')" style="flex-shrink:0;background:linear-gradient(135deg,#FF5A00,#FF7A2E);border:none;border-radius:10px;padding:13px 22px;color:#2B0E00;font-family:'Plus Jakarta Sans',sans-serif;font-size:12.5px;font-weight:900;letter-spacing:.03em;text-transform:uppercase;cursor:pointer;box-shadow:0 8px 18px -8px rgba(255,90,0,.5);white-space:nowrap">▶ Start</button>
+      <button class="dash-start-btn" onclick="showPage('workout')" style="flex-shrink:0;background:linear-gradient(135deg,#FF5A00,#FF7A2E);border:none;border-radius:999px;padding:13px 22px;color:#2B0E00;font-family:'Plus Jakarta Sans',sans-serif;font-size:12.5px;font-weight:900;letter-spacing:.03em;text-transform:uppercase;cursor:pointer;box-shadow:0 8px 18px -8px rgba(255,90,0,.5);white-space:nowrap">▶ Start</button>
     </div>
     <div id="vol-daily-card" style="display:none;margin-top:7px;padding-top:7px;border-top:1px solid var(--border)">
       <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:2px">
@@ -3114,38 +3124,31 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        the old Compass canvas concept is what "Sessions" already tracks —
        nothing here is fabricated to fill a slot a real pedometer/GPS
        would need. -->
-  <div id="acc-progress" style="background:var(--panel);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--border2);border-radius:16px;padding:17px 18px;height:100%;box-sizing:border-box">
-  <div class="dash-overview-label" style="font-size:10.5px;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:rgba(var(--white-rgb),.35);margin-bottom:14px">Today's Overview</div>
-  <div class="dash-ring-grid" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:16px">
-    <div class="dash-ring-box" style="background:rgba(255,90,0,.045);border:1px solid rgba(255,90,0,.1);border-radius:14px;padding:11px 5px;text-align:center">
-      <svg class="dash-ring-svg" width="78" height="78" viewBox="0 0 72 72" style="display:block;margin:0 auto;max-width:100%;height:auto">
-        <circle cx="36" cy="36" r="29" fill="none" stroke="var(--border2)" stroke-width="6.5"/>
-        <circle id="sess-gauge-arc" cx="36" cy="36" r="29" fill="none" stroke="url(#sessGaugeGrad)" stroke-width="6.5" stroke-linecap="round" transform="rotate(-90 36 36)" stroke-dasharray="182.2" stroke-dashoffset="182.2" style="transition:stroke-dashoffset .6s cubic-bezier(.16,1,.3,1)"/>
-        <defs><linearGradient id="sessGaugeGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#FF7A2E"/><stop offset="100%" stop-color="#FF5A00"/></linearGradient></defs>
-        <text x="36" y="40" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-weight="700" font-size="13" fill="var(--white)" id="d-sessions-brief">0/0</text>
-      </svg>
-      <div class="dash-ring-cat" style="font-size:8.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,122,46,.65);margin-top:2px">Sessions</div>
+  <div id="acc-progress" style="background:transparent;border:1px solid var(--border2);border-radius:16px;padding:18px 18px 16px;height:100%;box-sizing:border-box">
+  <div class="dash-overview-label" style="font-size:10.5px;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:rgba(var(--white-rgb),.35);margin-bottom:16px">Today's Overview</div>
+  <!-- Thin bar + right-aligned "current/total" fraction, not a ring —
+       same pattern as the Carbs/Fat bars just below, now used for every
+       metric on this card instead of switching languages partway down. -->
+  <div class="dash-stat-row" style="margin-bottom:14px">
+    <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px">
+      <span style="font-size:9.5px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:rgba(255,122,46,.75)">Sessions</span>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--white)" id="d-sessions-brief">0/0</span>
     </div>
-    <div class="dash-ring-box" style="background:rgba(68,212,255,.045);border:1px solid rgba(68,212,255,.1);border-radius:14px;padding:11px 5px;text-align:center">
-      <svg class="dash-ring-svg" width="78" height="78" viewBox="0 0 72 72" style="display:block;margin:0 auto;max-width:100%;height:auto">
-        <circle cx="36" cy="36" r="29" fill="none" stroke="var(--border2)" stroke-width="6.5"/>
-        <circle id="d-cals-ring" cx="36" cy="36" r="29" fill="none" stroke="url(#dCalsGrad)" stroke-width="6.5" stroke-linecap="round" transform="rotate(-90 36 36)" stroke-dasharray="182.2" stroke-dashoffset="182.2" style="transition:stroke-dashoffset .5s cubic-bezier(.16,1,.3,1)"/>
-        <defs><linearGradient id="dCalsGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#8fe6ff"/><stop offset="100%" stop-color="#44CFFF"/></linearGradient></defs>
-        <text x="36" y="33" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-weight="700" font-size="12" fill="var(--white)" id="d-cals-brief">0</text>
-        <text x="36" y="46" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="7.5" fill="rgba(var(--white-rgb),.55)">/ <tspan id="d-cals-target">—</tspan></text>
-      </svg>
-      <div class="dash-ring-cat" style="font-size:8.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(68,212,255,.75);margin-top:2px">Calories</div>
+    <div style="height:7px;border-radius:99px;background:var(--border2);overflow:hidden"><div id="d-sessions-fill" style="height:100%;width:0%;border-radius:99px;background:linear-gradient(90deg,#FF7A2E,#FF5A00);transition:width .5s cubic-bezier(.16,1,.3,1)"></div></div>
+  </div>
+  <div class="dash-stat-row" style="margin-bottom:14px">
+    <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px">
+      <span style="font-size:9.5px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:rgba(68,212,255,.75)">Calories</span>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--white)"><span id="d-cals-brief">0</span><span style="color:rgba(var(--white-rgb),.4);font-weight:500"> / </span><span id="d-cals-target" style="color:rgba(var(--white-rgb),.55);font-weight:500">—</span></span>
     </div>
-    <div class="dash-ring-box" style="background:rgba(68,212,255,.045);border:1px solid rgba(68,212,255,.1);border-radius:14px;padding:11px 5px;text-align:center">
-      <svg class="dash-ring-svg" width="78" height="78" viewBox="0 0 72 72" style="display:block;margin:0 auto;max-width:100%;height:auto">
-        <circle cx="36" cy="36" r="29" fill="none" stroke="var(--border2)" stroke-width="6.5"/>
-        <circle id="d-protein-ring" cx="36" cy="36" r="29" fill="none" stroke="url(#dProtGrad)" stroke-width="6.5" stroke-linecap="round" transform="rotate(-90 36 36)" stroke-dasharray="182.2" stroke-dashoffset="182.2" style="transition:stroke-dashoffset .5s cubic-bezier(.16,1,.3,1)"/>
-        <defs><linearGradient id="dProtGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#8fe6ff"/><stop offset="100%" stop-color="#44CFFF"/></linearGradient></defs>
-        <text x="36" y="33" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-weight="700" font-size="12" fill="var(--white)" id="d-protein-brief">0g</text>
-        <text x="36" y="46" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="7.5" fill="rgba(var(--white-rgb),.55)">/ <tspan id="d-protein-target">—</tspan></text>
-      </svg>
-      <div class="dash-ring-cat" style="font-size:8.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(68,212,255,.75);margin-top:2px">Protein</div>
+    <div style="height:7px;border-radius:99px;background:var(--border2);overflow:hidden"><div id="d-cals-fill" style="height:100%;width:0%;border-radius:99px;background:linear-gradient(90deg,#8fe6ff,#44CFFF);transition:width .5s cubic-bezier(.16,1,.3,1)"></div></div>
+  </div>
+  <div class="dash-stat-row" style="margin-bottom:16px">
+    <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px">
+      <span style="font-size:9.5px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:rgba(68,212,255,.75)">Protein</span>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--white)"><span id="d-protein-brief">0g</span><span style="color:rgba(var(--white-rgb),.4);font-weight:500"> / </span><span id="d-protein-target" style="color:rgba(var(--white-rgb),.55);font-weight:500">—</span></span>
     </div>
+    <div style="height:7px;border-radius:99px;background:var(--border2);overflow:hidden"><div id="d-protein-fill" style="height:100%;width:0%;border-radius:99px;background:linear-gradient(90deg,#8fe6ff,#44CFFF);transition:width .5s cubic-bezier(.16,1,.3,1)"></div></div>
   </div>
   <div class="nutri-bar-row dash-nutri-bar-row">
     <div class="nutri-bar-label">Carbs</div>
@@ -10478,6 +10481,16 @@ function renderDashNutritionPulse(){
   }
 }
 
+// Splits the session name into a solid-fill first word + hollow-outline
+// remainder for the dashboard hero headline (d-next-full stays hidden but
+// present/updated too, since other code reads its plain textContent).
+function renderTodaySessionName(name){
+  const dnf=document.getElementById('d-next-full');if(dnf)dnf.textContent=name;
+  const parts=(name||'').trim().split(/\s+/).filter(Boolean);
+  const w1=document.getElementById('d-next-word1'),w2=document.getElementById('d-next-word2');
+  if(w1)w1.textContent=parts[0]||'Session';
+  if(w2)w2.textContent=parts.slice(1).join(' ');
+}
 function initApp(){
   if(typeof profile==='undefined')return;
   if(!document.getElementById('dash-name'))return;
@@ -10499,26 +10512,32 @@ function initApp(){
   // sense of how big it is or where it sits in the week — real counts
   // pulled from the actual planned exercise list, not invented.
   const dnsub=document.getElementById('d-next-sub');
+  const sessIdx=Math.min(sessThisWeek+1,profile.days);
+  const dni=document.getElementById('d-next-idx');if(dni)dni.textContent=sessIdx;
+  const dnt=document.getElementById('d-next-total');if(dnt)dnt.textContent=profile.days;
+  const dnw=document.getElementById('d-next-watermark');if(dnw)dnw.textContent=sessIdx;
+  renderTodaySessionName(plannedSessionName||document.getElementById('d-next-full')?.textContent||'');
   if(dnsub){
     const n=plannedSessionExs?plannedSessionExs.length:0;
     if(n){
       const estMin=Math.round(n*5.5);
-      dnsub.textContent='Session '+Math.min(sessThisWeek+1,profile.days)+' of '+profile.days+' · '+n+' exercise'+(n===1?'':'s')+' · ~'+estMin+' min';
+      dnsub.textContent=n+' exercise'+(n===1?'':'s')+' · ~'+estMin+' min';
     }else{
       dnsub.textContent='';
     }
   }
   const dcb=document.getElementById('d-cals-brief');if(dcb)dcb.textContent=(dayMacros.cals||0).toLocaleString();
   const dct=document.getElementById('d-cals-target');if(dct)dct.textContent=(profile.cals||0).toLocaleString();
-  const dcring=document.getElementById('d-cals-ring');if(dcring){const p=Math.min(1,profile.cals?(dayMacros.cals||0)/profile.cals:0);dcring.style.strokeDashoffset=(182.2*(1-p)).toFixed(1);}
+  const dcfill=document.getElementById('d-cals-fill');if(dcfill){const p=Math.min(1,profile.cals?(dayMacros.cals||0)/profile.cals:0);dcfill.style.width=(p*100).toFixed(1)+'%';}
   const dpb=document.getElementById('d-protein-brief');if(dpb)dpb.textContent=(Math.round((dayMacros.prot||0)*10)/10)+'g';
   renderDashNutritionPulse();
   renderDashQuote();
   renderCardioChips();
   renderCardioHistory();
   const dpt=document.getElementById('d-protein-target');if(dpt)dpt.textContent=(profile.protein||0)+'g';
-  const dpring=document.getElementById('d-protein-ring');if(dpring){const p=Math.min(1,profile.protein?(dayMacros.prot||0)/profile.protein:0);dpring.style.strokeDashoffset=(182.2*(1-p)).toFixed(1);}
+  const dpfill=document.getElementById('d-protein-fill');if(dpfill){const p=Math.min(1,profile.protein?(dayMacros.prot||0)/profile.protein:0);dpfill.style.width=(p*100).toFixed(1)+'%';}
   const dsb=document.getElementById('d-sessions-brief');if(dsb)dsb.textContent=sessThisWeek+'/'+profile.days;
+  const dsfill=document.getElementById('d-sessions-fill');if(dsfill){const sp=profile.days?Math.min(1,sessThisWeek/profile.days):0;dsfill.style.width=(sp*100).toFixed(1)+'%';}
   const sga=document.getElementById('sess-gauge-arc');if(sga){const sp=profile.days?Math.min(1,sessThisWeek/profile.days):0;sga.style.strokeDashoffset=(182.2*(1-sp)).toFixed(1);}
   const fv2=document.getElementById('flame-val');if(fv2)fv2.textContent=streak;
   const bss=document.getElementById('best-streak-sub');if(bss)bss.textContent=bestStreak>streak?'Best: '+bestStreak+' days':'';
@@ -11925,7 +11944,7 @@ function commitAndStartSession(){
   skippedExercises=new Set();
   sessionEnteredAt=Date.now();
   saveToStorage();
-  const dnf=document.getElementById('d-next-full');if(dnf)dnf.textContent=plannedSessionName;
+  renderTodaySessionName(plannedSessionName);
   const ov=document.getElementById('session-build-overlay');
   if(ov)ov.classList.add('show');
   setTimeout(()=>{
