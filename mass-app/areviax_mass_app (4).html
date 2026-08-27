@@ -3145,6 +3145,22 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
   </div>
   </div>
 
+  <!-- THE PLAN — a read-only preview of today's exercises: numbered rows,
+       name + PR badge, sets×reps·suggested-weight, a GO link, all inside
+       one card with thin dividers instead of a separate box per row.
+       Real plannedSessionExs/prs/suggestNextWeight data, the same the
+       Session page's logging cards use — this is deliberately just a
+       glance-and-jump preview, not a second copy of that logging UI. -->
+  <div class="dash-plan" style="display:none">
+  <div style="background:rgba(255,255,255,.015);border:1px solid var(--border2);border-radius:16px;padding:18px 18px 6px">
+    <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px">
+      <span style="font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:15px;color:var(--white)">The Plan</span>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted)" id="d-plan-setcount"></span>
+    </div>
+    <div id="d-plan-list"></div>
+  </div>
+  </div>
+
   <div class="dash-rings">
   <!-- TODAY'S OVERVIEW — three matching wheels (Sessions/Calories/Protein,
        same stroke-dasharray ring technique, same size) instead of a mixed
@@ -10569,6 +10585,38 @@ function dismissDashNotif(id){
 // guarantees the observers are attached before anything has a chance to
 // mutate a banner for the first time.
 armDashNotifWatchers();
+// THE PLAN — dashboard preview list, see the markup comment for why this
+// is a separate, read-only render rather than reusing the Session page's
+// logging cards.
+function renderDashPlanList(){
+  const wrap=document.getElementById('d-plan-list');
+  const outer=document.querySelector('.dash-plan');
+  if(!wrap||!outer)return;
+  const exs=plannedSessionExs;
+  if(!exs||!exs.length){outer.style.display='none';return;}
+  outer.style.display='block';
+  const setcountEl=document.getElementById('d-plan-setcount');
+  if(setcountEl){
+    const totalSets=exs.reduce((s,e)=>s+effectiveSets(e),0);
+    setcountEl.textContent=totalSets+' sets';
+  }
+  wrap.innerHTML=exs.map((e,i)=>{
+    const sug=suggestNextWeight(e);
+    const isPR=!!prs[e.name];
+    const weightStr=sug?sug.weight+'kg':'—';
+    return `<div style="display:flex;align-items:center;gap:12px;padding:12px 0;${i<exs.length-1?'border-bottom:1px solid var(--border2)':''}">
+      <div style="font-family:'JetBrains Mono',monospace;font-size:10.5px;color:rgba(var(--white-rgb),.35);width:18px;flex-shrink:0">${String(i+1).padStart(2,'0')}</div>
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;gap:7px">
+          <span style="font-size:13.5px;font-weight:700;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${e.name}</span>
+          ${isPR?'<span style="flex-shrink:0;font-size:8.5px;font-weight:800;letter-spacing:.04em;color:#2B1E00;background:linear-gradient(135deg,#FFD24A,#E8B400);border-radius:20px;padding:2px 7px">🏆 PR</span>':''}
+        </div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin-top:2px">${effectiveSets(e)} × ${e.reps} · ${weightStr}</div>
+      </div>
+      <div onclick="showPage('workout')" style="flex-shrink:0;font-size:11px;font-weight:800;letter-spacing:.05em;color:var(--orange);cursor:pointer">GO</div>
+    </div>`;
+  }).join('');
+}
 function initApp(){
   if(typeof profile==='undefined')return;
   if(!document.getElementById('dash-name'))return;
@@ -10595,6 +10643,7 @@ function initApp(){
   const dnt=document.getElementById('d-next-total');if(dnt)dnt.textContent=profile.days;
   const dnw=document.getElementById('d-next-watermark');if(dnw)dnw.textContent=sessIdx;
   renderTodaySessionName(plannedSessionName||document.getElementById('d-next-full')?.textContent||'');
+  renderDashPlanList();
   if(dnsub){
     const n=plannedSessionExs?plannedSessionExs.length:0;
     if(n){
@@ -12023,6 +12072,7 @@ function commitAndStartSession(){
   sessionEnteredAt=Date.now();
   saveToStorage();
   renderTodaySessionName(plannedSessionName);
+  renderDashPlanList();
   const ov=document.getElementById('session-build-overlay');
   if(ov)ov.classList.add('show');
   setTimeout(()=>{
