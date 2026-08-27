@@ -1447,7 +1447,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        separate unclipped sibling (.legend-card-icon-glow) that reads the
        same vars, positioned to sit behind the hex. */
     .legend-card{
-      --lgi-ring:#6B6B75;--lgi-ring-light:#8A8A94;--lgi-glow-blur:0px;--lgi-glow-color:transparent;
+      --lgi-ring:#8A8D96;--lgi-ring-light:#B4B7C0;--lgi-glow-blur:0px;--lgi-glow-color:transparent;
       --lgi-aura-spread:0px;--lgi-aura-color:transparent;
     }
     .legend-card-icon{
@@ -2093,6 +2093,18 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       animation:revealShine 1.1s .15s ease-out 1;
     }
     @keyframes revealShine{to{background-position:140% 140%}}
+
+    /* The reveal card's own little flourish as it lands — one full spin
+       settling to rest, not a repeating spinner. Plain transform, so the
+       clip-path-eats-shadows gotcha (see design-dna) doesn't apply here;
+       it's the glow/box-shadow on this element that still has to stay a
+       separate sibling, not this rotation. */
+    @keyframes revealSpinIn{
+      0%{transform:rotate(0deg) scale(.4);opacity:0}
+      65%{transform:rotate(324deg) scale(1.08);opacity:1}
+      100%{transform:rotate(360deg) scale(1);opacity:1}
+    }
+    .legend-reveal-icon.spin-in{animation:revealSpinIn .5s cubic-bezier(.22,1.4,.36,1) both}
 
     .legend-reveal-icon{
       width:88px;height:88px;margin:0 auto 14px;position:relative;
@@ -4200,6 +4212,20 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     <div class="cabinet-hero-sub">The single rarest reward in the game — still ahead of you.</div>
   </div>
 
+  <!-- ICONS — the famous-bodybuilder cards. Kept right next to the hero
+       1-of-1 slot rather than buried after the 7 numbered layers: these
+       are the other "famous build" cards in the collection, so they
+       belong beside the game's single rarest one, not mixed in with the
+       grindier equipment/aura/crest layers below. -->
+  <div class="cabinet-tier">
+    <div class="cabinet-tier-plaque">
+      <span class="cabinet-tier-name">Icons</span>
+      <span class="cabinet-tier-count" id="cabinet-legends-count"></span>
+    </div>
+    <div class="cabinet-tier-sub">Bodybuilding's greatest — pulled from any Compass Drop, not one of the 7 layers below</div>
+    <div class="cabinet-row" id="cabinet-legends-row"></div>
+  </div>
+
   <!-- LIFT RANKS — a live ladder per lift (Wood → Olympian, each with
        a I/II/III sub-rank), driven by real estimated-1RM vs bodyweight
        rather than a Compass Drop pull. Sits above the collectible tiers
@@ -4215,15 +4241,6 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
   </div>
 
   <div id="cabinet-tiers"></div>
-
-  <div class="cabinet-tier">
-    <div class="cabinet-tier-plaque">
-      <span class="cabinet-tier-name">Icons</span>
-      <span class="cabinet-tier-count" id="cabinet-legends-count"></span>
-    </div>
-    <div class="cabinet-tier-sub">Bodybuilding's greatest — pulled from any Compass Drop, not one of the 7 layers above</div>
-    <div class="cabinet-row" id="cabinet-legends-row"></div>
-  </div>
 
   <div class="cabinet-tier">
     <div class="cabinet-tier-plaque">
@@ -8426,7 +8443,7 @@ function showLegendReveal(l,isNew,tier){
     modal.style.borderColor=RARITY_BORDER[l.rarity];
     modal.classList.add('glow');
     modal.innerHTML=
-      '<div class="legend-reveal-icon shine rarity-'+l.rarity+'">'+legendIconHTML(l)+'</div>'+
+      '<div class="legend-reveal-icon shine spin-in rarity-'+l.rarity+'">'+legendIconHTML(l)+'</div>'+
       '<div class="legend-reveal-rarity rarity-'+l.rarity+'">'+l.rarity.toUpperCase()+(isNew?' \u2014 NEW':' \u2014 DUPLICATE')+'</div>'+
       '<div class="achievement-title reveal-name-serif">'+l.name+'</div>'+
       '<div class="achievement-desc">'+l.title+'</div>'+
