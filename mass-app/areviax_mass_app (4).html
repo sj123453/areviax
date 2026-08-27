@@ -1993,52 +1993,40 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     }
     .crate-slot-sub{font-size:8.5px;color:var(--muted);text-align:center;line-height:1.35}
 
-    /* Compass Drop opening — the crate itself shakes and glows before
-       cracking open into the card reveal (two-stage swap inside one
-       modal), borrowing the achievement overlay's dark celebratory
-       backdrop so the two "you got something" moments feel like the
-       same system. */
-    @keyframes crateShake{
-      0%,100%{transform:rotate(0) scale(1)}
-      20%{transform:rotate(-10deg) scale(1.03)}
-      40%{transform:rotate(9deg) scale(1.05)}
-      60%{transform:rotate(-8deg) scale(1.03)}
-      80%{transform:rotate(5deg) scale(1.01)}
+    /* Compass Drop opening — one continuous beat instead of the old
+       charge-then-repeated-shake-then-slot-reel sequence (which took
+       3.5-7.6s and read as a gambling machine, not a reward). The crate
+       winds up once, cracks open in a single burst, and the card is
+       already showing well under a second later even for the best tier.
+       Tiers differ in how long the wind-up/crack takes and how big the
+       burst is, never in how many times something repeats. */
+    @keyframes crateWindup{
+      0%{transform:scale(1) rotate(0)}
+      60%{transform:scale(.86) rotate(-4deg)}
+      100%{transform:scale(1.1) rotate(3deg)}
     }
-    .crate-shake{animation:crateShake .5s ease-in-out 3}
-    /* Each tier above Bronze shakes longer/harder than the last — same
-       beat, escalating weight, matching the extra ceremony a costlier
-       or rarer pull deserves over a free one. Areviax gets its own
-       bigger-amplitude keyframe entirely, not just a faster loop of
-       the same shake. */
-    .compass-crate.silver.crate-shake{animation:crateShake .48s ease-in-out 3}
-    .compass-crate.gold.crate-shake{animation:crateShake .46s ease-in-out 4}
-    .compass-crate.diamond.crate-shake{animation:crateShake .42s ease-in-out 5}
-    @keyframes crateShakeBig{
-      0%,100%{transform:rotate(0) scale(1)}
-      15%{transform:rotate(-14deg) scale(1.07)}
-      30%{transform:rotate(13deg) scale(1.1)}
-      45%{transform:rotate(-12deg) scale(1.08)}
-      60%{transform:rotate(10deg) scale(1.05)}
-      75%{transform:rotate(-6deg) scale(1.02)}
-      90%{transform:rotate(3deg) scale(1.01)}
+    .crate-shake{animation:crateWindup .26s cubic-bezier(.4,0,.2,1) 1 forwards}
+    .compass-crate.silver.crate-shake{animation:crateWindup .3s cubic-bezier(.4,0,.2,1) 1 forwards}
+    .compass-crate.gold.crate-shake{animation:crateWindup .38s cubic-bezier(.4,0,.2,1) 1 forwards}
+    .compass-crate.diamond.crate-shake{animation:crateWindup .46s cubic-bezier(.4,0,.2,1) 1 forwards}
+    .compass-crate.areviax.crate-shake{animation:crateWindup .58s cubic-bezier(.4,0,.2,1) 1 forwards}
+    @keyframes crateCrackOut{
+      0%{transform:scale(1.1) rotate(3deg);opacity:1;filter:brightness(1)}
+      35%{transform:scale(1.35) rotate(0deg);opacity:1;filter:brightness(1.7)}
+      100%{transform:scale(.5) rotate(0deg);opacity:0;filter:brightness(2.2)}
     }
-    .compass-crate.areviax.crate-shake{animation:crateShakeBig .4s ease-in-out 6}
+    .compass-crate.crack-out{animation:crateCrackOut .22s cubic-bezier(.4,0,1,1) forwards}
     .crate-reveal-stage .compass-crate{width:84px;height:84px;margin:0 auto 14px}
     .crate-reveal-stage .compass-crate .crate-icon svg{width:42px;height:42px}
-
-    /* Pre-shake charge — a beat of anticipation (glow building, no
-       movement yet) before the shake even starts, on every tier above
-       Bronze. Bronze skips straight to the shake; it's the frequent,
-       low-ceremony tier and shouldn't make you wait for it. Glow
-       colour matches each tier's own material instead of one shared
-       gold tint. */
-    @keyframes crateCharge{0%{box-shadow:0 0 0 rgba(255,255,255,0)}100%{box-shadow:0 0 34px var(--charge-glow,rgba(255,215,0,.85))}}
-    .compass-crate.charging{animation:crateCharge .55s ease-in forwards}
-    .compass-crate.silver.charging{--charge-glow:rgba(200,210,220,.85)}
-    .compass-crate.gold.charging{--charge-glow:rgba(255,215,0,.85)}
-    .compass-crate.diamond.charging{--charge-glow:rgba(95,208,242,.9)}
-    .compass-crate.areviax.charging{--charge-glow:rgba(255,140,40,.95)}
+    /* One-shot ray flare at the crack moment, reusing the same element
+       the idle "ready" ambient burst uses elsewhere — this animates once
+       and stops rather than looping. */
+    @keyframes crateBurstFlare{
+      0%{opacity:0;transform:translate(-50%,-50%) scale(.4) rotate(0deg)}
+      40%{opacity:.9}
+      100%{opacity:0;transform:translate(-50%,-50%) scale(1.7) rotate(35deg)}
+    }
+    .crate-icon-burst.flare{animation:crateBurstFlare .3s ease-out forwards}
 
     /* One-shot full-bleed flash at the crack moment — the payoff for
        the charge-up beat, tinted per tier (Gold stays warm-amber;
@@ -2106,42 +2094,6 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     }
     @keyframes revealShine{to{background-position:140% 140%}}
 
-    /* ── SPIN REEL — a slot-style strip of hexagon cards that cycles
-       past a center pointer and decelerates onto the actual prize,
-       instead of the card just appearing. Cards reuse the same
-       hexagon-capsule + rarity-gradient language as everywhere else
-       collectibles show up in the app. */
-    .crate-spin-viewport{
-      position:relative;width:264px;height:82px;margin:0 auto 4px;overflow:hidden;
-      -webkit-mask-image:linear-gradient(90deg,transparent,#000 16%,#000 84%,transparent);
-      mask-image:linear-gradient(90deg,transparent,#000 16%,#000 84%,transparent);
-    }
-    .crate-spin-track{position:absolute;top:0;left:50%;height:100%;display:flex;align-items:center;gap:8px;margin-left:-30px}
-    .crate-spin-card{
-      flex:0 0 auto;width:60px;height:60px;position:relative;
-      clip-path:polygon(50% 0%,93% 25%,93% 75%,50% 100%,7% 75%,7% 25%);
-      display:flex;align-items:center;justify-content:center;font-size:24px;
-      background:linear-gradient(160deg,#2A2A38,#18181F);
-    }
-    .crate-spin-card img{width:38px;height:38px;object-fit:contain}
-    .crate-spin-card.rarity-common{background:linear-gradient(160deg,#C7CBD1,#5B5F66)}
-    .crate-spin-card.rarity-rare{background:linear-gradient(160deg,#6EE7A0,#16803D)}
-    .crate-spin-card.rarity-superrare{background:linear-gradient(160deg,#8FC1FF,#1D4ED8)}
-    .crate-spin-card.rarity-epic{background:linear-gradient(160deg,#D8A6FF,#8A2BE8)}
-    .crate-spin-card.rarity-mythic{background:linear-gradient(160deg,#FF8A93,#C81E3A)}
-    .crate-spin-card.rarity-legendary{background:linear-gradient(160deg,#FFE066,#E8B400)}
-    .crate-spin-card.rarity-ultralegendary{background:linear-gradient(115deg,#FFD24A,#FF6FD8,#7FE3FF,#FF9A3D);background-size:260% 100%;animation:holoShift 1.6s linear infinite}
-    .crate-spin-slot{
-      position:absolute;top:2px;left:50%;width:68px;height:calc(100% - 4px);transform:translateX(-50%);
-      border:1.5px solid rgba(255,90,0,.4);border-radius:12px;pointer-events:none;z-index:3;
-      box-shadow:0 0 16px rgba(255,90,0,.3),inset 0 0 10px rgba(255,90,0,.12);
-    }
-    .crate-spin-pointer{
-      position:absolute;left:50%;top:-8px;transform:translateX(-50%);z-index:3;
-      width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;
-      border-top:8px solid var(--orange);
-    }
-    .crate-spin-pointer.bottom{top:auto;bottom:-8px;transform:translateX(-50%) rotate(180deg)}
     .legend-reveal-icon{
       width:88px;height:88px;margin:0 auto 14px;position:relative;
       clip-path:polygon(50% 0%,93% 25%,93% 75%,50% 100%,7% 75%,7% 25%);
@@ -8396,95 +8348,76 @@ const RARITY_BORDER={
   legendary:'rgba(255,212,0,.45)',
   ultralegendary:'rgba(255,180,80,.5)',
 };
-function spinCardHTML(card){
-  return '<div class="crate-spin-card rarity-'+card.rarity+'">'+legendIconHTML(card)+'</div>';
-}
 // Every tier above Bronze choreographs a step further than the last,
 // not just a different crate colour \u2014 Bronze is the free, frequent
-// tier and should feel quick and clean; each tier after it earns more
-// build-up: a silent charge beat before the shake even starts (longer
-// each time), a longer/harder shake, a crack sound + full-bleed flash
-// at the split, a longer spin with a landing overshoot, and a bigger
-// confetti burst. Areviax gets the most of everything \u2014 it's the best
-// drop in the app and should feel like it. Same underlying data flow
-// either way (flash/overshoot are just flags cfg carries per tier).
+// tier and should feel quick and clean; each tier after it earns a
+// slightly longer wind-up and a bigger burst, never a repeated or
+// dragged-out sequence. Replaced the old charge/shake/slot-reel chain
+// (3.5-7.6s total, and reading as a gambling machine rather than a
+// reward) with one continuous beat \u2014 wind up once, crack once, reveal
+// \u2014 that lands well under a second even for the best tier.
 const CRATE_OPEN_TIMING={
-  bronze:{chargeMs:0,    shakeMs:1500, spinMs:1900, burstCount:12, flash:false, overshoot:false},
-  silver:{chargeMs:320,  shakeMs:1680, spinMs:2200, burstCount:16, flash:false, overshoot:false},
-  gold:  {chargeMs:550,  shakeMs:1840, spinMs:2800, burstCount:24, flash:true,  overshoot:true},
-  diamond:{chargeMs:800, shakeMs:2050, spinMs:3200, burstCount:32, flash:true,  overshoot:true},
-  areviax:{chargeMs:1150,shakeMs:2450, spinMs:3900, burstCount:56, flash:true,  overshoot:true},
+  bronze:{windupMs:260, crackMs:200, burstCount:12, flash:false},
+  silver:{windupMs:300, crackMs:210, burstCount:16, flash:false},
+  gold:  {windupMs:380, crackMs:230, burstCount:24, flash:true},
+  diamond:{windupMs:460,crackMs:250, burstCount:32, flash:true},
+  areviax:{windupMs:580,crackMs:280, burstCount:56, flash:true},
 };
 function showLegendReveal(l,isNew,tier){
   const cfg=CRATE_OPEN_TIMING[tier]||CRATE_OPEN_TIMING.bronze;
+  // Kick the prize image's fetch off immediately, in parallel with the
+  // wind-up/crack beat below, instead of only creating the <img> tag at
+  // reveal time. The old sequence had 3.5-7.6s of shake+slot-reel to
+  // accidentally cover a cold image fetch; compressing that to well
+  // under a second means a slow-loading asset can now visibly pop in
+  // AFTER the reveal card is already showing. This gives it a head
+  // start so it's normally already cached by the time reveal fires.
+  if(l.img){const _preload=new Image();_preload.src=l.img;}
   const overlay=document.createElement('div');
   overlay.className='achievement-overlay';
   overlay.innerHTML=
     '<div class="achievement-modal crate-reveal-stage">'+
       '<div class="crate-icon-wrap '+tier+'">'+
         '<div class="crate-icon-glow"></div><div class="crate-icon-burst"></div><div class="crate-crown"><svg viewBox="0 0 100 100" preserveAspectRatio="none"><path class="lgi-crown-body" d="M0,90 L0,32 L25,58 L40,6 L50,42 L60,6 L75,58 L100,32 L100,90 Z"/><path class="lgi-crown-rim" d="M0,32 L25,58 L40,6 L50,42 L60,6 L75,58 L100,32"/><circle class="lgi-crown-jewel" cx="40" cy="10" r="6"/><circle class="lgi-crown-jewel" cx="60" cy="10" r="6"/><circle class="lgi-crown-jewel" cx="50" cy="76" r="5"/></svg></div><div class="crate-wreath"><svg viewBox="-5 -5 110 115"><path class="lgr-stem" d="M46.2,95.8 L29.9,91.2 L16.6,80.7 L8.3,66.0 L6.1,49.3 L10.4,32.9 L20.5,19.4 L35.0,10.7"/><path class="lgr-stem" d="M53.8,95.8 L70.1,91.2 L83.4,80.7 L91.7,66.0 L93.9,49.3 L89.6,32.9 L79.5,19.4 L65.0,10.7"/><path class="lgr-leaf" d="M47.6,94.1 Q38.5,95.5 38.2,105.8 Q48.2,103.2 47.6,94.1 Z"/><path class="lgr-vein" d="M47.6,94.1 L38.2,105.8"/><path class="lgr-leaf" d="M31.8,90.1 Q23.4,88.1 19.4,97.0 Q29.1,98.3 31.8,90.1 Z"/><path class="lgr-vein" d="M31.8,90.1 L19.4,97.0"/><path class="lgr-leaf" d="M18.6,80.5 Q12.0,75.7 5.4,82.1 Q13.4,86.6 18.6,80.5 Z"/><path class="lgr-vein" d="M18.6,80.5 L5.4,82.1"/><path class="lgr-leaf" d="M10.1,66.5 Q6.0,60.1 -1.9,63.3 Q3.4,70.0 10.1,66.5 Z"/><path class="lgr-vein" d="M10.1,66.5 L-1.9,63.3"/><path class="lgr-leaf" d="M7.5,50.3 Q6.2,43.4 -1.7,43.3 Q0.4,51.0 7.5,50.3 Z"/><path class="lgr-vein" d="M7.5,50.3 L-1.7,43.3"/><path class="lgr-leaf" d="M11.2,34.3 Q12.5,27.9 5.7,25.1 Q4.9,32.4 11.2,34.3 Z"/><path class="lgr-vein" d="M11.2,34.3 L5.7,25.1"/><path class="lgr-leaf" d="M20.7,20.8 Q24.1,15.9 19.2,11.1 Q16.0,17.0 20.7,20.8 Z"/><path class="lgr-vein" d="M20.7,20.8 L19.2,11.1"/><path class="lgr-leaf" d="M34.6,12.0 Q39.2,8.9 36.8,3.2 Q32.0,7.1 34.6,12.0 Z"/><path class="lgr-vein" d="M34.6,12.0 L36.8,3.2"/><path class="lgr-leaf" d="M52.4,94.1 Q51.8,103.2 61.8,105.8 Q61.5,95.5 52.4,94.1 Z"/><path class="lgr-vein" d="M52.4,94.1 L61.8,105.8"/><path class="lgr-leaf" d="M68.2,90.1 Q70.9,98.3 80.6,97.0 Q76.6,88.1 68.2,90.1 Z"/><path class="lgr-vein" d="M68.2,90.1 L80.6,97.0"/><path class="lgr-leaf" d="M81.4,80.5 Q86.6,86.6 94.6,82.1 Q88.0,75.7 81.4,80.5 Z"/><path class="lgr-vein" d="M81.4,80.5 L94.6,82.1"/><path class="lgr-leaf" d="M89.9,66.5 Q96.6,70.0 101.9,63.3 Q94.0,60.1 89.9,66.5 Z"/><path class="lgr-vein" d="M89.9,66.5 L101.9,63.3"/><path class="lgr-leaf" d="M92.5,50.3 Q99.6,51.0 101.7,43.3 Q93.8,43.4 92.5,50.3 Z"/><path class="lgr-vein" d="M92.5,50.3 L101.7,43.3"/><path class="lgr-leaf" d="M88.8,34.3 Q95.1,32.4 94.3,25.1 Q87.5,27.9 88.8,34.3 Z"/><path class="lgr-vein" d="M88.8,34.3 L94.3,25.1"/><path class="lgr-leaf" d="M79.3,20.8 Q84.0,17.0 80.8,11.1 Q75.9,15.9 79.3,20.8 Z"/><path class="lgr-vein" d="M79.3,20.8 L80.8,11.1"/><path class="lgr-leaf" d="M65.4,12.0 Q68.0,7.1 63.2,3.2 Q60.8,8.9 65.4,12.0 Z"/><path class="lgr-vein" d="M65.4,12.0 L63.2,3.2"/></svg></div>'+
-        '<div class="compass-crate '+tier+(cfg.chargeMs?' charging':' crate-shake')+'" id="reveal-crate"><span class="crate-icon">'+crateIconHTML(tier)+'</span></div>'+
+        '<div class="compass-crate '+tier+' crate-shake" id="reveal-crate"><span class="crate-icon">'+crateIconHTML(tier)+'</span></div>'+
       '</div>'+
     '</div>';
   document.body.appendChild(overlay);
   requestAnimationFrame(()=>overlay.classList.add('show'));
 
-  function startShake(){
-    const crateEl=overlay.querySelector('#reveal-crate');
-    if(crateEl){crateEl.classList.remove('charging');crateEl.classList.add('crate-shake');}
-  }
-  if(cfg.chargeMs)setTimeout(startShake,cfg.chargeMs);
-
   setTimeout(()=>{
-    const modal=overlay.querySelector('.achievement-modal');
-    if(!modal)return;
+    const crateEl=overlay.querySelector('#reveal-crate');
+    if(!crateEl)return;
     playCrateCrackSound(tier);
+    crateEl.classList.remove('crate-shake');
+    crateEl.classList.add('crack-out');
+    const burstEl=overlay.querySelector('.crate-icon-burst');
+    if(burstEl)burstEl.classList.add('flare');
     if(cfg.flash){
       const flash=document.createElement('div');
       flash.className='crate-flash'+(tier==='diamond'?' diamond':tier==='areviax'?' areviax':'');
       document.body.appendChild(flash);
       setTimeout(()=>flash.remove(),550);
     }
-    // Spin phase \u2014 a strip of random filler cards with the actual prize
-    // placed last, scrolled past a center pointer and decelerated onto
-    // the winner, like a slot reel settling.
-    const FILLER=16, STRIDE=68, SPIN_MS=cfg.spinMs;
-    const strip=[];
-    for(let i=0;i<FILLER;i++)strip.push(LEGEND_CARDS[Math.floor(Math.random()*LEGEND_CARDS.length)]);
-    strip.push(l);
-    const targetIndex=strip.length-1;
+  },cfg.windupMs);
+
+  setTimeout(()=>{
+    const modal=overlay.querySelector('.achievement-modal');
+    if(!modal)return;
+    modal.style.setProperty('--reveal-glow',RARITY_GLOW[l.rarity]);
+    modal.style.borderColor=RARITY_BORDER[l.rarity];
+    modal.classList.add('glow');
     modal.innerHTML=
-      '<div class="crate-spin-viewport">'+
-        '<div class="crate-spin-slot"></div>'+
-        '<div class="crate-spin-pointer"></div>'+
-        '<div class="crate-spin-pointer bottom"></div>'+
-        '<div class="crate-spin-track" id="spin-track">'+strip.map(spinCardHTML).join('')+'</div>'+
-      '</div>';
-    const track=modal.querySelector('#spin-track');
-    playCrateSpinTicks(SPIN_MS);
-    requestAnimationFrame(()=>{
-      // Bronze/Silver settle clean (no overshoot, a confident power3-
-      // style deceleration) \u2014 Gold and above get a hair of overshoot
-      // on landing, the slot-reel equivalent of a satisfied bounce.
-      track.style.transition='transform '+(SPIN_MS/1000)+'s '+(cfg.overshoot?'cubic-bezier(.1,.82,.18,1.06)':'cubic-bezier(.16,.68,.24,1)');
-      track.style.transform='translateX(-'+(targetIndex*STRIDE)+'px)';
-    });
-    setTimeout(()=>{
-      modal.style.setProperty('--reveal-glow',RARITY_GLOW[l.rarity]);
-      modal.style.borderColor=RARITY_BORDER[l.rarity];
-      modal.classList.add('glow');
-      modal.innerHTML=
-        '<div class="legend-reveal-icon shine rarity-'+l.rarity+'">'+legendIconHTML(l)+'</div>'+
-        '<div class="legend-reveal-rarity rarity-'+l.rarity+'">'+l.rarity.toUpperCase()+(isNew?' \u2014 NEW':' \u2014 DUPLICATE')+'</div>'+
-        '<div class="achievement-title reveal-name-serif">'+l.name+'</div>'+
-        '<div class="achievement-desc">'+l.title+'</div>'+
-        (tier==='areviax'?'<div style="font-size:11px;font-weight:700;color:#FFB347;margin-top:8px">\ud83d\udd25 The Areviax Drop \u2014 +2 bonus Compass Shards</div>':'')+
-        '<button class="achievement-close-btn" onclick="this.closest(\'.achievement-overlay\').remove()">Continue</button>';
-      playCrateRevealChime(l.rarity);
-      addXP(isNew?25:10,isNew?'New trophy':'Compass Drop');
-      if(isNew)celebrateBurst(['\ud83d\udd25','\u2b50','\ud83c\udfc6'],cfg.burstCount);
-    },SPIN_MS+60);
-  },cfg.chargeMs+cfg.shakeMs);
+      '<div class="legend-reveal-icon shine rarity-'+l.rarity+'">'+legendIconHTML(l)+'</div>'+
+      '<div class="legend-reveal-rarity rarity-'+l.rarity+'">'+l.rarity.toUpperCase()+(isNew?' \u2014 NEW':' \u2014 DUPLICATE')+'</div>'+
+      '<div class="achievement-title reveal-name-serif">'+l.name+'</div>'+
+      '<div class="achievement-desc">'+l.title+'</div>'+
+      (tier==='areviax'?'<div style="font-size:11px;font-weight:700;color:#FFB347;margin-top:8px">\ud83d\udd25 The Areviax Drop \u2014 +2 bonus Compass Shards</div>':'')+
+      '<button class="achievement-close-btn" onclick="this.closest(\'.achievement-overlay\').remove()">Continue</button>';
+    playCrateRevealChime(l.rarity);
+    addXP(isNew?25:10,isNew?'New trophy':'Compass Drop');
+    if(isNew)celebrateBurst(['\ud83d\udd25','\u2b50','\ud83c\udfc6'],cfg.burstCount);
+  },cfg.windupMs+cfg.crackMs);
 }
 
 // ── DAILY SPIN WHEEL — one free spin a day, weighted heavily toward
