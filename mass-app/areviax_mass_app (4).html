@@ -3605,44 +3605,37 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        stroke-dasharray ring technique as the Dashboard's wheels. -->
   <div class="card" style="margin-bottom:14px">
     <div class="ch"><span class="ct">Today's Overview</span></div>
-    <div id="nutr-cals-bar-wrap" style="margin-bottom:14px">
+    <!-- Four thin capsule bars + right-aligned "current/target" fractions,
+         same pattern as the Dashboard's Today's Overview card — replaces
+         the calorie bar + 3 separate ring gauges so every macro on this
+         page reads in one consistent language instead of two. -->
+    <div class="dash-stat-row" style="margin-bottom:14px">
       <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px">
         <span style="font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,122,46,.75)">Calories</span>
-        <span style="font-size:12px;font-weight:800" id="nutr-cals-nums"><span style="color:#FF7A2E" id="nutr-cals-cur">0</span> <span style="color:var(--muted)">/ <span id="nutr-cals-tgt">0</span> kcal</span></span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700" id="nutr-cals-nums"><span style="color:var(--white)" id="nutr-cals-cur">0</span><span style="color:rgba(var(--white-rgb),.4);font-weight:500"> / </span><span style="color:rgba(var(--white-rgb),.55);font-weight:500" id="nutr-cals-tgt">0</span></span>
       </div>
-      <div class="macro-bar-wrap2"><div class="macro-bar-fill2" id="nutr-cals-fill" style="width:0%;background:linear-gradient(90deg,#FF7A2E99,#FF7A2E)"></div></div>
+      <div style="height:7px;border-radius:99px;background:var(--border2);overflow:hidden"><div id="nutr-cals-fill" style="height:100%;width:0%;border-radius:99px;background:linear-gradient(90deg,#FF7A2E99,#FF7A2E);transition:width .5s cubic-bezier(.16,1,.3,1)"></div></div>
     </div>
-    <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px">
-      <div style="background:rgba(255,90,0,.045);border:1px solid rgba(255,90,0,.1);border-radius:14px;padding:10px 4px;text-align:center">
-        <svg width="64" height="64" viewBox="0 0 72 72" style="display:block;margin:0 auto;max-width:100%;height:auto">
-          <circle cx="36" cy="36" r="29" fill="none" stroke="var(--border2)" stroke-width="6.5"/>
-          <circle id="nutr-prot-ring" cx="36" cy="36" r="29" fill="none" stroke="url(#nutrProtGrad)" stroke-width="6.5" stroke-linecap="round" transform="rotate(-90 36 36)" stroke-dasharray="182.2" stroke-dashoffset="182.2" style="transition:stroke-dashoffset .5s cubic-bezier(.16,1,.3,1)"/>
-          <defs><linearGradient id="nutrProtGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#FF8C47"/><stop offset="100%" stop-color="#FF5A00"/></linearGradient></defs>
-          <text x="36" y="33" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-weight="700" font-size="12" fill="var(--white)" id="nutr-prot-brief">0g</text>
-          <text x="36" y="46" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="7.5" fill="rgba(var(--white-rgb),.55)">/ <tspan id="nutr-prot-target">—</tspan></text>
-        </svg>
-        <div style="font-size:7px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,122,46,.65);margin-top:4px">Protein</div>
+    <div class="dash-stat-row" style="margin-bottom:14px">
+      <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px">
+        <span style="font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,122,46,.65)">Protein</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700"><span style="color:var(--white)" id="nutr-prot-brief">0g</span><span style="color:rgba(var(--white-rgb),.4);font-weight:500"> / </span><span style="color:rgba(var(--white-rgb),.55);font-weight:500" id="nutr-prot-target">—</span></span>
       </div>
-      <div style="background:rgba(68,212,255,.045);border:1px solid rgba(68,212,255,.1);border-radius:14px;padding:10px 4px;text-align:center">
-        <svg width="64" height="64" viewBox="0 0 72 72" style="display:block;margin:0 auto;max-width:100%;height:auto">
-          <circle cx="36" cy="36" r="29" fill="none" stroke="var(--border2)" stroke-width="6.5"/>
-          <circle id="nutr-carbs-ring" cx="36" cy="36" r="29" fill="none" stroke="url(#nutrCarbsGrad)" stroke-width="6.5" stroke-linecap="round" transform="rotate(-90 36 36)" stroke-dasharray="182.2" stroke-dashoffset="182.2" style="transition:stroke-dashoffset .5s cubic-bezier(.16,1,.3,1)"/>
-          <defs><linearGradient id="nutrCarbsGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#8fe6ff"/><stop offset="100%" stop-color="#44CFFF"/></linearGradient></defs>
-          <text x="36" y="33" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-weight="700" font-size="12" fill="var(--white)" id="nutr-carbs-brief">0g</text>
-          <text x="36" y="46" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="7.5" fill="rgba(var(--white-rgb),.55)">/ <tspan id="nutr-carbs-target">—</tspan></text>
-        </svg>
-        <div style="font-size:7px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(68,212,255,.75);margin-top:4px">Carbs</div>
+      <div style="height:7px;border-radius:99px;background:var(--border2);overflow:hidden"><div id="nutr-prot-fill" style="height:100%;width:0%;border-radius:99px;background:linear-gradient(90deg,#FF8C47,#FF5A00);transition:width .5s cubic-bezier(.16,1,.3,1)"></div></div>
+    </div>
+    <div class="dash-stat-row" style="margin-bottom:14px">
+      <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px">
+        <span style="font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:rgba(68,212,255,.75)">Carbs</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700"><span style="color:var(--white)" id="nutr-carbs-brief">0g</span><span style="color:rgba(var(--white-rgb),.4);font-weight:500"> / </span><span style="color:rgba(var(--white-rgb),.55);font-weight:500" id="nutr-carbs-target">—</span></span>
       </div>
-      <div style="background:rgba(255,215,74,.045);border:1px solid rgba(255,215,74,.15);border-radius:14px;padding:10px 4px;text-align:center">
-        <svg width="64" height="64" viewBox="0 0 72 72" style="display:block;margin:0 auto;max-width:100%;height:auto">
-          <circle cx="36" cy="36" r="29" fill="none" stroke="var(--border2)" stroke-width="6.5"/>
-          <circle id="nutr-fats-ring" cx="36" cy="36" r="29" fill="none" stroke="url(#nutrFatsGrad)" stroke-width="6.5" stroke-linecap="round" transform="rotate(-90 36 36)" stroke-dasharray="182.2" stroke-dashoffset="182.2" style="transition:stroke-dashoffset .5s cubic-bezier(.16,1,.3,1)"/>
-          <defs><linearGradient id="nutrFatsGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#FFD24A"/><stop offset="100%" stop-color="#FF9A2E"/></linearGradient></defs>
-          <text x="36" y="33" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-weight="700" font-size="12" fill="var(--white)" id="nutr-fats-brief">0g</text>
-          <text x="36" y="46" text-anchor="middle" font-family="'JetBrains Mono',monospace" font-size="7.5" fill="rgba(var(--white-rgb),.55)">/ <tspan id="nutr-fats-target">—</tspan></text>
-        </svg>
-        <div style="font-size:7px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,215,74,.8);margin-top:4px">Fat</div>
+      <div style="height:7px;border-radius:99px;background:var(--border2);overflow:hidden"><div id="nutr-carbs-fill" style="height:100%;width:0%;border-radius:99px;background:linear-gradient(90deg,#8fe6ff,#44CFFF);transition:width .5s cubic-bezier(.16,1,.3,1)"></div></div>
+    </div>
+    <div class="dash-stat-row">
+      <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px">
+        <span style="font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,215,74,.8)">Fat</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700"><span style="color:var(--white)" id="nutr-fats-brief">0g</span><span style="color:rgba(var(--white-rgb),.4);font-weight:500"> / </span><span style="color:rgba(var(--white-rgb),.55);font-weight:500" id="nutr-fats-target">—</span></span>
       </div>
+      <div style="height:7px;border-radius:99px;background:var(--border2);overflow:hidden"><div id="nutr-fats-fill" style="height:100%;width:0%;border-radius:99px;background:linear-gradient(90deg,#FFD24A,#FF9A2E);transition:width .5s cubic-bezier(.16,1,.3,1)"></div></div>
     </div>
   </div>
 
@@ -14161,12 +14154,12 @@ function renderNutrition(){
   const calsTgtEl=document.getElementById('nutr-cals-tgt');if(calsTgtEl)calsTgtEl.textContent=(p.cals||0).toLocaleString();
   const calsFillEl=document.getElementById('nutr-cals-fill');if(calsFillEl)calsFillEl.style.width=Math.min(100,p.cals?(dayMacros.cals||0)/p.cals*100:0)+'%';
   [
-    {ring:'nutr-prot-ring',brief:'nutr-prot-brief',target:'nutr-prot-target',cur:dayMacros.prot||0,tgt:p.protein||0,unit:'g'},
-    {ring:'nutr-carbs-ring',brief:'nutr-carbs-brief',target:'nutr-carbs-target',cur:dayMacros.carbs||0,tgt:p.carbs||0,unit:'g'},
-    {ring:'nutr-fats-ring',brief:'nutr-fats-brief',target:'nutr-fats-target',cur:dayMacros.fats||0,tgt:p.fats||0,unit:'g'},
+    {fill:'nutr-prot-fill',brief:'nutr-prot-brief',target:'nutr-prot-target',cur:dayMacros.prot||0,tgt:p.protein||0,unit:'g'},
+    {fill:'nutr-carbs-fill',brief:'nutr-carbs-brief',target:'nutr-carbs-target',cur:dayMacros.carbs||0,tgt:p.carbs||0,unit:'g'},
+    {fill:'nutr-fats-fill',brief:'nutr-fats-brief',target:'nutr-fats-target',cur:dayMacros.fats||0,tgt:p.fats||0,unit:'g'},
   ].forEach(w=>{
-    const ringEl=document.getElementById(w.ring);
-    if(ringEl){const pct=Math.min(1,w.tgt?w.cur/w.tgt:0);ringEl.style.strokeDashoffset=(182.2*(1-pct)).toFixed(1);}
+    const fillEl=document.getElementById(w.fill);
+    if(fillEl){const pct=Math.min(1,w.tgt?w.cur/w.tgt:0);fillEl.style.width=(pct*100).toFixed(1)+'%';}
     const briefEl=document.getElementById(w.brief);if(briefEl)briefEl.textContent=Math.round(w.cur)+w.unit;
     const targetEl=document.getElementById(w.target);if(targetEl)targetEl.textContent=Math.round(w.tgt)+w.unit;
   });
