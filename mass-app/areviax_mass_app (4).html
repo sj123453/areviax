@@ -2108,7 +2108,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .reveal-name-serif{font-family:'Fraunces',serif;font-style:italic;font-weight:300}
     .legend-reveal-icon.shine::after{
       content:'';position:absolute;inset:0;z-index:2;
-      clip-path:polygon(50% 0%,93% 25%,93% 75%,50% 100%,7% 75%,7% 25%);
+      clip-path:var(--star-clip);
       background:linear-gradient(115deg,transparent 35%,rgba(255,255,255,.75) 48%,transparent 60%);
       background-size:260% 260%;background-position:-140% -140%;
       animation:revealShine 1.1s .15s ease-out 1;
@@ -2126,37 +2126,81 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       100%{transform:rotate(360deg) scale(1);opacity:1}
     }
     .legend-reveal-icon.spin-in{animation:revealSpinIn .5s cubic-bezier(.22,1.4,.36,1) both}
+    .reveal-badge-wrap{position:relative;width:96px;margin:0 auto 14px}
 
+    /* STAR BADGE — 7-point star (Brawl-Stars-style rarity badge mechanism,
+       not its exact art) replacing the flat hex for the reveal moment
+       specifically. --star-clip is one shared custom property so the
+       icon, its sheen overlay above, and the ray-burst mask below all cut
+       the identical silhouette without repeating the polygon 3 times. */
+    :root{--star-clip:polygon(50.00% 0.00%,59.11% 31.08%,89.09% 18.83%,70.47% 45.33%,98.75% 61.13%,66.42% 63.09%,71.69% 95.05%,50.00% 71.00%,28.31% 95.05%,33.58% 63.09%,1.25% 61.13%,29.53% 45.33%,10.91% 18.83%,40.89% 31.08%)}
     .legend-reveal-icon{
-      width:88px;height:88px;margin:0 auto 14px;position:relative;
-      clip-path:polygon(50% 0%,93% 25%,93% 75%,50% 100%,7% 75%,7% 25%);
-      display:flex;align-items:center;justify-content:center;font-size:44px;
+      width:96px;height:96px;position:relative;
+      clip-path:var(--star-clip);
+      display:flex;align-items:center;justify-content:center;font-size:40px;
+      box-shadow:inset 0 0 0 3px rgba(255,255,255,.32),inset 0 -10px 16px rgba(0,0,0,.4),inset 0 7px 11px rgba(255,255,255,.22);
     }
     .legend-reveal-icon::after{
       content:'';position:absolute;inset:0;
-      clip-path:polygon(50% 0%,93% 25%,93% 75%,50% 100%,7% 75%,7% 25%);
+      clip-path:var(--star-clip);
       background:linear-gradient(160deg,rgba(255,255,255,.28),transparent 55%);
       pointer-events:none;
     }
-    .legend-reveal-icon img{width:56px;height:56px;object-fit:contain;position:relative;z-index:1}
-    .legend-reveal-icon.rarity-common{background:linear-gradient(160deg,#C7CBD1,#5B5F66);box-shadow:0 0 16px rgba(170,176,184,.45)}
-    .legend-reveal-icon.rarity-rare{background:linear-gradient(160deg,#6EE7A0,#16803D);box-shadow:0 0 20px rgba(46,204,113,.55)}
-    .legend-reveal-icon.rarity-superrare{background:linear-gradient(160deg,#8FC1FF,#1D4ED8);box-shadow:0 0 26px rgba(59,130,246,.65);animation:rarityPulseSoft 2.6s ease-in-out infinite}
-    .legend-reveal-icon.rarity-epic{background:linear-gradient(115deg,#F1DCFF,#D8A6FF,#F1DCFF,#B266FF);background-size:260% 100%;box-shadow:0 0 30px rgba(168,85,247,.7);animation:rarityShimmerSweep 3s linear infinite}
-    .legend-reveal-icon.rarity-mythic{background:linear-gradient(160deg,#FF8A93,#C81E3A);box-shadow:0 0 34px rgba(239,68,68,.75);animation:rarityPulseStrong 2s ease-in-out infinite}
-    .legend-reveal-icon.rarity-legendary{background:linear-gradient(160deg,#FFE066,#E8B400);box-shadow:0 0 38px rgba(255,212,0,.8);animation:rarityPulseStrong 1.6s ease-in-out infinite}
+    .legend-reveal-icon img{width:50px;height:50px;object-fit:contain;position:relative;z-index:1}
+    /* RAY BURST — the glow-behind-a-clipped-shape rule (see design-dna)
+       means this can never live on .legend-reveal-icon itself; it's a
+       plain unclipped sibling, painted before the icon in DOM order,
+       masked into a ring so the rays only show past the star's points. */
+    .reveal-ray-burst{
+      position:absolute;top:50%;left:50%;width:340px;height:340px;
+      transform:translate(-50%,-50%);z-index:0;pointer-events:none;
+      background:conic-gradient(from 0deg,
+        var(--ray-c) 0deg 12deg, transparent 12deg 25.7deg,
+        var(--ray-c) 25.7deg 37.7deg, transparent 37.7deg 51.4deg,
+        var(--ray-c) 51.4deg 63.4deg, transparent 63.4deg 77.1deg,
+        var(--ray-c) 77.1deg 89.1deg, transparent 89.1deg 102.8deg,
+        var(--ray-c) 102.8deg 114.8deg, transparent 114.8deg 128.5deg,
+        var(--ray-c) 128.5deg 140.5deg, transparent 140.5deg 154.2deg,
+        var(--ray-c) 154.2deg 166.2deg, transparent 166.2deg 180deg,
+        var(--ray-c) 180deg 192deg, transparent 192deg 205.7deg,
+        var(--ray-c) 205.7deg 217.7deg, transparent 217.7deg 231.4deg,
+        var(--ray-c) 231.4deg 243.4deg, transparent 243.4deg 257.1deg,
+        var(--ray-c) 257.1deg 269.1deg, transparent 269.1deg 282.8deg,
+        var(--ray-c) 282.8deg 294.8deg, transparent 294.8deg 308.5deg,
+        var(--ray-c) 308.5deg 320.5deg, transparent 320.5deg 334.2deg,
+        var(--ray-c) 334.2deg 346.2deg, transparent 346.2deg 360deg);
+      opacity:.5;filter:blur(1px);animation:rayspin 16s linear infinite;
+      mask:radial-gradient(circle,transparent 15%,#000 26%,#000 46%,transparent 62%);
+      -webkit-mask:radial-gradient(circle,transparent 15%,#000 26%,#000 46%,transparent 62%);
+    }
+    @keyframes rayspin{to{transform:translate(-50%,-50%) rotate(360deg)}}
+    .legend-reveal-icon.rarity-common{background:linear-gradient(160deg,#C7CBD1,#5B5F66)}
+    .legend-reveal-icon.rarity-rare{background:linear-gradient(160deg,#8FF0B8,#16803D)}
+    .legend-reveal-icon.rarity-superrare{background:linear-gradient(160deg,#B8D9FF,#1D4ED8);animation:rarityPulseSoft 2.6s ease-in-out infinite}
+    .legend-reveal-icon.rarity-epic{background:linear-gradient(115deg,#F1DCFF,#D8A6FF,#F1DCFF,#B266FF);background-size:260% 100%;animation:rarityShimmerSweep 3s linear infinite}
+    .legend-reveal-icon.rarity-mythic{background:linear-gradient(160deg,#FFB3B9,#C81E3A);animation:rarityPulseStrong 2s ease-in-out infinite}
+    .legend-reveal-icon.rarity-legendary{background:linear-gradient(160deg,#FFEA9E,#E8B400);animation:rarityPulseStrong 1.6s ease-in-out infinite}
     .legend-reveal-icon.rarity-ultralegendary{
       background:linear-gradient(115deg,#FFD24A,#FF6FD8,#7FE3FF,#FF9A3D,#FFD24A);
-      background-size:300% 100%;box-shadow:0 0 46px rgba(255,180,80,.85);
+      background-size:300% 100%;
       animation:holoShift 3.6s linear infinite,rarityPulseStrong 1.4s ease-in-out infinite;
     }
-    .legend-reveal-rarity{font-size:10px;font-weight:800;letter-spacing:.22em;margin-bottom:10px}
-    .legend-reveal-rarity.rarity-common{color:#B0B5BC}
-    .legend-reveal-rarity.rarity-rare{color:#4ADE80}
-    .legend-reveal-rarity.rarity-superrare{color:#60A5FA}
-    .legend-reveal-rarity.rarity-epic{color:#C084FC}
-    .legend-reveal-rarity.rarity-mythic{color:#FF6B7A}
-    .legend-reveal-rarity.rarity-legendary{color:#FFD400}
+    /* Bold outlined label above the badge, Brawl-Stars-mechanism style —
+       stroke via -webkit-text-stroke with paint-order so the black
+       outline never eats into the fill, works with any font weight. */
+    .legend-reveal-rarity{
+      font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:18px;letter-spacing:.02em;
+      text-transform:uppercase;margin-bottom:2px;position:relative;z-index:2;
+      -webkit-text-stroke:1.8px #14100a;paint-order:stroke fill;
+      text-shadow:0 3px 0 rgba(0,0,0,.35);
+    }
+    .legend-reveal-rarity.rarity-ultralegendary{font-size:16px}
+    .legend-reveal-rarity.rarity-common{color:#D5D8DC}
+    .legend-reveal-rarity.rarity-rare{color:#8FF0B8}
+    .legend-reveal-rarity.rarity-superrare{color:#B8D9FF}
+    .legend-reveal-rarity.rarity-epic{color:#E0B8FF}
+    .legend-reveal-rarity.rarity-mythic{color:#FFB3B9}
+    .legend-reveal-rarity.rarity-legendary{color:#FFEA9E}
     .legend-reveal-rarity.rarity-ultralegendary{
       background:linear-gradient(90deg,#FFD24A,#FF6FD8,#7FE3FF,#FF9A3D,#FFD24A);
       background-size:300% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;
@@ -8426,6 +8470,14 @@ const RARITY_BORDER={
   legendary:'rgba(255,212,0,.45)',
   ultralegendary:'rgba(255,180,80,.5)',
 };
+// Ray-burst colour behind the reveal badge — solid (not translucent like
+// RARITY_GLOW above) since the conic-gradient ray shapes need real
+// contrast against the dark modal, with the element's own opacity doing
+// the toning-down instead of baking translucency into the colour itself.
+const RARITY_RAY={
+  common:'#9AA0A8', rare:'#3DBE6F', superrare:'#4E8FE0', epic:'#B266FF',
+  mythic:'#E0455A', legendary:'#E8B400', ultralegendary:'#FF9AD8',
+};
 // Every tier above Bronze choreographs a step further than the last,
 // not just a different crate colour \u2014 Bronze is the free, frequent
 // tier and should feel quick and clean; each tier after it earns a
@@ -8486,8 +8538,12 @@ function showLegendReveal(l,isNew,tier){
     modal.style.borderColor=RARITY_BORDER[l.rarity];
     modal.classList.add('glow');
     modal.innerHTML=
-      '<div class="legend-reveal-icon shine spin-in rarity-'+l.rarity+'">'+legendIconHTML(l)+'</div>'+
-      '<div class="legend-reveal-rarity rarity-'+l.rarity+'">'+l.rarity.toUpperCase()+(isNew?' \u2014 NEW':' \u2014 DUPLICATE')+'</div>'+
+      '<div class="legend-reveal-rarity rarity-'+l.rarity+'">'+(l.rarity==='ultralegendary'?'ULTRA LEGENDARY':l.rarity.toUpperCase())+'</div>'+
+      '<div class="reveal-badge-wrap" style="--ray-c:'+RARITY_RAY[l.rarity]+'">'+
+        '<div class="reveal-ray-burst"></div>'+
+        '<div class="legend-reveal-icon shine spin-in rarity-'+l.rarity+'">'+legendIconHTML(l)+'</div>'+
+      '</div>'+
+      '<div style="font-size:10.5px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:'+(isNew?'#8FE8FF':'rgba(var(--white-rgb),.4)')+';margin:2px 0 12px">'+(isNew?'NEW':'DUPLICATE')+'</div>'+
       '<div class="achievement-title reveal-name-serif">'+l.name+'</div>'+
       '<div class="achievement-desc">'+l.title+'</div>'+
       (tier==='areviax'?'<div style="font-size:11px;font-weight:700;color:#FFB347;margin-top:8px">\ud83d\udd25 The Areviax Drop \u2014 +2 bonus Compass Shards</div>':'')+
