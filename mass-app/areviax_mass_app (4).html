@@ -573,20 +573,21 @@ input,input:focus,input:active,
    columns. */
 .dash-grid{display:grid;gap:14px;grid-template-columns:1fr;
   grid-template-areas:"greeting" "today" "overview" "quote"}
+/* Clears the fixed notification banner's drop-in zone (see
+   .dash-notif-fixed below) — the greeting card lost its old boxed
+   padding when it went unboxed, so without this a banner dropping in
+   would sit directly on top of the greeting text on mobile instead of
+   above it. Desktop's banner is centered over the right column, clear
+   of the greeting text already, so this is mobile-only. */
+@media(max-width:899px){.dash-grid{margin-top:40px}}
 .dash-greeting{grid-area:greeting}
 .dash-today{grid-area:today}
 .dash-rings{grid-area:overview}
 .dash-quote{grid-area:quote}
-/* Streak card is desktop-only — mobile's single column is already using
-   its space efficiently (that's the whole point of the one-screen-fit
-   layout above), this exists specifically to fill the gap that opens up
-   below Today once desktop stops stacking "today" across two rows. */
-.dash-streak{display:none}
 @media(min-width:900px){
   #page-dashboard{max-width:1120px}
   .dash-grid{grid-template-columns:1.4fr 1fr;align-items:start;
-    grid-template-areas:"greeting overview" "today overview" "streak quote"}
-  .dash-streak{display:block;grid-area:streak}
+    grid-template-areas:"greeting overview" "today overview" "quote quote"}
 }
 /* DESKTOP DASHBOARD SCALE-UP — the dashboard's cards were sized tight
    enough to fit one mobile screen without scrolling (see .dash-grid's
@@ -623,17 +624,23 @@ input,input:focus,input:active,
 @media(min-width:900px){
   #page-dashboard{max-width:1320px}
   .dash-grid{gap:16px!important}
-  .dash-greeting-inner,.dash-today-inner{padding:20px 26px!important;border-radius:18px!important}
+  /* Greeting is the unboxed hero — no card padding/radius to override
+     (it has none), just scale its own type up. Today is deliberately the
+     smaller, boxed, secondary "quick action" tile next to it — tighter
+     padding than before, day-picker/volume-chart dropped since desktop
+     already shows that same data bigger in Today's Overview + the
+     greeting streak number, so repeating it here would be noise. */
+  .dash-greeting-text{font-size:26px!important}
+  .dash-greeting-date{font-size:11px!important}
+  .dash-hero-streak-num{font-size:104px!important}
+  .dash-greeting-weekstrip{display:grid!important;max-width:420px!important}
+  .dash-today-inner{padding:18px 22px!important;border-radius:16px!important}
   .dash-avatar{width:56px!important;height:56px!important}
   .dash-avatar svg{width:26px!important;height:26px!important}
-  .dash-greeting-text{font-size:24px!important}
-  .dash-greeting-date{font-size:13px!important}
-  .dash-today-label{font-size:11px!important;margin-bottom:6px!important}
-  .dash-today-name{font-size:24px!important}
-  .dash-start-btn{padding:15px 28px!important;font-size:13px!important;border-radius:11px!important}
-  .dash-vol-label{font-size:10px!important}
-  .dash-vol-total{font-size:12px!important}
-  .dash-wp-chart{height:64px!important}
+  .dash-today-label{font-size:10.5px!important;margin-bottom:5px!important}
+  .dash-today-name{font-size:22px!important}
+  .dash-start-btn{padding:13px 24px!important;font-size:12.5px!important;border-radius:10px!important}
+  #d-next-daypicker,#vol-daily-card,#vol-daily-empty{display:none!important}
   #acc-progress{padding:22px 26px!important;border-radius:18px!important}
   .dash-overview-label{font-size:11px!important;margin-bottom:16px!important}
   .dash-ring-grid{gap:14px!important;margin-bottom:18px!important}
@@ -648,11 +655,6 @@ input,input:focus,input:active,
   .dash-quote-label{font-size:10.5px!important;margin-bottom:8px!important}
   .dash-quote-text{font-size:18px!important;margin-bottom:10px!important;-webkit-line-clamp:3!important}
   .dash-quote-attrib{font-size:12px!important;margin-bottom:14px!important}
-  .dash-streak-inner{padding:22px 26px!important;border-radius:18px!important}
-  .dash-streak-flame{font-size:44px!important}
-  .dash-streak-num{font-size:36px!important}
-  .dash-streak-label{font-size:11px!important}
-  .dash-streak-link{font-size:11.5px!important}
 }
 
 /* STREAK DAY FLAME — a completed day used to just be a solid-colour
@@ -3129,22 +3131,32 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        as .glow-title elsewhere (XP/Trophy/Recovery headers) instead of a
        one-off effect, so the hero moment matches the rest of the app's
        own vocabulary rather than inventing a new one. -->
-  <div class="dash-greeting-inner" style="background:linear-gradient(135deg,rgba(255,90,0,.07),rgba(var(--bg-rgb),.9));border:1px solid rgba(255,90,0,.2);border-radius:16px;padding:20px 22px;height:100%;box-sizing:border-box;position:relative;overflow:hidden">
+  <div class="dash-greeting-inner" style="background:transparent;border:none;padding:6px 4px 22px;height:100%;box-sizing:border-box;position:relative;overflow:hidden">
     <!-- Giant faint watermark of the streak count, same device as the
          Today card's session-number watermark — this card's "number" is
          the current streak, the one stat that belongs in a daily-return
-         greeting more than any other. -->
-    <div aria-hidden="true" id="dash-streak-watermark" style="position:absolute;right:6px;top:-14px;font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:96px;line-height:1;color:rgba(255,255,255,.045);pointer-events:none;user-select:none">0</div>
+         greeting more than any other. Sits behind the real (bold, visible)
+         number below purely for depth, not as the readable stat itself —
+         that's what "the 1" in the reference is doing behind its headline. -->
+    <div aria-hidden="true" id="dash-streak-watermark" style="position:absolute;right:-4px;top:-22px;font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:150px;line-height:1;color:rgba(255,122,46,.06);pointer-events:none;user-select:none">0</div>
     <div style="position:relative">
-      <div class="dash-greeting-date" style="font-size:9px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,122,46,.55);margin-bottom:6px" id="dash-date"></div>
-      <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:19px;line-height:1.15;letter-spacing:-.01em;color:var(--white)" id="dash-greeting">Good morning</div>
-      <div class="glow-title xp" style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:19px;line-height:1.15;letter-spacing:-.01em;margin-bottom:14px" id="dash-name">Athlete</div>
-      <div style="display:flex;align-items:baseline;gap:8px">
-        <span style="font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:44px;line-height:1;color:var(--white)" id="dash-greeting-streak-num">0</span>
-        <span style="font-size:20px;line-height:1">🔥</span>
-        <span style="font-size:10.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,122,46,.7)">Day Streak</span>
+      <div class="dash-greeting-date" style="font-size:9px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,122,46,.55);margin-bottom:8px" id="dash-date"></div>
+      <div class="dash-greeting-text" style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:19px;line-height:1.15;letter-spacing:-.01em;color:var(--white)" id="dash-greeting">Good morning</div>
+      <div class="glow-title xp dash-greeting-text" style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:19px;line-height:1.15;letter-spacing:-.01em;margin-bottom:18px" id="dash-name">Athlete</div>
+      <div style="display:flex;align-items:flex-end;gap:10px">
+        <span class="dash-hero-streak-num" style="font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:64px;line-height:.9;letter-spacing:-.02em;color:var(--white)" id="dash-greeting-streak-num">0</span>
+        <div style="display:flex;flex-direction:column;padding-bottom:6px">
+          <span style="font-size:24px;line-height:1;margin-bottom:2px">🔥</span>
+          <span style="font-size:10.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,122,46,.7)">Day Streak</span>
+        </div>
       </div>
-      <div style="font-size:10.5px;color:rgba(var(--white-rgb),.4);margin-top:4px" id="dash-greeting-streak-sub"></div>
+      <div style="font-size:11px;color:rgba(var(--white-rgb),.4);margin-top:6px" id="dash-greeting-streak-sub"></div>
+      <!-- Week strip — desktop-only (see .dash-greeting-weekstrip), fills
+           the room the enlarged hero now has to spare. Same real
+           trainingCompletedDates data as Today's day-picker, just a
+           second render target so it still shows here once that one's
+           hidden on desktop (see the 900px block above). -->
+      <div id="dash-greeting-days" class="dash-greeting-weekstrip" style="display:none;grid-template-columns:repeat(7,minmax(0,1fr));gap:10px;margin-top:22px;max-width:340px"></div>
     </div>
   </div>
   </div>
@@ -3294,29 +3306,6 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       <div class="dash-quote-text" style="font-size:12.5px;color:rgba(var(--white-rgb),.85);line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden" id="assessment-text">—</div>
       <div style="font-size:10px;color:rgba(68,212,255,.75);font-weight:700;margin-top:6px">Read full breakdown →</div>
     </div>
-  </div>
-  </div>
-
-  <!-- STREAK CARD — desktop-only (see .dash-streak in the shared CSS
-       block), fills the gap that used to sit empty below the Today card
-       once "today" stopped spanning down into this row (see .dash-grid's
-       comment). Same real streak/week data the topbar pill and Profile
-       page's weekly recap already use — renderWeeklyRecap() populates
-       both, not fabricated for this card specifically. No fake
-       currency/challenge CTA (the reference had "earn 400 gems" —
-       Areviax doesn't have gems), just the real number and a link to
-       where the fuller history actually lives. -->
-  <div class="dash-streak">
-  <div class="dash-streak-inner" style="background:linear-gradient(160deg,rgba(255,90,0,.09),rgba(var(--bg-rgb),.9));border:1.5px solid rgba(255,90,0,.3);border-radius:14px;padding:16px 18px;height:100%;box-sizing:border-box;display:flex;flex-direction:column;justify-content:center">
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
-      <div class="dash-streak-flame" style="font-size:34px;line-height:1">🔥</div>
-      <div>
-        <div class="dash-streak-num" style="font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:800;color:var(--white);line-height:1" id="dash-streak-num">0</div>
-        <div class="dash-streak-label" style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,122,46,.75);margin-top:2px">Day Streak</div>
-      </div>
-    </div>
-    <div id="dash-streak-days" style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;margin-bottom:10px"></div>
-    <div class="dash-streak-link" onclick="showPage('profile')" style="font-size:10.5px;color:var(--muted);cursor:pointer;text-decoration:underline;text-underline-offset:2px">Full history →</div>
   </div>
   </div>
 
@@ -4063,7 +4052,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
      exercise How-To modal, reusing that visual language rather than
      inventing a third modal style. -->
 <div id="recipe-detail-backdrop" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9998" onclick="closeRecipeDetail()"></div>
-<div id="recipe-detail-modal" style="display:none;position:fixed;inset:16px;background:var(--panel);border:1px solid var(--border);border-radius:18px;z-index:9999;overflow-y:auto;max-width:480px;margin:0 auto;box-shadow:0 30px 80px -20px rgba(0,0,0,.7)">
+<div id="recipe-detail-modal" style="display:none;position:fixed;inset:16px;background:var(--panel);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid var(--border);border-radius:18px;z-index:9999;overflow-y:auto;max-width:480px;margin:0 auto;box-shadow:0 30px 80px -20px rgba(0,0,0,.7)">
   <div style="padding:22px">
     <div style="display:flex;justify-content:flex-end"><span onclick="closeRecipeDetail()" style="cursor:pointer;color:var(--muted);font-size:20px;line-height:1">✕</span></div>
     <div id="recipe-detail-placeholder" class="recipe-card-visual" style="height:140px;border-radius:12px;margin-bottom:16px"></div>
@@ -5564,7 +5553,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
      interfere with position:fixed. -->
 <!-- CUSTOM EQUIPMENT CHECKLIST MODAL -->
 <div id="custom-equip-modal-backdrop" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9998" onclick="closeCustomEquipChecklist()"></div>
-<div id="custom-equip-modal" style="display:none;position:fixed;bottom:0;left:0;right:0;background:var(--panel);border-top:1px solid var(--border);border-radius:16px 16px 0 0;padding:22px;z-index:9999;max-width:480px;margin:0 auto;box-shadow:0 -20px 50px -20px rgba(0,0,0,.6);max-height:80vh;overflow-y:auto">
+<div id="custom-equip-modal" style="display:none;position:fixed;bottom:0;left:0;right:0;background:var(--panel);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-top:1px solid var(--border);border-radius:16px 16px 0 0;padding:22px;z-index:9999;max-width:480px;margin:0 auto;box-shadow:0 -20px 50px -20px rgba(0,0,0,.6);max-height:80vh;overflow-y:auto">
   <div style="font-weight:800;font-size:14px;margin-bottom:4px">What do you actually have?</div>
   <div style="font-size:12px;color:var(--muted);margin-bottom:6px">Tick everything available to you — most gyms and home setups have some of this but not all of it.</div>
   <div id="custom-equip-list"></div>
@@ -5574,7 +5563,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
 
 <!-- RESCHEDULE MODAL -->
 <div id="reschedule-modal-backdrop" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9998" onclick="closeReschedule()"></div>
-<div id="reschedule-modal" style="display:none;position:fixed;bottom:0;left:0;right:0;background:var(--panel);border-top:1px solid var(--border);border-radius:16px 16px 0 0;padding:22px;z-index:9999;max-width:480px;margin:0 auto;box-shadow:0 -20px 50px -20px rgba(0,0,0,.6)">
+<div id="reschedule-modal" style="display:none;position:fixed;bottom:0;left:0;right:0;background:var(--panel);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-top:1px solid var(--border);border-radius:16px 16px 0 0;padding:22px;z-index:9999;max-width:480px;margin:0 auto;box-shadow:0 -20px 50px -20px rgba(0,0,0,.6)">
   <div style="font-weight:800;font-size:14px;margin-bottom:4px" id="resched-title">Missed a day</div>
   <div style="font-size:12px;color:var(--muted);margin-bottom:14px" id="resched-sub"></div>
   <div id="resched-options" style="display:flex;flex-direction:column;gap:8px"></div>
@@ -5583,7 +5572,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
 
 <!-- INJURY CONFLICT MODAL -->
 <div id="injury-confirm-backdrop" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9998" onclick="closeInjuryConfirm()"></div>
-<div id="injury-confirm-modal" style="display:none;position:fixed;bottom:0;left:0;right:0;background:var(--panel);border-top:1px solid rgba(255,122,46,.3);border-radius:16px 16px 0 0;padding:22px;z-index:9999;max-width:480px;margin:0 auto;box-shadow:0 -20px 50px -20px rgba(0,0,0,.6)">
+<div id="injury-confirm-modal" style="display:none;position:fixed;bottom:0;left:0;right:0;background:var(--panel);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-top:1px solid rgba(255,122,46,.3);border-radius:16px 16px 0 0;padding:22px;z-index:9999;max-width:480px;margin:0 auto;box-shadow:0 -20px 50px -20px rgba(0,0,0,.6)">
   <div style="font-weight:800;font-size:14px;margin-bottom:6px;color:#FF7A2E">⚠ Might aggravate an injury</div>
   <div style="font-size:12px;color:var(--muted);margin-bottom:16px;line-height:1.6" id="injury-confirm-text"></div>
   <div style="display:flex;flex-direction:column;gap:8px">
@@ -5595,7 +5584,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
 
 <!-- WEIGHT ANOMALY CONFIRM MODAL -->
 <div id="weight-confirm-backdrop" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9998" onclick="cancelWeightLog()"></div>
-<div id="weight-confirm-modal" style="display:none;position:fixed;bottom:0;left:0;right:0;background:var(--panel);border-top:1px solid rgba(255,122,46,.3);border-radius:16px 16px 0 0;padding:22px;z-index:9999;max-width:480px;margin:0 auto;box-shadow:0 -20px 50px -20px rgba(0,0,0,.6)">
+<div id="weight-confirm-modal" style="display:none;position:fixed;bottom:0;left:0;right:0;background:var(--panel);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-top:1px solid rgba(255,122,46,.3);border-radius:16px 16px 0 0;padding:22px;z-index:9999;max-width:480px;margin:0 auto;box-shadow:0 -20px 50px -20px rgba(0,0,0,.6)">
   <div style="font-weight:800;font-size:14px;margin-bottom:6px;color:#FF7A2E">⚠ That's a big jump</div>
   <div style="font-size:12px;color:var(--muted);margin-bottom:16px;line-height:1.6" id="weight-confirm-text"></div>
   <div style="display:flex;flex-direction:column;gap:8px">
@@ -5606,13 +5595,13 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
 
 <!-- HOW-TO-DO-IT MODAL — step-by-step tap-through (setup / motion / feel) -->
 <div id="howto-backdrop" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9998" onclick="closeHowTo()"></div>
-<div id="howto-modal" style="display:none;position:fixed;bottom:0;left:0;right:0;background:var(--panel);border-top:1px solid var(--border);border-radius:16px 16px 0 0;padding:22px;z-index:9999;max-width:480px;margin:0 auto;box-shadow:0 -20px 50px -20px rgba(0,0,0,.6);max-height:82vh;overflow-y:auto">
+<div id="howto-modal" style="display:none;position:fixed;bottom:0;left:0;right:0;background:var(--panel);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-top:1px solid var(--border);border-radius:16px 16px 0 0;padding:22px;z-index:9999;max-width:480px;margin:0 auto;box-shadow:0 -20px 50px -20px rgba(0,0,0,.6);max-height:82vh;overflow-y:auto">
   <div id="howto-body"></div>
 </div>
 
 <!-- WATCH MODAL — full-size animated exercise walkthrough -->
 <div id="watch-backdrop" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9998" onclick="closeWatch()"></div>
-<div id="watch-modal" style="display:none;position:fixed;inset:16px;z-index:9999;max-width:480px;margin:0 auto;background:var(--panel);border:1.5px solid var(--border);border-radius:16px;box-shadow:0 20px 60px -20px rgba(0,0,0,.7);flex-direction:column;overflow:hidden">
+<div id="watch-modal" style="display:none;position:fixed;inset:16px;z-index:9999;max-width:480px;margin:0 auto;background:var(--panel);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1.5px solid var(--border);border-radius:16px;box-shadow:0 20px 60px -20px rgba(0,0,0,.7);flex-direction:column;overflow:hidden">
   <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1.5px solid var(--border2);flex-shrink:0">
     <div id="watch-title" style="font-weight:800;font-size:14px"></div>
     <button onclick="closeWatch()" style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;line-height:1;padding:4px 8px">✕</button>
@@ -5638,7 +5627,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
      the exact same data the small dashboard tile already shows, just with
      room to actually see the pattern instead of a single number. ── -->
 <div id="streak-detail-backdrop" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9998" onclick="closeStreakDetail()"></div>
-<div id="streak-detail-modal" style="display:none;position:fixed;inset:16px;z-index:9999;max-width:480px;margin:0 auto;background:var(--panel);border:1.5px solid var(--border);border-radius:16px;box-shadow:0 20px 60px -20px rgba(0,0,0,.7);flex-direction:column;overflow:hidden">
+<div id="streak-detail-modal" style="display:none;position:fixed;inset:16px;z-index:9999;max-width:480px;margin:0 auto;background:var(--panel);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1.5px solid var(--border);border-radius:16px;box-shadow:0 20px 60px -20px rgba(0,0,0,.7);flex-direction:column;overflow:hidden">
   <div style="display:flex;align-items:center;justify-content:flex-end;padding:12px 12px 0;flex-shrink:0">
     <button onclick="closeStreakDetail()" style="background:var(--border2);border:none;color:var(--muted);font-size:16px;cursor:pointer;line-height:1;padding:6px 10px;border-radius:50%">✕</button>
   </div>
@@ -5675,7 +5664,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
      equivalents, with a progress bar toward the next one and a scrollable
      list of everything already cleared. ── -->
 <div id="milestones-backdrop" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9998" onclick="closeMilestones()"></div>
-<div id="milestones-modal" style="display:none;position:fixed;inset:16px;z-index:9999;max-width:480px;margin:0 auto;background:var(--panel);border:1.5px solid var(--border);border-radius:16px;box-shadow:0 20px 60px -20px rgba(0,0,0,.7);flex-direction:column;overflow:hidden">
+<div id="milestones-modal" style="display:none;position:fixed;inset:16px;z-index:9999;max-width:480px;margin:0 auto;background:var(--panel);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1.5px solid var(--border);border-radius:16px;box-shadow:0 20px 60px -20px rgba(0,0,0,.7);flex-direction:column;overflow:hidden">
   <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1.5px solid var(--border2);flex-shrink:0">
     <div style="font-weight:800;font-size:14px">Lifting Milestones</div>
     <button onclick="closeMilestones()" style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;line-height:1;padding:4px 8px">✕</button>
@@ -15693,11 +15682,12 @@ function renderWeeklyRecap(){
     }
   }
 
-  // Desktop dashboard streak card — same week-strip data/markup (just its
-  // own element ids, since both this and the Profile page's copy exist in
-  // the DOM at once), orange instead of green to match the flame/streak
+  // Greeting-card week strip — same week-strip data/markup the old
+  // desktop streak card used, now folded into the unboxed greeting hero
+  // itself instead of a separate redundant card (the streak number lives
+  // there too now), orange instead of green to match the flame/streak
   // identity rather than reusing Profile's "training day" green.
-  const dashDaysEl=document.getElementById('dash-streak-days');
+  const dashDaysEl=document.getElementById('dash-greeting-days');
   if(dashDaysEl){
     dashDaysEl.innerHTML=thisWeekDates.map((dStr)=>{
       const d=new Date(dStr+'T00:00:00');
@@ -15709,8 +15699,6 @@ function renderWeeklyRecap(){
       </div>`;
     }).join('');
   }
-  const dashStreakNum=document.getElementById('dash-streak-num');
-  if(dashStreakNum)dashStreakNum.textContent=streak;
 
   // Hero-card day picker — same week/training data as the strips above,
   // rendered as capsule pills (today filled solid, trained days a ✓,
