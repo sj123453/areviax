@@ -1843,6 +1843,18 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .crate-icon-wrap.areviax.ready{--crate-glow-blur:34px}
     .crate-icon-wrap.areviax.ready .crate-icon-glow{animation:crateGlowPulse 1.8s ease-in-out infinite}
     @keyframes crateGlowPulse{0%,100%{opacity:.7}50%{opacity:1}}
+    /* Every "ready" crate keeps its glow+burst animating continuously in
+       the background even while a reveal/achievement overlay is showing
+       on top of it — on a page with several crates ready at once, that's
+       several already-running filtered/masked layers still repainting
+       right as the reveal's own ray-burst, rarity pulse and confetti all
+       start up together. Pausing them for as long as any overlay is open
+       (see the overlay-open MutationObserver near celebrateBurst) cuts
+       that concurrent load without changing how a crate looks the rest
+       of the time — see the theorised phone-glitch report this was
+       written for. */
+    body.overlay-open .crate-icon-wrap.ready .crate-icon-glow,
+    body.overlay-open .crate-icon-wrap.ready .crate-icon-burst{animation-play-state:paused}
     /* Same Clash-Royale-chest rarity burst as .legend-card-icon-burst,
        adapted to crates: rays reuse the crate's own --crate-glow-color
        (already an rgba value, valid straight in a conic-gradient), and
@@ -8573,12 +8585,20 @@ const RARITY_RAY={
 // (3.5-7.6s total, and reading as a gambling machine rather than a
 // reward) with one continuous beat \u2014 wind up once, crack once, reveal
 // \u2014 that lands well under a second even for the best tier.
+// burstCount used to run up to 56 for Areviax — that's 56 fixed-position
+// DOM nodes created and individually transform-animated in one
+// synchronous loop, on top of everything else already happening at
+// reveal time (ray-burst rotation, rarity glow pulse, crack flash). On a
+// weaker phone, spinning up that many new compositing layers in a single
+// frame is a real stutter/glitch trigger, not just a big number — capped
+// each tier to roughly what every other celebration moment in the app
+// already uses (most sit at 10-22; see celebrateBurst call sites).
 const CRATE_OPEN_TIMING={
   bronze:{windupMs:260, crackMs:200, burstCount:12, flash:false},
   silver:{windupMs:300, crackMs:210, burstCount:16, flash:false},
-  gold:  {windupMs:380, crackMs:230, burstCount:24, flash:true},
-  diamond:{windupMs:460,crackMs:250, burstCount:32, flash:true},
-  areviax:{windupMs:580,crackMs:280, burstCount:56, flash:true},
+  gold:  {windupMs:380, crackMs:230, burstCount:20, flash:true},
+  diamond:{windupMs:460,crackMs:250, burstCount:24, flash:true},
+  areviax:{windupMs:580,crackMs:280, burstCount:28, flash:true},
 };
 function showLegendReveal(l,isNew,tier){
   const cfg=CRATE_OPEN_TIMING[tier]||CRATE_OPEN_TIMING.bronze;
@@ -9915,6 +9935,28 @@ function mountScrollPicker(input,opts){
     wrap._wheelSnapT=setTimeout(()=>snap(currentTx,true),120);
   },{passive:false});
 }
+// Keeps body.overlay-open in sync with whether an .achievement-overlay
+// (crate reveal, PR/achievement popup, league promo, milestones, etc.)
+// is currently in the DOM — that class is created and torn down from
+// many different places across the file, so a MutationObserver here is
+// one reliable place for this instead of touching every call site.
+// Scoped to only react when the actual mutation is an overlay node, not
+// every DOM change under body (celebrateBurst below adds/removes up to
+// ~28 of its own nodes on body during the exact moments this matters
+// most, and re-querying the whole document on each of those would just
+// add more work during an already-loaded frame). See .overlay-open
+// usage on the crate glow/burst pause rules, added for the same reason.
+function syncOverlayOpenClass(mutations){
+  for(const m of mutations){
+    for(const n of m.addedNodes){
+      if(n.nodeType===1&&n.classList&&n.classList.contains('achievement-overlay')){document.body.classList.add('overlay-open');return;}
+    }
+    for(const n of m.removedNodes){
+      if(n.nodeType===1&&n.classList&&n.classList.contains('achievement-overlay')){document.body.classList.toggle('overlay-open',!!document.querySelector('.achievement-overlay'));return;}
+    }
+  }
+}
+new MutationObserver(syncOverlayOpenClass).observe(document.body,{childList:true});
 // ── CELEBRATION BURST — reserved for genuinely meaningful moments (session
 // complete, a PR, good sleep, a full wind-down streak) — not every tap, or it
 // stops feeling special. ──
@@ -13106,7 +13148,7 @@ function logSet(ei,si,name,muscle){
     const pd=document.getElementById('pr-d-'+ei);
     if(pd)pd.textContent='PR: '+w+'kg';
     toast('🏆',isWeightPR?'New PR on '+name+': '+w+'kg!':'New PR on '+name+': '+w+'kg×'+r+' (more reps)!');
-    celebrateBurst(['🏆','⭐','💥'],18);
+    celebrateBurst(['🏆','⭐','💥'],14);
     checkQuestWeek();questProgress.prs=(questProgress.prs||0)+1;renderQuests();checkAchievements();
   }
   if(w>0&&r>0){
@@ -13462,7 +13504,7 @@ function completeSession(nameOverride){
   // hitting Complete.
   const compassAlreadyClaimed=!alreadyTrainedToday&&compassPointDate===today;
   toast(alreadyTrainedToday?'💪':(compassAlreadyClaimed?'🧭':'💪'), alreadyTrainedToday?'Extra session logged!':(compassAlreadyClaimed?'Session done! Compass point earned.':'Session done!'));
-  celebrateBurst(['💪','🔥','⚡'],alreadyTrainedToday?10:18);
+  celebrateBurst(['💪','🔥','⚡'],alreadyTrainedToday?10:14);
   saveToStorage();
   showPage('dashboard');
   setCompanionMessage();
