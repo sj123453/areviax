@@ -4085,14 +4085,99 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
 <!-- PROGRESS -->
 <div class="page" id="page-progress">
 
-  <!-- THIS WEEK — the one-glance top summary, same treatment as the
-       Nutrition page's "Today's Overview": always visible, no swipe
-       needed. Everything else below (Data Terminal, Photos, Sleep,
-       XP source, cross-promo) moves into a horizontal carousel so this
-       top card is what actually fits on one mobile screen. -->
-  <div class="card" style="margin-bottom:14px">
-    <div class="ch"><span class="ct">This week</span></div>
-    <div id="consistency-wrap"></div>
+  <!-- HERO — total tonnage over a selectable window, same hero-stat
+       mechanism as the Dashboard's Today/greeting cards: giant number,
+       small unit, huge faint watermark, a real trend line underneath,
+       and here a genuine filter control (4W/12W/1Y) instead of a fixed
+       range. Real tonnageLog data — see renderProgressHero(). -->
+  <div style="background:linear-gradient(160deg,rgba(255,90,0,.09),rgba(var(--bg-rgb),.9));border:1px solid rgba(255,90,0,.22);border-radius:16px;padding:22px 22px 20px;margin-bottom:16px;position:relative;overflow:hidden">
+    <div aria-hidden="true" id="prog-hero-watermark" style="position:absolute;right:10px;top:-10px;font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:96px;line-height:1;color:rgba(255,255,255,.045);pointer-events:none;user-select:none">12</div>
+    <div style="position:relative">
+      <div style="font-size:9.5px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,122,46,.7);margin-bottom:8px">Total Volume · <span id="prog-hero-range-label">12W</span></div>
+      <div style="display:flex;align-items:flex-end;gap:6px">
+        <span style="font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:56px;line-height:1;color:var(--white)" id="prog-hero-num">0</span>
+        <span style="font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:30px;line-height:1.1;color:transparent;-webkit-text-stroke:1.5px rgba(var(--white-rgb),.5)">T</span>
+      </div>
+      <div style="font-size:11.5px;color:rgba(var(--white-rgb),.55);margin-top:8px" id="prog-hero-trend">Log a session to start tracking volume.</div>
+      <div style="display:flex;gap:8px;margin-top:16px" id="prog-hero-range-pills">
+        <div class="prog-range-pill" data-weeks="4" onclick="setProgressRange(4)" style="flex:1;text-align:center;padding:9px;border-radius:999px;border:1.5px solid var(--border2);font-size:11.5px;font-weight:800;color:var(--muted);cursor:pointer">4W</div>
+        <div class="prog-range-pill active" data-weeks="12" onclick="setProgressRange(12)" style="flex:1;text-align:center;padding:9px;border-radius:999px;border:1.5px solid var(--orange);background:rgba(255,90,0,.12);font-size:11.5px;font-weight:800;color:var(--orange);cursor:pointer">12W</div>
+        <div class="prog-range-pill" data-weeks="52" onclick="setProgressRange(52)" style="flex:1;text-align:center;padding:9px;border-radius:999px;border:1.5px solid var(--border2);font-size:11.5px;font-weight:800;color:var(--muted);cursor:pointer">1Y</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TONNAGE — weekly bar chart across the same selected range, rounded
+       bars, current week highlighted. Reuses the same tonnageLog weekly
+       bucketing renderVolumeTrend() already did, just re-drawn as bars
+       matching this page's new visual language instead of a thin line. -->
+  <div id="prog-tonnage-card" style="display:none;background:rgba(255,255,255,.015);border:1px solid var(--border2);border-radius:16px;padding:18px;margin-bottom:14px">
+    <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px">
+      <span style="font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:15px;color:var(--white)">Tonnage</span>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--muted)">tonnes / week</span>
+    </div>
+    <div id="prog-tonnage-chart" style="display:flex;align-items:flex-end;gap:5px;height:90px;margin-bottom:8px"></div>
+    <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--muted)">
+      <span id="prog-tonnage-left-label">-12w</span><span>now</span>
+    </div>
+  </div>
+
+  <!-- RECORDS — real prs/lastPerformance data, restyled to match: icon,
+       lift name, weight right-aligned. No fabricated dates/deltas — that
+       history isn't tracked anywhere yet, and inventing it would be
+       worse than just not showing it. -->
+  <div style="background:rgba(255,255,255,.015);border:1px solid var(--border2);border-radius:16px;padding:18px 18px 6px;margin-bottom:14px">
+    <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px">
+      <span style="font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:15px;color:var(--white)">Records</span>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted)" id="prog-records-count"></span>
+    </div>
+    <div id="prog-records-list"></div>
+  </div>
+
+  <!-- BODYWEIGHT — real weightLog, same big-number treatment. -->
+  <div id="prog-bodyweight-card" style="display:none;background:rgba(255,255,255,.015);border:1px solid var(--border2);border-radius:16px;padding:18px;margin-bottom:14px">
+    <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px">
+      <span style="font-size:10px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:rgba(68,212,255,.75)">Bodyweight</span>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700" id="prog-bw-delta"></span>
+    </div>
+    <div style="display:flex;align-items:baseline;gap:4px;margin-bottom:10px">
+      <span style="font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:38px;line-height:1;color:var(--white)" id="prog-bw-num">—</span>
+      <span style="font-size:14px;color:var(--muted)">lbs</span>
+    </div>
+    <div id="prog-bw-chart"></div>
+  </div>
+
+  <!-- CONSISTENCY — 4-week heatmap, real trainingCompletedDates. -->
+  <div style="background:rgba(255,255,255,.015);border:1px solid var(--border2);border-radius:16px;padding:18px;margin-bottom:14px">
+    <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px">
+      <span style="font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:15px;color:var(--white)">Consistency</span>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted)" id="prog-consistency-count"></span>
+    </div>
+    <div id="prog-consistency-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:8px"></div>
+    <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--muted)">
+      <span>M T W T F S S</span><span>today</span>
+    </div>
+  </div>
+
+  <!-- BALANCE — real tonnageLog bucketed by muscle into push/pull/legs/core
+       (a set = one tonnageLog entry, since logSet() pushes one per set). -->
+  <div style="background:rgba(255,255,255,.015);border:1px solid var(--border2);border-radius:16px;padding:18px;margin-bottom:14px">
+    <div style="font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:15px;color:var(--white);margin-bottom:14px">Balance</div>
+    <div id="prog-balance-rows"></div>
+    <div id="prog-balance-note" style="display:none;margin-top:6px;font-size:11.5px;color:rgba(var(--white-rgb),.6);line-height:1.5"></div>
+  </div>
+
+  <!-- 3-STAT ROW — Training/Protein/Sleep this week, restyled from the old
+       "This week" card's same renderConsistency() data. -->
+  <div id="prog-stat-row" style="display:grid;grid-template-columns:repeat(3,1fr);background:rgba(255,255,255,.015);border:1px solid var(--border2);border-radius:16px;margin-bottom:14px;overflow:hidden"></div>
+
+  <!-- TROPHY ROOM — CTA into the Trophy Cabinet, real unlocked/total count. -->
+  <div onclick="showPage('trophycabinet')" style="cursor:pointer;background:linear-gradient(135deg,#FF7A2E,#FF5A00);border-radius:16px;padding:18px 20px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 12px 26px -12px rgba(255,90,0,.5)">
+    <div>
+      <div style="font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:17px;color:#2B0E00">Trophy Room</div>
+      <div style="font-size:12px;color:rgba(43,14,0,.75);margin-top:3px" id="prog-trophy-sub">— of — unlocked</div>
+    </div>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2B0E00" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
   </div>
 
   <div class="nutr-carousel-label">‹ Swipe for more ›</div>
@@ -10236,8 +10321,11 @@ function finishOnboarding(){
   saveToStorage();
 }
 
+// 3-STAT TILE ROW — Training/Protein/Sleep this week, real data
+// (proteinHitDates/sleepLog/sessThisWeek), same tile mechanism as the
+// reference: icon, label, giant val/max, thin mini-bar.
 function renderConsistency(){
-  const wrap=document.getElementById('consistency-wrap');
+  const wrap=document.getElementById('prog-stat-row');
   if(!wrap)return;
   const today=new Date();
   const sevenDaysAgo=new Date(today);sevenDaysAgo.setDate(today.getDate()-6);
@@ -10247,23 +10335,253 @@ function renderConsistency(){
   const nutriDays=proteinHitDates.filter(inLast7).length;
   const sleepDays=sleepLog.filter(e=>inLast7(e.date)).length;
   const rows=[
-    {label:'Training',icon:'🏋️',val:trainDays,max:target},
-    {label:'Nutrition',icon:'🍽',val:nutriDays,max:7},
-    {label:'Sleep',icon:'😴',val:sleepDays,max:7}
+    {label:'Training',icon:'🏋️',val:trainDays,max:target,col:'#FF7A2E'},
+    {label:'Protein',icon:'🍽',val:nutriDays,max:7,col:'#44CFFF'},
+    {label:'Sleep 7h+',icon:'😴',val:sleepDays,max:7,col:'#FFD24A'},
   ];
-  // Color reflects how each row is actually doing, not a fixed palette —
-  // hit the target and it glows green, close but short stays orange,
-  // well behind stays muted, so the row itself carries the verdict.
-  wrap.innerHTML=rows.map(r=>{
+  wrap.innerHTML=rows.map((r,i)=>{
     const pct=Math.min(100,r.val/r.max*100);
-    const col=pct>=100?'#44CFFF':pct>=50?'#FF7A2E':'#8E8E93';
-    return `<div class="stat-row">
-      <div class="stat-row-icon">${r.icon}</div>
-      <div class="stat-row-label">${r.label}</div>
-      <div class="stat-bar-wrap"><div class="stat-bar-fill" style="width:${pct}%;background:${col};box-shadow:${pct>=100?'0 0 8px rgba(68,207,255,.5)':'none'}"></div></div>
-      <div class="stat-row-val" style="color:${col}">${r.val}/${r.max}</div>
+    return `<div style="padding:16px 14px;${i<2?'border-right:1px solid var(--border2)':''}">
+      <div style="font-size:16px;margin-bottom:8px">${r.icon}</div>
+      <div style="font-size:9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:8px">${r.label}</div>
+      <div style="display:flex;align-items:baseline;gap:2px;margin-bottom:6px">
+        <span style="font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:24px;color:var(--white)">${r.val}</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted)">/${r.max}</span>
+      </div>
+      <div style="height:4px;border-radius:99px;background:var(--border2);overflow:hidden"><div style="height:100%;width:${pct}%;border-radius:99px;background:${r.col}"></div></div>
     </div>`;
   }).join('');
+}
+
+// ── PROGRESS PAGE HERO STACK — all real data, see each function's own
+// comment for which existing log/array it pulls from. progressRangeWeeks
+// is the shared state the hero + tonnage chart both read, set by the
+// 4W/12W/1Y pills.
+let progressRangeWeeks=12;
+function setProgressRange(weeks){
+  progressRangeWeeks=weeks;
+  document.querySelectorAll('.prog-range-pill').forEach(el=>{
+    const active=parseInt(el.dataset.weeks)===weeks;
+    el.style.border=active?'1.5px solid var(--orange)':'1.5px solid var(--border2)';
+    el.style.background=active?'rgba(255,90,0,.12)':'transparent';
+    el.style.color=active?'var(--orange)':'var(--muted)';
+  });
+  renderProgressHero();
+  renderProgressTonnage();
+}
+function weeklyTonnageBuckets(nWeeks){
+  const today=new Date();
+  const dow=today.getDay();
+  const mondayOffset=dow===0?6:dow-1;
+  const thisMonday=new Date(today);thisMonday.setDate(today.getDate()-mondayOffset);
+  thisMonday.setHours(0,0,0,0);
+  const weeks=[];
+  for(let i=nWeeks-1;i>=0;i--){
+    const start=new Date(thisMonday);start.setDate(thisMonday.getDate()-i*7);
+    const end=new Date(start);end.setDate(start.getDate()+7);
+    weeks.push({start,end,total:0});
+  }
+  tonnageLog.forEach(e=>{
+    const d=new Date(e.date+'T00:00:00');
+    for(const w of weeks){ if(d>=w.start&&d<w.end){ w.total+=e.tonnage; break; } }
+  });
+  return weeks;
+}
+function renderProgressHero(){
+  const numEl=document.getElementById('prog-hero-num');
+  const wmEl=document.getElementById('prog-hero-watermark');
+  const rangeLabelEl=document.getElementById('prog-hero-range-label');
+  const trendEl=document.getElementById('prog-hero-trend');
+  if(!numEl)return;
+  const rangeLabel=progressRangeWeeks===4?'4W':progressRangeWeeks===12?'12W':'1Y';
+  if(rangeLabelEl)rangeLabelEl.textContent=rangeLabel;
+  if(wmEl)wmEl.textContent=progressRangeWeeks===52?'1':String(progressRangeWeeks);
+  if(!tonnageLog.length){
+    numEl.textContent='0';
+    if(trendEl)trendEl.textContent='Log a session to start tracking volume.';
+    return;
+  }
+  const weeks=weeklyTonnageBuckets(progressRangeWeeks);
+  const totalTonnes=weeks.reduce((s,w)=>s+w.total,0)/1000;
+  numEl.textContent=totalTonnes>=100?Math.round(totalTonnes):(Math.round(totalTonnes*10)/10);
+  const firstWithData=weeks.find(w=>w.total>0);
+  const lastWeek=weeks[weeks.length-1];
+  let trendStr='';
+  if(firstWithData&&firstWithData.total>0&&firstWithData!==lastWeek){
+    const pct=Math.round((lastWeek.total-firstWithData.total)/firstWithData.total*100);
+    trendStr=(pct>=0?'↗ +':'↘ ')+pct+'% vs start';
+  }
+  const sessionsInRange=trainingCompletedDates.filter(d=>parseLocalDate(d)>=weeks[0].start).length;
+  const sessLine=sessionsInRange+' session'+(sessionsInRange===1?'':'s')+' logged';
+  if(trendEl)trendEl.textContent=trendStr?trendStr+' · '+sessLine:sessLine;
+}
+function renderProgressTonnage(){
+  const card=document.getElementById('prog-tonnage-card');
+  const chartEl=document.getElementById('prog-tonnage-chart');
+  const leftLabelEl=document.getElementById('prog-tonnage-left-label');
+  if(!card||!chartEl)return;
+  if(!tonnageLog.length){card.style.display='none';return;}
+  card.style.display='block';
+  const barWeeks=Math.min(progressRangeWeeks,26); // caps bar count for 1Y so bars stay legible
+  const weeks=weeklyTonnageBuckets(barWeeks);
+  const max=Math.max(...weeks.map(w=>w.total),1);
+  chartEl.innerHTML=weeks.map((w,i)=>{
+    const isCurrent=i===weeks.length-1;
+    const h=Math.max(4,Math.round(w.total/max*100));
+    const col=isCurrent?'linear-gradient(180deg,#FF7A2E,#FF5A00)':'rgba(255,255,255,.14)';
+    return `<div style="flex:1;height:100%;display:flex;align-items:flex-end"><div style="width:100%;height:${h}%;background:${col};border-radius:4px 4px 1px 1px" title="${Math.round(w.total).toLocaleString()}kg"></div></div>`;
+  }).join('');
+  if(leftLabelEl)leftLabelEl.textContent='-'+weeks.length+'w';
+}
+// RECORDS — same prs/lastPerformance data the old pr-card grid used, one
+// row per lift with a real PR, no fabricated dates/deltas (that history
+// isn't tracked anywhere, so it isn't shown).
+const PROG_PR_LIFTS=[
+  {n:'Bench Press',k:'Barbell Bench Press',icon:'🏋️'},
+  {n:'Back Squat',k:'Barbell Back Squat',icon:'🦵'},
+  {n:'Deadlift',k:'Conventional Deadlift',icon:'⚡'},
+  {n:'Overhead Press',k:'Overhead Press',icon:'💪'},
+  {n:'Barbell Row',k:'Barbell Row',icon:'🎯'},
+];
+function renderProgressRecords(){
+  const listEl=document.getElementById('prog-records-list');
+  const countEl=document.getElementById('prog-records-count');
+  if(!listEl)return;
+  const hitItems=PROG_PR_LIFTS.filter(p=>prs[p.k]);
+  if(countEl)countEl.textContent=hitItems.length+' tracked';
+  if(!hitItems.length){
+    listEl.innerHTML='<div style="padding:16px 0;font-size:12px;color:var(--muted)">Log a session to start setting records.</div>';
+    return;
+  }
+  listEl.innerHTML=hitItems.map((p,i)=>{
+    const perf=lastPerformance[p.k];
+    return `<div style="display:flex;align-items:center;gap:12px;padding:12px 0;${i<hitItems.length-1?'border-bottom:1px solid var(--border2)':''}">
+      <div style="font-size:20px;flex-shrink:0">${p.icon}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13.5px;font-weight:700;color:var(--white)">${p.n}</div>
+        ${perf&&perf.reps?`<div style="font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--muted);margin-top:2px">${perf.weight}kg × ${perf.reps}</div>`:''}
+      </div>
+      <div style="font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:800;color:var(--white);flex-shrink:0">${prs[p.k]}<span style="font-size:11px;color:var(--muted);font-weight:600"> kg</span></div>
+    </div>`;
+  }).join('');
+}
+// BODYWEIGHT — real weightLog, delta vs the entry closest to 8 weeks ago.
+function renderProgressBodyweight(){
+  const card=document.getElementById('prog-bodyweight-card');
+  const numEl=document.getElementById('prog-bw-num');
+  const deltaEl=document.getElementById('prog-bw-delta');
+  const chartEl=document.getElementById('prog-bw-chart');
+  if(!card||!numEl)return;
+  if(!weightLog.length){card.style.display='none';return;}
+  card.style.display='block';
+  const latest=weightLog[weightLog.length-1];
+  numEl.textContent=Math.round(latest.w*10)/10;
+  const eightWeeksAgo=new Date();eightWeeksAgo.setDate(eightWeeksAgo.getDate()-56);
+  const refEntry=weightLog.find(e=>parseLocalDate(e.date)>=eightWeeksAgo)||weightLog[0];
+  const delta=Math.round((latest.w-refEntry.w)*10)/10;
+  if(deltaEl){
+    deltaEl.textContent=(delta>0?'+':'')+delta+' lbs / 8w';
+    deltaEl.style.color=delta<0?'var(--green)':delta>0?'#E0B48A':'var(--muted)';
+  }
+  if(chartEl&&weightLog.length>=2){
+    const pts=weightLog.slice(-14);
+    const W=280,H=56,padY=8;
+    const vals=pts.map(p=>p.w);
+    const min=Math.min(...vals),max=Math.max(...vals);
+    const range=max-min||1;
+    const xFor=i=>pts.length>1?(i/(pts.length-1))*W:W/2;
+    const yFor=v=>H-padY-((v-min)/range)*(H-2*padY);
+    const points=pts.map((p,i)=>`${xFor(i).toFixed(1)},${yFor(p.w).toFixed(1)}`).join(' ');
+    chartEl.innerHTML=`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="width:100%;height:56px;display:block"><polyline points="${points}" fill="none" stroke="#44CFFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/></svg>`;
+  } else if(chartEl){
+    chartEl.innerHTML='<div style="font-size:11px;color:var(--muted)">Log a second weigh-in to see a trend line.</div>';
+  }
+}
+// CONSISTENCY — 4-week heatmap, real trainingCompletedDates.
+function renderProgressConsistencyGrid(){
+  const gridEl=document.getElementById('prog-consistency-grid');
+  const countEl=document.getElementById('prog-consistency-count');
+  if(!gridEl)return;
+  const today=new Date();
+  const dow=today.getDay();
+  const mondayOffset=dow===0?6:dow-1;
+  const thisMonday=new Date(today);thisMonday.setDate(today.getDate()-mondayOffset);
+  thisMonday.setHours(0,0,0,0);
+  const startMonday=new Date(thisMonday);startMonday.setDate(thisMonday.getDate()-21);
+  const todayStr=localDateKey(today);
+  let trainedCount=0;
+  const cells=[];
+  for(let i=0;i<28;i++){
+    const d=new Date(startMonday);d.setDate(startMonday.getDate()+i);
+    const dStr=localDateKey(d);
+    const isFuture=d>today;
+    const active=trainingCompletedDates.includes(dStr);
+    if(active)trainedCount++;
+    const isToday=dStr===todayStr;
+    const bg=isFuture?'transparent':isToday?'#FF5A00':active?'rgba(255,122,46,.35)':'rgba(255,255,255,.05)';
+    cells.push(`<div style="aspect-ratio:1;border-radius:8px;background:${bg}"></div>`);
+  }
+  gridEl.innerHTML=cells.join('');
+  if(countEl)countEl.textContent='4 weeks · '+trainedCount+'/28';
+}
+// BALANCE — tonnageLog's own muscle field, bucketed into push/pull/legs/
+// core (one tonnageLog entry = one logged set), last 8 weeks.
+const PROG_MUSCLE_GROUP={chest:'Push',shoulders:'Push',triceps:'Push',back:'Pull',biceps:'Pull',lats:'Pull',quads:'Legs',hamstrings:'Legs',glutes:'Legs',calves:'Legs',core:'Core'};
+function renderProgressBalance(){
+  const rowsEl=document.getElementById('prog-balance-rows');
+  const noteEl=document.getElementById('prog-balance-note');
+  if(!rowsEl)return;
+  const eightWeeksAgo=new Date();eightWeeksAgo.setDate(eightWeeksAgo.getDate()-56);
+  const counts={Push:0,Pull:0,Legs:0,Core:0};
+  tonnageLog.forEach(e=>{
+    if(parseLocalDate(e.date)<eightWeeksAgo)return;
+    const group=PROG_MUSCLE_GROUP[e.muscle];
+    if(group)counts[group]++;
+  });
+  const order=['Push','Pull','Legs','Core'];
+  const max=Math.max(...order.map(g=>counts[g]),1);
+  if(!order.some(g=>counts[g]>0)){
+    rowsEl.innerHTML='<div style="font-size:12px;color:var(--muted);padding:8px 0">Log a few sessions to see your push/pull/legs/core split.</div>';
+    if(noteEl)noteEl.style.display='none';
+    return;
+  }
+  rowsEl.innerHTML=order.map((g,i)=>{
+    const val=counts[g];
+    const pct=val/max*100;
+    return `<div style="margin-bottom:${i<3?'14px':'0'}">
+      <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px">
+        <span style="font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)">${g}</span>
+        <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--white)">${val} sets</span>
+      </div>
+      <div style="height:7px;border-radius:99px;background:var(--border2);overflow:hidden"><div style="height:100%;width:${pct}%;border-radius:99px;background:linear-gradient(90deg,#FF7A2E,#FF5A00)"></div></div>
+    </div>`;
+  }).join('');
+  const sorted=order.map(g=>({g,v:counts[g]})).sort((a,b)=>b.v-a.v);
+  const leader=sorted[0],behind=sorted[sorted.length-1];
+  if(noteEl){
+    if(leader.v>0&&behind.v<leader.v*0.7){
+      const pctBehind=Math.round((1-behind.v/leader.v)*100);
+      noteEl.style.display='block';
+      noteEl.textContent='🎯 '+behind.g+' is '+pctBehind+'% behind '+leader.g+'. Add a '+behind.g.toLowerCase()+' session next week to even it out.';
+    }else{
+      noteEl.style.display='none';
+    }
+  }
+}
+function renderProgressTrophyBanner(){
+  const el=document.getElementById('prog-trophy-sub');
+  if(!el)return;
+  el.textContent=unlockedLegends.length+' of '+LEGEND_CARDS.length+' unlocked';
+}
+function renderProgressStack(){
+  renderProgressHero();
+  renderProgressTonnage();
+  renderProgressRecords();
+  renderProgressBodyweight();
+  renderProgressConsistencyGrid();
+  renderProgressBalance();
+  renderConsistency();
+  renderProgressTrophyBanner();
 }
 
 // Local YYYY-MM-DD, matching how tonnageLog entries are dated — avoids
@@ -10742,8 +11060,7 @@ function initApp(){
   const bss=document.getElementById('best-streak-sub');if(bss)bss.textContent=bestStreak>streak?'Best: '+bestStreak+' days':'';
   try{setCompanionMessage();}catch(e){console.error('setCompanionMessage:',e.message);}
   try{renderCompass();}catch(e){console.error('renderCompass:',e.message);}
-  try{renderConsistency();}catch(e){console.error('renderConsistency:',e.message);}
-  try{renderVolumeTrend();}catch(e){console.error('renderVolumeTrend:',e.message);}
+  try{renderProgressStack();}catch(e){console.error('renderProgressStack:',e.message);}
   try{renderXpBreakdown();}catch(e){console.error('renderXpBreakdown:',e.message);}
   try{renderDailyVolume();}catch(e){console.error('renderDailyVolume:',e.message);}
   try{renderDashNutritionLogs();}catch(e){console.error('renderDashNutritionLogs:',e.message);}
@@ -13129,7 +13446,7 @@ function completeSession(nameOverride){
   if(dateEl)dateEl.textContent=new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'short'});
   const dss=document.getElementById('d-sessions');if(dss)dss.textContent=sessThisWeek+'/'+profile.days;
   renderCompass();
-  renderConsistency(); // "This week" card on the Progress page reads sessThisWeek too — was only ever rendered on page load, so it went stale until the next reload
+  renderProgressStack(); // Progress page reads sessThisWeek/tonnageLog too — was only ever rendered on page load, so it went stale until the next reload
   if(!alreadyTrainedToday){
     const cc=document.getElementById('compass-main');
     if(cc){cc.classList.remove('pulse');requestAnimationFrame(()=>cc.classList.add('pulse'));}
@@ -16811,7 +17128,7 @@ function renderProgress(){
   renderTonnageBreakdown();
   try{renderAchievements();}catch(e){console.error('renderAchievements:',e.message);}
   try{renderXpRoad();}catch(e){console.error('renderXpRoad:',e.message);}
-  try{renderVolumeTrend();}catch(e){console.error('renderVolumeTrend:',e.message);}
+  try{renderProgressStack();}catch(e){console.error('renderProgressStack:',e.message);}
   try{renderXpBreakdown();}catch(e){console.error('renderXpBreakdown:',e.message);}
   try{renderSleepQuickLog();}catch(e){console.error('renderSleepQuickLog:',e.message);}
   hist.innerHTML=weightLog.slice(-5).reverse().map((e,i)=>{
