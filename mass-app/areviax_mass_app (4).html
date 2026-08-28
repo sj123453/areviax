@@ -11021,6 +11021,7 @@ function initApp(){
   const dni=document.getElementById('d-next-idx');if(dni)dni.textContent=sessIdx;
   const dnt=document.getElementById('d-next-total');if(dnt)dnt.textContent=profile.days;
   const dnw=document.getElementById('d-next-watermark');if(dnw)dnw.textContent=sessIdx;
+  try{syncTodaysPlanFromSchedule();}catch(e){console.error('syncTodaysPlanFromSchedule:',e.message);}
   renderTodaySessionName(plannedSessionName||document.getElementById('d-next-full')?.textContent||'');
   renderDashPlanList();
   if(dnsub){
@@ -11070,9 +11071,14 @@ function initApp(){
   try{checkAchievements();}catch(e){console.error('checkAchievements:',e.message);}
   try{checkBackupReminder();}catch(e){console.error('checkBackupReminder:',e.message);}
   try{checkWeeklyAssessment();}catch(e){console.error('checkWeeklyAssessment:',e.message);}
-  // Rest day check
+  // Rest day check — [0,3,6] (Sun/Wed/Sat) matches the default fallback
+  // template's rest days, but a generated week can put rest anywhere
+  // (different split, or a day moved by reschedule/reconcileScheduleOnComplete),
+  // so once a real week exists the actual allocated slot decides this
+  // instead of a fixed day-of-week guess.
   const day=new Date().getDay();
-  if([0,3,6].includes(day)){
+  const isRestToday=generatedWeek?getScheduleSlot(day===0?6:day-1).type==='rest':[0,3,6].includes(day);
+  if(isRestToday){
     const rdc=document.getElementById('rest-day-card');if(rdc)rdc.style.display='';
     const rdb=document.getElementById('rest-day-body');if(rdb)rdb.textContent='Right now your muscle fibres are actively repairing. Satellite cells are fusing with the fibres you trained, laying down new contractile proteins that make them bigger and stronger. This is when the growth from your last session actually happens. Your job today is simple: eat your protein and sleep well.';
   }
@@ -17293,6 +17299,27 @@ function getScheduleSlot(i){
   // normalize on read so a returning user's saved schedule doesn't crash
   // against code that now expects {type,name,exs} objects everywhere.
   return typeof raw==='string'?{type:raw==='Rest'?'rest':'legacy',name:raw,exs:[]}:raw;
+}
+// Keeps the dashboard's "Today" hero + Plan preview honest about what's
+// actually allocated for today, instead of showing whatever happened to
+// be sitting in plannedSessionExs from a previous day or an abandoned
+// Workout Builder preview. Only runs on dashboard load (initApp) and
+// only overwrites when nothing's already been committed for today —
+// today already logged, or a session already entered today (schedule
+// start or a Workout Builder commit, both stamp sessionEnteredAt) — so a
+// deliberate different choice for today always wins over the default.
+function syncTodaysPlanFromSchedule(){
+  if(!generatedWeek)return;
+  checkScheduleWeek();
+  const today=localDateKey(new Date());
+  if(weekCompletedDays[today]||lastSessionDate===today)return;
+  if(sessionEnteredAt&&localDateKey(new Date(sessionEnteredAt))===today)return;
+  const ti=new Date().getDay();const ti2=ti===0?6:ti-1;
+  const slot=getScheduleSlot(ti2);
+  if(slot.type==='rest'||!slot.exs||!slot.exs.length)return;
+  if(plannedSessionType===slot.type&&plannedSessionName===slot.name)return;
+  plannedSessionExs=slot.exs;plannedSessionType=slot.type;plannedSessionName=slot.name;
+  saveToStorage();
 }
 function startScheduledDay(i){
   const slot=getScheduleSlot(i);
