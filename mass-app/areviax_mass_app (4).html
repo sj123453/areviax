@@ -49,7 +49,7 @@
 }
 [data-theme="light"] html{background:#F5F5F2}
 [data-theme="light"] body{background:linear-gradient(160deg,#F5F5F2 0%,#EAEAE5 100%) fixed;background-color:#F5F5F2}
-html{height:100%;background:#0B0B0B;overscroll-behavior-y:none}body{height:100%;background:linear-gradient(160deg,#0B0B0B 0%,#000000 100%) fixed;background-color:#0B0B0B;color:var(--white);font-family:'Plus Jakarta Sans',sans-serif;font-weight:400;overflow:hidden;overscroll-behavior-y:none;touch-action:manipulation}
+html{height:100%;background:#0B0B0B;overscroll-behavior:none}body{height:100%;background:linear-gradient(160deg,#0B0B0B 0%,#000000 100%) fixed;background-color:#0B0B0B;color:var(--white);font-family:'Plus Jakarta Sans',sans-serif;font-weight:400;overflow:hidden;overscroll-behavior:none;touch-action:manipulation}
 /* No maximum-scale/user-scalable=no on the viewport meta, so without this
    the browser has to wait to tell a tap apart from the start of a
    double-tap-to-zoom gesture on every single tap — the likely cause of
@@ -154,7 +154,7 @@ input,input:focus,input:active,
 .tp-gold{background:rgba(255,215,0,.1);border:1.5px solid rgba(255,215,0,.3);color:#FFD700}
 
 #main-app{display:flex;height:100vh;overflow:hidden}
-    .content{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:18px 20px;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.1) transparent}
+    .content{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior-x:none;-webkit-overflow-scrolling:touch;padding:18px 20px;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.1) transparent}
 .content::-webkit-scrollbar{width:3px}
 .content::-webkit-scrollbar-thumb{background:var(--border)}
 
@@ -632,7 +632,7 @@ input,input:focus,input:active,
      greeting streak number, so repeating it here would be noise. */
   .dash-greeting-text{font-size:26px!important}
   .dash-greeting-date{font-size:11px!important}
-  .dash-hero-streak-num{font-size:104px!important}
+  .dash-hero-streak-num{font-size:104px!important;-webkit-text-stroke-width:2.5px!important}
   .dash-greeting-weekstrip{display:grid!important;max-width:420px!important}
   .dash-today-inner{padding:18px 22px!important;border-radius:16px!important}
   .dash-avatar{width:56px!important;height:56px!important}
@@ -3144,19 +3144,31 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        one-off effect, so the hero moment matches the rest of the app's
        own vocabulary rather than inventing a new one. -->
   <div class="dash-greeting-inner" style="background:transparent;border:none;padding:6px 4px 22px;height:100%;box-sizing:border-box;position:relative;overflow:hidden">
-    <!-- Giant faint watermark of the streak count, same device as the
-         Today card's session-number watermark — this card's "number" is
-         the current streak, the one stat that belongs in a daily-return
-         greeting more than any other. Sits behind the real (bold, visible)
-         number below purely for depth, not as the readable stat itself —
-         that's what "the 1" in the reference is doing behind its headline. -->
-    <div aria-hidden="true" id="dash-streak-watermark" style="position:absolute;right:-4px;top:-22px;font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:150px;line-height:1;color:rgba(255,122,46,.06);pointer-events:none;user-select:none">0</div>
+    <!-- Dot-grid texture behind the watermark digit, top-right — the
+         reference pairs its big background numeral with a faint dot
+         field rather than leaving it on a flat background; masked so it
+         fades out toward the card's center/edges instead of reading as
+         a hard rectangle. -->
+    <div aria-hidden="true" style="position:absolute;right:0;top:0;width:210px;height:150px;pointer-events:none;
+      background-image:radial-gradient(rgba(255,122,46,.35) 1px,transparent 1.4px);background-size:15px 15px;
+      -webkit-mask-image:radial-gradient(circle at 100% 0%,#000 0%,transparent 68%);
+      mask-image:radial-gradient(circle at 100% 0%,#000 0%,transparent 68%)"></div>
+    <!-- Giant background watermark of the streak count — outline/hollow
+         rather than a solid faint fill, same "just an outline" depth
+         device the reference uses behind its own headline. Sits behind
+         the real (bold) number below purely for depth, not as the
+         readable stat itself. -->
+    <div aria-hidden="true" id="dash-streak-watermark" style="position:absolute;right:-4px;top:-22px;font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:150px;line-height:1;color:transparent;-webkit-text-stroke:1.5px rgba(255,122,46,.14);pointer-events:none;user-select:none">0</div>
     <div style="position:relative">
       <div class="dash-greeting-date" style="font-size:9px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,122,46,.55);margin-bottom:8px" id="dash-date"></div>
       <div class="dash-greeting-text" style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:19px;line-height:1.15;letter-spacing:-.01em;color:var(--white)" id="dash-greeting">Good morning</div>
       <div class="glow-title xp dash-greeting-text" style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:19px;line-height:1.15;letter-spacing:-.01em;margin-bottom:18px" id="dash-name">Athlete</div>
+      <!-- Hero streak number — outline/hollow instead of a solid fill,
+           matching the reference's own big-number treatment and the
+           "solid word + hollow word" language already used on the Today
+           card's headline elsewhere on this page. -->
       <div style="display:flex;align-items:flex-end;gap:10px">
-        <span class="dash-hero-streak-num" style="font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:64px;line-height:.9;letter-spacing:-.02em;color:var(--white)" id="dash-greeting-streak-num">0</span>
+        <span class="dash-hero-streak-num" style="font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:64px;line-height:.9;letter-spacing:-.02em;color:transparent;-webkit-text-stroke:2px var(--white)" id="dash-greeting-streak-num">0</span>
         <div style="display:flex;flex-direction:column;padding-bottom:6px">
           <span style="font-size:24px;line-height:1;margin-bottom:2px">🔥</span>
           <span style="font-size:10.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,122,46,.7)">Day Streak</span>
@@ -3181,15 +3193,15 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        Workouts dropped — it pointed at the exact same page as Start
        already does, so it was a duplicate button, not lost functionality. -->
   <div class="dash-today-inner" style="background:linear-gradient(160deg,rgba(255,90,0,.07),rgba(var(--bg-rgb),.9));border:1px solid rgba(255,90,0,.22);border-radius:16px;padding:24px 22px 22px;overflow:hidden;position:relative">
-    <!-- HERO HEADLINE — solid word + hollow/outline word, giant faint
-         session-number watermark behind. plannedSessionName is usually
-         two words ("Push Upper", "Pull Lower"); renderTodaySessionName()
-         splits it live so this stays in sync with everywhere else that
-         sets d-next-full (kept, hidden, since other code still reads its
-         textContent as the plain session name). Card enlarged to fold in
-         the week's day-picker strip and a taller volume chart, matching
-         the reference's single big hero unit instead of a thin banner. -->
-    <div aria-hidden="true" id="d-next-watermark" style="position:absolute;left:134px;top:2px;font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:104px;line-height:1;color:rgba(255,255,255,.05);pointer-events:none;user-select:none">1</div>
+    <!-- HERO HEADLINE — solid word + hollow/outline word. The giant faint
+         watermark digit that used to sit behind this was removed —
+         that "number in the background" device now belongs to the
+         streak stat in the greeting card alone, not repeated here too.
+         plannedSessionName is usually two words ("Push Upper", "Pull
+         Lower"); renderTodaySessionName() splits it live so this stays
+         in sync with everywhere else that sets d-next-full (kept,
+         hidden, since other code still reads its textContent as the
+         plain session name). -->
     <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;position:relative">
       <div style="min-width:0;flex:1">
         <div class="dash-today-label" style="font-size:9.5px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,122,46,.65);margin-bottom:6px">Session <span id="d-next-idx" style="font-family:'JetBrains Mono',monospace">1</span>/<span id="d-next-total" style="font-family:'JetBrains Mono',monospace">1</span></div>
@@ -11062,7 +11074,6 @@ function initApp(){
   const sessIdx=Math.min(sessThisWeek+1,profile.days);
   const dni=document.getElementById('d-next-idx');if(dni)dni.textContent=sessIdx;
   const dnt=document.getElementById('d-next-total');if(dnt)dnt.textContent=profile.days;
-  const dnw=document.getElementById('d-next-watermark');if(dnw)dnw.textContent=sessIdx;
   try{syncTodaysPlanFromSchedule();}catch(e){console.error('syncTodaysPlanFromSchedule:',e.message);}
   renderTodaySessionName(plannedSessionName||document.getElementById('d-next-full')?.textContent||'');
   renderDashPlanList();
