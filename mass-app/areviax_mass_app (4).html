@@ -3129,10 +3129,23 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        as .glow-title elsewhere (XP/Trophy/Recovery headers) instead of a
        one-off effect, so the hero moment matches the rest of the app's
        own vocabulary rather than inventing a new one. -->
-  <div class="dash-greeting-inner" style="background:linear-gradient(135deg,rgba(255,90,0,.06),rgba(255,255,255,.01));border:1px solid rgba(255,90,0,.08);border-radius:14px;padding:16px 18px;height:100%;box-sizing:border-box">
-    <div class="dash-greeting-date" style="font-size:9px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,122,46,.55);margin-bottom:6px" id="dash-date"></div>
-    <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:21px;line-height:1.15;letter-spacing:-.01em;color:var(--white)" id="dash-greeting">Good morning</div>
-    <div class="glow-title xp" style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:21px;line-height:1.15;letter-spacing:-.01em" id="dash-name">Athlete</div>
+  <div class="dash-greeting-inner" style="background:linear-gradient(135deg,rgba(255,90,0,.07),rgba(var(--bg-rgb),.9));border:1px solid rgba(255,90,0,.2);border-radius:16px;padding:20px 22px;height:100%;box-sizing:border-box;position:relative;overflow:hidden">
+    <!-- Giant faint watermark of the streak count, same device as the
+         Today card's session-number watermark — this card's "number" is
+         the current streak, the one stat that belongs in a daily-return
+         greeting more than any other. -->
+    <div aria-hidden="true" id="dash-streak-watermark" style="position:absolute;right:6px;top:-14px;font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:96px;line-height:1;color:rgba(255,255,255,.045);pointer-events:none;user-select:none">0</div>
+    <div style="position:relative">
+      <div class="dash-greeting-date" style="font-size:9px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,122,46,.55);margin-bottom:6px" id="dash-date"></div>
+      <div style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:19px;line-height:1.15;letter-spacing:-.01em;color:var(--white)" id="dash-greeting">Good morning</div>
+      <div class="glow-title xp" style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:19px;line-height:1.15;letter-spacing:-.01em;margin-bottom:14px" id="dash-name">Athlete</div>
+      <div style="display:flex;align-items:baseline;gap:8px">
+        <span style="font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:44px;line-height:1;color:var(--white)" id="dash-greeting-streak-num">0</span>
+        <span style="font-size:20px;line-height:1">🔥</span>
+        <span style="font-size:10.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,122,46,.7)">Day Streak</span>
+      </div>
+      <div style="font-size:10.5px;color:rgba(var(--white-rgb),.4);margin-top:4px" id="dash-greeting-streak-sub"></div>
+    </div>
   </div>
   </div>
 
@@ -9952,6 +9965,9 @@ function updateStreakFromActivity(){
   streak=(lastActiveDate===yStr)?streak+1:1;
   lastActiveDate=today;
   const sv=document.getElementById('streak-val');if(sv)sv.textContent=streak;
+  const dgsn=document.getElementById('dash-greeting-streak-num');if(dgsn)dgsn.textContent=streak;
+  const dsw=document.getElementById('dash-streak-watermark');if(dsw)dsw.textContent=streak;
+  const dgss=document.getElementById('dash-greeting-streak-sub');if(dgss)dgss.textContent=bestStreak>streak?'Best: '+bestStreak+' days':(streak>0?'This is your best streak yet':'Complete a session today to start one');
   const fv=document.getElementById('flame-val');if(fv)fv.textContent=streak;
   const isNewBest=streak>bestStreak;
   if(isNewBest)bestStreak=streak;
@@ -12947,6 +12963,9 @@ function applyStreakBreak(){
   if(repairStillLive)return; // give them the chance to see/use the repair banner first
   streak=0;
   const sv=document.getElementById('streak-val');if(sv)sv.textContent=streak;
+  const dgsn=document.getElementById('dash-greeting-streak-num');if(dgsn)dgsn.textContent=streak;
+  const dsw=document.getElementById('dash-streak-watermark');if(dsw)dsw.textContent=streak;
+  const dgss=document.getElementById('dash-greeting-streak-sub');if(dgss)dgss.textContent=bestStreak>streak?'Best: '+bestStreak+' days':(streak>0?'This is your best streak yet':'Complete a session today to start one');
   const fv=document.getElementById('flame-val');if(fv)fv.textContent=streak;
   const dsn=document.getElementById('dash-streak-num');if(dsn)dsn.textContent=streak;
   saveToStorage();
@@ -17937,6 +17956,9 @@ document.addEventListener('DOMContentLoaded', function(){
     if(ob)ob.style.display='none';
     if(ma)ma.style.display='flex';
     const sv=document.getElementById('streak-val');if(sv)sv.textContent=streak;
+  const dgsn=document.getElementById('dash-greeting-streak-num');if(dgsn)dgsn.textContent=streak;
+  const dsw=document.getElementById('dash-streak-watermark');if(dsw)dsw.textContent=streak;
+  const dgss=document.getElementById('dash-greeting-streak-sub');if(dgss)dgss.textContent=bestStreak>streak?'Best: '+bestStreak+' days':(streak>0?'This is your best streak yet':'Complete a session today to start one');
     const xv=document.getElementById('xp-val');if(xv)xv.textContent=xp;
     const fv=document.getElementById('flame-val');if(fv)fv.textContent=streak;
     initApp();
