@@ -3764,6 +3764,20 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     </div>
   </div>
 
+  <!-- MOTIVATIONAL QUOTE — same real DASH_QUOTES/day-index data the
+       Dashboard's quote card shows (never a different quote than that
+       one, both read from renderDashQuote()'s formula), styled as the
+       bold saturated glow moment for THIS page — the Dashboard already
+       spent its one glow on the greeting's streak number, so this is a
+       different screen's own glow budget, not a second one on the same
+       screen (see bar_lovable_theme.md mechanism 3). Solid orange
+       gradient fill + black text is a deliberate high-contrast color
+       block against the rest of the page's dark/muted palette. -->
+  <div style="background:linear-gradient(135deg,#FF8A2E,#E85A00);border-radius:18px;padding:24px 22px;margin-bottom:14px;box-shadow:0 0 40px -8px rgba(255,122,46,.5)">
+    <div style="font-size:17px;font-weight:800;font-style:italic;color:#1A0D00;line-height:1.35" id="nutr-quote-text">"—"</div>
+    <div style="font-size:10px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:rgba(26,13,0,.6);margin-top:10px">Areviax · Daily</div>
+  </div>
+
   <!-- HYDRATION — promoted out of the old Today's Macros card into its
        own compact row up here, so it's part of the one-screen summary
        (matching the reference) instead of buried lower on the page. Same
@@ -10832,6 +10846,10 @@ function renderDashQuote(){
   const q = DASH_QUOTES[dayNum % DASH_QUOTES.length];
   const qtEl = document.getElementById('dash-quote-text');
   if(qtEl) qtEl.textContent = '"' + q + '"';
+  // Nutrition page's own glowing quote card — same day-index formula,
+  // so it's never a different quote than the Dashboard shows the same day.
+  const ntEl = document.getElementById('nutr-quote-text');
+  if(ntEl) ntEl.textContent = '"' + q + '"';
 }
 
 // DAILY PERSPECTIVE — a once-per-day post-load briefing screen (streak,
