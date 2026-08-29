@@ -11808,7 +11808,7 @@ function moveExercise(index,direction){
   const filtered=allEx.filter(e=>equipOk(e));
   const timeVal=wbTime.value;
   const maxEx=maxExForTime(timeVal,filtered.length);
-  let exs=selectedMuscles.size>0 ? spreadBySelectedMuscle(filtered,maxEx) : (type==='upper-full'||type==='full') ? spreadByMuscle(filtered,maxEx) : filtered.slice(0,maxEx);
+  let exs=selectedMuscles.size>0 ? spreadBySelectedMuscle(filtered,maxEx) : (type==='upper-full'||type==='full') ? topUpMissingMuscles(spreadByMuscle(filtered,maxEx),filtered) : filtered.slice(0,maxEx);
   exs=applyCustomOrder(exs,type);
   const newIndex=index+direction;
   if(newIndex<0||newIndex>=exs.length) return;
@@ -12046,7 +12046,17 @@ function renderExercises(){
   // session — it would only ever cover the first 2-4 muscle groups, never reaching
   // triceps/biceps/rear delts. Spread the pick across muscle groups instead, so even
   // a short version still touches push AND pull, not just whichever came first.
-  let exs=(selectedMuscles.size>0&&!searchTerm) ? spreadBySelectedMuscle(filtered,maxEx) : ((type==='upper-full'||type==='full')&&!searchTerm) ? spreadByMuscle(filtered,maxEx) : filtered.slice(0,maxEx);
+  // spreadByMuscle alone still isn't enough at a short length: it guarantees one
+  // pick per DISTINCT muscle tag, prioritizing the smallest groups first so no
+  // group is ever permanently starved — but that inverts badly once the slot
+  // count is small, since it means a real major muscle (e.g. 'back', with 4
+  // exercises in the upper-full pool — one of the two biggest groups there)
+  // consistently loses out to tiny 1-2-exercise accessory groups like 'biceps'
+  // for the few guaranteed picks going. topUpMissingMuscles (already proven in
+  // the auto-week generator) swaps back in whichever MAJOR muscle came up
+  // empty, so a 30-min Upper Full still touches every major group at least
+  // once instead of silently dropping back work.
+  let exs=(selectedMuscles.size>0&&!searchTerm) ? spreadBySelectedMuscle(filtered,maxEx) : ((type==='upper-full'||type==='full')&&!searchTerm) ? topUpMissingMuscles(spreadByMuscle(filtered,maxEx),filtered) : filtered.slice(0,maxEx);
   // 'lower' sessions don't get the full spread treatment above (deadlift/RDL variants
   // score too well on safety+synergy for a naive spread to actually rebalance them —
   // it ends up swapping "two hinge movements" for "glutes + calves", still no quad
@@ -13025,7 +13035,7 @@ function buildSession(){
   let exs=plannedSessionExs;
   if(!exs||!exs.length){
     const pool=(EX['upper-push']||[]).filter(e=>equipOk(e));
-    exs=spreadByMuscle(pool,maxExForTime(weekSessionLength,pool.length));
+    exs=topUpMissingMuscles(spreadByMuscle(pool,maxExForTime(weekSessionLength,pool.length)),pool);
     plannedSessionExs=exs;plannedSessionType='upper-push';plannedSessionName=getSessionTypeLabel('upper-push');
     skippedExercises=new Set(); // genuinely new fallback plan just got created above
   }
