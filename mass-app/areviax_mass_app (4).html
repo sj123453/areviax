@@ -2357,28 +2357,10 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       transition:color .2s,border-color .2s;user-select:none;
     }
     .road-expand-btn:hover,.road-expand-btn:active{color:var(--white);border-color:rgba(255,255,255,.3)}
-    /* FULLSCREEN ROAD VIEWER — clones whichever road container into a
-       full-viewport-height overlay so the whole path can be seen
-       without the card's max-height scroll clipping. Reuses the exact
-       same rendered nodes (cloneNode) rather than re-rendering, so it
-       can never drift out of sync with the compact card view. */
-    .road-fullscreen-overlay{
-      position:fixed;inset:0;z-index:5500;background:#07080C;display:none;
-      flex-direction:column;
-    }
-    .road-fullscreen-overlay.show{display:flex}
-    .road-fullscreen-head{
-      flex-shrink:0;display:flex;align-items:center;justify-content:space-between;
-      padding:16px 18px;border-bottom:1.5px solid var(--border);
-    }
-    .road-fullscreen-title{font-size:16px;font-weight:900;color:var(--white)}
-    .road-fullscreen-close{
-      width:32px;height:32px;border-radius:50%;background:var(--border2);border:none;
-      color:var(--white);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;
-    }
-    .road-fullscreen-body{flex:1;min-height:0;overflow-y:auto;padding:14px}
-    .road-fullscreen-body .road-scenery{min-height:calc(100% - 4px)}
-    .road-fullscreen-body #xp-road,.road-fullscreen-body #weight-road,.road-fullscreen-body #trophy-road{max-height:none!important}
+    /* XP/Trophy/Weight Road each live on their own dedicated page now
+       (see .xp-road-track.horizontal below) instead of an embedded card
+       that needed a fullscreen escape hatch — the old clone-into-overlay
+       viewer this comment used to describe is gone with it. */
     /* Road bed — a faint recessed panel behind the whole path so nodes
        read as sitting IN a lane, not floating loose on the card
        background, plus a ticked (not just dashed-border) spine that
@@ -2492,13 +2474,105 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
       font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;
       letter-spacing:.03em;color:rgba(255,255,255,.4);background:rgba(255,255,255,.04);
-      border:1px solid var(--border2);border-radius:20px;padding:1px 8px;margin-bottom:3px;
+      border:1px solid rgba(255,255,255,.07);border-radius:20px;padding:1px 8px;margin-bottom:3px;
     }
-    .xp-node.claimed .xp-node-xp,.xp-node.next .xp-node-xp{color:var(--white);border-color:rgba(255,90,0,.3);background:rgba(255,90,0,.08)}
+    /* Fixed light colors, not var(--white)/var(--border2) — .road-scenery's
+       background stays intentionally dark in both app themes (the "trained
+       by firelight" mood), so text/borders inside it must too, or light
+       theme's dark --white flips these invisible against their own dark
+       backdrop. */
+    .xp-node.claimed .xp-node-xp,.xp-node.next .xp-node-xp{color:#EEF0FF;border-color:rgba(255,90,0,.3);background:rgba(255,90,0,.08)}
     .xp-node-desc{font-size:10.5px;color:rgba(255,255,255,.35)}
-    .xp-node.claimed .xp-node-desc,.xp-node.next .xp-node-desc{color:rgba(var(--white-rgb),.8)}
+    .xp-node.claimed .xp-node-desc,.xp-node.next .xp-node-desc{color:rgba(238,240,255,.8)}
     .xp-node-bar{height:3px;border-radius:2px;background:rgba(255,255,255,.08);margin-top:6px;overflow:hidden}
     .xp-node-bar-fill{height:100%;background:linear-gradient(90deg,var(--orange2),var(--green));border-radius:2px}
+
+    /* ── HORIZONTAL ROAD PAGES — XP/Trophy/Weight Road each get their
+       own dedicated page now instead of living embedded on Progress
+       (Brawl Stars' Trophy Road screen: a horizontal path you scroll
+       through, with a "progress to next" bar up top), reached via a hub
+       card on Progress. Reuses every .xp-node/.xp-node-hex/.xp-node-check/
+       .xp-node-bar rule above verbatim — only positioning changes under
+       this modifier, so a claimed/next/locked node looks identical to
+       before, just laid out left-to-right instead of zigzagging
+       top-to-bottom. */
+    .xp-road-track.horizontal{
+      display:flex;align-items:center;overflow-x:auto;overflow-y:visible;
+      padding:64px 20px 40px;gap:30px;
+    }
+    .xp-road-track.horizontal .xp-node{position:relative;flex:0 0 auto;width:96px;min-height:0}
+    .xp-road-track.horizontal .xp-node-hexwrap{position:relative;top:auto;left:auto;right:auto;width:64px;height:64px;margin:0 auto}
+    .xp-road-track.horizontal .xp-node.next .xp-node-hexwrap{width:80px;height:80px}
+    .xp-road-track.horizontal .xp-node-connector{display:none}
+    .xp-road-track.horizontal .xp-node-body{position:relative;top:auto;left:auto;right:auto;width:100%;margin:9px 0 0;text-align:center}
+    @media(max-width:480px){
+      .xp-road-track.horizontal .xp-node{width:78px}
+      .xp-road-track.horizontal .xp-node-hexwrap{width:52px;height:52px}
+      .xp-road-track.horizontal .xp-node.next .xp-node-hexwrap{width:66px;height:66px}
+    }
+    /* Winding wave — each node carries its own --wind offset (a sine
+       curve computed at render time), folded into the entrance
+       animation's own keyframes so the node still slides/fades in on
+       first render but settles at its wound position rather than a
+       flat translateY(0), same "an actual path, not a straight row"
+       idea drawRoadTrail()'s curve underneath already draws. */
+    @keyframes xpNodeEntranceH{
+      0%{opacity:0;transform:translateY(calc(var(--wind,0px) + 14px)) scale(.85)}
+      100%{opacity:1;transform:translateY(var(--wind,0px)) scale(1)}
+    }
+    .xp-road-track.horizontal .xp-node{animation-name:xpNodeEntranceH}
+
+    /* PROGRESS-TO-NEXT BANNER — Brawl Stars' trophy-road header: the
+       next reward's icon plus a fill bar and a plain-English line for
+       what's still needed, all in one glanceable strip above the path. */
+    .road-progress-banner{
+      display:flex;align-items:center;gap:14px;
+      background:linear-gradient(135deg,rgba(255,255,255,.035),rgba(255,255,255,.01));
+      border:1.5px solid var(--border2);border-radius:16px;padding:14px 16px;margin-bottom:14px;
+    }
+    .road-progress-banner-icon{
+      flex-shrink:0;width:46px;height:46px;border-radius:50%;
+      display:flex;align-items:center;justify-content:center;font-size:22px;
+      background:linear-gradient(160deg,rgba(255,140,60,.22),rgba(255,90,0,.06));
+      border:1.5px solid rgba(255,140,60,.35);
+    }
+    .road-progress-banner-icon svg{width:60%;height:60%}
+    .road-progress-banner-icon img{width:70%;height:70%;object-fit:contain}
+    .road-progress-banner-body{flex:1;min-width:0}
+    .road-progress-banner-label{font-size:11.5px;font-weight:700;color:var(--white);margin-bottom:6px}
+    .road-progress-banner-track{height:7px;border-radius:4px;background:rgba(255,255,255,.08);overflow:hidden}
+    .road-progress-banner-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--orange2),var(--green));transition:width .5s ease}
+    .road-progress-banner.theme-trophy .road-progress-banner-icon{background:linear-gradient(160deg,rgba(255,210,90,.22),rgba(255,180,50,.06));border-color:rgba(255,210,90,.35)}
+    .road-progress-banner.theme-trophy .road-progress-banner-fill{background:linear-gradient(90deg,#FFD24A,#FFDE94)}
+    .road-progress-banner.theme-iron .road-progress-banner-icon{background:linear-gradient(160deg,rgba(90,170,255,.22),rgba(90,170,255,.06));border-color:rgba(143,216,255,.35)}
+    .road-progress-banner.theme-iron .road-progress-banner-fill{background:linear-gradient(90deg,#5AAAFF,#8FD8FF)}
+
+    /* ROAD PAGE HEADER — back link + title, sits above the banner. */
+    .road-page-head{display:flex;align-items:center;gap:12px;margin-bottom:2px}
+
+    /* PROGRESS PAGE HUB CARDS — replace the old embedded roads. Same
+       collapsed "current progress + fill toward next" language as the
+       banner above, shrunk into a clickable summary that links out to
+       the full page — Progress shows where you stand at a glance, the
+       dedicated page is where you actually walk the path. */
+    .road-hub-card{display:flex;align-items:center;gap:12px;cursor:pointer}
+    .road-hub-card-icon{
+      flex-shrink:0;width:42px;height:42px;border-radius:50%;
+      display:flex;align-items:center;justify-content:center;font-size:19px;
+      background:linear-gradient(160deg,rgba(255,140,60,.2),rgba(255,90,0,.05));
+      border:1.5px solid rgba(255,140,60,.3);
+    }
+    .road-hub-card-icon svg{width:58%;height:58%}
+    .road-hub-card-icon img{width:68%;height:68%;object-fit:contain}
+    .road-hub-card.theme-trophy .road-hub-card-icon{background:linear-gradient(160deg,rgba(255,210,90,.2),rgba(255,180,50,.05));border-color:rgba(255,210,90,.3)}
+    .road-hub-card.theme-iron .road-hub-card-icon{background:linear-gradient(160deg,rgba(90,170,255,.2),rgba(90,170,255,.05));border-color:rgba(143,216,255,.3)}
+    .road-hub-card-body{flex:1;min-width:0}
+    .road-hub-card-sub{font-size:10.5px;color:var(--muted);margin:3px 0 7px}
+    .road-hub-card-track{height:5px;border-radius:3px;background:rgba(255,255,255,.08);overflow:hidden}
+    .road-hub-card-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--orange2),var(--green))}
+    .road-hub-card.theme-trophy .road-hub-card-fill{background:linear-gradient(90deg,#FFD24A,#FFDE94)}
+    .road-hub-card.theme-iron .road-hub-card-fill{background:linear-gradient(90deg,#5AAAFF,#8FD8FF)}
+    .road-hub-card-chev{flex-shrink:0;color:var(--muted);font-size:18px}
 
     /* ── SMART LOG ── */
     .smartlog-results{
@@ -4376,48 +4450,40 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
 
   <div class="card" id="compare-card" style="display:none"><div class="ch"><span class="ct">You vs day 1</span></div><div id="compare-body"></div></div>
 
-  <!-- XP ROAD — checkpoints along lifetime XP, each unlocking something
-       real (a Compass Drop, spare shards, or a guaranteed Legend Card at
-       the big ones) instead of XP just being a number that goes up. Reuses
-       the road-line/road-dot styling Trophy Road used to use before it
-       became a compact badge grid. -->
-  <div class="card" style="margin-bottom:14px">
-    <div class="ch"><span class="ct glow-title xp">🛤️ XP Road</span>
-      <span class="road-expand-btn" onclick="openRoadFullscreen('xp-road','🛤️ XP Road')" title="View fullscreen">⤢</span>
+  <!-- ROAD HUB CARDS — XP/Trophy/Weight Road each moved to their own
+       dedicated page (Brawl Stars' trophy-road screen: a horizontal path
+       you go visit, not a card embedded in a bigger scrolling page).
+       These three replace the old embedded roads with a Brawl-Stars-style
+       "current progress + fill toward next" summary, tap through to walk
+       the actual path. -->
+  <div class="card road-hub-card" style="margin-bottom:14px" onclick="showPage('xproad')">
+    <div class="road-hub-card-icon" id="hub-xp-icon"></div>
+    <div class="road-hub-card-body">
+      <span class="ct glow-title xp" style="font-size:13px">🛤️ XP Road</span>
+      <div class="road-hub-card-sub" id="hub-xp-sub">—</div>
+      <div class="road-hub-card-track"><div class="road-hub-card-fill" id="hub-xp-fill" style="width:0%"></div></div>
     </div>
-    <div style="font-size:11px;color:var(--muted);margin-bottom:4px" id="xp-road-sub"></div>
-    <div class="road-scenery">
-      <div class="road-ember" style="left:6%;animation-delay:0s;animation-duration:7.2s"></div>
-      <div class="road-ember" style="left:20%;animation-delay:1.6s;animation-duration:6.4s"></div>
-      <div class="road-ember" style="left:38%;animation-delay:3.1s;animation-duration:8s"></div>
-      <div class="road-ember" style="left:58%;animation-delay:.8s;animation-duration:6.8s"></div>
-      <div class="road-ember" style="left:75%;animation-delay:4.2s;animation-duration:7.6s"></div>
-      <div class="road-ember" style="left:90%;animation-delay:2.4s;animation-duration:6.9s"></div>
-      <div class="road-ridge back"></div>
-      <div class="road-ridge front"></div>
-      <div id="xp-road" style="max-height:320px;overflow-y:auto;padding-right:4px"></div>
-    </div>
+    <div class="road-hub-card-chev">→</div>
   </div>
 
-  <!-- TROPHY ROAD — its own card now, separate from Weight Road, with
-       a distinct "hall of fame" gold-spotlight theme (theme-trophy: no
-       mountain ridge, sparkle particles instead of rising embers) so
-       the two roads don't read as reskins of each other. -->
-  <div class="card" style="margin-bottom:14px">
-    <div class="ch"><span class="ct glow-title trophy">🏆 Trophy Road</span>
-      <span class="road-expand-btn" onclick="openRoadFullscreen('trophy-road','🏆 Trophy Road')" title="View fullscreen">⤢</span>
+  <div class="card road-hub-card theme-trophy" style="margin-bottom:14px" onclick="showPage('trophyroad')">
+    <div class="road-hub-card-icon" id="hub-trophy-icon"></div>
+    <div class="road-hub-card-body">
+      <span class="ct glow-title trophy" style="font-size:13px">🏆 Trophy Road</span>
+      <div class="road-hub-card-sub" id="hub-trophy-sub">—</div>
+      <div class="road-hub-card-track"><div class="road-hub-card-fill" id="hub-trophy-fill" style="width:0%"></div></div>
     </div>
-    <div class="road-scenery theme-trophy">
-      <div class="road-ember" style="left:9%;bottom:65%;animation-delay:.2s;animation-duration:3.4s"></div>
-      <div class="road-ember" style="left:22%;bottom:20%;animation-delay:1.6s;animation-duration:2.8s"></div>
-      <div class="road-ember" style="left:38%;bottom:80%;animation-delay:.9s;animation-duration:3.8s"></div>
-      <div class="road-ember" style="left:55%;bottom:35%;animation-delay:2.3s;animation-duration:3.1s"></div>
-      <div class="road-ember" style="left:72%;bottom:60%;animation-delay:.5s;animation-duration:3.6s"></div>
-      <div class="road-ember" style="left:88%;bottom:15%;animation-delay:1.9s;animation-duration:2.9s"></div>
-      <div class="road-ember" style="left:15%;bottom:45%;animation-delay:3.1s;animation-duration:3.3s"></div>
-      <div class="road-ember" style="left:65%;bottom:85%;animation-delay:1.2s;animation-duration:3.5s"></div>
-      <div id="trophy-road" style="max-height:340px;overflow-y:auto;padding-right:4px"></div>
+    <div class="road-hub-card-chev">→</div>
+  </div>
+
+  <div class="card road-hub-card theme-iron" style="margin-bottom:14px" onclick="showPage('weightroad')">
+    <div class="road-hub-card-icon" id="hub-weight-icon"></div>
+    <div class="road-hub-card-body">
+      <span class="ct glow-title weight" style="font-size:13px">🏋️ Weight Road</span>
+      <div class="road-hub-card-sub" id="hub-weight-sub">—</div>
+      <div class="road-hub-card-track"><div class="road-hub-card-fill" id="hub-weight-fill" style="width:0%"></div></div>
     </div>
+    <div class="road-hub-card-chev">→</div>
   </div>
 
   <!-- REWARDS — Daily Spin, Compass Drops. Weight Milestones moved to
@@ -4439,6 +4505,94 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     <div class="ch"><span class="ct glow-title trophy" style="display:flex;align-items:center;gap:7px">🏆 Trophy Cabinet</span></div>
     <div style="font-size:11.5px;color:var(--muted);line-height:1.6">Step into the full collection room — every layer, every rarity, all in one place.</div>
     <button class="btn btn-out btn-sm" style="width:100%;margin-top:12px" onclick="event.stopPropagation();showPage('trophycabinet')">Enter Trophy Cabinet →</button>
+  </div>
+</div>
+
+<!-- XP ROAD PAGE — checkpoints along lifetime XP, each unlocking something
+     real (a Compass Drop, spare shards, or a guaranteed Legend Card at the
+     big ones). Reached from the XP Road hub card on Progress. -->
+<div class="page" id="page-xproad">
+  <div class="road-page-head">
+    <button class="btn btn-out btn-sm" onclick="showPage('progress')">← Progress</button>
+    <span class="ct glow-title xp" style="font-size:17px">🛤️ XP Road</span>
+  </div>
+  <div class="road-progress-banner" id="xp-road-banner">
+    <div class="road-progress-banner-icon" id="xp-road-banner-icon"></div>
+    <div class="road-progress-banner-body">
+      <div class="road-progress-banner-label" id="xp-road-banner-label">—</div>
+      <div class="road-progress-banner-track"><div class="road-progress-banner-fill" id="xp-road-banner-fill" style="width:0%"></div></div>
+    </div>
+  </div>
+  <div class="road-scenery">
+    <div class="road-ember" style="left:6%;animation-delay:0s;animation-duration:7.2s"></div>
+    <div class="road-ember" style="left:20%;animation-delay:1.6s;animation-duration:6.4s"></div>
+    <div class="road-ember" style="left:38%;animation-delay:3.1s;animation-duration:8s"></div>
+    <div class="road-ember" style="left:58%;animation-delay:.8s;animation-duration:6.8s"></div>
+    <div class="road-ember" style="left:75%;animation-delay:4.2s;animation-duration:7.6s"></div>
+    <div class="road-ember" style="left:90%;animation-delay:2.4s;animation-duration:6.9s"></div>
+    <div class="road-ridge back"></div>
+    <div class="road-ridge front"></div>
+    <div id="xp-road-h" class="xp-road-track horizontal"></div>
+  </div>
+</div>
+
+<!-- TROPHY ROAD PAGE — Achievements as a horizontal path, its own
+     "hall of fame" gold-spotlight theme (theme-trophy: no mountain
+     ridge, sparkle particles instead of rising embers). Reached from
+     the Trophy Road hub card on Progress. -->
+<div class="page" id="page-trophyroad">
+  <div class="road-page-head">
+    <button class="btn btn-out btn-sm" onclick="showPage('progress')">← Progress</button>
+    <span class="ct glow-title trophy" style="font-size:17px">🏆 Trophy Road</span>
+  </div>
+  <div class="road-progress-banner theme-trophy" id="trophy-road-banner">
+    <div class="road-progress-banner-icon" id="trophy-road-banner-icon"></div>
+    <div class="road-progress-banner-body">
+      <div class="road-progress-banner-label" id="trophy-road-banner-label">—</div>
+      <div class="road-progress-banner-track"><div class="road-progress-banner-fill" id="trophy-road-banner-fill" style="width:0%"></div></div>
+    </div>
+  </div>
+  <div class="road-scenery theme-trophy">
+    <div class="road-ember" style="left:9%;bottom:65%;animation-delay:.2s;animation-duration:3.4s"></div>
+    <div class="road-ember" style="left:22%;bottom:20%;animation-delay:1.6s;animation-duration:2.8s"></div>
+    <div class="road-ember" style="left:38%;bottom:80%;animation-delay:.9s;animation-duration:3.8s"></div>
+    <div class="road-ember" style="left:55%;bottom:35%;animation-delay:2.3s;animation-duration:3.1s"></div>
+    <div class="road-ember" style="left:72%;bottom:60%;animation-delay:.5s;animation-duration:3.6s"></div>
+    <div class="road-ember" style="left:88%;bottom:15%;animation-delay:1.9s;animation-duration:2.9s"></div>
+    <div class="road-ember" style="left:15%;bottom:45%;animation-delay:3.1s;animation-duration:3.3s"></div>
+    <div class="road-ember" style="left:65%;bottom:85%;animation-delay:1.2s;animation-duration:3.5s"></div>
+    <div id="trophy-road-h" class="xp-road-track horizontal"></div>
+  </div>
+</div>
+
+<!-- WEIGHT ROAD PAGE — lifetime tonnage milestones (real-object
+     comparisons, same list Trophy Cabinet's collection shelf reads from)
+     as their own horizontal path, cool steel/foundry palette
+     (theme-iron) so it reads as a distinct "iron" identity next to XP
+     Road's warm ember-dusk trail. Reached from the Weight Road hub card
+     on Progress. -->
+<div class="page" id="page-weightroad">
+  <div class="road-page-head">
+    <button class="btn btn-out btn-sm" onclick="showPage('progress')">← Progress</button>
+    <span class="ct glow-title weight" style="font-size:17px">🏋️ Weight Road</span>
+  </div>
+  <div class="road-progress-banner theme-iron" id="weight-road-banner">
+    <div class="road-progress-banner-icon" id="weight-road-banner-icon"></div>
+    <div class="road-progress-banner-body">
+      <div class="road-progress-banner-label" id="weight-road-banner-label">—</div>
+      <div class="road-progress-banner-track"><div class="road-progress-banner-fill" id="weight-road-banner-fill" style="width:0%"></div></div>
+    </div>
+  </div>
+  <div class="road-scenery theme-iron">
+    <div class="road-ember" style="left:6%;animation-delay:0s;animation-duration:7.2s"></div>
+    <div class="road-ember" style="left:20%;animation-delay:1.6s;animation-duration:6.4s"></div>
+    <div class="road-ember" style="left:38%;animation-delay:3.1s;animation-duration:8s"></div>
+    <div class="road-ember" style="left:58%;animation-delay:.8s;animation-duration:6.8s"></div>
+    <div class="road-ember" style="left:75%;animation-delay:4.2s;animation-duration:7.6s"></div>
+    <div class="road-ember" style="left:90%;animation-delay:2.4s;animation-duration:6.9s"></div>
+    <div class="road-ridge back"></div>
+    <div class="road-ridge front"></div>
+    <div id="weight-road-h" class="xp-road-track horizontal"></div>
   </div>
 </div>
 
@@ -5683,18 +5837,6 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
   </div>
   <div id="watch-body" style="flex:1;min-height:0;padding:12px"></div>
   <div id="watch-note" style="flex-shrink:0;padding:12px 16px;font-size:11px;color:var(--muted);line-height:1.5;border-top:1px solid var(--border2)"></div>
-</div>
-
-<!-- FULLSCREEN ROAD VIEWER — shared by XP/Weight/Trophy Road's expand
-     button. Moves the live road container (with its scenery siblings)
-     into this overlay via appendChild so it's the exact same DOM node
-     being viewed, not a re-render, then puts it back on close. -->
-<div class="road-fullscreen-overlay" id="road-fullscreen-overlay">
-  <div class="road-fullscreen-head">
-    <div class="road-fullscreen-title" id="road-fullscreen-title"></div>
-    <button class="road-fullscreen-close" onclick="closeRoadFullscreen()">✕</button>
-  </div>
-  <div class="road-fullscreen-body" id="road-fullscreen-body"></div>
 </div>
 
 <!-- ── STREAK DETAIL — big number + flame + calendar grid + weekly goal,
@@ -7478,36 +7620,6 @@ function closeWatch(){
   document.getElementById('watch-modal').style.display='none';
   document.body.style.overflow='';
 }
-// ── FULLSCREEN ROAD VIEWER — moves the road's whole .road-scenery
-// wrapper (embers/ridge included, not just the node list) into the
-// overlay via appendChild, leaving a comment-node placeholder marking
-// exactly where it came from so close() can put it right back. Moving
-// the actual live element rather than cloning means any subsequent
-// renderXpRoad()/renderWeightRoad()/renderTrophyRoad() call (which
-// looks the container up by id) keeps working correctly no matter
-// which parent it's currently sitting in.
-let roadFullscreenOrigin=null;
-function openRoadFullscreen(id,title){
-  const inner=document.getElementById(id);
-  const scenery=inner&&inner.closest('.road-scenery');
-  if(!scenery)return;
-  const placeholder=document.createComment('road-fullscreen-placeholder-'+id);
-  scenery.parentNode.insertBefore(placeholder,scenery);
-  roadFullscreenOrigin={el:scenery,placeholder};
-  document.getElementById('road-fullscreen-title').textContent=title;
-  document.getElementById('road-fullscreen-body').appendChild(scenery);
-  document.getElementById('road-fullscreen-overlay').classList.add('show');
-  document.body.style.overflow='hidden';
-}
-function closeRoadFullscreen(){
-  if(roadFullscreenOrigin){
-    roadFullscreenOrigin.placeholder.parentNode.replaceChild(roadFullscreenOrigin.el,roadFullscreenOrigin.placeholder);
-    roadFullscreenOrigin=null;
-  }
-  document.getElementById('road-fullscreen-overlay').classList.remove('show');
-  document.body.style.overflow='';
-}
-
 function openStreakDetail(){
   const numEl=document.getElementById('sd-streak-num');if(numEl)numEl.textContent=streak;
   const subEl=document.getElementById('sd-best-sub');
@@ -8057,54 +8169,51 @@ function drawRoadTrail(cont){
     svg.setAttribute('class','road-trail-svg');
     cont.insertBefore(svg,cont.firstChild);
   }
-  // Sized to the container's full scrollable content height (not the
-  // clipped visible clientHeight from contRect) so the path renders
-  // completely without depending on the SVG's own CSS overflow:visible
-  // to paint past its layout box — that worked in Chromium but WebKit
-  // (iOS Safari) clips it, making the trail invisible on real devices.
-  svg.setAttribute('width',contRect.width);
+  // Sized to the container's full scrollable content in both dimensions
+  // (not the clipped visible client box from contRect) so the path
+  // renders completely without depending on the SVG's own CSS
+  // overflow:visible to paint past its layout box — that worked in
+  // Chromium but WebKit (iOS Safari) clips it, making the trail
+  // invisible on real devices. scrollWidth only exceeds the visible
+  // width for the horizontal road pages (vertical roads never scroll
+  // sideways), so this is safe for both orientations.
+  svg.setAttribute('width',cont.scrollWidth);
   svg.setAttribute('height',cont.scrollHeight);
   const lit=cont.classList.contains('has-progress');
   svg.innerHTML=
     '<path d="'+d+'" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="3.5" stroke-linecap="round" stroke-dasharray="2 11"/>'+
     (lit?'<path d="'+d+'" fill="none" stroke="rgba(255,140,50,.85)" stroke-width="3.5" stroke-linecap="round" stroke-dasharray="2 11" style="filter:drop-shadow(0 0 6px rgba(255,90,0,.6))"/>':'');
 }
-function renderXpRoad(){
-  const cont=document.getElementById('xp-road');
-  const sub=document.getElementById('xp-road-sub');
+// \u2500\u2500 ROAD PATH RENDERER \u2014 shared by the XP/Trophy/Weight Road pages.
+// Each road's own function below only computes WHAT the nodes are
+// (claimed/next/icon/labels); this owns HOW they're laid out: left to
+// right in earn order (earliest/lowest at the left, same reading
+// direction as the journey itself), on a gentle sine-wave wind so the
+// path curves rather than running dead straight, with drawRoadTrail()
+// tracing an actual curve underneath through the live hex positions.
+function renderRoadPath(containerId,nodes){
+  const cont=document.getElementById(containerId);
   if(!cont)return;
-  const ascending=[...XP_ROAD].sort((a,b)=>a.xp-b.xp);
-  const next=ascending.find(n=>!claimedXpRoad.includes(n.xp));
-  if(sub)sub.textContent=next?xp+' / '+next.xp+' XP to next checkpoint':'All checkpoints claimed \u2014 legendary consistency.';
-  const anyClaimed=claimedXpRoad.length>0;
-  cont.className='xp-road-track'+(anyClaimed?' has-progress':'');
-  // Rendered highest-checkpoint-first (bottom-to-top unlock direction) \u2014
-  // "next" is still computed from the ascending copy above so progress
-  // math and the sub-header stay correct regardless of DOM order.
-  const sorted=[...ascending].reverse();
-  cont.innerHTML=sorted.map((node,i)=>{
-    const claimed=claimedXpRoad.includes(node.xp);
-    const isNext=!claimed&&node===next;
-    const side=i%2===0?'side-l':'side-r';
-    const state=claimed?' claimed':isNext?' next':'';
-    const prevXp=i===sorted.length-1?0:sorted[i+1].xp;
-    const pct=isNext?Math.max(0,Math.min(100,Math.round((xp-prevXp)/(node.xp-prevXp)*100))):0;
-    return '<div class="xp-node '+side+state+'" style="--stagger:'+Math.min(i*45,450)+'ms">'+
-      '<div class="xp-node-hexwrap"><div class="xp-node-hex">'+(claimed||isNext?xpRoadRewardIcon(node):'\ud83d\udd12')+'</div>'+
-        (claimed?'<span class="xp-node-check"><svg viewBox="0 0 24 24" fill="none" stroke="#0B0B0B" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>':'')+
+  const anyClaimed=nodes.some(n=>n.claimed);
+  cont.className='xp-road-track horizontal'+(anyClaimed?' has-progress':'');
+  cont.innerHTML=nodes.map((n,i)=>{
+    const state=n.claimed?' claimed':n.isNext?' next':'';
+    const wind=Math.round(Math.sin(i*0.85)*22);
+    return '<div class="xp-node'+state+'" style="--stagger:'+Math.min(i*45,450)+'ms;--wind:'+wind+'px"'+(n.onclick?' onclick="'+n.onclick+'"':'')+'>'+
+      '<div class="xp-node-hexwrap"><div class="xp-node-hex">'+(n.claimed||n.isNext?n.icon:'\ud83d\udd12')+'</div>'+
+        (n.claimed?'<span class="xp-node-check"><svg viewBox="0 0 24 24" fill="none" stroke="#0B0B0B" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>':'')+
       '</div>'+
-      '<div class="xp-node-connector"></div>'+
       '<div class="xp-node-body">'+
-        '<span class="xp-node-xp">'+formatCompactNum(node.xp)+' XP</span>'+
-        '<div class="xp-node-desc">'+xpRoadRewardLabel(node)+'</div>'+
-        (isNext?'<div class="xp-node-bar"><div class="xp-node-bar-fill" style="width:'+pct+'%"></div></div>':'')+
+        '<span class="xp-node-xp">'+n.valueLabel+'</span>'+
+        '<div class="xp-node-desc">'+n.descLabel+'</div>'+
+        (n.isNext&&n.progressPct!=null?'<div class="xp-node-bar"><div class="xp-node-bar-fill" style="width:'+n.progressPct+'%"></div></div>':'')+
       '</div>'+
     '</div>';
   }).join('');
   requestAnimationFrame(()=>{
     drawRoadTrail(cont);
     const nextEl=cont.querySelector('.xp-node.next');
-    if(nextEl)nextEl.scrollIntoView({block:'center'});
+    if(nextEl)nextEl.scrollIntoView({block:'nearest',inline:'center'});
     // Nodes are still mid-flight through their staggered entrance
     // animation (up to ~950ms: 500ms base + up to 450ms stagger delay)
     // when the trail above is drawn, so it's measuring transient,
@@ -8112,6 +8221,42 @@ function renderXpRoad(){
     // rest so the trail always ends up matching the final layout.
     setTimeout(()=>drawRoadTrail(cont),1000);
   });
+}
+// Populates a road page's progress-to-next banner (icon/text/fill) \u2014
+// same {icon,text,pct} shape the Progress-page hub cards read too, so
+// both views of the same road can never say something different.
+function renderRoadBanner(prefix,summary){
+  const icon=document.getElementById(prefix+'-banner-icon');
+  const label=document.getElementById(prefix+'-banner-label');
+  const fill=document.getElementById(prefix+'-banner-fill');
+  if(icon)icon.innerHTML=summary.icon;
+  if(label)label.textContent=summary.text;
+  if(fill)fill.style.width=summary.pct+'%';
+}
+function xpRoadNodes(){
+  const ascending=[...XP_ROAD].sort((a,b)=>a.xp-b.xp);
+  const next=ascending.find(n=>!claimedXpRoad.includes(n.xp));
+  return ascending.map((node,i)=>{
+    const claimed=claimedXpRoad.includes(node.xp);
+    const isNext=!claimed&&node===next;
+    const prevXp=i===0?0:ascending[i-1].xp;
+    const pct=isNext?Math.max(0,Math.min(100,Math.round((xp-prevXp)/(node.xp-prevXp)*100))):null;
+    return {claimed,isNext,icon:xpRoadRewardIcon(node),valueLabel:formatCompactNum(node.xp)+' XP',descLabel:xpRoadRewardLabel(node),progressPct:pct};
+  });
+}
+function getXpRoadSummary(){
+  const ascending=[...XP_ROAD].sort((a,b)=>a.xp-b.xp);
+  const next=ascending.find(n=>!claimedXpRoad.includes(n.xp));
+  const pct=next?Math.max(0,Math.min(100,Math.round(xp/next.xp*100))):100;
+  return {
+    icon:next?xpRoadRewardIcon(next):'\ud83d\udee4\ufe0f',
+    text:next?(xp+' / '+next.xp+' XP to next checkpoint'):'All checkpoints claimed \u2014 legendary consistency.',
+    pct,
+  };
+}
+function renderXpRoad(){
+  renderRoadPath('xp-road-h',xpRoadNodes());
+  renderRoadBanner('xp-road',getXpRoadSummary());
 }
 
 // Two crate tiers, mirroring Brawl Stars' frequent Star Drop vs rarer
@@ -8228,47 +8373,84 @@ function renderAchievements(){
     }).join('');
   }
 }
-// Trophy Road \u2014 Achievements re-cast as the same winding vertical road
-// as XP/Weight, instead of the old horizontal-scrolling badge row.
+// Trophy Road \u2014 Achievements as the same horizontal path as XP/Weight.
 // Achievements have no single numeric threshold to bar-fill against
 // (ACHIEVEMENTS only carries a designed `order`, not a magnitude), so
-// unlike XP/Weight there's no progress bar \u2014 title+description are
-// always shown (matches the road's existing "you can always read what's
-// coming" pattern), only the icon itself stays behind a lock.
-function renderTrophyRoad(){
-  const cont=document.getElementById('trophy-road');
-  if(!cont)return;
+// unlike XP/Weight there's no per-node progress bar \u2014 title+description
+// are always shown (matches the road's existing "you can always read
+// what's coming" pattern), only the icon itself stays behind a lock.
+// The banner above still gets a real completion percentage though:
+// unlocked-count over total, same honest-numbers approach as everywhere
+// else, just measuring "how much of the road" instead of "how close to
+// the next step".
+function trophyRoadNodes(){
   const ascending=[...ACHIEVEMENTS].sort((a,b)=>a.order-b.order);
   const next=ascending.find(a=>!unlockedAchievements.includes(a.key));
-  const anyClaimed=unlockedAchievements.length>0;
-  cont.className='xp-road-track'+(anyClaimed?' has-progress':'');
-  const sorted=[...ascending].reverse();
-  cont.innerHTML=sorted.map((a,i)=>{
+  return ascending.map(a=>{
     const claimed=unlockedAchievements.includes(a.key);
     const isNext=!claimed&&a===next;
-    const side=i%2===0?'side-l':'side-r';
-    const state=claimed?' claimed':isNext?' next':'';
-    return '<div class="xp-node '+side+state+'" style="--stagger:'+Math.min(i*45,450)+'ms" onclick="viewAchievementBadge(\''+a.key+'\')">'+
-      '<div class="xp-node-hexwrap"><div class="xp-node-hex">'+(claimed||isNext?a.icon:'\ud83d\udd12')+'</div>'+
-        (claimed?'<span class="xp-node-check"><svg viewBox="0 0 24 24" fill="none" stroke="#0B0B0B" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>':'')+
-      '</div>'+
-      '<div class="xp-node-connector"></div>'+
-      '<div class="xp-node-body">'+
-        '<span class="xp-node-xp">'+a.label+'</span>'+
-        '<div class="xp-node-desc">'+a.desc+'</div>'+
-      '</div>'+
-    '</div>';
-  }).join('');
-  requestAnimationFrame(()=>{
-    drawRoadTrail(cont);
-    const nextEl=cont.querySelector('.xp-node.next');
-    if(nextEl)nextEl.scrollIntoView({block:'center'});
-    // Nodes are still mid-flight through their staggered entrance
-    // animation (up to ~950ms: 500ms base + up to 450ms stagger delay)
-    // when the trail above is drawn, so it's measuring transient,
-    // not-yet-settled positions. Redraw once everything's actually at
-    // rest so the trail always ends up matching the final layout.
-    setTimeout(()=>drawRoadTrail(cont),1000);
+    return {claimed,isNext,icon:a.icon,valueLabel:a.label,descLabel:a.desc,progressPct:null,onclick:"viewAchievementBadge('"+a.key+"')"};
+  });
+}
+function getTrophyRoadSummary(){
+  const total=ACHIEVEMENTS.length;
+  const unlocked=unlockedAchievements.length;
+  const ascending=[...ACHIEVEMENTS].sort((a,b)=>a.order-b.order);
+  const next=ascending.find(a=>!unlockedAchievements.includes(a.key));
+  return {
+    icon:next?next.icon:'\ud83c\udfc6',
+    text:next?(unlocked+' / '+total+' unlocked \u2014 next: '+next.label):'Every trophy claimed \u2014 the full road, walked.',
+    pct:Math.round(unlocked/total*100),
+  };
+}
+function renderTrophyRoad(){
+  renderRoadPath('trophy-road-h',trophyRoadNodes());
+  renderRoadBanner('trophy-road',getTrophyRoadSummary());
+}
+// Weight Road \u2014 lifetime tonnage milestones (real-object comparisons)
+// as the same horizontal path, driven by totalVolume against
+// WEIGHT_MILESTONES \u2014 the exact same source list the Trophy Cabinet's
+// weight-milestone shelf reads from, so the two views can never
+// disagree about which milestone is next.
+function weightRoadNodes(){
+  const ascending=[...WEIGHT_MILESTONES].sort((a,b)=>a.kg-b.kg);
+  const vol=totalVolume||0;
+  const next=ascending.find(m=>vol<m.kg);
+  return ascending.map((m,i)=>{
+    const claimed=vol>=m.kg;
+    const isNext=!claimed&&m===next;
+    const prevKg=i===0?0:ascending[i-1].kg;
+    const pct=isNext?Math.max(0,Math.min(100,Math.round((vol-prevKg)/(m.kg-prevKg)*100))):null;
+    return {claimed,isNext,icon:milestoneIconHTML(m),valueLabel:m.kg.toLocaleString()+'kg',descLabel:m.name,progressPct:pct};
+  });
+}
+function getWeightRoadSummary(){
+  const ascending=[...WEIGHT_MILESTONES].sort((a,b)=>a.kg-b.kg);
+  const vol=totalVolume||0;
+  const next=ascending.find(m=>vol<m.kg);
+  const pct=next?Math.max(0,Math.min(100,Math.round(vol/next.kg*100))):100;
+  return {
+    icon:next?milestoneIconHTML(next):'\ud83c\udfcb\ufe0f',
+    text:next?(Math.round(vol).toLocaleString()+' / '+next.kg.toLocaleString()+'kg to '+next.name):'All milestones hit \u2014 '+Math.round(vol).toLocaleString()+'kg lifetime.',
+    pct,
+  };
+}
+function renderWeightRoad(){
+  renderRoadPath('weight-road-h',weightRoadNodes());
+  renderRoadBanner('weight-road',getWeightRoadSummary());
+}
+// Populates the three Progress-page hub cards (XP/Trophy/Weight) with
+// the same {icon,text,pct} summaries the full road pages' banners use
+// \u2014 the hub is a shrunk preview of the same numbers, never a separate
+// calculation that could drift out of sync with the real page.
+function renderRoadHubCards(){
+  [['xp',getXpRoadSummary()],['trophy',getTrophyRoadSummary()],['weight',getWeightRoadSummary()]].forEach(([prefix,s])=>{
+    const icon=document.getElementById('hub-'+prefix+'-icon');
+    const sub=document.getElementById('hub-'+prefix+'-sub');
+    const fill=document.getElementById('hub-'+prefix+'-fill');
+    if(icon)icon.innerHTML=s.icon;
+    if(sub)sub.textContent=s.text;
+    if(fill)fill.style.width=s.pct+'%';
   });
 }
 // Weight Milestones \u2014 lives in the Trophy Cabinet now (it's a trophy
@@ -10209,7 +10391,7 @@ function showPage(id){
   if(pg)pg.classList.add('active');
   document.querySelectorAll('.sb-item').forEach(i=>{if(i.getAttribute('onclick')?.includes(id))i.classList.add('active')});
   try{
-    const titles={dashboard:['Home','Let\'s get to work.'],workout:['Workout','Build your session.'],session:['Session','Time to work.'],nutrition:['Nutrition','Hit your targets.'],recipes:['Recipes','Real meals, built for the surplus.'],progress:['Progress','See how far you\'ve come.'],trophycabinet:['Trophy Cabinet','Every rarity, every layer, all in one room.'],recovery:['Recovery','Sleep, breathing, and how to actually recover.'],schedule:['Schedule','Plan your week.'],leaderboard:['Leaderboard','See how you rank.'],leagues:['Leagues','Climb the weekly ladder.'],learn:['Science','Understand the why.'],profile:['Profile','Your stats, on display.'],legal:['Legal','Privacy, terms, and health info.'],settings:['Settings','Update your details anytime.']};
+    const titles={dashboard:['Home','Let\'s get to work.'],workout:['Workout','Build your session.'],session:['Session','Time to work.'],nutrition:['Nutrition','Hit your targets.'],recipes:['Recipes','Real meals, built for the surplus.'],progress:['Progress','See how far you\'ve come.'],trophycabinet:['Trophy Cabinet','Every rarity, every layer, all in one room.'],xproad:['XP Road','Every checkpoint you\'ve crossed.'],trophyroad:['Trophy Road','Every achievement, one path.'],weightroad:['Weight Road','Lifetime tonnage, milestone by milestone.'],recovery:['Recovery','Sleep, breathing, and how to actually recover.'],schedule:['Schedule','Plan your week.'],leaderboard:['Leaderboard','See how you rank.'],leagues:['Leagues','Climb the weekly ladder.'],learn:['Science','Understand the why.'],profile:['Profile','Your stats, on display.'],legal:['Legal','Privacy, terms, and health info.'],settings:['Settings','Update your details anytime.']};
     const[t,s]=titles[id]||[id,''];
     const tte=document.getElementById('tb-title');
     if(tte){tte.textContent=t;tte.classList.toggle('tb-title-sm',id==='trophycabinet');}
@@ -10220,7 +10402,7 @@ function showPage(id){
     catch(e){
       console.error(name+' error:',e&&e.message||e,e&&e.stack);
       // Show error visibly on the page for debugging
-      const pgId='page-'+(name==='workout'||name==='session'||name==='nutrition'||name==='progress'||name==='recovery'||name==='schedule'||name==='leaderboard'||name==='learn'?name:'dashboard');const pg=document.getElementById(pgId);
+      const pgId='page-'+(name==='workout'||name==='session'||name==='nutrition'||name==='progress'||name==='recovery'||name==='schedule'||name==='leaderboard'||name==='learn'||name==='xproad'||name==='trophyroad'||name==='weightroad'?name:'dashboard');const pg=document.getElementById(pgId);
       if(pg){
         const errDiv=pg.querySelector('.render-error')||document.createElement('div');
         errDiv.className='render-error';
@@ -10267,6 +10449,9 @@ function showPage(id){
   }
   if(id==='progress')safeRender(renderProgress,'progress');
   if(id==='trophycabinet')safeRender(renderTrophyCabinet,'trophycabinet');
+  if(id==='xproad')safeRender(renderXpRoad,'xproad');
+  if(id==='trophyroad')safeRender(renderTrophyRoad,'trophyroad');
+  if(id==='weightroad')safeRender(renderWeightRoad,'weightroad');
   if(id==='leagues')safeRender(renderLeagues,'leagues');
   if(id==='recovery')safeRender(renderRecoveryPage,'recovery');
   if(id==='schedule')safeRender(renderSchedule,'schedule');
@@ -17285,7 +17470,7 @@ function renderProgress(){
   renderMeasurements();
   renderTonnageBreakdown();
   try{renderAchievements();}catch(e){console.error('renderAchievements:',e.message);}
-  try{renderXpRoad();}catch(e){console.error('renderXpRoad:',e.message);}
+  try{renderRoadHubCards();}catch(e){console.error('renderRoadHubCards:',e.message);}
   try{renderProgressStack();}catch(e){console.error('renderProgressStack:',e.message);}
   try{renderXpBreakdown();}catch(e){console.error('renderXpBreakdown:',e.message);}
   try{renderSleepQuickLog();}catch(e){console.error('renderSleepQuickLog:',e.message);}
