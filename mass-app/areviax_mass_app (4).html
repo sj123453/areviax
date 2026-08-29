@@ -1930,7 +1930,11 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .crate-icon-wrap.gold .crate-wreath{display:block}
     .crate-icon-wrap.diamond{--orn-c1:#FFAEB5;--orn-c2:#E23B4E}
     .crate-icon-wrap.diamond .crate-wreath{display:block}
-    .crate-icon-wrap.areviax{--orn-c1:url(#lgi-holo-grad);--orn-c2:url(#lgi-holo-grad)}
+    /* Solid amber crown/wreath, not the holographic ultra-legendary
+       treatment — the League's areviax mark is one disciplined amber-
+       on-black material, not a rainbow, so the crate's own top-tier
+       ornament now matches that instead of clashing with it. */
+    .crate-icon-wrap.areviax{--orn-c1:#FFD9A8;--orn-c2:#FF9A3D}
     .crate-icon-wrap.areviax .crate-crown,.crate-icon-wrap.areviax .crate-wreath{display:block}
     /* LIFT RANK badges — a circular medallion (not the hex used
        everywhere else) so this reads as its own system, closer to a
@@ -2004,12 +2008,16 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        than a sticker sitting on top of it. The sheen/shade overlays
        above (z-index:2) give it the same lit-surface depth as every
        other tier's plain color fill. */
-    .compass-crate .crate-icon-emblem{width:100%;height:100%;object-fit:cover}
     .compass-crate.bronze{background:linear-gradient(160deg,#E8A85C,#B8622A)}
     .compass-crate.silver{background:linear-gradient(160deg,#F2F5F9,#9AA7B4)}
     .compass-crate.gold{background:linear-gradient(160deg,#FFE58A,#D4970A)}
     .compass-crate.diamond{background:linear-gradient(115deg,#EAFBFF,#9FE8FF,#EAFBFF,#5FD0F2);background-size:260% 100%;animation:rarityShimmerSweep 3.4s linear infinite}
-    .compass-crate.areviax{background:linear-gradient(160deg,#FF9A42,#FF5A00);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.35)}
+    /* Same near-black-plus-amber-ring material as .league-areviax's own
+       hex (see line ~837) — this used to be a bright orange gradient
+       under a busy photographic emblem, which read as a different,
+       louder identity from the League page's clean dark mark despite
+       both meaning "the single best thing in the app." */
+    .compass-crate.areviax{background:linear-gradient(160deg,#2A1206,#0A0503);box-shadow:inset 0 0 0 1.5px rgba(255,170,60,.55)}
     .compass-crate.areviax .crate-icon svg{color:#FFB347}
     /* Locked keeps each tier's own colour, just dimmer — a flat
        grayscale filter would desaturate the glow above too, leaving
@@ -8589,11 +8597,12 @@ function crateIconSVG(tier){
   const paths=CRATE_ICON_PATHS[tier]||CRATE_ICON_PATHS.bronze;
   return '<svg viewBox="-12 -12 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">'+paths+'</svg>';
 }
-// areviax gets the real emblem art instead of the generic line-icon set
-// every other tier shares — fills the whole hex, clipped to it by
-// .compass-crate's own clip-path same as the icon it replaces.
+// areviax reuses the Areviax League's own 8-point nova/compass mark
+// (see LEAGUE_ICON_SVG) instead of its old busy photographic emblem —
+// same clean flat-icon-on-solid-hex language as the League page now
+// carries the Drop's identity, not the other way around.
 function crateIconHTML(tier){
-  if(tier==='areviax')return '<img src="images/legends/areviax_emblem.png" alt="" class="crate-icon-emblem">';
+  if(tier==='areviax')return leagueIconSVG('areviax');
   return crateIconSVG(tier);
 }
 
