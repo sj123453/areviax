@@ -2302,6 +2302,39 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .glow-title.recovery{color:#C7C7CE;text-shadow:0 0 10px rgba(180,180,190,.5),0 0 22px rgba(150,150,160,.25)}
     @keyframes titleGlowPulse{0%,100%{filter:brightness(1)}50%{filter:brightness(1.25)}}
     @media(prefers-reduced-motion:reduce){.glow-title.trophy{animation:none!important}}
+
+    /* ── LOVABLE-REFERENCE THEME TOKENS — extracted mechanisms (see
+       bar_lovable_theme.md) being applied consistently across every hero
+       moment in the app, not just the dashboard they were built for.
+       Kept as reusable utilities rather than copy-pasted inline styles
+       per page. ── */
+    /* Dot-grid texture behind a big background numeral. Position
+       absolutely inside a position:relative parent; the caller sets its
+       own width/height/top/right/left via inline style (this class only
+       supplies the pattern + fade), and can override the dot color via
+       --dot-c and the fade's origin corner via --dot-origin (default
+       top-right, "100% 0%") so the field can anchor to whichever corner
+       the numeral itself sits in. */
+    .dot-field{
+      position:absolute;pointer-events:none;
+      background-image:radial-gradient(var(--dot-c,rgba(255,122,46,.4)) 1px,transparent 1.5px);
+      background-size:11px 11px;
+      -webkit-mask-image:radial-gradient(circle at var(--dot-origin,100% 0%),#000 0%,transparent 82%);
+      mask-image:radial-gradient(circle at var(--dot-origin,100% 0%),#000 0%,transparent 82%);
+    }
+    /* Hollow/outline number or word — transparent fill, stroke only.
+       Pair with the caller's own font-size/weight; override stroke
+       color/width via --hollow-c/--hollow-w if the default (current
+       text color-adjacent white, 2px) doesn't fit the context. */
+    .hollow-num{color:transparent;-webkit-text-stroke:var(--hollow-w,2px) var(--hollow-c,var(--white))}
+    /* Dim neon-style glow via drop-shadow, which follows the element's
+       own rendered shape (glyph outline, icon silhouette) rather than a
+       boxy rectangle the way box-shadow would. One glow moment per
+       screen — this marks something as the hero, it is not a default
+       card treatment (see bar_lovable_theme.md mechanism 3 and the
+       Lambo-reference bar's same rule). Override intensity/color via
+       --glow-c. */
+    .neon-glow{filter:drop-shadow(0 0 20px var(--glow-c,rgba(255,122,46,.4)))}
     /* MUSCLE READINESS — body-map hero card on the Recovery page */
     .muscle-map-card{background:linear-gradient(160deg,rgba(142,142,147,.07),rgba(var(--bg-rgb),.9));border:1.5px solid rgba(142,142,147,.22);border-radius:18px;padding:20px;margin-bottom:16px}
     .muscle-map-svg-wrap{position:relative;width:100%;max-width:340px;margin:0 auto;aspect-ratio:880/824}
@@ -4109,12 +4142,13 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        small unit, huge faint watermark, a real trend line underneath,
        and here a genuine filter control (4W/12W/1Y) instead of a fixed
        range. Real tonnageLog data — see renderProgressHero(). -->
-  <div style="background:linear-gradient(160deg,rgba(255,90,0,.09),rgba(var(--bg-rgb),.9));border:1px solid rgba(255,90,0,.22);border-radius:16px;padding:22px 22px 20px;margin-bottom:16px;position:relative;overflow:hidden">
-    <div aria-hidden="true" id="prog-hero-watermark" style="position:absolute;right:10px;top:-10px;font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:96px;line-height:1;color:rgba(255,255,255,.045);pointer-events:none;user-select:none">12</div>
+  <div style="background:transparent;padding:6px 4px 20px;margin-bottom:16px;position:relative;overflow:hidden">
+    <div aria-hidden="true" class="dot-field" style="right:0;top:0;width:230px;height:100%"></div>
+    <div aria-hidden="true" id="prog-hero-watermark" class="hollow-num" style="position:absolute;right:-4px;top:-14px;font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:130px;line-height:1;--hollow-w:1.5px;--hollow-c:rgba(255,122,46,.16);pointer-events:none;user-select:none">12</div>
     <div style="position:relative">
       <div style="font-size:9.5px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,122,46,.7);margin-bottom:8px">Total Volume · <span id="prog-hero-range-label">12W</span></div>
       <div style="display:flex;align-items:flex-end;gap:6px">
-        <span style="font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:56px;line-height:1;color:var(--white)" id="prog-hero-num">0</span>
+        <span class="neon-glow" style="font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:56px;line-height:1;color:var(--white)" id="prog-hero-num">0</span>
         <span style="font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:30px;line-height:1.1;color:transparent;-webkit-text-stroke:1.5px rgba(var(--white-rgb),.5)">T</span>
       </div>
       <div style="font-size:11.5px;color:rgba(var(--white-rgb),.55);margin-top:8px" id="prog-hero-trend">Log a session to start tracking volume.</div>
