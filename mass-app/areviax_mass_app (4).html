@@ -2498,17 +2498,23 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        top-to-bottom. */
     .xp-road-track.horizontal{
       display:flex;align-items:center;overflow-x:auto;overflow-y:visible;
-      padding:64px 20px 40px;gap:30px;
+      padding:84px 20px 40px;gap:26px;
     }
-    .xp-road-track.horizontal .xp-node{position:relative;flex:0 0 auto;width:96px;min-height:0}
-    .xp-road-track.horizontal .xp-node-hexwrap{position:relative;top:auto;left:auto;right:auto;width:64px;height:64px;margin:0 auto}
-    .xp-road-track.horizontal .xp-node.next .xp-node-hexwrap{width:80px;height:80px}
+    .xp-road-track.horizontal .xp-node{position:relative;flex:0 0 auto;width:104px;min-height:0}
+    /* Hex size/icon size are set per-node via --hexsize/--hexfont inline
+       vars (see xpRoadNodeWeight() family in JS) rather than a flat
+       claimed/next split — the reference this was built from (Brawl
+       Stars' Trophy Road) sizes a reward's icon by how big a deal the
+       reward actually IS, a Mega Box reads huge next to a 25-coin pile
+       regardless of which one is "next" — so weight drives size, and
+       "next" only adds a smaller boost on top of that same scale. */
+    .xp-road-track.horizontal .xp-node-hexwrap{position:relative;top:auto;left:auto;right:auto;width:var(--hexsize,64px);height:var(--hexsize,64px);margin:0 auto}
+    .xp-road-track.horizontal .xp-node-hex{font-size:var(--hexfont,26px)}
     .xp-road-track.horizontal .xp-node-connector{display:none}
     .xp-road-track.horizontal .xp-node-body{position:relative;top:auto;left:auto;right:auto;width:100%;margin:9px 0 0;text-align:center}
     @media(max-width:480px){
-      .xp-road-track.horizontal .xp-node{width:78px}
-      .xp-road-track.horizontal .xp-node-hexwrap{width:52px;height:52px}
-      .xp-road-track.horizontal .xp-node.next .xp-node-hexwrap{width:66px;height:66px}
+      .xp-road-track.horizontal .xp-node{width:86px}
+      .xp-road-track.horizontal .xp-node-hexwrap{width:calc(var(--hexsize,64px) * .82);height:calc(var(--hexsize,64px) * .82)}
     }
     /* Winding wave — each node carries its own --wind offset (a sine
        curve computed at render time), folded into the entrance
@@ -2528,7 +2534,10 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .road-progress-banner{
       display:flex;align-items:center;gap:14px;
       background:linear-gradient(135deg,rgba(255,255,255,.035),rgba(255,255,255,.01));
-      border:1.5px solid var(--border2);border-radius:16px;padding:14px 16px;margin-bottom:14px;
+      /* Generous gap to the road below, not a tight stack — the Brawl
+         Stars reference this was built from gives real breathing room
+         between the reward-collect row and the path itself. */
+      border:1.5px solid var(--border2);border-radius:16px;padding:14px 16px;margin-bottom:36px;
     }
     .road-progress-banner-icon{
       flex-shrink:0;width:46px;height:46px;border-radius:50%;
@@ -8199,7 +8208,17 @@ function renderRoadPath(containerId,nodes){
   cont.innerHTML=nodes.map((n,i)=>{
     const state=n.claimed?' claimed':n.isNext?' next':'';
     const wind=Math.round(Math.sin(i*0.85)*22);
-    return '<div class="xp-node'+state+'" style="--stagger:'+Math.min(i*45,450)+'ms;--wind:'+wind+'px"'+(n.onclick?' onclick="'+n.onclick+'"':'')+'>'+
+    // Hex size scales with how big a deal the reward actually is (n.weight,
+    // 0..1 \u2014 see xpRoadNodeWeight/trophyRoadNodeWeight/weightRoadNodeWeight),
+    // not just claimed-vs-next: a locked Mega-Box-tier reward should still
+    // read as visibly bigger than a claimed 25-coin one. "Next" adds a
+    // smaller boost on top of that same scale rather than its own fixed size,
+    // so a low-value next node stays modest and a high-value one reads as
+    // both "you are here" and genuinely big.
+    const w=n.weight!=null?n.weight:0.5;
+    const size=Math.round(46+w*36+(n.isNext?10:0));
+    const font=Math.round(size*0.42);
+    return '<div class="xp-node'+state+'" style="--stagger:'+Math.min(i*45,450)+'ms;--wind:'+wind+'px;--hexsize:'+size+'px;--hexfont:'+font+'px"'+(n.onclick?' onclick="'+n.onclick+'"':'')+'>'+
       '<div class="xp-node-hexwrap"><div class="xp-node-hex">'+(n.claimed||n.isNext?n.icon:'\ud83d\udd12')+'</div>'+
         (n.claimed?'<span class="xp-node-check"><svg viewBox="0 0 24 24" fill="none" stroke="#0B0B0B" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>':'')+
       '</div>'+
@@ -8233,6 +8252,17 @@ function renderRoadBanner(prefix,summary){
   if(label)label.textContent=summary.text;
   if(fill)fill.style.width=summary.pct+'%';
 }
+// How big a deal each XP Road reward actually is (0..1), for hex sizing —
+// a shard or single Bronze Drop is a small, frequent trickle; a guaranteed
+// Legend Card is the showpiece prize on this whole road, so it should read
+// visibly bigger regardless of whether it's the very next checkpoint.
+const XP_NODE_TYPE_WEIGHT={shard:0.18,bronze:0.32,silver:0.55,diamond:0.8,legend:0.85};
+const XP_LEGEND_RARITY_BOOST={rare:0,superrare:0.03,epic:0.06,mythic:0.08,legendary:0.12,ultralegendary:0.15};
+function xpRoadNodeWeight(node){
+  let w=XP_NODE_TYPE_WEIGHT[node.type]!=null?XP_NODE_TYPE_WEIGHT[node.type]:0.3;
+  if(node.type==='legend')w+=XP_LEGEND_RARITY_BOOST[node.rarity]||0;
+  return Math.min(1,w);
+}
 function xpRoadNodes(){
   const ascending=[...XP_ROAD].sort((a,b)=>a.xp-b.xp);
   const next=ascending.find(n=>!claimedXpRoad.includes(n.xp));
@@ -8241,7 +8271,7 @@ function xpRoadNodes(){
     const isNext=!claimed&&node===next;
     const prevXp=i===0?0:ascending[i-1].xp;
     const pct=isNext?Math.max(0,Math.min(100,Math.round((xp-prevXp)/(node.xp-prevXp)*100))):null;
-    return {claimed,isNext,icon:xpRoadRewardIcon(node),valueLabel:formatCompactNum(node.xp)+' XP',descLabel:xpRoadRewardLabel(node),progressPct:pct};
+    return {claimed,isNext,icon:xpRoadRewardIcon(node),valueLabel:formatCompactNum(node.xp)+' XP',descLabel:xpRoadRewardLabel(node),progressPct:pct,weight:xpRoadNodeWeight(node)};
   });
 }
 function getXpRoadSummary(){
@@ -8383,13 +8413,21 @@ function renderAchievements(){
 // unlocked-count over total, same honest-numbers approach as everywhere
 // else, just measuring "how much of the road" instead of "how close to
 // the next step".
+// Achievements carry no reward magnitude of their own (see the comment on
+// renderTrophyRoad below), but `order` is a real, designed difficulty
+// ranking — a 1-Year Streak (order 18) is a much bigger deal than First
+// Session (order 1) — so hex size scales off that instead.
+function trophyRoadNodeWeight(a){
+  const maxOrder=Math.max(...ACHIEVEMENTS.map(x=>x.order));
+  return 0.3+0.7*(a.order/maxOrder);
+}
 function trophyRoadNodes(){
   const ascending=[...ACHIEVEMENTS].sort((a,b)=>a.order-b.order);
   const next=ascending.find(a=>!unlockedAchievements.includes(a.key));
   return ascending.map(a=>{
     const claimed=unlockedAchievements.includes(a.key);
     const isNext=!claimed&&a===next;
-    return {claimed,isNext,icon:a.icon,valueLabel:a.label,descLabel:a.desc,progressPct:null,onclick:"viewAchievementBadge('"+a.key+"')"};
+    return {claimed,isNext,icon:a.icon,valueLabel:a.label,descLabel:a.desc,progressPct:null,onclick:"viewAchievementBadge('"+a.key+"')",weight:trophyRoadNodeWeight(a)};
   });
 }
 function getTrophyRoadSummary(){
@@ -8412,6 +8450,15 @@ function renderTrophyRoad(){
 // WEIGHT_MILESTONES \u2014 the exact same source list the Trophy Cabinet's
 // weight-milestone shelf reads from, so the two views can never
 // disagree about which milestone is next.
+// kg spans 1,000-150,000 across the ladder — a linear scale would make the
+// first four milestones look nearly identical and only the Statue of
+// Liberty read as big, so this scales off log(kg) instead for a spread
+// that actually looks graduated the whole way up.
+function weightRoadNodeWeight(m){
+  const kgs=WEIGHT_MILESTONES.map(x=>x.kg);
+  const minLog=Math.log(Math.min(...kgs)),maxLog=Math.log(Math.max(...kgs));
+  return 0.3+0.7*((Math.log(m.kg)-minLog)/(maxLog-minLog));
+}
 function weightRoadNodes(){
   const ascending=[...WEIGHT_MILESTONES].sort((a,b)=>a.kg-b.kg);
   const vol=totalVolume||0;
@@ -8421,7 +8468,7 @@ function weightRoadNodes(){
     const isNext=!claimed&&m===next;
     const prevKg=i===0?0:ascending[i-1].kg;
     const pct=isNext?Math.max(0,Math.min(100,Math.round((vol-prevKg)/(m.kg-prevKg)*100))):null;
-    return {claimed,isNext,icon:milestoneIconHTML(m),valueLabel:m.kg.toLocaleString()+'kg',descLabel:m.name,progressPct:pct};
+    return {claimed,isNext,icon:milestoneIconHTML(m),valueLabel:m.kg.toLocaleString()+'kg',descLabel:m.name,progressPct:pct,weight:weightRoadNodeWeight(m)};
   });
 }
 function getWeightRoadSummary(){
