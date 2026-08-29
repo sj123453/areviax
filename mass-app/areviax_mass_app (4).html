@@ -11888,7 +11888,13 @@ function enableReducedSets(){
 function spreadBySelectedMuscle(exList,count){
   if(exList.length<=count)return exList.slice(0,count);
   const cats=[...selectedMuscles];
-  const scored=exList.map(e=>{
+  // Highest-effectiveness first, so when a category has room for only one
+  // pick, that pick is the best exercise for it (e.g. Barbell Bench Press,
+  // eff 98) rather than whichever happened to sit first in the source
+  // array — an isolation move like Cable Chest Fly (eff 78) satisfies the
+  // same 'chest' bookkeeping without delivering nearly the same stimulus.
+  const byEff=[...exList].sort((a,b)=>(b.eff||0)-(a.eff||0));
+  const scored=byEff.map(e=>{
     const m=(e.muscle||'').toLowerCase();
     const matchedCats=cats.filter(c=>(MUSCLE_GROUPS[c]||[]).some(syn=>m.includes(syn)));
     return {e,matchedCats};
@@ -11933,7 +11939,14 @@ function spreadByMuscle(exList,count){
   if(exList.length<=count) return exList.slice(0,count);
   const groups={};
   const order=[];
-  exList.forEach(e=>{
+  // Highest-effectiveness first within each muscle-tag group, so when a
+  // group only gets one guaranteed slot, it's filled by the best exercise
+  // for that muscle (e.g. Barbell Bench Press, eff 98) rather than
+  // whichever happened to sit first in the source array — an isolation
+  // move like Cable Chest Fly (eff 78, tagged plain 'chest' with no
+  // triceps involvement) would otherwise satisfy the same "chest is
+  // covered" bookkeeping without delivering nearly the same stimulus.
+  [...exList].sort((a,b)=>(b.eff||0)-(a.eff||0)).forEach(e=>{
     if(!groups[e.muscle]){groups[e.muscle]=[];order.push(e.muscle)}
     groups[e.muscle].push(e);
   });
@@ -17679,7 +17692,12 @@ function topUpMissingMuscles(exs,pool){
   let fi=0;
   missing.forEach(tag=>{
     if(fi>=freeIdx.length)return; // genuinely out of safe slots — more distinct majors than this session has room for
-    const candidate=pool.find(e=>!pickedNames.has(e.name)&&tags(e).includes(tag));
+    // Best (highest-eff) match, not just the first one found in pool order —
+    // same reasoning as spreadByMuscle's own sort: the exercise topping up a
+    // missing muscle should be the best option for it, not whichever
+    // happened to be first in the array/shuffle.
+    const candidates=pool.filter(e=>!pickedNames.has(e.name)&&tags(e).includes(tag));
+    const candidate=candidates.sort((a,b)=>(b.eff||0)-(a.eff||0))[0];
     if(!candidate)return; // pool has nothing for this muscle at all — nothing we can do
     const idx=freeIdx[fi++];
     pickedNames.delete(exs[idx].name);
