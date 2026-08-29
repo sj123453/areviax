@@ -3365,7 +3365,6 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
          device the reference uses behind its own headline. Sits behind
          the real (bold) number below purely for depth, not as the
          readable stat itself. -->
-    <div aria-hidden="true" id="dash-streak-watermark" style="position:absolute;right:-4px;top:-22px;font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:150px;line-height:1;color:transparent;-webkit-text-stroke:1.5px rgba(255,122,46,.14);pointer-events:none;user-select:none">0</div>
     <div style="position:relative">
       <div class="dash-greeting-date" style="font-size:9px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,122,46,.55);margin-bottom:10px" id="dash-date"></div>
       <div class="dash-greeting-text" style="font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:44px;line-height:1.05;letter-spacing:-.02em;color:var(--white)" id="dash-greeting">Good morning</div>
@@ -3376,13 +3375,21 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
            card's headline elsewhere on this page. Dim orange neon-style
            glow via drop-shadow (follows the glyph outline, unlike a
            box-shadow) — the one glow moment on this card, not applied to
-           anything else here, matching the "glow marks something special,
-           not every card" rule this app already follows elsewhere. -->
-      <div style="display:flex;align-items:flex-end;gap:10px">
-        <span class="dash-hero-streak-num" style="font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:64px;line-height:.9;letter-spacing:-.02em;color:transparent;-webkit-text-stroke:2px var(--white);filter:drop-shadow(0 0 20px rgba(255,122,46,.4))" id="dash-greeting-streak-num">0</span>
-        <div style="display:flex;flex-direction:column;padding-bottom:6px">
-          <span style="font-size:24px;line-height:1;margin-bottom:2px">🔥</span>
-          <span style="font-size:10.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,122,46,.7)">Day Streak</span>
+           anything else here, matching the "glow marks below rule this
+           app already follows elsewhere. The giant hollow watermark digit
+           now lives INSIDE this row's own relative wrapper (not the whole
+           greeting block) so it's anchored to the streak number it
+           represents and can never reach up into the greeting/name text —
+           it used to sit at the top of the whole card and collided with
+           long two-word names (e.g. "Sam Johnson"). -->
+      <div style="position:relative">
+        <div aria-hidden="true" id="dash-streak-watermark" style="position:absolute;right:-6px;top:-28px;font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:118px;line-height:1;color:transparent;-webkit-text-stroke:1.5px rgba(255,122,46,.14);pointer-events:none;user-select:none;z-index:0">0</div>
+        <div style="display:flex;align-items:flex-end;gap:10px;position:relative;z-index:1">
+          <span class="dash-hero-streak-num" style="font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:64px;line-height:.9;letter-spacing:-.02em;color:transparent;-webkit-text-stroke:2px var(--white);filter:drop-shadow(0 0 20px rgba(255,122,46,.4))" id="dash-greeting-streak-num">0</span>
+          <div style="display:flex;flex-direction:column;padding-bottom:6px">
+            <svg class="streak-day-flame" viewBox="0 0 24 24" width="22" height="22" style="margin-bottom:2px;filter:drop-shadow(0 0 5px rgba(255,122,46,.65))" aria-hidden="true"><defs><linearGradient id="flameGradGreeting" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FFC466"/><stop offset="55%" stop-color="#FF7A2E"/><stop offset="100%" stop-color="#FF4400"/></linearGradient></defs><path fill="url(#flameGradGreeting)" d="M12 22c4.4 0 7-2.9 7-6.8 0-3-1.7-5-3-7-.2 1.7-1 2.8-2 3.4.3-2.7-.7-5.6-3-7.6-.3 2.5-1.2 3.9-2.7 5.4C6.8 10.8 6 12.6 6 15c0 4 2.7 7 6 7z"/></svg>
+            <span style="font-size:10.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,122,46,.7)">Day Streak</span>
+          </div>
         </div>
       </div>
       <div style="font-size:11px;color:rgba(var(--white-rgb),.4);margin-top:6px" id="dash-greeting-streak-sub"></div>
@@ -3404,6 +3411,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        Workouts dropped — it pointed at the exact same page as Start
        already does, so it was a duplicate button, not lost functionality. -->
   <div class="dash-today-inner" style="background:linear-gradient(160deg,rgba(255,90,0,.07),rgba(var(--bg-rgb),.9));border:1px solid rgba(255,90,0,.22);border-radius:16px;padding:24px 22px 22px;overflow:hidden;position:relative">
+    <div aria-hidden="true" class="dot-field" style="right:0;bottom:0;width:100%;height:190px;--dot-origin:100% 100%"></div>
     <!-- HERO HEADLINE — solid word + hollow/outline word. The giant faint
          watermark digit that used to sit behind this was removed —
          that "number in the background" device now belongs to the
@@ -3437,12 +3445,22 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
         <span class="dash-vol-label" style="font-size:9.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:rgba(var(--white-rgb),.4)">Weekly Volume</span>
         <div class="dash-vol-total" style="font-size:13px;font-weight:800;color:var(--white);font-family:'JetBrains Mono',monospace" id="vol-daily-total"></div>
       </div>
+      <!-- Legend — the chart used to show two differently-coloured lines
+           with nothing naming which was which; a tiny swatch+label pair
+           makes "orange = that day's tonnage, cyan = 3-day average"
+           legible at a glance instead of requiring the viewer to guess. -->
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:6px">
+        <span style="display:flex;align-items:center;gap:5px;font-size:9px;font-weight:700;color:rgba(var(--white-rgb),.55)"><span style="width:10px;height:2.5px;border-radius:2px;background:#FF7A2E;display:inline-block"></span>Daily</span>
+        <span style="display:flex;align-items:center;gap:5px;font-size:9px;font-weight:700;color:rgba(var(--white-rgb),.55)"><span style="width:10px;height:2.5px;border-radius:2px;background:#44CFFF;display:inline-block"></span>3-Day Avg</span>
+      </div>
       <div class="wp-chart-wrap">
         <svg viewBox="0 0 280 100" preserveAspectRatio="none" style="width:100%;height:60px;display:block" class="dash-wp-chart">
+          <g id="wp-gridlines"></g>
           <polyline id="wp-avg-line" fill="none" stroke="#44CFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity=".8" vector-effect="non-scaling-stroke" points=""/>
           <polyline id="wp-vol-line" fill="none" stroke="#FF7A2E" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke" points=""/>
           <g id="wp-dots"></g>
         </svg>
+        <div id="wp-day-labels" style="display:grid;grid-template-columns:repeat(7,1fr);margin-top:4px"></div>
       </div>
     </div>
     <div id="vol-daily-empty" style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border);font-size:10.5px;color:var(--muted);line-height:1.5">Log your first set and this week's volume trend shows up here.</div>
@@ -11163,6 +11181,8 @@ function renderDailyVolume(){
   const volLine=document.getElementById('wp-vol-line');
   const avgLine=document.getElementById('wp-avg-line');
   const dotsG=document.getElementById('wp-dots');
+  const gridG=document.getElementById('wp-gridlines');
+  const dayLabelsEl=document.getElementById('wp-day-labels');
   if(!card||!totalEl||!volLine||!avgLine)return;
   if(!tonnageLog.length){card.style.display='none';if(emptyEl)emptyEl.style.display='';return;}
   if(emptyEl)emptyEl.style.display='none';
@@ -11201,6 +11221,24 @@ function renderDailyVolume(){
 
   volLine.setAttribute('points',volPts);
   avgLine.setAttribute('points',avgPts);
+  // Faint horizontal gridlines at 0/50/100% of the week's peak day, so a
+  // given point on the line can be read against a scale instead of only
+  // against its neighbours — the chart previously had no reference frame
+  // at all beyond the two lines themselves.
+  if(gridG)gridG.innerHTML=[0,.5,1].map(f=>{
+    const y=yFor(max*f).toFixed(1);
+    return `<line x1="${padX}" y1="${y}" x2="${W-padX}" y2="${y}" stroke="var(--border2)" stroke-width="1" vector-effect="non-scaling-stroke" opacity=".5"/>`;
+  }).join('');
+  // Mon–Sun labels under the chart, aligned to each point above it, plus
+  // "today" highlighted — the chart used to be an unlabelled pair of
+  // squiggles with no way to tell which day was which.
+  const todayKey=localDateKey(today);
+  const dvDayNames=['S','M','T','W','T','F','S'];
+  if(dayLabelsEl)dayLabelsEl.innerHTML=days.map(d=>{
+    const isToday=d.key===todayKey;
+    const dn=dvDayNames[parseLocalDate(d.key).getDay()];
+    return `<div style="text-align:center;font-size:8px;font-weight:800;letter-spacing:.04em;color:${isToday?'#FF7A2E':'rgba(var(--white-rgb),.35)'}">${dn}</div>`;
+  }).join('');
   // A dot only on trained days used to leave rest days as a bare gap in
   // the line with nothing marking them — reads as missing/broken data
   // rather than "no training that day." Every day of the week now gets
@@ -16299,7 +16337,7 @@ function renderWeeklyRecap(){
     const isToday=dStr===todayStr;
     return `<div style="text-align:center">
       <div style="font-size:8.5px;color:var(--muted);margin-bottom:3px">${dayNames[d.getDay()]}</div>
-      <div class="streak-day-box" style="background:${active?'linear-gradient(160deg,rgba(255,122,46,.22),rgba(255,90,0,.08))':'var(--border2)'};${isToday?'box-shadow:0 0 0 1.5px rgba(255,90,0,.7);':''}">${active?'<span class="streak-day-flame" style="font-size:14px">🔥</span>':''}</div>
+      <div class="streak-day-box" style="background:${active?'linear-gradient(160deg,rgba(255,122,46,.22),rgba(255,90,0,.08))':'var(--border2)'};${isToday?'box-shadow:0 0 0 1.5px rgba(255,90,0,.7);':''}">${active?`<svg class="streak-day-flame" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><defs><linearGradient id="flameGradD${dStr}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FFC466"/><stop offset="55%" stop-color="#FF7A2E"/><stop offset="100%" stop-color="#FF4400"/></linearGradient></defs><path fill="url(#flameGradD${dStr})" d="M12 22c4.4 0 7-2.9 7-6.8 0-3-1.7-5-3-7-.2 1.7-1 2.8-2 3.4.3-2.7-.7-5.6-3-7.6-.3 2.5-1.2 3.9-2.7 5.4C6.8 10.8 6 12.6 6 15c0 4 2.7 7 6 7z"/></svg>`:''}</div>
     </div>`;
   }).join('');
   daysEl.innerHTML=dayBoxes;
@@ -16329,7 +16367,7 @@ function renderWeeklyRecap(){
       const isToday=dStr===todayStr;
       return `<div style="text-align:center">
         <div style="font-size:8.5px;color:var(--muted);margin-bottom:3px">${dayNames[d.getDay()]}</div>
-        <div class="streak-day-box" style="background:${active?'linear-gradient(160deg,rgba(255,122,46,.22),rgba(255,90,0,.08))':'var(--border2)'};${isToday?'box-shadow:0 0 0 1.5px rgba(255,90,0,.7);':''}">${active?'<span class="streak-day-flame" style="font-size:14px">🔥</span>':''}</div>
+        <div class="streak-day-box" style="background:${active?'linear-gradient(160deg,rgba(255,122,46,.22),rgba(255,90,0,.08))':'var(--border2)'};${isToday?'box-shadow:0 0 0 1.5px rgba(255,90,0,.7);':''}">${active?`<svg class="streak-day-flame" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><defs><linearGradient id="flameGradG${dStr}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FFC466"/><stop offset="55%" stop-color="#FF7A2E"/><stop offset="100%" stop-color="#FF4400"/></linearGradient></defs><path fill="url(#flameGradG${dStr})" d="M12 22c4.4 0 7-2.9 7-6.8 0-3-1.7-5-3-7-.2 1.7-1 2.8-2 3.4.3-2.7-.7-5.6-3-7.6-.3 2.5-1.2 3.9-2.7 5.4C6.8 10.8 6 12.6 6 15c0 4 2.7 7 6 7z"/></svg>`:''}</div>
       </div>`;
     }).join('');
   }
