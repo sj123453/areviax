@@ -11066,7 +11066,17 @@ function renderTodaySessionName(name){
 const DASH_NOTIF_IDS=['muscle-balance-banner','streak-risk-banner','streak-repair-banner','sleep-reminder-banner','walk-tip-card','daily-spin-banner'];
 let _dashNotifArmed=false;
 function restackDashNotifs(){
+  // Desktop's greeting grew to 60px and often wraps to two lines for a
+  // longer name, so a fixed guess here either clears a short name with a
+  // big gap or still overlaps a long one. Measuring the name element's
+  // actual rendered bottom clears both. Mobile's dash-grid already
+  // reserves clearance above the greeting for this banner (see its
+  // margin-top comment), so it keeps the plain 62 base offset.
   let offset=62;
+  if(window.innerWidth>=900){
+    const nameEl=document.getElementById('dash-name');
+    if(nameEl)offset=Math.max(offset,nameEl.getBoundingClientRect().bottom+16);
+  }
   DASH_NOTIF_IDS.forEach(id=>{
     const el=document.getElementById(id);
     if(el&&el.classList.contains('dash-notif-in')){
