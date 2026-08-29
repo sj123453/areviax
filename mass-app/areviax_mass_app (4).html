@@ -8593,6 +8593,13 @@ function playCrateRevealChime(rarity){
     ultralegendary:[392,493.88,587.33,739.99,987.77,1174.66],
   };
   const notes=notesByRarity[rarity]||notesByRarity.common;
+  // Rank-based intensity (0..1) so the reveal gets audibly bigger the
+  // better the pull is, not just a longer note list — the whole chime
+  // (note volume, final-note landing weight, shimmer count) scales off
+  // this one number the same way CRATE_SOUND_INTENSITY scales the crack.
+  const RARITY_RANK={common:0,rare:1,superrare:2,epic:3,mythic:4,legendary:5,ultralegendary:6};
+  const rank=RARITY_RANK[rarity]!=null?RARITY_RANK[rarity]:0;
+  const drama=rank/6;
   const t0=ctx.currentTime;
   notes.forEach((freq,i)=>{
     const start=t0+i*0.09;
@@ -8601,20 +8608,36 @@ function playCrateRevealChime(rarity){
     osc.type=isLast?'triangle':'sine';
     osc.frequency.setValueAtTime(freq,start);
     const g=ctx.createGain();
-    const peak=isLast?0.32:0.22;
+    const peak=isLast?0.32+0.16*drama:0.22+0.06*drama;
     g.gain.setValueAtTime(0,start);
     g.gain.linearRampToValueAtTime(peak,start+0.02);
-    g.gain.exponentialRampToValueAtTime(0.001,start+(isLast?0.9:0.45));
+    g.gain.exponentialRampToValueAtTime(0.001,start+(isLast?0.9+0.35*drama:0.45));
     osc.connect(g);g.connect(ctx.destination);
-    osc.start(start);osc.stop(start+(isLast?0.95:0.5));
+    osc.start(start);osc.stop(start+(isLast?0.95+0.35*drama:0.5));
   });
-  const shimmerTiers={superrare:1,epic:1,mythic:1,legendary:1,ultralegendary:2};
+  // A sub-bass landing hit under the final note gives the best pulls real
+  // physical weight instead of just a brighter chime — silent for
+  // common/rare, ramps in from superrare up, biggest on Ultra Legendary.
+  if(rank>=2){
+    const landStart=t0+(notes.length-1)*0.09;
+    const bass=ctx.createOscillator();
+    bass.type='sine';
+    bass.frequency.setValueAtTime(90-8*drama,landStart);
+    bass.frequency.exponentialRampToValueAtTime(38,landStart+0.5+0.3*drama);
+    const bg=ctx.createGain();
+    bg.gain.setValueAtTime(0,landStart);
+    bg.gain.linearRampToValueAtTime(0.14+0.22*drama,landStart+0.03);
+    bg.gain.exponentialRampToValueAtTime(0.001,landStart+0.6+0.4*drama);
+    bass.connect(bg);bg.connect(ctx.destination);
+    bass.start(landStart);bass.stop(landStart+1.0+0.4*drama);
+  }
+  const shimmerTiers={superrare:1,epic:2,mythic:2,legendary:3,ultralegendary:4};
   const shimmerLayers=shimmerTiers[rarity]||0;
   for(let layer=0;layer<shimmerLayers;layer++){
     const shimmerStart=t0+notes.length*0.09+layer*0.12;
     const shimmer=ctx.createOscillator();
     shimmer.type='sine';
-    shimmer.frequency.setValueAtTime(notes[notes.length-1]*(layer===0?2:3),shimmerStart);
+    shimmer.frequency.setValueAtTime(notes[notes.length-1]*(2+layer*0.5),shimmerStart);
     const sg=ctx.createGain();
     sg.gain.setValueAtTime(0,shimmerStart);
     sg.gain.linearRampToValueAtTime(layer===0?0.06:0.035,shimmerStart+0.05);
