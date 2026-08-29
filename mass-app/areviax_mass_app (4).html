@@ -12634,8 +12634,14 @@ function rerollWorkout(){
   for(let i=pool.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]];}
   const wbTime=document.getElementById('wb-time');
   const timeVal=wbTime?wbTime.value:'full';
-  const maxEx=timeVal==='min'?2:timeVal==='short'?4:pool.length;
-  const exs=pool.slice(0,maxEx);
+  const maxEx=maxExForTime(timeVal,pool.length);
+  // A plain shuffle+slice here had zero muscle-group balancing at all —
+  // unlike renderExercises()'s own upper-full/full path, this could (and
+  // did) drop an entire muscle like back purely by chance on any given
+  // reroll, independent of the fix already applied there. Same guarantee,
+  // same reason: spreadByMuscle's smallest-group-first bias still needs
+  // topUpMissingMuscles backing it up once the slot count gets small.
+  const exs=(type==='upper-full'||type==='full')?topUpMissingMuscles(spreadByMuscle(pool,maxEx),pool):pool.slice(0,maxEx);
   const cont=document.getElementById('ex-list');
   if(!cont)return;
   cont.innerHTML=exs.map((e,i)=>`
@@ -12666,6 +12672,12 @@ function rerollWorkout(){
         <div class="ex-ts-panel" id="ts-${i}">${e.troubleshoot.map(t=>`<div class="ex-ts-item"><div class="ex-ts-feel">Feeling it in: ${t.feel}</div><div class="ex-ts-fix">${t.fix}</div></div>`).join('')}</div>`:''}</div>
     </div>`).join('');
   updateSynergy(exs,type);
+  // Without this, Start Session read whatever renderExercises() last set —
+  // the lineup from BEFORE the reroll — so a reroll could change what's on
+  // screen while silently starting the old session underneath it.
+  if(builderMode==='auto'){
+    autoPreviewExs=exs;autoPreviewType=type;autoPreviewName=getSessionName(type);
+  }
   toast('🎲','New session — fresh lineup');
 }
 
@@ -17626,29 +17638,53 @@ const WEEK_SPLIT_PATTERNS={
 // This tops up any major muscle with zero representation by swapping out a
 // slot from whichever muscle currently has the most picks (so it never
 // removes a muscle's ONLY exercise to add another's).
+//
+// Two bugs fixed here after 'back' kept vanishing from Upper Full at short
+// lengths even with this function wired in:
+// 1. The old safety check scored a slot's WORST tag across ALL of its tags,
+//    not just MAJOR ones — an exercise tagged only 'core' (not a MAJOR
+//    muscle at all) was still treated as "unsafe to remove" just because
+//    core itself had no backup, blocking a swap that was actually free.
+// 2. It walked MAJOR in a fixed order and greedily spent the first safe
+//    swap it found — so when e.g. both chest AND back were missing but only
+//    one spare slot existed (two different exact-tag groups — "Biceps" and
+//    "Biceps + Forearms" — both landing a guaranteed pick for the same
+//    underlying muscle), chest (earlier in the MAJOR array) won that slot
+//    100% of the time and back was starved out on every single call, not
+//    just unlucky ones. Same-major duplicates are now collapsed up front
+//    into a shared pool of free slots, and which missing muscle claims a
+//    scarce one is shuffled rather than fixed, so genuine slot scarcity
+//    (more distinct majors than exercises fit) gets spread fairly instead
+//    of always sacrificing the same muscle.
 function topUpMissingMuscles(exs,pool){
   const MAJOR=['chest','back','shoulders','biceps','triceps','quads','hamstrings','glutes','calves'];
   const tags=e=>(e.muscle||'').split('+').map(s=>s.trim());
-  const countOf=(list,tag)=>list.filter(e=>tags(e).includes(tag)).length;
+  const countOf=tag=>exs.filter(e=>tags(e).includes(tag)).length;
   const pickedNames=new Set(exs.map(e=>e.name));
-  MAJOR.forEach(tag=>{
-    if(countOf(exs,tag)>0)return; // already covered
+  const freeIdx=[];
+  const spent={}; // majorTag -> how many of its slots we've already marked free
+  exs.forEach((e,i)=>{
+    const majorTags=tags(e).filter(t=>MAJOR.includes(t));
+    // No MAJOR tag at all (e.g. plain 'core') — nothing is protecting this
+    // slot, always safe to give up.
+    if(!majorTags.length){freeIdx.push(i);return;}
+    const safe=majorTags.every(t=>countOf(t)-(spent[t]||0)>1);
+    if(safe){
+      majorTags.forEach(t=>spent[t]=(spent[t]||0)+1);
+      freeIdx.push(i);
+    }
+  });
+  const missing=MAJOR.filter(tag=>countOf(tag)===0);
+  for(let i=missing.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[missing[i],missing[j]]=[missing[j],missing[i]];}
+  let fi=0;
+  missing.forEach(tag=>{
+    if(fi>=freeIdx.length)return; // genuinely out of safe slots — more distinct majors than this session has room for
     const candidate=pool.find(e=>!pickedNames.has(e.name)&&tags(e).includes(tag));
     if(!candidate)return; // pool has nothing for this muscle at all — nothing we can do
-    // Only swap a slot whose EVERY tag has backup coverage elsewhere — using
-    // the exercise's worst (least-represented) tag, not its best, so a
-    // "back + core" exercise doesn't get removed just because core is deep
-    // if back has no other representation to fall back on.
-    let worstIdx=-1,worstCount=1;
-    exs.forEach((e,i)=>{
-      const c=Math.min(...tags(e).map(t=>countOf(exs,t)));
-      if(c>worstCount){worstCount=c;worstIdx=i;}
-    });
-    if(worstIdx>=0){
-      pickedNames.delete(exs[worstIdx].name);
-      pickedNames.add(candidate.name);
-      exs[worstIdx]=candidate;
-    }
+    const idx=freeIdx[fi++];
+    pickedNames.delete(exs[idx].name);
+    pickedNames.add(candidate.name);
+    exs[idx]=candidate;
   });
   return exs;
 }
