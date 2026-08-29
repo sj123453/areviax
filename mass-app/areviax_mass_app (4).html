@@ -2171,7 +2171,16 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     /* RAY BURST — the glow-behind-a-clipped-shape rule (see design-dna)
        means this can never live on .legend-reveal-icon itself; it's a
        plain unclipped sibling, painted before the icon in DOM order,
-       masked into a ring so the rays only show past the star's points. */
+       masked into a ring so the rays only show past the star's points.
+       No filter:blur here (there used to be a 1px one) — a masked,
+       continuously-rotating 340px layer is already one of the more
+       expensive things on this screen; stacking a blur on top forces a
+       second offscreen raster pass every frame for a softening that was
+       barely visible. One less filtered layer competing for the same
+       frame as the reveal's shine sweep, spin-in and confetti burst,
+       all of which land in the same instant a crate is opened — part of
+       the fix for reports of the whole app stuttering on a crate tap
+       (see renderRoadPath's visibility guard for the other half). */
     .reveal-ray-burst{
       position:absolute;top:50%;left:50%;width:340px;height:340px;
       transform:translate(-50%,-50%);z-index:0;pointer-events:none;
@@ -2190,7 +2199,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
         var(--ray-c) 282.8deg 294.8deg, transparent 294.8deg 308.5deg,
         var(--ray-c) 308.5deg 320.5deg, transparent 320.5deg 334.2deg,
         var(--ray-c) 334.2deg 346.2deg, transparent 346.2deg 360deg);
-      opacity:.5;filter:blur(1px);animation:rayspin 16s linear infinite;
+      opacity:.5;animation:rayspin 16s linear infinite;
       mask:radial-gradient(circle,transparent 15%,#000 26%,#000 46%,transparent 62%);
       -webkit-mask:radial-gradient(circle,transparent 15%,#000 26%,#000 46%,transparent 62%);
     }
@@ -8364,6 +8373,21 @@ function drawRoadTrail(cont){
 function renderRoadPath(containerId,nodes){
   const cont=document.getElementById(containerId);
   if(!cont)return;
+  // checkXpRoad() (and renderAchievements(), which renderTrophyRoad()
+  // sits behind) call this on every XP gain, not just while a road page
+  // is actually open — most often mid-crate-reveal, where this used to
+  // rebuild every node's DOM + run drawRoadTrail's layout-measuring pass
+  // (plus a queued rAF and a further setTimeout redraw) for a page
+  // nobody could see, competing for the same frame(s) as the reveal
+  // modal's own entrance animations. showPage() already re-runs this
+  // the moment the road page is actually opened, so skipping it while
+  // hidden costs nothing and just stops that invisible work from
+  // stacking onto whatever visible animation triggered the XP gain —
+  // the root cause behind reports of the whole app stuttering on a
+  // crate tap. .closest() is a plain DOM walk, not a layout read, so
+  // this check itself is free.
+  const pageEl=cont.closest('.page');
+  if(pageEl&&!pageEl.classList.contains('active'))return;
   const anyClaimed=nodes.some(n=>n.claimed);
   cont.className='xp-road-track horizontal'+(anyClaimed?' has-progress':'');
   cont.innerHTML=nodes.map((n,i)=>{
@@ -9195,8 +9219,18 @@ function showLegendReveal(l,isNew,tier){
       (tier==='areviax'?'<div style="font-size:11px;font-weight:700;color:#FFB347;margin-top:8px">\ud83d\udd25 The Areviax Drop \u2014 +2 bonus Compass Shards</div>':'')+
       '<button class="achievement-close-btn" onclick="this.closest(\'.achievement-overlay\').remove()">Continue</button>';
     playCrateRevealChime(l.rarity);
-    addXP(isNew?25:10,isNew?'New trophy':'Compass Drop');
-    if(isNew)celebrateBurst(['\ud83d\udd25','\u2b50','\ud83c\udfc6'],cfg.burstCount);
+    // addXP's own side effects (streak/achievement/road bookkeeping,
+    // each with its own render pass) and the confetti burst both used to
+    // fire in this same tick as the innerHTML above \u2014 right as the
+    // browser is trying to paint the modal's own shine/spin-in/rarity-
+    // pulse animations starting up for the first time. Pushing them one
+    // frame later lets that entrance actually paint before more
+    // JS-driven DOM work competes for the same frame \u2014 see
+    // renderRoadPath's visibility guard for the bigger half of this fix.
+    requestAnimationFrame(()=>{
+      addXP(isNew?25:10,isNew?'New trophy':'Compass Drop');
+      if(isNew)celebrateBurst(['\ud83d\udd25','\u2b50','\ud83c\udfc6'],cfg.burstCount);
+    });
   },cfg.windupMs+cfg.crackMs);
 }
 
