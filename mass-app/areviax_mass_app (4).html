@@ -2384,14 +2384,27 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        silently sliced most of the circle off. Wrapping them as siblings
        inside an unclipped wrapper is what makes the badge fully visible. */
     .xp-node-hexwrap{position:absolute;top:12px;width:64px;height:64px;z-index:2}
+    /* Medallion frame — same layered-inset-box-shadow recipe as the
+       Trophy Cabinet's .legend-card-icon (see design-dna: a flat tinted
+       hex reads cheap, this stack is what makes it read as a raised,
+       stamped badge). --road-ring/--road-ring-light default to XP's warm
+       orange and are overridden per theme on .road-scenery below, so one
+       rule serves all three roads. */
     .xp-node-hex{
       position:relative;width:100%;height:100%;
       clip-path:polygon(50% 0%,93% 25%,93% 75%,50% 100%,7% 75%,7% 25%);
       display:flex;align-items:center;justify-content:center;font-size:26px;
       background:linear-gradient(160deg,#2A2A38,#18181F);
-      box-shadow:inset 0 1px 1px rgba(255,255,255,.06);
+      box-shadow:
+        inset 0 0 0 2px rgba(0,0,0,.55),
+        inset 0 0 0 4.5px var(--road-ring-light,rgba(255,180,120,.55)),
+        inset 0 0 0 7px var(--road-ring,rgba(255,120,40,.35)),
+        inset 0 0 0 9px rgba(255,255,255,.5),
+        inset 0 0 0 10.5px rgba(0,0,0,.4);
       filter:grayscale(1) opacity(.4);transition:filter .2s;
     }
+    .road-scenery.theme-trophy{--road-ring:rgba(255,190,60,.4);--road-ring-light:rgba(255,225,140,.6)}
+    .road-scenery.theme-iron{--road-ring:rgba(90,170,255,.4);--road-ring-light:rgba(160,215,255,.6)}
     .xp-node-hex img{width:62%;height:62%;object-fit:contain;filter:none;position:relative;z-index:1}
     .xp-node-connector{position:absolute;top:43px;height:2px;width:9px;background:rgba(255,255,255,.12);z-index:1}
     /* Body sits at margin 80px / width 90px — hex (64px + 8px margin)
@@ -2451,16 +2464,35 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       .xp-node-check svg{width:11px;height:11px}
       .xp-node{min-height:132px}
     }
+    /* claimed/next recolor via the --road-ring/--road-ring-light custom
+       properties the medallion box-shadow above already reads, rather
+       than redeclaring box-shadow wholesale — box-shadow doesn't merge
+       across rules (see design-dna), so a full redeclare here would
+       silently wipe the bevel stack back to flat. The old version also
+       animated an outer box-shadow directly on this clip-path element
+       for the "next" pulse, which is invisible no matter the blur/spread
+       (clip-path discards any shadow reaching past its own edges) — the
+       real glow now lives on .xp-node-hex-glow, a separate unclipped
+       sibling behind the hex (see markup in renderRoadPath). */
     .xp-node.claimed .xp-node-hex{
       filter:none;background:linear-gradient(160deg,#FFB27A,var(--green));
-      box-shadow:0 0 14px rgba(255,140,60,.35),inset 0 1px 1px rgba(255,255,255,.25);
+      --road-ring:rgba(255,140,60,.6);--road-ring-light:rgba(255,205,160,.8);
     }
     .xp-node.claimed .xp-node-connector{background:rgba(255,90,0,.35)}
-    .xp-node.next .xp-node-hex{filter:none;font-size:34px;background:linear-gradient(160deg,#FFD6A8,var(--green));animation:xpNextPulse 2.2s ease-in-out infinite}
-    @keyframes xpNextPulse{
-      0%,100%{box-shadow:0 0 0 rgba(255,90,0,.4),inset 0 1px 2px rgba(255,255,255,.3)}
-      50%{box-shadow:0 0 26px rgba(255,90,0,.65),inset 0 1px 2px rgba(255,255,255,.3)}
+    .xp-node.next .xp-node-hex{
+      filter:none;font-size:34px;background:linear-gradient(160deg,#FFD6A8,var(--green));
+      --road-ring:rgba(255,140,60,.65);--road-ring-light:rgba(255,225,190,.9);
     }
+    .xp-node-hex-glow{
+      position:absolute;inset:-16px;z-index:0;border-radius:50%;pointer-events:none;
+      background:radial-gradient(circle,rgba(255,140,60,.55),transparent 70%);
+      opacity:0;
+    }
+    .xp-node.next .xp-node-hex-glow{opacity:1;animation:xpNextGlowPulse 2.2s ease-in-out infinite}
+    @keyframes xpNextGlowPulse{0%,100%{opacity:.4;transform:scale(.9)}50%{opacity:.9;transform:scale(1.1)}}
+    @media(prefers-reduced-motion:reduce){.xp-node.next .xp-node-hex-glow{animation:none!important;opacity:.65}}
+    .road-scenery.theme-trophy .xp-node-hex-glow{background:radial-gradient(circle,rgba(255,200,90,.55),transparent 70%)}
+    .road-scenery.theme-iron .xp-node-hex-glow{background:radial-gradient(circle,rgba(90,170,255,.55),transparent 70%)}
     .xp-node-check{
       position:absolute;top:-5px;right:-5px;width:24px;height:24px;border-radius:50%;
       background:var(--green);border:2.5px solid #0B0B0B;z-index:3;
@@ -2499,6 +2531,12 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .xp-road-track.horizontal{
       display:flex;align-items:center;overflow-x:auto;overflow-y:visible;
       padding:84px 20px 40px;gap:26px;
+      /* Cropped nodes at the scroll edges fade out instead of hard-cutting
+         mid-icon/mid-word — reads as "more to scroll to", not a rendering
+         glitch. Horizontal-only gradient, so it never touches the node's
+         own vertical winding offset. */
+      -webkit-mask-image:linear-gradient(to right,transparent,#000 34px,#000 calc(100% - 34px),transparent);
+      mask-image:linear-gradient(to right,transparent,#000 34px,#000 calc(100% - 34px),transparent);
     }
     .xp-road-track.horizontal .xp-node{position:relative;flex:0 0 auto;width:104px;min-height:0}
     /* Hex size/icon size are set per-node via --hexsize/--hexfont inline
@@ -2511,7 +2549,15 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .xp-road-track.horizontal .xp-node-hexwrap{position:relative;top:auto;left:auto;right:auto;width:var(--hexsize,64px);height:var(--hexsize,64px);margin:0 auto}
     .xp-road-track.horizontal .xp-node-hex{font-size:var(--hexfont,26px)}
     .xp-road-track.horizontal .xp-node-connector{display:none}
-    .xp-road-track.horizontal .xp-node-body{position:relative;top:auto;left:auto;right:auto;width:100%;margin:9px 0 0;text-align:center}
+    /* Value pill straddles the hex's bottom edge (same treatment as the
+       reward row's qty pill above it) instead of sitting as plain
+       caption text below — reads as attached to the reward, not a
+       separate label. */
+    .xp-road-track.horizontal .xp-node-xp{
+      position:absolute;left:50%;bottom:-9px;transform:translateX(-50%);z-index:2;
+      background:#0B0B0B;margin-bottom:0;max-width:none;
+    }
+    .xp-road-track.horizontal .xp-node-body{position:relative;top:auto;left:auto;right:auto;width:100%;margin:16px 0 0;text-align:center}
     @media(max-width:480px){
       .xp-road-track.horizontal .xp-node{width:86px}
       .xp-road-track.horizontal .xp-node-hexwrap{width:calc(var(--hexsize,64px) * .82);height:calc(var(--hexsize,64px) * .82)}
@@ -2528,33 +2574,69 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     }
     .xp-road-track.horizontal .xp-node{animation-name:xpNodeEntranceH}
 
-    /* PROGRESS-TO-NEXT BANNER — Brawl Stars' trophy-road header: the
-       next reward's icon plus a fill bar and a plain-English line for
-       what's still needed, all in one glanceable strip above the path. */
-    .road-progress-banner{
-      display:flex;align-items:center;gap:14px;
-      background:linear-gradient(135deg,rgba(255,255,255,.035),rgba(255,255,255,.01));
-      /* Generous gap to the road below, not a tight stack — the Brawl
-         Stars reference this was built from gives real breathing room
-         between the reward-collect row and the path itself. */
-      border:1.5px solid var(--border2);border-radius:16px;padding:14px 16px;margin-bottom:36px;
+    /* REWARD ROW — Brawl Stars' Trophy Road header: three plain cards
+       (just-crossed / next up / then), differentiated only by a label
+       above and a glowing border on the current one — no per-card
+       background color, no icon-specific chrome. Icon size scales with
+       --hexsize/--hexfont per node weight, same mechanism the road path
+       itself already uses, so a big reward visibly breaks out of its
+       card the way Brawl Stars' Mega Box does. Generous margin-bottom
+       below the row (not a tight stack) is deliberate — real breathing
+       room before the path begins, matching the reference. */
+    .road-reward-row{display:flex;gap:10px;margin-bottom:52px}
+    .road-reward-box{
+      flex:1;min-width:0;position:relative;text-align:center;
+      background:rgba(255,255,255,.04);border:1.5px solid var(--border2);
+      border-radius:16px;padding:16px 6px 20px;
     }
-    .road-progress-banner-icon{
-      flex-shrink:0;width:46px;height:46px;border-radius:50%;
-      display:flex;align-items:center;justify-content:center;font-size:22px;
-      background:linear-gradient(160deg,rgba(255,140,60,.22),rgba(255,90,0,.06));
-      border:1.5px solid rgba(255,140,60,.35);
+    .road-reward-box.next{
+      border-color:rgba(255,140,60,.55);
+      box-shadow:0 0 0 1.5px rgba(255,90,0,.25),0 0 22px -4px rgba(255,90,0,.55);
     }
-    .road-progress-banner-icon svg{width:60%;height:60%}
-    .road-progress-banner-icon img{width:70%;height:70%;object-fit:contain}
-    .road-progress-banner-body{flex:1;min-width:0}
-    .road-progress-banner-label{font-size:11.5px;font-weight:700;color:var(--white);margin-bottom:6px}
-    .road-progress-banner-track{height:7px;border-radius:4px;background:rgba(255,255,255,.08);overflow:hidden}
-    .road-progress-banner-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--orange2),var(--green));transition:width .5s ease}
-    .road-progress-banner.theme-trophy .road-progress-banner-icon{background:linear-gradient(160deg,rgba(255,210,90,.22),rgba(255,180,50,.06));border-color:rgba(255,210,90,.35)}
-    .road-progress-banner.theme-trophy .road-progress-banner-fill{background:linear-gradient(90deg,#FFD24A,#FFDE94)}
-    .road-progress-banner.theme-iron .road-progress-banner-icon{background:linear-gradient(160deg,rgba(90,170,255,.22),rgba(90,170,255,.06));border-color:rgba(143,216,255,.35)}
-    .road-progress-banner.theme-iron .road-progress-banner-fill{background:linear-gradient(90deg,#5AAAFF,#8FD8FF)}
+    .road-reward-label{
+      font-size:9px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;
+      color:rgba(var(--white-rgb),.4);margin-bottom:10px;white-space:nowrap;
+    }
+    .road-reward-box.next .road-reward-label{color:#FF9A52}
+    .road-reward-icon-slot{
+      width:var(--hexsize,54px);height:var(--hexsize,54px);margin:0 auto;
+      display:flex;align-items:center;justify-content:center;
+      font-size:var(--hexfont,24px);position:relative;z-index:1;
+    }
+    .road-reward-icon-slot svg{width:78%;height:78%}
+    .road-reward-icon-slot img{width:86%;height:86%;object-fit:contain}
+    .road-reward-check{
+      position:absolute;top:8px;right:8px;width:20px;height:20px;border-radius:50%;
+      background:var(--green);border:2px solid #0B0B0B;z-index:2;
+      display:flex;align-items:center;justify-content:center;
+    }
+    .road-reward-check svg{width:11px;height:11px}
+    /* Fixed light text (#EEF0FF), not var(--white) — this pill's own
+       background is a hardcoded dark #0B0B0B in both app themes, so its
+       text must stay fixed-light too, or light theme's dark --white
+       renders near-invisible against it (same bug class as the road
+       node labels — see the .xp-node-xp fix above). */
+    .road-reward-qty{
+      position:absolute;left:50%;bottom:-9px;transform:translateX(-50%);z-index:2;
+      background:#0B0B0B;border:1.5px solid rgba(255,255,255,.16);border-radius:20px;
+      padding:2px 10px;font-family:'JetBrains Mono',monospace;font-size:9.5px;font-weight:700;
+      color:#EEF0FF;white-space:nowrap;max-width:calc(100% + 20px);overflow:hidden;text-overflow:ellipsis;
+    }
+    .road-reward-box.next .road-reward-qty{border-color:rgba(255,140,60,.5);color:#FFC599}
+    .road-reward-fill-track{margin-top:12px;height:4px;border-radius:2px;background:rgba(255,255,255,.08);overflow:hidden}
+    .road-reward-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--orange2),var(--green));transition:width .5s ease}
+    .road-reward-row.theme-trophy .road-reward-box.next{border-color:rgba(255,210,90,.55);box-shadow:0 0 0 1.5px rgba(255,180,50,.25),0 0 22px -4px rgba(255,180,50,.55)}
+    .road-reward-row.theme-trophy .road-reward-box.next .road-reward-label{color:#FFD24A}
+    .road-reward-row.theme-trophy .road-reward-fill{background:linear-gradient(90deg,#FFD24A,#FFDE94)}
+    .road-reward-row.theme-iron .road-reward-box.next{border-color:rgba(143,216,255,.55);box-shadow:0 0 0 1.5px rgba(90,170,255,.25),0 0 22px -4px rgba(90,170,255,.55)}
+    .road-reward-row.theme-iron .road-reward-box.next .road-reward-label{color:#8FD8FF}
+    .road-reward-row.theme-iron .road-reward-fill{background:linear-gradient(90deg,#5AAAFF,#8FD8FF)}
+    @media(max-width:480px){
+      .road-reward-row{gap:7px}
+      .road-reward-box{padding:14px 3px 18px}
+      .road-reward-label{font-size:8px;letter-spacing:.08em}
+      .road-reward-qty{font-size:8.5px;padding:2px 7px}
+    }
 
     /* ROAD PAGE HEADER — back link + title, sits above the banner. */
     .road-page-head{display:flex;align-items:center;gap:12px;margin-bottom:2px}
@@ -4525,11 +4607,23 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     <button class="btn btn-out btn-sm" onclick="showPage('progress')">← Progress</button>
     <span class="ct glow-title xp" style="font-size:17px">🛤️ XP Road</span>
   </div>
-  <div class="road-progress-banner" id="xp-road-banner">
-    <div class="road-progress-banner-icon" id="xp-road-banner-icon"></div>
-    <div class="road-progress-banner-body">
-      <div class="road-progress-banner-label" id="xp-road-banner-label">—</div>
-      <div class="road-progress-banner-track"><div class="road-progress-banner-fill" id="xp-road-banner-fill" style="width:0%"></div></div>
+  <div class="road-reward-row" id="xp-road-banner">
+    <div class="road-reward-box" id="xp-reward-prev">
+      <span class="road-reward-check" id="xp-reward-prev-check" style="display:none"><svg viewBox="0 0 24 24" fill="none" stroke="#0B0B0B" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+      <div class="road-reward-label">Crossed</div>
+      <div class="road-reward-icon-slot" id="xp-reward-prev-icon"></div>
+      <div class="road-reward-qty" id="xp-reward-prev-qty">—</div>
+    </div>
+    <div class="road-reward-box next" id="xp-reward-next">
+      <div class="road-reward-label">Next Up</div>
+      <div class="road-reward-icon-slot" id="xp-reward-next-icon"></div>
+      <div class="road-reward-qty" id="xp-reward-next-qty">—</div>
+      <div class="road-reward-fill-track"><div class="road-reward-fill" id="xp-reward-next-fill" style="width:0%"></div></div>
+    </div>
+    <div class="road-reward-box" id="xp-reward-then">
+      <div class="road-reward-label">Then</div>
+      <div class="road-reward-icon-slot" id="xp-reward-then-icon"></div>
+      <div class="road-reward-qty" id="xp-reward-then-qty">—</div>
     </div>
   </div>
   <div class="road-scenery">
@@ -4554,11 +4648,23 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     <button class="btn btn-out btn-sm" onclick="showPage('progress')">← Progress</button>
     <span class="ct glow-title trophy" style="font-size:17px">🏆 Trophy Road</span>
   </div>
-  <div class="road-progress-banner theme-trophy" id="trophy-road-banner">
-    <div class="road-progress-banner-icon" id="trophy-road-banner-icon"></div>
-    <div class="road-progress-banner-body">
-      <div class="road-progress-banner-label" id="trophy-road-banner-label">—</div>
-      <div class="road-progress-banner-track"><div class="road-progress-banner-fill" id="trophy-road-banner-fill" style="width:0%"></div></div>
+  <div class="road-reward-row theme-trophy" id="trophy-road-banner">
+    <div class="road-reward-box" id="trophy-reward-prev">
+      <span class="road-reward-check" id="trophy-reward-prev-check" style="display:none"><svg viewBox="0 0 24 24" fill="none" stroke="#0B0B0B" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+      <div class="road-reward-label">Crossed</div>
+      <div class="road-reward-icon-slot" id="trophy-reward-prev-icon"></div>
+      <div class="road-reward-qty" id="trophy-reward-prev-qty">—</div>
+    </div>
+    <div class="road-reward-box next" id="trophy-reward-next">
+      <div class="road-reward-label">Next Up</div>
+      <div class="road-reward-icon-slot" id="trophy-reward-next-icon"></div>
+      <div class="road-reward-qty" id="trophy-reward-next-qty">—</div>
+      <div class="road-reward-fill-track"><div class="road-reward-fill" id="trophy-reward-next-fill" style="width:0%"></div></div>
+    </div>
+    <div class="road-reward-box" id="trophy-reward-then">
+      <div class="road-reward-label">Then</div>
+      <div class="road-reward-icon-slot" id="trophy-reward-then-icon"></div>
+      <div class="road-reward-qty" id="trophy-reward-then-qty">—</div>
     </div>
   </div>
   <div class="road-scenery theme-trophy">
@@ -4585,11 +4691,23 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     <button class="btn btn-out btn-sm" onclick="showPage('progress')">← Progress</button>
     <span class="ct glow-title weight" style="font-size:17px">🏋️ Weight Road</span>
   </div>
-  <div class="road-progress-banner theme-iron" id="weight-road-banner">
-    <div class="road-progress-banner-icon" id="weight-road-banner-icon"></div>
-    <div class="road-progress-banner-body">
-      <div class="road-progress-banner-label" id="weight-road-banner-label">—</div>
-      <div class="road-progress-banner-track"><div class="road-progress-banner-fill" id="weight-road-banner-fill" style="width:0%"></div></div>
+  <div class="road-reward-row theme-iron" id="weight-road-banner">
+    <div class="road-reward-box" id="weight-reward-prev">
+      <span class="road-reward-check" id="weight-reward-prev-check" style="display:none"><svg viewBox="0 0 24 24" fill="none" stroke="#0B0B0B" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+      <div class="road-reward-label">Crossed</div>
+      <div class="road-reward-icon-slot" id="weight-reward-prev-icon"></div>
+      <div class="road-reward-qty" id="weight-reward-prev-qty">—</div>
+    </div>
+    <div class="road-reward-box next" id="weight-reward-next">
+      <div class="road-reward-label">Next Up</div>
+      <div class="road-reward-icon-slot" id="weight-reward-next-icon"></div>
+      <div class="road-reward-qty" id="weight-reward-next-qty">—</div>
+      <div class="road-reward-fill-track"><div class="road-reward-fill" id="weight-reward-next-fill" style="width:0%"></div></div>
+    </div>
+    <div class="road-reward-box" id="weight-reward-then">
+      <div class="road-reward-label">Then</div>
+      <div class="road-reward-icon-slot" id="weight-reward-then-icon"></div>
+      <div class="road-reward-qty" id="weight-reward-then-qty">—</div>
     </div>
   </div>
   <div class="road-scenery theme-iron">
@@ -8150,6 +8268,14 @@ function formatCompactNum(n){
 // position (post-render, so it always matches the live layout) and
 // curving a path through them, replacing the straight spine with
 // something that actually fills that side gap.
+// Thick two-tone capsule, split hard exactly at "you are here" — Brawl
+// Stars' Trophy Road bar, not a thin dashed line. Distance already
+// crossed (claimed nodes, plus the "next" node itself) renders as one
+// solid, glowing, saturated-color path; distance not yet reached renders
+// as a separate solid muted-grey path — two <path> elements sharing one
+// junction point, not a single path recolored end-to-end. Node hexes sit
+// on TOP of this (z-index below them, see .road-trail-svg), so the bar
+// visibly runs "through" each badge rather than beside it.
 function drawRoadTrail(cont){
   if(!cont)return;
   const hexes=[...cont.querySelectorAll('.xp-node-hexwrap')];
@@ -8166,12 +8292,21 @@ function drawRoadTrail(cont){
     const r=h.getBoundingClientRect();
     return {x:r.left+r.width/2-contRect.left+cont.scrollLeft,y:r.top+r.height/2-contRect.top+cont.scrollTop};
   });
-  let d='M'+pts[pts.length-1].x.toFixed(1)+','+pts[pts.length-1].y.toFixed(1);
-  for(let i=pts.length-2;i>=0;i--){
-    const p0=pts[i+1],p1=pts[i];
-    const midY=((p0.y+p1.y)/2).toFixed(1);
-    d+=' C'+p0.x.toFixed(1)+','+midY+' '+p1.x.toFixed(1)+','+midY+' '+p1.x.toFixed(1)+','+p1.y.toFixed(1);
+  function buildPath(from,to){
+    if(to<=from)return '';
+    let d='M'+pts[from].x.toFixed(1)+','+pts[from].y.toFixed(1);
+    for(let i=from+1;i<=to;i++){
+      const p0=pts[i-1],p1=pts[i];
+      const midY=((p0.y+p1.y)/2).toFixed(1);
+      d+=' C'+p0.x.toFixed(1)+','+midY+' '+p1.x.toFixed(1)+','+midY+' '+p1.x.toFixed(1)+','+p1.y.toFixed(1);
+    }
+    return d;
   }
+  const nodeEls=[...cont.querySelectorAll('.xp-node')];
+  let splitIdx=-1;
+  nodeEls.forEach((el,i)=>{if(el.classList.contains('claimed')||el.classList.contains('next'))splitIdx=i;});
+  const passedD=splitIdx>0?buildPath(0,splitIdx):'';
+  const remainD=splitIdx>=0?buildPath(splitIdx,pts.length-1):buildPath(0,pts.length-1);
   let svg=cont.querySelector('.road-trail-svg');
   if(!svg){
     svg=document.createElementNS('http://www.w3.org/2000/svg','svg');
@@ -8188,10 +8323,18 @@ function drawRoadTrail(cont){
   // sideways), so this is safe for both orientations.
   svg.setAttribute('width',cont.scrollWidth);
   svg.setAttribute('height',cont.scrollHeight);
-  const lit=cont.classList.contains('has-progress');
+  const scenery=cont.closest('.road-scenery');
+  const passedColor=scenery&&scenery.classList.contains('theme-trophy')?'#FFD24A':scenery&&scenery.classList.contains('theme-iron')?'#5AAAFF':'#FF7A2E';
+  const passedGlow=scenery&&scenery.classList.contains('theme-trophy')?'rgba(255,210,90,.6)':scenery&&scenery.classList.contains('theme-iron')?'rgba(90,170,255,.6)':'rgba(255,90,0,.6)';
+  // A short bright tick exactly at the split point — the reference marks
+  // "you are here" with a hard vertical line across the bar, not just a
+  // color change.
+  const tickPt=splitIdx>=0?pts[splitIdx]:null;
+  const tickD=tickPt?'M'+tickPt.x.toFixed(1)+','+(tickPt.y-11).toFixed(1)+' L'+tickPt.x.toFixed(1)+','+(tickPt.y+11).toFixed(1):'';
   svg.innerHTML=
-    '<path d="'+d+'" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="3.5" stroke-linecap="round" stroke-dasharray="2 11"/>'+
-    (lit?'<path d="'+d+'" fill="none" stroke="rgba(255,140,50,.85)" stroke-width="3.5" stroke-linecap="round" stroke-dasharray="2 11" style="filter:drop-shadow(0 0 6px rgba(255,90,0,.6))"/>':'');
+    (remainD?'<path d="'+remainD+'" fill="none" stroke="rgba(255,255,255,.13)" stroke-width="13" stroke-linecap="round"/>':'')+
+    (passedD?'<path d="'+passedD+'" fill="none" stroke="'+passedColor+'" stroke-width="13" stroke-linecap="round" style="filter:drop-shadow(0 0 7px '+passedGlow+')"/>':'')+
+    (tickD?'<path d="'+tickD+'" stroke="rgba(255,255,255,.9)" stroke-width="2.5" stroke-linecap="round"/>':'');
 }
 // \u2500\u2500 ROAD PATH RENDERER \u2014 shared by the XP/Trophy/Weight Road pages.
 // Each road's own function below only computes WHAT the nodes are
@@ -8215,15 +8358,23 @@ function renderRoadPath(containerId,nodes){
     // smaller boost on top of that same scale rather than its own fixed size,
     // so a low-value next node stays modest and a high-value one reads as
     // both "you are here" and genuinely big.
+    // Wider, steeper range than the first pass \u2014 adjacent reward tiers
+    // (e.g. a Bronze Drop at weight .32 vs a Compass Shard at .18) need
+    // to read as visibly different sizes at a glance, not just a few
+    // px apart. Deliberately allowed to exceed its 104px flex slot at
+    // the top end (the reference's own Mega Box does the same) \u2014 the
+    // node's reserved layout width stays fixed via flex-basis, so an
+    // oversized hex just visually spills into the gap, it never
+    // reflows a neighbor.
     const w=n.weight!=null?n.weight:0.5;
-    const size=Math.round(46+w*36+(n.isNext?10:0));
+    const size=Math.round(40+w*80+(n.isNext?16:0));
     const font=Math.round(size*0.42);
     return '<div class="xp-node'+state+'" style="--stagger:'+Math.min(i*45,450)+'ms;--wind:'+wind+'px;--hexsize:'+size+'px;--hexfont:'+font+'px"'+(n.onclick?' onclick="'+n.onclick+'"':'')+'>'+
-      '<div class="xp-node-hexwrap"><div class="xp-node-hex">'+(n.claimed||n.isNext?n.icon:'\ud83d\udd12')+'</div>'+
+      '<div class="xp-node-hexwrap"><div class="xp-node-hex-glow"></div><div class="xp-node-hex">'+(n.claimed||n.isNext?n.icon:'\ud83d\udd12')+'</div>'+
         (n.claimed?'<span class="xp-node-check"><svg viewBox="0 0 24 24" fill="none" stroke="#0B0B0B" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>':'')+
+        '<span class="xp-node-xp">'+n.valueLabel+'</span>'+
       '</div>'+
       '<div class="xp-node-body">'+
-        '<span class="xp-node-xp">'+n.valueLabel+'</span>'+
         '<div class="xp-node-desc">'+n.descLabel+'</div>'+
         (n.isNext&&n.progressPct!=null?'<div class="xp-node-bar"><div class="xp-node-bar-fill" style="width:'+n.progressPct+'%"></div></div>':'')+
       '</div>'+
@@ -8244,13 +8395,56 @@ function renderRoadPath(containerId,nodes){
 // Populates a road page's progress-to-next banner (icon/text/fill) \u2014
 // same {icon,text,pct} shape the Progress-page hub cards read too, so
 // both views of the same road can never say something different.
-function renderRoadBanner(prefix,summary){
-  const icon=document.getElementById(prefix+'-banner-icon');
-  const label=document.getElementById(prefix+'-banner-label');
-  const fill=document.getElementById(prefix+'-banner-fill');
-  if(icon)icon.innerHTML=summary.icon;
-  if(label)label.textContent=summary.text;
-  if(fill)fill.style.width=summary.pct+'%';
+// REWARD ROW — Brawl Stars' three-box header (just crossed / next up /
+// then), replacing the old single-icon progress banner. Reads the same
+// node view-models renderRoadPath() draws the path from, so the header
+// can never show a different reward than what the path itself claims is
+// next. Icon sizing reuses the exact --hexsize/--hexfont formula from
+// renderRoadPath (see its own comment) so a reward reads the same "how
+// big a deal is this" size whether it's on the path or up here.
+function renderRewardRow(prefix,nodes){
+  const nextIdx=nodes.findIndex(n=>n.isNext);
+  let prev,next,then;
+  if(nextIdx>=0){
+    prev=nextIdx>0?nodes[nextIdx-1]:null;
+    next=nodes[nextIdx];
+    then=nextIdx+1<nodes.length?nodes[nextIdx+1]:null;
+  }else{
+    // Every checkpoint already claimed — show the tail of the road instead
+    // of leaving the header blank.
+    const claimed=nodes.filter(n=>n.claimed);
+    prev=claimed[claimed.length-3]||null;
+    next=claimed[claimed.length-2]||null;
+    then=claimed[claimed.length-1]||null;
+  }
+  function fillBox(boxPrefix,node,isNextBox){
+    const boxEl=document.getElementById(boxPrefix);
+    const iconEl=document.getElementById(boxPrefix+'-icon');
+    const qtyEl=document.getElementById(boxPrefix+'-qty');
+    const checkEl=document.getElementById(boxPrefix+'-check');
+    const fillEl=document.getElementById(boxPrefix+'-fill');
+    if(!node){
+      if(boxEl)boxEl.style.opacity='.35';
+      if(iconEl)iconEl.innerHTML='';
+      if(qtyEl)qtyEl.textContent='—';
+      if(checkEl)checkEl.style.display='none';
+      return;
+    }
+    if(boxEl)boxEl.style.opacity='';
+    if(iconEl){
+      iconEl.innerHTML=(node.claimed||node.isNext)?node.icon:'🔒';
+      const w=node.weight!=null?node.weight:0.5;
+      const size=Math.round(46+w*36+(isNextBox?10:0));
+      iconEl.style.setProperty('--hexsize',size+'px');
+      iconEl.style.setProperty('--hexfont',Math.round(size*0.42)+'px');
+    }
+    if(qtyEl)qtyEl.textContent=node.valueLabel;
+    if(checkEl)checkEl.style.display=node.claimed?'flex':'none';
+    if(fillEl)fillEl.style.width=(node.progressPct!=null?node.progressPct:(node.claimed?100:0))+'%';
+  }
+  fillBox(prefix+'-reward-prev',prev,false);
+  fillBox(prefix+'-reward-next',next,true);
+  fillBox(prefix+'-reward-then',then,false);
 }
 // How big a deal each XP Road reward actually is (0..1), for hex sizing —
 // a shard or single Bronze Drop is a small, frequent trickle; a guaranteed
@@ -8285,8 +8479,9 @@ function getXpRoadSummary(){
   };
 }
 function renderXpRoad(){
-  renderRoadPath('xp-road-h',xpRoadNodes());
-  renderRoadBanner('xp-road',getXpRoadSummary());
+  const nodes=xpRoadNodes();
+  renderRoadPath('xp-road-h',nodes);
+  renderRewardRow('xp',nodes);
 }
 
 // Two crate tiers, mirroring Brawl Stars' frequent Star Drop vs rarer
@@ -8442,8 +8637,9 @@ function getTrophyRoadSummary(){
   };
 }
 function renderTrophyRoad(){
-  renderRoadPath('trophy-road-h',trophyRoadNodes());
-  renderRoadBanner('trophy-road',getTrophyRoadSummary());
+  const nodes=trophyRoadNodes();
+  renderRoadPath('trophy-road-h',nodes);
+  renderRewardRow('trophy',nodes);
 }
 // Weight Road \u2014 lifetime tonnage milestones (real-object comparisons)
 // as the same horizontal path, driven by totalVolume against
@@ -8483,8 +8679,9 @@ function getWeightRoadSummary(){
   };
 }
 function renderWeightRoad(){
-  renderRoadPath('weight-road-h',weightRoadNodes());
-  renderRoadBanner('weight-road',getWeightRoadSummary());
+  const nodes=weightRoadNodes();
+  renderRoadPath('weight-road-h',nodes);
+  renderRewardRow('weight',nodes);
 }
 // Populates the three Progress-page hub cards (XP/Trophy/Weight) with
 // the same {icon,text,pct} summaries the full road pages' banners use
