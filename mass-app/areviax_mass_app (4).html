@@ -707,7 +707,7 @@ input,input:focus,input:active,
    the line length grows, not easier. */
 @media(min-width:900px){
   #page-workout,#page-session,#page-nutrition,#page-recipes,#page-progress,#page-recovery,
-  #page-schedule,#page-leaderboard,#page-profile,#page-settings{max-width:960px}
+  #page-schedule,#page-leaderboard,#page-profile,#page-settings,#page-trophycabinet{max-width:960px}
 }
 
 .settings-grid,.profile-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;align-items:start}
@@ -1733,7 +1733,14 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        full 13-item layer (or the 6-8 item Legends row) can lay out
        across a couple of short rows and be seen at a glance, rather
        than needing to swipe through a single long strip. */
-    .cabinet-row{display:flex;flex-wrap:wrap;gap:9px;padding:4px 2px 6px}
+    /* justify-content:center (not the flex default flex-start) so a
+       short row — Icons/Lift Ranks only ever have 4 items each — reads
+       as a small, intentional showcase centered under its own header
+       instead of a few badges stranded on the left with a wide ragged
+       gap to their right. Also tidies the final partial row of the
+       longer 7-layer sections (e.g. Equipment's 13th item alone on its
+       own row) the same way. */
+    .cabinet-row{display:flex;flex-wrap:wrap;justify-content:center;gap:9px;padding:4px 2px 6px}
     .legend-card.cabinet-slot{width:78px;padding:8px 4px 6px;flex:0 0 auto}
 
     /* ── COMPASS DROP CRATES — a Brawl-Stars-Star-Drop-style capsule
