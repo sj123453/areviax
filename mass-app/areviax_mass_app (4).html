@@ -598,7 +598,7 @@ input,input:focus,input:active,
    rather than just reflowing the same stack into two side-by-side
    columns. */
 .dash-grid{display:grid;gap:14px;grid-template-columns:1fr;
-  grid-template-areas:"greeting" "today" "overview" "quote"}
+  grid-template-areas:"hero" "overview" "quote"}
 /* Clears the fixed notification banner's drop-in zone (see
    .dash-notif-fixed below) — the greeting card lost its old boxed
    padding when it went unboxed, so without this a banner dropping in
@@ -606,14 +606,26 @@ input,input:focus,input:active,
    above it. Desktop's banner is centered over the right column, clear
    of the greeting text already, so this is mobile-only. */
 @media(max-width:899px){.dash-grid{margin-top:40px}}
-.dash-greeting{grid-area:greeting}
-.dash-today{grid-area:today}
+/* The greeting + Today cards are now plain stacked children of one
+   .dash-hero grid item (not two separate grid areas) so a single
+   absolutely-positioned backdrop behind them both reads as one
+   continuous, subtle dot texture instead of two separate per-card
+   patches — matching the fainter, page-spanning texture from the
+   reference rather than a denser pattern confined inside one bordered
+   card. (An earlier attempt spanned two named grid-areas via named grid
+   lines — grid-row:greeting-start/today-end — which silently broke
+   auto-placement for the sibling areas and scrambled the whole page's
+   order; a single wrapping grid item avoids that entirely.) */
+.dash-hero{grid-area:hero;position:relative;overflow:hidden;border-radius:18px}
+.dash-hero-backdrop{position:absolute;inset:0;pointer-events:none;z-index:0;
+  background-image:radial-gradient(rgba(255,122,46,.14) 1px,transparent 1.5px);background-size:9px 9px}
+.dash-greeting,.dash-today{position:relative;z-index:1}
 .dash-rings{grid-area:overview}
 .dash-quote{grid-area:quote}
 @media(min-width:900px){
   #page-dashboard{max-width:1120px}
   .dash-grid{grid-template-columns:1.4fr 1fr;align-items:start;
-    grid-template-areas:"greeting overview" "today overview" "quote quote"}
+    grid-template-areas:"hero overview" "quote quote"}
 }
 /* DESKTOP DASHBOARD SCALE-UP — the dashboard's cards were sized tight
    enough to fit one mobile screen without scrolling (see .dash-grid's
@@ -3435,6 +3447,16 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     <span style="color:var(--orange);font-weight:800;white-space:nowrap">Spin →</span>
   </div>
 
+  <div id="missed-food-banner" class="dash-notif-fixed" style="display:none;align-items:center;gap:8px;background:rgb(20,14,10);border:1.5px solid rgba(255,122,46,.4);border-radius:12px;padding:12px 14px;font-size:11.5px;color:rgba(var(--white-rgb),.85)">
+    <span style="font-size:15px">🍽️</span><span id="missed-food-text" style="flex:1">You didn't log any food yesterday — consistent logging is what makes your Shield, XP, and progress tracking actually mean something over months, not just today.</span>
+    <span onclick="dismissMissedFoodDay()" style="cursor:pointer;color:var(--muted);font-size:15px;padding:0 2px 0 8px">✕</span>
+  </div>
+
+  <div id="weekly-assessment-banner" class="dash-notif-fixed" style="display:none;align-items:center;gap:8px;cursor:pointer;background:rgb(20,14,10);border:1.5px solid rgba(68,212,255,.4);border-radius:12px;padding:12px 14px;font-size:11.5px;color:rgba(var(--white-rgb),.85)" onclick="viewAssessment()">
+    <span style="font-size:15px">📊</span><span id="weekly-assessment-text" style="flex:1">Your Week's Assessment is ready.</span>
+    <span onclick="dismissWeeklyAssessmentBanner(event)" style="cursor:pointer;color:var(--muted);font-size:15px;padding:0 2px 0 8px">✕</span>
+  </div>
+
   <!-- DASHBOARD GRID — named-area layout: mobile stacks single-column
        (greeting, today, rings, chart, quote, activity); desktop (>=900px)
        reflows into a 2-col main+sidebar composition via .dash-grid's own
@@ -3442,6 +3464,16 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        mobile/laptop layouts while reusing the same render functions/ids
        as before — only the containers around them changed. -->
   <div class="dash-grid">
+
+  <!-- HERO — the greeting card and Today/session card as plain stacked
+       children of one .dash-hero grid item, sharing a single continuous,
+       subtle dot backdrop instead of each having its own separate patch.
+       Today's card also drops its border/background here so the two read
+       as one unboxed hero flowing over that shared backdrop, matching the
+       reference: no box around the hero, a much fainter dot wash than
+       before, continuing behind everything in it. -->
+  <div class="dash-hero">
+  <div aria-hidden="true" class="dash-hero-backdrop"></div>
 
   <div class="dash-greeting">
   <!-- Same content as before (greeting word + name + date — personalization
@@ -3452,13 +3484,6 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        one-off effect, so the hero moment matches the rest of the app's
        own vocabulary rather than inventing a new one. -->
   <div class="dash-greeting-inner" style="background:transparent;border:none;padding:6px 4px 22px;height:100%;box-sizing:border-box;position:relative;overflow:hidden">
-    <!-- Dot-grid texture behind the watermark digit — covers the card's
-         entire backdrop edge to edge with NO radial fade (mask
-         overridden to none): the shared .dot-field class still fades
-         its far corner, which read as a soft gap near the top/left on
-         this card once you looked for it. A flat, uniform dot fill is
-         what "fills the entire backdrop" actually means here. -->
-    <div aria-hidden="true" class="dot-field" style="right:0;top:0;width:100%;height:100%;-webkit-mask-image:none;mask-image:none"></div>
     <!-- Giant background watermark of the streak count — outline/hollow
          rather than a solid faint fill, same "just an outline" depth
          device the reference uses behind its own headline. Sits behind
@@ -3509,7 +3534,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        real tonnageLog line-chart data as before, just shrunk. View
        Workouts dropped — it pointed at the exact same page as Start
        already does, so it was a duplicate button, not lost functionality. -->
-  <div class="dash-today-inner" style="background:linear-gradient(160deg,rgba(255,90,0,.07),rgba(var(--bg-rgb),.9));border:1px solid rgba(255,90,0,.22);border-radius:16px;padding:24px 22px 22px;overflow:hidden;position:relative">
+  <div class="dash-today-inner" style="background:transparent;border:none;padding:24px 4px 22px;overflow:hidden;position:relative">
     <!-- HERO HEADLINE — solid word + hollow/outline word. The giant faint
          watermark digit that used to sit behind this was removed —
          that "number in the background" device now belongs to the
@@ -3538,7 +3563,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
          where that card is hidden. -->
     <div id="d-next-daypicker" style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:16px;position:relative"></div>
 
-    <div id="vol-daily-card" style="display:none;margin-top:16px;padding-top:14px;border-top:1px solid var(--border)">
+    <div id="vol-daily-card" style="display:none;margin-top:16px;background:rgb(var(--bg-rgb));border:1px solid var(--border2);border-radius:16px;padding:18px 20px">
       <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px">
         <span class="dash-vol-label" style="font-size:9.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:rgba(var(--white-rgb),.4)">Weekly Volume</span>
         <div class="dash-vol-total" style="font-size:13px;font-weight:800;color:var(--white);font-family:'JetBrains Mono',monospace" id="vol-daily-total"></div>
@@ -3561,9 +3586,10 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
         <div id="wp-day-labels" style="display:grid;grid-template-columns:repeat(7,1fr);margin-top:4px"></div>
       </div>
     </div>
-    <div id="vol-daily-empty" style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border);font-size:10.5px;color:var(--muted);line-height:1.5">Log your first set and this week's volume trend shows up here.</div>
+    <div id="vol-daily-empty" style="margin-top:16px;background:rgb(var(--bg-rgb));border:1px solid var(--border2);border-radius:16px;padding:18px 20px;font-size:10.5px;color:var(--muted);line-height:1.5">Log your first set and this week's volume trend shows up here.</div>
   </div>
   </div>
+  </div><!-- /dash-hero -->
 
   <!-- THE PLAN — a read-only preview of today's exercises: numbered rows,
        name + PR badge, sets×reps·suggested-weight, a GO link, all inside
@@ -3655,15 +3681,6 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
   </div>
   </div>
 
-  <!-- THIS WEEK'S ASSESSMENT — its own quiet bordered card again, kept
-       out of the quote's glow so its cyan branding still reads clearly. -->
-  <div id="assessment-card" onclick="viewAssessment()" style="cursor:pointer;position:relative;background:rgba(68,212,255,.04);border:1px solid rgba(68,212,255,.16);border-radius:16px;padding:16px 18px;margin-top:14px">
-    <div id="assessment-new-badge" style="position:absolute;top:16px;right:18px;width:8px;height:8px;border-radius:50%;background:#44CFFF;box-shadow:0 0 8px rgba(68,212,255,.7)"></div>
-    <div style="font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:rgba(68,212,255,.75);margin-bottom:6px;font-weight:700">This Week's Assessment</div>
-    <div style="font-size:12.5px;color:rgba(var(--white-rgb),.85);line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden" id="assessment-text">—</div>
-    <div style="font-size:10px;color:rgba(68,212,255,.75);font-weight:700;margin-top:6px">Read full breakdown →</div>
-  </div>
-
   </div>
 
   <!-- REST DAY — clamped to 2 lines with tap-to-expand, matching the
@@ -3689,9 +3706,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     <button onclick="dismissBackupReminder()" style="background:none;border:none;color:rgba(var(--white-rgb),.4);font-size:16px;padding:0 2px;line-height:1">×</button>
   </div>
 
-  <!-- HIDDEN ANCHORS — JS needs these IDs to exist, nothing renders.
-       assessment-card moved out to a real visible spot above (see the
-       comment there) — removed from here so the id isn't duplicated. -->
+  <!-- HIDDEN ANCHORS — JS needs these IDs to exist, nothing renders. -->
   <div style="display:none">
     <div id="rank-badge"></div>
     <div id="daily-companion"><div id="companion-text"></div><div id="quote-author"></div><div id="quote-context"></div></div>
@@ -6763,7 +6778,14 @@ let brainDumpText='';
 let assessmentWeekStart='';
 let assessmentText='';
 let assessmentViewed=false;
+let assessmentBannerDismissedWeek=''; // separate from assessmentViewed — dismissing the banner shouldn't falsely claim they read the full breakdown
 let cloudBackupConsent=null; // null=not asked yet, true=opted in, false=declined
+// A day with literally zero food logged (not just a missed target) gets
+// its own nudge, separate from the Shield's red/cracked/broken framing —
+// that only covers days something was at least attempted.
+let lastMissedFoodDate=''; // calendar date (yyyy-mm-dd) of the most recent fully-unlogged day, set at day-rollover in checkNutritionDay()
+let missedFoodDayDismissedDate=''; // date the banner was last dismissed for
+let missedFoodDayNotifiedDate=''; // date a real push notification was already sent for (separate from the banner dismiss, so re-showing the banner doesn't re-fire the notification)
 
 // ── EXERCISES with equipment tags ──
 const EX={
@@ -10954,6 +10976,31 @@ function checkSleepReminder(){
   }
   banner.style.display='none';
 }
+// ── Missed food day nudge — a day with literally zero food logged (set at
+// day-rollover in checkNutritionDay()) gets a dashboard banner the next
+// time the app opens, plus a real push notification if permission's
+// already been granted (no separate opt-in needed — reuses whatever
+// permission the Shield Reminders flow already asked for). This is the
+// honest ceiling for "remind them the next day" without a real backend:
+// it fires the moment they next open the app, not at a scheduled time.
+function checkMissedFoodDay(){
+  const banner=document.getElementById('missed-food-banner');
+  if(!banner)return;
+  checkNutritionDay(); // ensures lastMissedFoodDate is current even if this runs before renderNutrition() does on a fresh day
+  const shouldShow=lastMissedFoodDate&&missedFoodDayDismissedDate!==lastMissedFoodDate;
+  if(!shouldShow){banner.style.display='none';return;}
+  banner.style.display='flex';
+  if(missedFoodDayNotifiedDate!==lastMissedFoodDate&&typeof Notification!=='undefined'&&Notification.permission==='granted'){
+    missedFoodDayNotifiedDate=lastMissedFoodDate;
+    saveToStorage();
+    try{ new Notification('🍽️ Yesterday went unlogged',{body:"Consistent daily logging is what actually makes your Shield, XP, and progress tracking mean something — it's the pattern over months that moves the needle, not any single day.",icon:'images/icons/favicon.png',tag:'missed-food-day'}); }catch(e){}
+  }
+}
+function dismissMissedFoodDay(){
+  missedFoodDayDismissedDate=lastMissedFoodDate;
+  saveToStorage();
+  checkMissedFoodDay();
+}
 // ── Sitting-job walk / joint-health tip — same problem: the "mostly sitting"
 // activity answer only ever adjusted calorie targets, never actually told
 // the person anything about it. Sedentary days carry real joint/circulation
@@ -11042,6 +11089,8 @@ function showPage(id){
     try{checkSittingJobTip();}catch(e){}
     try{checkDailySpinBanner();}catch(e){}
     try{checkMuscleBalanceNudge();}catch(e){}
+    try{checkMissedFoodDay();}catch(e){}
+    try{renderAssessmentBanner();}catch(e){}
   }
   if(id==='workout'){safeRender(renderExercises,'workout');safeRender(renderSessionHistory,'workout');safeRender(renderTodayPlanBanner,'workout');}
   if(id==='session'){
@@ -11901,7 +11950,7 @@ function renderTodaySessionName(name){
 // it back out on its own. A tap on the banner's own action, or its own
 // dismiss ✕, still works during that window — this only changes how it
 // enters and (if the user never touches it) how it leaves.
-const DASH_NOTIF_IDS=['muscle-balance-banner','streak-risk-banner','streak-repair-banner','sleep-reminder-banner','walk-tip-card','daily-spin-banner'];
+const DASH_NOTIF_IDS=['muscle-balance-banner','streak-risk-banner','streak-repair-banner','sleep-reminder-banner','walk-tip-card','daily-spin-banner','missed-food-banner','weekly-assessment-banner'];
 let _dashNotifArmed=false;
 function restackDashNotifs(){
   // Desktop's greeting grew to 60px and often wraps to two lines for a
@@ -12054,6 +12103,7 @@ function initApp(){
   try{checkSittingJobTip();}catch(e){console.error('checkSittingJobTip:',e.message);}
   try{checkDailySpinBanner();}catch(e){console.error('checkDailySpinBanner:',e.message);}
   try{checkMuscleBalanceNudge();}catch(e){console.error('checkMuscleBalanceNudge:',e.message);}
+  try{checkMissedFoodDay();}catch(e){console.error('checkMissedFoodDay:',e.message);}
   try{buildTodayPreview();}catch(e){console.error('buildTodayPreview:',e.message);}
   try{renderNutrition();}catch(e){console.error('renderNutrition:',e.message);}
   try{renderRank();}catch(e){console.error('renderRank:',e.message);}
@@ -15997,8 +16047,8 @@ function checkWeeklyAssessment(){
   // the very first thing a brand-new user sees is "you didn't log a
   // session last week" and "protein wasn't hit once", which is simply
   // false (they didn't have the app yet) and a rough first impression.
-  // Leave assessmentText unset so the proper "check back Monday" fallback
-  // in renderAssessmentCard() shows instead.
+  // Leave assessmentText unset so no banner shows at all for a brand-new
+  // user — there's nothing real to assess yet.
   const joinedThisWeek=joinDate&&parseLocalDate(joinDate)>=parseLocalDate(thisMonday);
   if(assessmentWeekStart!==thisMonday&&!joinedThisWeek){
     assessmentWeekStart=thisMonday;
@@ -16006,21 +16056,35 @@ function checkWeeklyAssessment(){
     assessmentViewed=false;
     saveToStorage();
   }
-  renderAssessmentCard();
+  renderAssessmentBanner();
 }
 
-function renderAssessmentCard(){
-  const card=document.getElementById('assessment-card');
-  if(!card)return;
-  const badge=document.getElementById('assessment-new-badge');
-  if(badge)badge.style.display=assessmentViewed?'none':'';
-  const textEl=document.getElementById('assessment-text');
-  if(textEl)textEl.textContent=assessmentText||'Complete a few sessions this week and check back Monday for your first assessment.';
+// Was a permanent card on every dashboard load; now a dismissible top
+// banner like the rest of DASH_NOTIF_IDS — only appears when there's a
+// real, unread assessment for the current week, not as a standing
+// "check back Monday" placeholder taking up space every single day.
+function renderAssessmentBanner(){
+  const banner=document.getElementById('weekly-assessment-banner');
+  if(!banner)return;
+  const hasNewAssessment=assessmentText&&!assessmentViewed&&assessmentBannerDismissedWeek!==assessmentWeekStart;
+  if(hasNewAssessment){
+    const textEl=document.getElementById('weekly-assessment-text');
+    if(textEl)textEl.textContent=assessmentText;
+    banner.style.display='flex';
+  }else{
+    banner.style.display='none';
+  }
+}
+function dismissWeeklyAssessmentBanner(event){
+  if(event)event.stopPropagation();
+  assessmentBannerDismissedWeek=assessmentWeekStart;
+  saveToStorage();
+  renderAssessmentBanner();
 }
 
 function viewAssessment(){
   assessmentViewed=true;
-  renderAssessmentCard();
+  renderAssessmentBanner();
   saveToStorage();
   const overlay=document.createElement('div');
   overlay.className='achievement-overlay';
@@ -17036,7 +17100,7 @@ function renderWeeklyRecap(){
       const bd=isToday?'transparent':active?'rgba(255,122,46,.4)':'var(--border2)';
       const col=isToday?'#2B0E00':active?'#FF9A52':'rgba(var(--white-rgb),.4)';
       const label=active&&!isToday?'✓':dayNames[d.getDay()];
-      return `<div style="aspect-ratio:1;border-radius:999px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;font-family:'JetBrains Mono',monospace;background:${bg};border:1.5px solid ${bd};color:${col}">${label}</div>`;
+      return `<div style="padding:13px 0;border-radius:999px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;font-family:'JetBrains Mono',monospace;background:${bg};border:1.5px solid ${bd};color:${col}">${label}</div>`;
     }).join('');
   }
 }
@@ -17830,6 +17894,7 @@ function checkNutritionDay(){
       const hitProt=dayMacros.prot>=profile.protein*0.9;
       nutritionDayLog.push({date:nutritionLogDate,hitTarget:hitCals&&hitProt});
       if(nutritionDayLog.length>60)nutritionDayLog=nutritionDayLog.slice(-60);
+      if(dayMacros.cals===0&&!todayLog.length)lastMissedFoodDate=nutritionLogDate;
     }
     // Same snapshot idea for water — dayMacros.water only ever holds
     // TODAY's count, so without this there's no history to chart or to
@@ -19539,6 +19604,10 @@ function saveToStorage(){
     localStorage.setItem('arx_assessmentWeekStart', assessmentWeekStart);
     localStorage.setItem('arx_assessmentText', assessmentText);
     localStorage.setItem('arx_assessmentViewed', JSON.stringify(assessmentViewed));
+    localStorage.setItem('arx_assessmentBannerDismissedWeek', assessmentBannerDismissedWeek);
+    localStorage.setItem('arx_lastMissedFoodDate', lastMissedFoodDate);
+    localStorage.setItem('arx_missedFoodDayDismissedDate', missedFoodDayDismissedDate);
+    localStorage.setItem('arx_missedFoodDayNotifiedDate', missedFoodDayNotifiedDate);
     localStorage.setItem('arx_cloudBackupConsent', JSON.stringify(cloudBackupConsent));
   }catch(e){}
   if(cloudBackupConsent===true)autoCloudBackup(); // only ever runs with explicit opt-in
@@ -19686,6 +19755,10 @@ function loadFromStorage(){
     assessmentWeekStart=localStorage.getItem('arx_assessmentWeekStart')||'';
     assessmentText=localStorage.getItem('arx_assessmentText')||'';
     assessmentViewed=JSON.parse(localStorage.getItem('arx_assessmentViewed')||'false');
+    assessmentBannerDismissedWeek=localStorage.getItem('arx_assessmentBannerDismissedWeek')||'';
+    lastMissedFoodDate=localStorage.getItem('arx_lastMissedFoodDate')||'';
+    missedFoodDayDismissedDate=localStorage.getItem('arx_missedFoodDayDismissedDate')||'';
+    missedFoodDayNotifiedDate=localStorage.getItem('arx_missedFoodDayNotifiedDate')||'';
     const cbc=localStorage.getItem('arx_cloudBackupConsent');
     cloudBackupConsent=cbc!==null?JSON.parse(cbc):null;
   }catch(e){}
