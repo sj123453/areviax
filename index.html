@@ -1607,7 +1607,7 @@ window.addEventListener('error', function(e){
             <div class="cover-art">
               <div class="cover-series" style="color:#8FF0A8">Subscription</div>
               <div class="cover-title">Physique<br>System</div>
-              <div class="cover-sub">£16/mo · £125/yr</div>
+              <div class="cover-sub">£17/mo · £163.99/yr</div>
             </div>
             <div class="cover-gloss"></div><div class="cover-sheen"></div>
           </div>
@@ -1620,7 +1620,7 @@ window.addEventListener('error', function(e){
         </div>
         <div class="item-label">
           <div class="item-name">Physique System</div>
-          <div class="item-price">£16/mo</div>
+          <div class="item-price">£17/mo</div>
           <div class="item-cta">View →</div>
         </div>
       </div>
@@ -1954,6 +1954,11 @@ window.addEventListener('error', function(e){
 .sc-copy p{font-size:14.5px;line-height:1.65;color:var(--muted);margin:0}
 .sc-copy .sc-price{margin-top:14px;font-family:'Outfit',sans-serif;font-size:14px;color:var(--orange2);font-weight:700}
 .sc-copy .sc-cta{display:inline-flex;align-items:center;gap:8px;margin-top:14px;padding:11px 22px;border-radius:100px;background:var(--orange);color:#fff;font-weight:700;font-size:14px;text-decoration:none;cursor:pointer;border:none;font-family:'Outfit',sans-serif}
+.sc-copy .sc-bundle{margin-top:12px;display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,140,66,.3);cursor:pointer;transition:background .25s,border-color .25s}
+.sc-copy .sc-bundle:hover{background:rgba(255,255,255,.07);border-color:var(--orange)}
+.sc-copy .sc-bundle-tag{flex-shrink:0;font-family:'Outfit',sans-serif;font-size:8px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--bg);background:var(--orange);padding:3px 8px;border-radius:6px}
+.sc-copy .sc-bundle-text{font-size:12.5px;line-height:1.5;color:var(--muted)}
+.sc-copy .sc-bundle-text strong{color:var(--white)}
 
 .sc-rail{position:absolute;left:6vw;top:50%;transform:translateY(-50%);width:2px;height:150px;background:rgba(255,255,255,.08)}
 .sc-rail .sc-fill{position:absolute;left:0;top:0;width:100%;background:linear-gradient(180deg,var(--orange),var(--orange2));height:0%}
@@ -2000,14 +2005,14 @@ window.addEventListener('error', function(e){
           <div class="sc-face sc-front" style="background:linear-gradient(155deg,#1A3020,#0D1E12)">
             <div class="sc-cover-tag" style="color:#8FF0A8">Premium Subscription</div>
             <div class="sc-cover-title">Physique<br>System</div>
-            <div class="sc-cover-price" style="color:#8FF0A8">£16/mo · £125/yr</div>
+            <div class="sc-cover-price" style="color:#8FF0A8">£17/mo · £163.99/yr</div>
           </div>
           </div>
           <div class="sc-hinge sc-hinge-back">
           <div class="sc-face sc-back" style="background:linear-gradient(155deg,#152A1C,#0a160f)">
             <div class="sc-back-eyebrow">What's inside</div>
             <p class="sc-back-blurb">"Workout builder with PR detection, a 230+ item food database, sleep tracking, and progress photos — everything the Mass Blueprint teaches, tracked for you every day."</p>
-            <div class="sc-back-meta">PHYSIQUE SYSTEM · £16/MO</div>
+            <div class="sc-back-meta">PHYSIQUE SYSTEM · £17/MO</div>
           </div>
           </div>
           <div class="sc-face sc-spine" style="background:#0a160f"><span class="sc-spine-text">Physique System</span></div>
@@ -2029,7 +2034,7 @@ window.addEventListener('error', function(e){
               <h3 class="sc-spread-heading">Your daily fitness command centre.</h3>
               <p class="sc-spread-blurb">Workout builder with PR detection, a 230+ item food database, sleep tracking, and progress photos — tracked for you every day.</p>
             </div>
-            <div class="sc-spread-price">£16/mo · £125/yr</div>
+            <div class="sc-spread-price">£17/mo · £163.99/yr</div>
           </div>
           <div class="sc-spread-edge-l"></div>
           <div class="sc-spread-reflect"></div>
@@ -2039,7 +2044,11 @@ window.addEventListener('error', function(e){
         <div class="sc-k">Premium Subscription</div>
         <h3>Your daily fitness command centre.</h3>
         <p>Workout builder with PR detection, a 230+ item food database, sleep tracking, and progress photos — everything the Mass Blueprint teaches, now tracked and logged for you every day.</p>
-        <div class="sc-price">£16/mo · or £125/year</div>
+        <div class="sc-price">£17/mo · or £163.99/year</div>
+        <div class="sc-bundle" onclick="openModal('massapp')">
+          <span class="sc-bundle-tag">Recommended</span>
+          <span class="sc-bundle-text">Bundle with <strong>The Mass Blueprint</strong> — first month just £10, book £15.99 instead of £19</span>
+        </div>
         <a class="sc-cta" onclick="openModal('massapp')">View Physique System →</a>
       </div>
     </div>
@@ -2269,7 +2278,7 @@ window.addEventListener('error', function(e){
           // stops mid-scroll is far more likely to be caught looking like
           // a book, and the edge-on passes read as a quick flash rather
           // than a stall. Net rotation is still a full 360°.
-          const copyKids = copy.querySelectorAll('.sc-k, h3, p, .sc-price, .sc-cta');
+          const copyKids = copy.querySelectorAll('.sc-k, h3, p, .sc-price, .sc-bundle, .sc-cta');
           gsap.set(copyKids, {opacity:0, x:-40});
           gsap.timeline({
             scrollTrigger:{
@@ -3401,8 +3410,8 @@ drawHeroCompass();
 const PRODUCTS = {
   mass:{tag:'AREVIAX FITNESS SERIES',title:'The Mass Blueprint',desc:'The no-nonsense guide to building serious size as a naturally thin person — built around what the science actually says, not generic bulking advice that assumes you already eat enough. Every tool you need to eat, train and recover for maximum muscle growth.',price:'£19',bg:'linear-gradient(155deg,#1A3020,#0D1E12)',accent:'#4AE888',
     includes:['Why skinny guys stay skinny — the real reasons','Calorie & macro system for hard gainers (formula included)','The compound training programme that forces growth','The Big 5 lifts — form cues and common mistakes','Recovery & sleep science — where growth actually happens','The 12-week mass plan, week by week']},
-  massapp:{tag:'PREMIUM SUBSCRIPTION',title:'Physique System',desc:'Your daily fitness command centre. Workout builder with PR detection, a 230+ item food database, sleep tracking, and progress photos — everything the Mass Blueprint teaches, now tracked and logged for you every day. Unlike a bare logger, it tells you what to lift next based on your actual last session.',price:'£16/mo',sub:'or £125/year',bg:'linear-gradient(155deg,#1A3020,#0D1E12)',accent:'#4AE888',
-    includes:['Full workout builder + session logger with PR detection','Auto-suggested next-session weight, based on your last real set','Smart food log — 230+ items, fractional & countable portions','Sleep tracking and progress photo comparison slider','Full gamification: XP, streaks, achievements, leaderboard','Manual & automatic cloud backup — your data, exportable anytime','Cancel anytime — no lock-in contract']},
+  massapp:{tag:'PREMIUM SUBSCRIPTION',title:'Physique System',desc:'Your daily fitness command centre. Workout builder with PR detection, a 230+ item food database, sleep tracking, and progress photos — everything the Mass Blueprint teaches, now tracked and logged for you every day. Unlike a bare logger, it tells you what to lift next based on your actual last session.',price:'£17/mo',sub:'or £163.99/year',bg:'linear-gradient(155deg,#1A3020,#0D1E12)',accent:'#4AE888',
+    includes:['Recommended: bundle with The Mass Blueprint — first month £10, book £15.99 instead of £19','Full workout builder + session logger with PR detection','Auto-suggested next-session weight, based on your last real set','Smart food log — 230+ items, fractional & countable portions','Sleep tracking and progress photo comparison slider','Full gamification: XP, streaks, achievements, leaderboard','Manual & automatic cloud backup — your data, exportable anytime','Cancel anytime — no lock-in contract']},
   ai:{tag:'INTERACTIVE EBOOK COLLECTION',title:'AI Prompt Mastery',desc:'The complete prompt framework book for getting genuinely useful output from AI tools. Not another list of prompts to copy-paste — a reusable framework for building your own, that keeps working as models change. These frameworks work across ChatGPT, Claude, and every major AI platform.',price:'£17',bg:'linear-gradient(155deg,#0D2A33,#081A1F)',accent:'#44D4FF',
     includes:['The prompt anatomy framework — what every great prompt needs','50+ ready-to-use templates across 10 categories','Content creation prompts for TikTok, YouTube and email','Business and productivity prompt systems','How to chain prompts for complex multi-step tasks']},
   growth:{tag:'INTERACTIVE EBOOK COLLECTION',title:'The Growth Code',desc:'The intermediate creator\'s strategy guide to understanding how TikTok and YouTube really work — and building a system that grows your audience and generates income, instead of chasing one-off viral hits that don\'t compound.',price:'£27',bg:'linear-gradient(155deg,#332405,#0F0A02)',accent:'#FFD700',
@@ -3421,9 +3430,9 @@ const PRODUCTS = {
 // Real complementary pairing per product — never the product they're already viewing,
 // and never a bundle that includes something they're already looking at.
 const RELATED_OFFERS={
-  mass:    {target:'massapp', title:'Want the Mass Blueprint tracked for you daily?', desc:'Physique System turns the science in this book into a daily workout + nutrition tracker. £16/mo.'},
+  mass:    {target:'massapp', title:'Want the Mass Blueprint tracked for you daily?', desc:'Physique System turns the science in this book into a daily workout + nutrition tracker. £17/mo — or bundle both and get your first month for £10.'},
   massapp: {target:'app',     title:'Pair Physique System with Areviax OS', desc:'Train with Physique System, run the rest of your day with OS — tasks, habits, goals, all gamified. £16/mo.'},
-  app:     {target:'massapp', title:'Add fitness tracking to your OS routine', desc:'Physique System is the training-specific companion to OS — workouts, nutrition, and progress in one place. £16/mo.'},
+  app:     {target:'massapp', title:'Add fitness tracking to your OS routine', desc:'Physique System is the training-specific companion to OS — workouts, nutrition, and progress in one place. £17/mo.'},
   ai:      {target:'digital', title:'Ready to build something with those prompts?', desc:'Digital Product Blueprint shows you how to turn AI-assisted ideas into an actual sellable product.'},
   growth:  {target:'income',  title:'Got the audience plan — what about the income?', desc:'The Income Playbook is the step-by-step system for turning an audience into your first paid product.'},
   digital: {target:'income',  title:'Building a product? Here\'s how to sell it.', desc:'The Income Playbook picks up exactly where Digital Product Blueprint leaves off — your first 30 days of sales.'},
