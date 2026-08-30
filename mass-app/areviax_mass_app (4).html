@@ -2359,13 +2359,26 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        supplies the pattern + fade), and can override the dot color via
        --dot-c and the fade's origin corner via --dot-origin (default
        top-right, "100% 0%") so the field can anchor to whichever corner
-       the numeral itself sits in. */
+       the numeral itself sits in.
+       The mask used to go fully transparent by 82% of the way to the
+       farthest corner — on a caller whose own box already only covered
+       part of its card (or even a full-width box with the origin
+       pinned to one side), that meant dots visibly stopped well short
+       of the far edge, reading as "dots in one corner, blank everywhere
+       else" rather than a texture filling the space it was given. Stops
+       now stay solid to 95% and don't fully fade until 145% (past the
+       box's own farthest corner, so it's never actually reached) —
+       dots now fill wherever the element's own box is sized to, with
+       just the faintest softening right at the one corner opposite
+       --dot-origin, not a hard stop partway across. Default color
+       dialled back too — meant to read as a quiet texture, not a bold
+       pattern competing with the content in front of it. */
     .dot-field{
       position:absolute;pointer-events:none;
-      background-image:radial-gradient(var(--dot-c,rgba(255,122,46,.4)) 1px,transparent 1.5px);
+      background-image:radial-gradient(var(--dot-c,rgba(255,122,46,.28)) 1px,transparent 1.5px);
       background-size:11px 11px;
-      -webkit-mask-image:radial-gradient(circle at var(--dot-origin,100% 0%),#000 0%,transparent 82%);
-      mask-image:radial-gradient(circle at var(--dot-origin,100% 0%),#000 0%,transparent 82%);
+      -webkit-mask-image:radial-gradient(circle at var(--dot-origin,100% 0%),#000 0%,#000 95%,transparent 145%);
+      mask-image:radial-gradient(circle at var(--dot-origin,100% 0%),#000 0%,#000 95%,transparent 145%);
     }
     /* Hollow/outline number or word — transparent fill, stroke only.
        Pair with the caller's own font-size/weight; override stroke
@@ -2678,6 +2691,24 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
 
     /* ROAD PAGE HEADER — back link + title, sits above the banner. */
     .road-page-head{display:flex;align-items:center;gap:12px;margin-bottom:2px}
+    .road-trophy-count{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:var(--muted);background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:999px;padding:3px 10px}
+    /* TROPHIES EARNED gallery — a compact, always-scannable "what have I
+       actually got" strip at the bottom of a road page, separate from
+       the path itself (which shows position/progress, not a collection
+       view). Locked slots stay visible but dim so the full set size is
+       obvious at a glance, same "show what's still ahead, don't just
+       hide it" convention the Trophy Cabinet uses. */
+    .road-trophy-gallery-wrap{margin-top:22px;padding-top:18px;border-top:1px solid var(--border2)}
+    .road-trophy-gallery-label{font-size:9.5px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
+    .road-trophy-gallery{display:flex;flex-wrap:wrap;gap:14px}
+    .road-trophy-item{flex:0 0 auto;width:64px;text-align:center;opacity:.35;filter:grayscale(.6)}
+    .road-trophy-item.earned{opacity:1;filter:none}
+    .road-trophy-item-icon{width:56px;height:56px;margin:0 auto 6px;display:flex;align-items:center;justify-content:center;border-radius:14px;background:rgba(255,255,255,.03);border:1.5px solid var(--border2);overflow:hidden}
+    .road-trophy-item.earned .road-trophy-item-icon{border-color:rgba(255,180,90,.4);box-shadow:0 0 14px -4px rgba(255,150,50,.5)}
+    .road-trophy-item-icon img{width:100%;height:100%;object-fit:contain}
+    .road-trophy-item-icon svg,.road-trophy-item-icon span{font-size:26px}
+    .road-trophy-item-name{font-size:8.5px;color:var(--muted);line-height:1.3}
+    .road-trophy-item.earned .road-trophy-item-name{color:rgba(var(--white-rgb),.75);font-weight:700}
 
     /* PROGRESS PAGE HUB CARDS — replace the old embedded roads. Same
        collapsed "current progress + fill toward next" language as the
@@ -3449,7 +3480,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        Workouts dropped — it pointed at the exact same page as Start
        already does, so it was a duplicate button, not lost functionality. -->
   <div class="dash-today-inner" style="background:linear-gradient(160deg,rgba(255,90,0,.07),rgba(var(--bg-rgb),.9));border:1px solid rgba(255,90,0,.22);border-radius:16px;padding:24px 22px 22px;overflow:hidden;position:relative">
-    <div aria-hidden="true" class="dot-field" style="right:0;bottom:0;width:100%;height:190px;--dot-origin:100% 100%"></div>
+    <div aria-hidden="true" class="dot-field" style="right:0;bottom:0;width:100%;height:100%;--dot-origin:100% 100%"></div>
     <!-- HERO HEADLINE — solid word + hollow/outline word. The giant faint
          watermark digit that used to sit behind this was removed —
          that "number in the background" device now belongs to the
@@ -4387,7 +4418,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        and here a genuine filter control (4W/12W/1Y) instead of a fixed
        range. Real tonnageLog data — see renderProgressHero(). -->
   <div style="background:transparent;padding:6px 4px 20px;margin-bottom:16px;position:relative;overflow:hidden">
-    <div aria-hidden="true" class="dot-field" style="right:0;top:0;width:230px;height:100%"></div>
+    <div aria-hidden="true" class="dot-field" style="right:0;top:0;width:100%;height:100%"></div>
     <div aria-hidden="true" id="prog-hero-watermark" class="hollow-num" style="position:absolute;right:-4px;top:-14px;font-family:'Space Grotesk',sans-serif;font-weight:800;font-size:130px;line-height:1;--hollow-w:1.5px;--hollow-c:rgba(255,122,46,.16);pointer-events:none;user-select:none">12</div>
     <div style="position:relative">
       <div style="font-size:9.5px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,122,46,.7);margin-bottom:8px">Total Volume · <span id="prog-hero-range-label">12W</span></div>
@@ -4761,6 +4792,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
   <div class="road-page-head">
     <button class="btn btn-out btn-sm" onclick="showPage('progress')">← Progress</button>
     <span class="ct glow-title weight" style="font-size:17px">🏋️ Weight Road</span>
+    <span class="road-trophy-count" id="weight-road-trophy-count">0/6</span>
   </div>
   <div class="road-reward-row theme-iron" id="weight-road-banner">
     <div class="road-reward-box" id="weight-reward-prev">
@@ -4791,6 +4823,15 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     <div class="road-ridge back"></div>
     <div class="road-ridge front"></div>
     <div id="weight-road-h" class="xp-road-track horizontal"></div>
+  </div>
+  <!-- TROPHIES EARNED — the road itself already shows each milestone in
+       place along the path, but there's nowhere on this page you can
+       see the whole earned collection at a glance without scrolling the
+       full track. A compact gallery of just the claimed ones, gold-lit
+       against a locked/dimmed placeholder for what's still ahead. -->
+  <div class="road-trophy-gallery-wrap">
+    <div class="road-trophy-gallery-label">Trophies Earned</div>
+    <div class="road-trophy-gallery" id="weight-road-trophy-gallery"></div>
   </div>
 </div>
 
@@ -5912,6 +5953,21 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     </div>
     <div style="font-size:10.5px;color:var(--muted);margin-top:6px;line-height:1.5">Every page has had a light-mode pass now — flag anything that still looks off and it'll get fixed.</div>
   </div>
+
+  <!-- SHIELD REMINDERS — a real OS-level notification (not just an
+       in-app banner) that escalates alongside the Caloric Shield's own
+       red/cracked/broken stages, so someone who's put their phone down
+       for the evening still gets caught before the day's a write-off.
+       Opt-in and off by default — the permission prompt only fires from
+       this actual click, never silently on load. -->
+  <div class="card" style="margin-bottom:14px">
+    <div class="ch"><span class="ct">Shield Reminders</span></div>
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <label class="lbl" style="margin:0">Evening nudges</label>
+      <button type="button" id="shield-notif-toggle" class="equip-chip" onclick="toggleShieldNotifs()" style="padding:3px 10px;font-size:10px">🔕 Off</button>
+    </div>
+    <div style="font-size:10.5px;color:var(--muted);margin-top:6px;line-height:1.5">Get a notification if the Caloric Shield is still behind in the evening — one at risk, one if it starts cracking, one if it breaks. Only fires while this device has the app installed or a tab open; won't wake a fully closed app days later.</div>
+  </div>
   </div>
 
   <div>
@@ -6547,6 +6603,14 @@ let todayLog=[];
 let nutritionLogDate='';
 let shieldAtRiskToday=false; // true once the Caloric Shield has hit red/cracked/broken at any point today — resets on day rollover
 let shieldGreatSaveAwardedToday=false; // one-time-per-day guard so "Great Save" doesn't refire every render after it's earned
+// Local push notifications escalating with the shield's own red/cracked/
+// broken stages — 0=none notified yet today, 1/2/3 = highest stage
+// already notified, so a stage that's already been pushed doesn't refire
+// on every renderCaloricShield() call (which runs on basically every
+// nutrition-page interaction), only when it genuinely gets worse than
+// before. Resets at day rollover alongside the other shield-day flags.
+let shieldNotifStage=0;
+let shieldNotifsEnabled=false;
 let sleepLog=[];
 let cnsTapLog=[]; // [{date, taps, score}] — raw tap counts for computing a rolling personal baseline
 let winddownDate='',winddownChecked={};
@@ -8783,6 +8847,27 @@ function renderWeightRoad(){
   const nodes=weightRoadNodes();
   renderRoadPath('weight-road-h',nodes);
   renderRewardRow('weight',nodes);
+  renderWeightRoadTrophies();
+}
+// TROPHIES EARNED — every WEIGHT_MILESTONES entry shown at both the top
+// (count badge, "3/6") and bottom (full gallery) of the page. Reads the
+// exact same claimed/vol math as weightRoadNodes() so this can never
+// disagree with what the path itself shows as crossed.
+function renderWeightRoadTrophies(){
+  const countEl=document.getElementById('weight-road-trophy-count');
+  const galleryEl=document.getElementById('weight-road-trophy-gallery');
+  if(!galleryEl)return;
+  const ascending=[...WEIGHT_MILESTONES].sort((a,b)=>a.kg-b.kg);
+  const vol=totalVolume||0;
+  const earnedCount=ascending.filter(m=>vol>=m.kg).length;
+  if(countEl)countEl.textContent=earnedCount+'/'+ascending.length;
+  galleryEl.innerHTML=ascending.map(m=>{
+    const earned=vol>=m.kg;
+    return `<div class="road-trophy-item${earned?' earned':''}" title="${m.name} — ${m.kg.toLocaleString()}kg">
+      <div class="road-trophy-item-icon">${milestoneIconHTML(m)}</div>
+      <div class="road-trophy-item-name">${earned?m.name:'???'}</div>
+    </div>`;
+  }).join('');
 }
 // Populates the three Progress-page hub cards (XP/Trophy/Weight) with
 // the same {icon,text,pct} summaries the full road pages' banners use
@@ -9535,6 +9620,7 @@ function renderSettings(){
   const nameEl=document.getElementById('set-name');
   if(!nameEl)return;
   nameEl.value=profile.name||'';
+  renderShieldNotifToggle();
   document.getElementById('set-weight').value=profile.weight?(weightUnit==='kg'?Math.round(profile.weight*0.453592*10)/10:profile.weight):'';
   if(heightUnit==='ftin'&&profile.height){
     const totalIn=profile.height/2.54;
@@ -10746,7 +10832,7 @@ function showPage(id){
   if(pg)pg.classList.add('active');
   document.querySelectorAll('.sb-item').forEach(i=>{if(i.getAttribute('onclick')?.includes(id))i.classList.add('active')});
   try{
-    const titles={dashboard:['Home','Let\'s get to work.'],workout:['Workout','Build your session.'],session:['Session','Time to work.'],nutrition:['Nutrition','Hit your targets.'],recipes:['Recipes','Real meals, built for the surplus.'],progress:['Progress','See how far you\'ve come.'],trophycabinet:['Trophy Cabinet','Every rarity, every layer, all in one room.'],xproad:['XP Road','Every checkpoint you\'ve crossed.'],trophyroad:['Trophy Road','Every achievement, one path.'],weightroad:['Weight Road','Lifetime tonnage, milestone by milestone.'],recovery:['Recovery','Sleep, breathing, and how to actually recover.'],schedule:['Schedule','Plan your week.'],leaderboard:['Leaderboard','See how you rank.'],leagues:['Leagues','Climb the weekly ladder.'],learn:['Science','Understand the why.'],profile:['Profile','Your stats, on display.'],legal:['Legal','Privacy, terms, and health info.'],settings:['Settings','Update your details anytime.']};
+    const titles={dashboard:['Home','Let\'s get to work.'],workout:['Workout','Build your session.'],session:['Session','Time to work.'],nutrition:['Nutrition','Hit your targets.'],recipes:['Recipes','Real meals, built for the surplus.'],progress:['Progress','See how far you\'ve come.'],trophycabinet:['Trophy Cabinet','Every rarity, every layer, all in one room.'],xproad:['XP Road',''],trophyroad:['Trophy Road',''],weightroad:['Weight Road',''],recovery:['Recovery','Sleep, breathing, and how to actually recover.'],schedule:['Schedule','Plan your week.'],leaderboard:['Leaderboard','See how you rank.'],leagues:['Leagues','Climb the weekly ladder.'],learn:['Science','Understand the why.'],profile:['Profile','Your stats, on display.'],legal:['Legal','Privacy, terms, and health info.'],settings:['Settings','Update your details anytime.']};
     const[t,s]=titles[id]||[id,''];
     const tte=document.getElementById('tb-title');
     if(tte){tte.textContent=t;tte.classList.toggle('tb-title-sm',id==='trophycabinet');}
@@ -17012,6 +17098,57 @@ function runBreathStep(stepIdx){
 // ── ITEMIZED DAILY LOG — lets people undo a single misclick instead of
 // nuking the whole day with Reset, and auto-rolls over at midnight so
 // yesterday's items never bleed into today. ──
+// Local push notification, escalating in urgency with the shield's own
+// stages. "Local" — the plain Notification API, fired directly from the
+// page while the browser/PWA process is alive, not a true server push
+// that can wake a fully-closed app days later (that needs a real
+// backend to schedule sends; see the roadmap — this app has no server
+// component at all right now). Still fires as a real OS-level
+// notification outside the browser tab, which is the actually-useful
+// part: catching someone who's put their phone down with the app
+// backgrounded, not just someone staring at the screen already.
+// Settings toggle handler — turning it on is also the moment the browser's
+// own permission prompt has to fire (must happen inside a real click
+// handler, not from renderCaloricShield on a background timer, or most
+// browsers silently ignore the request). Denying or dismissing that
+// prompt just leaves the toggle off; nothing else breaks.
+function toggleShieldNotifs(){
+  if(typeof Notification==='undefined'){toast('⚠️','Notifications aren\'t supported in this browser.');return;}
+  if(shieldNotifsEnabled){
+    shieldNotifsEnabled=false;
+    saveToStorage();
+    renderShieldNotifToggle();
+    return;
+  }
+  if(Notification.permission==='granted'){
+    shieldNotifsEnabled=true;
+    saveToStorage();
+    renderShieldNotifToggle();
+    toast('🛡️','Shield reminders on — you\'ll get an escalating nudge if it starts slipping in the evening.');
+    return;
+  }
+  Notification.requestPermission().then(perm=>{
+    shieldNotifsEnabled=(perm==='granted');
+    saveToStorage();
+    renderShieldNotifToggle();
+    if(perm==='granted')toast('🛡️','Shield reminders on — you\'ll get an escalating nudge if it starts slipping in the evening.');
+    else if(perm==='denied')toast('🔕','Notifications blocked — enable them in your browser/device settings to turn this on.');
+  });
+}
+function renderShieldNotifToggle(){
+  const btn=document.getElementById('shield-notif-toggle');
+  if(!btn)return;
+  const blocked=typeof Notification!=='undefined'&&Notification.permission==='denied';
+  btn.textContent=shieldNotifsEnabled?'🔔 On':(blocked?'🔕 Blocked':'🔕 Off');
+  btn.classList.toggle('active',shieldNotifsEnabled);
+  btn.disabled=blocked&&!shieldNotifsEnabled;
+}
+function notifyShieldStage(stage,title,body){
+  if(!shieldNotifsEnabled||typeof Notification==='undefined'||Notification.permission!=='granted')return;
+  if(stage<=shieldNotifStage)return; // only escalate, never re-notify the same or a lower stage
+  shieldNotifStage=stage;
+  try{ new Notification(title,{body,icon:'images/icons/favicon.png',tag:'shield-status'}); }catch(e){}
+}
 function renderCaloricShield(){
   const fillEl=document.getElementById('shield-fill');
   const label=document.getElementById('shield-label');
@@ -17051,6 +17188,10 @@ function renderCaloricShield(){
   const brokenStage=hour>=22&&overall<50;
 
   if(redStage||crackedStage||brokenStage)shieldAtRiskToday=true;
+  const calShortForNotif=Math.max(0,Math.round(profile.cals-dayMacros.cals));
+  if(brokenStage)notifyShieldStage(3,'🛡️ Shield Broken',`Today's log is short by ${calShortForNotif.toLocaleString()} kcal and the day's basically over. Tomorrow's a clean slate.`);
+  else if(crackedStage)notifyShieldStage(2,'🛡️ Shield Cracking',`Still ${calShortForNotif.toLocaleString()} kcal short with the evening running out — a quick meal turns this around.`);
+  else if(redStage)notifyShieldStage(1,'🛡️ Shield at Risk',`${calShortForNotif.toLocaleString()} kcal behind target for today. Log something before it slips further.`);
   // "Great Save" — a real turnaround, not just nudging out of the red: the
   // shield has to have actually been at risk at some point today AND then
   // genuinely hit both full targets, not just climbed back above a
@@ -17226,6 +17367,7 @@ function checkNutritionDay(){
     todayLog=[];
     shieldAtRiskToday=false;
     shieldGreatSaveAwardedToday=false;
+    shieldNotifStage=0;
     try{checkNutritionConsequenceWarning();}catch(e){console.error('checkNutritionConsequenceWarning:',e.message);}
   }
 }
@@ -18880,6 +19022,8 @@ function saveToStorage(){
     localStorage.setItem('arx_nutritionLogDate', nutritionLogDate);
     localStorage.setItem('arx_shieldAtRiskToday', shieldAtRiskToday?'1':'0');
     localStorage.setItem('arx_shieldGreatSaveAwardedToday', shieldGreatSaveAwardedToday?'1':'0');
+    localStorage.setItem('arx_shieldNotifStage', String(shieldNotifStage));
+    localStorage.setItem('arx_shieldNotifsEnabled', shieldNotifsEnabled?'1':'0');
     localStorage.setItem('arx_sleepLog', JSON.stringify(sleepLog));
     localStorage.setItem('arx_cnsTapLog', JSON.stringify(cnsTapLog));
     localStorage.setItem('arx_trainingCompletedDates', JSON.stringify(trainingCompletedDates));
@@ -19017,6 +19161,8 @@ function loadFromStorage(){
     nutritionLogDate=localStorage.getItem('arx_nutritionLogDate')||'';
     shieldAtRiskToday=localStorage.getItem('arx_shieldAtRiskToday')==='1';
     shieldGreatSaveAwardedToday=localStorage.getItem('arx_shieldGreatSaveAwardedToday')==='1';
+    shieldNotifStage=parseInt(localStorage.getItem('arx_shieldNotifStage'))||0;
+    shieldNotifsEnabled=localStorage.getItem('arx_shieldNotifsEnabled')==='1';
     const sl=localStorage.getItem('arx_sleepLog');
     if(sl){try{sleepLog=JSON.parse(sl);}catch(e){sleepLog=[];}}
     const ctl=localStorage.getItem('arx_cnsTapLog');
