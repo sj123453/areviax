@@ -8401,77 +8401,63 @@ function milestoneIconHTML(m){
 // personal training app, not a claim of endorsement. Rarity weights
 // below in openCompassDrop() control drop odds, not this order.
 const LEGEND_CARDS=[
-  // img is optional \u2014 leave unset to use the emoji icon; once real
+  // img is optional — leave unset to use the emoji icon; once real
   // trophy art exists per card, set img to its path/URL and it takes
   // over automatically in every place a card renders (row, reveal).
-  // The Areviax Trophy \u2014 the single peak pull, ultralegendary, sits
+  // Every card below now has real art — the placeholder-only entries
+  // (real bodybuilders and training archetypes with no trophy yet,
+  // Training Crests) were removed rather than left as permanently-
+  // unobtainable dead weight; CRATE_TIERS' mythic/epic/superrare odds
+  // are zeroed accordingly (see the comment above CRATE_TIERS) and
+  // fold back in cleanly whenever a new tier of art shows up.
+  // The Areviax Trophy — the single peak pull, ultralegendary, sits
   // above every real-person card. Only obtainable from the Areviax
   // Drop (see CRATE_TIERS) at a deliberately small chance, matching
   // its "1-of-1" framing on the Trophy Cabinet's peak slot.
-  {key:'areviax_trophy', name:'The Areviax Trophy', title:'1-of-1 \u2014 the single rarest pull in the game', icon:'<svg class="lgi-brand-mark" viewBox="0 0 100 100" fill="none"><circle cx="50" cy="50" r="48" fill="#3D1F0A" stroke="#8A3010" stroke-width="1"/><path d="M50 14C50 14 45 42 18 50C45 58 50 86 50 86C50 86 55 58 82 50C55 42 50 14 50 14Z" fill="#FF5A00" opacity=".9"/><circle cx="50" cy="50" r="4" fill="#EEF0FF"/></svg>', img:null, rarity:'ultralegendary'},
-  {key:'arnold',    name:'The Classic',           title:'A physique-era icon, cast in bronze',         icon:'\ud83c\udfd4\ufe0f', img:'images/legends/classic.png', rarity:'legendary'},
-  {key:'coleman',   name:'The Monarch',           title:'"Yeah Buddy!" energy, cast in bronze',        icon:'\ud83d\udc51', img:'images/legends/monarch.png', rarity:'legendary'},
-  {key:'haney',     name:'Lee Haney',              title:'8\u00d7 Mr. Olympia (1984\u20131991)',              icon:'\ud83c\udfc6', img:null, rarity:'mythic'},
-  {key:'yates',     name:'Dorian Yates',           title:'"The Shadow" \u2014 6\u00d7 Mr. Olympia',               icon:'\ud83c\udf11', img:null, rarity:'mythic'},
-  {key:'cutler',    name:'Jay Cutler',             title:'4\u00d7 Mr. Olympia',                              icon:'\u26a1', img:null, rarity:'epic'},
-  {key:'heath',     name:'Phil Heath',             title:'"The Gift" \u2014 7\u00d7 Mr. Olympia',                 icon:'\ud83c\udf81', img:null, rarity:'epic'},
-  // Training Crests \u2014 superrare. Earned-feeling badges rather than
-  // real people, matching the Trophy Cabinet's Layer 3 flavor ("earned
-  // through the grind") the same way the common tier's gear trinkets
-  // match Layer 1.
-  {key:'crest_iron',      name:'Iron Discipline',   title:'Showed up when it was easier not to',     icon:'\ud83d\udee1\ufe0f', img:null, rarity:'superrare'},
-  {key:'crest_streak',    name:'No Days Off',       title:'Consistency, stacked week after week',    icon:'\u26d3\ufe0f', img:null, rarity:'superrare'},
-  {key:'crest_pr',        name:'PR Breaker',        title:'The number went up. Again.',              icon:'\ud83d\udcc8', img:null, rarity:'superrare'},
-  {key:'crest_volume',    name:'Volume',            title:'Tonnage that adds up to something real',  icon:'\ud83c\udfcb\ufe0f', img:null, rarity:'superrare'},
-  {key:'crest_grind',     name:"Grinder's",         title:'Not the fastest set. Just the last rep.', icon:'\u2694\ufe0f', img:null, rarity:'superrare'},
-  {key:'crest_comeback',  name:'Comeback',          title:'Missed a week. Came back anyway.',        icon:'\ud83c\udf05', img:null, rarity:'superrare'},
-  {key:'crest_focus',     name:'Ironclad Focus',    title:'Every set, every rep, on purpose',        icon:'\ud83c\udfaf', img:null, rarity:'superrare'},
-  {key:'crest_summit',    name:'Summit',            title:'Earned at the top of a hard training block', icon:'\ud83d\uddfb', img:null, rarity:'superrare'},
-  {key:'oliva',     name:'Sergio Oliva',           title:'"The Myth" \u2014 3\u00d7 Mr. Olympia',                 icon:'\ud83e\uddbe', img:null, rarity:'epic'},
-  {key:'columbu',   name:'Franco Columbu',         title:'2\u00d7 Mr. Olympia',                              icon:'\ud83d\udcaa', img:null, rarity:'epic'},
-  // Training Archetypes \u2014 epic tier, alongside the real bodybuilders
-  // above: eight training identities rather than eight people, each
-  // representing a different path to competition-caliber performance.
-  // img is null for all eight \u2014 real trophy photography for this set
-  // hasn't been supplied yet, same "leave img null until real art
-  // exists" convention every other card here already follows.
-  {key:'archetype_monarch',      name:'The Iron Monarch',    title:'Strength \u2014 heavy lifting, progressive overload and raw power.', icon:'\ud83c\udfcb\ufe0f', img:null, rarity:'epic'},
-  {key:'archetype_physique',     name:'The Physique',        title:'Muscle Building \u2014 developing muscular size, proportion and physique.', icon:'\ud83d\udcaa', img:null, rarity:'epic'},
-  {key:'archetype_hybrid',       name:'The Hybrid',          title:'Hybrid Training \u2014 combining strength, conditioning and athletic ability.', icon:'\ud83d\udc3a', img:null, rarity:'epic'},
-  {key:'archetype_windrunner',   name:'The Wind Runner',     title:'Speed & Endurance \u2014 running, conditioning and cardiovascular performance.', icon:'\u26a1', img:null, rarity:'epic'},
-  {key:'archetype_gravitydefier',name:'The Gravity Defier',  title:'Calisthenics \u2014 mastering bodyweight strength and control.', icon:'\ud83e\udd38', img:null, rarity:'epic'},
-  {key:'archetype_powerathlete', name:'The Power Athlete',   title:'Functional Strength \u2014 explosive, practical strength and demanding full-body movements.', icon:'\ud83d\udede', img:null, rarity:'epic'},
-  {key:'archetype_balance',      name:'The Balance',         title:'All-Round Athlete \u2014 developing strength, mobility, conditioning and control together.', icon:'\u2696\ufe0f', img:null, rarity:'epic'},
-  {key:'archetype_champion',     name:'The Champion',        title:'Competition & Performance \u2014 pushing yourself to perform and achieve at the highest level.', icon:'\ud83c\udfc6', img:null, rarity:'epic'},
-  // Mindset Auras \u2014 rare tier, Layer 2. Not people or gear, the mental
+  {key:'areviax_trophy', name:'The Areviax Trophy', title:'1-of-1 — the single rarest pull in the game', icon:'<svg class="lgi-brand-mark" viewBox="0 0 100 100" fill="none"><circle cx="50" cy="50" r="48" fill="#3D1F0A" stroke="#8A3010" stroke-width="1"/><path d="M50 14C50 14 45 42 18 50C45 58 50 86 50 86C50 86 55 58 82 50C55 42 50 14 50 14Z" fill="#FF5A00" opacity=".9"/><circle cx="50" cy="50" r="4" fill="#EEF0FF"/></svg>', img:null, rarity:'ultralegendary'},
+  // The Main Four — the founding legendary set, each cast as its own
+  // bronze trophy statue with its title on the plaque.
+  {key:'arnold',    name:'The Classic', title:'A physique-era icon, cast in bronze', icon:'🏔️', img:'images/legends/classic.png', rarity:'legendary'},
+  {key:'coleman',   name:'The Monarch', title:'"Yeah Buddy!" energy, cast in bronze', icon:'👑', img:'images/legends/monarch.png', rarity:'legendary'},
+  {key:'cutler',    name:'The Machine', title:"Mass that doesn't stop, cast in bronze", icon:'⚙️', img:'images/legends/machine.png', rarity:'legendary'},
+  {key:'goggins',   name:'The Grit',    title:'Refusing to stop when it hurts, cast in bronze', icon:'🔥', img:'images/legends/grit.png', rarity:'legendary'},
+  // The Diamond Six — a second legendary set, cast in silver on
+  // crystal, one step further up from the bronze Main Four.
+  {key:'diamond_victor',      name:'The Victor',           title:'Earning the right to stand above the competition', icon:'✨', img:'images/legends/victor.png', rarity:'legendary'},
+  {key:'diamond_universe',    name:'Mr. Universe',         title:'Global greatness', icon:'🌍', img:'images/legends/mr_universe.png', rarity:'legendary'},
+  {key:'diamond_olympian',    name:'The Olympian',         title:'The pinnacle of competitive bodybuilding', icon:'🏛️', img:'images/legends/olympian.png', rarity:'legendary'},
+  {key:'diamond_dream',       name:'The Dream',            title:'The goal every athlete is chasing', icon:'💭', img:'images/legends/dream.png', rarity:'legendary'},
+  {key:'diamond_physique',    name:'The Classic Physique', title:'Timeless physique and bodybuilding excellence', icon:'🏆', img:'images/legends/classic_physique.png', rarity:'legendary'},
+  {key:'diamond_unbreakable', name:'The Unbreakable',      title:'Resilience, strength, and refusing to be defeated', icon:'🛡️', img:'images/legends/unbreakable.png', rarity:'legendary'},
+  // Mindset Auras — rare tier, Layer 2. Not people or gear, the mental
   // qualities underneath the physical training: what actually gets
   // someone to show up and keep going. Matches Training Crests' "earned
   // feeling" but one layer up from behavior into mindset itself.
-  {key:'aura_breakthrough', name:'The Breakthrough', title:'Breaking through mental barriers and becoming better than your previous self', icon:'\ud83d\uddff', img:'images/legends/breakthrough.png', rarity:'rare'},
-  {key:'aura_patience',     name:'The Patience',     title:'Progress takes time \u2014 consistency over weeks and months, not instant results', icon:'\u23f3', img:'images/legends/patience.png', rarity:'rare'},
-  {key:'aura_heart',        name:'The Heart',        title:'Passion for training \u2014 the reason you keep showing up when motivation disappears', icon:'\u2764\ufe0f', img:'images/legends/heart.png', rarity:'rare'},
-  {key:'aura_summit',       name:'The Summit',       title:'Having a huge goal and being willing to climb toward it one step at a time', icon:'\ud83c\udfd4\ufe0f', img:'images/legends/summit.png', rarity:'rare'},
-  {key:'aura_strategy',     name:'The Strategy',     title:'Training intelligently rather than simply training harder', icon:'\u265e\ufe0f', img:'images/legends/strategy.png', rarity:'rare'},
-  {key:'aura_focus',        name:'The Focus',        title:'Blocking out distractions and being completely locked into the task in front of you', icon:'\ud83e\uddd8', img:'images/legends/focus.png', rarity:'rare'},
-  {key:'aura_resilience',   name:'The Resilience',   title:'Taking hits, setbacks and bad sessions without letting them stop your progress', icon:'\u26a1', img:'images/legends/resilience.png', rarity:'rare'},
-  {key:'aura_mind',         name:'The Mind',         title:'Discipline and learning \u2014 physical progress starts with your decisions', icon:'\ud83e\udde0', img:'images/legends/mind.png', rarity:'rare'},
-  {key:'aura_drive',        name:'The Drive',        title:'The internal fire that makes you want to keep improving', icon:'\ud83d\udd25', img:'images/legends/drive.png', rarity:'rare'},
-  {key:'aura_growth',       name:'The Growth',       title:'Long-term development \u2014 strong foundations that let progress compound', icon:'\ud83c\udf33', img:'images/legends/growth.png', rarity:'rare'},
-  // common tier \u2014 gym gear trinkets, not people; bronze-toned relics
+  {key:'aura_breakthrough', name:'The Breakthrough', title:'Breaking through mental barriers and becoming better than your previous self', icon:'🗿', img:'images/legends/breakthrough.png', rarity:'rare'},
+  {key:'aura_patience',     name:'The Patience',     title:'Progress takes time — consistency over weeks and months, not instant results', icon:'⏳', img:'images/legends/patience.png', rarity:'rare'},
+  {key:'aura_heart',        name:'The Heart',        title:'Passion for training — the reason you keep showing up when motivation disappears', icon:'❤️', img:'images/legends/heart.png', rarity:'rare'},
+  {key:'aura_summit',       name:'The Summit',       title:'Having a huge goal and being willing to climb toward it one step at a time', icon:'🏔️', img:'images/legends/summit.png', rarity:'rare'},
+  {key:'aura_strategy',     name:'The Strategy',     title:'Training intelligently rather than simply training harder', icon:'♞️', img:'images/legends/strategy.png', rarity:'rare'},
+  {key:'aura_focus',        name:'The Focus',        title:'Blocking out distractions and being completely locked into the task in front of you', icon:'🧘', img:'images/legends/focus.png', rarity:'rare'},
+  {key:'aura_resilience',   name:'The Resilience',   title:'Taking hits, setbacks and bad sessions without letting them stop your progress', icon:'⚡', img:'images/legends/resilience.png', rarity:'rare'},
+  {key:'aura_mind',         name:'The Mind',         title:'Discipline and learning — physical progress starts with your decisions', icon:'🧠', img:'images/legends/mind.png', rarity:'rare'},
+  {key:'aura_drive',        name:'The Drive',        title:'The internal fire that makes you want to keep improving', icon:'🔥', img:'images/legends/drive.png', rarity:'rare'},
+  {key:'aura_growth',       name:'The Growth',       title:'Long-term development — strong foundations that let progress compound', icon:'🌳', img:'images/legends/growth.png', rarity:'rare'},
+  // common tier — gym gear trinkets, not people; bronze-toned relics
   // that still feel worth pulling even on the cheap drop.
-  {key:'dumbbell',  name:'Iron Dumbbell',          title:'Every set starts somewhere',                  icon:'\ud83c\udfcb\ufe0f', img:'images/legends/dumbbell.png', rarity:'common'},
-  {key:'kettlebell',name:'Kettlebell',              title:'Old-school conditioning staple',              icon:'\ud83e\uddb6', img:'images/legends/kettlebell.png', rarity:'common'},
-  {key:'plate',     name:'Weight Plate',            title:'Load it up',                                  icon:'\u2b55', img:'images/legends/plate.png', rarity:'common'},
-  {key:'jumprope',  name:'Jump Rope',                title:'Cardio, the old-fashioned way',               icon:'\ud83e\udea2', img:'images/legends/jumprope.png', rarity:'common'},
-  {key:'stopwatch', name:'Stopwatch',                title:'Rest timer, respected',                       icon:'\u23f1\ufe0f', img:'images/legends/stopwatch.png', rarity:'common'},
-  {key:'shaker',    name:'Shaker Bottle',            title:'Post-workout ritual',                         icon:'\ud83e\udd64', img:'images/legends/shaker.png', rarity:'common'},
-  {key:'straps',    name:'Lifting Straps',           title:'Grip strength has limits',                    icon:'\ud83c\udf97\ufe0f', img:'images/legends/straps.png', rarity:'common'},
-  {key:'abwheel',   name:'Ab Wheel',                 title:'Humbling, every time',                        icon:'\ud83d\udede', img:'images/legends/abwheel.png', rarity:'common'},
-  {key:'battlerope',name:'Battle Rope',              title:'Thirty seconds feels like a lifetime',        icon:'\ud83d\udc0d', img:'images/legends/battlerope.png', rarity:'common'},
-  {key:'towel',     name:'Gym Towel',                title:'MVP of leg day',                              icon:'\ud83e\uddfb', img:'images/legends/towel.png', rarity:'common'},
-  {key:'liftingbelt',name:'Lifting Belt',            title:'Brace and drive',                             icon:'\ud83e\udd4b', img:'images/legends/liftingbelt.png', rarity:'common'},
-  {key:'gloves',    name:'Training Gloves',          title:'Calluses are optional',                       icon:'\ud83e\udde4', img:'images/legends/gloves.png', rarity:'common'},
-  {key:'ball',      name:'Medicine Ball',            title:'Slam it out',                                 icon:'\u26bd', img:'images/legends/ball.png', rarity:'common'},
+  {key:'dumbbell',  name:'Iron Dumbbell',          title:'Every set starts somewhere',                  icon:'🏋️', img:'images/legends/dumbbell.png', rarity:'common'},
+  {key:'kettlebell',name:'Kettlebell',              title:'Old-school conditioning staple',              icon:'🦶', img:'images/legends/kettlebell.png', rarity:'common'},
+  {key:'plate',     name:'Weight Plate',            title:'Load it up',                                  icon:'⭕', img:'images/legends/plate.png', rarity:'common'},
+  {key:'jumprope',  name:'Jump Rope',                title:'Cardio, the old-fashioned way',               icon:'🪢', img:'images/legends/jumprope.png', rarity:'common'},
+  {key:'stopwatch', name:'Stopwatch',                title:'Rest timer, respected',                       icon:'⏱️', img:'images/legends/stopwatch.png', rarity:'common'},
+  {key:'shaker',    name:'Shaker Bottle',            title:'Post-workout ritual',                         icon:'🥤', img:'images/legends/shaker.png', rarity:'common'},
+  {key:'straps',    name:'Lifting Straps',           title:'Grip strength has limits',                    icon:'🎗️', img:'images/legends/straps.png', rarity:'common'},
+  {key:'abwheel',   name:'Ab Wheel',                 title:'Humbling, every time',                        icon:'🛞', img:'images/legends/abwheel.png', rarity:'common'},
+  {key:'battlerope',name:'Battle Rope',              title:'Thirty seconds feels like a lifetime',        icon:'🐍', img:'images/legends/battlerope.png', rarity:'common'},
+  {key:'towel',     name:'Gym Towel',                title:'MVP of leg day',                              icon:'🧻', img:'images/legends/towel.png', rarity:'common'},
+  {key:'liftingbelt',name:'Lifting Belt',            title:'Brace and drive',                             icon:'🥋', img:'images/legends/liftingbelt.png', rarity:'common'},
+  {key:'gloves',    name:'Training Gloves',          title:'Calluses are optional',                       icon:'🧤', img:'images/legends/gloves.png', rarity:'common'},
+  {key:'ball',      name:'Medicine Ball',            title:'Slam it out',                                 icon:'⚽', img:'images/legends/ball.png', rarity:'common'},
 ];
 let unlockedLegends=[]; // persistent \u2014 keys from LEGEND_CARDS the user has actually pulled
 let legendCounts={}; // persistent \u2014 key -> total times pulled, including the first (new) pull
@@ -8881,41 +8867,41 @@ function renderXpRoadGallery(){
 }
 
 // Two crate tiers, mirroring Brawl Stars' frequent Star Drop vs rarer
-// Mega Box split \u2014 Bronze is free and fills from ordinary training
+// Mega Box split — Bronze is free and fills from ordinary training
 // (bronzeDropProgress/Bank, see markTrainedToday), Gold spends a
 // banked Compass Shard for meaningfully better odds. Same currency
-// tension as streak repair already spending shards \u2014 a shard is worth
+// tension as streak repair already spending shards — a shard is worth
 // choosing what to do with, not just a formality.
-// Five tiers now, each strictly better odds than the last. superrare
-// and ultralegendary still sit at 0% everywhere below \u2014 no LEGEND_CARDS
-// entries exist at those rarities yet (Training Crests / the Areviax
-// Trophy), so rolling into either would draw from an empty pool.
-// Turning them on later is still the one-line odds change the ladder
-// was built for. Areviax Drop is deliberately not a gamble at all \u2014
-// 100% legendary, the best tier that DOES have real content \u2014 see
-// openCompassDrop() for how it bypasses the normal currency cost too.
 // Rebalanced so the top end (mythic/legendary/ultralegendary) actually
 // feels rare — Gold's old 4% mythic rate in particular was pulling
 // "great stuff" almost as often as the low-tier crates pull commons.
-// Every tier below Areviax has its mythic+ odds cut roughly in half to
-// two-thirds (Gold hit hardest, ~62% cut, since that's the specific
-// complaint), with the freed percentage folded back into common so
-// each table still sums to 100. Areviax stays untouched — it's the
-// guaranteed legendary-or-better tier, not a gamble, so there's nothing
-// to nerf there.
+// mythic/epic/superrare all sit at 0% right now — every LEGEND_CARDS
+// entry at those rarities was removed when the Legend Card roster got
+// trimmed down to only cards with real trophy art (see the comment
+// above LEGEND_CARDS), so rolling into any of them would draw from an
+// empty pool. The percentage that used to go to those three rarities
+// is folded back in per tier: 100% into common for Bronze (it was
+// already the common-heavy starter tier), split evenly between common
+// and rare for Silver/Gold/Diamond (keeps some tiered structure rather
+// than collapsing into a common/rare coin-flip). Turning any of the
+// three back on later is still the one-line odds change this ladder
+// was built for. Areviax Drop is deliberately not a gamble at all —
+// 100% legendary, the tier that DOES have real content — see
+// openCompassDrop() for how it bypasses the normal currency cost too.
 const CRATE_TIERS={
-  bronze:{label:'Bronze Drop',odds:{common:70.7,rare:20,superrare:6,epic:3,mythic:0.25,legendary:0.05,ultralegendary:0}},
-  silver:{label:'Silver Drop',odds:{common:51.8,rare:28,superrare:12,epic:7,mythic:1,legendary:0.15,ultralegendary:0.05}},
-  gold:{label:'Gold Drop',odds:{common:38.1,rare:32,superrare:16,epic:12,mythic:1.5,legendary:0.3,ultralegendary:0.1}},
-  diamond:{label:'Diamond Drop',odds:{common:21.5,rare:25,superrare:25,epic:22,mythic:5,legendary:1.2,ultralegendary:0.3}},
+  bronze:{label:'Bronze Drop',odds:{common:79.95,rare:20,superrare:0,epic:0,mythic:0,legendary:0.05,ultralegendary:0}},
+  silver:{label:'Silver Drop',odds:{common:61.8,rare:38,superrare:0,epic:0,mythic:0,legendary:0.15,ultralegendary:0.05}},
+  gold:{label:'Gold Drop',odds:{common:52.85,rare:46.75,superrare:0,epic:0,mythic:0,legendary:0.3,ultralegendary:0.1}},
+  diamond:{label:'Diamond Drop',odds:{common:47.5,rare:51,superrare:0,epic:0,mythic:0,legendary:1.2,ultralegendary:0.3}},
   areviax:{label:'Areviax Drop',odds:{common:0,rare:0,superrare:0,epic:0,mythic:0,legendary:92,ultralegendary:8}},
 };
 // rarest-first, matches roll-resolution order everywhere a rarity is
-// picked from odds. superrare/ultralegendary sit at 0% odds above
-// until real items are assigned to them \u2014 the tier and its full
-// colour/glow/motion treatment already exist (see rarity-superrare
-// and rarity-ultralegendary throughout the CSS), so turning them on
-// later is a one-line odds change, not new design work.
+// picked from odds. mythic/epic/superrare sit at 0% odds above until
+// real items are assigned to them again \u2014 the tiers and their full
+// colour/glow/motion treatment already exist (see rarity-mythic,
+// rarity-epic and rarity-superrare throughout the CSS), so turning
+// any of them back on later is a one-line odds change, not new
+// design work.
 const RARITY_ORDER=['ultralegendary','legendary','mythic','epic','superrare','rare','common'];
 const RARITY_TEXT={
   common:'#B0B5BC',rare:'#4ADE80',superrare:'#60A5FA',epic:'#C084FC',
@@ -9204,8 +9190,14 @@ function legendDupeBadgeHTML(key){
 const TROPHY_LAYERS=[
   {rarity:'legendary', label:'Mythic',           sub:'Layer 6 \u00b7 The rarest pulls in the game',      count:2},
   {rarity:'mythic',    label:'Hall of Masters',   sub:'Layer 5 \u00b7 Legendary physiques',               count:4},
-  {rarity:'epic',      label:'Pro Stage',         sub:'Layer 4 \u00b7 Competition-ready',                 count:12, items:LEGEND_CARDS.filter(l=>l.rarity==='epic')},
-  {rarity:'superrare', label:'Training Crests',   sub:'Layer 3 \u00b7 Earned through the grind',          count:8, items:LEGEND_CARDS.filter(l=>l.rarity==='superrare')},
+  // epic/superrare lost their items: wiring the same way legendary/
+  // mythic above never had it \u2014 no LEGEND_CARDS entries exist at
+  // those rarities right now (see the comment above LEGEND_CARDS), so
+  // both render as locked "coming soon" placeholders until real art
+  // exists again; re-add items:LEGEND_CARDS.filter(l=>l.rarity==='epic'/'superrare')
+  // the moment it does.
+  {rarity:'epic',      label:'Pro Stage',         sub:'Layer 4 \u00b7 Competition-ready',                 count:12},
+  {rarity:'superrare', label:'Training Crests',   sub:'Layer 3 \u00b7 Earned through the grind',          count:8},
   {rarity:'rare',      label:'Mindset Auras',     sub:'Layer 2 \u00b7 The discipline behind the physique',count:10, items:LEGEND_CARDS.filter(l=>l.rarity==='rare')},
   {rarity:'common',    label:'Equipment',         sub:'Layer 1 \u00b7 Where it all starts',               count:13, items:LEGEND_CARDS.filter(l=>l.rarity==='common')},
 ];
@@ -9298,9 +9290,10 @@ function renderTrophyCabinet(){
   }
   const legendsRow=document.getElementById('cabinet-legends-row');
   if(legendsRow){
-    // The "big 4" only — legendary + mythic. Epic/rare cards (Cutler,
-    // Heath, Oliva, Columbu) still exist and still drop from Compass
-    // Drops, they just don't get a dedicated showcase slot here.
+    // Legendary + mythic get a dedicated showcase row here instead of
+    // the locked-placeholder TROPHY_LAYERS grid above — currently the
+    // Main Four (Classic, Monarch, Machine, Grit) plus the Diamond Six,
+    // all legendary; mythic is empty until real art exists for it again.
     const legends=LEGEND_CARDS.filter(l=>l.rarity==='legendary'||l.rarity==='mythic');
     legendsRow.innerHTML=legends.map(l=>{
       const unlocked=unlockedLegends.includes(l.key);
