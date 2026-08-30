@@ -8559,6 +8559,12 @@ function grantXpRoadReward(node){
     if(isNew)unlockedLegends.push(pick.key);
     legendCounts[pick.key]=(legendCounts[pick.key]||0)+1;
     if(!document.querySelector('.achievement-overlay')){
+      // Same iOS unlock reasoning as openCompassDrop — this can be the
+      // very first crate-sound-triggering interaction of the session
+      // (an XP Road legend claim, not a Compass Drop open), so the
+      // AudioContext still needs unlocking synchronously in this tap's
+      // call stack, not left to first fire inside showLegendReveal.
+      getCrateAudioCtx();
       showLegendReveal(pick,isNew,'gold',legendCounts[pick.key]);
     }else{
       toast(pick.icon,'XP Road prize: '+pick.name);
