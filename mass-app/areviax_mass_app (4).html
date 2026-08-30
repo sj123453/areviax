@@ -15395,9 +15395,9 @@ const AI_COACH_KB=[
    a:'XP Road is a checkpoint ladder — every real action (a logged session, hitting your nutrition target, a streak milestone) earns XP, and crossing each checkpoint unlocks a real reward (a Compass Drop, shards, or a guaranteed card at the big ones). See the full path on its own page from the Progress hub.'},
   {q:'Can I change my daily calorie target?',kw:['change calories','calorie target','change target','macros wrong'],
    a:'Yes — go to Settings, update your weight/goal/activity details, and tap Save Changes. Your calorie and macro targets recalculate automatically from those numbers.'},
-  {q:'What happened to my workout plan?',kw:['plan disappeared','lost my workout','plan gone','missing workout'],
+  {q:'What happened to my workout plan?',kw:['workout plan','plan disappeared','lost my workout','plan gone','missing workout'],
    a:"Your planned session is saved locally to this device/browser — clearing site data or switching devices will lose it. Go to Schedule and tap Generate My Training Week to rebuild it in a few seconds; nothing about your history or stats is affected."},
-  {q:'Is my data backed up anywhere?',kw:['backup','lose my data','data safe','sync','another device'],
+  {q:'Is my data backed up anywhere?',kw:['backup','backed up','lose my data','data safe','sync','another device','new phone','new device'],
    a:"Right now everything is stored only on this device/browser (there's no account system yet), so clearing your browser data will lose it unless you've backed up. Go to Settings → Backup Your Data and tap Download Backup any time — save that file somewhere safe, and Restore From Backup brings everything back on a new device."},
   {q:'How do I add my own food or recipe?',kw:['add food','add recipe','custom food','own food'],
    a:'Open the Recipes page and tap "Add Your Own" — fill in the name and macros (ingredients/method are optional) and it\'s saved to your device. Open it later and tap "Share code" to send it to a friend, who pastes the code into their own Add Your Own form.'},
@@ -15407,13 +15407,19 @@ const AI_COACH_KB=[
    a:"Plateau detection flags an exercise where your logged weight/reps haven't meaningfully increased over your last several sessions. It's a nudge to change something — more reps, a deload, or swapping the exercise for a few weeks — not a judgment on you."},
   {q:'How do Leagues work?',kw:['league','promotion','relegation','leaderboard rank'],
    a:'Leagues are a weekly promotion ladder — finish high in your group and you climb a tier by next week; finish low and you drop. Check the Leagues page for your current tier, promotion/relegation zones, and time left this week.'},
+  {q:'What does Premium include?',kw:['premium','upgrade','subscription','paid plan','pricing'],
+   a:"Everything you're using today (training, nutrition, roads, drops, leagues) stays free forever. Premium adds the AI-powered layer on top — a real conversational AI Coach, AI Food Scan, and cross-device sync. See the full breakdown and pricing on the Go Premium page. Billing isn't switched on yet, so nothing charges you right now."},
 ];
 function matchAiCoach(query){
-  const q=query.toLowerCase();
+  // Whole-word matching (padded with spaces) rather than plain substring —
+  // a bare substring check let short keywords like 'back' false-match
+  // inside unrelated words ("is my data backED UP" contains "back"),
+  // silently returning the wrong FAQ answer.
+  const q=' '+query.toLowerCase().replace(/[^a-z0-9']+/g,' ').trim()+' ';
   let best=null,bestScore=0;
   AI_COACH_KB.forEach(entry=>{
     let score=0;
-    entry.kw.forEach(k=>{ if(q.includes(k))score+=k.split(' ').length; });
+    entry.kw.forEach(k=>{ if(q.includes(' '+k+' ')||q.includes(' '+k+'s '))score+=k.split(' ').length; });
     if(score>bestScore){bestScore=score;best=entry;}
   });
   return bestScore>0?best:null;
