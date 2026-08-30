@@ -14578,20 +14578,20 @@ function completeSession(nameOverride){
 }
 
 const FOODS_DB=[
-  {name:'Chicken breast (cooked)',cals:165,prot:31,carbs:0,fats:3.6},
-  {name:'Chicken thigh (cooked)',cals:209,prot:26,carbs:0,fats:11},
-  {name:'Turkey breast (cooked)',cals:135,prot:30,carbs:0,fats:1},
-  {name:'Salmon (cooked)',cals:206,prot:22,carbs:0,fats:13},
-  {name:'Tuna (canned, water)',cals:116,prot:26,carbs:0,fats:1},
-  {name:'Cod (cooked)',cals:105,prot:23,carbs:0,fats:0.9},
-  {name:'Mackerel (cooked)',cals:262,prot:24,carbs:0,fats:18},
-  {name:'Prawns (cooked)',cals:99,prot:24,carbs:0.2,fats:0.3},
+  {name:'Chicken breast (cooked)',cals:165,prot:31,carbs:0,fats:3.6,unitGrams:150,unitName:'breast'},
+  {name:'Chicken thigh (cooked)',cals:209,prot:26,carbs:0,fats:11,unitGrams:90,unitName:'thigh'},
+  {name:'Turkey breast (cooked)',cals:135,prot:30,carbs:0,fats:1,unitGrams:150,unitName:'breast'},
+  {name:'Salmon (cooked)',cals:206,prot:22,carbs:0,fats:13,unitGrams:130,unitName:'fillet'},
+  {name:'Tuna (canned, water)',cals:116,prot:26,carbs:0,fats:1,unitGrams:120,unitName:'tin'},
+  {name:'Cod (cooked)',cals:105,prot:23,carbs:0,fats:0.9,unitGrams:120,unitName:'fillet'},
+  {name:'Mackerel (cooked)',cals:262,prot:24,carbs:0,fats:18,unitGrams:100,unitName:'fillet'},
+  {name:'Prawns (cooked)',cals:99,prot:24,carbs:0.2,fats:0.3,unitGrams:8,unitName:'prawn'},
   {name:'Beef mince 5% (cooked)',cals:137,prot:26,carbs:0,fats:3},
   {name:'Beef mince 20% (cooked)',cals:254,prot:23,carbs:0,fats:17},
-  {name:'Steak, lean (cooked)',cals:206,prot:29,carbs:0,fats:9},
-  {name:'Pork chop, lean (cooked)',cals:143,prot:26,carbs:0,fats:3.5},
-  {name:'Bacon (cooked)',cals:541,prot:37,carbs:1.4,fats:42},
-  {name:'Sausage, pork (cooked)',cals:296,prot:17,carbs:2,fats:24},
+  {name:'Steak, lean (cooked)',cals:206,prot:29,carbs:0,fats:9,unitGrams:180,unitName:'steak'},
+  {name:'Pork chop, lean (cooked)',cals:143,prot:26,carbs:0,fats:3.5,unitGrams:120,unitName:'chop'},
+  {name:'Bacon (cooked)',cals:541,prot:37,carbs:1.4,fats:42,unitGrams:8,unitName:'rasher'},
+  {name:'Sausage, pork (cooked)',cals:296,prot:17,carbs:2,fats:24,unitGrams:50,unitName:'sausage'},
   {name:'Ham',cals:145,prot:21,carbs:1.5,fats:5},
   {name:'Eggs, whole (cooked)',cals:155,prot:13,carbs:1.1,fats:11,unitGrams:50,unitName:'egg'},
   {name:'Egg whites',cals:52,prot:11,carbs:0.7,fats:0.2},
@@ -14720,10 +14720,10 @@ const FOODS_DB=[
   {name:'Rice Krispies Multigrain',cals:373,prot:7,carbs:81,fats:1.8},
   // ── More protein ──
   {name:'Turkey mince (cooked)',cals:148,prot:27,carbs:0,fats:3.5},
-  {name:'Lamb, lean (cooked)',cals:206,prot:28,carbs:0,fats:10},
-  {name:'Venison (cooked)',cals:158,prot:30,carbs:0,fats:3.2},
-  {name:'Haddock (cooked)',cals:111,prot:24,carbs:0,fats:1},
-  {name:'Tinned sardines',cals:208,prot:25,carbs:0,fats:11.5},
+  {name:'Lamb, lean (cooked)',cals:206,prot:28,carbs:0,fats:10,unitGrams:100,unitName:'chop'},
+  {name:'Venison (cooked)',cals:158,prot:30,carbs:0,fats:3.2,unitGrams:150,unitName:'steak'},
+  {name:'Haddock (cooked)',cals:111,prot:24,carbs:0,fats:1,unitGrams:120,unitName:'fillet'},
+  {name:'Tinned sardines',cals:208,prot:25,carbs:0,fats:11.5,unitGrams:90,unitName:'tin'},
   {name:'Chicken tikka (takeaway)',cals:165,prot:24,carbs:4,fats:6},
   {name:'Doner kebab meat',cals:280,prot:20,carbs:3,fats:21},
   // ── More carbs ──
@@ -14854,6 +14854,61 @@ const FOODS_DB=[
   {name:'Babybel (mini cheese)',cals:310,prot:22,carbs:1,fats:24,unitGrams:20,unitName:'wheel'},
   {name:'String cheese (mozzarella)',cals:285,prot:25,carbs:1,fats:20,unitGrams:28,unitName:'stick'},
   {name:'Olives (green/black)',cals:130,prot:1,carbs:4,fats:13},
+
+  // — More proteins, mainstream + niche —
+  {name:'Duck breast (cooked)',cals:201,prot:23,carbs:0,fats:11.2,unitGrams:150,unitName:'breast'},
+  {name:'Trout (cooked)',cals:190,prot:27,carbs:0,fats:8.5,unitGrams:120,unitName:'fillet'},
+  {name:'Sea bass (cooked)',cals:124,prot:24,carbs:0,fats:2.6,unitGrams:130,unitName:'fillet'},
+  {name:'Tilapia (cooked)',cals:128,prot:26,carbs:0,fats:2.7,unitGrams:120,unitName:'fillet'},
+  {name:'Anchovies (canned)',cals:210,prot:29,carbs:0,fats:10,unitGrams:4,unitName:'fillet'},
+  {name:'Beef jerky',cals:353,prot:33,carbs:11,fats:7.5,unitGrams:25,unitName:'strip'},
+  {name:'Turkey bacon (cooked)',cals:250,prot:24,carbs:1.5,fats:17,unitGrams:8,unitName:'rasher'},
+  {name:'Quark (low-fat)',cals:68,prot:12,carbs:4,fats:0.2},
+  {name:'Skyr',cals:63,prot:11,carbs:4,fats:0.2},
+  {name:'Black pudding',cals:297,prot:15,carbs:15,fats:22,unitGrams:30,unitName:'slice'},
+  {name:'Scotch egg',cals:260,prot:12,carbs:12,fats:18,unitGrams:120,unitName:'scotch egg'},
+  {name:'Pork pie',cals:376,prot:10,carbs:24,fats:27,unitGrams:140,unitName:'pie'},
+  {name:'PB2 (powdered peanut butter)',cals:180,prot:25,carbs:12,fats:4.5},
+
+  // — More carbs/grains, mainstream + niche —
+  {name:'Sourdough bread',cals:289,prot:9,carbs:56,fats:2},
+  {name:'Tortilla wrap (flour)',cals:310,prot:8,carbs:50,fats:8,unitGrams:55,unitName:'wrap'},
+  {name:'Gnocchi (cooked)',cals:131,prot:3,carbs:27,fats:0.7},
+  {name:'Risotto (plain)',cals:166,prot:3.5,carbs:27,fats:4.5},
+  {name:'Popcorn (air-popped)',cals:387,prot:13,carbs:78,fats:5},
+  {name:'Instant noodles (cooked)',cals:188,prot:4,carbs:27,fats:7},
+  {name:'Rice pudding',cals:109,prot:3.4,carbs:18,fats:2.5},
+
+  // — More veg —
+  {name:'Sweetcorn (cooked)',cals:96,prot:3.4,carbs:21,fats:1.5},
+  {name:'Beetroot (cooked)',cals:44,prot:1.7,carbs:10,fats:0.2},
+  {name:'Butternut squash (cooked)',cals:40,prot:1,carbs:10,fats:0.1},
+  {name:'Kale (cooked)',cals:49,prot:4.3,carbs:9,fats:0.9},
+  {name:'Cabbage (cooked)',cals:23,prot:1.3,carbs:5.5,fats:0.1},
+  {name:'Brussels sprouts (cooked)',cals:43,prot:3.4,carbs:9,fats:0.3},
+  {name:'Celery',cals:16,prot:0.7,carbs:3,fats:0.2},
+  {name:'Courgette (cooked)',cals:17,prot:1.2,carbs:3.1,fats:0.3},
+
+  // — More fruit —
+  {name:'Watermelon',cals:30,prot:0.6,carbs:8,fats:0.2},
+  {name:'Pomegranate',cals:83,prot:1.7,carbs:19,fats:1.2},
+  {name:'Dates (dried)',cals:277,prot:1.8,carbs:75,fats:0.2,unitGrams:8,unitName:'date'},
+  {name:'Figs (fresh)',cals:74,prot:0.8,carbs:19,fats:0.3},
+  {name:'Raisins',cals:299,prot:3.1,carbs:79,fats:0.5},
+
+  // — Niche/ethnic staples —
+  {name:'Kimchi',cals:15,prot:1.1,carbs:2.4,fats:0.5},
+  {name:'Miso paste',cals:199,prot:12,carbs:26,fats:6},
+  {name:'Natto',cals:212,prot:18,carbs:14,fats:11},
+  {name:'Nutritional yeast',cals:325,prot:45,carbs:36,fats:5},
+  {name:'Falafel',cals:333,prot:13,carbs:32,fats:18,unitGrams:20,unitName:'ball'},
+  {name:'Tahini',cals:595,prot:17,carbs:21,fats:54},
+  {name:'Guacamole',cals:150,prot:2,carbs:8,fats:13},
+  {name:'Tzatziki',cals:65,prot:3.5,carbs:4,fats:4},
+  {name:'Refried beans',cals:92,prot:5.4,carbs:15,fats:1.2},
+  {name:'Coconut milk (canned)',cals:230,prot:2.3,carbs:6,fats:24},
+  {name:'Coconut yoghurt',cals:92,prot:1,carbs:7,fats:6.5},
+  {name:'Coconut, desiccated',cals:660,prot:6.9,carbs:24,fats:65},
 ];
 
 // ── RECIPE DATABASE — for the meal plan generator ──
@@ -15821,6 +15876,12 @@ const AMOUNT_WORDS={
 };
 
 const FRACTION_WORDS={whole:1,half:0.5,quarter:0.25,'three quarters':0.75,third:1/3,'two thirds':2/3};
+// Maps how people actually type these ("1 whole", "2 halves", "one half")
+// back to a FRACTION_WORDS key — plurals/irregulars aren't just +'s'.
+const FRACTION_WORD_ALIASES={whole:'whole',wholes:'whole',half:'half',halves:'half',
+  quarter:'quarter',quarters:'quarter','three quarters':'three quarters','three quarter':'three quarters',
+  third:'third',thirds:'third','two thirds':'two thirds','two third':'two thirds'};
+const COUNT_WORDS={one:1,two:2,three:3,four:4,five:5,six:6};
 
 function parseAmount(text,food){
   if(!text)return null;
@@ -15833,15 +15894,29 @@ function parseAmount(text,food){
   if(bareNum&&food&&food.unitGrams){
     return parseFloat(bareNum[1])*food.unitGrams;
   }
-  // "half a pizza", "a quarter of the pizza", "whole pizza" — strip filler
-  // words and check against a fraction, scaled to that food's whole-unit
-  // weight. Lets people answer in the way they actually think about it
-  // (a fraction of a shared item) instead of doing the maths themselves.
+  // "half a pizza", "a quarter of the pizza", "whole pizza", "1 whole
+  // chicken breast", "2 halves" — strip filler words, then allow an
+  // optional leading count (digit or word) in front of the fraction word,
+  // scaled to that food's whole-unit weight. Lets people answer in the way
+  // they actually think about it (a fraction — or count of fractions/whole
+  // units — of a real item) instead of doing the maths themselves.
   if(food&&food.unitGrams){
     const stripped=text.replace(/\b(a|an|of|the)\b/g,'').replace(/\s+/g,' ').trim();
+    // People often type the whole food name back ("half a chicken breast"),
+    // not just the unit word ("half a breast") — strip both the unit word
+    // and the food's full display name (minus any "(cooked)"-style suffix)
+    // so either phrasing lands on the same candidate.
+    const foodNameCore=food.name.toLowerCase().replace(/\s*\([^)]*\)\s*/g,'').trim();
     const withoutFoodName=stripped.replace(food.unitName,'').trim();
-    if(FRACTION_WORDS[withoutFoodName]!==undefined)return FRACTION_WORDS[withoutFoodName]*food.unitGrams;
-    if(FRACTION_WORDS[stripped]!==undefined)return FRACTION_WORDS[stripped]*food.unitGrams;
+    const withoutFullName=stripped.replace(foodNameCore,'').trim();
+    for(const candidate of [withoutFoodName,withoutFullName,stripped]){
+      const fm=candidate.match(/^(?:(\d+(?:\.\d+)?)\s*|([a-z]+)\s+)?(whole|wholes|half|halves|quarters?|three quarters?|thirds?|two thirds?)$/);
+      if(fm){
+        const n=fm[1]?parseFloat(fm[1]):(fm[2]&&COUNT_WORDS[fm[2]]!==undefined?COUNT_WORDS[fm[2]]:1);
+        const canonical=FRACTION_WORD_ALIASES[fm[3]];
+        if(canonical!==undefined)return n*FRACTION_WORDS[canonical]*food.unitGrams;
+      }
+    }
   }
   let m=text.match(/^(\d+(?:\.\d+)?)\s*(g|grams?|ml)?$/);
   if(m)return parseFloat(m[1]);
