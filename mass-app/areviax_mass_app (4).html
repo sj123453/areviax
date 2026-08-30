@@ -6558,20 +6558,27 @@ const MUSCLE_GROUP_LABEL={
   chest:'Chest',back:'Back',shoulders:'Shoulders',biceps:'Biceps',triceps:'Triceps',
   quads:'Quads',hamstrings:'Hamstrings',glutes:'Glutes',calves:'Calves',core:'Core'
 };
-// Real ellipse coordinates lifted from getMuscleHighlight()'s known-good
-// per-movement highlights (same 0 0 880 824 dual front/back figure space)
-// rather than re-measuring the artwork a second time.
+// Ellipse coordinates for the Muscle Readiness heatmap specifically (same
+// 0 0 880 824 dual front/back figure space as getMuscleHighlight(), but
+// NOT the same numbers anymore for every group — shoulders/biceps/
+// hamstrings/glutes/calves below were re-measured directly against the
+// artwork (pixel-centroid of the actual muscle linework, weighted, per
+// region) after calves turned out to be visibly off — glutes was the
+// worst case, previously sitting ~75px too low (in the hamstring/thigh-
+// crease area instead of the glutes). chest/triceps/back/core/quads
+// weren't re-measured (no evidence they need it) and still match
+// getMuscleHighlight()'s per-movement highlights.
 const MUSCLE_GROUP_BODY_COORDS={
   chest:{fp:[[180,222,68,62],[274,222,68,62]],bp:[]},
-  shoulders:{fp:[[106,181,35,44],[348,181,35,44]],bp:[[676,164,75,55]]},
+  shoulders:{fp:[[132,193,32,38],[320,194,32,38]],bp:[[676,164,75,55]]},
   triceps:{fp:[],bp:[[558,263,30,75],[796,263,30,75]]},
-  biceps:{fp:[[100,258,20,46],[354,258,20,46]],bp:[]},
+  biceps:{fp:[[102,296,22,42],[347,295,22,42]],bp:[]},
   back:{fp:[],bp:[[598,300,38,90],[754,300,38,90],[676,280,48,55]]},
   core:{fp:[[227,360,68,92],[140,375,28,68],[314,375,28,68]],bp:[]},
   quads:{fp:[[162,543,70,113],[292,543,70,113]],bp:[]},
-  hamstrings:{fp:[],bp:[[614,593,36,72],[738,593,36,72]]},
-  glutes:{fp:[],bp:[[620,502,46,52],[732,502,46,52]]},
-  calves:{fp:[[158,675,38,61],[296,675,38,61]],bp:[[614,675,44,64],[738,675,44,64]]}
+  hamstrings:{fp:[],bp:[[620,569,34,50],[731,572,34,50]]},
+  glutes:{fp:[],bp:[[619,428,42,40],[737,429,42,40]]},
+  calves:{fp:[[138,662,28,46],[265,661,28,46]],bp:[[625,663,26,44],[730,663,26,44]]}
 };
 function computeMuscleReadiness(){
   return Object.keys(MUSCLE_GROUPS).map(group=>{
