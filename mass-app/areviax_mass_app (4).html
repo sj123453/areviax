@@ -3452,14 +3452,13 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        one-off effect, so the hero moment matches the rest of the app's
        own vocabulary rather than inventing a new one. -->
   <div class="dash-greeting-inner" style="background:transparent;border:none;padding:6px 4px 22px;height:100%;box-sizing:border-box;position:relative;overflow:hidden">
-    <!-- Dot-grid texture behind the watermark digit, top-right — the
-         reference pairs its big background numeral with a faint dot
-         field rather than leaving it on a flat background. Uses the
-         shared .dot-field class (full card width/height, mask that
-         doesn't fade out before reaching the true edges) instead of the
-         old one-off 290px-wide patch, which left dots missing across
-         the left portion of the card at every height, top included. -->
-    <div aria-hidden="true" class="dot-field" style="right:0;top:0;width:100%;height:100%;--dot-origin:100% 0%"></div>
+    <!-- Dot-grid texture behind the watermark digit — covers the card's
+         entire backdrop edge to edge with NO radial fade (mask
+         overridden to none): the shared .dot-field class still fades
+         its far corner, which read as a soft gap near the top/left on
+         this card once you looked for it. A flat, uniform dot fill is
+         what "fills the entire backdrop" actually means here. -->
+    <div aria-hidden="true" class="dot-field" style="right:0;top:0;width:100%;height:100%;-webkit-mask-image:none;mask-image:none"></div>
     <!-- Giant background watermark of the streak count — outline/hollow
          rather than a solid faint fill, same "just an outline" depth
          device the reference uses behind its own headline. Sits behind
