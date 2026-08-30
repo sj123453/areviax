@@ -250,6 +250,13 @@ input,input:focus,input:active,
 .ex-order-btn:disabled{opacity:.25;cursor:default}
 .ex-order-btn:disabled:active{background:var(--border2);color:rgba(var(--white-rgb),.6)}
 .ex-card:hover{border-color:var(--border)}
+/* LIFT RANK corner badge — same Wood→Olympian material language as the
+   Trophy Cabinet's Lift Ranks row, shrunk to a small pill so it reads
+   as a quick reference next to PR/Est 1RM, not a competing feature.
+   Olympian's c1/c2 are url(#lgi-holo-grad) (valid in background, not
+   as a plain color), so this only ever sets background, never color —
+   text stays a fixed dark shade that reads on every tier's material. */
+.ex-rank-badge{display:inline-block;margin-bottom:4px;padding:2px 8px;border-radius:999px;font-size:8.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#2B1300;background:linear-gradient(135deg,var(--rk-c1),var(--rk-c2))}
 .ex-top{display:flex;flex-direction:row;gap:10px;align-items:flex-start}
 .ex-fig{width:272px;height:266px;flex-shrink:0;background:#0B0B0B;border:1.5px solid rgba(255,255,255,.12);border-radius:8px;overflow:hidden;position:relative;box-shadow:inset 0 0 0 1px rgba(255,255,255,.03)}
 /* Lifts the anatomy render off the flat black backdrop with a soft
@@ -13459,6 +13466,21 @@ function getLiftRank(lift){
     e1rm:Math.round(e1rm),kgToNext,nextLabel,atLadderTop,
   };
 }
+// Corner rank badge for an exercise card — only for the curated
+// LIFT_RANK_LIFTS set (bench/squat/deadlift/OHP), matched by exact
+// exercise name. Deliberately NOT extended to every exercise in the
+// database: the ladder's credibility comes from each curve being
+// loosely shaped on real published strength-standard ratios, and most
+// accessory/isolation moves have no such literature to draw from — a
+// "Gold tier" on a cable lateral raise would be a made-up number with
+// nothing real behind it, which is worse than just not showing one.
+function liftRankBadgeHTML(exName){
+  const lift=LIFT_RANK_LIFTS.find(l=>l.exName===exName);
+  if(!lift)return '';
+  const r=getLiftRank(lift);
+  if(!r)return '';
+  return `<div class="ex-rank-badge" style="--rk-c1:${r.tier.c1};--rk-c2:${r.tier.c2}" title="${r.tier.name} ${r.sub} — estimated ${r.e1rm}kg 1RM">${r.tier.name} ${r.sub}</div>`;
+}
 function renderTonnageBreakdown(){
   const wrap=document.getElementById('tonnage-breakdown');
   if(!wrap)return;
@@ -13553,6 +13575,7 @@ function buildSession(){
         <div class="ex-fig">${getCardThumb(e)}</div>
         <div style="flex:1;min-width:0"><div class="ex-name">${e.name}</div><div class="ex-meta">${e.muscle} · ${effectiveSets(e)}×${e.reps}</div></div>
         <div style="text-align:right;flex-shrink:0">
+          ${liftRankBadgeHTML(e.name)}
           <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--yellow)" id="pr-d-${i}">PR: ${prs[e.name]||'—'}kg</div>
           <div style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);margin-top:2px" id="e1rm-d-${i}" data-val="${e1rm||0}" title="Estimated 1-rep max (Epley formula) from your heaviest logged set">${e1rm?`Est 1RM: ${e1rm}kg`:''}</div>
         </div>
