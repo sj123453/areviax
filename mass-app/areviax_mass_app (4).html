@@ -17207,13 +17207,28 @@ function renderMuscleReadiness(){
     const col=colorFor(m);
     const gid='rgM'+m.group+_uid;
     const opacity=m.ready?0.55:0.35+m.pctRecovered*0.4; // fresher fatigue reads brighter/more saturated, fading toward ready
+    // Same 4-stop falloff shape as the proven rgP/rgS gradients used
+    // everywhere else a muscle gets highlighted (exercise cards, the Watch
+    // modal) — staying near-full opacity out to 45% then dropping in two
+    // steps reads as a contained, filled shape. The old 2-stop version here
+    // stayed hazy across its whole radius, which is what made this card
+    // look like soft blurry clouds instead of a clean highlight.
     defs+=`<radialGradient id="${gid}" cx="50%" cy="50%" r="50%">
       <stop offset="0%" stop-color="${col}" stop-opacity="${opacity}"/>
-      <stop offset="55%" stop-color="${col}" stop-opacity="${opacity*0.6}"/>
+      <stop offset="45%" stop-color="${col}" stop-opacity="${opacity*0.85}"/>
+      <stop offset="75%" stop-color="${col}" stop-opacity="${opacity*0.42}"/>
       <stop offset="100%" stop-color="${col}" stop-opacity="0"/>
     </radialGradient>`;
+    // Shrunk ~25% from the shared MUSCLE_GROUP_BODY_COORDS sizes (only
+    // here, not touching the shared table) — those ellipses were sized for
+    // a single-movement highlight on a small exercise-card thumbnail, not
+    // this card's much larger render size with several muscles' glows
+    // potentially showing at once. At full size they read as oversized,
+    // overlapping blobs; shrunk down they sit inside the actual muscle
+    // outline instead of spilling past it.
+    const SHRINK=0.74;
     [...coords.fp,...coords.bp].forEach(([cx,cy,rx,ry])=>{
-      ellipses+=`<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="url(#${gid})">`+
+      ellipses+=`<ellipse cx="${cx}" cy="${cy}" rx="${(rx*SHRINK).toFixed(1)}" ry="${(ry*SHRINK).toFixed(1)}" fill="url(#${gid})">`+
         (m.ready?'':`<animate attributeName="opacity" values="1;0.7;1" dur="2.8s" repeatCount="indefinite"/>`)+
         `</ellipse>`;
     });
