@@ -6217,7 +6217,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
   <div style="position:relative;display:flex;gap:4px;background:var(--panel2);border:1.5px solid var(--border2);border-radius:999px;padding:4px;margin-bottom:22px">
     <div style="position:absolute;top:-9px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#FFD24A,#FF9A3D);color:#2B1300;font-size:8px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:2px 9px;border-radius:999px;white-space:nowrap;z-index:2">Recommended</div>
     <button type="button" class="sub-period-btn active" id="sub-period-monthly" onclick="setSubPeriod('monthly')">Monthly</button>
-    <button type="button" class="sub-period-btn" id="sub-period-bundle" onclick="setSubPeriod('bundle')">+ Book <span style="color:#6FE8A0">· save £5</span></button>
+    <button type="button" class="sub-period-btn" id="sub-period-bundle" onclick="setSubPeriod('bundle')">+ Book <span style="color:#6FE8A0">· £10 first month</span></button>
     <button type="button" class="sub-period-btn" id="sub-period-annual" onclick="setSubPeriod('annual')">Annual <span style="color:#6FE8A0">· save ~20%</span></button>
   </div>
 
@@ -9830,7 +9830,15 @@ function renderDailySpin(){
         // above and crateIconHTML's own areviax case) instead of its
         // own separate circular photo badge — one consistent icon
         // language across the whole wheel, matching the crate row.
-        '<g class="spin-wedge-icon" transform="translate('+areviaxPos.x+','+areviaxPos.y+') scale(0.95)" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+CRATE_ICON_PATHS.areviax+'</g>'+
+        // The exact same nova mark crateIconHTML('areviax') renders
+        // everywhere else the Areviax Drop shows up (the crate row,
+        // etc.) — CRATE_ICON_PATHS.areviax is a different, unrelated
+        // glyph that was never actually the Drop's real icon anywhere.
+        '<g class="spin-wedge-icon" transform="translate('+areviaxPos.x+','+areviaxPos.y+') scale(0.8)" fill="currentColor">'+
+          '<path d="M0,-11 L2.6,-2.6 L11,0 L2.6,2.6 L0,11 L-2.6,2.6 L-11,0 L-2.6,-2.6 Z" opacity=".95"/>'+
+          '<path d="M5.2,-5.2 L2,0 L5.2,5.2 L0,2 L-5.2,5.2 L-2,0 L-5.2,-5.2 L0,-2 Z" opacity=".7"/>'+
+          '<circle r="1.7" fill="#FFF6E5"/>'+
+        '</g>'+
       '</svg>'+
       '<div class="spin-wheel-pointer"></div>'+
     '</div>'+
@@ -15664,7 +15672,7 @@ const AI_COACH_KB=[
   {q:'How do Leagues work?',kw:['league','promotion','relegation','leaderboard rank'],
    a:'Leagues are a weekly promotion ladder — finish high in your group and you climb a tier by next week; finish low and you drop. Check the Leagues page for your current tier, promotion/relegation zones, and time left this week.'},
   {q:'What does Premium include?',kw:['premium','upgrade','subscription','paid plan','pricing'],
-   a:"Everything you're using today (training, nutrition, roads, drops, leagues) stays free forever. Premium adds the AI-powered layer on top — a real conversational AI Coach, AI Food Scan, and cross-device sync. Pick the Bundle option and The Mass Blueprint guide comes with it for £9.99 instead of £14.99 — same Premium price, book added at a genuine discount. See the full breakdown and pricing on the Go Premium page. Billing isn't switched on yet, so nothing charges you right now."},
+   a:"Everything you're using today (training, nutrition, roads, drops, leagues) stays free forever. Premium adds the AI-powered layer on top — a real conversational AI Coach, AI Food Scan, and cross-device sync. Pick the Bundle option and your first month is £10 instead of £17 (back to £17/month after that), plus The Mass Blueprint guide for £15.99 instead of £19. See the full breakdown and pricing on the Go Premium page. Billing isn't switched on yet, so nothing charges you right now."},
   {q:'How does the rest timer work?',kw:['rest timer','rest time','timer','how long rest'],
    a:"During a session, tap into a set and the Rest Timer starts automatically once you log it — it counts down a suggested rest length per exercise, and you can skip it early or let it run. It's a suggestion, not a hard rule, so adjust based on how you actually feel that set."},
   {q:'What are warm-up sets for?',kw:['warm up','warmup','warm-up set','warmup sets'],
@@ -15798,7 +15806,7 @@ function pushAiCoachExchange(question,answer){
 // that) since there's no payment processor wired up.
 let subPeriod='monthly';
 const SUB_FREE_FEATS=['Full workout logging & auto-generated sessions','Nutrition tracking, Caloric Shield, recipes','XP/Trophy/Weight Roads, Compass Drops, Leagues','Add your own foods & recipes'];
-const SUB_PREMIUM_FEATS=['Everything in Free','\ud83e\udd16 Full AI Coach \u2014 real conversations, not just FAQ matching','\ud83d\udcf8 AI Food Scan \u2014 snap a meal, get macros instantly','\ud83d\udcd6 The Mass Blueprint \u2014 \u00a39.99 instead of \u00a314.99 when bundled','\u2601\ufe0f Cross-device backup & sync','\ud83d\udeab No ads, priority support'];
+const SUB_PREMIUM_FEATS=['Everything in Free','\ud83e\udd16 Full AI Coach \u2014 real conversations, not just FAQ matching','\ud83d\udcf8 AI Food Scan \u2014 snap a meal, get macros instantly','\ud83d\udcd6 The Mass Blueprint \u2014 \u00a315.99 instead of \u00a319 when bundled','\u2601\ufe0f Cross-device backup & sync','\ud83d\udeab No ads, priority support'];
 function setSubPeriod(period){
   subPeriod=period;
   document.getElementById('sub-period-monthly').classList.toggle('active',period==='monthly');
@@ -15807,16 +15815,16 @@ function setSubPeriod(period){
   const priceEl=document.getElementById('sub-premium-price');
   if(priceEl){
     if(period==='monthly')priceEl.innerHTML='\u00a317<span>/month</span>';
-    else if(period==='bundle')priceEl.innerHTML='\u00a317<span>/month + book \u00a39.99</span>';
+    else if(period==='bundle')priceEl.innerHTML='\u00a310<span> first month, then \u00a317/month + book \u00a315.99</span>';
     else priceEl.innerHTML='\u00a3163.99<span>/year</span>';
   }
-  // The bundle isn't a longer commitment like the old 4-month plan was
-  // -- it's the same Monthly price, just with The Mass Blueprint added
-  // on at a genuine (if modest) discount off its own \u00a314.99 price,
-  // for anyone buying both anyway. This line only makes that promise
+  // The bundle's discount is on the first month only (\u00a310 instead of
+  // \u00a317, reverting to the normal \u00a317/month from month two) plus a
+  // modest cut on The Mass Blueprint's own \u00a319 price -- not a
+  // permanently-cheaper subscription. This line only makes that promise
   // when the bundle is actually selected.
   const subEl=document.getElementById('sub-premium-sub');
-  if(subEl)subEl.innerHTML=period==='bundle'?'\ud83d\udcd6 Adds <strong>The Mass Blueprint</strong> for \u00a39.99 instead of \u00a314.99 \u2014 buy them together, save \u00a35':'Unlock the full AI-powered toolkit';
+  if(subEl)subEl.innerHTML=period==='bundle'?'\ud83d\udcd6 First month \u00a310 (then \u00a317/month), plus <strong>The Mass Blueprint</strong> for \u00a315.99 instead of \u00a319':'Unlock the full AI-powered toolkit';
 }
 function renderSubscriptionPage(){
   const freeEl=document.getElementById('sub-feats-free');
