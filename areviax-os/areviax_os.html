@@ -5619,40 +5619,93 @@ function renderMorningEntries(){
   }).join('');
 }
 function printMorningSheet(){
-  const todayLabel = new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  const now = new Date();
+  const todayLabel = now.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  const stamp = now.toLocaleDateString('en-GB',{day:'2-digit',month:'2-digit',year:'2-digit'}).replace(/\//g,'.');
   const rows = MORNING_PROMPTS.map((p,i)=>{
     const val = (document.getElementById('morning-'+p.id)?.value||'').replace(/</g,'&lt;');
-    const lineHeight = 30;
+    const lineHeight = 28;
     const minHeight = p.lines*lineHeight;
     return `<div class="ms-field">
       <div class="ms-q"><span class="ms-num">${i+1}</span>${p.text}</div>
       <div class="ms-lines" style="min-height:${minHeight}px;line-height:${lineHeight}px">${val}</div>
     </div>`;
   }).join('');
+  const mark = `<svg width="30" height="30" viewBox="0 0 100 100" fill="none">
+      <circle cx="50" cy="50" r="47" fill="none" stroke="#8A7454" stroke-width="1.5"/>
+      <path d="M50 14C50 14 45 42 18 50C45 58 50 86 50 86C50 86 55 58 82 50C55 42 50 14 50 14Z" fill="#B8390A" opacity=".55"/>
+      <path d="M50 22C50 22 47 44 28 50C47 56 50 78 50 78C50 78 53 56 72 50C53 44 50 22 50 22Z" fill="#8A3010"/>
+      <circle cx="50" cy="50" r="3.5" fill="#2B2419"/>
+    </svg>`;
+  const corner = (rot) => `<svg class="ms-corner" style="transform:rotate(${rot}deg)" width="26" height="26" viewBox="0 0 26 26" fill="none"><path d="M2 26V6C2 3.79 3.79 2 6 2H26" stroke="#8A7454" stroke-width="1.5"/></svg>`;
   const doc = `<!doctype html><html><head><meta charset="utf-8"><title>Morning Pages</title><style>
-    @page{margin:22mm 18mm}
+    @page{margin:14mm 12mm}
     *{box-sizing:border-box}
-    body{margin:0;background:#F6F0E4;color:#2B2419;font-family:Georgia,'Times New Roman',serif}
-    .ms-wrap{max-width:760px;margin:0 auto;padding:36px 8px}
-    .ms-head{text-align:center;border-bottom:2px solid #2B2419;padding-bottom:16px;margin-bottom:26px}
-    .ms-brand{font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:#8A7454;margin-bottom:10px;font-family:Arial,sans-serif}
-    .ms-title{font-size:32px;font-weight:700;margin:0 0 6px}
-    .ms-date{font-size:13px;color:#6B5D45;font-family:Arial,sans-serif}
-    .ms-field{margin-bottom:22px;break-inside:avoid}
-    .ms-q{font-size:13.5px;font-weight:700;margin-bottom:8px;line-height:1.5}
-    .ms-num{display:inline-block;width:20px;height:20px;border-radius:50%;background:#2B2419;color:#F6F0E4;font-size:11px;text-align:center;line-height:20px;margin-right:8px;font-family:Arial,sans-serif}
-    .ms-lines{font-size:13px;white-space:pre-wrap;background-image:repeating-linear-gradient(transparent,transparent 29px,#C9BA9C 30px);padding-top:2px}
-    .ms-foot{margin-top:30px;padding-top:14px;border-top:1px solid #C9BA9C;text-align:center;font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:#8A7454;font-family:Arial,sans-serif}
-    @media print{ body{background:#fff} .ms-wrap{padding:0} }
+    body{margin:0;background:#EFE7D6;color:#2B2419;font-family:Georgia,'Times New Roman',serif;
+      background-image:radial-gradient(circle,#DED0AE 1px,transparent 1.3px);background-size:16px 16px}
+    .sheet{max-width:980px;margin:22px auto;background:#F8F2E4;position:relative;
+      border:1px solid #2B2419;box-shadow:0 1px 0 #fff inset}
+    .sheet::before{content:'';position:absolute;inset:7px;border:1px solid #C9BA9C;pointer-events:none}
+    .ms-corner{position:absolute}
+    .ms-corner:nth-of-type(1){top:-1px;left:-1px}
+    .cnr-tr{position:absolute;top:-1px;right:-1px}
+    .cnr-bl{position:absolute;bottom:-1px;left:-1px}
+    .cnr-br{position:absolute;bottom:-1px;right:-1px}
+    .ms-head{text-align:center;padding:30px 30px 18px;border-bottom:1.5px solid #2B2419;display:flex;flex-direction:column;align-items:center;gap:8px}
+    .ms-brand-row{display:flex;align-items:center;gap:8px}
+    .ms-brand{font-size:11px;letter-spacing:.32em;text-transform:uppercase;color:#8A7454;font-family:Arial,sans-serif;font-weight:600}
+    .ms-title{font-size:34px;font-weight:700;margin:2px 0 0;letter-spacing:.01em}
+    .ms-date{font-size:12.5px;color:#6B5D45;font-family:Arial,sans-serif}
+    .ms-grid{display:grid;grid-template-columns:1fr 250px}
+    .ms-main{padding:30px 26px 34px 32px;border-right:1px solid #C9BA9C}
+    .ms-field{margin-bottom:20px;break-inside:avoid}
+    .ms-q{font-size:13px;font-weight:700;margin-bottom:7px;line-height:1.5}
+    .ms-num{display:inline-block;width:19px;height:19px;border-radius:50%;background:#2B2419;color:#F8F2E4;font-size:10.5px;text-align:center;line-height:19px;margin-right:7px;font-family:Arial,sans-serif}
+    .ms-lines{font-size:12.5px;white-space:pre-wrap;background-image:repeating-linear-gradient(transparent,transparent 27px,#C9BA9C 28px);padding-top:2px}
+    .ms-side{padding:30px 24px;background:rgba(138,116,84,.06);display:flex;flex-direction:column;gap:26px}
+    .ms-eyebrow{font-size:9.5px;letter-spacing:.2em;text-transform:uppercase;color:#8A7454;font-family:Arial,sans-serif;font-weight:700;margin-bottom:8px}
+    .ms-quote{font-style:italic;font-size:14px;line-height:1.6;border-top:1px solid #C9BA9C;border-bottom:1px solid #C9BA9C;padding:12px 0}
+    .ms-ritual{display:flex;flex-direction:column;gap:9px}
+    .ms-ritual-item{display:flex;align-items:flex-start;gap:8px;font-size:11.5px;line-height:1.4;font-family:Arial,sans-serif}
+    .ms-box{width:12px;height:12px;border:1.3px solid #2B2419;flex-shrink:0;margin-top:1.5px}
+    .ms-note{font-size:11px;line-height:1.6;color:#5C4F3A;font-family:Arial,sans-serif}
+    .ms-stamp{margin-top:auto;padding-top:14px;border-top:1px solid #C9BA9C;font-family:'JetBrains Mono',monospace;font-size:10px;color:#8A7454;letter-spacing:.05em}
+    .ms-foot{padding:14px 30px 24px;text-align:center;font-size:9.5px;letter-spacing:.18em;text-transform:uppercase;color:#8A7454;font-family:Arial,sans-serif}
+    @media print{ body{background:#fff;background-image:none} .sheet{margin:0;box-shadow:none} }
   </style></head><body>
-    <div class="ms-wrap">
+    <div class="sheet">
+      ${corner(0)}<svg class="cnr-tr" width="26" height="26" viewBox="0 0 26 26" fill="none"><path d="M0 2H20C22.2 2 24 3.79 24 6V26" stroke="#8A7454" stroke-width="1.5"/></svg>
+      <svg class="cnr-bl" width="26" height="26" viewBox="0 0 26 26" fill="none"><path d="M24 24H6C3.79 24 2 22.2 2 20V0" stroke="#8A7454" stroke-width="1.5"/></svg>
+      <svg class="cnr-br" width="26" height="26" viewBox="0 0 26 26" fill="none"><path d="M26 0V20C26 22.2 24.2 24 22 24H0" stroke="#8A7454" stroke-width="1.5"/></svg>
       <div class="ms-head">
-        <div class="ms-brand">Areviax OS</div>
+        <div class="ms-brand-row">${mark}<span class="ms-brand">Areviax OS</span></div>
         <div class="ms-title">Morning Pages</div>
         <div class="ms-date">${todayLabel}</div>
       </div>
-      ${rows}
-      <div class="ms-foot">Get it out of your head before the day gets in</div>
+      <div class="ms-grid">
+        <div class="ms-main">${rows}</div>
+        <div class="ms-side">
+          <div>
+            <div class="ms-eyebrow">Vol. I — Daily Practice</div>
+            <div class="ms-quote">"What's loud in your head goes quiet once it's on the page."</div>
+          </div>
+          <div>
+            <div class="ms-eyebrow">Before you start</div>
+            <div class="ms-ritual">
+              <div class="ms-ritual-item"><span class="ms-box"></span>Drink a full glass of water</div>
+              <div class="ms-ritual-item"><span class="ms-box"></span>Get some daylight — open a window</div>
+              <div class="ms-ritual-item"><span class="ms-box"></span>Three slow breaths before you write</div>
+              <div class="ms-ritual-item"><span class="ms-box"></span>Phone face-down until this page is done</div>
+            </div>
+          </div>
+          <div>
+            <div class="ms-eyebrow">Why mornings</div>
+            <div class="ms-note">Your head is loudest right after you wake up — nothing's been filed away yet. Ten minutes here, before the day gets a say, tends to clear more than an hour of scrolling ever does.</div>
+          </div>
+          <div class="ms-stamp">No. MP-${stamp}</div>
+        </div>
+      </div>
+      <div class="ms-foot">areviax.app · Get it out of your head before the day gets in</div>
     </div>
   </body></html>`;
   const win = window.open('', '_blank');
