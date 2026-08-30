@@ -1501,6 +1501,16 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       z-index:2;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;
     }
     .legend-info-btn::before{content:'';position:absolute;inset:-9px}
+    /* Duplicate-pull counter — sits opposite the info "i" badge so the
+       two never collide. Only rendered when a card's been pulled more
+       than once, so a fresh single-copy card looks exactly like it did
+       before this existed. */
+    .legend-card-dupe-badge{
+      position:absolute;top:1px;left:1px;min-width:15px;height:15px;padding:0 3px;border-radius:8px;
+      background:rgba(0,0,0,.6);border:1px solid rgba(255,255,255,.25);
+      color:rgba(255,255,255,.85);font-size:8.5px;font-weight:800;
+      display:flex;align-items:center;justify-content:center;z-index:2;
+    }
     /* Hexagon badge — same capsule silhouette as .compass-crate so a
        card reads as "something that came out of that crate" at a
        glance. Locked = flat dark grey hex; unlocked = rarity-tinted
@@ -2103,13 +2113,35 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     }
     .crate-slot-sub{font-size:8.5px;color:var(--muted);text-align:center;line-height:1.35}
 
-    /* Compass Drop opening — one continuous beat instead of the old
-       charge-then-repeated-shake-then-slot-reel sequence (which took
-       3.5-7.6s and read as a gambling machine, not a reward). The crate
-       winds up once, cracks open in a single burst, and the card is
-       already showing well under a second later even for the best tier.
-       Tiers differ in how long the wind-up/crack takes and how big the
-       burst is, never in how many times something repeats. */
+    /* Compass Drop opening — a single pass of a horizontal reel (the
+       "slot-reel" beat, brought back by request) straight into one
+       wind-up + one crack, instead of the old charge-then-repeated-
+       shake-then-slot-reel chain that took 3.5-7.6s and read as a
+       gambling machine. The reel only ever runs once per open (never
+       loops or re-spins), and the whole sequence — reel, wind-up,
+       crack, reveal — still lands under ~2s even for the best tier.
+       Tiers differ in how long each beat takes and how big the burst
+       is, never in how many times something repeats. */
+    .crate-reel-window{
+      position:relative;width:216px;height:76px;margin:0 auto 14px;overflow:hidden;
+      border-radius:14px;background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.12);
+      -webkit-mask-image:linear-gradient(90deg,transparent,#000 14%,#000 86%,transparent);
+      mask-image:linear-gradient(90deg,transparent,#000 14%,#000 86%,transparent);
+    }
+    .crate-reel-center-mark{
+      position:absolute;top:0;bottom:0;left:50%;width:72px;margin-left:-36px;
+      border-left:1.5px solid rgba(255,255,255,.3);border-right:1.5px solid rgba(255,255,255,.3);
+      z-index:2;pointer-events:none;
+    }
+    .crate-reel-window::before,.crate-reel-window::after{
+      content:'';position:absolute;left:50%;transform:translateX(-50%);width:0;height:0;z-index:3;
+    }
+    .crate-reel-window::before{top:0;border-left:6px solid transparent;border-right:6px solid transparent;border-top:7px solid rgba(255,255,255,.8)}
+    .crate-reel-window::after{bottom:0;border-left:6px solid transparent;border-right:6px solid transparent;border-bottom:7px solid rgba(255,255,255,.8)}
+    .crate-reel-track{display:flex;height:100%;align-items:center;transform:translateX(0);will-change:transform}
+    .crate-reel-item{flex:0 0 72px;width:72px;height:100%;display:flex;align-items:center;justify-content:center}
+    .crate-reel-gem{width:36px;height:36px;border-radius:9px;transform:rotate(45deg);position:relative}
+    .crate-reel-gem::before{content:'';position:absolute;inset:3px;border-radius:6px;background:rgba(255,255,255,.22)}
     @keyframes crateWindup{
       0%{transform:scale(1) rotate(0)}
       60%{transform:scale(.86) rotate(-4deg)}
@@ -8204,6 +8236,7 @@ function renderProfileTrophySummary(){
     .slice(0,10);
   cont.innerHTML=ownedCards.map(l=>
     `<div class="legend-card rarity-${l.rarity} unlocked" onclick="event.stopPropagation();viewLegendCard('${l.key}')">
+      ${legendDupeBadgeHTML(l.key)}
       <div class="legend-card-icon-glow"></div><div class="legend-card-icon-burst"></div><div class="legend-card-crown"><svg viewBox="0 0 100 100" preserveAspectRatio="none"><path class="lgi-crown-body" d="M0,90 L0,32 L25,58 L40,6 L50,42 L60,6 L75,58 L100,32 L100,90 Z"/><path class="lgi-crown-rim" d="M0,32 L25,58 L40,6 L50,42 L60,6 L75,58 L100,32"/><circle class="lgi-crown-jewel" cx="40" cy="10" r="6"/><circle class="lgi-crown-jewel" cx="60" cy="10" r="6"/><circle class="lgi-crown-jewel" cx="50" cy="76" r="5"/></svg></div><div class="legend-card-wreath"><svg viewBox="-5 -5 110 115"><path class="lgr-stem" d="M46.2,95.8 L29.9,91.2 L16.6,80.7 L8.3,66.0 L6.1,49.3 L10.4,32.9 L20.5,19.4 L35.0,10.7"/><path class="lgr-stem" d="M53.8,95.8 L70.1,91.2 L83.4,80.7 L91.7,66.0 L93.9,49.3 L89.6,32.9 L79.5,19.4 L65.0,10.7"/><path class="lgr-leaf" d="M47.6,94.1 Q38.5,95.5 38.2,105.8 Q48.2,103.2 47.6,94.1 Z"/><path class="lgr-vein" d="M47.6,94.1 L38.2,105.8"/><path class="lgr-leaf" d="M31.8,90.1 Q23.4,88.1 19.4,97.0 Q29.1,98.3 31.8,90.1 Z"/><path class="lgr-vein" d="M31.8,90.1 L19.4,97.0"/><path class="lgr-leaf" d="M18.6,80.5 Q12.0,75.7 5.4,82.1 Q13.4,86.6 18.6,80.5 Z"/><path class="lgr-vein" d="M18.6,80.5 L5.4,82.1"/><path class="lgr-leaf" d="M10.1,66.5 Q6.0,60.1 -1.9,63.3 Q3.4,70.0 10.1,66.5 Z"/><path class="lgr-vein" d="M10.1,66.5 L-1.9,63.3"/><path class="lgr-leaf" d="M7.5,50.3 Q6.2,43.4 -1.7,43.3 Q0.4,51.0 7.5,50.3 Z"/><path class="lgr-vein" d="M7.5,50.3 L-1.7,43.3"/><path class="lgr-leaf" d="M11.2,34.3 Q12.5,27.9 5.7,25.1 Q4.9,32.4 11.2,34.3 Z"/><path class="lgr-vein" d="M11.2,34.3 L5.7,25.1"/><path class="lgr-leaf" d="M20.7,20.8 Q24.1,15.9 19.2,11.1 Q16.0,17.0 20.7,20.8 Z"/><path class="lgr-vein" d="M20.7,20.8 L19.2,11.1"/><path class="lgr-leaf" d="M34.6,12.0 Q39.2,8.9 36.8,3.2 Q32.0,7.1 34.6,12.0 Z"/><path class="lgr-vein" d="M34.6,12.0 L36.8,3.2"/><path class="lgr-leaf" d="M52.4,94.1 Q51.8,103.2 61.8,105.8 Q61.5,95.5 52.4,94.1 Z"/><path class="lgr-vein" d="M52.4,94.1 L61.8,105.8"/><path class="lgr-leaf" d="M68.2,90.1 Q70.9,98.3 80.6,97.0 Q76.6,88.1 68.2,90.1 Z"/><path class="lgr-vein" d="M68.2,90.1 L80.6,97.0"/><path class="lgr-leaf" d="M81.4,80.5 Q86.6,86.6 94.6,82.1 Q88.0,75.7 81.4,80.5 Z"/><path class="lgr-vein" d="M81.4,80.5 L94.6,82.1"/><path class="lgr-leaf" d="M89.9,66.5 Q96.6,70.0 101.9,63.3 Q94.0,60.1 89.9,66.5 Z"/><path class="lgr-vein" d="M89.9,66.5 L101.9,63.3"/><path class="lgr-leaf" d="M92.5,50.3 Q99.6,51.0 101.7,43.3 Q93.8,43.4 92.5,50.3 Z"/><path class="lgr-vein" d="M92.5,50.3 L101.7,43.3"/><path class="lgr-leaf" d="M88.8,34.3 Q95.1,32.4 94.3,25.1 Q87.5,27.9 88.8,34.3 Z"/><path class="lgr-vein" d="M88.8,34.3 L94.3,25.1"/><path class="lgr-leaf" d="M79.3,20.8 Q84.0,17.0 80.8,11.1 Q75.9,15.9 79.3,20.8 Z"/><path class="lgr-vein" d="M79.3,20.8 L80.8,11.1"/><path class="lgr-leaf" d="M65.4,12.0 Q68.0,7.1 63.2,3.2 Q60.8,8.9 65.4,12.0 Z"/><path class="lgr-vein" d="M65.4,12.0 L63.2,3.2"/></svg></div><div class="legend-card-icon">${legendIconHTML(l)}</div>
       <div class="legend-card-name">${l.name}</div>
     </div>`
@@ -8441,6 +8474,7 @@ const LEGEND_CARDS=[
   {key:'ball',      name:'Medicine Ball',            title:'Slam it out',                                 icon:'\u26bd', img:'images/legends/ball.png', rarity:'common'},
 ];
 let unlockedLegends=[]; // persistent \u2014 keys from LEGEND_CARDS the user has actually pulled
+let legendCounts={}; // persistent \u2014 key -> total times pulled, including the first (new) pull
 
 // \u2500\u2500 XP ROAD \u2014 checkpoints along lifetime XP, each unlocking something
 // real instead of XP just being a number that goes up. type is what
@@ -8523,8 +8557,9 @@ function grantXpRoadReward(node){
     const pick=pool[Math.floor(Math.random()*pool.length)];
     const isNew=!unlockedLegends.includes(pick.key);
     if(isNew)unlockedLegends.push(pick.key);
+    legendCounts[pick.key]=(legendCounts[pick.key]||0)+1;
     if(!document.querySelector('.achievement-overlay')){
-      showLegendReveal(pick,isNew,'gold');
+      showLegendReveal(pick,isNew,'gold',legendCounts[pick.key]);
     }else{
       toast(pick.icon,'XP Road prize: '+pick.name);
     }
@@ -8858,11 +8893,20 @@ function renderXpRoadGallery(){
 // the first few opens often enough that the grind didn't register.
 // Gold's legendary odds alone dropped 3% -> 0.8%, roughly a 4x rarer
 // pull; Areviax is untouched, it's meant to be a guaranteed showpiece.
+// Rebalanced so the top end (mythic/legendary/ultralegendary) actually
+// feels rare — Gold's old 4% mythic rate in particular was pulling
+// "great stuff" almost as often as the low-tier crates pull commons.
+// Every tier below Areviax has its mythic+ odds cut roughly in half to
+// two-thirds (Gold hit hardest, ~62% cut, since that's the specific
+// complaint), with the freed percentage folded back into common so
+// each table still sums to 100. Areviax stays untouched — it's the
+// guaranteed legendary-or-better tier, not a gamble, so there's nothing
+// to nerf there.
 const CRATE_TIERS={
-  bronze:{label:'Bronze Drop',odds:{common:70,rare:20,superrare:6,epic:3,mythic:0.7,legendary:0.3,ultralegendary:0}},
-  silver:{label:'Silver Drop',odds:{common:50,rare:28,superrare:12,epic:7,mythic:2.5,legendary:0.4,ultralegendary:0.1}},
-  gold:{label:'Gold Drop',odds:{common:35,rare:32,superrare:16,epic:12,mythic:4,legendary:0.8,ultralegendary:0.2}},
-  diamond:{label:'Diamond Drop',odds:{common:15,rare:25,superrare:25,epic:22,mythic:10,legendary:2.5,ultralegendary:0.5}},
+  bronze:{label:'Bronze Drop',odds:{common:70.7,rare:20,superrare:6,epic:3,mythic:0.25,legendary:0.05,ultralegendary:0}},
+  silver:{label:'Silver Drop',odds:{common:51.8,rare:28,superrare:12,epic:7,mythic:1,legendary:0.15,ultralegendary:0.05}},
+  gold:{label:'Gold Drop',odds:{common:38.1,rare:32,superrare:16,epic:12,mythic:1.5,legendary:0.3,ultralegendary:0.1}},
+  diamond:{label:'Diamond Drop',odds:{common:21.5,rare:25,superrare:25,epic:22,mythic:5,legendary:1.2,ultralegendary:0.3}},
   areviax:{label:'Areviax Drop',odds:{common:0,rare:0,superrare:0,epic:0,mythic:0,legendary:92,ultralegendary:8}},
 };
 // rarest-first, matches roll-resolution order everywhere a rarity is
@@ -9144,6 +9188,10 @@ function viewLegendCard(key){
 function legendInfoBadgeHTML(key){
   return `<div class="legend-info-btn" onclick="event.stopPropagation();viewLegendCard('${key}')">i</div>`;
 }
+function legendDupeBadgeHTML(key){
+  const n=legendCounts[key]||0;
+  return n>1?`<div class="legend-card-dupe-badge">×${n}</div>`:'';
+}
 
 // \u2500\u2500 TROPHY CABINET \u2014 the full 7-layer collection plan, in
 // descending-rarity display order (peak trophy is its own hero block
@@ -9209,6 +9257,7 @@ function renderTrophyCabinet(){
       const unlocked=unlockedLegends.includes(l.key);
       return `<div class="legend-card cabinet-slot rarity-${l.rarity}${unlocked?' unlocked':''}" onclick="viewLegendCard('${l.key}')">
         ${legendInfoBadgeHTML(l.key)}
+        ${legendDupeBadgeHTML(l.key)}
         <div class="legend-card-icon-glow"></div><div class="legend-card-icon-burst"></div><div class="legend-card-crown"><svg viewBox="0 0 100 100" preserveAspectRatio="none"><path class="lgi-crown-body" d="M0,90 L0,32 L25,58 L40,6 L50,42 L60,6 L75,58 L100,32 L100,90 Z"/><path class="lgi-crown-rim" d="M0,32 L25,58 L40,6 L50,42 L60,6 L75,58 L100,32"/><circle class="lgi-crown-jewel" cx="40" cy="10" r="6"/><circle class="lgi-crown-jewel" cx="60" cy="10" r="6"/><circle class="lgi-crown-jewel" cx="50" cy="76" r="5"/></svg></div><div class="legend-card-wreath"><svg viewBox="-5 -5 110 115"><path class="lgr-stem" d="M46.2,95.8 L29.9,91.2 L16.6,80.7 L8.3,66.0 L6.1,49.3 L10.4,32.9 L20.5,19.4 L35.0,10.7"/><path class="lgr-stem" d="M53.8,95.8 L70.1,91.2 L83.4,80.7 L91.7,66.0 L93.9,49.3 L89.6,32.9 L79.5,19.4 L65.0,10.7"/><path class="lgr-leaf" d="M47.6,94.1 Q38.5,95.5 38.2,105.8 Q48.2,103.2 47.6,94.1 Z"/><path class="lgr-vein" d="M47.6,94.1 L38.2,105.8"/><path class="lgr-leaf" d="M31.8,90.1 Q23.4,88.1 19.4,97.0 Q29.1,98.3 31.8,90.1 Z"/><path class="lgr-vein" d="M31.8,90.1 L19.4,97.0"/><path class="lgr-leaf" d="M18.6,80.5 Q12.0,75.7 5.4,82.1 Q13.4,86.6 18.6,80.5 Z"/><path class="lgr-vein" d="M18.6,80.5 L5.4,82.1"/><path class="lgr-leaf" d="M10.1,66.5 Q6.0,60.1 -1.9,63.3 Q3.4,70.0 10.1,66.5 Z"/><path class="lgr-vein" d="M10.1,66.5 L-1.9,63.3"/><path class="lgr-leaf" d="M7.5,50.3 Q6.2,43.4 -1.7,43.3 Q0.4,51.0 7.5,50.3 Z"/><path class="lgr-vein" d="M7.5,50.3 L-1.7,43.3"/><path class="lgr-leaf" d="M11.2,34.3 Q12.5,27.9 5.7,25.1 Q4.9,32.4 11.2,34.3 Z"/><path class="lgr-vein" d="M11.2,34.3 L5.7,25.1"/><path class="lgr-leaf" d="M20.7,20.8 Q24.1,15.9 19.2,11.1 Q16.0,17.0 20.7,20.8 Z"/><path class="lgr-vein" d="M20.7,20.8 L19.2,11.1"/><path class="lgr-leaf" d="M34.6,12.0 Q39.2,8.9 36.8,3.2 Q32.0,7.1 34.6,12.0 Z"/><path class="lgr-vein" d="M34.6,12.0 L36.8,3.2"/><path class="lgr-leaf" d="M52.4,94.1 Q51.8,103.2 61.8,105.8 Q61.5,95.5 52.4,94.1 Z"/><path class="lgr-vein" d="M52.4,94.1 L61.8,105.8"/><path class="lgr-leaf" d="M68.2,90.1 Q70.9,98.3 80.6,97.0 Q76.6,88.1 68.2,90.1 Z"/><path class="lgr-vein" d="M68.2,90.1 L80.6,97.0"/><path class="lgr-leaf" d="M81.4,80.5 Q86.6,86.6 94.6,82.1 Q88.0,75.7 81.4,80.5 Z"/><path class="lgr-vein" d="M81.4,80.5 L94.6,82.1"/><path class="lgr-leaf" d="M89.9,66.5 Q96.6,70.0 101.9,63.3 Q94.0,60.1 89.9,66.5 Z"/><path class="lgr-vein" d="M89.9,66.5 L101.9,63.3"/><path class="lgr-leaf" d="M92.5,50.3 Q99.6,51.0 101.7,43.3 Q93.8,43.4 92.5,50.3 Z"/><path class="lgr-vein" d="M92.5,50.3 L101.7,43.3"/><path class="lgr-leaf" d="M88.8,34.3 Q95.1,32.4 94.3,25.1 Q87.5,27.9 88.8,34.3 Z"/><path class="lgr-vein" d="M88.8,34.3 L94.3,25.1"/><path class="lgr-leaf" d="M79.3,20.8 Q84.0,17.0 80.8,11.1 Q75.9,15.9 79.3,20.8 Z"/><path class="lgr-vein" d="M79.3,20.8 L80.8,11.1"/><path class="lgr-leaf" d="M65.4,12.0 Q68.0,7.1 63.2,3.2 Q60.8,8.9 65.4,12.0 Z"/><path class="lgr-vein" d="M65.4,12.0 L63.2,3.2"/></svg></div><div class="legend-card-icon">${unlocked?legendIconHTML(l):'\u2753'}</div>
         <div class="legend-card-name">${unlocked?l.name:'???'}</div>
       </div>`;
@@ -9256,6 +9305,7 @@ function renderTrophyCabinet(){
       const unlocked=unlockedLegends.includes(l.key);
       return `<div class="legend-card cabinet-slot rarity-${l.rarity}${unlocked?' unlocked':''}" onclick="viewLegendCard('${l.key}')">
         ${legendInfoBadgeHTML(l.key)}
+        ${legendDupeBadgeHTML(l.key)}
         <div class="legend-card-icon-glow"></div><div class="legend-card-icon-burst"></div><div class="legend-card-crown"><svg viewBox="0 0 100 100" preserveAspectRatio="none"><path class="lgi-crown-body" d="M0,90 L0,32 L25,58 L40,6 L50,42 L60,6 L75,58 L100,32 L100,90 Z"/><path class="lgi-crown-rim" d="M0,32 L25,58 L40,6 L50,42 L60,6 L75,58 L100,32"/><circle class="lgi-crown-jewel" cx="40" cy="10" r="6"/><circle class="lgi-crown-jewel" cx="60" cy="10" r="6"/><circle class="lgi-crown-jewel" cx="50" cy="76" r="5"/></svg></div><div class="legend-card-wreath"><svg viewBox="-5 -5 110 115"><path class="lgr-stem" d="M46.2,95.8 L29.9,91.2 L16.6,80.7 L8.3,66.0 L6.1,49.3 L10.4,32.9 L20.5,19.4 L35.0,10.7"/><path class="lgr-stem" d="M53.8,95.8 L70.1,91.2 L83.4,80.7 L91.7,66.0 L93.9,49.3 L89.6,32.9 L79.5,19.4 L65.0,10.7"/><path class="lgr-leaf" d="M47.6,94.1 Q38.5,95.5 38.2,105.8 Q48.2,103.2 47.6,94.1 Z"/><path class="lgr-vein" d="M47.6,94.1 L38.2,105.8"/><path class="lgr-leaf" d="M31.8,90.1 Q23.4,88.1 19.4,97.0 Q29.1,98.3 31.8,90.1 Z"/><path class="lgr-vein" d="M31.8,90.1 L19.4,97.0"/><path class="lgr-leaf" d="M18.6,80.5 Q12.0,75.7 5.4,82.1 Q13.4,86.6 18.6,80.5 Z"/><path class="lgr-vein" d="M18.6,80.5 L5.4,82.1"/><path class="lgr-leaf" d="M10.1,66.5 Q6.0,60.1 -1.9,63.3 Q3.4,70.0 10.1,66.5 Z"/><path class="lgr-vein" d="M10.1,66.5 L-1.9,63.3"/><path class="lgr-leaf" d="M7.5,50.3 Q6.2,43.4 -1.7,43.3 Q0.4,51.0 7.5,50.3 Z"/><path class="lgr-vein" d="M7.5,50.3 L-1.7,43.3"/><path class="lgr-leaf" d="M11.2,34.3 Q12.5,27.9 5.7,25.1 Q4.9,32.4 11.2,34.3 Z"/><path class="lgr-vein" d="M11.2,34.3 L5.7,25.1"/><path class="lgr-leaf" d="M20.7,20.8 Q24.1,15.9 19.2,11.1 Q16.0,17.0 20.7,20.8 Z"/><path class="lgr-vein" d="M20.7,20.8 L19.2,11.1"/><path class="lgr-leaf" d="M34.6,12.0 Q39.2,8.9 36.8,3.2 Q32.0,7.1 34.6,12.0 Z"/><path class="lgr-vein" d="M34.6,12.0 L36.8,3.2"/><path class="lgr-leaf" d="M52.4,94.1 Q51.8,103.2 61.8,105.8 Q61.5,95.5 52.4,94.1 Z"/><path class="lgr-vein" d="M52.4,94.1 L61.8,105.8"/><path class="lgr-leaf" d="M68.2,90.1 Q70.9,98.3 80.6,97.0 Q76.6,88.1 68.2,90.1 Z"/><path class="lgr-vein" d="M68.2,90.1 L80.6,97.0"/><path class="lgr-leaf" d="M81.4,80.5 Q86.6,86.6 94.6,82.1 Q88.0,75.7 81.4,80.5 Z"/><path class="lgr-vein" d="M81.4,80.5 L94.6,82.1"/><path class="lgr-leaf" d="M89.9,66.5 Q96.6,70.0 101.9,63.3 Q94.0,60.1 89.9,66.5 Z"/><path class="lgr-vein" d="M89.9,66.5 L101.9,63.3"/><path class="lgr-leaf" d="M92.5,50.3 Q99.6,51.0 101.7,43.3 Q93.8,43.4 92.5,50.3 Z"/><path class="lgr-vein" d="M92.5,50.3 L101.7,43.3"/><path class="lgr-leaf" d="M88.8,34.3 Q95.1,32.4 94.3,25.1 Q87.5,27.9 88.8,34.3 Z"/><path class="lgr-vein" d="M88.8,34.3 L94.3,25.1"/><path class="lgr-leaf" d="M79.3,20.8 Q84.0,17.0 80.8,11.1 Q75.9,15.9 79.3,20.8 Z"/><path class="lgr-vein" d="M79.3,20.8 L80.8,11.1"/><path class="lgr-leaf" d="M65.4,12.0 Q68.0,7.1 63.2,3.2 Q60.8,8.9 65.4,12.0 Z"/><path class="lgr-vein" d="M65.4,12.0 L63.2,3.2"/></svg></div><div class="legend-card-icon">${unlocked?legendIconHTML(l):'❓'}</div>
         <div class="legend-card-name">${unlocked?l.name:'???'}</div>
       </div>`;
@@ -9309,10 +9359,11 @@ function openCompassDrop(tier){
   const pick=pool[Math.floor(Math.random()*pool.length)];
   const isNew=!unlockedLegends.includes(pick.key);
   if(isNew)unlockedLegends.push(pick.key);
+  legendCounts[pick.key]=(legendCounts[pick.key]||0)+1;
   if(tier==='areviax')shardBank+=2; // the best drop in the app pays a bonus on top of the guaranteed card
   saveToStorage();
   renderAchievements();
-  showLegendReveal(pick,isNew,tier);
+  showLegendReveal(pick,isNew,tier,legendCounts[pick.key]);
 }
 // \u2500\u2500 CRATE SOUND \u2014 procedurally synthesized (no audio files), same
 // Web Audio API pattern already used for ambient/sleep sounds
@@ -9511,68 +9562,111 @@ const RARITY_RAY={
 // each tier to roughly what every other celebration moment in the app
 // already uses (most sit at 10-22; see celebrateBurst call sites).
 const CRATE_OPEN_TIMING={
-  bronze:{windupMs:260, crackMs:200, burstCount:12, flash:false},
-  silver:{windupMs:300, crackMs:210, burstCount:16, flash:false},
-  gold:  {windupMs:380, crackMs:230, burstCount:20, flash:true},
-  diamond:{windupMs:460,crackMs:250, burstCount:24, flash:true},
-  areviax:{windupMs:580,crackMs:280, burstCount:28, flash:true},
+  bronze:{reelMs:500, windupMs:260, crackMs:200, burstCount:12, flash:false},
+  silver:{reelMs:600, windupMs:300, crackMs:210, burstCount:16, flash:false},
+  gold:  {reelMs:700, windupMs:380, crackMs:230, burstCount:20, flash:true},
+  diamond:{reelMs:850,windupMs:460,crackMs:250, burstCount:24, flash:true},
+  areviax:{reelMs:1000,windupMs:580,crackMs:280, burstCount:28, flash:true},
 };
-function showLegendReveal(l,isNew,tier){
+// Filler gems for the reel strip \u2014 weighted toward common like the real
+// odds tables so the strip doesn't flash top-rarity colour the whole
+// way through (that would just be noise, not suspense). The actual
+// result is always appended as the final tile so the reel has
+// something real to land on.
+const CRATE_REEL_ITEM_W=72;
+const CRATE_REEL_LEN=28;
+const CRATE_REEL_FILLER_ORDER=['common','rare','superrare','epic','mythic','legendary','ultralegendary'];
+const CRATE_REEL_FILLER_WEIGHTS={common:40,rare:24,superrare:14,epic:9,mythic:6,legendary:4,ultralegendary:3};
+function rollCrateReelFiller(){
+  const total=CRATE_REEL_FILLER_ORDER.reduce((s,k)=>s+CRATE_REEL_FILLER_WEIGHTS[k],0);
+  let roll=Math.random()*total,acc=0;
+  for(const k of CRATE_REEL_FILLER_ORDER){acc+=CRATE_REEL_FILLER_WEIGHTS[k];if(roll<acc)return k;}
+  return 'common';
+}
+function crateReelGemHTML(rarity){
+  return '<div class="crate-reel-item"><div class="crate-reel-gem" style="background:'+RARITY_RAY[rarity]+';box-shadow:0 0 10px '+RARITY_RAY[rarity]+'99, inset 0 0 0 1px rgba(255,255,255,.35)"></div></div>';
+}
+function buildCrateReelHTML(finalRarity){
+  let html='';
+  for(let i=0;i<CRATE_REEL_LEN-1;i++)html+=crateReelGemHTML(rollCrateReelFiller());
+  html+=crateReelGemHTML(finalRarity); // always the last tile, so it's what lands centered
+  return html;
+}
+function showLegendReveal(l,isNew,tier,count){
   const cfg=CRATE_OPEN_TIMING[tier]||CRATE_OPEN_TIMING.bronze;
   // Kick the prize image's fetch off immediately, in parallel with the
-  // wind-up/crack beat below, instead of only creating the <img> tag at
-  // reveal time. The old sequence had 3.5-7.6s of shake+slot-reel to
-  // accidentally cover a cold image fetch; compressing that to well
-  // under a second means a slow-loading asset can now visibly pop in
-  // AFTER the reveal card is already showing. This gives it a head
-  // start so it's normally already cached by the time reveal fires.
+  // reel/wind-up/crack beats below, instead of only creating the <img>
+  // tag at reveal time. This gives a slow-loading asset a head start so
+  // it's normally already cached by the time the reveal card shows.
   if(l.img){const _preload=new Image();_preload.src=l.img;}
   const overlay=document.createElement('div');
   overlay.className='achievement-overlay';
   overlay.innerHTML=
     '<div class="achievement-modal crate-reveal-stage">'+
-      '<div class="crate-icon-wrap '+tier+'">'+
-        '<div class="crate-icon-glow"></div><div class="crate-icon-burst"></div><div class="crate-crown"><svg viewBox="0 0 100 100" preserveAspectRatio="none"><path class="lgi-crown-body" d="M0,90 L0,32 L25,58 L40,6 L50,42 L60,6 L75,58 L100,32 L100,90 Z"/><path class="lgi-crown-rim" d="M0,32 L25,58 L40,6 L50,42 L60,6 L75,58 L100,32"/><circle class="lgi-crown-jewel" cx="40" cy="10" r="6"/><circle class="lgi-crown-jewel" cx="60" cy="10" r="6"/><circle class="lgi-crown-jewel" cx="50" cy="76" r="5"/></svg></div><div class="crate-wreath"><svg viewBox="-5 -5 110 115"><path class="lgr-stem" d="M46.2,95.8 L29.9,91.2 L16.6,80.7 L8.3,66.0 L6.1,49.3 L10.4,32.9 L20.5,19.4 L35.0,10.7"/><path class="lgr-stem" d="M53.8,95.8 L70.1,91.2 L83.4,80.7 L91.7,66.0 L93.9,49.3 L89.6,32.9 L79.5,19.4 L65.0,10.7"/><path class="lgr-leaf" d="M47.6,94.1 Q38.5,95.5 38.2,105.8 Q48.2,103.2 47.6,94.1 Z"/><path class="lgr-vein" d="M47.6,94.1 L38.2,105.8"/><path class="lgr-leaf" d="M31.8,90.1 Q23.4,88.1 19.4,97.0 Q29.1,98.3 31.8,90.1 Z"/><path class="lgr-vein" d="M31.8,90.1 L19.4,97.0"/><path class="lgr-leaf" d="M18.6,80.5 Q12.0,75.7 5.4,82.1 Q13.4,86.6 18.6,80.5 Z"/><path class="lgr-vein" d="M18.6,80.5 L5.4,82.1"/><path class="lgr-leaf" d="M10.1,66.5 Q6.0,60.1 -1.9,63.3 Q3.4,70.0 10.1,66.5 Z"/><path class="lgr-vein" d="M10.1,66.5 L-1.9,63.3"/><path class="lgr-leaf" d="M7.5,50.3 Q6.2,43.4 -1.7,43.3 Q0.4,51.0 7.5,50.3 Z"/><path class="lgr-vein" d="M7.5,50.3 L-1.7,43.3"/><path class="lgr-leaf" d="M11.2,34.3 Q12.5,27.9 5.7,25.1 Q4.9,32.4 11.2,34.3 Z"/><path class="lgr-vein" d="M11.2,34.3 L5.7,25.1"/><path class="lgr-leaf" d="M20.7,20.8 Q24.1,15.9 19.2,11.1 Q16.0,17.0 20.7,20.8 Z"/><path class="lgr-vein" d="M20.7,20.8 L19.2,11.1"/><path class="lgr-leaf" d="M34.6,12.0 Q39.2,8.9 36.8,3.2 Q32.0,7.1 34.6,12.0 Z"/><path class="lgr-vein" d="M34.6,12.0 L36.8,3.2"/><path class="lgr-leaf" d="M52.4,94.1 Q51.8,103.2 61.8,105.8 Q61.5,95.5 52.4,94.1 Z"/><path class="lgr-vein" d="M52.4,94.1 L61.8,105.8"/><path class="lgr-leaf" d="M68.2,90.1 Q70.9,98.3 80.6,97.0 Q76.6,88.1 68.2,90.1 Z"/><path class="lgr-vein" d="M68.2,90.1 L80.6,97.0"/><path class="lgr-leaf" d="M81.4,80.5 Q86.6,86.6 94.6,82.1 Q88.0,75.7 81.4,80.5 Z"/><path class="lgr-vein" d="M81.4,80.5 L94.6,82.1"/><path class="lgr-leaf" d="M89.9,66.5 Q96.6,70.0 101.9,63.3 Q94.0,60.1 89.9,66.5 Z"/><path class="lgr-vein" d="M89.9,66.5 L101.9,63.3"/><path class="lgr-leaf" d="M92.5,50.3 Q99.6,51.0 101.7,43.3 Q93.8,43.4 92.5,50.3 Z"/><path class="lgr-vein" d="M92.5,50.3 L101.7,43.3"/><path class="lgr-leaf" d="M88.8,34.3 Q95.1,32.4 94.3,25.1 Q87.5,27.9 88.8,34.3 Z"/><path class="lgr-vein" d="M88.8,34.3 L94.3,25.1"/><path class="lgr-leaf" d="M79.3,20.8 Q84.0,17.0 80.8,11.1 Q75.9,15.9 79.3,20.8 Z"/><path class="lgr-vein" d="M79.3,20.8 L80.8,11.1"/><path class="lgr-leaf" d="M65.4,12.0 Q68.0,7.1 63.2,3.2 Q60.8,8.9 65.4,12.0 Z"/><path class="lgr-vein" d="M65.4,12.0 L63.2,3.2"/></svg></div>'+
-        '<div class="compass-crate '+tier+' crate-shake" id="reveal-crate"><span class="crate-icon">'+crateIconHTML(tier)+'</span></div>'+
+      '<div class="crate-reel-window">'+
+        '<div class="crate-reel-center-mark"></div>'+
+        '<div class="crate-reel-track" id="reveal-reel-track" style="transition-duration:'+cfg.reelMs+'ms">'+buildCrateReelHTML(l.rarity)+'</div>'+
       '</div>'+
     '</div>';
   document.body.appendChild(overlay);
   requestAnimationFrame(()=>overlay.classList.add('show'));
 
-  setTimeout(()=>{
-    const crateEl=overlay.querySelector('#reveal-crate');
-    if(!crateEl)return;
-    playCrateCrackSound(tier);
-    crateEl.classList.remove('crate-shake');
-    crateEl.classList.add('crack-out');
-    const burstEl=overlay.querySelector('.crate-icon-burst');
-    if(burstEl)burstEl.classList.add('flare');
-    if(cfg.flash){
-      const flash=document.createElement('div');
-      flash.className='crate-flash'+(tier==='diamond'?' diamond':tier==='areviax'?' areviax':'');
-      document.body.appendChild(flash);
-      setTimeout(()=>flash.remove(),550);
+  // Reel spins exactly once, landing on the real result (the last
+  // tile), then the modal swaps to the crate-crack beat that already
+  // existed. playCrateTick gives the spin some texture without looping
+  // a sound the whole way through \u2014 same one-shot-per-tick approach
+  // spinDailyWheel already uses.
+  requestAnimationFrame(()=>{
+    const track=overlay.querySelector('#reveal-reel-track');
+    if(track){
+      playCrateSpinTicks(cfg.reelMs);
+      track.style.transform='translateX('+(CRATE_REEL_ITEM_W*(2-CRATE_REEL_LEN))+'px)';
     }
-  },cfg.windupMs);
+  });
 
   setTimeout(()=>{
     const modal=overlay.querySelector('.achievement-modal');
     if(!modal)return;
-    modal.style.setProperty('--reveal-glow',RARITY_GLOW[l.rarity]);
-    modal.style.borderColor=RARITY_BORDER[l.rarity];
-    modal.classList.add('glow');
     modal.innerHTML=
-      '<div class="legend-reveal-rarity rarity-'+l.rarity+'">'+(l.rarity==='ultralegendary'?'ULTRA LEGENDARY':l.rarity.toUpperCase())+'</div>'+
-      '<div class="reveal-badge-wrap" style="--ray-c:'+RARITY_RAY[l.rarity]+'">'+
-        '<div class="reveal-ray-burst"></div>'+
-        '<div class="legend-reveal-icon shine spin-in rarity-'+l.rarity+'">'+legendIconHTML(l)+'</div>'+
-      '</div>'+
-      '<div style="font-size:10.5px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:'+(isNew?'#8FE8FF':'rgba(var(--white-rgb),.4)')+';margin:2px 0 12px">'+(isNew?'NEW':'DUPLICATE')+'</div>'+
-      '<div class="achievement-title reveal-name-serif">'+l.name+'</div>'+
-      '<div class="achievement-desc">'+l.title+'</div>'+
-      (tier==='areviax'?'<div style="font-size:11px;font-weight:700;color:#FFB347;margin-top:8px">\ud83d\udd25 The Areviax Drop \u2014 +2 bonus Compass Shards</div>':'')+
-      '<button class="achievement-close-btn" onclick="this.closest(\'.achievement-overlay\').remove()">Continue</button>';
-    playCrateRevealChime(l.rarity);
+      '<div class="crate-icon-wrap '+tier+'">'+
+        '<div class="crate-icon-glow"></div><div class="crate-icon-burst"></div><div class="crate-crown"><svg viewBox="0 0 100 100" preserveAspectRatio="none"><path class="lgi-crown-body" d="M0,90 L0,32 L25,58 L40,6 L50,42 L60,6 L75,58 L100,32 L100,90 Z"/><path class="lgi-crown-rim" d="M0,32 L25,58 L40,6 L50,42 L60,6 L75,58 L100,32"/><circle class="lgi-crown-jewel" cx="40" cy="10" r="6"/><circle class="lgi-crown-jewel" cx="60" cy="10" r="6"/><circle class="lgi-crown-jewel" cx="50" cy="76" r="5"/></svg></div><div class="crate-wreath"><svg viewBox="-5 -5 110 115"><path class="lgr-stem" d="M46.2,95.8 L29.9,91.2 L16.6,80.7 L8.3,66.0 L6.1,49.3 L10.4,32.9 L20.5,19.4 L35.0,10.7"/><path class="lgr-stem" d="M53.8,95.8 L70.1,91.2 L83.4,80.7 L91.7,66.0 L93.9,49.3 L89.6,32.9 L79.5,19.4 L65.0,10.7"/><path class="lgr-leaf" d="M47.6,94.1 Q38.5,95.5 38.2,105.8 Q48.2,103.2 47.6,94.1 Z"/><path class="lgr-vein" d="M47.6,94.1 L38.2,105.8"/><path class="lgr-leaf" d="M31.8,90.1 Q23.4,88.1 19.4,97.0 Q29.1,98.3 31.8,90.1 Z"/><path class="lgr-vein" d="M31.8,90.1 L19.4,97.0"/><path class="lgr-leaf" d="M18.6,80.5 Q12.0,75.7 5.4,82.1 Q13.4,86.6 18.6,80.5 Z"/><path class="lgr-vein" d="M18.6,80.5 L5.4,82.1"/><path class="lgr-leaf" d="M10.1,66.5 Q6.0,60.1 -1.9,63.3 Q3.4,70.0 10.1,66.5 Z"/><path class="lgr-vein" d="M10.1,66.5 L-1.9,63.3"/><path class="lgr-leaf" d="M7.5,50.3 Q6.2,43.4 -1.7,43.3 Q0.4,51.0 7.5,50.3 Z"/><path class="lgr-vein" d="M7.5,50.3 L-1.7,43.3"/><path class="lgr-leaf" d="M11.2,34.3 Q12.5,27.9 5.7,25.1 Q4.9,32.4 11.2,34.3 Z"/><path class="lgr-vein" d="M11.2,34.3 L5.7,25.1"/><path class="lgr-leaf" d="M20.7,20.8 Q24.1,15.9 19.2,11.1 Q16.0,17.0 20.7,20.8 Z"/><path class="lgr-vein" d="M20.7,20.8 L19.2,11.1"/><path class="lgr-leaf" d="M34.6,12.0 Q39.2,8.9 36.8,3.2 Q32.0,7.1 34.6,12.0 Z"/><path class="lgr-vein" d="M34.6,12.0 L36.8,3.2"/><path class="lgr-leaf" d="M52.4,94.1 Q51.8,103.2 61.8,105.8 Q61.5,95.5 52.4,94.1 Z"/><path class="lgr-vein" d="M52.4,94.1 L61.8,105.8"/><path class="lgr-leaf" d="M68.2,90.1 Q70.9,98.3 80.6,97.0 Q76.6,88.1 68.2,90.1 Z"/><path class="lgr-vein" d="M68.2,90.1 L80.6,97.0"/><path class="lgr-leaf" d="M81.4,80.5 Q86.6,86.6 94.6,82.1 Q88.0,75.7 81.4,80.5 Z"/><path class="lgr-vein" d="M81.4,80.5 L94.6,82.1"/><path class="lgr-leaf" d="M89.9,66.5 Q96.6,70.0 101.9,63.3 Q94.0,60.1 89.9,66.5 Z"/><path class="lgr-vein" d="M89.9,66.5 L101.9,63.3"/><path class="lgr-leaf" d="M92.5,50.3 Q99.6,51.0 101.7,43.3 Q93.8,43.4 92.5,50.3 Z"/><path class="lgr-vein" d="M92.5,50.3 L101.7,43.3"/><path class="lgr-leaf" d="M88.8,34.3 Q95.1,32.4 94.3,25.1 Q87.5,27.9 88.8,34.3 Z"/><path class="lgr-vein" d="M88.8,34.3 L94.3,25.1"/><path class="lgr-leaf" d="M79.3,20.8 Q84.0,17.0 80.8,11.1 Q75.9,15.9 79.3,20.8 Z"/><path class="lgr-vein" d="M79.3,20.8 L80.8,11.1"/><path class="lgr-leaf" d="M65.4,12.0 Q68.0,7.1 63.2,3.2 Q60.8,8.9 65.4,12.0 Z"/><path class="lgr-vein" d="M65.4,12.0 L63.2,3.2"/></svg></div>'+
+        '<div class="compass-crate '+tier+' crate-shake" id="reveal-crate"><span class="crate-icon">'+crateIconHTML(tier)+'</span></div>'+
+      '</div>';
+
+    setTimeout(()=>{
+      const crateEl=overlay.querySelector('#reveal-crate');
+      if(!crateEl)return;
+      playCrateCrackSound(tier);
+      crateEl.classList.remove('crate-shake');
+      crateEl.classList.add('crack-out');
+      const burstEl=overlay.querySelector('.crate-icon-burst');
+      if(burstEl)burstEl.classList.add('flare');
+      if(cfg.flash){
+        const flash=document.createElement('div');
+        flash.className='crate-flash'+(tier==='diamond'?' diamond':tier==='areviax'?' areviax':'');
+        document.body.appendChild(flash);
+        setTimeout(()=>flash.remove(),550);
+      }
+    },cfg.windupMs);
+
+    setTimeout(()=>{
+      const modal2=overlay.querySelector('.achievement-modal');
+      if(!modal2)return;
+      modal2.style.setProperty('--reveal-glow',RARITY_GLOW[l.rarity]);
+      modal2.style.borderColor=RARITY_BORDER[l.rarity];
+      modal2.classList.add('glow');
+      modal2.innerHTML=
+        '<div class="legend-reveal-rarity rarity-'+l.rarity+'">'+(l.rarity==='ultralegendary'?'ULTRA LEGENDARY':l.rarity.toUpperCase())+'</div>'+
+        '<div class="reveal-badge-wrap" style="--ray-c:'+RARITY_RAY[l.rarity]+'">'+
+          '<div class="reveal-ray-burst"></div>'+
+          '<div class="legend-reveal-icon shine spin-in rarity-'+l.rarity+'">'+legendIconHTML(l)+'</div>'+
+        '</div>'+
+        '<div style="font-size:10.5px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:'+(isNew?'#8FE8FF':'rgba(var(--white-rgb),.4)')+';margin:2px 0 12px">'+(isNew?'NEW':'DUPLICATE'+(count>1?' \u00d7'+count:''))+'</div>'+
+        '<div class="achievement-title reveal-name-serif">'+l.name+'</div>'+
+        '<div class="achievement-desc">'+l.title+'</div>'+
+        (tier==='areviax'?'<div style="font-size:11px;font-weight:700;color:#FFB347;margin-top:8px">\ud83d\udd25 The Areviax Drop \u2014 +2 bonus Compass Shards</div>':'')+
+        '<button class="achievement-close-btn" onclick="this.closest(\'.achievement-overlay\').remove()">Continue</button>';
+      playCrateRevealChime(l.rarity);
     // addXP's own side effects (streak/achievement/road bookkeeping,
     // each with its own render pass) and the confetti burst both used to
     // fire in this same tick as the innerHTML above \u2014 right as the
@@ -9585,7 +9679,8 @@ function showLegendReveal(l,isNew,tier){
       addXP(isNew?25:10,isNew?'New trophy':'Compass Drop');
       if(isNew)celebrateBurst(['\ud83d\udd25','\u2b50','\ud83c\udfc6'],cfg.burstCount);
     });
-  },cfg.windupMs+cfg.crackMs);
+    },cfg.windupMs+cfg.crackMs);
+  },cfg.reelMs);
 }
 
 // ── DAILY SPIN WHEEL — one free spin a day, weighted heavily toward
@@ -15510,6 +15605,58 @@ const AI_COACH_KB=[
    a:'Leagues are a weekly promotion ladder — finish high in your group and you climb a tier by next week; finish low and you drop. Check the Leagues page for your current tier, promotion/relegation zones, and time left this week.'},
   {q:'What does Premium include?',kw:['premium','upgrade','subscription','paid plan','pricing'],
    a:"Everything you're using today (training, nutrition, roads, drops, leagues) stays free forever. Premium adds the AI-powered layer on top — a real conversational AI Coach, AI Food Scan, and cross-device sync. See the full breakdown and pricing on the Go Premium page. Billing isn't switched on yet, so nothing charges you right now."},
+  {q:'How does the rest timer work?',kw:['rest timer','rest time','timer','how long rest'],
+   a:"During a session, tap into a set and the Rest Timer starts automatically once you log it — it counts down a suggested rest length per exercise, and you can skip it early or let it run. It's a suggestion, not a hard rule, so adjust based on how you actually feel that set."},
+  {q:'What are warm-up sets for?',kw:['warm up','warmup','warm-up set','warmup sets'],
+   a:"Warm-up sets are the lighter, ramping-weight sets the app suggests before your first working set of an exercise, scaled off your last logged working weight — they're there to prep the joints and groove the movement, not to count toward your working volume, so they don't need to be taken close to failure."},
+  {q:'What does Reduced Sets mode do?',kw:['reduced sets','fewer sets','less time workout','shorter workout'],
+   a:"Reduced Sets trades sets-per-exercise for more exercise variety when you're short on time — it caps most exercises to 2 sets instead of skipping muscle groups entirely, so a tight session still touches everything your plan intended. Toggle it from Workout Builder or the Session screen."},
+  {q:'How do I swap an exercise?',kw:['swap exercise','swap','change exercise','replace exercise','different exercise'],
+   a:'Tap the Swap button on any exercise card in your session or plan — it offers alternatives that target the same muscle group with equipment you actually have, so swapping never leaves a gap in your training.'},
+  {q:'How do portions work in Smart Log?',kw:['smart log portion','1 whole','one whole','one half','portion size','how much is a serving','smart log amount'],
+   a:'For foods that come in natural units (a chicken breast, a salmon fillet, a tin of tuna), you can type the amount as "1 whole", "half", "2 breasts", or similar instead of a gram figure — Smart Log assumes a sensible average weight for that unit and converts automatically. You can always type an exact gram number instead if you know it.'},
+  {q:'What\'s the difference between Smart Log and Manual Entry?',kw:['manual entry','smart log vs manual','log food manually'],
+   a:'Smart Log searches the built-in food database and estimates macros from a portion you describe in plain English. Manual Entry is for when a food isn\'t in the database or you already know the exact numbers — you type the calories and macros yourself, no lookup needed. Both are on the Log Meal carousel on the Nutrition page.'},
+  {q:'How do I log water?',kw:['log water','water intake','glasses of water','track water'],
+   a:'On the Nutrition page, the water row shows a row of glass icons — tap one to fill up to that count, or tap a filled glass to remove one. Your daily target is shown right next to the count.'},
+  {q:'How do I log sleep?',kw:['log sleep','track sleep','sleep hours','sleep log'],
+   a:'Open the Recovery page and use the Sleep quick-log card to enter last night\'s hours (there\'s a separate button if you forgot yesterday). Your sleep history and weekly average feed into your Weekly Assessment and recovery picture.'},
+  {q:'What is Muscle Readiness on the Recovery page?',kw:['muscle readiness','recovery heatmap','sore muscles','which muscles recovered'],
+   a:"Muscle Readiness is a heatmap of your body that highlights which muscle groups you've trained recently and how recovered they likely are, based on how long ago and how hard you hit each one. It's a guide for which muscles are probably still fatigued, not a medical read on soreness or injury."},
+  {q:'What is the Daily Spin?',kw:['daily spin','free spin','spin wheel'],
+   a:"Daily Spin is one free wheel spin every day, weighted heavily toward Bronze with progressively smaller odds for Silver, Gold, Diamond and a razor-thin sliver for the Areviax Drop. Find it on the Progress page — it resets once every 24 hours whether you use it or not."},
+  {q:'What are the exact Compass Drop odds?',kw:['drop odds','crate odds','chance of mythic','chance of legendary','odds percentage'],
+   a:"Every crate tier lists its own exact rarity percentages — tap the ⓘ icon on any Compass Drop tile (Bronze through the Areviax Drop) on the Progress page to see the full breakdown. Higher tiers trade a lower common rate for real odds at mythic and above; the Areviax Drop is the only tier that guarantees legendary or better every time."},
+  {q:'What happens if I pull a card I already have?',kw:['duplicate card','duplicate legend','already have this card','pulled the same card'],
+   a:"Duplicate pulls still count — you'll see \"DUPLICATE\" instead of \"NEW\" on the reveal, and a small ×N badge appears on that card everywhere it's shown (Trophy Cabinet, your Profile preview) so you can see exactly how many times you've pulled it. Duplicates still award a smaller XP bonus, they just don't add a new card to your collection count."},
+  {q:'What is Weight Road?',kw:['weight road'],
+   a:'Weight Road is a checkpoint ladder driven by your logged bodyweight progress toward your goal — each checkpoint along the path unlocks a reward as you get closer. Find it from its hub card on the Progress page.'},
+  {q:'What is Trophy Road?',kw:['trophy road'],
+   a:"Trophy Road is a checkpoint ladder driven by lifetime training milestones (sessions completed, volume lifted, streaks) — distinct from the Trophy Cabinet, which is your actual card collection. Find it from its hub card on the Progress page."},
+  {q:'What\'s the difference between Leaderboard and Leagues?',kw:['leaderboard vs leagues','difference leaderboard leagues'],
+   a:"Leaderboard is a live ranked list you can check any time. Leagues is the weekly competitive layer built on top of it — you're grouped with others in your tier, and finishing high or low each week promotes or relegates you, same shape as a real ranked ladder."},
+  {q:'How do I turn on notifications or reminders?',kw:['notifications','reminders','turn on alerts','enable notifications'],
+   a:'Notification permission is requested the first time a reminder needs it (like the missed-food-day nudge or Shield Reminders) — if you dismissed that prompt, you\'ll need to re-enable notifications for this site in your browser or device settings for reminders to actually fire.'},
+  {q:'Why did I get a reminder about not logging food?',kw:['missed food reminder','food reminder','didn\'t log food','food reminder notification'],
+   a:"If a full day passes with nothing logged, the app shows a banner (and a real notification, if enabled) the next time you open it, reminding you that consistent logging is what makes your calorie and protein targets actually mean something. It's a nudge, not a penalty — nothing is lost by missing a day."},
+  {q:'What is the Weekly Assessment?',kw:['weekly assessment','assessment banner'],
+   a:'The Weekly Assessment is a short generated summary of your last 7 days — sessions completed vs. planned, protein consistency, and average sleep — written in plain language rather than just raw numbers. It appears as a dismissible banner on your Dashboard once a new one is ready.'},
+  {q:'How do achievements work?',kw:['achievements','how to unlock achievements','achievement list'],
+   a:"Achievements unlock automatically the moment you hit their condition — things like session counts, streak lengths, or lifetime volume milestones. Check your Profile page for the full list, including which ones you've already unlocked and roughly what's needed for the ones you haven't."},
+  {q:'What are the layers in the Trophy Cabinet?',kw:['trophy cabinet layers','cabinet layers','what are the layers'],
+   a:"The Trophy Cabinet is organized into rarity tiers, from common equipment-style cards up through the rarest Hall of Masters and Mythic cards, plus one true 1-of-1 peak trophy at the very top. Every card in every layer can drop from Compass Drops — it's just a display grouped by how rare each card is."},
+  {q:'Can I switch between kg and lb?',kw:['kg or lb','switch units','pounds or kilos','change weight unit','kg','lb','kilos'],
+   a:'Yes — in Settings there\'s a unit toggle for bodyweight (kg/lbs) and height (cm/in). Switching converts your existing numbers automatically, it doesn\'t reset them.'},
+  {q:'How do I switch to dark or light mode?',kw:['dark mode','light mode','theme','switch theme'],
+   a:'Settings has a theme toggle near the top — pick Dark or Light and the whole app switches instantly. Your choice is remembered on this device.'},
+  {q:'How do I install this as an app?',kw:['install app','install','add to home screen','install areviax','pwa'],
+   a:'On Android/Chrome, Settings has an "Install Areviax" button that triggers the native install prompt. On iPhone/Safari, open the Share menu and tap "Add to Home Screen" — either way you get a full-screen, no-browser-chrome app icon.'},
+  {q:'Can I edit or delete something I already logged?',kw:['edit a log','edit a meal','edit','delete a log','undo logged meal','remove a set','fix a mistake'],
+   a:"Yes — open today's log entry (meal or set) and you'll find edit/delete controls on it directly. Fixing a mistake recalculates your daily totals immediately, nothing needs a page refresh."},
+  {q:'Where is my data stored and is it private?',kw:['where is my data','data privacy','is my data private','stored locally'],
+   a:"Everything lives locally in this browser on this device — there's no account system and nothing is uploaded anywhere by default. That also means it's only as safe as this device/browser's storage, which is why Download Backup in Settings exists — use it before clearing site data or switching devices."},
+  {q:'How do I delete all my data?',kw:['delete my data','delete all my data','delete','wipe my data','start over','reset the app'],
+   a:'There\'s no in-app "delete everything" button by design — clear this site\'s data from your browser settings, or use your browser\'s "clear site data" option for this page. That\'s permanent, so back up first with Download Backup if you might want any of it later.'},
 ];
 function matchAiCoach(query){
   // Whole-word matching (padded with spaces) rather than plain substring —
@@ -19662,6 +19809,7 @@ function saveToStorage(){
     localStorage.setItem('arx_lastAnniversaryYear', lastAnniversaryYear);
     localStorage.setItem('arx_unlockedAchievements', JSON.stringify(unlockedAchievements));
     localStorage.setItem('arx_unlockedLegends', JSON.stringify(unlockedLegends));
+    localStorage.setItem('arx_legendCounts', JSON.stringify(legendCounts));
     localStorage.setItem('arx_claimedXpRoad', JSON.stringify(claimedXpRoad));
     localStorage.setItem('arx_lastSessionWorkoutName', lastSessionWorkoutName);
     localStorage.setItem('arx_lastBackupDate', lastBackupDate);
@@ -19803,6 +19951,8 @@ function loadFromStorage(){
     if(ua){unlockedAchievements=JSON.parse(ua)}
     const ul=localStorage.getItem('arx_unlockedLegends');
     if(ul){try{unlockedLegends=JSON.parse(ul);}catch(e){unlockedLegends=[];}}
+    const lc=localStorage.getItem('arx_legendCounts');
+    if(lc){try{legendCounts=JSON.parse(lc);}catch(e){legendCounts={};}}
     const cxr=localStorage.getItem('arx_claimedXpRoad');
     if(cxr){try{claimedXpRoad=JSON.parse(cxr);}catch(e){claimedXpRoad=[];}}
     lastSessionWorkoutName=localStorage.getItem('arx_lastSessionWorkoutName')||'';
