@@ -9334,6 +9334,11 @@ function grantTestCrates(){
 function openCompassDrop(tier){
   const cfg=CRATE_TIERS[tier];
   if(!cfg)return;
+  // A fast double-tap on a crate tile (or tapping a second tier before
+  // the first reveal overlay finishes) used to spend two crates and
+  // stack two full-screen overlays — grantXpRoadReward already guards
+  // against this the same way, this call path was just missing it.
+  if(document.querySelector('.achievement-overlay'))return;
   // iOS Safari only resumes an AudioContext when .resume() runs
   // synchronously inside the original tap handler — a resume from a
   // later setTimeout (where every crate sound in showLegendReveal
