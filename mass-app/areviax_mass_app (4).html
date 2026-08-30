@@ -4791,6 +4791,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
   <div class="road-page-head">
     <button class="btn btn-out btn-sm" onclick="showPage('progress')">← Progress</button>
     <span class="ct glow-title xp" style="font-size:17px"><img src="images/roads/xp-compass.png" alt="" class="road-title-icon" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'"><span class="road-title-icon-fallback">🛤️</span> XP Road</span>
+    <span class="road-trophy-count" id="xp-road-trophy-count">0/0</span>
   </div>
   <div class="road-reward-row" id="xp-road-banner">
     <div class="road-reward-box" id="xp-reward-prev">
@@ -4822,6 +4823,10 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     <div class="road-ridge front"></div>
     <div id="xp-road-h" class="xp-road-track horizontal"></div>
   </div>
+  <div class="road-trophy-gallery-wrap">
+    <div class="road-trophy-gallery-label">Checkpoints Claimed</div>
+    <div class="road-trophy-gallery" id="xp-road-trophy-gallery"></div>
+  </div>
 </div>
 
 <!-- TROPHY ROAD PAGE — Achievements as a horizontal path, its own
@@ -4832,6 +4837,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
   <div class="road-page-head">
     <button class="btn btn-out btn-sm" onclick="showPage('progress')">← Progress</button>
     <span class="ct glow-title trophy" style="font-size:17px"><img src="images/roads/trophy-compass.png" alt="" class="road-title-icon" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'"><span class="road-title-icon-fallback">🏆</span> Trophy Road</span>
+    <span class="road-trophy-count" id="trophy-road-trophy-count">0/0</span>
   </div>
   <div class="road-reward-row theme-trophy" id="trophy-road-banner">
     <div class="road-reward-box" id="trophy-reward-prev">
@@ -4862,6 +4868,10 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     <div class="road-ember" style="left:15%;bottom:45%;animation-delay:3.1s;animation-duration:3.3s"></div>
     <div class="road-ember" style="left:65%;bottom:85%;animation-delay:1.2s;animation-duration:3.5s"></div>
     <div id="trophy-road-h" class="xp-road-track horizontal"></div>
+  </div>
+  <div class="road-trophy-gallery-wrap">
+    <div class="road-trophy-gallery-label">Trophies Earned</div>
+    <div class="road-trophy-gallery" id="trophy-road-trophy-gallery"></div>
   </div>
 </div>
 
@@ -8791,6 +8801,24 @@ function renderXpRoad(){
   const nodes=xpRoadNodes();
   renderRoadPath('xp-road-h',nodes);
   renderRewardRow('xp',nodes);
+  renderXpRoadGallery();
+}
+// Same "show what's earned so far" gallery as Weight Road, adapted to XP
+// Road's checkpoints — fills the dead space below the path with something
+// real instead of empty scenery, and keeps all 3 roads visually consistent.
+function renderXpRoadGallery(){
+  const countEl=document.getElementById('xp-road-trophy-count');
+  const galleryEl=document.getElementById('xp-road-trophy-gallery');
+  if(!galleryEl)return;
+  const ascending=[...XP_ROAD].sort((a,b)=>a.xp-b.xp);
+  if(countEl)countEl.textContent=claimedXpRoad.length+'/'+ascending.length;
+  galleryEl.innerHTML=ascending.map(node=>{
+    const earned=claimedXpRoad.includes(node.xp);
+    return `<div class="road-trophy-item${earned?' earned':''}" title="${node.xp.toLocaleString()} XP — ${xpRoadRewardLabel(node)}">
+      <div class="road-trophy-item-icon">${xpRoadRewardIcon(node)}</div>
+      <div class="road-trophy-item-name">${node.xp.toLocaleString()} XP</div>
+    </div>`;
+  }).join('');
 }
 
 // Two crate tiers, mirroring Brawl Stars' frequent Star Drop vs rarer
@@ -8950,6 +8978,25 @@ function renderTrophyRoad(){
   const nodes=trophyRoadNodes();
   renderRoadPath('trophy-road-h',nodes);
   renderRewardRow('trophy',nodes);
+  renderTrophyRoadGallery();
+}
+// Same "show what's earned so far" gallery as Weight Road, adapted to
+// Trophy Road's achievements — fills the dead space below the path with
+// something real instead of empty scenery, and keeps all 3 roads visually
+// consistent (see renderXpRoadGallery for the XP Road equivalent).
+function renderTrophyRoadGallery(){
+  const countEl=document.getElementById('trophy-road-trophy-count');
+  const galleryEl=document.getElementById('trophy-road-trophy-gallery');
+  if(!galleryEl)return;
+  const ascending=[...ACHIEVEMENTS].sort((a,b)=>a.order-b.order);
+  if(countEl)countEl.textContent=unlockedAchievements.length+'/'+ascending.length;
+  galleryEl.innerHTML=ascending.map(a=>{
+    const earned=unlockedAchievements.includes(a.key);
+    return `<div class="road-trophy-item${earned?' earned':''}" title="${a.label} — ${a.desc}">
+      <div class="road-trophy-item-icon"><span>${a.icon}</span></div>
+      <div class="road-trophy-item-name">${earned?a.label:'???'}</div>
+    </div>`;
+  }).join('');
 }
 // Weight Road \u2014 lifetime tonnage milestones (real-object comparisons)
 // as the same horizontal path, driven by totalVolume against
