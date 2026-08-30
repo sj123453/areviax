@@ -2076,6 +2076,12 @@ input[type=checkbox]{accent-color:var(--orange);width:15px;height:15px;cursor:po
 
       <!-- ════ JOURNAL ════ -->
       <div class="page" id="page-journal">
+        <div class="tabs" id="journal-tabs">
+          <button class="tab active" onclick="switchTab(this,'journal-evening')">Evening Reflection</button>
+          <button class="tab" onclick="switchTab(this,'journal-morning')">Morning Pages</button>
+        </div>
+
+        <div id="journal-evening" class="tab-panel">
         <div class="grid-2">
           <div class="card">
             <div class="card-header"><span class="card-title">Today's Entry</span></div>
@@ -2108,6 +2114,32 @@ input[type=checkbox]{accent-color:var(--orange);width:15px;height:15px;cursor:po
         <div class="card">
           <div class="card-header"><span class="card-title">Past Entries</span></div>
           <div id="journal-list" style="display:flex;flex-direction:column;gap:10px"></div>
+        </div>
+        </div>
+
+        <!-- ── MORNING PAGES — a wake-up brain dump sheet, distinct from the
+             evening reflection above: short, unfiltered prompts meant to be
+             filled first thing (before the day's noise piles on) either
+             right here in the app or on a printed physical sheet. Printing
+             opens a standalone print-styled document rather than fighting
+             the app's dark theme with @media print overrides, so the sheet
+             reads as a proper printable page, not a screenshot of the UI. -->
+        <div id="journal-morning" class="tab-panel" style="display:none">
+          <div class="card">
+            <div class="card-header"><span class="card-title">🌅 Morning Pages</span></div>
+            <div style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:14px">
+              Ten prompts to get everything out of your head before the day starts — fill them in here, or print a blank sheet and write it out by hand with coffee in hand.
+            </div>
+            <button class="btn btn-secondary btn-sm" onclick="printMorningSheet()">🖨️ Print blank sheet</button>
+          </div>
+          <div class="card">
+            <div id="morning-sheet-fields" style="display:flex;flex-direction:column;gap:16px"></div>
+            <button class="btn btn-primary btn-sm" style="margin-top:6px" onclick="saveMorningEntry()">Save Morning Pages</button>
+          </div>
+          <div class="card">
+            <div class="card-header"><span class="card-title">Past Morning Pages</span></div>
+            <div id="morning-list" style="display:flex;flex-direction:column;gap:10px"></div>
+          </div>
         </div>
       </div>
 
@@ -2492,6 +2524,7 @@ let compassDates = saved.compassDates || [];
 let pomoSessionsTotal = saved.pomoSessionsTotal ?? 0;
 let habits = saved.habits || [];
 let journalEntries = saved.journalEntries || [];
+let morningEntries = saved.morningEntries || [];
 let selectedMood = null;
 let dailyLog = saved.dailyLog || []; // [{date, tasksDone, tasksTotal, xpEarned}]
 let tasksDone = saved.tasksDone ?? 0;
@@ -2535,7 +2568,7 @@ const levels = [
 function saveState(){
   localStorage.setItem(SK, JSON.stringify({
     xp, shards, bestStreak, lastVisitDate, compassDates, habits, pomoSessionsTotal,
-    journalEntries, dailyLog, tasksDone, tasksTotal, xpAtDayStart, goals,
+    journalEntries, morningEntries, dailyLog, tasksDone, tasksTotal, xpAtDayStart, goals,
     streakFreezes, usedFreezeDates, milestonesHit, workoutHistory, studyBlocks, scheduleEvents,
     reminderSettings, reminderLastFired,
     doneListLog, doneListHourlyEnabled, doneListLastFiredHour,
@@ -5514,6 +5547,123 @@ function renderJournal(){
     </div>`;
   }).join('');
 }
+
+// ── MORNING PAGES — a separate, smaller sheet from the evening reflection
+// above: short prompts meant for first-thing-in-the-morning, either typed
+// here or printed and filled by hand. Kept as its own data array/prompt
+// list rather than reusing journalEntries, since it's a distinct habit
+// (wake-up brain dump vs. end-of-day review) with its own multi-field shape.
+const MORNING_PROMPTS = [
+  {id:'dump', text:"Brain dump — what's floating around in your head right now? Get it all out, it doesn't need to make sense.", lines:5},
+  {id:'ontoday', text:"What's the first thing on your mind when you think about today?", lines:2},
+  {id:'weighing', text:"What's weighing on you that you can put down for now?", lines:2},
+  {id:'grateful', text:"Three things you're grateful for this morning.", lines:3},
+  {id:'win', text:"What's the ONE thing that would make today feel like a win?", lines:2},
+  {id:'body', text:"How does your body feel right now — any tension, energy, tiredness?", lines:2},
+  {id:'forward', text:"What are you looking forward to today?", lines:2},
+  {id:'letgo', text:"What's a worry you can let go of, at least for the next hour?", lines:2},
+  {id:'choose', text:"Complete the sentence: today, I choose to…", lines:2},
+  {id:'feel', text:"One word for how you want to feel by the end of today.", lines:1},
+];
+function renderMorningSheetForm(){
+  const wrap = document.getElementById('morning-sheet-fields');
+  if(!wrap) return;
+  wrap.innerHTML = MORNING_PROMPTS.map((p,i)=>`
+    <div>
+      <label style="font-size:12px;color:var(--white);display:block;margin-bottom:6px;line-height:1.4"><span style="color:var(--orange);font-weight:700">${i+1}.</span> ${p.text}</label>
+      <textarea id="morning-${p.id}" rows="${p.lines}" style="min-height:${p.lines*24}px"></textarea>
+    </div>`).join('');
+}
+function saveMorningEntry(){
+  const answers = {};
+  let hasText = false;
+  MORNING_PROMPTS.forEach(p=>{
+    const val = (document.getElementById('morning-'+p.id)?.value||'').trim();
+    if(val) hasText = true;
+    answers[p.id] = val;
+  });
+  if(!hasText){
+    showToast('🌅','Write at least one answer first');
+    return;
+  }
+  const today = todayISO();
+  const existing = morningEntries.find(e=>e.date===today);
+  if(existing){
+    existing.answers = answers;
+  } else {
+    morningEntries.unshift({date: today, answers});
+    addXP(8,'Morning Pages');
+  }
+  renderMorningEntries();
+  saveState();
+  showToast('🌅','Morning Pages saved');
+}
+function renderMorningEntries(){
+  const list = document.getElementById('morning-list');
+  if(!list) return;
+  if(morningEntries.length===0){
+    list.innerHTML = "<div style=\"font-size:12px;color:var(--muted);text-align:center;padding:20px 0\">No morning pages yet — fill in today's sheet above.</div>";
+    return;
+  }
+  list.innerHTML = morningEntries.slice(0,30).map(e=>{
+    const d = new Date(e.date+'T00:00:00');
+    const label = d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});
+    const preview = (e.answers?.dump || Object.values(e.answers||{}).find(v=>v) || '').replace(/</g,'&lt;');
+    return `<div class="journal-entry">
+      <div class="journal-entry-head">
+        <span class="journal-entry-date">${label}</span>
+        <span class="journal-entry-mood">🌅</span>
+      </div>
+      ${preview ? `<div class="journal-entry-text">${preview.length>140?preview.slice(0,140)+'…':preview}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+function printMorningSheet(){
+  const todayLabel = new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  const rows = MORNING_PROMPTS.map((p,i)=>{
+    const val = (document.getElementById('morning-'+p.id)?.value||'').replace(/</g,'&lt;');
+    const lineHeight = 30;
+    const minHeight = p.lines*lineHeight;
+    return `<div class="ms-field">
+      <div class="ms-q"><span class="ms-num">${i+1}</span>${p.text}</div>
+      <div class="ms-lines" style="min-height:${minHeight}px;line-height:${lineHeight}px">${val}</div>
+    </div>`;
+  }).join('');
+  const doc = `<!doctype html><html><head><meta charset="utf-8"><title>Morning Pages</title><style>
+    @page{margin:22mm 18mm}
+    *{box-sizing:border-box}
+    body{margin:0;background:#F6F0E4;color:#2B2419;font-family:Georgia,'Times New Roman',serif}
+    .ms-wrap{max-width:760px;margin:0 auto;padding:36px 8px}
+    .ms-head{text-align:center;border-bottom:2px solid #2B2419;padding-bottom:16px;margin-bottom:26px}
+    .ms-brand{font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:#8A7454;margin-bottom:10px;font-family:Arial,sans-serif}
+    .ms-title{font-size:32px;font-weight:700;margin:0 0 6px}
+    .ms-date{font-size:13px;color:#6B5D45;font-family:Arial,sans-serif}
+    .ms-field{margin-bottom:22px;break-inside:avoid}
+    .ms-q{font-size:13.5px;font-weight:700;margin-bottom:8px;line-height:1.5}
+    .ms-num{display:inline-block;width:20px;height:20px;border-radius:50%;background:#2B2419;color:#F6F0E4;font-size:11px;text-align:center;line-height:20px;margin-right:8px;font-family:Arial,sans-serif}
+    .ms-lines{font-size:13px;white-space:pre-wrap;background-image:repeating-linear-gradient(transparent,transparent 29px,#C9BA9C 30px);padding-top:2px}
+    .ms-foot{margin-top:30px;padding-top:14px;border-top:1px solid #C9BA9C;text-align:center;font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:#8A7454;font-family:Arial,sans-serif}
+    @media print{ body{background:#fff} .ms-wrap{padding:0} }
+  </style></head><body>
+    <div class="ms-wrap">
+      <div class="ms-head">
+        <div class="ms-brand">Areviax OS</div>
+        <div class="ms-title">Morning Pages</div>
+        <div class="ms-date">${todayLabel}</div>
+      </div>
+      ${rows}
+      <div class="ms-foot">Get it out of your head before the day gets in</div>
+    </div>
+  </body></html>`;
+  const win = window.open('', '_blank');
+  if(!win){ showToast('🖨️','Allow pop-ups to print the sheet'); return; }
+  win.document.open();
+  win.document.write(doc);
+  win.document.close();
+  win.onload = () => { win.focus(); win.print(); };
+  setTimeout(()=>{ try{ win.focus(); win.print(); }catch(e){} }, 400);
+}
+
 function renderMoodWeek(){
   const row = document.getElementById('mood-week-row');
   if(!row) return;
@@ -5646,6 +5796,8 @@ function restoreState(){
   renderGoalHabitPicker();
   renderJournal();
   renderMoodWeek();
+  renderMorningSheetForm();
+  renderMorningEntries();
   renderWeeklyReview();
   renderWorkoutHistory();
   renderWeeklyStudyLoad();
