@@ -50,6 +50,15 @@ the text coach:
 custom food/recipe and generate a share code (a block of text) that another
 user pastes in to import it. That's real and works today, with zero backend.
 
+Separately, Settings already has a working **Backup Your Data** section:
+a manual "Download Backup" / "Restore From Backup" (a JSON file, works
+anywhere, zero backend), plus an opt-in **Automatic Cloud Backup** that
+saves silently in the background — but only while the app is being used
+through Claude.ai, since it rides on Claude's own per-account storage,
+not a server we run. That covers "don't lose my data" already. It does
+**not** cover live sync between two people's phones, or friends/chat —
+those still need the real backend below.
+
 **What real friending/chat needs:** actual accounts and a live connection
 between two people's phones — this is the one item on this list that
 **cannot** be faked client-side. It needs:
@@ -105,12 +114,10 @@ Subscription page:
 **Premium (~£6.99/mo or ~£66.99/yr in the current mockup pricing):**
 - Full AI Coach (real conversation, not FAQ matching)
 - AI Food Scan
-- Cross-device backup & sync — this one is actually worth noting even
-  though it's not literally an AI cost: right now your data lives only on
-  one device's `localStorage`, so a synced account requires the same
-  backend as friends/chat (§3). It'd make sense to bundle it in alongside
-  those features once that backend exists, and it's a legitimate premium
-  perk on its own (people expect to pay for "never lose my data").
+- Cross-device **sync** (live, automatic, works everywhere — not just the
+  Claude.ai-scoped auto-backup that already exists for free today) — this
+  needs the same backend as friends/chat (§3), so it'd make sense to
+  bundle it in alongside those features once that backend exists.
 - No ads (if ads are ever added to the free tier — not currently the plan)
 
 This keeps the free tier genuinely generous (everything that makes the app
