@@ -6214,9 +6214,10 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
 <div class="page" id="page-subscription">
   <div class="companion" style="margin-bottom:14px"><div class="companion-msg">One plan for the training/nutrition core everyone gets for free — Premium adds the AI-powered layer on top.</div></div>
 
-  <div style="display:flex;gap:4px;background:var(--panel2);border:1.5px solid var(--border2);border-radius:999px;padding:4px;margin-bottom:16px">
+  <div style="position:relative;display:flex;gap:4px;background:var(--panel2);border:1.5px solid var(--border2);border-radius:999px;padding:4px;margin-bottom:22px">
+    <div style="position:absolute;top:-9px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#FFD24A,#FF9A3D);color:#2B1300;font-size:8px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:2px 9px;border-radius:999px;white-space:nowrap;z-index:2">Recommended</div>
     <button type="button" class="sub-period-btn active" id="sub-period-monthly" onclick="setSubPeriod('monthly')">Monthly</button>
-    <button type="button" class="sub-period-btn" id="sub-period-4mo" onclick="setSubPeriod('4mo')">4 Months <span style="color:#6FE8A0">· 🎁 free book</span></button>
+    <button type="button" class="sub-period-btn" id="sub-period-bundle" onclick="setSubPeriod('bundle')">+ Book <span style="color:#6FE8A0">· save £5</span></button>
     <button type="button" class="sub-period-btn" id="sub-period-annual" onclick="setSubPeriod('annual')">Annual <span style="color:#6FE8A0">· save ~20%</span></button>
   </div>
 
@@ -6229,7 +6230,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
   </div>
 
   <div class="sub-plan-card premium">
-    <div class="sub-plan-badge" id="sub-plan-badge">🎁 4mo = Free Book</div>
+    <div class="sub-plan-badge" id="sub-plan-badge">📖 Bundle & Save</div>
     <div class="sub-plan-name">Premium</div>
     <div class="sub-plan-price" id="sub-premium-price">£17<span>/month</span></div>
     <div class="sub-plan-sub" id="sub-premium-sub">Unlock the full AI-powered toolkit</div>
@@ -15663,7 +15664,7 @@ const AI_COACH_KB=[
   {q:'How do Leagues work?',kw:['league','promotion','relegation','leaderboard rank'],
    a:'Leagues are a weekly promotion ladder — finish high in your group and you climb a tier by next week; finish low and you drop. Check the Leagues page for your current tier, promotion/relegation zones, and time left this week.'},
   {q:'What does Premium include?',kw:['premium','upgrade','subscription','paid plan','pricing'],
-   a:"Everything you're using today (training, nutrition, roads, drops, leagues) stays free forever. Premium adds the AI-powered layer on top — a real conversational AI Coach, AI Food Scan, and cross-device sync. Pick the 4-month plan and The Mass Blueprint guide comes free with it — that's the minimum stretch we'd actually recommend to see real results as a beginner-to-intermediate, not a discount gimmick. See the full breakdown and pricing on the Go Premium page. Billing isn't switched on yet, so nothing charges you right now."},
+   a:"Everything you're using today (training, nutrition, roads, drops, leagues) stays free forever. Premium adds the AI-powered layer on top — a real conversational AI Coach, AI Food Scan, and cross-device sync. Pick the Bundle option and The Mass Blueprint guide comes with it for £9.99 instead of £14.99 — same Premium price, book added at a genuine discount. See the full breakdown and pricing on the Go Premium page. Billing isn't switched on yet, so nothing charges you right now."},
   {q:'How does the rest timer work?',kw:['rest timer','rest time','timer','how long rest'],
    a:"During a session, tap into a set and the Rest Timer starts automatically once you log it — it counts down a suggested rest length per exercise, and you can skip it early or let it run. It's a suggestion, not a hard rule, so adjust based on how you actually feel that set."},
   {q:'What are warm-up sets for?',kw:['warm up','warmup','warm-up set','warmup sets'],
@@ -15797,25 +15798,25 @@ function pushAiCoachExchange(question,answer){
 // that) since there's no payment processor wired up.
 let subPeriod='monthly';
 const SUB_FREE_FEATS=['Full workout logging & auto-generated sessions','Nutrition tracking, Caloric Shield, recipes','XP/Trophy/Weight Roads, Compass Drops, Leagues','Add your own foods & recipes'];
-const SUB_PREMIUM_FEATS=['Everything in Free','🤖 Full AI Coach — real conversations, not just FAQ matching','📸 AI Food Scan — snap a meal, get macros instantly','📖 The Mass Blueprint free — pick the 4-month plan','☁️ Cross-device backup & sync','🚫 No ads, priority support'];
+const SUB_PREMIUM_FEATS=['Everything in Free','\ud83e\udd16 Full AI Coach \u2014 real conversations, not just FAQ matching','\ud83d\udcf8 AI Food Scan \u2014 snap a meal, get macros instantly','\ud83d\udcd6 The Mass Blueprint \u2014 \u00a39.99 instead of \u00a314.99 when bundled','\u2601\ufe0f Cross-device backup & sync','\ud83d\udeab No ads, priority support'];
 function setSubPeriod(period){
   subPeriod=period;
   document.getElementById('sub-period-monthly').classList.toggle('active',period==='monthly');
-  document.getElementById('sub-period-4mo').classList.toggle('active',period==='4mo');
+  document.getElementById('sub-period-bundle').classList.toggle('active',period==='bundle');
   document.getElementById('sub-period-annual').classList.toggle('active',period==='annual');
   const priceEl=document.getElementById('sub-premium-price');
   if(priceEl){
-    if(period==='monthly')priceEl.innerHTML='£17<span>/month</span>';
-    else if(period==='4mo')priceEl.innerHTML='£14.99<span>/month — billed £59.96 every 4 months</span>';
-    else priceEl.innerHTML='£163.99<span>/year</span>';
+    if(period==='monthly')priceEl.innerHTML='\u00a317<span>/month</span>';
+    else if(period==='bundle')priceEl.innerHTML='\u00a317<span>/month + book \u00a39.99</span>';
+    else priceEl.innerHTML='\u00a3163.99<span>/year</span>';
   }
-  // 4 months isn't picked as a discount hook — it's the minimum stretch
-  // we'd actually recommend to see real results as a beginner-to-
-  // intermediate lifter, so that's where the free-book bonus sits
-  // rather than on a longer (and more expensive) commitment. This line
-  // only makes that promise when the 4-month plan is actually selected.
+  // The bundle isn't a longer commitment like the old 4-month plan was
+  // -- it's the same Monthly price, just with The Mass Blueprint added
+  // on at a genuine (if modest) discount off its own \u00a314.99 price,
+  // for anyone buying both anyway. This line only makes that promise
+  // when the bundle is actually selected.
   const subEl=document.getElementById('sub-premium-sub');
-  if(subEl)subEl.innerHTML=period==='4mo'?'🎁 Includes <strong>The Mass Blueprint</strong> free — 4 months is the minimum we\'d recommend to see real results as a beginner–intermediate, so that\'s where the bonus sits':'Unlock the full AI-powered toolkit';
+  if(subEl)subEl.innerHTML=period==='bundle'?'\ud83d\udcd6 Adds <strong>The Mass Blueprint</strong> for \u00a39.99 instead of \u00a314.99 \u2014 buy them together, save \u00a35':'Unlock the full AI-powered toolkit';
 }
 function renderSubscriptionPage(){
   const freeEl=document.getElementById('sub-feats-free');
