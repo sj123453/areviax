@@ -137,10 +137,9 @@ input,input:focus,input:active,
    pixel-identical to before. */
 .topbar{height:52px;flex-shrink:0;background:var(--bg2);border-bottom:1.5px solid var(--border)}
 .topbar-inner{max-width:760px;margin:0 auto;height:100%;display:flex;align-items:center;justify-content:space-between;padding:0 20px;box-sizing:border-box}
-.tb-left{display:flex;flex-direction:column;gap:1px}
+.tb-left{display:flex;align-items:center}
 .tb-title{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:22px;letter-spacing:.01em;text-transform:uppercase;color:var(--white)}
 .tb-title.tb-title-sm{font-size:15px}
-.tb-sub{font-family:'Space Grotesk',sans-serif;font-size:12px;color:var(--muted);letter-spacing:.02em}
 .tb-right{display:flex;align-items:center;gap:8px}
 .tb-pill{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;padding:9px 16px;border-radius:24px;white-space:nowrap}
 /* Profile now lives here instead of as its own row in the More list —
@@ -3399,7 +3398,6 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       <div class="topbar-inner">
         <div class="tb-left">
           <div class="tb-title" id="tb-title">Dashboard</div>
-          <div class="tb-sub" id="tb-sub">Let's get to work</div>
         </div>
         <div class="tb-right">
           <div class="tb-pill tp-green" onclick="openStreakDetail()" style="cursor:pointer">🔥 <span id="streak-val">0</span> streak</div>
@@ -11024,11 +11022,10 @@ function showPage(id){
   if(pg)pg.classList.add('active');
   document.querySelectorAll('.sb-item').forEach(i=>{if(i.getAttribute('onclick')?.includes(id))i.classList.add('active')});
   try{
-    const titles={dashboard:['Home','Let\'s get to work.'],workout:['Workout','Build your session.'],session:['Session','Time to work.'],nutrition:['Nutrition','Hit your targets.'],recipes:['Recipes','Real meals, built for the surplus.'],progress:['Progress','See how far you\'ve come.'],trophycabinet:['Trophy Cabinet','Every rarity, every layer, all in one room.'],xproad:['XP Road',''],trophyroad:['Trophy Road',''],weightroad:['Weight Road',''],recovery:['Recovery','Sleep, breathing, and how to actually recover.'],schedule:['Schedule','Plan your week.'],leaderboard:['Leaderboard','See how you rank.'],leagues:['Leagues','Climb the weekly ladder.'],learn:['Science','Understand the why.'],profile:['Profile','Your stats, on display.'],legal:['Legal','Privacy, terms, and health info.'],settings:['Settings','Update your details anytime.'],aicoach:['Ask Areviax','Quick answers, no waiting.'],subscription:['Go Premium','Unlock the full toolkit.']};
-    const[t,s]=titles[id]||[id,''];
+    const titles={dashboard:'Home',workout:'Workout',session:'Session',nutrition:'Nutrition',recipes:'Recipes',progress:'Progress',trophycabinet:'Trophy Cabinet',xproad:'XP Road',trophyroad:'Trophy Road',weightroad:'Weight Road',recovery:'Recovery',schedule:'Schedule',leaderboard:'Leaderboard',leagues:'Leagues',learn:'Science',profile:'Profile',legal:'Legal',settings:'Settings',aicoach:'Ask Areviax',subscription:'Go Premium'};
+    const t=titles[id]||id;
     const tte=document.getElementById('tb-title');
     if(tte){tte.textContent=t;tte.classList.toggle('tb-title-sm',id==='trophycabinet');}
-    const tse=document.getElementById('tb-sub');if(tse)tse.textContent=s;
   }catch(e){}
   function safeRender(fn,name){
     try{fn();}
@@ -14099,6 +14096,7 @@ function markTrainedToday(){
   totalSess++;
   if(!trainingCompletedDates.includes(today))trainingCompletedDates.push(today);
   weekCompletedDays[today]=true;
+  try{autoRescheduleAheadOnRestDay();}catch(e){}
   bronzeDropProgress++;
   if(bronzeDropProgress>=BRONZE_DROP_DAYS){
     bronzeDropProgress=0;
@@ -18892,6 +18890,7 @@ function renderSchedule(){
   if(!sg)return;
   checkScheduleWeek();
   autoRescheduleMissedDays();
+  try{autoRescheduleAheadOnRestDay();}catch(e){}
   const monday=parseLocalDate(getMonday(new Date()));
   const dayDates=SCHED_DAYS.map((_,i)=>{const d=new Date(monday);d.setDate(monday.getDate()+i);return localDateKey(d);});
   const slots=SCHED_DAYS.map((_,i)=>getScheduleSlot(i));
@@ -18989,6 +18988,30 @@ function autoRescheduleMissedDays(){
   }else if(anyChecked){
     saveToStorage();
   }
+}
+
+// ── AUTO-REARRANGE (ahead) — the inverse of autoRescheduleMissedDays:
+// training on a day the generated week marked Rest is the week's
+// training quota getting filled early, so the next upcoming training
+// day becomes the new rest day instead of just stacking an extra
+// session on top of an already-full week. Only swaps the day TYPE
+// (today keeps whatever was actually trained via plannedSession*,
+// which is already correct since syncTodaysPlanFromSchedule leaves it
+// alone on a rest day) — never touches days already in the past.
+function autoRescheduleAheadOnRestDay(){
+  if(!generatedWeek)return;
+  const today=localDateKey(new Date());
+  if(autoReschedDates[today])return;
+  const ti=new Date().getDay();const ti2=ti===0?6:ti-1;
+  if(getScheduleSlot(ti2).type!=='rest')return;
+  const targetIdx=SCHED_DAYS.findIndex((_,j)=>j>ti2&&getScheduleSlot(j).type!=='rest');
+  if(targetIdx<0)return; // no later training day left this week to swap into rest — leave today as a bonus session
+  const targetSlot=getScheduleSlot(targetIdx);
+  autoReschedDates[today]=true;
+  scheduleOverrides[ti2]={type:plannedSessionType,name:plannedSessionName||'Extra Session',exs:plannedSessionExs};
+  scheduleOverrides[targetIdx]={type:'rest',name:'Rest',exs:[]};
+  saveToStorage();
+  toast('📅',`Trained on a rest day — ${SCHED_DAYS[targetIdx]}'s ${targetSlot.name} is now Rest instead.`);
 }
 
 // ── RESCHEDULE — manual version, for the default (non-generated) schedule,
