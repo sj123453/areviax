@@ -2,17 +2,13 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
 <title>Areviax Mass — Your Hard Gainer Coach</title>
 <meta name="theme-color" content="#0B0B0B">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Areviax Mass">
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#0B0B0B">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Areviax">
+<link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="images/icons/favicon.png">
 <link rel="icon" href="images/icons/favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -135,7 +131,7 @@ input,input:focus,input:active,
    the topbar's content in the same max-width+auto-margin as .page fixes
    it; below 760px+padding this is a no-op (100% width), so mobile is
    pixel-identical to before. */
-.topbar{height:52px;flex-shrink:0;background:var(--bg2);border-bottom:1.5px solid var(--border)}
+.topbar{height:calc(52px + env(safe-area-inset-top,0px));padding-top:env(safe-area-inset-top,0px);box-sizing:border-box;flex-shrink:0;background:var(--bg2);border-bottom:1.5px solid var(--border)}
 .topbar-inner{max-width:760px;margin:0 auto;height:100%;display:flex;align-items:center;justify-content:space-between;padding:0 20px;box-sizing:border-box}
 .tb-left{display:flex;align-items:center}
 .tb-title{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:22px;letter-spacing:.01em;text-transform:uppercase;color:var(--white)}
@@ -3458,15 +3454,12 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
   <div class="dash-greeting-inner" style="background:transparent;border:none;padding:6px 4px 22px;height:100%;box-sizing:border-box;position:relative;overflow:hidden">
     <!-- Dot-grid texture behind the watermark digit, top-right — the
          reference pairs its big background numeral with a faint dot
-         field rather than leaving it on a flat background; masked so it
-         fades out toward the card's center/edges instead of reading as
-         a hard rectangle. Runs the full height of the card (not just a
-         small patch near the top) since the reference's dot field
-         continues on well past the number itself. -->
-    <div aria-hidden="true" style="position:absolute;right:0;top:0;width:290px;height:100%;pointer-events:none;
-      background-image:radial-gradient(rgba(255,122,46,.45) 1.2px,transparent 1.7px);background-size:8px 8px;
-      -webkit-mask-image:radial-gradient(circle at 100% 0%,#000 0%,transparent 88%);
-      mask-image:radial-gradient(circle at 100% 0%,#000 0%,transparent 88%)"></div>
+         field rather than leaving it on a flat background. Uses the
+         shared .dot-field class (full card width/height, mask that
+         doesn't fade out before reaching the true edges) instead of the
+         old one-off 290px-wide patch, which left dots missing across
+         the left portion of the card at every height, top included. -->
+    <div aria-hidden="true" class="dot-field" style="right:0;top:0;width:100%;height:100%;--dot-origin:100% 0%"></div>
     <!-- Giant background watermark of the streak count — outline/hollow
          rather than a solid faint fill, same "just an outline" depth
          device the reference uses behind its own headline. Sits behind
@@ -3518,7 +3511,6 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        Workouts dropped — it pointed at the exact same page as Start
        already does, so it was a duplicate button, not lost functionality. -->
   <div class="dash-today-inner" style="background:linear-gradient(160deg,rgba(255,90,0,.07),rgba(var(--bg-rgb),.9));border:1px solid rgba(255,90,0,.22);border-radius:16px;padding:24px 22px 22px;overflow:hidden;position:relative">
-    <div aria-hidden="true" class="dot-field" style="right:0;bottom:0;width:100%;height:100%;--dot-origin:100% 100%"></div>
     <!-- HERO HEADLINE — solid word + hollow/outline word. The giant faint
          watermark digit that used to sit behind this was removed —
          that "number in the background" device now belongs to the
