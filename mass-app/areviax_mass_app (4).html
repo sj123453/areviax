@@ -5385,14 +5385,15 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     <div style="font-size:11.5px;color:var(--muted);line-height:1.6">Weekly promotion ladder — climb through 8 tiers by outpacing your group, right up to the Areviax League.</div>
     <button class="btn btn-out btn-sm" style="width:100%;margin-top:12px" onclick="event.stopPropagation();showPage('leagues')">Enter Leagues →</button>
   </div>
+  <!-- Two full ranking boards, ATP-style — XP is the main "Singles"
+       tour, Volume the parallel "Doubles" one. Every entry gets a real
+       rank number (no top-10 cap), not just the leaders. -->
   <div class="lb-tabs">
-    <button class="lb-tab active" onclick="switchLB(this,'lb-gained')">Most gained</button>
-    <button class="lb-tab" onclick="switchLB(this,'lb-improved')">Most improved</button>
-    <button class="lb-tab" onclick="switchLB(this,'lb-streak')">Best streak</button>
+    <button class="lb-tab active" onclick="switchLB(this,'lb-xp')">XP Rankings</button>
+    <button class="lb-tab" onclick="switchLB(this,'lb-volume')">Volume Rankings</button>
   </div>
-  <div id="lb-gained"><div id="lb-list"></div></div>
-  <div id="lb-improved" style="display:none"><div id="lb-improved-list"></div></div>
-  <div id="lb-streak" style="display:none"><div id="lb-streak-list"></div></div>
+  <div id="lb-xp"><div id="lb-xp-list"></div></div>
+  <div id="lb-volume" style="display:none"><div id="lb-volume-list"></div></div>
 </div>
 
 <!-- LEAGUES — dedicated weekly promotion-ladder page. -->
@@ -5922,6 +5923,19 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
   <!-- COMPARE WITH OTHERS -->
   <div class="card">
     <div class="ch"><span class="ct">Compare With Others</span></div>
+    <!-- Only shown once profile.lbName is set (i.e. joined the
+         Leaderboard) — computeMyLBRank() needs that same opt-in, so
+         there's nothing to show before then anyway. -->
+    <div id="profile-rank-row" style="display:none;gap:10px;margin-bottom:14px">
+      <div style="flex:1;background:rgba(255,255,255,.025);border:1.5px solid rgba(255,255,255,.07);border-radius:8px;padding:14px;text-align:center">
+        <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">XP Rank</div>
+        <div style="font-size:22px;font-weight:800;color:var(--white)" id="profile-rank-xp">—</div>
+      </div>
+      <div style="flex:1;background:rgba(255,255,255,.025);border:1.5px solid rgba(255,255,255,.07);border-radius:8px;padding:14px;text-align:center">
+        <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">Volume Rank</div>
+        <div style="font-size:22px;font-weight:800;color:var(--white)" id="profile-rank-volume">—</div>
+      </div>
+    </div>
     <div style="font-size:12px;color:rgba(var(--white-rgb),.7);line-height:1.7;margin-bottom:12px">
       A real friends list — adding people by name and comparing privately — needs an account system and a server to match people up, which this version of the app doesn't have yet since everything runs locally on your device.
     </div>
@@ -8184,6 +8198,7 @@ function renderProfile(){
   try{renderConsistencyHeatmap();}catch(e){console.error('renderConsistencyHeatmap:',e.message);}
   try{renderWeeklyRecap();}catch(e){console.error('renderWeeklyRecap:',e.message);}
   try{renderTrainingPatterns();}catch(e){console.error('renderTrainingPatterns:',e.message);}
+  try{renderMyLBRank();}catch(e){console.error('renderMyLBRank:',e.message);}
   const base=fill.parentElement.querySelector('.statue-metal-base');
   const r=getRank();
   const pct=Math.min(100,Math.round(xp/AVATAR_MAX_XP*100));
@@ -19462,6 +19477,36 @@ const BOT_ROSTER=[
   {name:'Felix Hart',      joined:'2026-03-15', rate:0.42, sessRate:1.6, tier:0},
   {name:'Dan Bailey',      joined:'2026-01-03', rate:0.67, sessRate:2.5, tier:2},
 ];
+// The hand-authored 20 above stay as they are (real thought went into
+// their pacing); a big ATP-style board needs to actually feel deep, so
+// this tops it up procedurally rather than hand-typing 80 more rows.
+// Seeded PRNG (not Math.random) so the roster is identical every load
+// on every device — a real ranking board doesn't reshuffle names each
+// time you open it.
+const BOT_FIRST_NAMES=['Alex','Jordan','Taylor','Morgan','Casey','Riley','Jamie','Drew','Cameron','Avery','Charlie','Sam','Jesse','Reese','Skyler','Rowan','Finley','Blake','Quinn','Harper','Elliot','Kendall','Peyton','Emerson','Dakota','Logan','Hayden','Marley','Shay','Tanner'];
+const BOT_LAST_NAMES=['Carter','Bennett','Hayes','Mitchell','Coleman','Ward','Ellis','Barrett','Rhodes','Sinclair','Doyle','Pearce','Whitfield','Rourke','Lockhart','Hargrove','Iverson','Kingsley','Blackwood','Sterling','Vance','Marsh','Holloway','Prescott','Delgado','Winters','Ashford','Nolan','Faulkner','Merritt'];
+function seededPRNG(seed){let s=seed>>>0;return function(){s=(Math.imul(s,1664525)+1013904223)>>>0;return s/4294967296;};}
+function generateProceduralBots(count,seed){
+  const rand=seededPRNG(seed);
+  const used=new Set(BOT_ROSTER.map(b=>b.name));
+  const bots=[];
+  for(let i=0;i<count;i++){
+    let name;
+    do{name=BOT_FIRST_NAMES[Math.floor(rand()*BOT_FIRST_NAMES.length)]+' '+BOT_LAST_NAMES[Math.floor(rand()*BOT_LAST_NAMES.length)];}while(used.has(name));
+    used.add(name);
+    const tier=Math.floor(rand()*4);
+    const daysAgo=20+Math.floor(rand()*220);
+    const joined=localDateKey(new Date(Date.now()-daysAgo*86400000));
+    bots.push({
+      name, joined,
+      rate:parseFloat((0.18+rand()*0.75).toFixed(2)),
+      sessRate:parseFloat((0.9+rand()*2.2).toFixed(2)),
+      tier,
+    });
+  }
+  return bots;
+}
+const BOT_ROSTER_FULL=[...BOT_ROSTER,...generateProceduralBots(85,20260830)];
 
 function getBotStats(bot){
   const join=parseLocalDate(bot.joined);
@@ -19474,7 +19519,38 @@ function getBotStats(bot){
   const gained=Math.max(0,weeksElapsed*bot.rate*(1+jitter*0.08));
   const sess=Math.max(1,Math.round(weeksElapsed*bot.sessRate*(1+jitter*0.05)));
   const streak=Math.max(1,Math.round(3+(seed%14)+(weeksElapsed>4?Math.min(21,weeksElapsed*1.1):0)));
-  return {gained:parseFloat(gained.toFixed(1)), sess, streak:Math.min(streak,90)};
+  // XP and Volume aren't tracked per bot directly — derived from the
+  // same sessRate/tier every other bot stat already comes from, so a
+  // bot that trains more often and at a higher tier naturally ranks
+  // higher on both new boards too, not just the old ones.
+  const xp=Math.max(0,Math.round(weeksElapsed*(bot.sessRate*45+bot.tier*15)*(1+jitter*0.1)));
+  const volume=Math.max(0,Math.round(weeksElapsed*bot.sessRate*(1400+bot.tier*700)*(1+jitter*0.06)));
+  return {gained:parseFloat(gained.toFixed(1)), sess, streak:Math.min(streak,90), xp, volume};
+}
+// Mirrors renderLB()'s entry-building for just the two numbers Profile
+// needs — deliberately skips the async cross-device "stored" pool
+// (Profile shouldn't need to await storage just to show a rank
+// estimate; the full Leaderboard page is the source of truth for any
+// real-user rows).
+function computeMyLBRank(metric){
+  if(!profile.lbName)return null;
+  const myVal=metric==='xp'?xp:totalVolume;
+  const vals=BOT_ROSTER_FULL.map(bot=>{const s=getBotStats(bot);return metric==='xp'?s.xp:s.volume;});
+  vals.push(myVal);
+  vals.sort((a,b)=>b-a);
+  return {rank:vals.indexOf(myVal)+1, total:vals.length};
+}
+function renderMyLBRank(){
+  const row=document.getElementById('profile-rank-row');
+  if(!row)return;
+  const xpRank=computeMyLBRank('xp');
+  if(!xpRank){row.style.display='none';return;}
+  const volRank=computeMyLBRank('volume');
+  row.style.display='flex';
+  const xpEl=document.getElementById('profile-rank-xp');
+  const volEl=document.getElementById('profile-rank-volume');
+  if(xpEl)xpEl.textContent='#'+xpRank.rank+' of '+xpRank.total;
+  if(volEl)volEl.textContent='#'+volRank.rank+' of '+volRank.total;
 }
 
 // Podium medals are by RANK (1st always gold, 2nd silver, 3rd bronze),
@@ -19506,24 +19582,27 @@ function renderLBRow(e,i){
 // wrong side of you — the trailing name if you climbed, the leading
 // name if you dropped. Bot-vs-bot movement is irrelevant and never
 // checked; this only fires for the user's own row.
-const LB_BOARD_LABELS={gained:'Most Gained',improved:'Most Improved',streak:'Best Streak'};
+const LB_BOARD_LABELS={xp:'XP Rankings',volume:'Volume Rankings'};
 function checkLBRankChange(boardKey,sortedList){
   const newRank=sortedList.findIndex(e=>e.isYou);
-  if(newRank<0)return; // no lbName set yet — nothing to track
+  if(newRank<0)return; // no lbName set yet -- nothing to track
   const lastRank=lbLastRanks[boardKey];
   lbLastRanks[boardKey]=newRank;
   if(lastRank===undefined||lastRank===newRank)return; // first-ever look, or unchanged
   const label=LB_BOARD_LABELS[boardKey]||boardKey;
   if(newRank<lastRank){
     const passed=sortedList[newRank+1];
-    toast('🔥',passed?'You just passed '+passed.name+' on '+label+' — #'+(newRank+1)+' now!':'You climbed to #'+(newRank+1)+' on '+label+'!');
+    toast('\ud83d\udd25',passed?'You just passed '+passed.name+' on '+label+' -- #'+(newRank+1)+' now!':'You climbed to #'+(newRank+1)+' on '+label+'!');
   }else{
     const overtaker=sortedList[newRank-1];
-    toast('😤',overtaker?overtaker.name+' just passed you on '+label+' — close the gap!':'You dropped to #'+(newRank+1)+' on '+label+'.');
+    toast('\ud83d\ude24',overtaker?overtaker.name+' just passed you on '+label+' -- close the gap!':'You dropped to #'+(newRank+1)+' on '+label+'.');
   }
 }
+// ATP-style: one full ranking board per metric (XP the "Singles" main
+// tour, Volume the "Doubles" parallel one) instead of a capped top-10
+// -- every entry gets a real rank number, not just the leaders.
 async function renderLB(){
-  const list=document.getElementById('lb-list');if(!list)return;
+  const list=document.getElementById('lb-xp-list');if(!list)return;
   let stored=[];
   try{
     const r=await window.storage.list('mlb:',true);
@@ -19531,36 +19610,26 @@ async function renderLB(){
   }catch(e){}
 
   const entries=[];
-  BOT_ROSTER.forEach(bot=>{
+  BOT_ROSTER_FULL.forEach(bot=>{
     const s=getBotStats(bot);
-    entries.push({name:bot.name,gained:s.gained,streak:s.streak,sess:s.sess,rate:bot.rate,stage:'Week 1\u20138',tier:bot.tier,isBot:true});
+    entries.push({name:bot.name,xp:s.xp,volume:s.volume,streak:s.streak,sess:s.sess,stage:'Week 1\u20138',tier:bot.tier,isBot:true});
   });
-  stored.forEach(s=>entries.push({...s,rate:s.sess?s.gained/Math.max(1,s.sess/2.5):0}));
-  if(profile.lbName&&weightLog.length>0){
-    const g=weightLog.length>1?(weightLog[weightLog.length-1].w-weightLog[0].w):0;
-    const weeksActive=Math.max(0.5,totalSess/2.5);
-    entries.push({name:profile.lbName,gained:parseFloat(g.toFixed(1)),streak,sess:totalSess,rate:g/weeksActive,stage:'Week 1\u20138',tier:getRankIndex(),isYou:true});
+  stored.forEach(s=>entries.push({...s,xp:s.xp||0,volume:s.volume||0}));
+  if(profile.lbName){
+    entries.push({name:profile.lbName,xp,volume:totalVolume,streak,sess:totalSess,stage:'Week 1\u20138',tier:getRankIndex(),isYou:true});
   }
 
-  // MOST GAINED
-  const byGained=[...entries].sort((a,b)=>b.gained-a.gained);
-  checkLBRankChange('gained',byGained);
-  list.innerHTML=byGained.slice(0,10).map((e,i)=>renderLBRow({...e,valLabel:'+'+e.gained+' lbs'},i)).join('');
+  // XP RANKINGS
+  const byXP=[...entries].sort((a,b)=>b.xp-a.xp);
+  checkLBRankChange('xp',byXP);
+  list.innerHTML=byXP.map((e,i)=>renderLBRow({...e,valLabel:e.xp.toLocaleString()+' XP'},i)).join('');
 
-  // MOST IMPROVED — weekly rate of gain, rewards velocity not just total time
-  const improvedList=document.getElementById('lb-improved-list');
-  if(improvedList){
-    const byRate=[...entries].sort((a,b)=>b.rate-a.rate);
-    checkLBRankChange('improved',byRate);
-    improvedList.innerHTML=byRate.slice(0,10).map((e,i)=>renderLBRow({...e,valLabel:'+'+e.rate.toFixed(2)+' lbs/wk'},i)).join('');
-  }
-
-  // BEST STREAK
-  const streakList=document.getElementById('lb-streak-list');
-  if(streakList){
-    const byStreak=[...entries].sort((a,b)=>b.streak-a.streak);
-    checkLBRankChange('streak',byStreak);
-    streakList.innerHTML=byStreak.slice(0,10).map((e,i)=>renderLBRow({...e,valLabel:e.streak+' days'},i)).join('');
+  // VOLUME RANKINGS
+  const volumeList=document.getElementById('lb-volume-list');
+  if(volumeList){
+    const byVolume=[...entries].sort((a,b)=>b.volume-a.volume);
+    checkLBRankChange('volume',byVolume);
+    volumeList.innerHTML=byVolume.map((e,i)=>renderLBRow({...e,valLabel:(e.volume>=1000?(e.volume/1000).toFixed(1)+'k':e.volume)+' kg'},i)).join('');
   }
   saveToStorage();
 }
@@ -19796,12 +19865,12 @@ function switchLegal(btn,id){
     const el=document.getElementById(x);if(el)el.style.display=x===id?'':'none';
   });
 }
-function switchLB(btn,id){document.querySelectorAll('.lb-tab').forEach(t=>t.classList.remove('active'));btn.classList.add('active');['lb-gained','lb-improved','lb-streak'].forEach(x=>{const el=document.getElementById(x);if(el)el.style.display=x===id?'':'none'})}
+function switchLB(btn,id){document.querySelectorAll('.lb-tab').forEach(t=>t.classList.remove('active'));btn.classList.add('active');['lb-xp','lb-volume'].forEach(x=>{const el=document.getElementById(x);if(el)el.style.display=x===id?'':'none'})}
 async function joinLB(){
   const name=document.getElementById('lb-name').value.trim()||'Anonymous';
   profile.lbName=name;
   const g=weightLog.length>1?(weightLog[weightLog.length-1].w-weightLog[0].w):0;
-  try{await window.storage.set('mlb:'+name+Date.now(),JSON.stringify({name,gained:parseFloat(g.toFixed(1)),streak,sess:totalSess,stage:'Week 1–8'}),true)}catch(e){}
+  try{await window.storage.set('mlb:'+name+Date.now(),JSON.stringify({name,gained:parseFloat(g.toFixed(1)),streak,sess:totalSess,stage:'Week 1\u20138',xp,volume:totalVolume}),true)}catch(e){}
   renderLB();toast('🏆','You\'re on the leaderboard!');
 }
 
