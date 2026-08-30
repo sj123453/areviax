@@ -31,7 +31,13 @@ def inline_asset_paths(text):
 
     def repl(m):
         quote, rel = m.group(1), m.group(2)
-        return quote + data_uri_for(rel) + quote
+        try:
+            return quote + data_uri_for(rel) + quote
+        except FileNotFoundError:
+            # Asset not uploaded yet (e.g. a spec'd-but-not-yet-delivered
+            # icon) — leave the relative path as-is so the page's own
+            # onerror fallback still works when opened; nothing to inline.
+            return m.group(0)
 
     return pattern.sub(repl, text)
 

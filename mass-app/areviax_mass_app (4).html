@@ -2724,6 +2724,12 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     /* ROAD PAGE HEADER — back link + title, sits above the banner. */
     .road-page-head{display:flex;align-items:center;gap:12px;margin-bottom:2px}
     .road-trophy-count{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:var(--muted);background:rgba(255,255,255,.04);border:1px solid var(--border2);border-radius:999px;padding:3px 10px}
+    /* Road brand icon — a custom per-road compass mark, dropped into the
+       images/roads folder once real art exists (see mass-app/ROAD_ICON_SPEC.md).
+       Until that file exists the <img> 404s and onerror swaps back to the
+       plain emoji, so this needs zero further code changes to "go live". */
+    .road-title-icon{width:20px;height:20px;object-fit:contain;vertical-align:-4px;margin-right:2px}
+    .road-title-icon-fallback{display:none}
     /* TROPHIES EARNED gallery — a compact, always-scannable "what have I
        actually got" strip at the bottom of a road page, separate from
        the path itself (which shows position/progress, not a collection
@@ -4733,7 +4739,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
   <div class="card road-hub-card" style="margin-bottom:14px" onclick="showPage('xproad')">
     <div class="road-hub-card-icon" id="hub-xp-icon"></div>
     <div class="road-hub-card-body">
-      <span class="ct glow-title xp" style="font-size:13px">🛤️ XP Road</span>
+      <span class="ct glow-title xp" style="font-size:13px"><img src="images/roads/xp-compass.png" alt="" class="road-title-icon" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'"><span class="road-title-icon-fallback">🛤️</span> XP Road</span>
       <div class="road-hub-card-sub" id="hub-xp-sub">—</div>
       <div class="road-hub-card-track"><div class="road-hub-card-fill" id="hub-xp-fill" style="width:0%"></div></div>
     </div>
@@ -4743,7 +4749,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
   <div class="card road-hub-card theme-trophy" style="margin-bottom:14px" onclick="showPage('trophyroad')">
     <div class="road-hub-card-icon" id="hub-trophy-icon"></div>
     <div class="road-hub-card-body">
-      <span class="ct glow-title trophy" style="font-size:13px">🏆 Trophy Road</span>
+      <span class="ct glow-title trophy" style="font-size:13px"><img src="images/roads/trophy-compass.png" alt="" class="road-title-icon" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'"><span class="road-title-icon-fallback">🏆</span> Trophy Road</span>
       <div class="road-hub-card-sub" id="hub-trophy-sub">—</div>
       <div class="road-hub-card-track"><div class="road-hub-card-fill" id="hub-trophy-fill" style="width:0%"></div></div>
     </div>
@@ -4753,7 +4759,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
   <div class="card road-hub-card theme-iron" style="margin-bottom:14px" onclick="showPage('weightroad')">
     <div class="road-hub-card-icon" id="hub-weight-icon"></div>
     <div class="road-hub-card-body">
-      <span class="ct glow-title weight" style="font-size:13px">🏋️ Weight Road</span>
+      <span class="ct glow-title weight" style="font-size:13px"><img src="images/roads/weight-compass.png" alt="" class="road-title-icon" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'"><span class="road-title-icon-fallback">🏋️</span> Weight Road</span>
       <div class="road-hub-card-sub" id="hub-weight-sub">—</div>
       <div class="road-hub-card-track"><div class="road-hub-card-fill" id="hub-weight-fill" style="width:0%"></div></div>
     </div>
@@ -4784,7 +4790,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
 <div class="page" id="page-xproad">
   <div class="road-page-head">
     <button class="btn btn-out btn-sm" onclick="showPage('progress')">← Progress</button>
-    <span class="ct glow-title xp" style="font-size:17px">🛤️ XP Road</span>
+    <span class="ct glow-title xp" style="font-size:17px"><img src="images/roads/xp-compass.png" alt="" class="road-title-icon" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'"><span class="road-title-icon-fallback">🛤️</span> XP Road</span>
   </div>
   <div class="road-reward-row" id="xp-road-banner">
     <div class="road-reward-box" id="xp-reward-prev">
@@ -4825,7 +4831,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
 <div class="page" id="page-trophyroad">
   <div class="road-page-head">
     <button class="btn btn-out btn-sm" onclick="showPage('progress')">← Progress</button>
-    <span class="ct glow-title trophy" style="font-size:17px">🏆 Trophy Road</span>
+    <span class="ct glow-title trophy" style="font-size:17px"><img src="images/roads/trophy-compass.png" alt="" class="road-title-icon" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'"><span class="road-title-icon-fallback">🏆</span> Trophy Road</span>
   </div>
   <div class="road-reward-row theme-trophy" id="trophy-road-banner">
     <div class="road-reward-box" id="trophy-reward-prev">
@@ -4868,7 +4874,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
 <div class="page" id="page-weightroad">
   <div class="road-page-head">
     <button class="btn btn-out btn-sm" onclick="showPage('progress')">← Progress</button>
-    <span class="ct glow-title weight" style="font-size:17px">🏋️ Weight Road</span>
+    <span class="ct glow-title weight" style="font-size:17px"><img src="images/roads/weight-compass.png" alt="" class="road-title-icon" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'"><span class="road-title-icon-fallback">🏋️</span> Weight Road</span>
     <span class="road-trophy-count" id="weight-road-trophy-count">0/6</span>
   </div>
   <div class="road-reward-row theme-iron" id="weight-road-banner">
