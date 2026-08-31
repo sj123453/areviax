@@ -6277,6 +6277,19 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
   <button class="btn btn-ghost" style="width:100%;margin-top:12px" onclick="closeReschedule()">Cancel</button>
 </div>
 
+<!-- DAY LENGTH MODAL — per-day override on top of the week's default
+     Session length, since a real week isn't the same duration every day
+     (a rushed Tuesday, a spare 90 minutes on Saturday). Reuses the exact
+     same maxExForTime option set as Workout Builder and the week-level
+     picker, just scoped to one day's exercise list instead of all of them. -->
+<div id="daylen-modal-backdrop" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9998" onclick="closeDayLength()"></div>
+<div id="daylen-modal" style="display:none;position:fixed;bottom:0;left:0;right:0;background:var(--panel);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-top:1px solid var(--border);border-radius:16px 16px 0 0;padding:22px;z-index:9999;max-width:480px;margin:0 auto;box-shadow:0 -20px 50px -20px rgba(0,0,0,.6)">
+  <div style="font-weight:800;font-size:14px;margin-bottom:4px" id="daylen-title">How long today?</div>
+  <div style="font-size:12px;color:var(--muted);margin-bottom:14px">Just for this day — your other days keep their own length.</div>
+  <div id="daylen-options" style="display:flex;flex-direction:column;gap:8px"></div>
+  <button class="btn btn-ghost" style="width:100%;margin-top:12px" onclick="closeDayLength()">Cancel</button>
+</div>
+
 <!-- INJURY CONFLICT MODAL -->
 <div id="injury-confirm-backdrop" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9998" onclick="closeInjuryConfirm()"></div>
 <div id="injury-confirm-modal" style="display:none;position:fixed;bottom:0;left:0;right:0;background:var(--panel);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-top:1px solid rgba(255,122,46,.3);border-radius:16px 16px 0 0;padding:22px;z-index:9999;max-width:480px;margin:0 auto;box-shadow:0 -20px 50px -20px rgba(0,0,0,.6)">
@@ -6804,6 +6817,7 @@ let scheduleWeekStart='',scheduleOverrides={},weekCompletedDays={};
 // which calendar dates have already been auto-moved this week so a missed
 // day only gets rearranged once, not every time the page re-renders.
 let generatedWeek=null,autoReschedDates={};
+let dayLengthOverrides={}; // scheduleDayIndex(0-6) -> weekSessionLength-style value, overrides the week default for just that day
 // How long each day of the generated week should run — same time buckets
 // as the Workout Builder's own picker (maxExForTime), so "generate my
 // week" respects how much time the person actually has instead of always
@@ -19105,28 +19119,38 @@ function topUpMissingMuscles(exs,pool){
   });
   return exs;
 }
+// Builds one day's real exercise list for a given session type at a given
+// length — pulled out of generateFullWeek so the exact same pool/shuffle/
+// cap/top-up logic can also regenerate a single day at its own per-day
+// length override, without duplicating it.
+function buildDayExercises(type,lenVal){
+  const pool=[...(EX[type]||[])].filter(e=>equipOk(e));
+  // Independent shuffle per call so a split that repeats a type (e.g. two
+  // 'lower' days in the 5-day pattern) doesn't hand back the identical
+  // exercise list twice in the same week, and so which exercise gets
+  // picked within each muscle group varies week to week.
+  for(let i=pool.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]];}
+  const cap=Math.min(maxExForTime(lenVal,pool.length),pool.length);
+  // spreadByMuscle guarantees every muscle group in the pool gets at least
+  // one pick before any group gets a second — a plain shuffle+slice here
+  // let a deep group (e.g. 'core' at 21 of 52 full-body exercises) crowd
+  // out entire other groups by chance. Same balancing the manual Workout
+  // Builder already uses for these session types (see renderExercises).
+  return topUpMissingMuscles(spreadByMuscle(pool,cap),pool);
+}
 // Generates a real 7-day plan — not just text labels — sized to
 // profile.days. silent=true skips the toast, used for the automatic
 // Monday-rollover regeneration so it doesn't announce itself unprompted.
+// Per-day length overrides (see openDayLength) survive a regenerate —
+// only clearGeneratedWeek wipes them — since picking "today's only 30
+// minutes" shouldn't get silently undone by an unrelated Regenerate tap.
 function generateFullWeek(silent){
   const days=Math.max(1,Math.min(7,parseInt(profile.days)||4));
   const pattern=WEEK_SPLIT_PATTERNS[days];
-  generatedWeek=pattern.map(type=>{
+  generatedWeek=pattern.map((type,i)=>{
     if(type==='rest')return{type:'rest',name:'Rest',exs:[]};
-    const pool=[...(EX[type]||[])].filter(e=>equipOk(e));
-    // Independent shuffle per day so a split that repeats a type (e.g. two
-    // 'lower' days in the 5-day pattern) doesn't hand back the identical
-    // exercise list twice in the same week, and so which exercise gets
-    // picked within each muscle group varies week to week.
-    for(let i=pool.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]];}
-    const cap=Math.min(maxExForTime(weekSessionLength,pool.length),pool.length);
-    // spreadByMuscle guarantees every muscle group in the pool gets at least
-    // one pick before any group gets a second — a plain shuffle+slice here
-    // let a deep group (e.g. 'core' at 21 of 52 full-body exercises) crowd
-    // out entire other groups by chance. Same balancing the manual Workout
-    // Builder already uses for these session types (see renderExercises).
-    const exs=topUpMissingMuscles(spreadByMuscle(pool,cap),pool);
-    return{type,name:getSessionTypeLabel(type),exs};
+    const lenVal=dayLengthOverrides[i]||weekSessionLength;
+    return{type,name:getSessionTypeLabel(type),exs:buildDayExercises(type,lenVal)};
   });
   scheduleOverrides={};
   autoReschedDates={};
@@ -19143,16 +19167,62 @@ function setWeekSessionLength(val){
   }
 }
 function clearGeneratedWeek(){
-  generatedWeek=null;scheduleOverrides={};autoReschedDates={};
+  generatedWeek=null;scheduleOverrides={};autoReschedDates={};dayLengthOverrides={};
   saveToStorage();
   toast('🗑️','Back to manual scheduling.');
   renderSchedule();
 }
+// ── PER-DAY LENGTH OVERRIDE — a real week isn't the same length every
+// day, so this lets one day (today's tight on time, Saturday's got 90
+// spare minutes) diverge from the week's default Session length without
+// changing it for every other day.
+const DAY_LENGTH_LABELS={min:'15–20 min',30:'30 min',short:'45 min',60:'1 hour',90:'1.5 hours',full:'2+ hours'};
+const DAY_LENGTH_SHORT={min:'20m',30:'30m',short:'45m',60:'1h',90:'1.5h',full:'2h+'};
+function openDayLength(idx){
+  const slot=getScheduleSlot(idx);
+  if(slot.type==='rest'||!generatedWeek)return;
+  const titleEl=document.getElementById('daylen-title');
+  if(titleEl)titleEl.textContent=`How long for ${SCHED_DAYS[idx]}'s ${slot.name}?`;
+  const current=dayLengthOverrides[idx]||weekSessionLength;
+  const opts=document.getElementById('daylen-options');
+  if(opts){
+    opts.innerHTML=['min','30','short','60','90','full'].map(val=>
+      `<button class="btn ${String(val)===String(current)?'btn-g':'btn-out'}" style="width:100%" onclick="setDayLength(${idx},'${val}')">${DAY_LENGTH_LABELS[val]}</button>`
+    ).join('')
+    +(dayLengthOverrides[idx]!==undefined?`<button class="btn btn-ghost" style="width:100%" onclick="setDayLength(${idx},null)">Reset to week default (${DAY_LENGTH_LABELS[weekSessionLength]})</button>`:'');
+  }
+  const bd=document.getElementById('daylen-modal-backdrop');if(bd)bd.style.display='block';
+  const md=document.getElementById('daylen-modal');if(md)md.style.display='block';
+}
+function closeDayLength(){
+  const bd=document.getElementById('daylen-modal-backdrop');if(bd)bd.style.display='none';
+  const md=document.getElementById('daylen-modal');if(md)md.style.display='none';
+}
+function setDayLength(idx,val){
+  const slot=getScheduleSlot(idx);
+  if(val===null)delete dayLengthOverrides[idx];
+  else dayLengthOverrides[idx]=val;
+  const lenVal=dayLengthOverrides[idx]||weekSessionLength;
+  const rebuilt={type:slot.type,name:slot.name,exs:buildDayExercises(slot.type,lenVal)};
+  // A manually rescheduled/overridden day lives in scheduleOverrides, not
+  // generatedWeek directly — write back to wherever getScheduleSlot
+  // actually read it from, or the rebuilt list would render but vanish
+  // on the next renderSchedule() call.
+  if(scheduleOverrides[idx]!==undefined)scheduleOverrides[idx]=rebuilt;
+  else if(generatedWeek)generatedWeek[idx]=rebuilt;
+  saveToStorage();
+  closeDayLength();
+  toast('⏱️',val===null?'Back to the week default':DAY_LENGTH_LABELS[val]+' — '+SCHED_DAYS[idx]+' updated');
+  renderSchedule();
+}
 // Slot for day index i, folding in any manual reschedule override — source
 // is the generated week if one's active, otherwise the same static
-// Upper/Lower split that's always been the default.
+// Push/Pull Upper + Lower split that's always been the default (matches
+// WEEK_SPLIT_PATTERNS' real upper-push/upper-pull types, just shown as
+// plain text labels here since this placeholder has no real exercises
+// until "Generate My Training Week" is actually tapped).
 function getScheduleSlot(i){
-  const base=generatedWeek||['Upper A','Lower A','Rest','Upper B','Lower B','Rest','Rest'].map(v=>({type:v==='Rest'?'rest':'legacy',name:v,exs:[]}));
+  const base=generatedWeek||['Push Upper','Lower A','Rest','Pull Upper','Lower B','Rest','Rest'].map(v=>({type:v==='Rest'?'rest':'legacy',name:v,exs:[]}));
   const raw=scheduleOverrides[i]!==undefined?scheduleOverrides[i]:base[i];
   // Overrides saved by an older build stored plain strings (e.g. 'Rest') —
   // normalize on read so a returning user's saved schedule doesn't crash
@@ -19379,12 +19449,15 @@ function renderSchedule(){
     const missed=isPast&&!isRest&&!wasCompleted;
     const canStart=!isRest&&!missed&&i>=ti2&&generatedWeek&&slot.exs&&slot.exs.length;
     const onclick=missed?`openReschedule(${i})`:canStart?`startScheduledDay(${i})`:'';
+    const dayLen=dayLengthOverrides[i]||weekSessionLength;
+    const lenBadge=(!isRest&&generatedWeek)?`<div style="font-size:8px;font-weight:700;color:var(--muted);margin-top:4px;letter-spacing:.03em;cursor:pointer" onclick="event.stopPropagation();openDayLength(${i})">⏱ ${DAY_LENGTH_SHORT[dayLen]||dayLen}${dayLengthOverrides[i]?' •':''}</div>`:'';
     return `<div class="sched-day ${!isRest?'on':''} ${isToday?'today':''} ${missed?'missed':''}" ${onclick?`onclick="${onclick}" style="cursor:pointer"`:''}>
       <div class="sd-name">${d}</div>
       <div class="sd-val ${isRest?'rest':''}">${slot.name}</div>
       ${missed?'<div style="font-size:8px;font-weight:700;color:#FF7A2E;margin-top:3px;letter-spacing:.04em">⚠ MISSED — TAP</div>':''}
       ${!isRest&&isPast&&wasCompleted?'<div style="font-size:8px;font-weight:700;color:var(--green);margin-top:3px">✓ DONE</div>':''}
       ${canStart&&isToday?'<div style="font-size:8px;font-weight:700;color:var(--cyan);margin-top:3px">▶ TAP TO START</div>':''}
+      ${lenBadge}
     </div>`;
   }).join('');
 
@@ -20008,6 +20081,7 @@ function saveToStorage(){
     localStorage.setItem('arx_weekCompletedDays', JSON.stringify(weekCompletedDays));
     localStorage.setItem('arx_generatedWeek', JSON.stringify(generatedWeek));
     localStorage.setItem('arx_autoReschedDates', JSON.stringify(autoReschedDates));
+    localStorage.setItem('arx_dayLengthOverrides', JSON.stringify(dayLengthOverrides));
     localStorage.setItem('arx_joinDate', joinDate);
     localStorage.setItem('arx_lastAnniversaryYear', lastAnniversaryYear);
     localStorage.setItem('arx_unlockedAchievements', JSON.stringify(unlockedAchievements));
@@ -20148,6 +20222,8 @@ function loadFromStorage(){
     if(gw){try{generatedWeek=JSON.parse(gw);}catch(e){generatedWeek=null;}}
     const ard=localStorage.getItem('arx_autoReschedDates');
     if(ard){try{autoReschedDates=JSON.parse(ard);}catch(e){autoReschedDates={};}}
+    const dlo=localStorage.getItem('arx_dayLengthOverrides');
+    if(dlo){try{dayLengthOverrides=JSON.parse(dlo);}catch(e){dayLengthOverrides={};}}
     joinDate=localStorage.getItem('arx_joinDate')||'';
     lastAnniversaryYear=parseInt(localStorage.getItem('arx_lastAnniversaryYear')||'0');
     const ua=localStorage.getItem('arx_unlockedAchievements');
