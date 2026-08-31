@@ -1893,10 +1893,14 @@ input[type=checkbox]{accent-color:var(--orange);width:15px;height:15px;cursor:po
                 <input type="time" id="sched-time-input">
               </div>
             </div>
-            <label style="display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--muted);cursor:pointer">
-              <input type="checkbox" id="sched-recurring-input" checked style="width:auto">
-              Repeats every week
-            </label>
+            <div>
+              <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px">Repeats</label>
+              <select id="sched-repeat-select" onchange="updateSchedDayFieldState()">
+                <option value="none">Just this week</option>
+                <option value="weekly" selected>Every week, this day</option>
+                <option value="daily">Every day — e.g. a morning run</option>
+              </select>
+            </div>
             <button class="btn btn-primary btn-sm" onclick="addScheduleEvent()">Add to Schedule</button>
           </div>
         </div>
@@ -3400,19 +3404,26 @@ function getWeekMonday(){
   monday.setDate(now.getDate() + diffToMonday);
   return monday.toISOString().slice(0,10);
 }
+function updateSchedDayFieldState(){
+  const repeat = document.getElementById('sched-repeat-select')?.value;
+  const daySelect = document.getElementById('sched-day-select');
+  if(daySelect) daySelect.disabled = (repeat === 'daily');
+}
 function addScheduleEvent(){
   const title = document.getElementById('sched-title-input').value.trim();
   if(!title) return;
   const dayIdx = parseInt(document.getElementById('sched-day-select').value, 10);
   const time = document.getElementById('sched-time-input').value || '';
-  const recurring = document.getElementById('sched-recurring-input').checked;
+  const repeat = document.getElementById('sched-repeat-select').value; // 'none'|'weekly'|'daily'
+  const recurring = repeat !== 'none';
+  const daily = repeat === 'daily';
   const weekOf = recurring ? null : getWeekMonday();
-  scheduleEvents.push({id:'sc'+Date.now(), title, dayIdx, time, recurring, weekOf});
+  scheduleEvents.push({id:'sc'+Date.now(), title, dayIdx, time, recurring, daily, weekOf, subs:[]});
   document.getElementById('sched-title-input').value = '';
   document.getElementById('sched-time-input').value = '';
   renderScheduleWeek();
   saveState();
-  showToast('🗓️', recurring ? 'Added to schedule — repeats every week!' : 'Added to schedule for this week only!');
+  showToast('🗓️', daily ? 'Added — repeats every day!' : recurring ? 'Added to schedule — repeats every week!' : 'Added to schedule for this week only!');
 }
 
 function removeScheduleEvent(id){
@@ -3434,8 +3445,9 @@ function openEventDetail(idx){
   const titleEl = document.getElementById('event-detail-title');
   const metaEl = document.getElementById('event-detail-meta');
   if(dayEl) dayEl.textContent = d.day;
-  if(titleEl) titleEl.textContent = (d.recurring?'🔁 ':'') + (d.study?'📚 ':'') + d.title;
-  if(metaEl) metaEl.textContent = d.time + (d.recurring?' · Repeats every week':d.study?' · Study block':' · One-off, this week only');
+  if(titleEl) titleEl.textContent = (d.daily?'📅 ':d.recurring?'🔁 ':'') + (d.study?'📚 ':'') + d.title;
+  if(metaEl) metaEl.textContent = d.time + (d.daily?' · Repeats every day':d.recurring?' · Repeats every week':d.study?' · Study block':' · One-off, this week only');
+  renderEventDetailSubs(d);
   const deleteBtn = document.querySelector('#event-detail-backdrop .event-detail-actions button:last-child');
   if(deleteBtn) deleteBtn.style.display = d.id ? '' : 'none'; // study blocks are managed from the Study page, not deletable here
   document.getElementById('event-detail-backdrop').classList.add('show');
@@ -3449,6 +3461,56 @@ function deleteEventFromDetail(){
   if(!d || !d.id) return;
   removeScheduleEvent(d.id);
   closeEventDetail();
+}
+
+// ── EVENT SUB-STEPS — same idea as a task's sub-steps, but stored on the
+// scheduleEvents entry itself (a real data array, not the DOM) since
+// events already round-trip through saveState() as plain objects. Study
+// blocks (d.id === null) don't get this — they're managed from the Study
+// page, not here.
+function findScheduleEvent(id){ return scheduleEvents.find(e=>e.id===id); }
+function renderEventDetailSubs(d){
+  const wrap = document.getElementById('event-detail-subs');
+  if(!wrap) return;
+  if(!d.id){ wrap.innerHTML=''; return; }
+  const subs = d.subs || [];
+  wrap.innerHTML = `
+    <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Steps</div>
+    <div class="subtask-list" style="margin-left:0">${subs.map((s,i)=>`
+      <div class="subtask-item ${s.done?'done':''}" onclick="toggleEventSub('${d.id}',${i})">
+        <div class="subtask-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+        <span class="subtask-text" style="flex:1">${(s.text||'').replace(/</g,'&lt;')}</span>
+        <span onclick="event.stopPropagation();removeEventSub('${d.id}',${i})" style="opacity:.5;font-size:11px;padding:2px 4px">✕</span>
+      </div>`).join('')}</div>
+    <div class="subtask-add-row" style="margin:8px 0 0 0">
+      <input type="text" id="event-sub-input" placeholder="A smaller step..." onkeydown="if(event.key==='Enter'){addEventSub('${d.id}')}">
+      <button class="btn-ghost-sm" onclick="addEventSub('${d.id}')">Add</button>
+    </div>`;
+}
+function toggleEventSub(eventId, subIdx){
+  const ev = findScheduleEvent(eventId);
+  if(!ev || !ev.subs || !ev.subs[subIdx]) return;
+  ev.subs[subIdx].done = !ev.subs[subIdx].done;
+  saveState();
+  renderEventDetailSubs({id:eventId, subs:ev.subs});
+}
+function removeEventSub(eventId, subIdx){
+  const ev = findScheduleEvent(eventId);
+  if(!ev || !ev.subs) return;
+  ev.subs.splice(subIdx,1);
+  saveState();
+  renderEventDetailSubs({id:eventId, subs:ev.subs});
+}
+function addEventSub(eventId){
+  const input = document.getElementById('event-sub-input');
+  const text = input.value.trim();
+  if(!text) return;
+  const ev = findScheduleEvent(eventId);
+  if(!ev) return;
+  if(!ev.subs) ev.subs=[];
+  ev.subs.push({id:'sub'+Date.now(), text, done:false});
+  saveState();
+  renderEventDetailSubs({id:eventId, subs:ev.subs});
 }
 
 // ── SCHEDULE — real weekly time-grid, not a flat sorted list ──
@@ -3476,8 +3538,12 @@ function renderScheduleWeek(){
 
   // ── Untimed strip — events/study blocks with no time go here as chips ──
   const untimedHTML = `<div></div>` + SCHED_DAY_NAMES.map((name,i)=>{
-    const untimedCustom = scheduleEvents.filter(e=>e.dayIdx===i && !e.time && (e.recurring || e.weekOf===getWeekMonday()))
-      .map(e=>`<div class="cal-chip"><span class="cal-chip-dot" style="background:var(--cyan)"></span>${e.recurring?'🔁 ':''}${e.title}<span class="cal-chip-x" onclick="removeScheduleEvent('${e.id}')">✕</span></div>`).join('');
+    const untimedCustom = scheduleEvents.filter(e=>(e.daily||e.dayIdx===i) && !e.time && (e.recurring || e.weekOf===getWeekMonday()))
+      .map(e=>{
+        const detailIdx = scheduleEventDetailData.length;
+        scheduleEventDetailData.push({day:name, title:e.title, time:'No set time', recurring:e.recurring, daily:e.daily, study:false, id:e.id, subs:e.subs||[]});
+        return `<div class="cal-chip" onclick="openEventDetail(${detailIdx})"><span class="cal-chip-dot" style="background:var(--cyan)"></span>${e.daily?'📅 ':e.recurring?'🔁 ':''}${e.title}<span class="cal-chip-x" onclick="event.stopPropagation();removeScheduleEvent('${e.id}')">✕</span></div>`;
+      }).join('');
     const untimedStudy = studyBlocks.filter(sb=>sb.day===SCHED_DAY_ABBR[i] && !sb.start)
       .map(sb=>`<div class="cal-chip"><span class="cal-chip-dot" style="background:var(--orange)"></span>📚 ${sb.subject}</div>`).join('');
     return `<div class="cal-untimed-cell">${untimedCustom}${untimedStudy}</div>`;
@@ -3494,7 +3560,7 @@ function renderScheduleWeek(){
 
     // gather this day's timed events + study blocks, sorted, with simple collision nudging
     const items = [
-      ...scheduleEvents.filter(e=>e.dayIdx===i && e.time && (e.recurring || e.weekOf===getWeekMonday())).map(e=>({time:e.time,title:e.title,id:e.id,study:false,recurring:e.recurring})),
+      ...scheduleEvents.filter(e=>(e.daily||e.dayIdx===i) && e.time && (e.recurring || e.weekOf===getWeekMonday())).map(e=>({time:e.time,title:e.title,id:e.id,study:false,recurring:e.recurring,daily:e.daily,subs:e.subs})),
       ...studyBlocks.filter(sb=>sb.day===SCHED_DAY_ABBR[i] && sb.start).map(sb=>({time:sb.start,title:'📚 '+sb.subject,study:true})),
     ].sort((a,b)=>a.time.localeCompare(b.time));
 
@@ -3506,9 +3572,9 @@ function renderScheduleWeek(){
       placedTops.push(top);
       top = Math.min(top, gridHeight-46);
       const detailIdx = scheduleEventDetailData.length;
-      scheduleEventDetailData.push({day:name, title:it.title, time:it.time, recurring:it.recurring, study:it.study, id:it.id||null});
+      scheduleEventDetailData.push({day:name, title:it.title, time:it.time, recurring:it.recurring, daily:it.daily, study:it.study, id:it.id||null, subs:it.subs||[]});
       return `<div class="cal-event ${it.study?'study-event':''}" style="top:${top}px;height:44px" onclick="event.stopPropagation();openEventDetail(${detailIdx})">
-        <span class="cal-event-time">${it.time}</span><span class="cal-event-title">${it.recurring?'🔁 ':''}${it.title}</span>
+        <span class="cal-event-time">${it.time}</span><span class="cal-event-title">${it.daily?'📅 ':it.recurring?'🔁 ':''}${it.title}</span>
       </div>`;
     }).join('');
 
@@ -6327,6 +6393,7 @@ showPage = function(id){
     <div class="checkin-eyebrow" id="event-detail-day">Event</div>
     <div class="event-detail-title" id="event-detail-title"></div>
     <div class="event-detail-meta" id="event-detail-meta"></div>
+    <div id="event-detail-subs" style="margin-bottom:16px"></div>
     <div class="event-detail-actions">
       <button class="btn btn-secondary" style="flex:1" onclick="closeEventDetail()">Close</button>
       <button class="btn" style="flex:1;background:rgba(255,60,60,.15);border:1.5px solid rgba(255,60,60,.4);color:#FF6B6B" onclick="deleteEventFromDetail()">Delete</button>
