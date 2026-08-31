@@ -101,7 +101,8 @@ a{color:inherit}
      why: borrowed in-app reward visuals confuse a pre-launch visitor
      who has no context for them yet. ── */
 .hero-visual{position:relative;display:flex;align-items:center;justify-content:center;min-height:400px}
-#hero-compass-canvas{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:520px;height:520px;pointer-events:none;z-index:0}
+#hero-compass-canvas{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:520px;height:520px;pointer-events:none;z-index:1}
+.compass-fallback{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:520px;height:520px;pointer-events:none;z-index:0}
 
 @media (max-width:820px){
   .hero{grid-template-columns:1fr;gap:40px;padding-top:28px;text-align:center}
@@ -109,14 +110,14 @@ a{color:inherit}
   .hero-cta-row{justify-content:center}
   .progress-box{margin-left:auto;margin-right:auto}
   .hero-visual{order:-1;min-height:280px}
-  #hero-compass-canvas{width:360px;height:360px}
+  #hero-compass-canvas,.compass-fallback{width:360px;height:360px}
 }
 
 /* ── SECTION SHELL ───────────────────────────────────────────────── */
 section{position:relative;z-index:1;padding:70px 0}
-.s-tag{font-size:10px;font-weight:700;letter-spacing:.26em;text-transform:uppercase;color:var(--orange);margin-bottom:16px;display:flex;align-items:center;gap:10px}
+.s-tag{font-size:12px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--orange);margin-bottom:16px;display:flex;align-items:center;gap:10px}
 .s-tag::before{content:'';display:inline-block;width:20px;height:1.5px;background:var(--orange)}
-.s-title{font-weight:800;font-size:clamp(26px,3.4vw,38px);letter-spacing:-.02em;max-width:600px}
+.s-title{font-weight:800;font-size:clamp(28px,3.6vw,42px);letter-spacing:-.02em;max-width:600px}
 .s-title em{font-family:'Fraunces',serif;font-style:italic;font-weight:300;color:var(--gold-l)}
 
 /* ── PERKS ───────────────────────────────────────────────────────── */
@@ -131,8 +132,8 @@ section{position:relative;z-index:1;padding:70px 0}
   width:44px;height:44px;border-radius:11px;display:flex;align-items:center;justify-content:center;
   background:rgba(255,90,0,.1);margin-bottom:18px;font-size:19px;
 }
-.perk-title{font-size:15.5px;font-weight:700;margin-bottom:8px;letter-spacing:-.01em}
-.perk-desc{font-size:13px;color:var(--muted);line-height:1.65}
+.perk-title{font-size:17.5px;font-weight:700;margin-bottom:8px;letter-spacing:-.01em}
+.perk-desc{font-size:15px;color:var(--muted);line-height:1.65}
 .perk-desc strong{color:rgba(238,240,255,.85);font-weight:600}
 
 @media (max-width:820px){.perks-grid{grid-template-columns:1fr}}
@@ -144,8 +145,8 @@ section{position:relative;z-index:1;padding:70px 0}
   font-family:'Fraunces',serif;font-style:italic;font-weight:300;font-size:15px;color:var(--orange);
   margin-bottom:14px;display:block;
 }
-.step-title{font-size:15.5px;font-weight:700;margin-bottom:8px}
-.step-desc{font-size:13px;color:var(--muted);line-height:1.65;max-width:280px}
+.step-title{font-size:17.5px;font-weight:700;margin-bottom:8px}
+.step-desc{font-size:15px;color:var(--muted);line-height:1.65;max-width:280px}
 .step-line{position:absolute;top:9px;left:32px;right:-16px;height:1px;background:linear-gradient(90deg,var(--border),transparent)}
 
 @media (max-width:820px){.steps{grid-template-columns:1fr;gap:28px}.step-line{display:none}}
@@ -157,9 +158,9 @@ section{position:relative;z-index:1;padding:70px 0}
 }
 .reserve-copy .s-tag{margin-bottom:14px}
 .reserve-h{font-weight:800;font-size:clamp(22px,2.8vw,30px);letter-spacing:-.02em;margin-bottom:14px}
-.reserve-sub{font-size:13.5px;color:var(--muted);line-height:1.7;max-width:460px}
+.reserve-sub{font-size:15.5px;color:var(--muted);line-height:1.7;max-width:460px}
 .reserve-list{margin-top:20px;display:flex;flex-direction:column;gap:10px}
-.reserve-list-item{display:flex;align-items:center;gap:10px;font-size:13px;color:rgba(238,240,255,.85)}
+.reserve-list-item{display:flex;align-items:center;gap:10px;font-size:15px;color:rgba(238,240,255,.85)}
 .reserve-list-item svg{color:var(--orange);flex-shrink:0}
 
 .price-card{
@@ -169,9 +170,9 @@ section{position:relative;z-index:1;padding:70px 0}
 .price-was{font-size:12px;color:var(--muted);text-decoration:line-through;margin-bottom:2px}
 .price-now{font-family:'Fraunces',serif;font-weight:400;font-size:44px;letter-spacing:-.02em}
 .price-now sup{font-size:16px;font-weight:600;top:-1.2em}
-.price-note{font-size:11px;color:var(--muted);margin-top:6px;margin-bottom:22px}
+.price-note{font-size:13px;color:var(--muted);margin-top:6px;margin-bottom:22px}
 .price-card .btn-fill{width:100%;justify-content:center}
-.price-refund{font-size:10.5px;color:var(--muted);margin-top:14px;line-height:1.5}
+.price-refund{font-size:12.5px;color:var(--muted);margin-top:14px;line-height:1.5}
 
 @media (max-width:820px){.reserve-panel{grid-template-columns:1fr;padding:32px 24px}}
 
@@ -180,23 +181,23 @@ section{position:relative;z-index:1;padding:70px 0}
 .faq-item{border-bottom:1px solid var(--border-soft)}
 .faq-q{
   width:100%;text-align:left;background:none;border:none;color:var(--white);font-family:inherit;
-  padding:22px 0;font-size:14.5px;font-weight:600;cursor:pointer;display:flex;align-items:center;
+  padding:22px 0;font-size:16.5px;font-weight:600;cursor:pointer;display:flex;align-items:center;
   justify-content:space-between;gap:16px;
 }
 .faq-q svg{flex-shrink:0;color:var(--muted);transition:transform .25s}
 .faq-item.open .faq-q svg{transform:rotate(45deg)}
 .faq-a{max-height:0;overflow:hidden;transition:max-height .3s ease}
-.faq-a-inner{font-size:13.5px;color:var(--muted);line-height:1.7;padding-bottom:22px;max-width:600px}
-.faq-item.open .faq-a{max-height:220px}
+.faq-a-inner{font-size:15.5px;color:var(--muted);line-height:1.7;padding-bottom:22px;max-width:600px}
+.faq-item.open .faq-a{max-height:280px}
 
 /* ── FOOTER CTA ──────────────────────────────────────────────────── */
 .final-cta{text-align:center;padding:90px 0 60px}
 .final-cta .s-title{margin:0 auto 30px;max-width:520px}
 footer{position:relative;z-index:1;padding:32px 0 50px;text-align:center}
 .footer-links{display:flex;justify-content:center;gap:24px;margin-bottom:14px}
-.footer-links a{font-size:12px;color:var(--muted);text-decoration:none;transition:color .15s}
+.footer-links a{font-size:14px;color:var(--muted);text-decoration:none;transition:color .15s}
 .footer-links a:hover{color:var(--white)}
-.footer-fine{font-size:11px;color:rgba(142,142,147,.6)}
+.footer-fine{font-size:13px;color:rgba(142,142,147,.6)}
 </style>
 </head>
 <body>
@@ -225,7 +226,7 @@ footer{position:relative;z-index:1;padding:32px 0 50px;text-align:center}
       <p class="hero-sub">Areviax OS is your daily command centre for everything outside the gym — training day planning, study sessions, habits and daily goals, all under one XP and streak system. Reserve your spot now and launch day, you're already in.</p>
       <div class="hero-cta-row">
         <button class="btn-fill btn-fill-lg" id="reserve-btn" onclick="goToCheckout()">
-          Reserve my spot — <span id="price-inline">£15</span>
+          Reserve my spot — <span id="price-inline">£12</span>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
         </button>
         <div class="cta-reassure"><strong>Fully refundable</strong> if we're late, or if you change your mind.</div>
@@ -239,6 +240,36 @@ footer{position:relative;z-index:1;padding:32px 0 50px;text-align:center}
       </div>
     </div>
     <div class="hero-visual">
+      <!-- Static fallback — some viewers (iOS Quick Look previews of a
+           downloaded file, in particular) don't run JavaScript at all,
+           which left this whole area blank since the canvas draws
+           nothing until drawHeroCompass() runs. This always renders
+           (pure SVG/CSS), sits behind the canvas, and the canvas paints
+           over it the moment JS actually does run — same colors, so the
+           handoff is seamless when it happens. -->
+      <svg class="compass-fallback" viewBox="0 0 200 200" aria-hidden="true">
+        <defs>
+          <radialGradient id="cf-glow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#C85000" stop-opacity=".95"/>
+            <stop offset="100%" stop-color="#0C0704" stop-opacity=".4"/>
+          </radialGradient>
+        </defs>
+        <circle cx="100" cy="100" r="94" fill="url(#cf-glow)"/>
+        <circle cx="100" cy="100" r="94" fill="none" stroke="rgba(255,130,40,.9)" stroke-width="1.6"/>
+        <circle cx="100" cy="100" r="63" fill="none" stroke="rgba(255,110,20,.45)" stroke-width="1"/>
+        <g>
+          <path d="M100,9 L113,94 L100,101 L87,94 Z" fill="#FF8C47"/>
+          <path d="M100,9 L113,94 L100,101 L87,94 Z" fill="#FF8C47" transform="rotate(90 100 100)"/>
+          <path d="M100,9 L113,94 L100,101 L87,94 Z" fill="#FF8C47" transform="rotate(180 100 100)"/>
+          <path d="M100,9 L113,94 L100,101 L87,94 Z" fill="#FF8C47" transform="rotate(270 100 100)"/>
+          <path d="M100,42 L109,94 L100,100 L91,94 Z" fill="#B8390A" transform="rotate(45 100 100)"/>
+          <path d="M100,42 L109,94 L100,100 L91,94 Z" fill="#B8390A" transform="rotate(135 100 100)"/>
+          <path d="M100,42 L109,94 L100,100 L91,94 Z" fill="#B8390A" transform="rotate(225 100 100)"/>
+          <path d="M100,42 L109,94 L100,100 L91,94 Z" fill="#B8390A" transform="rotate(315 100 100)"/>
+        </g>
+        <circle cx="100" cy="100" r="6" fill="#FF5A00"/>
+        <circle cx="100" cy="100" r="2.4" fill="#fff"/>
+      </svg>
       <canvas id="hero-compass-canvas" width="700" height="700"></canvas>
     </div>
   </div>
@@ -308,8 +339,8 @@ footer{position:relative;z-index:1;padding:32px 0 50px;text-align:center}
         </div>
       </div>
       <div class="price-card">
-        <div class="price-was">Regular price <span id="price-was-val">£16</span>/mo</div>
-        <div class="price-now"><sup>£</sup><span id="price-val">15</span></div>
+        <div class="price-was">Regular price <span id="price-was-val">£18</span>/mo</div>
+        <div class="price-now"><sup>£</sup><span id="price-val">12</span></div>
         <div class="price-note">one-time deposit · reserves your spot</div>
         <button class="btn-fill" onclick="goToCheckout()">
           Reserve my spot
@@ -347,7 +378,7 @@ footer{position:relative;z-index:1;padding:32px 0 50px;text-align:center}
   <div class="final-cta">
     <h2 class="s-title">Your spot's still <em>open.</em> Not for long.</h2>
     <button class="btn-fill" onclick="goToCheckout()">
-      Reserve my spot — <span class="price-inline-2">£15</span>
+      Reserve my spot — <span class="price-inline-2">£12</span>
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
     </button>
   </div>
@@ -495,14 +526,14 @@ if(ctx) drawHeroCompass();
      exist yet. Update SPOTS_CLAIMED to the true count as real
      reservations come in, same as the Areviax Mass waitlist.
    - PRICE_NOW / PRICE_WAS / LAUNCH_COPY: real pricing + launch-date
-     copy, once decided. PRICE_WAS (£16) matches OS's real advertised
-     subscription price on index.html — PRICE_NOW is the one-time
-     founder deposit, currently mirroring Areviax Mass's £15. */
+     copy, once decided. £12 deposit vs. £18 "regular price" is a
+     deliberate decision to keep — note £18 doesn't match OS's £16/mo
+     on index.html; reconcile those if that inconsistency matters to you. */
 const PAYMENT_LINK_URL = 'REPLACE_WITH_REAL_PAYMENT_LINK';
 const SPOTS_CLAIMED = 0;
 const SPOTS_TOTAL = 350;
-const PRICE_NOW = 15;
-const PRICE_WAS = 16;
+const PRICE_NOW = 12;
+const PRICE_WAS = 18;
 
 // ── REFERRAL LINKS — same mechanism as the Areviax Mass waitlist, own
 // storage key so a ref captured here doesn't leak into that page's
