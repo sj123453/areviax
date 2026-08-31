@@ -721,7 +721,7 @@ input,input:focus,input:active,
 .dash-avatar{width:46px;height:46px;border-radius:50%;flex-shrink:0;background:var(--border2);border:1.5px solid rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center}
 
 /* WORKOUT PROGRESS LINE CHART — real tonnageLog data as an SVG polyline
-   (orange = actual daily volume, cyan = 3-day rolling average) instead of
+   (orange = actual daily volume, cyan = the week's average) instead of
    a bar chart, folded into the Today card at a small fixed height rather
    than living in its own full-size card. */
 .wp-chart-wrap{position:relative;width:100%}
@@ -3620,11 +3620,11 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       </div>
       <!-- Legend — the chart used to show two differently-coloured lines
            with nothing naming which was which; a tiny swatch+label pair
-           makes "orange = that day's tonnage, cyan = 3-day average"
+           makes "orange = that day's tonnage, cyan = the week's average"
            legible at a glance instead of requiring the viewer to guess. -->
       <div style="display:flex;align-items:center;gap:14px;margin-bottom:6px">
         <span style="display:flex;align-items:center;gap:5px;font-size:9px;font-weight:700;color:rgba(var(--white-rgb),.55)"><span style="width:10px;height:2.5px;border-radius:2px;background:#FF7A2E;display:inline-block"></span>Daily</span>
-        <span style="display:flex;align-items:center;gap:5px;font-size:9px;font-weight:700;color:rgba(var(--white-rgb),.55)"><span style="width:10px;height:2.5px;border-radius:2px;background:#44CFFF;display:inline-block"></span>3-Day Avg</span>
+        <span style="display:flex;align-items:center;gap:5px;font-size:9px;font-weight:700;color:rgba(var(--white-rgb),.55)"><span style="width:10px;height:2.5px;border-radius:2px;background:#44CFFF;display:inline-block"></span>Weekly Avg</span>
       </div>
       <div class="wp-chart-wrap">
         <svg viewBox="0 0 280 100" preserveAspectRatio="none" style="width:100%;height:60px;display:block" class="dash-wp-chart">
@@ -11818,14 +11818,14 @@ function renderDailyVolume(){
   const yFor=v=>H-padY-((v/max)*(H-2*padY));
 
   const volPts=days.map((d,i)=>`${xFor(i).toFixed(1)},${yFor(d.total).toFixed(1)}`).join(' ');
-  // 3-day trailing rolling average — a real smoothing of the same
-  // tonnageLog data above, not a second fabricated series, giving the
-  // chart a genuine two-tone orange/cyan read like the reference.
-  const avgPts=days.map((d,i)=>{
-    const win=days.slice(Math.max(0,i-2),i+1);
-    const avg=win.reduce((s,w)=>s+w.total,0)/win.length;
-    return `${xFor(i).toFixed(1)},${yFor(avg).toFixed(1)}`;
-  }).join(' ');
+  // Flat weekly-average reference line — one real number (this week's
+  // Mon-Sun daily tonnage, averaged) drawn straight across, so the
+  // orange daily bars/points read against "above or below your week"
+  // at a glance. Was a 3-day trailing rolling average mislabeled as a
+  // weekly figure — with only 7 days of data in `days` to begin with,
+  // a single whole-week average is the honest, simpler read.
+  const weeklyAvg=days.reduce((s,d)=>s+d.total,0)/days.length;
+  const avgPts=days.map((d,i)=>`${xFor(i).toFixed(1)},${yFor(weeklyAvg).toFixed(1)}`).join(' ');
 
   volLine.setAttribute('points',volPts);
   avgLine.setAttribute('points',avgPts);
