@@ -56,6 +56,13 @@ a{color:inherit}
   opacity:0;animation:fadeUp .6s .1s forwards;
 }
 .eyebrow-dot{width:5px;height:5px;border-radius:50%;background:var(--orange);flex-shrink:0}
+.ref-badge{
+  display:none;align-items:center;gap:6px;font-size:11px;font-weight:600;color:rgba(238,240,255,.8);
+  background:rgba(255,255,255,.05);border:1px solid var(--border,rgba(255,255,255,.1));
+  padding:6px 12px;border-radius:100px;margin-bottom:18px;width:fit-content;
+  opacity:0;animation:fadeUp .6s .15s forwards;
+}
+.ref-badge b{color:var(--orange)}
 .hero-h1{
   font-weight:900;font-size:clamp(40px,5.4vw,68px);line-height:.98;letter-spacing:-.03em;
   opacity:0;animation:fadeUp .7s .22s forwards;
@@ -282,6 +289,7 @@ footer{position:relative;z-index:1;padding:32px 0 50px;text-align:center}
   <!-- HERO -->
   <div class="hero">
     <div>
+      <div class="ref-badge" id="ref-badge"></div>
       <p class="eyebrow"><span class="eyebrow-dot"></span>Early Access · Making Success Real</p>
       <h1 class="hero-h1">Get in <span class="it">before</span> <span class="or">everyone else.</span></h1>
       <p class="hero-sub">Areviax Mass turns training into something worth grinding for — real programming, real nutrition tracking, and a trophy cabinet that actually means something. Reserve your spot now and launch day, you're already in.</p>
@@ -569,6 +577,33 @@ const SPOTS_TOTAL = 500;
 const PRICE_NOW = 19;
 const PRICE_WAS = 39;
 
+// ── REFERRAL LINKS — the honest version of "affiliate tracking" for a
+// static page with no backend of its own. Share a link shaped like
+// waitlist.html?ref=<anything> (a name, a channel, a promo code — no
+// account or sign-up needed to make one) and this captures it into
+// localStorage so it survives a reload or a later visit without the
+// param still in the URL. Once PAYMENT_LINK_URL is a real Stripe Payment
+// Link, the ref is forwarded as client_reference_id — Stripe attaches
+// that to the resulting Checkout Session/payment automatically, so
+// referrals are visible in the Stripe dashboard without needing a
+// server here. There's no payout automation — crediting/paying an
+// affiliate is still a manual step until there's a real backend.
+const REF_STORAGE_KEY = 'arx_ref';
+function captureReferral(){
+  const urlRef = new URLSearchParams(window.location.search).get('ref');
+  try{
+    if(urlRef) localStorage.setItem(REF_STORAGE_KEY, urlRef.slice(0,60));
+    return localStorage.getItem(REF_STORAGE_KEY);
+  }catch(e){ return urlRef; } // private-mode/blocked storage — still honour a ref on this one load
+}
+const activeRef = captureReferral();
+function renderReferralBadge(){
+  const badge = document.getElementById('ref-badge');
+  if(!badge || !activeRef) return;
+  badge.innerHTML = '👋 Invited by <b>'+activeRef.replace(/</g,'&lt;')+'</b>';
+  badge.style.display = 'inline-flex';
+}
+
 function renderConfig(){
   document.getElementById('price-inline').textContent = '$'+PRICE_NOW;
   document.querySelectorAll('.price-inline-2').forEach(el=>el.textContent = '$'+PRICE_NOW);
@@ -579,13 +614,18 @@ function renderConfig(){
   document.getElementById('progress-count').textContent = SPOTS_CLAIMED+' / '+SPOTS_TOTAL;
 }
 renderConfig();
+renderReferralBadge();
 
 function goToCheckout(){
   if(!PAYMENT_LINK_URL || PAYMENT_LINK_URL.indexOf('REPLACE_WITH')===0){
     alert('Checkout isn\'t wired up yet — this button needs a real payment link (e.g. a Stripe Payment Link) set as PAYMENT_LINK_URL before this page goes live.');
     return;
   }
-  window.location.href = PAYMENT_LINK_URL;
+  let url = PAYMENT_LINK_URL;
+  if(activeRef){
+    url += (url.indexOf('?')>=0 ? '&' : '?') + 'client_reference_id=' + encodeURIComponent(activeRef);
+  }
+  window.location.href = url;
 }
 
 // FAQ accordion — single-open, plain toggle.
