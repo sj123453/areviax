@@ -1640,11 +1640,17 @@ input[type=checkbox]{accent-color:var(--orange);width:15px;height:15px;cursor:po
           <div style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:6px">Can't decide? Let the wheel</div>
           <div style="font-size:20px;font-weight:800;margin-bottom:22px">Task Roulette</div>
 
+          <div id="roulette-morning-nudge" style="display:none;text-align:left;background:rgba(255,90,0,.08);border:1.5px solid rgba(255,90,0,.3);border-radius:10px;padding:12px 14px;margin-bottom:22px">
+            <div style="font-size:12px;color:rgba(var(--white-rgb),.85);line-height:1.5;margin-bottom:8px">🌅 Willpower is highest right after you wake up — a good time to knock out your hardest task before the day talks you out of it.</div>
+            <button class="btn btn-secondary btn-sm" onclick="setRouletteEnergy(document.querySelector('[data-energy=hardest]'),'hardest')">Switch to Hardest First</button>
+          </div>
+
           <div style="font-size:11px;color:var(--muted);margin-bottom:10px">How's your energy right now?</div>
-          <div style="display:flex;gap:8px;justify-content:center;margin-bottom:26px" id="roulette-energy-row">
+          <div style="display:flex;gap:8px;justify-content:center;margin-bottom:26px;flex-wrap:wrap" id="roulette-energy-row">
             <button class="roulette-energy-btn" data-energy="low" onclick="setRouletteEnergy(this,'low')">😴 Low</button>
             <button class="roulette-energy-btn active" data-energy="medium" onclick="setRouletteEnergy(this,'medium')">🙂 Medium</button>
             <button class="roulette-energy-btn" data-energy="high" onclick="setRouletteEnergy(this,'high')">⚡ High</button>
+            <button class="roulette-energy-btn" data-energy="hardest" onclick="setRouletteEnergy(this,'hardest')" title="Always pick from your High priority tasks first">🎯 Hardest First</button>
           </div>
 
           <div style="position:relative;width:220px;height:220px;margin:0 auto 16px">
@@ -1665,6 +1671,20 @@ input[type=checkbox]{accent-color:var(--orange);width:15px;height:15px;cursor:po
           <div id="roulette-result-actions" style="display:none;justify-content:center;gap:10px;margin-top:16px">
             <button class="btn btn-secondary btn-sm" onclick="spinTaskRoulette()">Spin again</button>
             <button class="btn btn-secondary btn-sm" onclick="completeRouletteTask()">Mark done</button>
+          </div>
+        </div>
+
+        <!-- ── Nothing to spin for yet? Seed the wheel with a few reliable
+             go-to tasks — a mix of small quick wins and bigger ones, same
+             addTask() flow as typing one in manually, just pre-filled. ── -->
+        <div class="card">
+          <div class="card-header"><span class="card-title">Need something to add?</span></div>
+          <div style="font-size:11.5px;color:var(--muted);margin-bottom:12px">A few reliable go-to tasks, worth having on the wheel — mix in a couple of small ones with the big ones so it's not just the hard stuff.</div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px">
+            <div class="journal-prompt" onclick="quickAddRouletteTask('Drink a full glass of water','personal','Low')">💧 Drink a full glass of water · small</div>
+            <div class="journal-prompt" onclick="quickAddRouletteTask('Step outside for 5 minutes','personal','Low')">🌤️ Step outside for 5 minutes · small</div>
+            <div class="journal-prompt" onclick="quickAddRouletteTask('Do a workout','fitness','High')">🏋️ Do a workout · big</div>
+            <div class="journal-prompt" onclick="quickAddRouletteTask('Read for 20 minutes','study','High')">📖 Read for 20 minutes · big</div>
           </div>
         </div>
       </div>
@@ -2694,7 +2714,7 @@ function showPage(id){
   // Draw it on arrival too, same call the spin uses, so the wheel
   // (ring + task wedges, or just the ring if there's nothing logged
   // yet) is visible before any interaction.
-  if(id==='roulette') drawRouletteWheel(getOpenTasksForRoulette());
+  if(id==='roulette'){ drawRouletteWheel(getOpenTasksForRoulette()); renderRouletteMorningNudge(); }
 }
 
 // ── TABS ──
@@ -3585,6 +3605,7 @@ function setRouletteEnergy(btn, level){
   document.querySelectorAll('.roulette-energy-btn').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   rouletteEnergy = level;
+  renderRouletteMorningNudge();
 }
 function getOpenTasksForRoulette(){
   return [...document.querySelectorAll('#all-tasks .task-item:not(.done)')].map(el=>({
@@ -3597,7 +3618,16 @@ function pickWeightedTask(tasks){
   const hour = new Date().getHours();
   const lateInDay = hour >= 20 || hour < 6;
   // energy level biases which priority tier gets picked more often; late in
-  // the day, avoid surfacing High-priority tasks unless nothing else is open
+  // the day, avoid surfacing High-priority tasks unless nothing else is open.
+  // 'hardest' is a deliberate override, not an energy reading — it always
+  // reaches for the High tier first regardless of time of day, since the
+  // whole point is tackling the hard thing on purpose, not by accident.
+  if(rouletteEnergy === 'hardest'){
+    let preferred = tasks.filter(t=>t.priority === 'High');
+    if(!preferred.length) preferred = tasks.filter(t=>t.priority === 'Medium');
+    if(!preferred.length) preferred = tasks;
+    return preferred[Math.floor(Math.random() * preferred.length)];
+  }
   let preferred = tasks;
   if(rouletteEnergy === 'low') preferred = tasks.filter(t=>t.priority !== 'High');
   else if(rouletteEnergy === 'high') preferred = tasks.filter(t=>t.priority === 'High' || t.priority === 'Medium');
@@ -3721,6 +3751,33 @@ function completeRouletteTask(){
   document.getElementById('roulette-display').innerHTML = `<div class="roulette-placeholder">Hit spin to get your next task</div>`;
   document.getElementById('roulette-result-actions').style.display = 'none';
   rouletteCurrentTask = null;
+}
+// Same element shape as addTask() builds, just pre-filled from a tap
+// instead of the form — so these go-to tasks show up on the wheel and in
+// Tracking exactly like anything typed in manually, no special-casing.
+function quickAddRouletteTask(text, cat, pri){
+  const esc = text.replace(/'/g,"\\'");
+  const el=document.createElement('div');
+  el.className='task-item';
+  el.setAttribute('data-priority', pri);
+  el.setAttribute('onclick',`toggleTask(this,10,'${esc}','${cat}')`);
+  el.innerHTML=`<div class="task-main"><div class="task-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+    <span class="task-text">${text}</span>
+    <span class="task-tag tag-pri-${pri.toLowerCase()}">${pri}</span>
+    <span class="task-tag tag-${cat}">${cat.charAt(0).toUpperCase()+cat.slice(1)}</span></div>
+    <div class="subtask-list"></div>
+    <span class="subtask-add-btn" onclick="event.stopPropagation();showSubtaskInput(this)">+ add a step</span>`;
+  document.getElementById('all-tasks').appendChild(el);
+  tasksTotal++; updateTaskStats();
+  saveState();
+  showToast('🎡', text+' added to the wheel');
+  drawRouletteWheel(getOpenTasksForRoulette());
+}
+function renderRouletteMorningNudge(){
+  const nudge = document.getElementById('roulette-morning-nudge');
+  if(!nudge) return;
+  const hour = new Date().getHours();
+  nudge.style.display = (hour>=5 && hour<11 && rouletteEnergy!=='hardest') ? 'block' : 'none';
 }
 
 function renderRemindersList(){
