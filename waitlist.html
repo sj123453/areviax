@@ -103,7 +103,7 @@ a{color:inherit}
      mark on this page isn't just a static badge. ── */
 .hero-visual{position:relative;display:flex;align-items:center;justify-content:center;min-height:340px}
 #hero-compass-canvas{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:460px;height:460px;pointer-events:none;z-index:0}
-.founder-badge-wrap{position:relative;z-index:1;width:180px;height:180px;--orn-c1:url(#lgi-holo-grad);--orn-c2:url(#lgi-holo-grad)}
+.founder-badge-wrap{position:relative;z-index:1;width:180px;height:180px;--orn-c1:#FFD9A8;--orn-c2:#8A3010}
 .founder-badge-glow{
   position:absolute;top:14px;left:0;right:0;margin:0 auto;width:180px;height:180px;border-radius:50%;
   background:radial-gradient(circle,rgba(255,180,80,1) 0%,transparent 70%);
@@ -111,11 +111,13 @@ a{color:inherit}
 }
 @keyframes badgeGlowPulse{0%,100%{opacity:.7;transform:scale(1)}50%{opacity:1;transform:scale(1.06)}}
 /* Real medallion crown + laurel wreath — same SVG language and CSS
-   classes as the Mass App's Trophy Cabinet (see design-dna skill),
-   ported here rather than the old flat clip-path "wings" polygon this
-   page used to use. --orn-c1/--orn-c2 feed both the crown/wreath SVG
-   fills (url(#lgi-holo-grad) is valid there) via the shared sprite
-   defined near the top of <body>. */
+   classes as the Mass App's Trophy Cabinet, but deliberately recolored
+   away from the holographic rainbow gradient that means "ultralegendary /
+   Areviax Drop" inside the app. A pre-launch visitor has no context for
+   that yet, and reusing it here made the Founder badge visually claim to
+   BE an Areviax Drop pull rather than its own distinct thing. --orn-c1/
+   --orn-c2 now feed solid bronze/gold tones matching the actual Areviax
+   compass mark's own palette instead. */
 .founder-badge-crown{position:absolute;top:-30px;left:0;right:0;margin:0 auto;width:118px;height:59px;z-index:3;pointer-events:none;filter:drop-shadow(0 3px 3px rgba(0,0,0,.55))}
 .founder-badge-crown svg{width:100%;height:100%;display:block}
 .lgi-crown-body{fill:var(--orn-c2,#8E8E93)}
@@ -126,14 +128,14 @@ a{color:inherit}
 .lgr-stem{fill:none;stroke:var(--orn-c2,#8E8E93);stroke-width:2.4;stroke-linecap:round;opacity:.85}
 .lgr-leaf{fill:var(--orn-c2,#8E8E93);stroke:rgba(0,0,0,.4);stroke-width:0.8}
 .lgr-vein{fill:none;stroke:var(--orn-c1,#fff);stroke-width:0.9;opacity:.75}
-@keyframes holoShift{0%{background-position:0% 50%}100%{background-position:200% 50%}}
+@keyframes badgeShift{0%{background-position:0% 50%}100%{background-position:200% 50%}}
 .founder-badge{
   position:absolute;top:14px;left:0;right:0;margin:0 auto;width:180px;height:180px;z-index:1;
   clip-path:polygon(50% 0%,93% 25%,93% 75%,50% 100%,7% 75%,7% 25%);
   display:flex;align-items:center;justify-content:center;
-  background:linear-gradient(115deg,#FFD24A,#FF6FD8,#7FE3FF,#FF9A3D,#FFD24A);
+  background:linear-gradient(115deg,var(--gold),var(--orange),var(--orange2),var(--gold-l),var(--gold));
   background-size:300% 100%;
-  animation:holoShift 3.6s linear infinite,badgePulse 1.5s ease-in-out infinite;
+  animation:badgeShift 3.6s linear infinite,badgePulse 1.5s ease-in-out infinite;
   box-shadow:
     inset 0 0 0 3px rgba(0,0,0,.55),
     inset 0 0 0 7px #FFD9A8,
@@ -256,20 +258,6 @@ footer{position:relative;z-index:1;padding:32px 0 50px;text-align:center}
 </style>
 </head>
 <body>
-
-<!-- Shared holographic gradient — same sprite/id as the Mass App's
-     ultralegendary rarity tier, so the Founder badge's crown/wreath can
-     reference it via fill:url(#lgi-holo-grad) exactly like the app does. -->
-<svg width="0" height="0" style="position:absolute" aria-hidden="true">
-  <defs>
-    <linearGradient id="lgi-holo-grad" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#FFD24A"/>
-      <stop offset="35%" stop-color="#FF6FD8"/>
-      <stop offset="65%" stop-color="#7FE3FF"/>
-      <stop offset="100%" stop-color="#FF9A3D"/>
-    </linearGradient>
-  </defs>
-</svg>
 
 <div class="ambient"></div>
 
