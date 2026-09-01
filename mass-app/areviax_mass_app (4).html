@@ -14531,16 +14531,36 @@ function markTrainedToday(){
   }
 }
 
+// Exercises where weightInputLabel() tells the user to enter the weight
+// "per dumbbell" AND both dumbbells actually move together on every rep
+// (confirmed against each exercise's own cue text — "the dumbbells", "one
+// in each hand", no "each" in its reps) — the real weight moved per rep is
+// double what's entered, so totalVolume/tonnage undercounted it by half.
+// Deliberately NOT applied to single-dumbbell or one-arm-at-a-time moves
+// (Dumbbell Row, Goblet Squat, Renegade Row, Single-Arm anything, etc.) —
+// those already move exactly the entered weight, doubling them would
+// overcount. PRs and estimated 1RM stay on the raw entered (per-dumbbell)
+// weight either way — that's the number a lifter actually recognizes as
+// their PR, this fix is scoped to what "volume lifted" honestly means.
+const DOUBLE_DUMBBELL_EXERCISES=new Set([
+  'Arnold Press','Bulgarian Split Squat','Calf Raises','Chest-Supported Row','Cuban Press',
+  'Curtsy Lunge','Deficit Calf Raise','Dumbbell Bench Press','Dumbbell Curl','Dumbbell RDL',
+  'Dumbbell Shoulder Press','Dumbbell Skull Crusher','Dumbbell Step-Up','Dumbbell Thruster',
+  'Flat Dumbbell Fly','Hammer Curl','Incline Dumbbell Press','Lateral Raises',
+  'Preacher Hammer Curl','Rear Delt Fly','Reverse Lunge','Reverse Lunges','Spider Curl',
+  'Step-ups','Tate Press','Walking Lunges','Zottman Curl',
+]);
 function logSet(ei,si,name,muscle){
   const w=parseFloat(document.getElementById('sw-'+ei).value)||0;
   const r=parseInt(document.getElementById('sr-'+ei).value)||0;
+  const effW=DOUBLE_DUMBBELL_EXERCISES.has(name)?w*2:w;
   const chip=document.getElementById('sc-'+ei+'-'+si);
   if(chip.classList.contains('done'))return;
   chip.classList.add('done');
   chip.textContent=w>0?`✓ ${w}×${r}`:'✓';
   markTrainedToday();
   const prevTotalVolume=totalVolume;
-  totalVolume+=w*r;
+  totalVolume+=effW*r;
   const justPassed=WEIGHT_MILESTONES.find(m=>prevTotalVolume<m.kg&&totalVolume>=m.kg);
   if(justPassed){
     const article=/^[aeiou]/i.test(justPassed.name)?'an':'a';
@@ -14549,7 +14569,7 @@ function logSet(ei,si,name,muscle){
   if(w>0&&muscle){
     const today=localDateKey(new Date());
     muscle.split('+').map(m=>m.trim()).filter(Boolean).forEach(m=>{
-      tonnageLog.push({date:today,muscle:m,tonnage:w*r,ts:Date.now()});
+      tonnageLog.push({date:today,muscle:m,tonnage:effW*r,ts:Date.now()});
     });
     if(tonnageLog.length>2000)tonnageLog=tonnageLog.slice(-2000); // cap growth, keep it from growing forever
   }
