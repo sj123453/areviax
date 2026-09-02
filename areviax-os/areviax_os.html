@@ -3634,11 +3634,17 @@ function renderScheduleWeek(){
 // limit here: no backend/service worker in a single-file app means these
 // only fire via the browser Notification API while this tab is open (or
 // backgrounded but not closed) — checked once a minute, not true push.
+// Each type carries two strings: `desc` is the plain description shown in
+// the settings list (what this reminder is), and `notif` is what actually
+// fires as the notification body — written to say *why* it's worth acting
+// on right now, not just what happened. A bare "you haven't done X yet"
+// is easy to swipe away; a reason attached to it is what makes someone
+// actually stop and do the thing.
 const REMINDER_TYPES = [
-  {id:'daily-checkin', label:'Daily check-in', desc:"A nudge to open Areviax OS and log today's progress.", defaultTime:'09:00', icon:'☀️'},
-  {id:'streak-risk', label:'Streak at risk', desc:"Warns you in the evening if today's streak isn't locked in yet.", defaultTime:'20:00', icon:'🔥'},
-  {id:'habit-check', label:'Habit not logged', desc:"Reminds you if a habit hasn't been checked off yet today.", defaultTime:'18:00', icon:'✅'},
-  {id:'weekly-review', label:'Weekly review ready', desc:'Lets you know your weekly stats and insights are ready to look at.', defaultTime:'09:00', icon:'📊'},
+  {id:'daily-checkin', label:'Daily check-in', desc:"A nudge to open Areviax OS and log today's progress.", notif:"Plan today before it plans itself — five minutes now saves the 9pm scramble to remember what mattered.", defaultTime:'09:00', icon:'☀️'},
+  {id:'streak-risk', label:'Streak at risk', desc:"Warns you in the evening if today's streak isn't locked in yet.", notif:"Your streak is still open. Losses hurt roughly 2x more than gains feel good — don't let today be the one that resets it.", defaultTime:'20:00', icon:'🔥'},
+  {id:'habit-check', label:'Habit not logged', desc:"Reminds you if a habit hasn't been checked off yet today.", notif:"A habit's still unchecked. Consistency compounds — the days you almost skip are the ones that build it.", defaultTime:'18:00', icon:'✅'},
+  {id:'weekly-review', label:'Weekly review ready', desc:'Lets you know your weekly stats and insights are ready to look at.', notif:"Your weekly review is ready. Five minutes reflecting is what turns a busy week into an improving one.", defaultTime:'09:00', icon:'📊'},
 ];
 function requestReminderPermission(){
   if(!('Notification' in window)){
@@ -3918,7 +3924,7 @@ function checkReminders(){
     // only actually fire streak-at-risk / habit-check if there's a real reason to
     if(r.id==='streak-risk' && compassDates.includes(today)) return;
     if(r.id==='habit-check' && habits.length && habits.every(h=>h.completedDates.includes(today))) return;
-    new Notification('Areviax OS', {body: r.desc, icon: undefined, tag: r.id});
+    new Notification('Areviax OS', {body: r.notif, icon: undefined, tag: r.id});
     reminderLastFired[r.id] = today;
     saveState();
   });
@@ -3928,7 +3934,7 @@ function checkReminders(){
   if(doneListHourlyEnabled){
     const curHour = now.getHours();
     if(curHour>=8 && curHour<=22 && doneListLastFiredHour!==curHour){
-      new Notification('Areviax OS', {body:'What did you just do? Log it in your Done List.', tag:'donelist-hourly'});
+      new Notification('Areviax OS', {body:"What did you just do? Log it now, while it's fresh — memory of the last hour fades fast, and the Done List only works as a true record if it's not reconstructed later.", tag:'donelist-hourly'});
       doneListLastFiredHour = curHour;
       saveState();
     }
