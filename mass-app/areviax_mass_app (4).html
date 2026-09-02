@@ -46,7 +46,15 @@
 }
 [data-theme="light"] html{background:#F5F5F2}
 [data-theme="light"] body{background:linear-gradient(160deg,#F5F5F2 0%,#EAEAE5 100%) fixed;background-color:#F5F5F2}
-html{height:100%;background:#0D0806;overscroll-behavior:none}body{height:100%;background:linear-gradient(160deg,#0D0806 0%,#000000 100%) fixed;background-color:#0D0806;color:var(--white);font-family:'Outfit',sans-serif;font-weight:400;overflow:hidden;overscroll-behavior:none;touch-action:manipulation}
+html{height:100%;background:#0D0806;overscroll-behavior:none}body{height:100%;background:linear-gradient(160deg,#0D0806 0%,#000000 100%) fixed;background-color:#0D0806;color:var(--white);font-family:'Outfit',sans-serif;font-weight:400;overflow:hidden;overscroll-behavior:none;touch-action:manipulation;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+/* Without this, double-clicking anywhere in the app shell (topbar,
+   dashboard, cards) triggers the browser's native text-selection —
+   there's no real "text" to select there, just whitespace between many
+   flex/grid children, so the selection highlight scatters across dozens
+   of tiny whitespace runs and reads as a diffuse glow across the page.
+   App-like UI chrome shouldn't be selectable at all; inputs/textareas
+   keep their own native editable behaviour regardless of this. */
+input,textarea{user-select:text;-webkit-user-select:text}
 /* No maximum-scale/user-scalable=no on the viewport meta, so without this
    the browser has to wait to tell a tap apart from the start of a
    double-tap-to-zoom gesture on every single tap — the likely cause of
