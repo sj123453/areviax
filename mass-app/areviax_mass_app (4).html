@@ -1796,10 +1796,13 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .cabinet-tier{margin-bottom:20px}
     .cabinet-tier-plaque{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:2px}
     .cabinet-tier-name{font-size:13.5px;font-weight:900;color:var(--white);letter-spacing:-.01em}
-    .greek-page .cabinet-tier-plaque{position:relative;padding-bottom:8px}
-    .greek-page .cabinet-tier-plaque::after{content:"";position:absolute;left:0;bottom:0;width:56px;height:1px;background:linear-gradient(90deg,var(--gold-soft),transparent)}
+    .greek-page .cabinet-tier-plaque,.lv-page .cabinet-tier-plaque{position:relative;padding-bottom:8px}
+    .greek-page .cabinet-tier-plaque::after,.lv-page .cabinet-tier-plaque::after{content:"";position:absolute;left:0;bottom:0;width:56px;height:1px;background:linear-gradient(90deg,var(--gold-soft),transparent)}
+    .lv-page .cabinet-tier-name{font-family:var(--lv-serif);font-weight:600;font-size:1.15rem;text-transform:uppercase;letter-spacing:.04em;color:var(--lv-fg)}
     .cabinet-tier-count{font-size:10px;font-weight:800;color:var(--muted);white-space:nowrap;flex-shrink:0}
+    .lv-page .cabinet-tier-count{font-family:var(--lv-mono);color:var(--lv-muted-fg)}
     .cabinet-tier-sub{font-size:10.5px;color:var(--muted);margin-bottom:11px}
+    .lv-page .cabinet-tier-sub{color:var(--lv-muted-fg)}
     /* Wraps instead of horizontal-scrolling — shrinking the hex meant a
        full 13-item layer (or the 6-8 item Legends row) can lay out
        across a couple of short rows and be seen at a glance, rather
@@ -3634,8 +3637,8 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
           <span class="lv-wordmark">Areviax</span>
         </span>
         <div style="display:flex;align-items:center;gap:6px">
-          <span class="lv-pill" style="background:var(--lv-primary);color:var(--lv-primary-fg)"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 22c4.4 0 7-2.9 7-6.8 0-3-1.7-5-3-7-.2 1.7-1 2.8-2 3.4.3-2.7-.7-5.6-3-7.6-.3 2.5-1.2 3.9-2.7 5.4C6.8 10.8 6 12.6 6 15c0 4 2.7 7 6 7z"/></svg> <span id="dash-streak-badge">0</span></span>
-          <span class="lv-pill" style="border:1px solid var(--lv-border-strong);color:var(--lv-xp)"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.8 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg> <span id="dash-xp-badge">0</span></span>
+          <span class="lv-pill" style="background:var(--lv-primary);color:var(--lv-primary-fg)"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 22c4.4 0 7-2.9 7-6.8 0-3-1.7-5-3-7-.2 1.7-1 2.8-2 3.4.3-2.7-.7-5.6-3-7.6-.3 2.5-1.2 3.9-2.7 5.4C6.8 10.8 6 12.6 6 15c0 4 2.7 7 6 7z"/></svg> <span id="dash-streak-badge" class="lv-streak-badge">0</span></span>
+          <span class="lv-pill" style="border:1px solid var(--lv-border-strong);color:var(--lv-xp)"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.8 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg> <span id="dash-xp-badge" class="lv-xp-badge">0</span></span>
         </div>
       </div>
 
@@ -4594,7 +4597,18 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
 </div>
 
 <!-- PROGRESS -->
-<div class="page greek-page" id="page-progress">
+<div class="page lv-page" id="page-progress">
+
+  <div class="lv-topbar lv-page-topbar" data-page="progress" style="display:none;margin:0 -20px 0">
+    <span style="display:flex;align-items:center;gap:8px">
+      <svg width="18" height="18" viewBox="0 0 48 48" fill="none" stroke="var(--lv-gold)" aria-hidden="true"><path d="M24 5 26.6 21.4 43 24 26.6 26.6 24 43 21.4 26.6 5 24 21.4 21.4Z" fill="var(--lv-gold)" stroke="none" opacity=".95"/><path d="M24 12v24M12 24h24" stroke-width=".6" opacity=".5"/><circle cx="24" cy="24" r="11" stroke-width=".7" opacity=".45"/></svg>
+      <span class="lv-wordmark" style="font-size:11px">Areviax</span>
+    </span>
+    <div style="display:flex;align-items:center;gap:6px">
+      <span class="lv-pill" style="padding:4px 8px;background:var(--lv-primary);color:var(--lv-primary-fg);font-size:10px"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 22c4.4 0 7-2.9 7-6.8 0-3-1.7-5-3-7-.2 1.7-1 2.8-2 3.4.3-2.7-.7-5.6-3-7.6-.3 2.5-1.2 3.9-2.7 5.4C6.8 10.8 6 12.6 6 15c0 4 2.7 7 6 7z"/></svg> <span class="lv-streak-badge">0</span></span>
+      <span class="lv-pill" style="padding:4px 8px;border:1px solid var(--lv-border-strong);color:var(--lv-xp);font-size:10px"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.8 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg> <span class="lv-xp-badge">0</span></span>
+    </div>
+  </div>
 
   <!-- DESKTOP MASONRY WRAP — on mobile this is just the plain vertical
        card stack it always was (no layout change below 900px). Past
@@ -4606,111 +4620,95 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        break can't cut one in half. The carousel below stays outside
        this wrapper since a horizontal swipe strip doesn't make sense
        inside a multi-column flow. -->
-  <div class="prog-top-grid">
+  <div class="prog-top-grid lv-page">
 
-  <!-- HERO — total tonnage over a selectable window, same hero-stat
-       mechanism as the Dashboard's Today/greeting cards: giant number,
-       small unit, huge faint watermark, a real trend line underneath,
-       and here a genuine filter control (4W/12W/1Y) instead of a fixed
-       range. Real tonnageLog data — see renderProgressHero(). -->
-  <div class="temple-glow" style="background:transparent;padding:6px 4px 20px;margin-bottom:16px;position:relative;overflow:hidden">
-    <div aria-hidden="true" class="dot-field" style="right:0;top:0;width:100%;height:100%"></div>
-    <div aria-hidden="true" id="prog-hero-watermark" class="hollow-num" style="position:absolute;right:-4px;top:-14px;font-family:'Cinzel',sans-serif;font-weight:800;font-size:130px;line-height:1;--hollow-w:1.5px;--hollow-c:rgba(255,122,46,.16);pointer-events:none;user-select:none">12</div>
-    <div style="position:relative">
-      <div style="font-size:9.5px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,122,46,.7);margin-bottom:8px">Total Volume · <span id="prog-hero-range-label">12W</span></div>
-      <div style="display:flex;align-items:flex-end;gap:6px">
-        <span class="neon-glow" style="font-family:'Cinzel',sans-serif;font-weight:800;font-size:56px;line-height:1;color:var(--white)" id="prog-hero-num">0</span>
-        <span style="font-family:'Cinzel',sans-serif;font-weight:800;font-size:30px;line-height:1.1;color:transparent;-webkit-text-stroke:1.5px rgba(var(--white-rgb),.5)">T</span>
+  <!-- HERO — literal port of website-refresh's ProgressScreen <header>.
+       Real tonnageLog data — see renderProgressHero(). -->
+  <header class="lv-ember-wash lv-grain lv-colonnade lv-temple-glow lv-pediment lv-laurel-watermark" style="position:relative;overflow:hidden;margin:0 -20px 16px;padding:20px 20px 26px">
+    <span class="lv-ghost-numeral" style="right:-14px;top:38px">ΙΒ</span>
+    <div style="position:relative;z-index:1">
+      <p class="lv-label-eyebrow" style="color:var(--lv-primary)">Total volume · <span id="prog-hero-range-label">12W</span></p>
+      <h1 class="lv-display-hero" style="margin-top:8px;color:var(--lv-fg)"><span id="prog-hero-num">0</span><span class="lv-serif-accent lv-gold-text" style="font-size:.7em">t</span></h1>
+      <div style="margin-top:10px;display:flex;align-items:center;gap:10px;font-family:var(--lv-mono);font-size:11px;color:var(--lv-muted-fg)" id="prog-hero-trend">Log a session to start tracking volume.</div>
+      <div style="display:flex;gap:8px;margin-top:18px" id="prog-hero-range-pills">
+        <div class="prog-range-pill" data-weeks="4" onclick="setProgressRange(4)" style="flex:1;text-align:center;padding:9px;border-radius:.75rem;border:1.5px solid var(--lv-border);font-family:var(--lv-sans);font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--lv-muted-fg);cursor:pointer">4W</div>
+        <div class="prog-range-pill active" data-weeks="12" onclick="setProgressRange(12)" style="flex:1;text-align:center;padding:9px;border-radius:.75rem;border:1.5px solid var(--lv-primary);background:rgba(var(--lv-primary-rgb),.2);font-family:var(--lv-sans);font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--lv-primary);cursor:pointer">12W</div>
+        <div class="prog-range-pill" data-weeks="52" onclick="setProgressRange(52)" style="flex:1;text-align:center;padding:9px;border-radius:.75rem;border:1.5px solid var(--lv-border);font-family:var(--lv-sans);font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--lv-muted-fg);cursor:pointer">1Y</div>
       </div>
-      <div style="font-size:11.5px;color:rgba(var(--white-rgb),.55);margin-top:8px" id="prog-hero-trend">Log a session to start tracking volume.</div>
-      <div style="display:flex;gap:8px;margin-top:16px" id="prog-hero-range-pills">
-        <div class="prog-range-pill" data-weeks="4" onclick="setProgressRange(4)" style="flex:1;text-align:center;padding:9px;border-radius:999px;border:1.5px solid var(--border2);font-size:11.5px;font-weight:800;color:var(--muted);cursor:pointer">4W</div>
-        <div class="prog-range-pill active" data-weeks="12" onclick="setProgressRange(12)" style="flex:1;text-align:center;padding:9px;border-radius:999px;border:1.5px solid var(--orange);background:rgba(243,103,23,.12);font-size:11.5px;font-weight:800;color:var(--orange);cursor:pointer">12W</div>
-        <div class="prog-range-pill" data-weeks="52" onclick="setProgressRange(52)" style="flex:1;text-align:center;padding:9px;border-radius:999px;border:1.5px solid var(--border2);font-size:11.5px;font-weight:800;color:var(--muted);cursor:pointer">1Y</div>
-      </div>
-      <div class="meander-band" aria-hidden="true" style="margin-top:18px"></div>
+      <div class="lv-meander" style="margin-top:18px"></div>
     </div>
-  </div>
+  </header>
 
-  <!-- TONNAGE — weekly bar chart across the same selected range, rounded
-       bars, current week highlighted. Reuses the same tonnageLog weekly
-       bucketing renderVolumeTrend() already did, just re-drawn as bars
-       matching this page's new visual language instead of a thin line. -->
-  <div id="prog-tonnage-card" style="display:none;background:rgba(232,214,196,.015);border:1px solid var(--border2);border-radius:16px;padding:18px;margin-bottom:14px">
-    <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px">
-      <span style="font-family:'Cinzel',sans-serif;font-weight:800;font-size:15px;color:var(--white)"><span style="color:var(--gold);font-weight:700;margin-right:6px">α.</span>Tonnage</span>
-      <span style="font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--muted)">tonnes / week</span>
+  <!-- hidden legacy anchor — old watermark digit, no visible equivalent
+       in the ported hero, kept only so renderProgressHero() doesn't error. -->
+  <div id="prog-hero-watermark" style="display:none">12</div>
+
+  <!-- TONNAGE — weekly bar chart across the same selected range. Real
+       tonnageLog weekly bucketing via renderProgressTonnage(). -->
+  <div id="prog-tonnage-card" class="lv-surface" style="display:none;padding:20px;margin-bottom:12px">
+    <div style="display:flex;align-items:baseline;justify-content:space-between">
+      <h2 class="lv-section-title" style="display:flex;align-items:baseline;gap:8px;font-size:1.4rem"><span class="lv-greek-numeral">Α</span>Tonnage</h2>
+      <span style="font-family:var(--lv-mono);font-size:11px;color:var(--lv-muted-fg)">tonnes / week</span>
     </div>
-    <div style="width:64px;height:1px;background:linear-gradient(90deg,var(--gold-soft),transparent);margin-bottom:10px"></div>
-    <div id="prog-tonnage-chart" style="display:flex;align-items:flex-end;gap:5px;height:90px;margin-bottom:8px"></div>
-    <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--muted)">
+    <div id="prog-tonnage-chart" style="display:flex;align-items:flex-end;gap:5px;height:96px;margin-top:16px"></div>
+    <div style="display:flex;justify-content:space-between;font-family:var(--lv-mono);font-size:10px;color:var(--lv-muted-fg);margin-top:8px">
       <span id="prog-tonnage-left-label">-12w</span><span>now</span>
     </div>
   </div>
 
-  <!-- RECORDS — real prs/lastPerformance data, restyled to match: icon,
-       lift name, weight right-aligned. No fabricated dates/deltas — that
-       history isn't tracked anywhere yet, and inventing it would be
-       worse than just not showing it. -->
-  <div style="background:rgba(232,214,196,.015);border:1px solid var(--border2);border-radius:16px;padding:18px 18px 6px;margin-bottom:14px">
-    <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px">
-      <span style="font-family:'Cinzel',sans-serif;font-weight:800;font-size:15px;color:var(--white)"><span style="color:var(--gold);font-weight:700;margin-right:6px">β.</span>Records</span>
-      <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted)" id="prog-records-count"></span>
+  <!-- RECORDS — real prs/lastPerformance data. No fabricated dates/deltas
+       — that history isn't tracked anywhere yet, and inventing it would
+       be worse than just not showing it. -->
+  <div class="lv-surface" style="padding:20px;margin-bottom:12px">
+    <div style="display:flex;align-items:baseline;justify-content:space-between">
+      <h2 class="lv-section-title" style="display:flex;align-items:baseline;gap:8px;font-size:1.4rem"><span class="lv-greek-numeral">Β</span>Records</h2>
+      <span style="font-family:var(--lv-mono);font-size:11px;color:var(--lv-muted-fg)" id="prog-records-count"></span>
     </div>
-    <div style="width:64px;height:1px;background:linear-gradient(90deg,var(--gold-soft),transparent);margin-bottom:10px"></div>
-    <div id="prog-records-list"></div>
+    <div id="prog-records-list" style="margin-top:8px"></div>
   </div>
 
   <!-- BODYWEIGHT — real weightLog, same big-number treatment. -->
-  <div id="prog-bodyweight-card" style="display:none;background:rgba(232,214,196,.015);border:1px solid var(--border2);border-radius:16px;padding:18px;margin-bottom:14px">
-    <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px">
-      <span style="font-size:10px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:rgba(68,212,255,.75)">Bodyweight</span>
-      <span style="font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700" id="prog-bw-delta"></span>
+  <div id="prog-bodyweight-card" class="lv-surface" style="display:none;padding:20px;margin-bottom:12px">
+    <div style="display:flex;align-items:baseline;justify-content:space-between">
+      <div>
+        <span class="lv-label-eyebrow" style="color:var(--lv-fuel)">Bodyweight</span>
+        <p class="lv-stat-huge" style="margin-top:8px" id="prog-bw-num">—<span style="font-family:var(--lv-mono);font-size:11px;color:var(--lv-muted-fg)">kg</span></p>
+      </div>
+      <span style="font-family:var(--lv-mono);font-size:11px;color:var(--lv-fuel)" id="prog-bw-delta"></span>
     </div>
-    <div style="display:flex;align-items:baseline;gap:4px;margin-bottom:10px">
-      <span style="font-family:'Cinzel',sans-serif;font-weight:800;font-size:38px;line-height:1;color:var(--white)" id="prog-bw-num">—</span>
-      <span style="font-size:14px;color:var(--muted)">lbs</span>
-    </div>
-    <div id="prog-bw-chart"></div>
+    <div id="prog-bw-chart" style="margin-top:8px"></div>
   </div>
 
   <!-- CONSISTENCY — 4-week heatmap, real trainingCompletedDates. -->
-  <div style="background:rgba(232,214,196,.015);border:1px solid var(--border2);border-radius:16px;padding:18px;margin-bottom:14px">
-    <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px">
-      <span style="font-family:'Cinzel',sans-serif;font-weight:800;font-size:15px;color:var(--white)"><span style="color:var(--gold);font-weight:700;margin-right:6px">γ.</span>Consistency</span>
-      <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted)" id="prog-consistency-count"></span>
+  <div class="lv-surface" style="padding:20px;margin-bottom:12px">
+    <div style="display:flex;align-items:baseline;justify-content:space-between">
+      <h2 class="lv-section-title" style="display:flex;align-items:baseline;gap:8px;font-size:1.4rem"><span class="lv-greek-numeral">Γ</span>Consistency</h2>
+      <span style="font-family:var(--lv-mono);font-size:11px;color:var(--lv-muted-fg)" id="prog-consistency-count"></span>
     </div>
-    <div style="width:64px;height:1px;background:linear-gradient(90deg,var(--gold-soft),transparent);margin-bottom:10px"></div>
-    <div id="prog-consistency-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:8px"></div>
-    <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--muted);margin-bottom:10px">
-      <span>M T W T F S S</span><span>most recent →</span>
-    </div>
-    <div style="display:flex;align-items:center;gap:14px;font-size:9.5px;color:var(--muted)">
-      <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:3px;background:#F36717;display:inline-block"></span>Trained</span>
-      <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:3px;background:var(--border2);display:inline-block"></span>Rest day</span>
-      <span style="display:flex;align-items:center;gap:5px"><span style="width:10px;height:10px;border-radius:3px;background:var(--border2);box-shadow:inset 0 0 0 1.5px rgba(232,214,196,.85);display:inline-block"></span>Today</span>
+    <div id="prog-consistency-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:16px;margin-bottom:8px"></div>
+    <div style="display:flex;justify-content:space-between;font-family:var(--lv-mono);font-size:10px;color:var(--lv-muted-fg)">
+      <span>M T W T F S S</span><span>today</span>
     </div>
   </div>
 
   <!-- BALANCE — real tonnageLog bucketed by muscle into push/pull/legs/core
        (a set = one tonnageLog entry, since logSet() pushes one per set). -->
-  <div style="background:rgba(232,214,196,.015);border:1px solid var(--border2);border-radius:16px;padding:18px;margin-bottom:14px">
-    <div style="font-family:'Cinzel',sans-serif;font-weight:800;font-size:15px;color:var(--white);margin-bottom:14px">Balance</div>
-    <div id="prog-balance-rows"></div>
-    <div id="prog-balance-note" style="display:none;margin-top:6px;font-size:11.5px;color:rgba(var(--white-rgb),.6);line-height:1.5"></div>
+  <div class="lv-surface" style="padding:20px;margin-bottom:12px">
+    <h2 class="lv-section-title" style="display:flex;align-items:baseline;gap:8px;font-size:1.4rem"><span class="lv-greek-numeral">Δ</span>Balance</h2>
+    <div id="prog-balance-rows" style="margin-top:16px"></div>
+    <div id="prog-balance-note" style="display:none;margin-top:16px;font-size:11px;line-height:1.5;color:var(--lv-muted-fg);display:flex;align-items:flex-start;gap:8px"></div>
   </div>
 
-  <!-- 3-STAT ROW — Training/Protein/Sleep this week, restyled from the old
-       "This week" card's same renderConsistency() data. -->
-  <div id="prog-stat-row" style="display:grid;grid-template-columns:repeat(3,1fr);background:rgba(232,214,196,.015);border:1px solid var(--border2);border-radius:16px;margin-bottom:14px;overflow:hidden"></div>
+  <!-- 3-STAT ROW — Training/Protein/Sleep this week, real renderConsistency() data. -->
+  <div id="prog-stat-row" class="lv-hairline-grid" style="margin-bottom:12px"></div>
 
   <!-- TROPHY ROOM — CTA into the Trophy Cabinet, real unlocked/total count. -->
-  <div onclick="showPage('trophycabinet')" style="cursor:pointer;background:linear-gradient(135deg,#FF8342,#F36717);border-radius:16px;padding:18px 20px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 12px 26px -12px rgba(243,103,23,.5)">
+  <div onclick="showPage('trophycabinet')" class="lv-ember lv-grain" style="cursor:pointer;border-radius:1.75rem;padding:18px 20px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between">
     <div>
-      <div style="font-family:'Cinzel',sans-serif;font-weight:800;font-size:17px;color:#2B0E00">Trophy Room</div>
-      <div style="font-size:12px;color:rgba(43,14,0,.75);margin-top:3px" id="prog-trophy-sub">— of — unlocked</div>
+      <div style="font-family:var(--lv-sans);font-weight:800;font-size:17px;text-transform:uppercase;letter-spacing:.1em">Trophy room</div>
+      <div style="font-family:var(--lv-mono);font-size:11px;opacity:.8;margin-top:4px" id="prog-trophy-sub">— of — unlocked</div>
     </div>
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2B0E00" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
   </div>
 
   </div><!-- /.prog-top-grid -->
@@ -5053,17 +5051,56 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
      unlock-aware content today — Layers 2-7 render as correctly
      labelled/counted locked shelves until that art exists, per
      renderTrophyCabinet()/TROPHY_LAYERS. -->
-<div class="page greek-page" id="page-trophycabinet">
-  <div class="companion"><div class="companion-msg">Every rep, every rarity — this is the collection you're building.</div></div>
+<div class="page lv-page" id="page-trophycabinet">
 
-  <div class="cabinet-hero laurel-watermark temple-glow">
-    <div class="cabinet-hero-label">The Areviax Trophy</div>
-    <div class="legend-card cabinet-peak rarity-ultralegendary" id="cabinet-peak-slot" onclick="viewCabinetLocked('The Areviax Trophy')">
-      <div class="legend-card-icon-glow"></div><div class="legend-card-icon-burst"></div><div class="legend-card-crown"><svg viewBox="0 0 100 100" preserveAspectRatio="none"><path class="lgi-crown-body" d="M0,90 L0,32 L25,58 L40,6 L50,42 L60,6 L75,58 L100,32 L100,90 Z"/><path class="lgi-crown-rim" d="M0,32 L25,58 L40,6 L50,42 L60,6 L75,58 L100,32"/><circle class="lgi-crown-jewel" cx="40" cy="10" r="6"/><circle class="lgi-crown-jewel" cx="60" cy="10" r="6"/><circle class="lgi-crown-jewel" cx="50" cy="76" r="5"/></svg></div><div class="legend-card-wreath"><svg viewBox="-5 -5 110 115"><path class="lgr-stem" d="M46.2,95.8 L29.9,91.2 L16.6,80.7 L8.3,66.0 L6.1,49.3 L10.4,32.9 L20.5,19.4 L35.0,10.7"/><path class="lgr-stem" d="M53.8,95.8 L70.1,91.2 L83.4,80.7 L91.7,66.0 L93.9,49.3 L89.6,32.9 L79.5,19.4 L65.0,10.7"/><path class="lgr-leaf" d="M47.6,94.1 Q38.5,95.5 38.2,105.8 Q48.2,103.2 47.6,94.1 Z"/><path class="lgr-vein" d="M47.6,94.1 L38.2,105.8"/><path class="lgr-leaf" d="M31.8,90.1 Q23.4,88.1 19.4,97.0 Q29.1,98.3 31.8,90.1 Z"/><path class="lgr-vein" d="M31.8,90.1 L19.4,97.0"/><path class="lgr-leaf" d="M18.6,80.5 Q12.0,75.7 5.4,82.1 Q13.4,86.6 18.6,80.5 Z"/><path class="lgr-vein" d="M18.6,80.5 L5.4,82.1"/><path class="lgr-leaf" d="M10.1,66.5 Q6.0,60.1 -1.9,63.3 Q3.4,70.0 10.1,66.5 Z"/><path class="lgr-vein" d="M10.1,66.5 L-1.9,63.3"/><path class="lgr-leaf" d="M7.5,50.3 Q6.2,43.4 -1.7,43.3 Q0.4,51.0 7.5,50.3 Z"/><path class="lgr-vein" d="M7.5,50.3 L-1.7,43.3"/><path class="lgr-leaf" d="M11.2,34.3 Q12.5,27.9 5.7,25.1 Q4.9,32.4 11.2,34.3 Z"/><path class="lgr-vein" d="M11.2,34.3 L5.7,25.1"/><path class="lgr-leaf" d="M20.7,20.8 Q24.1,15.9 19.2,11.1 Q16.0,17.0 20.7,20.8 Z"/><path class="lgr-vein" d="M20.7,20.8 L19.2,11.1"/><path class="lgr-leaf" d="M34.6,12.0 Q39.2,8.9 36.8,3.2 Q32.0,7.1 34.6,12.0 Z"/><path class="lgr-vein" d="M34.6,12.0 L36.8,3.2"/><path class="lgr-leaf" d="M52.4,94.1 Q51.8,103.2 61.8,105.8 Q61.5,95.5 52.4,94.1 Z"/><path class="lgr-vein" d="M52.4,94.1 L61.8,105.8"/><path class="lgr-leaf" d="M68.2,90.1 Q70.9,98.3 80.6,97.0 Q76.6,88.1 68.2,90.1 Z"/><path class="lgr-vein" d="M68.2,90.1 L80.6,97.0"/><path class="lgr-leaf" d="M81.4,80.5 Q86.6,86.6 94.6,82.1 Q88.0,75.7 81.4,80.5 Z"/><path class="lgr-vein" d="M81.4,80.5 L94.6,82.1"/><path class="lgr-leaf" d="M89.9,66.5 Q96.6,70.0 101.9,63.3 Q94.0,60.1 89.9,66.5 Z"/><path class="lgr-vein" d="M89.9,66.5 L101.9,63.3"/><path class="lgr-leaf" d="M92.5,50.3 Q99.6,51.0 101.7,43.3 Q93.8,43.4 92.5,50.3 Z"/><path class="lgr-vein" d="M92.5,50.3 L101.7,43.3"/><path class="lgr-leaf" d="M88.8,34.3 Q95.1,32.4 94.3,25.1 Q87.5,27.9 88.8,34.3 Z"/><path class="lgr-vein" d="M88.8,34.3 L94.3,25.1"/><path class="lgr-leaf" d="M79.3,20.8 Q84.0,17.0 80.8,11.1 Q75.9,15.9 79.3,20.8 Z"/><path class="lgr-vein" d="M79.3,20.8 L80.8,11.1"/><path class="lgr-leaf" d="M65.4,12.0 Q68.0,7.1 63.2,3.2 Q60.8,8.9 65.4,12.0 Z"/><path class="lgr-vein" d="M65.4,12.0 L63.2,3.2"/></svg></div><div class="legend-card-icon">🔒</div>
-      <div class="legend-card-name">1-of-1</div>
+  <div class="lv-topbar lv-page-topbar" data-page="trophycabinet" style="display:none;margin:0 -20px 0">
+    <span onclick="showPage('progress')" style="display:flex;align-items:center;gap:8px;cursor:pointer">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--lv-fg)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+      <svg width="18" height="18" viewBox="0 0 48 48" fill="none" stroke="var(--lv-gold)" aria-hidden="true"><path d="M24 5 26.6 21.4 43 24 26.6 26.6 24 43 21.4 26.6 5 24 21.4 21.4Z" fill="var(--lv-gold)" stroke="none" opacity=".95"/><path d="M24 12v24M12 24h24" stroke-width=".6" opacity=".5"/><circle cx="24" cy="24" r="11" stroke-width=".7" opacity=".45"/></svg>
+      <span class="lv-wordmark" style="font-size:11px">Trophies</span>
+    </span>
+    <div style="display:flex;align-items:center;gap:6px">
+      <span class="lv-pill" style="padding:4px 8px;background:var(--lv-primary);color:var(--lv-primary-fg);font-size:10px"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 22c4.4 0 7-2.9 7-6.8 0-3-1.7-5-3-7-.2 1.7-1 2.8-2 3.4.3-2.7-.7-5.6-3-7.6-.3 2.5-1.2 3.9-2.7 5.4C6.8 10.8 6 12.6 6 15c0 4 2.7 7 6 7z"/></svg> <span class="lv-streak-badge">0</span></span>
+      <span class="lv-pill" style="padding:4px 8px;border:1px solid var(--lv-border-strong);color:var(--lv-xp);font-size:10px"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.8 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg> <span class="lv-xp-badge">0</span></span>
     </div>
-    <div class="cabinet-hero-sub">The single rarest reward in the game — still ahead of you.</div>
-    <div class="meander-band" aria-hidden="true" style="margin-top:18px"></div>
+  </div>
+
+  <!-- HERO — literal port of website-refresh's TrophyScreen <header>. Real
+       unlockedLegends/WEIGHT_MILESTONES/xp data, see renderTrophyHeroLovable(). -->
+  <header class="lv-ember-wash lv-grain lv-colonnade lv-temple-glow lv-pediment lv-laurel-watermark" style="position:relative;overflow:hidden;margin:0 -20px 16px;padding:20px 20px 26px">
+    <span class="lv-ghost-numeral" style="right:-14px;top:38px">Θ</span>
+    <div style="position:relative;z-index:1">
+      <p class="lv-label-eyebrow" style="color:var(--lv-gold)">Trophy room</p>
+      <h1 class="lv-display-hero" style="margin-top:8px;color:var(--lv-fg)"><span id="troph-earned-num">0</span><span class="lv-serif-accent lv-gold-text" style="font-size:.6em">/<span id="troph-total-num">0</span></span></h1>
+      <div style="margin-top:10px;display:flex;align-items:center;gap:10px;font-family:var(--lv-mono);font-size:11px;color:var(--lv-muted-fg)">
+        <span style="display:flex;align-items:center;gap:5px;color:var(--lv-xp)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21h8M12 17v4M17 5h2a2 2 0 0 1 2 2v1a4 4 0 0 1-4 4M7 5H5a2 2 0 0 0-2 2v1a4 4 0 0 0 4 4"/><path d="M7 4h10v6a5 5 0 0 1-10 0z"/></svg> <span id="troph-gold-locked">0</span> legendary locked</span>
+        <span>· <span id="troph-xp-banked">0</span> XP banked</span>
+      </div>
+      <div class="lv-rail-track" style="margin-top:18px"><div class="lv-rail-fill" id="troph-hero-fill" style="width:0%;background:var(--lv-primary)"></div></div>
+      <div class="lv-meander-bold" style="margin-top:18px"></div>
+    </div>
+  </header>
+
+  <!-- CLOSEST UNLOCK — real nearest weight milestone by % progress (the
+       one collectible tier here with a genuine "distance to go" instead
+       of a pure-luck pull). -->
+  <div id="troph-closest-card" class="lv-surface" style="display:none;padding:20px;margin:0 20px 12px">
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <span class="lv-label-eyebrow" style="color:var(--lv-primary)">Closest unlock</span>
+      <span style="font-family:var(--lv-mono);font-size:11px;color:var(--lv-muted-fg)" id="troph-closest-pct"></span>
+    </div>
+    <h2 class="lv-section-title" style="margin-top:8px;font-size:1.7rem" id="troph-closest-name"></h2>
+    <p style="margin-top:8px;font-size:11px;line-height:1.5;color:var(--lv-muted-fg)" id="troph-closest-detail"></p>
+    <div class="lv-rail-track" style="margin-top:16px;height:8px"><div class="lv-rail-fill" id="troph-closest-fill" style="width:0%;background:var(--lv-primary)"></div></div>
+  </div>
+
+  <!-- FILTER — jumps to/highlights the matching real section below rather
+       than a fake category that doesn't exist in this app's data. -->
+  <div class="lv-scroll-row" style="margin:0 20px 16px" id="troph-filter-tabs">
+    <button class="troph-filter-btn active" data-target="cabinet-liftranks-section" onclick="setTrophyFilter('cabinet-liftranks-section',this)" style="border-radius:999px;padding:9px 16px;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;font-family:var(--lv-sans);border:1.5px solid var(--lv-primary);background:rgba(var(--lv-primary-rgb),.2);color:var(--lv-primary);cursor:pointer">All</button>
+    <button class="troph-filter-btn" data-target="cabinet-liftranks-section" onclick="setTrophyFilter('cabinet-liftranks-section',this)" style="border-radius:999px;padding:9px 16px;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;font-family:var(--lv-sans);border:1.5px solid var(--lv-border-strong);color:var(--lv-muted-fg);cursor:pointer">Lift Ranks</button>
+    <button class="troph-filter-btn" data-target="cabinet-tiers" onclick="setTrophyFilter('cabinet-tiers',this)" style="border-radius:999px;padding:9px 16px;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;font-family:var(--lv-sans);border:1.5px solid var(--lv-border-strong);color:var(--lv-muted-fg);cursor:pointer">Legends</button>
+    <button class="troph-filter-btn" data-target="cabinet-weight-section" onclick="setTrophyFilter('cabinet-weight-section',this)" style="border-radius:999px;padding:9px 16px;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;font-family:var(--lv-sans);border:1.5px solid var(--lv-border-strong);color:var(--lv-muted-fg);cursor:pointer">Milestones</button>
   </div>
 
   <!-- The Icons section (the Main Four + Diamond Six legendary cards
@@ -5081,6 +5118,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        since it's the one section that updates from actual training,
        not luck — the same "rank leads, collectibles follow" ordering
        Liftoff uses. -->
+  <div id="cabinet-liftranks-section" style="padding:0 20px">
   <div class="cabinet-tier">
     <div class="cabinet-tier-plaque">
       <span class="cabinet-tier-name">Lift Ranks</span>
@@ -5088,9 +5126,11 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     <div class="cabinet-tier-sub">Your estimated 1-rep max, ranked against your bodyweight</div>
     <div class="cabinet-row" id="cabinet-liftranks-row"></div>
   </div>
+  </div>
 
-  <div id="cabinet-tiers"></div>
+  <div id="cabinet-tiers" style="padding:0 20px"></div>
 
+  <div id="cabinet-weight-section" style="padding:0 20px">
   <div class="cabinet-tier">
     <div class="cabinet-tier-plaque">
       <span class="cabinet-tier-name">Weight Milestones</span>
@@ -5098,6 +5138,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     </div>
     <div class="cabinet-tier-sub" id="cabinet-weight-sub">Earned by lifetime volume, not a Compass Drop</div>
     <div class="cabinet-row" id="cabinet-weight-row"></div>
+  </div>
   </div>
 </div>
 
@@ -9484,7 +9525,54 @@ function renderLiftRanks(){
     </div>`;
   }).join('');
 }
+// LOVABLE-PORT TROPHY HERO — earned/total across the two real collectible
+// sources (LEGEND_CARDS pulls + WEIGHT_MILESTONES), gold-locked count, XP
+// banked, and a "closest unlock" card computed from the one tier with a
+// genuine measurable distance to go (weight milestones — LEGEND_CARDS are
+// pure-luck Compass Drop pulls with no "progress" to show honestly).
+function setTrophyFilter(targetId,btnEl){
+  document.querySelectorAll('.troph-filter-btn').forEach(b=>{
+    const active=b===btnEl;
+    b.style.border=active?'1.5px solid var(--lv-primary)':'1.5px solid var(--lv-border-strong)';
+    b.style.background=active?'rgba(var(--lv-primary-rgb),.2)':'transparent';
+    b.style.color=active?'var(--lv-primary)':'var(--lv-muted-fg)';
+  });
+  const isAll=btnEl.textContent.trim()==='All';
+  ['cabinet-liftranks-section','cabinet-tiers','cabinet-weight-section'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el)el.style.display=(isAll||id===targetId)?'':'none';
+  });
+}
+function renderTrophyHeroLovable(){
+  const legendTotal=LEGEND_CARDS.length,legendEarned=unlockedLegends.filter(k=>LEGEND_CARDS.some(l=>l.key===k)).length;
+  const vol=totalVolume||0;
+  const msTotal=WEIGHT_MILESTONES.length,msEarned=WEIGHT_MILESTONES.filter(m=>vol>=m.kg).length;
+  const total=legendTotal+msTotal,earned=legendEarned+msEarned;
+  const en=document.getElementById('troph-earned-num');if(en)en.textContent=earned;
+  const tn=document.getElementById('troph-total-num');if(tn)tn.textContent=total;
+  const goldLocked=LEGEND_CARDS.filter(l=>(l.rarity==='legendary'||l.rarity==='ultralegendary')&&!unlockedLegends.includes(l.key)).length;
+  const gl=document.getElementById('troph-gold-locked');if(gl)gl.textContent=goldLocked;
+  const xb=document.getElementById('troph-xp-banked');if(xb)xb.textContent=xp;
+  const fillEl=document.getElementById('troph-hero-fill');if(fillEl)fillEl.style.width=(total?earned/total*100:0)+'%';
+
+  const card=document.getElementById('troph-closest-card');
+  const sorted=[...WEIGHT_MILESTONES].sort((a,b)=>a.kg-b.kg);
+  const next=sorted.find(m=>vol<m.kg);
+  if(card){
+    if(next){
+      card.style.display='block';
+      const pct=Math.round(vol/next.kg*100);
+      const pctEl=document.getElementById('troph-closest-pct');if(pctEl)pctEl.textContent=pct+'%';
+      const nameEl=document.getElementById('troph-closest-name');if(nameEl)nameEl.textContent=next.name;
+      const detailEl=document.getElementById('troph-closest-detail');if(detailEl)detailEl.textContent=Math.round(next.kg-vol).toLocaleString()+'kg of lifetime volume left.';
+      const fillEl2=document.getElementById('troph-closest-fill');if(fillEl2)fillEl2.style.width=Math.min(100,pct)+'%';
+    }else{
+      card.style.display='none';
+    }
+  }
+}
 function renderTrophyCabinet(){
+  renderTrophyHeroLovable();
   renderLiftRanks();
   const cont=document.getElementById('cabinet-tiers');
   if(!cont)return;
@@ -11440,7 +11528,10 @@ function showPage(id){
   // (logo+streak+XP baked into the hero/sticky bar) — the shared app
   // topbar would just duplicate that, so it's hidden only on those pages.
   const sharedTopbar=document.querySelector('.topbar');
-  if(sharedTopbar)sharedTopbar.style.display=(id==='dashboard')?'none':'';
+  if(sharedTopbar)sharedTopbar.style.display=(id==='dashboard'||id==='progress'||id==='trophycabinet')?'none':'';
+  const lvTopbars=document.querySelectorAll('.lv-page-topbar');
+  lvTopbars.forEach(el=>{el.style.display=(el.dataset.page===id)?'flex':'none';});
+  try{syncLvBadges();}catch(e){}
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.sb-item').forEach(i=>i.classList.remove('active'));
   const pg=document.getElementById('page-'+id);
@@ -11705,20 +11796,20 @@ function renderConsistency(){
   const nutriDays=proteinHitDates.filter(inLast7).length;
   const sleepDays=sleepLog.filter(e=>inLast7(e.date)).length;
   const rows=[
-    {label:'Training',icon:'🏋️',val:trainDays,max:target,col:'#FF8342'},
-    {label:'Protein',icon:'🍽',val:nutriDays,max:7,col:'#44CFFF'},
-    {label:'Sleep 7h+',icon:'😴',val:sleepDays,max:7,col:'#FFD24A'},
+    {label:'Training',ico:'<path d="M4 9v6M2 10v4M20 10v4M22 9v6M7 12h10"/><rect x="5" y="7" width="4" height="10" rx="1"/><rect x="15" y="7" width="4" height="10" rx="1"/>',val:trainDays,max:target,col:'var(--lv-primary)'},
+    {label:'Protein',ico:'<path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/>',val:nutriDays,max:7,col:'var(--lv-fuel)'},
+    {label:'Sleep 7h+',ico:'<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>',val:sleepDays,max:7,col:'var(--lv-xp)'},
   ];
   wrap.innerHTML=rows.map((r,i)=>{
     const pct=Math.min(100,r.val/r.max*100);
-    return `<div style="padding:16px 14px;${i<2?'border-right:1px solid var(--border2)':''}">
-      <div style="font-size:16px;margin-bottom:8px">${r.icon}</div>
-      <div style="font-size:9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:8px">${r.label}</div>
-      <div style="display:flex;align-items:baseline;gap:2px;margin-bottom:6px">
-        <span style="font-family:'Cinzel',sans-serif;font-weight:800;font-size:24px;color:var(--white)">${r.val}</span>
-        <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted)">/${r.max}</span>
+    return `<div style="padding:14px 12px;display:flex;flex-direction:column;gap:10px">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${r.col}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${r.ico}</svg>
+      <span class="lv-label-eyebrow">${r.label}</span>
+      <div style="display:flex;align-items:baseline;gap:2px">
+        <span class="lv-stat-huge">${r.val}</span>
+        <span style="font-family:var(--lv-mono);font-size:11px;color:${r.col}">/${r.max}</span>
       </div>
-      <div style="height:4px;border-radius:99px;background:var(--border2);overflow:hidden"><div style="height:100%;width:${pct}%;border-radius:99px;background:${r.col}"></div></div>
+      <div class="lv-rail-track" style="height:3px"><div class="lv-rail-fill" style="height:100%;width:${pct}%;background:${r.col}"></div></div>
     </div>`;
   }).join('');
 }
@@ -11825,13 +11916,13 @@ function renderProgressRecords(){
   }
   listEl.innerHTML=hitItems.map((p,i)=>{
     const perf=lastPerformance[p.k];
-    return `<div style="display:flex;align-items:center;gap:12px;padding:12px 0;${i<hitItems.length-1?'border-bottom:1px solid var(--border2)':''}">
-      <div style="font-size:20px;flex-shrink:0">${p.icon}</div>
+    return `<div style="display:flex;align-items:center;gap:12px;padding:12px 0;${i<hitItems.length-1?'border-bottom:1px solid var(--lv-border)':''}">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--lv-xp)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0" aria-hidden="true"><path d="M8 21h8M12 17v4M17 5h2a2 2 0 0 1 2 2v1a4 4 0 0 1-4 4M7 5H5a2 2 0 0 0-2 2v1a4 4 0 0 0 4 4"/><path d="M7 4h10v6a5 5 0 0 1-10 0z"/></svg>
       <div style="flex:1;min-width:0">
-        <div style="font-size:13.5px;font-weight:700;color:var(--white)">${p.n}</div>
-        ${perf&&perf.reps?`<div style="font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--muted);margin-top:2px">${perf.weight}kg × ${perf.reps}</div>`:''}
+        <div style="font-family:var(--lv-sans);font-size:14px;font-weight:700;color:var(--lv-fg)">${p.n}</div>
+        ${perf&&perf.reps?`<div style="font-family:var(--lv-mono);font-size:11px;color:var(--lv-muted-fg);margin-top:2px">${perf.weight}kg × ${perf.reps}</div>`:''}
       </div>
-      <div style="font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:800;color:var(--white);flex-shrink:0">${prs[p.k]}<span style="font-size:11px;color:var(--muted);font-weight:600"> kg</span></div>
+      <div style="font-family:var(--lv-mono);font-size:15px;font-weight:700;color:var(--lv-fg);flex-shrink:0">${prs[p.k]}<span style="font-size:11px;color:var(--lv-muted-fg);font-weight:500"> kg</span></div>
     </div>`;
   }).join('');
 }
@@ -11845,13 +11936,13 @@ function renderProgressBodyweight(){
   if(!weightLog.length){card.style.display='none';return;}
   card.style.display='block';
   const latest=weightLog[weightLog.length-1];
-  numEl.textContent=Math.round(latest.w*10)/10;
+  numEl.innerHTML=(Math.round(latest.w*10)/10)+'<span style="font-family:var(--lv-mono);font-size:11px;color:var(--lv-muted-fg)">kg</span>';
   const eightWeeksAgo=new Date();eightWeeksAgo.setDate(eightWeeksAgo.getDate()-56);
   const refEntry=weightLog.find(e=>parseLocalDate(e.date)>=eightWeeksAgo)||weightLog[0];
   const delta=Math.round((latest.w-refEntry.w)*10)/10;
   if(deltaEl){
     deltaEl.textContent=(delta>0?'+':'')+delta+' lbs / 8w';
-    deltaEl.style.color=delta<0?'var(--green)':delta>0?'#E0B48A':'var(--muted)';
+    deltaEl.style.color=delta<0?'var(--lv-fuel)':delta>0?'var(--lv-xp)':'var(--lv-muted-fg)';
   }
   if(chartEl&&weightLog.length>=2){
     const pts=weightLog.slice(-14);
@@ -11862,9 +11953,9 @@ function renderProgressBodyweight(){
     const xFor=i=>pts.length>1?(i/(pts.length-1))*W:W/2;
     const yFor=v=>H-padY-((v-min)/range)*(H-2*padY);
     const points=pts.map((p,i)=>`${xFor(i).toFixed(1)},${yFor(p.w).toFixed(1)}`).join(' ');
-    chartEl.innerHTML=`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="width:100%;height:56px;display:block"><polyline points="${points}" fill="none" stroke="#44CFFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/></svg>`;
+    chartEl.innerHTML=`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" style="width:100%;height:56px;display:block"><polyline points="${points}" fill="none" stroke="var(--lv-fuel)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/></svg>`;
   } else if(chartEl){
-    chartEl.innerHTML='<div style="font-size:11px;color:var(--muted)">Log a second weigh-in to see a trend line.</div>';
+    chartEl.innerHTML='<div style="font-size:11px;color:var(--lv-muted-fg)">Log a second weigh-in to see a trend line.</div>';
   }
 }
 // CONSISTENCY — 4-week heatmap, real trainingCompletedDates.
@@ -11897,9 +11988,10 @@ function renderProgressConsistencyGrid(){
     // every trained cell means the same thing), and "today" is a
     // separate white ring layered on top, so a not-yet-trained today
     // reads as gray+ring rather than misleadingly bright.
-    const bg=isFuture?'transparent':active?'#F36717':'var(--border2)';
-    const ring=isToday?'box-shadow:inset 0 0 0 1.5px rgba(232,214,196,.85);':'';
-    cells.push(`<div style="aspect-ratio:1;border-radius:8px;background:${bg};${ring}"></div>`);
+    const bg=isFuture?'transparent':active?'var(--lv-primary)':'var(--lv-muted)';
+    const border=isFuture?'none':active?'1px solid var(--lv-primary)':'1px solid var(--lv-border)';
+    const ring=isToday?'box-shadow:inset 0 0 0 1.5px var(--lv-fg);':'';
+    cells.push(`<div style="aspect-ratio:1;border-radius:8px;background:${bg};border:${border};${ring}"></div>`);
   }
   gridEl.innerHTML=cells.join('');
   if(countEl)countEl.textContent='4 weeks · '+trainedCount+'/28';
@@ -11921,7 +12013,7 @@ function renderProgressBalance(){
   const order=['Push','Pull','Legs','Core'];
   const max=Math.max(...order.map(g=>counts[g]),1);
   if(!order.some(g=>counts[g]>0)){
-    rowsEl.innerHTML='<div style="font-size:12px;color:var(--muted);padding:8px 0">Log a few sessions to see your push/pull/legs/core split.</div>';
+    rowsEl.innerHTML='<div style="font-size:12px;color:var(--lv-muted-fg);padding:8px 0">Log a few sessions to see your push/pull/legs/core split.</div>';
     if(noteEl)noteEl.style.display='none';
     return;
   }
@@ -11930,10 +12022,10 @@ function renderProgressBalance(){
     const pct=val/max*100;
     return `<div style="margin-bottom:${i<3?'14px':'0'}">
       <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px">
-        <span style="font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)">${g}</span>
-        <span style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--white)">${val} sets</span>
+        <span class="lv-label-eyebrow">${g}</span>
+        <span style="font-family:var(--lv-mono);font-size:12px;color:var(--lv-fg)">${val}<span style="color:var(--lv-muted-fg)"> sets</span></span>
       </div>
-      <div style="height:7px;border-radius:99px;background:var(--border2);overflow:hidden"><div style="height:100%;width:${pct}%;border-radius:99px;background:linear-gradient(90deg,#FF8342,#F36717)"></div></div>
+      <div class="lv-rail-track"><div class="lv-rail-fill" style="width:${pct}%;background:var(--lv-primary)"></div></div>
     </div>`;
   }).join('');
   const sorted=order.map(g=>({g,v:counts[g]})).sort((a,b)=>b.v-a.v);
@@ -11941,8 +12033,8 @@ function renderProgressBalance(){
   if(noteEl){
     if(leader.v>0&&behind.v<leader.v*0.7){
       const pctBehind=Math.round((1-behind.v/leader.v)*100);
-      noteEl.style.display='block';
-      noteEl.textContent='🎯 '+behind.g+' is '+pctBehind+'% behind '+leader.g+'. Add a '+behind.g.toLowerCase()+' session next week to even it out.';
+      noteEl.style.display='flex';
+      noteEl.innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--lv-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:1px" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg><span>'+behind.g+' is '+pctBehind+'% behind '+leader.g+'. Add a '+behind.g.toLowerCase()+' session next week to even it out.</span>';
     }else{
       noteEl.style.display='none';
     }
@@ -12405,9 +12497,16 @@ function formatCompactK(n){
 // 8-week trend sparkline, and the recovery/sleep cards. All real data
 // (tonnageLog, sleepLog, sessionHistory, computeMuscleReadiness) — nothing
 // here is invented to fill the reference layout's slots.
+// Shared streak/XP badge text — the Dashboard hero, and the Progress/
+// Trophy Cabinet sticky headers, each carry their own badge markup (can't
+// share one DOM id across three pages), so this just mirrors the same
+// streak/xp globals into every .lv-streak-badge/.lv-xp-badge on the page.
+function syncLvBadges(){
+  document.querySelectorAll('.lv-streak-badge').forEach(el=>el.textContent=streak);
+  document.querySelectorAll('.lv-xp-badge').forEach(el=>el.textContent=xp);
+}
 function renderDashHeroLovable(){
-  const dsb2=document.getElementById('dash-streak-badge');if(dsb2)dsb2.textContent=streak;
-  const dxb2=document.getElementById('dash-xp-badge');if(dxb2)dxb2.textContent=xp;
+  syncLvBadges();
   const eyebrowEl=document.getElementById('dash-eyebrow-text');
   if(eyebrowEl){
     const now=new Date();
