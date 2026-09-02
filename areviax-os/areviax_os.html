@@ -1399,6 +1399,14 @@ input[type=checkbox]{accent-color:var(--orange);width:15px;height:15px;cursor:po
              we show only a daily quote and today's quick action strip.
              Everything else lives in its dedicated page. ── -->
 
+        <!-- PENDING REMINDERS — anything that's fired today and hasn't
+             been acknowledged (see renderPendingReminders()). Hidden
+             entirely when there's nothing outstanding. -->
+        <div class="card" id="pending-reminders-card" style="display:none;border-color:rgba(255,122,46,.4)">
+          <div class="card-header"><span class="card-title">🔔 Needs a response</span></div>
+          <div id="pending-reminders-list"></div>
+        </div>
+
         <!-- Daily Quote Card -->
         <div class="card dash-quote-card">
           <div style="font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:rgba(26,13,0,.6);margin-bottom:10px">Today's Perspective</div>
@@ -2214,6 +2222,22 @@ input[type=checkbox]{accent-color:var(--orange);width:15px;height:15px;cursor:po
           <div id="reminders-list"></div>
         </div>
 
+        <!-- CUSTOM REMINDERS — the 4 curated types above cover this app's
+             own features; this is the escape hatch for anything else the
+             user wants nudged about daily (a language lesson, a
+             medication, a standing call) that Areviax OS has no way to
+             know about on its own. -->
+        <div class="card">
+          <div class="card-header"><span class="card-title">Your Own Reminders</span></div>
+          <div style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:14px">Anything the built-in reminders don't cover — a daily lesson, a habit outside this app, anything. Same notifications, same calendar export.</div>
+          <div id="custom-reminders-list" style="margin-bottom:12px"></div>
+          <div style="display:flex;gap:8px;align-items:flex-end">
+            <div style="flex:1"><label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px">What should it say?</label><input type="text" id="custom-reminder-label" placeholder="e.g. Check today's Chinese lesson"></div>
+            <div><label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px">Time</label><input type="time" id="custom-reminder-time" value="09:00" style="width:110px"></div>
+            <button class="btn btn-primary btn-sm" style="flex-shrink:0" onclick="addCustomReminder()">Add</button>
+          </div>
+        </div>
+
         <div class="card">
           <div class="card-header"><span class="card-title">Push to your phone</span></div>
           <div style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:14px">
@@ -2616,7 +2640,7 @@ function saveState(){
     xp, shards, bestStreak, lastVisitDate, compassDates, habits, pomoSessionsTotal,
     journalEntries, morningEntries, dailyLog, tasksDone, tasksTotal, xpAtDayStart, goals,
     streakFreezes, usedFreezeDates, milestonesHit, workoutHistory, studyBlocks, scheduleEvents,
-    reminderSettings, reminderLastFired,
+    reminderSettings, reminderLastFired, customReminders, reminderAcknowledged,
     doneListLog, doneListHourlyEnabled, doneListLastFiredHour,
     canvasNodes, canvasConnections, canvasZoomLevel, canvasNodeIdSeq,
     canvasDrawings, canvasDrawingIdSeq,
@@ -3000,6 +3024,7 @@ function getTodayTip(){
   return DAILY_TIPS[dayNum % DAILY_TIPS.length];
 }
 function updateDashboard(){
+  try{renderPendingReminders();}catch(e){}
   // Daily quote — seeded by date so it changes each day but stays stable
   const dayNum = Math.floor(Date.now() / 86400000);
   const q = DASH_QUOTES[dayNum % DASH_QUOTES.length];
@@ -3444,6 +3469,15 @@ let scheduleEvents = saved.scheduleEvents || []; // [{id, title, dayIdx (0=Mon..
 // reminderSettings: {[reminderId]: {enabled:bool, time:'HH:MM'}}, reminderLastFired: {[reminderId]: 'YYYY-MM-DD'}
 let reminderSettings = saved.reminderSettings || {};
 let reminderLastFired = saved.reminderLastFired || {};
+// customReminders: [{id, label, time, enabled}] — user-defined reminders
+// (REMINDER_TYPES above is fixed/curated; this is the "remind me about my
+// own thing" escape hatch, e.g. a daily language-lesson check-in).
+let customReminders = saved.customReminders || [];
+// reminderAcknowledged: {[reminderId]: 'YYYY-MM-DD'} — set only when the
+// user explicitly dismisses today's nudge (see acknowledgeReminder()), not
+// just whenever it fires. Lets checkReminders() keep re-firing an unread
+// reminder through the day instead of a single fire-and-forget notification.
+let reminderAcknowledged = saved.reminderAcknowledged || {};
 // doneListLog: [{date, time, text}] — the running "what actually happened" record
 let doneListLog = saved.doneListLog || [];
 let doneListHourlyEnabled = saved.doneListHourlyEnabled || false;
@@ -3927,6 +3961,7 @@ function renderRemindersList(){
   <div id="reminder-detail-body"></div>`;
   wrap.innerHTML = rowsHtml + selectHtml;
   renderReminderDetail(REMINDER_TYPES[0].id);
+  renderCustomRemindersList();
 }
 function renderReminderDetail(id){
   const body = document.getElementById('reminder-detail-body');
@@ -3955,24 +3990,35 @@ function setReminderTime(id,time){
   reminderSettings[id] = current;
   saveState();
 }
+// Unifies the 4 curated REMINDER_TYPES with user-defined customReminders
+// into one shape, so checkReminders()/renderPendingReminders()/
+// exportRemindersToCalendar() don't need two parallel code paths.
+function getAllReminders(){
+  return REMINDER_TYPES.map(r=>({id:r.id, icon:r.icon, label:r.label, notif:r.notif, defaultTime:r.defaultTime, custom:false}))
+    .concat(customReminders.map(c=>({id:c.id, icon:'⏰', label:c.label, notif:'Reminder: '+c.label, defaultTime:c.time, custom:true})));
+}
 function checkReminders(){
   if(!('Notification' in window) || Notification.permission!=='granted') return;
   const now = new Date();
-  const hh = String(now.getHours()).padStart(2,'0');
-  const mm = String(now.getMinutes()).padStart(2,'0');
-  const nowHM = `${hh}:${mm}`;
+  const nowMinutes = now.getHours()*60+now.getMinutes();
   const today = todayISO();
-  REMINDER_TYPES.forEach(r=>{
-    const s = reminderSettings[r.id];
+  const ESCALATE_MS = 45*60000; // re-nudge every 45min while unacknowledged, not just once
+  getAllReminders().forEach(r=>{
+    const s = r.custom ? customReminders.find(c=>c.id===r.id) : reminderSettings[r.id];
     if(!s || !s.enabled) return;
-    if((s.time||r.defaultTime) !== nowHM) return;
-    if(reminderLastFired[r.id] === today) return; // already fired today
+    if(reminderAcknowledged[r.id] === today) return; // handled — stop nudging for today
+    const [schedH,schedM] = (s.time||r.defaultTime).split(':').map(Number);
+    if(nowMinutes < schedH*60+schedM) return; // not due yet today
     // only actually fire streak-at-risk / habit-check if there's a real reason to
     if(r.id==='streak-risk' && compassDates.includes(today)) return;
     if(r.id==='habit-check' && habits.length && habits.every(h=>h.completedDates.includes(today))) return;
+    const lastTs = reminderLastFired[r.id+'_ts'];
+    if(lastTs && (Date.now()-lastTs) < ESCALATE_MS) return; // nudged recently, wait for the next window
     new Notification('Areviax OS', {body: r.notif, icon: undefined, tag: r.id});
     reminderLastFired[r.id] = today;
+    reminderLastFired[r.id+'_ts'] = Date.now();
     saveState();
+    renderPendingReminders();
   });
   // Done List hourly nudge — separate from the once-daily reminder types
   // above, this fires once per clock hour (not once per day) during waking
@@ -3985,6 +4031,89 @@ function checkReminders(){
       saveState();
     }
   }
+}
+// Explicit "I saw this" — the only thing that stops checkReminders() from
+// re-firing a nudge every 45min. Deliberately not tied to just opening the
+// app, since that would defeat reminders whose whole point is "you keep
+// forgetting to actually do the thing," not "you keep forgetting to open
+// Areviax OS."
+function acknowledgeReminder(id){
+  reminderAcknowledged[id] = todayISO();
+  saveState();
+  renderPendingReminders();
+}
+// PENDING REMINDERS — a persistent Home-page card for anything that's
+// fired today and hasn't been acknowledged yet, so the nudge has a real
+// in-app trace even if the OS notification itself was missed/dismissed.
+function renderPendingReminders(){
+  const card = document.getElementById('pending-reminders-card');
+  const list = document.getElementById('pending-reminders-list');
+  if(!card || !list) return;
+  const today = todayISO();
+  const pending = getAllReminders().filter(r=>{
+    if(reminderLastFired[r.id] !== today) return false; // hasn't actually fired yet today
+    if(reminderAcknowledged[r.id] === today) return false;
+    return true;
+  });
+  if(!pending.length){ card.style.display = 'none'; return; }
+  card.style.display = '';
+  list.innerHTML = pending.map(r=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
+      <span style="font-size:16px">${r.icon}</span>
+      <span style="flex:1;font-size:12px;color:var(--white);line-height:1.4">${r.notif}</span>
+      <button class="btn btn-sm" onclick="acknowledgeReminder('${r.id}')">Got it</button>
+    </div>`).join('');
+}
+// CUSTOM REMINDERS
+function addCustomReminder(){
+  const labelEl = document.getElementById('custom-reminder-label');
+  const timeEl = document.getElementById('custom-reminder-time');
+  const label = labelEl.value.trim();
+  if(!label){ showToast('⏰','Give it something to say first'); return; }
+  customReminders.push({id:'custom-'+Date.now(), label, time: timeEl.value||'09:00', enabled:true});
+  labelEl.value = '';
+  saveState();
+  renderRemindersList();
+  if(!('Notification' in window) || Notification.permission!=='granted'){
+    showToast('🔔','Turn on browser notifications above so this can actually fire');
+  } else {
+    showToast('⏰','Reminder added');
+  }
+}
+function deleteCustomReminder(id){
+  customReminders = customReminders.filter(c=>c.id!==id);
+  saveState();
+  renderRemindersList();
+}
+function toggleCustomReminder(id,el){
+  const c = customReminders.find(x=>x.id===id);
+  if(!c) return;
+  c.enabled = !c.enabled;
+  el.classList.toggle('on');
+  saveState();
+}
+function setCustomReminderTime(id,time){
+  const c = customReminders.find(x=>x.id===id);
+  if(!c) return;
+  c.time = time;
+  saveState();
+}
+function renderCustomRemindersList(){
+  const wrap = document.getElementById('custom-reminders-list');
+  if(!wrap) return;
+  if(!customReminders.length){
+    wrap.innerHTML = '<div style="font-size:11.5px;color:var(--muted);padding:4px 0">None yet — add one below.</div>';
+    return;
+  }
+  wrap.innerHTML = customReminders.map(c=>`
+    <div class="settings-row" style="padding:8px 0">
+      <div style="flex:1;min-width:0">
+        <div class="settings-label" style="font-size:12.5px">⏰ ${c.label}</div>
+        <input type="time" value="${c.time}" style="width:100px;margin-top:4px" onchange="setCustomReminderTime('${c.id}',this.value)">
+      </div>
+      <div class="toggle-switch ${c.enabled?'on':''}" onclick="toggleCustomReminder('${c.id}',this)"></div>
+      <span onclick="deleteCustomReminder('${c.id}')" style="color:var(--muted);cursor:pointer;font-size:14px;padding:2px 6px;margin-left:6px">✕</span>
+    </div>`).join('');
 }
 let reminderLoopStarted = false;
 function startReminderLoop(){
@@ -4021,12 +4150,15 @@ function icsLocalFloating(d){
     String(d.getHours()).padStart(2,'0')+String(d.getMinutes()).padStart(2,'0')+'00';
 }
 function exportRemindersToCalendar(){
-  const enabled = REMINDER_TYPES.filter(r=>reminderSettings[r.id] && reminderSettings[r.id].enabled);
+  const enabled = getAllReminders().filter(r=>{
+    const s = r.custom ? customReminders.find(c=>c.id===r.id) : reminderSettings[r.id];
+    return s && s.enabled;
+  });
   if(!enabled.length){ showToast('📅','Turn on at least one reminder above first'); return; }
   const now = new Date();
   let ics = 'BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Areviax OS//Reminders//EN\r\nCALSCALE:GREGORIAN\r\n';
   enabled.forEach(r=>{
-    const s = reminderSettings[r.id];
+    const s = r.custom ? customReminders.find(c=>c.id===r.id) : reminderSettings[r.id];
     const [hh,mm] = (s.time||r.defaultTime).split(':').map(Number);
     const start = new Date(now); start.setHours(hh,mm,0,0);
     if(start<now) start.setDate(start.getDate()+1); // first occurrence today if still upcoming, else tomorrow
@@ -4037,7 +4169,7 @@ function exportRemindersToCalendar(){
       'DURATION:PT5M\r\n'+
       'RRULE:FREQ=DAILY\r\n'+
       'SUMMARY:'+icsEscape(r.icon+' '+r.label)+'\r\n'+
-      'DESCRIPTION:'+icsEscape(r.desc)+'\r\n'+
+      'DESCRIPTION:'+icsEscape(r.notif)+'\r\n'+
       'BEGIN:VALARM\r\nACTION:DISPLAY\r\nDESCRIPTION:'+icsEscape(r.label)+'\r\nTRIGGER:PT0M\r\nEND:VALARM\r\n'+
       'END:VEVENT\r\n';
   });
