@@ -26,6 +26,7 @@
   --white:#F8F5EF;--white-rgb:248,245,239;--muted:#A59D95;--muted2:#3A3A3C;
   --border:rgba(232,214,196,.1);--border2:rgba(232,214,196,.07);
   --bg-rgb:13,8,6;
+  --gold:#E3BF76;--gold-soft:rgba(227,191,118,.35);
 }
 /* LIGHT THEME — flips every var(--...) reference. --white-rgb/--bg-rgb
    exist so the many inline rgba(var(--white-rgb),X) "off-white text" and
@@ -204,6 +205,20 @@ input,input:focus,input:active,
 .ct-purple{color:#A59D95!important}
 .ct-blue{color:#6FC3FF!important}
 .ct-mint{color:#A59D95!important}
+
+/* --- greek layer: scoped to .greek-page so it only touches the pages
+     it's applied to (Dashboard, Progress, Trophy Cabinet), matching the
+     visual language from the marketing site / website-refresh mockups. --- */
+.greek-page{position:relative;background-image:linear-gradient(100deg,transparent 0 46%,rgba(232,214,196,.035) 46% 47%,transparent 47% 100%),linear-gradient(72deg,transparent 0 22%,rgba(232,214,196,.025) 22% 23%,transparent 23% 100%);background-size:340px 100%,220px 100%;counter-reset:greeknum}
+.greek-page .ch{counter-increment:greeknum}
+.greek-page .ch>.ct{position:relative;padding-bottom:10px;font-family:'Cinzel',serif;letter-spacing:.1em}
+.greek-page .ch>.ct::before{content:counter(greeknum,lower-greek) ".";color:var(--gold);margin-right:6px;font-weight:700;opacity:1}
+.greek-page .ch>.ct::after{content:"";position:absolute;left:0;bottom:0;width:64px;height:1px;background:linear-gradient(90deg,var(--gold-soft),transparent)}
+.meander-band{height:14px;opacity:.85;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='16' viewBox='0 0 32 16' fill='none' stroke='%23e3bf76' stroke-width='1.6'%3E%3Cpath d='M0 1h32M0 15h32'/%3E%3Cpath d='M3 12V4h10v5H7v-2'/%3E%3Cpath d='M19 4v8h10V7h-6v2'/%3E%3C/svg%3E");background-repeat:repeat-x;background-size:32px 16px;mask-image:linear-gradient(90deg,transparent,black 12%,black 88%,transparent);-webkit-mask-image:linear-gradient(90deg,transparent,black 12%,black 88%,transparent)}
+.laurel-watermark{position:relative}
+.laurel-watermark::after{content:"";position:absolute;right:-2.5rem;top:-1.5rem;width:14rem;height:14rem;pointer-events:none;opacity:.07;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='none' stroke='%23e9c98a' stroke-width='1.4'%3E%3Cpath d='M50 96C24 88 10 66 14 40 17 22 30 8 44 4'/%3E%3Cpath d='M50 96c26-8 40-30 36-56C83 22 70 8 56 4'/%3E%3Cg%3E%3Cellipse cx='20' cy='30' rx='7' ry='3' transform='rotate(-38 20 30)'/%3E%3Cellipse cx='17' cy='45' rx='7' ry='3' transform='rotate(-25 17 45)'/%3E%3Cellipse cx='19' cy='60' rx='7' ry='3' transform='rotate(-12 19 60)'/%3E%3Cellipse cx='26' cy='74' rx='7' ry='3' transform='rotate(8 26 74)'/%3E%3Cellipse cx='80' cy='30' rx='7' ry='3' transform='rotate(38 80 30)'/%3E%3Cellipse cx='83' cy='45' rx='7' ry='3' transform='rotate(25 83 45)'/%3E%3Cellipse cx='81' cy='60' rx='7' ry='3' transform='rotate(12 81 60)'/%3E%3Cellipse cx='74' cy='74' rx='7' ry='3' transform='rotate(-8 74 74)'/%3E%3C/g%3E%3C/svg%3E");background-repeat:no-repeat;background-size:contain}
+.temple-glow{position:relative}
+.temple-glow::after{content:"";position:absolute;left:50%;top:-20%;width:16rem;height:16rem;transform:translateX(-50%);border-radius:999px;pointer-events:none;background:radial-gradient(circle,rgba(243,103,23,.28) 0%,transparent 65%)}
 .card-accent-gold{border-color:rgba(255,210,77,.22)!important;box-shadow:0 0 30px -16px rgba(255,210,77,.18)}
 .card-accent-purple{border-color:rgba(142,142,147,.22)!important;box-shadow:0 0 30px -16px rgba(142,142,147,.18)}
 .card-accent-blue{border-color:rgba(243,103,23,.22)!important;box-shadow:0 0 30px -16px rgba(243,103,23,.18)}
@@ -1776,6 +1791,8 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .cabinet-tier{margin-bottom:20px}
     .cabinet-tier-plaque{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:2px}
     .cabinet-tier-name{font-size:13.5px;font-weight:900;color:var(--white);letter-spacing:-.01em}
+    .greek-page .cabinet-tier-plaque{position:relative;padding-bottom:8px}
+    .greek-page .cabinet-tier-plaque::after{content:"";position:absolute;left:0;bottom:0;width:56px;height:1px;background:linear-gradient(90deg,var(--gold-soft),transparent)}
     .cabinet-tier-count{font-size:10px;font-weight:800;color:var(--muted);white-space:nowrap;flex-shrink:0}
     .cabinet-tier-sub{font-size:10.5px;color:var(--muted);margin-bottom:11px}
     /* Wraps instead of horizontal-scrolling — shrinking the hex meant a
@@ -3476,7 +3493,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     <div class="content" id="content">
 
 <!-- DASHBOARD -->
-<div class="page active" id="page-dashboard">
+<div class="page active greek-page" id="page-dashboard">
 
   <div id="muscle-balance-banner" class="dash-notif-fixed" style="display:none;background:rgb(20,14,10);border:1.5px solid rgba(68,207,255,.35);border-radius:12px;padding:12px 14px"></div>
 
@@ -3531,7 +3548,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        as one unboxed hero flowing over that shared backdrop, matching the
        reference: no box around the hero, a much fainter dot wash than
        before, continuing behind everything in it. -->
-  <div class="dash-hero">
+  <div class="dash-hero laurel-watermark temple-glow">
   <div aria-hidden="true" class="dash-hero-backdrop"></div>
 
   <div class="dash-greeting">
@@ -3622,6 +3639,8 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
          where that card is hidden. -->
     <div id="d-next-daypicker" style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:16px;position:relative"></div>
 
+    <div class="meander-band" aria-hidden="true" style="margin-top:16px"></div>
+
     <div id="vol-daily-card" style="display:none;margin-top:16px;background:rgb(var(--bg-rgb));border:1px solid var(--border2);border-radius:16px;padding:18px 20px">
       <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px">
         <span class="dash-vol-label" style="font-size:9.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:rgba(var(--white-rgb),.4)">Weekly Volume</span>
@@ -3658,10 +3677,11 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        glance-and-jump preview, not a second copy of that logging UI. -->
   <div class="dash-plan" style="display:none">
   <div style="background:rgba(232,214,196,.015);border:1px solid var(--border2);border-radius:16px;padding:18px 18px 6px">
-    <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px">
-      <span style="font-family:'Cinzel',sans-serif;font-weight:800;font-size:15px;color:var(--white)">The Plan</span>
+    <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:4px">
+      <span style="font-family:'Cinzel',sans-serif;font-weight:800;font-size:15px;color:var(--white)"><span style="color:var(--gold);font-weight:700;margin-right:6px">α.</span>The Plan</span>
       <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted)" id="d-plan-setcount"></span>
     </div>
+    <div style="width:64px;height:1px;background:linear-gradient(90deg,var(--gold-soft),transparent);margin-bottom:12px"></div>
     <div id="d-plan-list"></div>
   </div>
   </div>
@@ -4549,7 +4569,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
 </div>
 
 <!-- PROGRESS -->
-<div class="page" id="page-progress">
+<div class="page greek-page" id="page-progress">
 
   <!-- DESKTOP MASONRY WRAP — on mobile this is just the plain vertical
        card stack it always was (no layout change below 900px). Past
@@ -4568,7 +4588,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        small unit, huge faint watermark, a real trend line underneath,
        and here a genuine filter control (4W/12W/1Y) instead of a fixed
        range. Real tonnageLog data — see renderProgressHero(). -->
-  <div style="background:transparent;padding:6px 4px 20px;margin-bottom:16px;position:relative;overflow:hidden">
+  <div class="temple-glow" style="background:transparent;padding:6px 4px 20px;margin-bottom:16px;position:relative;overflow:hidden">
     <div aria-hidden="true" class="dot-field" style="right:0;top:0;width:100%;height:100%"></div>
     <div aria-hidden="true" id="prog-hero-watermark" class="hollow-num" style="position:absolute;right:-4px;top:-14px;font-family:'Cinzel',sans-serif;font-weight:800;font-size:130px;line-height:1;--hollow-w:1.5px;--hollow-c:rgba(255,122,46,.16);pointer-events:none;user-select:none">12</div>
     <div style="position:relative">
@@ -4583,6 +4603,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
         <div class="prog-range-pill active" data-weeks="12" onclick="setProgressRange(12)" style="flex:1;text-align:center;padding:9px;border-radius:999px;border:1.5px solid var(--orange);background:rgba(243,103,23,.12);font-size:11.5px;font-weight:800;color:var(--orange);cursor:pointer">12W</div>
         <div class="prog-range-pill" data-weeks="52" onclick="setProgressRange(52)" style="flex:1;text-align:center;padding:9px;border-radius:999px;border:1.5px solid var(--border2);font-size:11.5px;font-weight:800;color:var(--muted);cursor:pointer">1Y</div>
       </div>
+      <div class="meander-band" aria-hidden="true" style="margin-top:18px"></div>
     </div>
   </div>
 
@@ -4592,9 +4613,10 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        matching this page's new visual language instead of a thin line. -->
   <div id="prog-tonnage-card" style="display:none;background:rgba(232,214,196,.015);border:1px solid var(--border2);border-radius:16px;padding:18px;margin-bottom:14px">
     <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px">
-      <span style="font-family:'Cinzel',sans-serif;font-weight:800;font-size:15px;color:var(--white)">Tonnage</span>
+      <span style="font-family:'Cinzel',sans-serif;font-weight:800;font-size:15px;color:var(--white)"><span style="color:var(--gold);font-weight:700;margin-right:6px">α.</span>Tonnage</span>
       <span style="font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--muted)">tonnes / week</span>
     </div>
+    <div style="width:64px;height:1px;background:linear-gradient(90deg,var(--gold-soft),transparent);margin-bottom:10px"></div>
     <div id="prog-tonnage-chart" style="display:flex;align-items:flex-end;gap:5px;height:90px;margin-bottom:8px"></div>
     <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--muted)">
       <span id="prog-tonnage-left-label">-12w</span><span>now</span>
@@ -4607,9 +4629,10 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        worse than just not showing it. -->
   <div style="background:rgba(232,214,196,.015);border:1px solid var(--border2);border-radius:16px;padding:18px 18px 6px;margin-bottom:14px">
     <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px">
-      <span style="font-family:'Cinzel',sans-serif;font-weight:800;font-size:15px;color:var(--white)">Records</span>
+      <span style="font-family:'Cinzel',sans-serif;font-weight:800;font-size:15px;color:var(--white)"><span style="color:var(--gold);font-weight:700;margin-right:6px">β.</span>Records</span>
       <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted)" id="prog-records-count"></span>
     </div>
+    <div style="width:64px;height:1px;background:linear-gradient(90deg,var(--gold-soft),transparent);margin-bottom:10px"></div>
     <div id="prog-records-list"></div>
   </div>
 
@@ -4629,9 +4652,10 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
   <!-- CONSISTENCY — 4-week heatmap, real trainingCompletedDates. -->
   <div style="background:rgba(232,214,196,.015);border:1px solid var(--border2);border-radius:16px;padding:18px;margin-bottom:14px">
     <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px">
-      <span style="font-family:'Cinzel',sans-serif;font-weight:800;font-size:15px;color:var(--white)">Consistency</span>
+      <span style="font-family:'Cinzel',sans-serif;font-weight:800;font-size:15px;color:var(--white)"><span style="color:var(--gold);font-weight:700;margin-right:6px">γ.</span>Consistency</span>
       <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted)" id="prog-consistency-count"></span>
     </div>
+    <div style="width:64px;height:1px;background:linear-gradient(90deg,var(--gold-soft),transparent);margin-bottom:10px"></div>
     <div id="prog-consistency-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:8px"></div>
     <div style="display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--muted);margin-bottom:10px">
       <span>M T W T F S S</span><span>most recent →</span>
@@ -5003,16 +5027,17 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
      unlock-aware content today — Layers 2-7 render as correctly
      labelled/counted locked shelves until that art exists, per
      renderTrophyCabinet()/TROPHY_LAYERS. -->
-<div class="page" id="page-trophycabinet">
+<div class="page greek-page" id="page-trophycabinet">
   <div class="companion"><div class="companion-msg">Every rep, every rarity — this is the collection you're building.</div></div>
 
-  <div class="cabinet-hero">
+  <div class="cabinet-hero laurel-watermark temple-glow">
     <div class="cabinet-hero-label">The Areviax Trophy</div>
     <div class="legend-card cabinet-peak rarity-ultralegendary" id="cabinet-peak-slot" onclick="viewCabinetLocked('The Areviax Trophy')">
       <div class="legend-card-icon-glow"></div><div class="legend-card-icon-burst"></div><div class="legend-card-crown"><svg viewBox="0 0 100 100" preserveAspectRatio="none"><path class="lgi-crown-body" d="M0,90 L0,32 L25,58 L40,6 L50,42 L60,6 L75,58 L100,32 L100,90 Z"/><path class="lgi-crown-rim" d="M0,32 L25,58 L40,6 L50,42 L60,6 L75,58 L100,32"/><circle class="lgi-crown-jewel" cx="40" cy="10" r="6"/><circle class="lgi-crown-jewel" cx="60" cy="10" r="6"/><circle class="lgi-crown-jewel" cx="50" cy="76" r="5"/></svg></div><div class="legend-card-wreath"><svg viewBox="-5 -5 110 115"><path class="lgr-stem" d="M46.2,95.8 L29.9,91.2 L16.6,80.7 L8.3,66.0 L6.1,49.3 L10.4,32.9 L20.5,19.4 L35.0,10.7"/><path class="lgr-stem" d="M53.8,95.8 L70.1,91.2 L83.4,80.7 L91.7,66.0 L93.9,49.3 L89.6,32.9 L79.5,19.4 L65.0,10.7"/><path class="lgr-leaf" d="M47.6,94.1 Q38.5,95.5 38.2,105.8 Q48.2,103.2 47.6,94.1 Z"/><path class="lgr-vein" d="M47.6,94.1 L38.2,105.8"/><path class="lgr-leaf" d="M31.8,90.1 Q23.4,88.1 19.4,97.0 Q29.1,98.3 31.8,90.1 Z"/><path class="lgr-vein" d="M31.8,90.1 L19.4,97.0"/><path class="lgr-leaf" d="M18.6,80.5 Q12.0,75.7 5.4,82.1 Q13.4,86.6 18.6,80.5 Z"/><path class="lgr-vein" d="M18.6,80.5 L5.4,82.1"/><path class="lgr-leaf" d="M10.1,66.5 Q6.0,60.1 -1.9,63.3 Q3.4,70.0 10.1,66.5 Z"/><path class="lgr-vein" d="M10.1,66.5 L-1.9,63.3"/><path class="lgr-leaf" d="M7.5,50.3 Q6.2,43.4 -1.7,43.3 Q0.4,51.0 7.5,50.3 Z"/><path class="lgr-vein" d="M7.5,50.3 L-1.7,43.3"/><path class="lgr-leaf" d="M11.2,34.3 Q12.5,27.9 5.7,25.1 Q4.9,32.4 11.2,34.3 Z"/><path class="lgr-vein" d="M11.2,34.3 L5.7,25.1"/><path class="lgr-leaf" d="M20.7,20.8 Q24.1,15.9 19.2,11.1 Q16.0,17.0 20.7,20.8 Z"/><path class="lgr-vein" d="M20.7,20.8 L19.2,11.1"/><path class="lgr-leaf" d="M34.6,12.0 Q39.2,8.9 36.8,3.2 Q32.0,7.1 34.6,12.0 Z"/><path class="lgr-vein" d="M34.6,12.0 L36.8,3.2"/><path class="lgr-leaf" d="M52.4,94.1 Q51.8,103.2 61.8,105.8 Q61.5,95.5 52.4,94.1 Z"/><path class="lgr-vein" d="M52.4,94.1 L61.8,105.8"/><path class="lgr-leaf" d="M68.2,90.1 Q70.9,98.3 80.6,97.0 Q76.6,88.1 68.2,90.1 Z"/><path class="lgr-vein" d="M68.2,90.1 L80.6,97.0"/><path class="lgr-leaf" d="M81.4,80.5 Q86.6,86.6 94.6,82.1 Q88.0,75.7 81.4,80.5 Z"/><path class="lgr-vein" d="M81.4,80.5 L94.6,82.1"/><path class="lgr-leaf" d="M89.9,66.5 Q96.6,70.0 101.9,63.3 Q94.0,60.1 89.9,66.5 Z"/><path class="lgr-vein" d="M89.9,66.5 L101.9,63.3"/><path class="lgr-leaf" d="M92.5,50.3 Q99.6,51.0 101.7,43.3 Q93.8,43.4 92.5,50.3 Z"/><path class="lgr-vein" d="M92.5,50.3 L101.7,43.3"/><path class="lgr-leaf" d="M88.8,34.3 Q95.1,32.4 94.3,25.1 Q87.5,27.9 88.8,34.3 Z"/><path class="lgr-vein" d="M88.8,34.3 L94.3,25.1"/><path class="lgr-leaf" d="M79.3,20.8 Q84.0,17.0 80.8,11.1 Q75.9,15.9 79.3,20.8 Z"/><path class="lgr-vein" d="M79.3,20.8 L80.8,11.1"/><path class="lgr-leaf" d="M65.4,12.0 Q68.0,7.1 63.2,3.2 Q60.8,8.9 65.4,12.0 Z"/><path class="lgr-vein" d="M65.4,12.0 L63.2,3.2"/></svg></div><div class="legend-card-icon">🔒</div>
       <div class="legend-card-name">1-of-1</div>
     </div>
     <div class="cabinet-hero-sub">The single rarest reward in the game — still ahead of you.</div>
+    <div class="meander-band" aria-hidden="true" style="margin-top:18px"></div>
   </div>
 
   <!-- The Icons section (the Main Four + Diamond Six legendary cards
