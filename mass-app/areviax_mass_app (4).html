@@ -3632,7 +3632,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        data threaded into the same slots (see renderDashHeroLovable() and
        initApp()). -->
   <header class="lv-ember-wash lv-grain lv-colonnade lv-temple-glow lv-pediment" style="position:relative;overflow:hidden;margin:0 -20px;padding:calc(20px + env(safe-area-inset-top,0px)) 20px 26px;border-radius:0 0 28px 28px">
-    <span class="lv-ghost-numeral" style="right:-12px;top:56px">Β</span>
+    <span class="lv-ghost-numeral" style="right:-12px;top:56px">Δ</span>
     <div style="position:relative;z-index:1">
       <div style="display:flex;align-items:center;justify-content:space-between">
         <span style="display:flex;align-items:center;gap:8px">
@@ -3769,6 +3769,12 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
         <p style="margin-top:8px;font-size:11px;line-height:1.4;color:var(--lv-muted-fg)" id="dash-recovery-sub">Log a session to start tracking recovery.</p>
       </div>
     </section>
+
+    <!-- START — a normal in-flow button, not fixed. A fixed floating CTA
+         permanently covers whatever content happens to sit at that screen
+         position (it was hiding the Sessions/Kcal/Protein stats on real
+         devices) — this reads once, in place, like every other card. -->
+    <button class="lv-ember lv-grain" onclick="showPage('workout')" style="width:100%;display:flex;align-items:center;justify-content:space-between;border:none;border-radius:1.25rem;padding:16px 20px;font-family:var(--lv-sans);font-size:16px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;cursor:pointer">Start session <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></button>
   </main>
 
   <!-- hidden legacy anchors — earlier dashboard JS still writes to these
@@ -3783,12 +3789,6 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     <div id="vol-daily-empty"></div>
     <div id="dn-carbs-fill"></div><div id="dn-fats-fill"></div>
     <canvas id="compass-main" width="88" height="88"></canvas><div id="compass-label"></div><div id="shard-bank-indicator"></div><div id="streak-card"></div><div id="flame-val">0</div><div id="best-streak-sub"></div>
-  </div>
-
-  <!-- START bar — sticky bottom CTA, matching the reference's fixed
-       inset-x-0 bottom-0 treatment. -->
-  <div style="position:fixed;left:0;right:0;bottom:calc(60px + env(safe-area-inset-bottom,0px));z-index:150;max-width:480px;margin:0 auto;background:linear-gradient(to top,var(--lv-bg) 60%,transparent);padding:16px 20px 10px">
-    <button class="lv-ember lv-grain" onclick="showPage('workout')" style="width:100%;display:flex;align-items:center;justify-content:space-between;border:none;border-radius:1.25rem;padding:16px 20px;font-family:var(--lv-sans);font-size:16px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;cursor:pointer">Start session <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></button>
   </div>
 
   </div>
@@ -6941,6 +6941,11 @@ let prs={};
 // increase (e.g. 100kg×5 -> 100kg×7 is real progress even though the
 // weight didn't move).
 let prBestReps={};
+// Dated PR history — logSet() already detected each PR in real time (see
+// chip.classList.add('pr')) but never kept a date on it. Real feature in
+// its own right (a real "PRs this week" log becomes possible), and also
+// what THE 12 LABORS' "new PR today" check reads from.
+let prHistory=[]; // [{name,weight,reps,date}]
 let lastPerformance={}; // name -> {weight,reps,date} — powers progressive-overload suggestions
 let liftHistory={}; // name -> [{date,weight,reps}, ...] one row per session — powers plateau detection
 let weightLog=[];
@@ -8740,6 +8745,104 @@ const LEGEND_CARDS=[
 ];
 let unlockedLegends=[]; // persistent \u2014 keys from LEGEND_CARDS the user has actually pulled
 let legendCounts={}; // persistent \u2014 key -> total times pulled, including the first (new) pull
+
+// \u2500\u2500 THE 12 LABORS \u2014 12 one-off challenges, each mapped to a real Labor of
+// Heracles, each checked against real already-tracked data (tonnageLog,
+// sessionHistory, prHistory, proteinHitDates, streak, unlockedLegends,
+// Lift Ranks) \u2014 nothing here is a separate, invented tracker. Order
+// matters: Cerberus is a genuine capstone that only clears once every
+// other Labor has, matching the myth (the final, hardest trial).
+let laborsCompleted={}; // persistent \u2014 key -> 'YYYY-MM-DD' the labor was cleared
+function laborsDailyTonnageMax(excludeToday){
+  const today=localDateKey(new Date());
+  const byDate={};
+  tonnageLog.forEach(e=>{ if(excludeToday&&e.date===today)return; byDate[e.date]=(byDate[e.date]||0)+e.tonnage; });
+  const vals=Object.values(byDate);
+  return vals.length?Math.max(...vals):0;
+}
+function laborsTodayTonnage(){
+  const today=localDateKey(new Date());
+  return tonnageLog.filter(e=>e.date===today).reduce((s,e)=>s+e.tonnage,0);
+}
+function laborsTodaySetCount(){
+  const today=localDateKey(new Date());
+  return tonnageLog.filter(e=>e.date===today).length;
+}
+function laborsProteinStreak(){
+  // Longest run of consecutive days ending today/yesterday \u2014 same
+  // "still alive" logic computeStreak-style helpers elsewhere use.
+  if(!proteinHitDates.length)return 0;
+  const set=new Set(proteinHitDates);
+  let d=new Date(); let streakLen=0;
+  // allow the streak to still count if today just hasn't been hit yet but yesterday was
+  if(!set.has(localDateKey(d)))d.setDate(d.getDate()-1);
+  while(set.has(localDateKey(d))){ streakLen++; d.setDate(d.getDate()-1); }
+  return streakLen;
+}
+function laborsTodayMuscleGroupCount(){
+  const today=localDateKey(new Date());
+  const groups=new Set();
+  tonnageLog.filter(e=>e.date===today).forEach(e=>{
+    const g=PROG_MUSCLE_GROUP[e.muscle];
+    if(g)groups.add(g);
+  });
+  return groups.size;
+}
+const LABORS=[
+  {key:'nemean_lion', name:'The Nemean Lion', greek:'\u0391', icon:'\ud83e\udd81',
+    desc:'Set a new single-session tonnage record.',
+    check:()=>laborsTodayTonnage()>0&&laborsTodayTonnage()>laborsDailyTonnageMax(true)},
+  {key:'hydra', name:'The Lernaean Hydra', greek:'\u0392', icon:'\ud83d\udc0d',
+    desc:'Log 20 or more sets in a single session.',
+    check:()=>laborsTodaySetCount()>=20},
+  {key:'hind', name:'The Ceryneian Hind', greek:'\u0393', icon:'\ud83e\udd8c',
+    desc:'Finish a full session in under 35 minutes.',
+    check:()=>sessionHistory.some(s=>s.durationSec>0&&s.durationSec<2100&&s.exs&&s.exs.length>0)},
+  {key:'boar', name:'The Erymanthian Boar', greek:'\u0394', icon:'\ud83d\udc17',
+    desc:'Set a new PR on any lift.',
+    check:()=>prHistory.length>0},
+  {key:'stables', name:'The Augean Stables', greek:'\u0395', icon:'\ud83c\udfdb\ufe0f',
+    desc:'Hit your full weekly session target.',
+    check:()=>profile.days>0&&sessThisWeek>=profile.days},
+  {key:'birds', name:'The Stymphalian Birds', greek:'\u03a3', icon:'\ud83d\udc26',
+    desc:'Hit your protein target 7 days running.',
+    check:()=>laborsProteinStreak()>=7},
+  {key:'bull', name:'The Cretan Bull', greek:'\u0396', icon:'\ud83d\udc02',
+    desc:'Reach at least Bronze rank on a Big 4 lift.',
+    check:()=>LIFT_RANK_LIFTS.some(l=>{const r=getLiftRank(l);return r&&r.tierIdx>=2;})},
+  {key:'mares', name:'The Mares of Diomedes', greek:'\u0397', icon:'\ud83d\udc0e',
+    desc:'Train 3+ muscle groups (push/pull/legs/core) in one session.',
+    check:()=>laborsTodayMuscleGroupCount()>=3},
+  {key:'girdle', name:'The Girdle of Hippolyta', greek:'\u0398', icon:'\ud83c\udff5\ufe0f',
+    desc:'Pull your first Legend Card.',
+    check:()=>unlockedLegends.length>=1},
+  {key:'geryon', name:'The Cattle of Geryon', greek:'\u0399', icon:'\ud83d\udc02',
+    desc:'Reach a 14-day training streak.',
+    check:()=>streak>=14||bestStreak>=14},
+  {key:'hesperides', name:'The Apples of the Hesperides', greek:'\u039a', icon:'\ud83c\udf4e',
+    desc:'Unlock a Legendary-rarity (or rarer) card.',
+    check:()=>unlockedLegends.some(k=>{const l=LEGEND_CARDS.find(x=>x.key===k);return l&&(l.rarity==='legendary'||l.rarity==='ultralegendary');})},
+  {key:'cerberus', name:'Cerberus', greek:'\u039b', icon:'\ud83d\udc15',
+    desc:'Complete all 11 other Labors.',
+    check:()=>LABORS.filter(l=>l.key!=='cerberus').every(l=>laborsCompleted[l.key])},
+];
+function checkLabors(){
+  let anyNew=false;
+  const today=localDateKey(new Date());
+  LABORS.forEach(l=>{
+    if(laborsCompleted[l.key])return;
+    let done=false;
+    try{done=l.check();}catch(e){done=false;}
+    if(done){
+      laborsCompleted[l.key]=today;
+      anyNew=true;
+      addXP(l.key==='cerberus'?200:50,'Labor complete: '+l.name);
+      toast(l.icon,'Labor complete \u2014 '+l.name+'!');
+    }
+  });
+  if(anyNew){try{renderLaborsPage();}catch(e){}}
+  return anyNew;
+}
 
 // \u2500\u2500 XP ROAD \u2014 checkpoints along lifetime XP, each unlocking something
 // real instead of XP just being a number that goes up. type is what
@@ -14985,6 +15088,8 @@ function logSet(ei,si,name,muscle){
   const isRepPR=w>0&&!isWeightPR&&prs[name]&&w===prs[name]&&r>(prBestReps[name]||0);
   if(isWeightPR||isRepPR){
     prs[name]=w;prBestReps[name]=r;chip.classList.add('pr');
+    prHistory.push({name,weight:w,reps:r,date:localDateKey(new Date())});
+    if(prHistory.length>500)prHistory=prHistory.slice(-500);
     chip.textContent=`🏆 ${w}×${r}`;
     const pd=document.getElementById('pr-d-'+ei);
     if(pd)pd.textContent='PR: '+w+'kg';
@@ -20647,6 +20752,8 @@ function saveToStorage(){
     localStorage.setItem('arx_measurementsLog', JSON.stringify(measurementsLog));
     localStorage.setItem('arx_prs', JSON.stringify(prs));
     localStorage.setItem('arx_prBestReps', JSON.stringify(prBestReps));
+    localStorage.setItem('arx_prHistory', JSON.stringify(prHistory));
+    localStorage.setItem('arx_laborsCompleted', JSON.stringify(laborsCompleted));
     localStorage.setItem('arx_weekSessionLength', weekSessionLength);
     localStorage.setItem('arx_appTheme', appTheme);
     localStorage.setItem('arx_deviationLog', JSON.stringify(deviationLog));
@@ -20762,6 +20869,10 @@ function loadFromStorage(){
     if(pr){prs=JSON.parse(pr)}
     const prr=localStorage.getItem('arx_prBestReps');
     if(prr){try{prBestReps=JSON.parse(prr);}catch(e){prBestReps={};}}
+    const prh=localStorage.getItem('arx_prHistory');
+    if(prh){try{prHistory=JSON.parse(prh);}catch(e){prHistory=[];}}
+    const lbc=localStorage.getItem('arx_laborsCompleted');
+    if(lbc){try{laborsCompleted=JSON.parse(lbc);}catch(e){laborsCompleted={};}}
     const wsl=localStorage.getItem('arx_weekSessionLength');
     if(wsl)weekSessionLength=wsl;
     const th=localStorage.getItem('arx_appTheme');
