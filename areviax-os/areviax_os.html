@@ -1420,9 +1420,12 @@ input[type=checkbox]{accent-color:var(--orange);width:15px;height:15px;cursor:po
              a tip worth keeping doesn't just scroll away tomorrow. -->
         <div class="card" id="dash-tip-card">
           <div class="card-header">
-            <span class="card-title">💡 Today's Tip</span>
+            <span class="card-title">🔮 The Oracle Speaks</span>
             <span class="card-action" id="dash-tip-saved-badge" style="display:none;color:var(--green);text-transform:none;letter-spacing:0;font-weight:700;cursor:default">Saved to journal ✓</span>
           </div>
+          <!-- Flavor is the frame, not the payload — the tip itself below
+               stays plain and actionable, never buried in riddle-speak,
+               so the mythology never costs anyone the actual advice. -->
           <div style="font-size:12.5px;color:var(--white);line-height:1.6;margin-bottom:12px" id="dash-tip-text">—</div>
           <button class="btn btn-primary btn-sm" id="dash-tip-save-btn" onclick="saveTipToJournal()">Save to Journal</button>
         </div>
@@ -1776,6 +1779,20 @@ input[type=checkbox]{accent-color:var(--orange);width:15px;height:15px;cursor:po
               <div style="font-size:12px;color:var(--muted);text-align:center;padding:24px 0">No tasks yet today — add your first one above.</div>
             </div>
           </div>
+
+          <!-- RIVER STYX — where tasks go when they're cleared/deleted,
+               instead of just vanishing. Same idea as clearDone() always
+               had, just no longer a dead end: anything that crosses can be
+               pulled back with Resurrect. See sendTaskToStyx(). -->
+          <div class="card" id="styx-card" style="display:none;border-color:rgba(120,140,220,.25)">
+            <div class="card-header">
+              <span class="card-title">🌊 The River Styx</span>
+              <span class="card-action" id="styx-count"></span>
+            </div>
+            <div style="font-size:11.5px;color:var(--muted);line-height:1.5;margin-bottom:10px">Tasks you cleared or removed — nothing's really gone. Bring one back if it turns out it mattered.</div>
+            <div id="styx-list"></div>
+          </div>
+
           <div class="upsell-card" style="margin-top:16px">
             <div class="upsell-lock">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
@@ -2640,7 +2657,7 @@ function saveState(){
     xp, shards, bestStreak, lastVisitDate, compassDates, habits, pomoSessionsTotal,
     journalEntries, morningEntries, dailyLog, tasksDone, tasksTotal, xpAtDayStart, goals,
     streakFreezes, usedFreezeDates, milestonesHit, workoutHistory, studyBlocks, scheduleEvents,
-    reminderSettings, reminderLastFired, customReminders, reminderAcknowledged,
+    reminderSettings, reminderLastFired, customReminders, reminderAcknowledged, styxArchive,
     doneListLog, doneListHourlyEnabled, doneListLastFiredHour,
     canvasNodes, canvasConnections, canvasZoomLevel, canvasNodeIdSeq,
     canvasDrawings, canvasDrawingIdSeq,
@@ -2886,7 +2903,8 @@ function addTask(){
   el.innerHTML=`<div class="task-main"><div class="task-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
     <span class="task-text">${text}</span>
     <span class="task-tag tag-pri-${pri.toLowerCase()}">${pri}</span>
-    <span class="task-tag tag-${cat}">${cat.charAt(0).toUpperCase()+cat.slice(1)}</span></div>
+    <span class="task-tag tag-${cat}">${cat.charAt(0).toUpperCase()+cat.slice(1)}</span>
+    <span onclick="event.stopPropagation();sendTaskToStyx(this.closest('.task-item'))" title="Send to the River Styx" style="margin-left:auto;color:var(--muted);cursor:pointer;font-size:13px;padding:2px 4px">🌊</span></div>
     <div class="subtask-list"></div>
     <span class="subtask-add-btn" onclick="event.stopPropagation();showSubtaskInput(this)">+ add a step</span>`;
   document.getElementById('all-tasks').appendChild(el);
@@ -2931,9 +2949,72 @@ function toggleSubtask(el){
 }
 
 function clearDone(){
-  document.querySelectorAll('#all-tasks .task-item.done').forEach(el=>el.remove());
+  document.querySelectorAll('#all-tasks .task-item.done').forEach(el=>sendTaskToStyx(el,true));
+}
+
+// RIVER STYX — see the card comment on #styx-card. A task-item's category
+// lives on its second .task-tag (first is priority), read back out of that
+// tag's own tag-<cat> class so this doesn't need a second source of truth.
+function sendTaskToStyx(el,silent){
+  if(!el) return;
+  const text = el.querySelector('.task-text')?.textContent || '';
+  const pri = el.getAttribute('data-priority') || 'Medium';
+  const tags = el.querySelectorAll('.task-tag');
+  let cat = 'personal';
+  if(tags[1]){
+    const m = tags[1].className.match(/tag-(\w+)/);
+    if(m) cat = m[1];
+  }
+  styxArchive.unshift({id:'styx-'+Date.now()+Math.random().toString(36).slice(2,6), text, cat, pri, wasCompleted: el.classList.contains('done'), archivedDate: todayISO()});
+  if(styxArchive.length>100) styxArchive = styxArchive.slice(0,100); // keep it a river, not a landfill
+  el.remove();
   updateTaskStats();
   saveState();
+  renderStyxArchive();
+  if(!silent) showToast('🌊','Sent to the River Styx');
+}
+function resurrectStyxTask(id){
+  const item = styxArchive.find(s=>s.id===id);
+  if(!item) return;
+  styxArchive = styxArchive.filter(s=>s.id!==id);
+  const el=document.createElement('div');
+  el.className='task-item';
+  el.setAttribute('data-priority', item.pri);
+  const esc = item.text.replace(/'/g,"\\'");
+  el.setAttribute('onclick',`toggleTask(this,10,'${esc}','${item.cat}')`);
+  el.innerHTML=`<div class="task-main"><div class="task-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+    <span class="task-text">${item.text}</span>
+    <span class="task-tag tag-pri-${item.pri.toLowerCase()}">${item.pri}</span>
+    <span class="task-tag tag-${item.cat}">${item.cat.charAt(0).toUpperCase()+item.cat.slice(1)}</span>
+    <span onclick="event.stopPropagation();sendTaskToStyx(this.closest('.task-item'))" title="Send to the River Styx" style="margin-left:auto;color:var(--muted);cursor:pointer;font-size:13px;padding:2px 4px">🌊</span></div>
+    <div class="subtask-list"></div>
+    <span class="subtask-add-btn" onclick="event.stopPropagation();showSubtaskInput(this)">+ add a step</span>`;
+  const list = document.getElementById('all-tasks');
+  const empty = list?.querySelector('div[style*="No tasks yet"]');
+  if(empty) empty.remove();
+  list?.appendChild(el);
+  tasksTotal++; updateTaskStats();
+  saveState();
+  renderStyxArchive();
+  showToast('⚡','Back among the living');
+}
+function renderStyxArchive(){
+  const card = document.getElementById('styx-card');
+  const list = document.getElementById('styx-list');
+  const countEl = document.getElementById('styx-count');
+  if(!card || !list) return;
+  if(!styxArchive.length){ card.style.display='none'; return; }
+  card.style.display='';
+  if(countEl) countEl.textContent = styxArchive.length;
+  list.innerHTML = styxArchive.slice(0,20).map(s=>{
+    const d = new Date(s.archivedDate+'T00:00:00');
+    const label = d.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+    return `<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border)">
+      <span style="flex:1;min-width:0;font-size:12px;color:${s.wasCompleted?'var(--muted)':'var(--white)'};${s.wasCompleted?'text-decoration:line-through':''}">${s.text}</span>
+      <span style="font-size:10px;color:var(--muted);white-space:nowrap">${label}</span>
+      <button class="btn-ghost-sm" onclick="resurrectStyxTask('${s.id}')">Resurrect</button>
+    </div>`;
+  }).join('');
 }
 
 // ── COMPASS SHARDS ──
@@ -3478,6 +3559,9 @@ let customReminders = saved.customReminders || [];
 // just whenever it fires. Lets checkReminders() keep re-firing an unread
 // reminder through the day instead of a single fire-and-forget notification.
 let reminderAcknowledged = saved.reminderAcknowledged || {};
+// styxArchive: [{id, text, cat, pri, wasCompleted, archivedDate}] — cleared/
+// deleted tasks land here instead of just being gone, see sendTaskToStyx().
+let styxArchive = saved.styxArchive || [];
 // doneListLog: [{date, time, text}] — the running "what actually happened" record
 let doneListLog = saved.doneListLog || [];
 let doneListHourlyEnabled = saved.doneListHourlyEnabled || false;
@@ -3925,7 +4009,8 @@ function quickAddRouletteTask(text, cat, pri){
   el.innerHTML=`<div class="task-main"><div class="task-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
     <span class="task-text">${text}</span>
     <span class="task-tag tag-pri-${pri.toLowerCase()}">${pri}</span>
-    <span class="task-tag tag-${cat}">${cat.charAt(0).toUpperCase()+cat.slice(1)}</span></div>
+    <span class="task-tag tag-${cat}">${cat.charAt(0).toUpperCase()+cat.slice(1)}</span>
+    <span onclick="event.stopPropagation();sendTaskToStyx(this.closest('.task-item'))" title="Send to the River Styx" style="margin-left:auto;color:var(--muted);cursor:pointer;font-size:13px;padding:2px 4px">🌊</span></div>
     <div class="subtask-list"></div>
     <span class="subtask-add-btn" onclick="event.stopPropagation();showSubtaskInput(this)">+ add a step</span>`;
   document.getElementById('all-tasks').appendChild(el);
@@ -4975,6 +5060,41 @@ function addGoal(){
   saveState();
   showToast('🎯','Goal added!');
 }
+// THE FATES — goal progress as a spun thread instead of a flat bar.
+// Clotho's spun length = real progress (the same pct a plain bar would
+// show, nothing invented); at 100% a small shears mark appears — Atropos
+// cutting the thread once the goal is actually done. getTotalLength() is
+// read AFTER the SVG is in the DOM (needs layout), so this always runs as
+// a post-pass on already-inserted markup, never inline during template
+// building.
+const FATES_THREAD_PATH = 'M0,12 C15,4 30,20 45,12 C60,4 75,20 90,12 C105,4 120,20 135,12 C150,4 165,20 180,12 C195,4 210,20 225,12 C240,4 255,20 270,12 C285,4 300,20 300,12';
+function fatesThreadMarkup(gid){
+  return `<div class="fates-thread-wrap" data-fates-gid="${gid}" style="margin:10px 0 4px">
+    <svg viewBox="0 0 300 24" preserveAspectRatio="none" style="width:100%;height:18px;display:block" aria-hidden="true">
+      <path d="${FATES_THREAD_PATH}" fill="none" stroke="var(--border)" stroke-width="2" stroke-linecap="round"/>
+      <path class="fates-thread-fill" d="${FATES_THREAD_PATH}" fill="none" stroke-width="2.5" stroke-linecap="round"/>
+      <g class="fates-shears" style="display:none" transform="translate(292,12)">
+        <path d="M-6,-4 L2,4 M-6,4 L2,-4" stroke="var(--gold,#E3BF76)" stroke-width="1.6" stroke-linecap="round"/>
+      </g>
+    </svg>
+  </div>`;
+}
+function paintFatesThreads(root,goalsById){
+  (root||document).querySelectorAll('.fates-thread-wrap[data-fates-gid]').forEach(wrap=>{
+    const g = goalsById[wrap.dataset.fatesGid];
+    if(!g) return;
+    const pct = g.target>0 ? Math.min(100,Math.round(g.current/g.target*100)) : 0;
+    const fill = wrap.querySelector('.fates-thread-fill');
+    const shears = wrap.querySelector('.fates-shears');
+    if(!fill) return;
+    fill.style.stroke = g.color;
+    const len = fill.getTotalLength();
+    fill.style.strokeDasharray = len;
+    fill.style.strokeDashoffset = len*(1-pct/100);
+    fill.style.transition = 'stroke-dashoffset .7s cubic-bezier(.16,1,.3,1)';
+    if(shears) shears.style.display = pct>=100 ? '' : 'none';
+  });
+}
 function renderGoals(){
   const list = document.getElementById('goals-list');
   if(!list) return;
@@ -5001,7 +5121,7 @@ function renderGoals(){
     const periodBadge = g.period ? `<span style="font-size:9px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:${g.color};background:rgba(255,255,255,.06);padding:2px 8px;border-radius:10px;margin-left:8px">${periodLabels[g.period]||g.period}</span>` : '';
     return `<div class="goal-card" data-gid="${g.id}" style="${isMini ? 'margin-left:20px;border-left:3px solid '+g.color : ''}">
       <div class="goal-title">${isMini ? '├ ' : ''}${g.title} ${isMini ? '<span style="font-size:10px;color:var(--muted)">mini</span>' : ''}${periodBadge}</div>
-      <div class="goal-bar-wrap"><div class="goal-bar" style="width:${pct}%;background:${g.color}"></div></div>
+      ${fatesThreadMarkup(g.id)}
       <div class="goal-meta"><span>${g.current} / ${g.target}</span><span style="color:${g.color}">${pct}%</span></div>
       ${linkedTags ? `<div class="goal-linked-row">${linkedTags}</div>` : ''}
       <div class="goal-update-row">
@@ -5014,10 +5134,12 @@ function renderGoals(){
   
   list.innerHTML = bigGoals.map(bg => {
     const miniGoals = miniGoalsByParent[bg.id] || [];
-    return renderGoalCard(bg, false) + 
+    return renderGoalCard(bg, false) +
       miniGoals.map(mg => renderGoalCard(mg, true)).join('');
   }).join('');
-  
+  const goalsById = {}; goals.forEach(g=>goalsById[g.id]=g);
+  paintFatesThreads(list, goalsById);
+
   renderDashGoalsPreview();
 }
 function renderDashGoalsPreview(){
@@ -5034,11 +5156,13 @@ function renderDashGoalsPreview(){
     const pct = g.target>0 ? Math.min(100,Math.round(g.current/g.target*100)) : 0;
     return `<div class="goal-card">
       <div class="goal-title">${g.title}</div>
-      <div class="goal-bar-wrap"><div class="goal-bar" style="width:${pct}%;background:${g.color}"></div></div>
+      ${fatesThreadMarkup(g.id)}
       <div class="goal-meta"><span>${g.current} / ${g.target}</span><span style="color:${g.color}">${pct}%</span></div>
     </div>`;
   };
   wrap.innerHTML = `<div>${col1.map(renderCard).join('')}</div><div>${col2.map(renderCard).join('')}</div>`;
+  const goalsById = {}; goals.forEach(g=>goalsById[g.id]=g);
+  paintFatesThreads(wrap, goalsById);
 }
 function renderDashSchedulePreview(){
   const wrap = document.getElementById('dash-schedule-preview');
@@ -6196,6 +6320,7 @@ function restoreState(){
   renderScheduleWeek();
   renderDashSchedulePreview();
   renderRemindersList();
+  renderStyxArchive();
   renderDoneListToday();
   const dlt=document.getElementById('donelist-hourly-toggle');
   if(dlt)dlt.classList.toggle('on', doneListHourlyEnabled);
