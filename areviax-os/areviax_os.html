@@ -1406,6 +1406,19 @@ input[type=checkbox]{accent-color:var(--orange);width:15px;height:15px;cursor:po
           <div class="dash-quote-attr" id="dash-quote-attr">Areviax</div>
         </div>
 
+        <!-- Daily Tip Card — same day-seeded rotation as the quote above,
+             but actionable advice rather than a one-liner, with a one-tap
+             save into that day's Journal entry (see saveTipToJournal()) so
+             a tip worth keeping doesn't just scroll away tomorrow. -->
+        <div class="card" id="dash-tip-card">
+          <div class="card-header">
+            <span class="card-title">💡 Today's Tip</span>
+            <span class="card-action" id="dash-tip-saved-badge" style="display:none;color:var(--green);text-transform:none;letter-spacing:0;font-weight:700;cursor:default">Saved to journal ✓</span>
+          </div>
+          <div style="font-size:12.5px;color:var(--white);line-height:1.6;margin-bottom:12px" id="dash-tip-text">—</div>
+          <button class="btn btn-primary btn-sm" id="dash-tip-save-btn" onclick="saveTipToJournal()">Save to Journal</button>
+        </div>
+
         <!-- Weekly Review — restored: this was fully built (renderWeeklyReview(),
              already wired to fire after every task/habit/journal update) but had
              no element to render into. Real, data-backed stats and trend
@@ -2965,12 +2978,45 @@ const DASH_QUOTES = [
   "Energy follows action, not the other way around.",
 ];
 
+// Actionable advice, not a one-liner mantra — that's what DASH_QUOTES
+// above is for. Same day-seeded rotation pattern so it changes daily but
+// stays stable if the page reloads.
+const DAILY_TIPS = [
+  "Batch your hardest task into the first 90 minutes of the day, before willpower has a chance to erode.",
+  "Write tomorrow's first task down tonight — deciding what to do is often the real friction, not doing it.",
+  "Two minutes of tidying your workspace before you start buys you an hour of not getting distracted by it later.",
+  "When a task feels too big to start, shrink it until the first step takes under five minutes.",
+  "Protect one block of your calendar as untouchable — a boundary you never negotiate away is the only kind that holds.",
+  "Track the habit, not the outcome, on hard days. Showing up is the metric that compounds.",
+  "Say the next physical action out loud ('open the doc, write one sentence') — vague intentions stall, concrete ones don't.",
+  "Do the thing you're avoiding first. Everything after it feels easier by comparison.",
+  "A short walk before a hard task resets focus better than another five minutes of scrolling.",
+  "Review yesterday for sixty seconds before you plan today — most days repeat the same friction points.",
+  "If a task keeps getting pushed three days running, it's either not actually a priority or it's not actually a single task — split it or drop it.",
+  "Close every other tab before starting deep work. The cost of switching back is higher than it feels in the moment.",
+];
+function getTodayTip(){
+  const dayNum = Math.floor(Date.now() / 86400000);
+  return DAILY_TIPS[dayNum % DAILY_TIPS.length];
+}
 function updateDashboard(){
   // Daily quote — seeded by date so it changes each day but stays stable
   const dayNum = Math.floor(Date.now() / 86400000);
   const q = DASH_QUOTES[dayNum % DASH_QUOTES.length];
   const qtEl = document.getElementById('dash-quote-text');
   if(qtEl) qtEl.textContent = '"' + q + '"';
+
+  // Daily tip + its save-to-journal state
+  const tip = getTodayTip();
+  const tipEl = document.getElementById('dash-tip-text');
+  if(tipEl) tipEl.textContent = tip;
+  const tipToday = todayISO();
+  const tipEntry = journalEntries.find(e=>e.date===tipToday);
+  const tipSaved = !!(tipEntry && tipEntry.savedTip && tipEntry.savedTip.text===tip);
+  const tipBadge = document.getElementById('dash-tip-saved-badge');
+  const tipBtn = document.getElementById('dash-tip-save-btn');
+  if(tipBadge) tipBadge.style.display = tipSaved ? '' : 'none';
+  if(tipBtn) tipBtn.style.display = tipSaved ? 'none' : '';
 
   // Tasks strip ring
   const taskPct = tasksTotal > 0 ? (tasksDone / tasksTotal * 100) : 0;
@@ -5665,6 +5711,26 @@ function saveJournalEntry(){
   saveState();
   showToast('📝','Entry saved');
 }
+// Saves the day's tip onto that same date's journal entry (creating one,
+// mood-less, if the user hasn't written a reflection yet) rather than a
+// separate list — one ordered timeline per day instead of two competing
+// ones. Re-saving the same day's tip is a no-op via the button's own
+// hidden state in updateDashboard(), not guarded again here.
+function saveTipToJournal(){
+  const tip = getTodayTip();
+  const today = todayISO();
+  let entry = journalEntries.find(e=>e.date===today);
+  if(entry){
+    entry.savedTip = {text: tip};
+  } else {
+    journalEntries.unshift({date: today, mood: null, text: '', savedTip: {text: tip}});
+  }
+  addXP(4,'Saved daily tip');
+  renderJournal();
+  updateDashboard();
+  saveState();
+  showToast('💡','Tip saved to your journal');
+}
 function renderJournal(){
   const list = document.getElementById('journal-list');
   if(!list) return;
@@ -5676,12 +5742,14 @@ function renderJournal(){
     const d = new Date(e.date+'T00:00:00');
     const label = d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});
     const safe = (e.text||'').replace(/</g,'&lt;');
+    const tipSafe = e.savedTip ? (e.savedTip.text||'').replace(/</g,'&lt;') : '';
     return `<div class="journal-entry">
       <div class="journal-entry-head">
         <span class="journal-entry-date">${label}</span>
-        <span class="journal-entry-mood">${moodEmoji[e.mood]||'😐'}</span>
+        ${e.mood ? `<span class="journal-entry-mood">${moodEmoji[e.mood]||'😐'}</span>` : ''}
       </div>
       ${safe ? `<div class="journal-entry-text">${safe}</div>` : ''}
+      ${tipSafe ? `<div class="journal-entry-text" style="margin-top:${safe?'8px':'0'};padding:8px 10px;background:rgba(255,196,102,.06);border-left:2px solid var(--orange2);border-radius:4px;font-style:italic;color:rgba(238,240,255,.75)">💡 ${tipSafe}</div>` : ''}
     </div>`;
   }).join('');
 }
