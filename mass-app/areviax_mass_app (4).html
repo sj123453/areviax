@@ -12,7 +12,7 @@
 <link rel="apple-touch-icon" href="images/icons/favicon.png">
 <link rel="icon" href="images/icons/favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Outfit:wght@300;400;500;600;700;800;900&family=Cormorant+Garamond:ital,wght@0,400;1,400;1,600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;500;600;700;800&family=Cinzel:wght@500;600;700&family=Outfit:wght@300;400;500;600;700;800;900&family=Cormorant+Garamond:ital,wght@0,400;1,400;1,600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -620,8 +620,7 @@ input,input:focus,input:active,
    to be. At >=900px this restructures into a main+sidebar composition
    rather than just reflowing the same stack into two side-by-side
    columns. */
-.dash-grid{display:grid;gap:14px;grid-template-columns:1fr;
-  grid-template-areas:"hero" "overview" "quote"}
+.dash-grid{display:block}
 /* Clears the fixed notification banner's drop-in zone (see
    .dash-notif-fixed below) — the greeting card lost its old boxed
    padding when it went unboxed, so without this a banner dropping in
@@ -646,9 +645,7 @@ input,input:focus,input:active,
 .dash-rings{grid-area:overview}
 .dash-quote{grid-area:quote}
 @media(min-width:900px){
-  #page-dashboard{max-width:1120px}
-  .dash-grid{grid-template-columns:1.4fr 1fr;align-items:start;
-    grid-template-areas:"hero overview" "quote quote"}
+  #page-dashboard{max-width:640px}
 }
 /* DESKTOP DASHBOARD SCALE-UP — the dashboard's cards were sized tight
    enough to fit one mobile screen without scrolling (see .dash-grid's
@@ -3104,6 +3101,72 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
 @media (orientation:landscape) and (max-height:500px) and (hover:none) and (pointer:coarse){
   #rotate-lock{display:flex}
 }
+
+/* ============================================================
+   LOVABLE PORT — literal tokens/utilities from the website-refresh
+   Lovable design (styles.css), converted oklch->hex for browser
+   safety but numerically identical. Scoped under .lv- so nothing
+   here touches the rest of the app; used only on the rebuilt
+   Dashboard/Progress/Trophy Cabinet pages.
+   ============================================================ */
+.lv-page{
+  --lv-bg:#120C09;--lv-fg:#F7F5F2;--lv-card:#1E1613;--lv-elevated:#2C221D;
+  --lv-primary:#F86111;--lv-primary-rgb:248,97,17;--lv-primary-fg:#170C09;--lv-primary-soft:#4C2819;
+  --lv-muted:#2A221E;--lv-muted-fg:#9E9791;
+  --lv-fuel:#49BFD9;--lv-fuel-rgb:73,191,217;
+  --lv-xp:#F7CD3A;--lv-xp-rgb:247,205,58;
+  --lv-border:#342C28;--lv-border-rgb:52,44,40;--lv-border-strong:#56433A;--lv-border-strong-rgb:86,67,58;
+  --lv-gold:#E6BE6D;--lv-gold-rgb:230,190,109;--lv-gold-soft:#7C6637;
+  --lv-ember1:#FF7300;--lv-ember1-rgb:255,115,0;--lv-ember2:#E94024;
+  --lv-cardg1:#2B1B13;--lv-cardg2:#19120F;
+  --lv-display:'Bebas Neue',sans-serif;--lv-sans:'Barlow',sans-serif;--lv-mono:'JetBrains Mono',monospace;--lv-serif:'Cormorant Garamond',serif;
+  background:var(--lv-bg);color:var(--lv-fg);font-family:var(--lv-sans);-webkit-font-smoothing:antialiased
+}
+.lv-page h1,.lv-page h2,.lv-page h3{font-family:var(--lv-display);letter-spacing:.02em}
+.lv-marble{background-color:var(--lv-bg);background-image:linear-gradient(100deg,transparent 0 46%,rgba(232,232,222,.035) 46% 47%,transparent 47% 100%),linear-gradient(72deg,transparent 0 22%,rgba(232,232,222,.025) 22% 23%,transparent 23% 100%),radial-gradient(140% 60% at 50% 0%,rgba(var(--lv-ember1-rgb),.1),transparent 70%);background-size:340px 100%,220px 100%,100% 100%}
+.lv-surface{position:relative;background-image:linear-gradient(160deg,var(--lv-cardg1) 0%,var(--lv-cardg2) 70%);border:1px solid var(--lv-border);border-top-color:var(--lv-gold-soft);box-shadow:0 18px 40px -28px rgba(0,0,0,.9),inset 0 1px 0 0 rgba(var(--lv-gold-rgb),.12);border-radius:1.75rem}
+.lv-ember{background-image:linear-gradient(135deg,var(--lv-ember1),var(--lv-ember2));color:var(--lv-primary-fg);box-shadow:0 12px 30px -12px rgba(var(--lv-primary-rgb),.55)}
+.lv-label-eyebrow{font-size:.6875rem;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--lv-muted-fg)}
+.lv-grain{position:relative}
+.lv-grain::after{content:'';position:absolute;inset:0;pointer-events:none;opacity:.05;background-image:radial-gradient(var(--lv-fg) .5px,transparent .5px);background-size:3px 3px}
+.lv-ember-wash{background:radial-gradient(120% 80% at 50% -10%,rgba(var(--lv-primary-rgb),.32) 0%,transparent 60%),var(--lv-bg)}
+.lv-display-hero{font-family:var(--lv-display);font-weight:400;font-size:clamp(3.75rem,22vw,6rem);line-height:.82;letter-spacing:.01em;text-transform:uppercase}
+.lv-stat-huge{font-family:var(--lv-display);font-weight:400;font-size:2.5rem;line-height:.85;font-variant-numeric:tabular-nums}
+.lv-hairline-grid{border:1px solid var(--lv-border);border-radius:1.75rem;overflow:hidden;display:grid;grid-template-columns:repeat(3,1fr);background:rgba(30,22,19,.6)}
+.lv-hairline-grid>*{border-right:1px solid var(--lv-border)}
+.lv-hairline-grid>*:last-child{border-right:0}
+.lv-ghost-numeral{font-family:var(--lv-display);font-size:14rem;line-height:.7;color:transparent;-webkit-text-stroke:1px var(--lv-border);opacity:.5;pointer-events:none;user-select:none;position:absolute}
+@keyframes lvRise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.lv-rise{animation:lvRise .6s cubic-bezier(.22,1,.36,1) both}
+@keyframes lvPulseDot{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(var(--lv-primary-rgb),.6)}50%{opacity:.6;box-shadow:0 0 0 5px rgba(var(--lv-primary-rgb),0)}}
+.lv-pulse-dot::before{content:'';display:inline-block;width:.4rem;height:.4rem;margin-right:.4rem;border-radius:999px;background:var(--lv-primary);animation:lvPulseDot 1.8s ease-in-out infinite}
+.lv-scroll-row{display:flex;gap:.5rem;overflow-x:auto;scrollbar-width:none;scroll-snap-type:x mandatory}
+.lv-scroll-row::-webkit-scrollbar{display:none}
+.lv-scroll-row>*{scroll-snap-align:start;flex:0 0 auto}
+.lv-serif-accent{font-family:var(--lv-serif);font-style:italic;font-weight:500;letter-spacing:-.01em;text-transform:none}
+.lv-gold-text{color:var(--lv-gold)}
+.lv-wordmark{font-family:var(--lv-serif);font-weight:600;font-size:.8125rem;letter-spacing:.34em;text-transform:uppercase;color:var(--lv-fg)}
+.lv-meander{height:16px;opacity:.9;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='16' viewBox='0 0 32 16' fill='none' stroke='%23b08c4f' stroke-width='1.6'%3E%3Cpath d='M0 1h32M0 15h32'/%3E%3Cpath d='M3 12V4h10v5H7v-2'/%3E%3Cpath d='M19 4v8h10V7h-6v2'/%3E%3C/svg%3E");background-repeat:repeat-x;background-size:32px 16px;-webkit-mask-image:linear-gradient(90deg,transparent,black 12%,black 88%,transparent);mask-image:linear-gradient(90deg,transparent,black 12%,black 88%,transparent)}
+.lv-meander-bold{height:22px;opacity:1;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='22' viewBox='0 0 40 22' fill='none' stroke='%23d6ab63' stroke-width='2'%3E%3Cpath d='M0 1.5h40M0 20.5h40'/%3E%3Cpath d='M4 17V5h13v7h-8v-3'/%3E%3Cpath d='M23 5v12h13v-7h-8v3'/%3E%3C/svg%3E");background-repeat:repeat-x;background-size:40px 22px;-webkit-mask-image:linear-gradient(90deg,transparent,black 10%,black 90%,transparent);mask-image:linear-gradient(90deg,transparent,black 10%,black 90%,transparent)}
+.lv-colonnade{position:relative}
+.lv-colonnade::before{content:'';position:absolute;inset:0;pointer-events:none;opacity:.16;background-image:repeating-linear-gradient(90deg,transparent 0 10px,rgba(232,232,222,.5) 10px 11px,transparent 11px 14px,rgba(232,232,222,.22) 14px 15px);-webkit-mask-image:linear-gradient(180deg,black,transparent 72%);mask-image:linear-gradient(180deg,black,transparent 72%)}
+.lv-temple-glow{position:relative}
+.lv-temple-glow::after{content:'';position:absolute;left:50%;top:-30%;width:22rem;height:22rem;translate:-50% 0;border-radius:999px;pointer-events:none;background:radial-gradient(circle,rgba(var(--lv-ember1-rgb),.35) 0%,transparent 65%)}
+.lv-pediment{position:relative}
+.lv-pediment::before{content:'';position:absolute;left:50%;top:-1px;width:132%;aspect-ratio:6/1;translate:-50% 0;pointer-events:none;border-top:1px solid var(--lv-gold-soft);background:linear-gradient(to bottom,rgba(var(--lv-gold-rgb),.14),transparent 70%);clip-path:polygon(50% 0,100% 100%,0 100%);opacity:.85}
+.lv-laurel-watermark{position:relative}
+.lv-laurel-watermark::after{content:'';position:absolute;right:-3.5rem;top:-2.5rem;width:18rem;height:18rem;pointer-events:none;opacity:.09;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='none' stroke='%23e9c98a' stroke-width='1.4'%3E%3Cpath d='M50 96C24 88 10 66 14 40 17 22 30 8 44 4'/%3E%3Cpath d='M50 96c26-8 40-30 36-56C83 22 70 8 56 4'/%3E%3Cg%3E%3Cellipse cx='20' cy='30' rx='7' ry='3' transform='rotate(-38 20 30)'/%3E%3Cellipse cx='17' cy='45' rx='7' ry='3' transform='rotate(-25 17 45)'/%3E%3Cellipse cx='19' cy='60' rx='7' ry='3' transform='rotate(-12 19 60)'/%3E%3Cellipse cx='26' cy='74' rx='7' ry='3' transform='rotate(8 26 74)'/%3E%3Cellipse cx='80' cy='30' rx='7' ry='3' transform='rotate(38 80 30)'/%3E%3Cellipse cx='83' cy='45' rx='7' ry='3' transform='rotate(25 83 45)'/%3E%3Cellipse cx='81' cy='60' rx='7' ry='3' transform='rotate(12 81 60)'/%3E%3Cellipse cx='74' cy='74' rx='7' ry='3' transform='rotate(-8 74 74)'/%3E%3C/g%3E%3C/svg%3E");background-repeat:no-repeat;background-size:contain}
+.lv-section-title{font-family:var(--lv-serif);font-style:normal;font-weight:600;font-size:1.75rem;line-height:1;letter-spacing:.06em;text-transform:uppercase;color:var(--lv-fg)}
+.lv-rule-gold{height:1px;background:linear-gradient(90deg,var(--lv-gold-soft),transparent 85%);opacity:.8}
+.lv-greek-numeral{font-family:var(--lv-serif);font-weight:600;font-size:.75rem;letter-spacing:.16em;color:var(--lv-gold)}
+.lv-rail-track{height:6px;overflow:hidden;border-radius:999px;background:var(--lv-muted)}
+.lv-rail-fill{height:100%;border-radius:999px;transition:width .7s cubic-bezier(.16,1,.3,1)}
+.lv-week-cell{display:flex;height:36px;flex:1;align-items:center;justify-content:center;border-radius:1rem;border:1px solid var(--lv-border);font-size:10px;font-weight:800;text-transform:uppercase;color:var(--lv-muted-fg)}
+.lv-week-cell.done{border-color:var(--lv-primary);background:rgba(var(--lv-primary-rgb),.2);color:var(--lv-primary)}
+.lv-week-cell.today{border-color:var(--lv-border-strong);background:var(--lv-elevated);color:var(--lv-fg)}
+.lv-pill{border-radius:999px;padding:6px 10px;font-size:11px;font-weight:800;display:inline-flex;align-items:center;gap:4px}
+.lv-topbar{position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--lv-border);background:rgba(18,12,9,.85);backdrop-filter:blur(20px);padding:10px 20px}
+.dash-qf-btn.logged{border-color:var(--lv-fuel)!important;background:rgba(var(--lv-fuel-rgb),.15)!important;color:var(--lv-fuel)!important}
 </style>
 </head>
 <body>
@@ -3557,225 +3620,169 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        media query in the shared CSS block, matching the reference
        mobile/laptop layouts while reusing the same render functions/ids
        as before — only the containers around them changed. -->
-  <div class="dash-grid">
+  <div class="dash-grid lv-page">
 
-  <!-- HERO — the greeting card and Today/session card as plain stacked
-       children of one .dash-hero grid item, sharing a single continuous,
-       subtle dot backdrop instead of each having its own separate patch.
-       Today's card also drops its border/background here so the two read
-       as one unboxed hero flowing over that shared backdrop, matching the
-       reference: no box around the hero, a much fainter dot wash than
-       before, continuing behind everything in it. -->
-  <div class="dash-hero laurel-watermark temple-glow">
-  <div aria-hidden="true" class="dash-hero-backdrop"></div>
-
-  <div class="dash-greeting">
-  <!-- Same content as before (greeting word + name + date — personalization
-       on a daily-return screen earns its place) but off the earlier
-       stroke-outline treatment, which read thin/rough at this size. Uses
-       the same solid Cinzel display face + coloured-glow language
-       as .glow-title elsewhere (XP/Trophy/Recovery headers) instead of a
-       one-off effect, so the hero moment matches the rest of the app's
-       own vocabulary rather than inventing a new one. -->
-  <div class="dash-greeting-inner" style="background:transparent;border:none;padding:6px 4px 22px;height:100%;box-sizing:border-box;position:relative;overflow:hidden">
-    <!-- Giant background watermark of the streak count — outline/hollow
-         rather than a solid faint fill, same "just an outline" depth
-         device the reference uses behind its own headline. Sits behind
-         the real (bold) number below purely for depth, not as the
-         readable stat itself. -->
-    <div style="position:relative">
-      <div class="dash-greeting-date" style="font-size:9px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,122,46,.55);margin-bottom:10px" id="dash-date"></div>
-      <div class="dash-greeting-text" style="font-family:'Cinzel',sans-serif;font-weight:700;font-size:52px;line-height:1.05;letter-spacing:-.02em;color:var(--white)" id="dash-greeting">Good morning</div>
-      <div class="dash-greeting-text" style="font-family:'Cinzel',sans-serif;font-weight:800;font-size:52px;line-height:1.05;letter-spacing:-.02em;margin-bottom:24px;color:var(--orange)" id="dash-name">Athlete</div>
-      <!-- Hero streak number — outline/hollow instead of a solid fill,
-           matching the reference's own big-number treatment and the
-           "solid word + hollow word" language already used on the Today
-           card's headline elsewhere on this page. Dim orange neon-style
-           glow via drop-shadow (follows the glyph outline, unlike a
-           box-shadow) — the one glow moment on this card, not applied to
-           anything else here, matching the "glow marks below rule this
-           app already follows elsewhere. The giant hollow watermark digit
-           now lives INSIDE this row's own relative wrapper (not the whole
-           greeting block) so it's anchored to the streak number it
-           represents and can never reach up into the greeting/name text —
-           it used to sit at the top of the whole card and collided with
-           long two-word names (e.g. "Sam Johnson"). -->
-      <div style="position:relative">
-        <div aria-hidden="true" id="dash-streak-watermark" style="position:absolute;right:-6px;top:-28px;font-family:'Cinzel',sans-serif;font-weight:800;font-size:118px;line-height:1;color:transparent;-webkit-text-stroke:1.5px rgba(79,157,224,.1);pointer-events:none;user-select:none;z-index:0">0</div>
-        <div style="display:flex;align-items:flex-end;gap:10px;position:relative;z-index:1">
-          <span class="dash-hero-streak-num" style="font-family:'Cinzel',sans-serif;font-weight:800;font-size:64px;line-height:.9;letter-spacing:-.02em;color:var(--white);filter:drop-shadow(0 0 20px rgba(79,157,224,.45))" id="dash-greeting-streak-num">0</span>
-          <div style="display:flex;flex-direction:column;padding-bottom:6px">
-            <svg class="streak-day-flame" viewBox="0 0 24 24" width="22" height="22" style="margin-bottom:2px;filter:drop-shadow(0 0 5px rgba(79,157,224,.65))" aria-hidden="true"><defs><linearGradient id="flameGradGreeting" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#BFE4FF"/><stop offset="50%" stop-color="#4F9DE0"/><stop offset="100%" stop-color="#123A5C"/></linearGradient></defs><path fill="url(#flameGradGreeting)" d="M12 22c4.4 0 7-2.9 7-6.8 0-3-1.7-5-3-7-.2 1.7-1 2.8-2 3.4.3-2.7-.7-5.6-3-7.6-.3 2.5-1.2 3.9-2.7 5.4C6.8 10.8 6 12.6 6 15c0 4 2.7 7 6 7z"/></svg>
-            <span style="font-size:10.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:rgba(79,157,224,.85)">Day Streak</span>
-          </div>
+  <!-- HERO — literal port of website-refresh's HomeScreen <header>, real
+       data threaded into the same slots (see renderDashHeroLovable() and
+       initApp()). -->
+  <header class="lv-ember-wash lv-grain lv-colonnade lv-temple-glow lv-pediment lv-laurel-watermark" style="position:relative;overflow:hidden;margin:0 -20px;padding:20px 20px 26px;border-radius:0 0 28px 28px">
+    <span class="lv-ghost-numeral" style="right:-12px;top:56px">Β</span>
+    <div style="position:relative;z-index:1">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <span style="display:flex;align-items:center;gap:8px">
+          <svg width="22" height="22" viewBox="0 0 48 48" fill="none" stroke="var(--lv-gold)" aria-hidden="true"><path d="M24 5 26.6 21.4 43 24 26.6 26.6 24 43 21.4 26.6 5 24 21.4 21.4Z" fill="var(--lv-gold)" stroke="none" opacity=".95"/><path d="M24 12v24M12 24h24" stroke-width=".6" opacity=".5"/><circle cx="24" cy="24" r="11" stroke-width=".7" opacity=".45"/><path d="M15 9c-7 5-9 14-5 22 2.5 5 6.5 8.5 11 10" stroke-width="1.4" opacity=".8"/><path d="M33 9c7 5 9 14 5 22-2.5 5-6.5 8.5-11 10" stroke-width="1.4" opacity=".8"/></svg>
+          <span class="lv-wordmark">Areviax</span>
+        </span>
+        <div style="display:flex;align-items:center;gap:6px">
+          <span class="lv-pill" style="background:var(--lv-primary);color:var(--lv-primary-fg)"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 22c4.4 0 7-2.9 7-6.8 0-3-1.7-5-3-7-.2 1.7-1 2.8-2 3.4.3-2.7-.7-5.6-3-7.6-.3 2.5-1.2 3.9-2.7 5.4C6.8 10.8 6 12.6 6 15c0 4 2.7 7 6 7z"/></svg> <span id="dash-streak-badge">0</span></span>
+          <span class="lv-pill" style="border:1px solid var(--lv-border-strong);color:var(--lv-xp)"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.8 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg> <span id="dash-xp-badge">0</span></span>
         </div>
       </div>
-      <div style="font-size:11px;color:rgba(var(--white-rgb),.4);margin-top:6px" id="dash-greeting-streak-sub"></div>
-      <!-- Week strip — desktop-only (see .dash-greeting-weekstrip), fills
-           the room the enlarged hero now has to spare. Same real
-           trainingCompletedDates data as Today's day-picker, just a
-           second render target so it still shows here once that one's
-           hidden on desktop (see the 900px block above). -->
-      <div id="dash-greeting-days" class="dash-greeting-weekstrip" style="display:none;grid-template-columns:repeat(7,minmax(0,1fr));gap:10px;margin-top:22px;max-width:340px"></div>
-    </div>
-  </div>
-  </div>
 
-  <div class="dash-today">
-  <!-- TODAY — the main workout CTA (compact row: session name left, Start
-       button right) with the Workout Progress chart now folded directly
-       underneath, small, instead of living in its own separate card. Same
-       real tonnageLog line-chart data as before, just shrunk. View
-       Workouts dropped — it pointed at the exact same page as Start
-       already does, so it was a duplicate button, not lost functionality. -->
-  <div class="dash-today-inner" style="background:transparent;border:none;padding:24px 4px 22px;overflow:hidden;position:relative">
-    <!-- HERO HEADLINE — solid word + hollow/outline word. The giant faint
-         watermark digit that used to sit behind this was removed —
-         that "number in the background" device now belongs to the
-         streak stat in the greeting card alone, not repeated here too.
-         plannedSessionName is usually two words ("Push Upper", "Pull
-         Lower"); renderTodaySessionName() splits it live so this stays
-         in sync with everywhere else that sets d-next-full (kept,
-         hidden, since other code still reads its textContent as the
-         plain session name). -->
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;position:relative">
-      <div style="min-width:0;flex:1">
-        <div class="dash-today-label" style="font-size:9.5px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,122,46,.65);margin-bottom:6px">Session <span id="d-next-idx" style="font-family:'JetBrains Mono',monospace">1</span>/<span id="d-next-total" style="font-family:'JetBrains Mono',monospace">1</span></div>
-        <div class="dash-today-name" style="font-family:'Cinzel',sans-serif;font-weight:800;font-size:28px;line-height:1.05;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">
-          <span id="d-next-word1" style="color:var(--white)">Push</span> <span id="d-next-word2" style="color:transparent;-webkit-text-stroke:1.3px rgba(var(--white-rgb),.55)">Upper</span>
+      <p class="lv-label-eyebrow lv-pulse-dot" style="margin-top:22px;color:var(--lv-fg);opacity:.7" id="dash-eyebrow-text">Session</p>
+
+      <h1 class="lv-display-hero" style="margin-top:6px;color:var(--lv-fg)">
+        <span id="d-next-word1">Push</span><br>
+        <span class="lv-serif-accent lv-gold-text" style="font-size:.8em" id="d-next-word2">upper</span>
+      </h1>
+      <div id="d-next-full" style="display:none">Push Upper</div>
+      <div id="d-next-sub" style="display:none"></div>
+
+      <div style="margin-top:14px;display:flex;align-items:center;gap:16px;font-family:var(--lv-mono);font-size:11px;color:var(--lv-muted-fg)">
+        <span style="display:flex;align-items:center;gap:5px"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="4" cy="12" r="3"/><circle cx="20" cy="12" r="3"/><rect x="7" y="11" width="10" height="2" rx="1"/></svg> <span id="d-next-lifts">0 lifts</span></span>
+        <span style="display:flex;align-items:center;gap:5px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg> <span id="d-next-time">~0 min</span></span>
+        <span id="d-next-last">last · —</span>
+      </div>
+
+      <!-- week strip — real trainingCompletedDates via renderWeeklyRecap() -->
+      <div id="d-next-daypicker" style="margin-top:20px;display:grid;grid-template-columns:repeat(7,1fr);gap:6px"></div>
+      <div class="lv-meander-bold" style="margin-top:20px"></div>
+    </div>
+  </header>
+
+  <main style="padding:0 20px 100px;margin-top:12px;display:flex;flex-direction:column;gap:12px">
+
+    <!-- volume + trend -->
+    <section class="lv-surface" style="padding:20px">
+      <div>
+        <div style="display:flex;align-items:baseline;justify-content:space-between">
+          <span class="lv-label-eyebrow">Weekly volume</span>
+          <span style="font-family:var(--lv-mono);font-size:12px;color:var(--lv-fg)" id="dash-vol-rail-val">0<span style="color:var(--lv-muted-fg)">/0kg</span></span>
         </div>
-        <div id="d-next-full" style="display:none">Push Upper</div>
-        <div class="dash-today-sub" style="font-size:11px;color:rgba(var(--white-rgb),.45);margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" id="d-next-sub"></div>
+        <div class="lv-rail-track" style="margin-top:8px"><div class="lv-rail-fill" id="dash-vol-rail-fill" style="width:0%;background:var(--lv-primary)"></div></div>
       </div>
-      <button class="dash-start-btn" onclick="showPage('workout')" style="flex-shrink:0;background:linear-gradient(135deg,#F36717,#FF8342);border:none;border-radius:999px;padding:13px 22px;color:#2B0E00;font-family:'Outfit',sans-serif;font-size:12.5px;font-weight:900;letter-spacing:.03em;text-transform:uppercase;cursor:pointer;box-shadow:0 8px 18px -8px rgba(243,103,23,.5);white-space:nowrap">▶ Start</button>
-    </div>
-
-    <!-- DAY PICKER — this week's real trained/rest days, today highlighted.
-         Same trainingCompletedDates data renderWeeklyRecap() already uses
-         for the desktop streak card's day strip, just a second, capsule-
-         styled render target inside this card so it's visible on mobile
-         where that card is hidden. -->
-    <div id="d-next-daypicker" style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:16px;position:relative"></div>
-
-    <div class="meander-band" aria-hidden="true" style="margin-top:16px"></div>
-
-    <div id="vol-daily-card" style="display:none;margin-top:16px;background:rgb(var(--bg-rgb));border:1px solid var(--border2);border-radius:16px;padding:18px 20px">
-      <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px">
-        <span class="dash-vol-label" style="font-size:9.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:rgba(var(--white-rgb),.4)">Weekly Volume</span>
-        <div class="dash-vol-total" style="font-size:13px;font-weight:800;color:var(--white);font-family:'JetBrains Mono',monospace" id="vol-daily-total"></div>
+      <div style="margin-top:20px">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <span class="lv-label-eyebrow">8-week trend</span>
+          <span style="display:flex;align-items:center;gap:4px;font-family:var(--lv-mono);font-size:11px;color:var(--lv-primary)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg> <span id="dash-vol-trend-pct"></span></span>
+        </div>
+        <div id="dash-vol-spark" style="margin-top:8px;display:flex;height:56px;align-items:flex-end;gap:6px"></div>
       </div>
-      <!-- Legend — the chart used to show two differently-coloured lines
-           with nothing naming which was which; a tiny swatch+label pair
-           makes "orange = that day's tonnage, cyan = the week's average"
-           legible at a glance instead of requiring the viewer to guess. -->
-      <div style="display:flex;align-items:center;gap:14px;margin-bottom:6px">
-        <span style="display:flex;align-items:center;gap:5px;font-size:9px;font-weight:700;color:rgba(var(--white-rgb),.55)"><span style="width:10px;height:2.5px;border-radius:2px;background:#FF8342;display:inline-block"></span>Daily</span>
-        <span style="display:flex;align-items:center;gap:5px;font-size:9px;font-weight:700;color:rgba(var(--white-rgb),.55)"><span style="width:10px;height:2.5px;border-radius:2px;background:#44CFFF;display:inline-block"></span>Weekly Avg</span>
-      </div>
-      <div class="wp-chart-wrap">
-        <svg viewBox="0 0 280 100" preserveAspectRatio="none" style="width:100%;height:60px;display:block" class="dash-wp-chart">
-          <g id="wp-gridlines"></g>
-          <polyline id="wp-avg-line" fill="none" stroke="#44CFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity=".8" vector-effect="non-scaling-stroke" points=""/>
-          <polyline id="wp-vol-line" fill="none" stroke="#FF8342" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke" points=""/>
-          <g id="wp-dots"></g>
-        </svg>
-        <div id="wp-day-labels" style="display:grid;grid-template-columns:repeat(7,1fr);margin-top:4px"></div>
-      </div>
-    </div>
-    <div id="vol-daily-empty" style="margin-top:16px;background:rgb(var(--bg-rgb));border:1px solid var(--border2);border-radius:16px;padding:18px 20px;font-size:10.5px;color:var(--muted);line-height:1.5">Log your first set and this week's volume trend shows up here.</div>
-  </div>
-  </div>
-  </div><!-- /dash-hero -->
+    </section>
 
-  <!-- THE PLAN — a read-only preview of today's exercises: numbered rows,
-       name + PR badge, sets×reps·suggested-weight, a GO link, all inside
-       one card with thin dividers instead of a separate box per row.
-       Real plannedSessionExs/prs/suggestNextWeight data, the same the
-       Session page's logging cards use — this is deliberately just a
-       glance-and-jump preview, not a second copy of that logging UI. -->
-  <div class="dash-plan" style="display:none">
-  <div style="background:rgba(232,214,196,.015);border:1px solid var(--border2);border-radius:16px;padding:18px 18px 6px">
-    <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:4px">
-      <span style="font-family:'Cinzel',sans-serif;font-weight:800;font-size:15px;color:var(--white)"><span style="color:var(--gold);font-weight:700;margin-right:6px">α.</span>The Plan</span>
-      <span style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted)" id="d-plan-setcount"></span>
-    </div>
-    <div style="width:64px;height:1px;background:linear-gradient(90deg,var(--gold-soft),transparent);margin-bottom:12px"></div>
-    <div id="d-plan-list"></div>
-  </div>
-  </div>
+    <!-- stats grid -->
+    <section class="lv-hairline-grid">
+      <div style="display:flex;flex-direction:column;gap:10px;padding:14px 12px">
+        <span class="lv-label-eyebrow">Sessions</span>
+        <div style="display:flex;align-items:baseline;gap:2px"><span class="lv-stat-huge" id="d-sessions-brief">0</span><span style="font-family:var(--lv-mono);font-size:11px;color:var(--lv-primary)" id="d-sessions-target">/0</span></div>
+        <div class="lv-rail-track" style="height:3px"><div class="lv-rail-fill" id="d-sessions-fill" style="height:100%;background:var(--lv-primary);width:0%"></div></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;padding:14px 12px">
+        <span class="lv-label-eyebrow">Kcal</span>
+        <div style="display:flex;align-items:baseline;gap:2px"><span class="lv-stat-huge" id="d-cals-brief">0</span><span style="font-family:var(--lv-mono);font-size:11px;color:var(--lv-xp)" id="d-cals-target">/0k</span></div>
+        <div class="lv-rail-track" style="height:3px"><div class="lv-rail-fill" id="d-cals-fill" style="background:var(--lv-xp);width:0%"></div></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;padding:14px 12px">
+        <span class="lv-label-eyebrow">Protein</span>
+        <div style="display:flex;align-items:baseline;gap:2px"><span class="lv-stat-huge" id="d-protein-brief">0</span><span style="font-family:var(--lv-mono);font-size:11px;color:var(--lv-fuel)" id="d-protein-target">/0g</span></div>
+        <div class="lv-rail-track" style="height:3px"><div class="lv-rail-fill" id="d-protein-fill" style="background:var(--lv-fuel);width:0%"></div></div>
+      </div>
+    </section>
 
-  <div class="dash-rings">
-  <!-- TODAY'S OVERVIEW — three matching wheels (Sessions/Calories/Protein,
-       same stroke-dasharray ring technique, same size) instead of a mixed
-       half-gauge + rings + separate protein bar. Carbs/Fat stay as slim
-       bars underneath since three wheels plus two bars already covers
-       every macro without a fourth wheel competing for space. Streak is
-       still one tap away via the topbar's streak pill (now clickable);
-       the old Compass canvas concept is what "Sessions" already tracks —
-       nothing here is fabricated to fill a slot a real pedometer/GPS
-       would need. -->
-  <div id="acc-progress" style="background:transparent;border:1px solid var(--border2);border-radius:16px;padding:18px 18px 16px;height:100%;box-sizing:border-box">
-  <div class="dash-overview-label" style="font-size:10.5px;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:rgba(var(--white-rgb),.35);margin-bottom:16px">Today's Overview</div>
-  <!-- Thin bar + right-aligned "current/total" fraction, not a ring —
-       same pattern as the Carbs/Fat bars just below, now used for every
-       metric on this card instead of switching languages partway down. -->
-  <div class="dash-stat-row" style="margin-bottom:14px">
-    <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px">
-      <span style="font-size:9.5px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:rgba(255,122,46,.75)">Sessions</span>
-      <span style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--white)" id="d-sessions-brief">0/0</span>
-    </div>
-    <div style="height:7px;border-radius:99px;background:var(--border2);overflow:hidden"><div id="d-sessions-fill" style="height:100%;width:0%;border-radius:99px;background:linear-gradient(90deg,#FF8342,#F36717);transition:width .5s cubic-bezier(.16,1,.3,1)"></div></div>
-  </div>
-  <div class="dash-stat-row" style="margin-bottom:14px">
-    <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px">
-      <span style="font-size:9.5px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:rgba(68,212,255,.75)">Calories</span>
-      <span style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--white)"><span id="d-cals-brief">0</span><span style="color:rgba(var(--white-rgb),.4);font-weight:500"> / </span><span id="d-cals-target" style="color:rgba(var(--white-rgb),.55);font-weight:500">—</span></span>
-    </div>
-    <div style="height:7px;border-radius:99px;background:var(--border2);overflow:hidden"><div id="d-cals-fill" style="height:100%;width:0%;border-radius:99px;background:linear-gradient(90deg,#8fe6ff,#44CFFF);transition:width .5s cubic-bezier(.16,1,.3,1)"></div></div>
-  </div>
-  <div class="dash-stat-row" style="margin-bottom:16px">
-    <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px">
-      <span style="font-size:9.5px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:rgba(68,212,255,.75)">Protein</span>
-      <span style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;color:var(--white)"><span id="d-protein-brief">0g</span><span style="color:rgba(var(--white-rgb),.4);font-weight:500"> / </span><span id="d-protein-target" style="color:rgba(var(--white-rgb),.55);font-weight:500">—</span></span>
-    </div>
-    <div style="height:7px;border-radius:99px;background:var(--border2);overflow:hidden"><div id="d-protein-fill" style="height:100%;width:0%;border-radius:99px;background:linear-gradient(90deg,#8fe6ff,#44CFFF);transition:width .5s cubic-bezier(.16,1,.3,1)"></div></div>
-  </div>
-  <div class="nutri-bar-row dash-nutri-bar-row">
-    <div class="nutri-bar-label">Carbs</div>
-    <div class="nutri-bar-track"><div class="nutri-bar-fill" id="dn-carbs-fill" style="width:0%;background:linear-gradient(90deg,#8fe6ff,#44CFFF)"></div></div>
-  </div>
-  <div class="nutri-bar-row dash-nutri-bar-row" style="margin-bottom:0">
-    <div class="nutri-bar-label">Fat</div>
-    <div class="nutri-bar-track"><div class="nutri-bar-fill" id="dn-fats-fill" style="width:0%;background:linear-gradient(90deg,#B4C4FF,#6C87FF)"></div></div>
-  </div>
-  <!-- kept for JS compatibility (existing render code writes to these) —
-       not shown, the topbar streak pill is now the visible/clickable
-       streak surface -->
+    <!-- THE PLAN — real plannedSessionExs/prs/suggestNextWeight, see
+         renderDashPlanList(). -->
+    <section class="lv-surface dash-plan" style="padding:20px;display:none">
+      <div style="display:flex;align-items:baseline;justify-content:space-between">
+        <h2 class="lv-section-title" style="display:flex;align-items:baseline;gap:8px;font-size:1.4rem"><span class="lv-greek-numeral">Α</span>The plan</h2>
+        <span style="font-family:var(--lv-mono);font-size:11px;color:var(--lv-muted-fg)" id="d-plan-setcount"></span>
+      </div>
+      <div class="lv-rule-gold" style="margin-top:8px"></div>
+      <div id="d-plan-list" style="margin-top:8px"></div>
+    </section>
+
+    <!-- FUEL — real dayMacros vs profile targets; one-tap quick-add calls
+         the real logItem()/addXP() pipeline (see dashQuickAddFood()). -->
+    <section class="lv-surface" style="padding:20px">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <h2 class="lv-section-title" style="font-size:1.4rem">Fuel</h2>
+        <button onclick="showPage('nutrition')" style="display:flex;align-items:center;gap:5px;border-radius:999px;border:1px solid var(--lv-border-strong);background:transparent;color:var(--lv-fg);padding:6px 12px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;cursor:pointer;font-family:var(--lv-sans)">Log food <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"/></svg></button>
+      </div>
+      <div style="margin-top:18px;display:flex;flex-direction:column;gap:14px">
+        <div>
+          <div style="display:flex;align-items:baseline;justify-content:space-between"><span class="lv-label-eyebrow">Protein</span><span style="font-family:var(--lv-mono);font-size:12px;color:var(--lv-fg)" id="dash-protein-rail-val">0<span style="color:var(--lv-muted-fg)">/0g</span></span></div>
+          <div class="lv-rail-track" style="margin-top:6px"><div class="lv-rail-fill" id="dash-protein-rail-fill" style="width:0%;background:var(--lv-fuel)"></div></div>
+        </div>
+        <div>
+          <div style="display:flex;align-items:baseline;justify-content:space-between"><span class="lv-label-eyebrow">Carbs</span><span style="font-family:var(--lv-mono);font-size:12px;color:var(--lv-fg)" id="dash-carbs-rail-val">0<span style="color:var(--lv-muted-fg)">/0g</span></span></div>
+          <div class="lv-rail-track" style="margin-top:6px"><div class="lv-rail-fill" id="dash-carbs-rail-fill" style="width:0%;background:var(--lv-fuel)"></div></div>
+        </div>
+        <div>
+          <div style="display:flex;align-items:baseline;justify-content:space-between"><span class="lv-label-eyebrow">Fat</span><span style="font-family:var(--lv-mono);font-size:12px;color:var(--lv-fg)" id="dash-fats-rail-val">0<span style="color:var(--lv-muted-fg)">/0g</span></span></div>
+          <div class="lv-rail-track" style="margin-top:6px"><div class="lv-rail-fill" id="dash-fats-rail-fill" style="width:0%;background:var(--lv-fuel)"></div></div>
+        </div>
+      </div>
+      <div class="lv-label-eyebrow" style="margin-top:18px">One tap</div>
+      <div class="lv-scroll-row" style="margin-top:8px">
+        <button class="dash-qf-btn" onclick="dashQuickAddFood(0,this)" style="display:flex;align-items:center;gap:6px;border-radius:999px;border:1px solid var(--lv-border-strong);background:transparent;color:var(--lv-fg);padding:8px 12px;font-size:12px;font-weight:600;font-family:var(--lv-sans);cursor:pointer;white-space:nowrap"><span class="qf-ico" style="display:flex"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></span>Whey shake <span style="font-family:var(--lv-mono);font-size:10px;color:var(--lv-muted-fg)">28p</span></button>
+        <button class="dash-qf-btn" onclick="dashQuickAddFood(1,this)" style="display:flex;align-items:center;gap:6px;border-radius:999px;border:1px solid var(--lv-border-strong);background:transparent;color:var(--lv-fg);padding:8px 12px;font-size:12px;font-weight:600;font-family:var(--lv-sans);cursor:pointer;white-space:nowrap"><span class="qf-ico" style="display:flex"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></span>Chicken 150g <span style="font-family:var(--lv-mono);font-size:10px;color:var(--lv-muted-fg)">46p</span></button>
+        <button class="dash-qf-btn" onclick="dashQuickAddFood(2,this)" style="display:flex;align-items:center;gap:6px;border-radius:999px;border:1px solid var(--lv-border-strong);background:transparent;color:var(--lv-fg);padding:8px 12px;font-size:12px;font-weight:600;font-family:var(--lv-sans);cursor:pointer;white-space:nowrap"><span class="qf-ico" style="display:flex"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></span>Greek yogurt <span style="font-family:var(--lv-mono);font-size:10px;color:var(--lv-muted-fg)">20p</span></button>
+        <button class="dash-qf-btn" onclick="dashQuickAddFood(3,this)" style="display:flex;align-items:center;gap:6px;border-radius:999px;border:1px solid var(--lv-border-strong);background:transparent;color:var(--lv-fg);padding:8px 12px;font-size:12px;font-weight:600;font-family:var(--lv-sans);cursor:pointer;white-space:nowrap"><span class="qf-ico" style="display:flex"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></span>4 eggs <span style="font-family:var(--lv-mono);font-size:10px;color:var(--lv-muted-fg)">24p</span></button>
+      </div>
+    </section>
+
+    <!-- QUOTE — same real DASH_QUOTES/day-index data as before, restyled. -->
+    <section class="lv-ember" style="position:relative;overflow:hidden;border-radius:1.75rem;padding:24px">
+      <span style="position:absolute;right:-4px;top:-30px;font-family:var(--lv-serif);font-size:8rem;line-height:1;opacity:.2;pointer-events:none" aria-hidden="true">&ldquo;</span>
+      <p class="lv-serif-accent" style="position:relative;font-size:1.7rem;line-height:1.15" id="dash-quote-text">—</p>
+      <p style="position:relative;margin-top:12px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.16em;opacity:.7">Areviax · Stoic daily</p>
+    </section>
+
+    <!-- RECOVERY + SLEEP — real sleepLog / computeMuscleReadiness data,
+         see renderDashHeroLovable(). -->
+    <section style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div style="border:1px solid var(--lv-border);border-radius:1.75rem;padding:16px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--lv-fuel)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <p class="lv-label-eyebrow" style="margin-top:8px;color:var(--lv-fuel)">Sleep</p>
+        <p class="lv-stat-huge" style="margin-top:8px" id="dash-sleep-val">—</p>
+        <p style="margin-top:8px;font-size:11px;line-height:1.4;color:var(--lv-muted-fg)" id="dash-sleep-sub">Log tonight's sleep in Recovery.</p>
+      </div>
+      <div style="border:1px solid var(--lv-border);border-radius:1.75rem;padding:16px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="var(--lv-primary)" aria-hidden="true"><circle cx="4" cy="12" r="3"/><circle cx="20" cy="12" r="3"/><rect x="7" y="11" width="10" height="2" rx="1"/></svg>
+        <p class="lv-label-eyebrow" style="margin-top:8px;color:var(--lv-primary)" id="dash-recovery-label">Recovery</p>
+        <p class="lv-stat-huge" style="margin-top:8px" id="dash-recovery-val">—</p>
+        <p style="margin-top:8px;font-size:11px;line-height:1.4;color:var(--lv-muted-fg)" id="dash-recovery-sub">Log a session to start tracking recovery.</p>
+      </div>
+    </section>
+  </main>
+
+  <!-- hidden legacy anchors — earlier dashboard JS still writes to these
+       ids (desktop weekstrip, the old per-day volume chart, wheel/compass
+       leftovers); nothing here renders, they just keep those functions
+       from erroring. -->
   <div style="display:none">
-    <canvas id="compass-main" width="88" height="88"></canvas>
-    <div id="compass-label"></div>
-    <div id="shard-bank-indicator"></div>
-    <div id="streak-card"></div>
-    <div id="flame-val">0</div>
-    <div id="best-streak-sub"></div>
-  </div>
-  </div>
+    <div id="dash-date"></div><div id="dash-greeting">Good morning</div><div id="dash-name">Athlete</div>
+    <div id="dash-streak-watermark">0</div><div id="dash-greeting-streak-num">0</div><div id="dash-greeting-streak-sub"></div>
+    <div id="dash-greeting-days"></div>
+    <div id="vol-daily-card"><div id="vol-daily-total"></div><svg><g id="wp-gridlines"></g><polyline id="wp-avg-line" points=""/><polyline id="wp-vol-line" points=""/><g id="wp-dots"></g></svg><div id="wp-day-labels"></div></div>
+    <div id="vol-daily-empty"></div>
+    <div id="dn-carbs-fill"></div><div id="dn-fats-fill"></div>
+    <canvas id="compass-main" width="88" height="88"></canvas><div id="compass-label"></div><div id="shard-bank-indicator"></div><div id="streak-card"></div><div id="flame-val">0</div><div id="best-streak-sub"></div>
   </div>
 
-  <div class="dash-quote">
-  <!-- MOTIVATIONAL QUOTE — now this page's one glow moment (moved here
-       from Nutrition per feedback — one home for it, not duplicated
-       across pages), same solid orange gradient + glow treatment as
-       Nutrition/OS use. Same real DASH_QUOTES/day-index data as
-       always, just restyled. Assessment split into its own card below
-       instead of sharing this one — mixing its cyan branding onto an
-       orange glow block read wrong, and this keeps the "one glow per
-       screen" rule intact (bar_lovable_theme.md mechanism 3). -->
-  <div class="dash-quote-inner" style="background:linear-gradient(135deg,#FF8A2E,#E85A00);border-radius:18px;padding:22px 20px;position:relative;overflow:hidden;height:100%;box-sizing:border-box;box-shadow:0 0 40px -8px rgba(255,122,46,.5)">
-    <div class="dash-quote-label" style="font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:rgba(26,13,0,.6);margin-bottom:9px;font-weight:800">Today's Perspective</div>
-    <div class="dash-quote-text" style="font-size:15px;color:#1A0D00;line-height:1.35;font-style:italic;font-weight:800;position:relative" id="dash-quote-text">—</div>
-    <div class="dash-quote-attrib" style="font-size:10px;color:rgba(26,13,0,.6);font-weight:800;letter-spacing:.1em;text-transform:uppercase;position:relative;margin-top:10px">Areviax · Daily</div>
-  </div>
+  <!-- START bar — sticky bottom CTA, matching the reference's fixed
+       inset-x-0 bottom-0 treatment. -->
+  <div style="position:fixed;left:0;right:0;bottom:calc(60px + env(safe-area-inset-bottom,0px));z-index:150;max-width:480px;margin:0 auto;background:linear-gradient(to top,var(--lv-bg) 60%,transparent);padding:16px 20px 10px">
+    <button class="lv-ember lv-grain" onclick="showPage('workout')" style="width:100%;display:flex;align-items:center;justify-content:space-between;border:none;border-radius:1.25rem;padding:16px 20px;font-family:var(--lv-sans);font-size:16px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;cursor:pointer">Start session <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></button>
   </div>
 
   </div>
@@ -4876,10 +4883,11 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     <div class="road-hub-card-chev">→</div>
   </div>
 
-  <!-- REWARDS — Daily Spin, Compass Drops. Weight Milestones moved to
-       the Trophy Cabinet (it's a trophy collection, same as everything
-       else there) so this card stays focused on the currency/reward loop. -->
-  <div class="card" style="margin-bottom:14px">
+  <!-- REWARDS — Daily Spin, Compass Drops. Taken out of the visible UI
+       for now (not part of the new design direction) -- everything
+       underneath (crate system, reveal reel, rarity tiers) is untouched;
+       remove display:none to bring this card back. -->
+  <div class="card" style="margin-bottom:14px;display:none">
     <div class="ch"><span class="ct">Rewards</span></div>
     <div style="font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:4px" id="daily-spin-card">Daily Spin</div>
     <div style="font-size:10.5px;color:var(--muted);margin-bottom:2px">One free spin a day — Bronze, Silver, Gold, Diamond, even the Areviax Drop.</div>
@@ -10118,6 +10126,11 @@ function viewDropInfo(tier,event){
   requestAnimationFrame(()=>overlay.classList.add('show'));
 }
 function checkDailySpinBanner(){
+  // Daily Spin / Compass Drops taken out of the visible UI for now (not in
+  // the new design direction) -- the system underneath is untouched, this
+  // just stops the banner from ever showing. Remove this early return to
+  // bring it back.
+  return;
   const banner=document.getElementById('daily-spin-banner');
   if(!banner)return;
   banner.style.display=isDailySpinReady()?'flex':'none';
@@ -11423,6 +11436,11 @@ function updateStreakFromActivity(){
 // ── NAV ──
 function showPage(id){
   try{updateMobileNav(id);}catch(e){}
+  // Dashboard/Progress/Trophy Cabinet carry their own Lovable-port header
+  // (logo+streak+XP baked into the hero/sticky bar) — the shared app
+  // topbar would just duplicate that, so it's hidden only on those pages.
+  const sharedTopbar=document.querySelector('.topbar');
+  if(sharedTopbar)sharedTopbar.style.display=(id==='dashboard')?'none':'';
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.sb-item').forEach(i=>i.classList.remove('active'));
   const pg=document.getElementById('page-'+id);
@@ -12376,6 +12394,143 @@ function dismissDashNotif(id){
 // guarantees the observers are attached before anything has a chance to
 // mutate a banner for the first time.
 armDashNotifWatchers();
+// Compact-thousands number formatting ("1.2k") for the Dashboard's Kcal
+// stat, matching the Lovable design's Stat component.
+function formatCompactK(n){
+  if(n>=1000)return (n/1000).toFixed(1)+'k';
+  return String(Math.round(n));
+}
+
+// LOVABLE-PORT DASHBOARD HERO — eyebrow/meta row, weekly-volume rail +
+// 8-week trend sparkline, and the recovery/sleep cards. All real data
+// (tonnageLog, sleepLog, sessionHistory, computeMuscleReadiness) — nothing
+// here is invented to fill the reference layout's slots.
+function renderDashHeroLovable(){
+  const dsb2=document.getElementById('dash-streak-badge');if(dsb2)dsb2.textContent=streak;
+  const dxb2=document.getElementById('dash-xp-badge');if(dxb2)dxb2.textContent=xp;
+  const eyebrowEl=document.getElementById('dash-eyebrow-text');
+  if(eyebrowEl){
+    const now=new Date();
+    const wd=now.toLocaleDateString('en-US',{weekday:'short'});
+    let weekNum=1;
+    if(joinDate){
+      const jd=parseLocalDate(joinDate);
+      weekNum=Math.max(1,Math.floor((now-jd)/(7*86400000))+1);
+    }
+    const sessIdx=Math.min(sessThisWeek+1,profile.days||1);
+    eyebrowEl.textContent=wd+' · Week '+weekNum+' · Session '+String(sessIdx).padStart(2,'0')+' / '+String(profile.days||0).padStart(2,'0');
+  }
+
+  const liftsEl=document.getElementById('d-next-lifts');
+  const timeEl=document.getElementById('d-next-time');
+  const lastEl=document.getElementById('d-next-last');
+  const n=plannedSessionExs?plannedSessionExs.length:0;
+  if(liftsEl)liftsEl.textContent=n+(n===1?' lift':' lifts');
+  if(timeEl)timeEl.textContent='~'+Math.round(n*5.5)+' min';
+  if(lastEl){
+    const name=plannedSessionName||document.getElementById('d-next-full')?.textContent||'';
+    const todayKey=localDateKey(new Date());
+    const prior=name&&sessionHistory.length?sessionHistory.filter(s=>s.name===name&&s.date!==todayKey).sort((a,b)=>b.date.localeCompare(a.date))[0]:null;
+    if(prior){
+      const days=Math.floor((parseLocalDate(todayKey)-parseLocalDate(prior.date))/86400000);
+      lastEl.textContent='last · '+(days<=0?'today':days+'d ago');
+    }else{
+      lastEl.textContent='last · first time';
+    }
+  }
+
+  const weeks=weeklyTonnageBuckets(8);
+  const thisWeekVol=weeks[weeks.length-1].total;
+  const priorWeeks=weeks.slice(0,-1).map(w=>w.total);
+  const bestPrior=priorWeeks.length?Math.max(...priorWeeks):0;
+  const target=Math.max(bestPrior,1000);
+  const railVal=document.getElementById('dash-vol-rail-val');
+  const railFill=document.getElementById('dash-vol-rail-fill');
+  if(railVal)railVal.innerHTML=Math.round(thisWeekVol).toLocaleString()+'<span style="color:var(--lv-muted-fg)">/'+Math.round(target).toLocaleString()+'kg</span>';
+  if(railFill)railFill.style.width=Math.min(100,thisWeekVol/target*100)+'%';
+
+  const sparkEl=document.getElementById('dash-vol-spark');
+  const trendPctEl=document.getElementById('dash-vol-trend-pct');
+  if(sparkEl){
+    const max=Math.max(...weeks.map(w=>w.total),1);
+    sparkEl.innerHTML=weeks.map((w,i)=>{
+      const last=i===weeks.length-1;
+      const h=Math.max(3,Math.round(w.total/max*56));
+      return `<div style="flex:1"><div style="width:100%;border-radius:2px 2px 0 0;height:${h}px;background:${last?'var(--lv-primary)':'var(--lv-border-strong)'}"></div></div>`;
+    }).join('');
+  }
+  if(trendPctEl){
+    const first=weeks[0].total,last=weeks[weeks.length-1].total;
+    if(!first&&!last){trendPctEl.textContent='';}
+    else if(!first){trendPctEl.textContent='New';}
+    else{
+      const pct=Math.round((last-first)/first*100);
+      trendPctEl.textContent=(pct>=0?'+':'')+pct+'%';
+    }
+  }
+
+  const sleepValEl=document.getElementById('dash-sleep-val');
+  const sleepSubEl=document.getElementById('dash-sleep-sub');
+  if(sleepValEl){
+    if(sleepLog.length){
+      const lastNight=sleepLog[sleepLog.length-1];
+      sleepValEl.innerHTML=lastNight.hours+'<span style="font-family:var(--lv-mono);font-size:11px;color:var(--lv-muted-fg)">h</span>';
+      const sleepTarget=recommendedSleepRange(profile.age).max;
+      const diffMin=Math.round((sleepTarget-lastNight.hours)*60);
+      if(sleepSubEl)sleepSubEl.textContent=diffMin>0?Math.floor(diffMin/60)+'h '+(diffMin%60)+'m under your growth target.':'At or above your growth target.';
+    }else{
+      sleepValEl.innerHTML='—';
+      if(sleepSubEl)sleepSubEl.textContent="Log tonight's sleep in Recovery.";
+    }
+  }
+  const recLabelEl=document.getElementById('dash-recovery-label');
+  const recValEl=document.getElementById('dash-recovery-val');
+  const recSubEl=document.getElementById('dash-recovery-sub');
+  if(recLabelEl&&typeof computeMuscleReadiness==='function'){
+    const readiness=computeMuscleReadiness().filter(m=>!m.neverTrained);
+    if(readiness.length){
+      readiness.sort((a,b)=>b.hoursLeft-a.hoursLeft);
+      const least=readiness[0];
+      recLabelEl.textContent=least.label;
+      if(least.hoursLeft>0){
+        recValEl.innerHTML=least.hoursLeft+'<span style="font-family:var(--lv-mono);font-size:11px;color:var(--lv-muted-fg)">h</span>';
+        if(recSubEl)recSubEl.textContent=Math.round(least.pctRecovered*100)+'% recovered.';
+      }else{
+        recValEl.innerHTML='Ready';
+        if(recSubEl)recSubEl.textContent='Fully recovered.';
+      }
+    }else{
+      recLabelEl.textContent='Recovery';
+      recValEl.innerHTML='—';
+      if(recSubEl)recSubEl.textContent='Log a session to start tracking recovery.';
+    }
+  }
+}
+
+// FUEL QUICK-ADD — real logItem()/addXP() calls, same as manually typing a
+// food into Nutrition; just four common presets one tap away. Estimates are
+// standard reference macros for these foods, same category of number as any
+// packaged-food label, not a fabricated app stat. One-way (tap to log) —
+// there's no real "unlog" in the food log, so this doesn't pretend to have one.
+const DASH_QUICK_FOODS=[
+  {name:'Whey shake',cals:130,prot:28,carbs:4,fats:2},
+  {name:'Chicken 150g',cals:250,prot:46,carbs:0,fats:6},
+  {name:'Greek yogurt',cals:100,prot:20,carbs:6,fats:0},
+  {name:'4 eggs',cals:280,prot:24,carbs:2,fats:20}
+];
+function dashQuickAddFood(idx,btn){
+  if(btn.classList.contains('logged'))return;
+  const f=DASH_QUICK_FOODS[idx];
+  logItem(f.name,f.cals,f.prot,f.carbs,f.fats);
+  try{addXP(foodXPForName(f.name,5),'Food logged');}catch(e){}
+  try{checkProteinQuest();}catch(e){}
+  saveToStorage();
+  btn.classList.add('logged');
+  const ico=btn.querySelector('.qf-ico');
+  if(ico)ico.innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+  try{initApp();}catch(e){}
+}
+
 // THE PLAN — dashboard preview list, see the markup comment for why this
 // is a separate, read-only render rather than reusing the Session page's
 // logging cards.
@@ -12444,18 +12599,28 @@ function initApp(){
       dnsub.textContent='';
     }
   }
-  const dcb=document.getElementById('d-cals-brief');if(dcb)dcb.textContent=(dayMacros.cals||0).toLocaleString();
-  const dct=document.getElementById('d-cals-target');if(dct)dct.textContent=(profile.cals||0).toLocaleString();
+  const dcb=document.getElementById('d-cals-brief');if(dcb)dcb.textContent=formatCompactK(dayMacros.cals||0);
+  const dct=document.getElementById('d-cals-target');if(dct)dct.textContent='/'+formatCompactK(profile.cals||0);
   const dcfill=document.getElementById('d-cals-fill');if(dcfill){const p=Math.min(1,profile.cals?(dayMacros.cals||0)/profile.cals:0);dcfill.style.width=(p*100).toFixed(1)+'%';}
-  const dpb=document.getElementById('d-protein-brief');if(dpb)dpb.textContent=(Math.round((dayMacros.prot||0)*10)/10)+'g';
+  const dpb=document.getElementById('d-protein-brief');if(dpb)dpb.textContent=Math.round((dayMacros.prot||0)*10)/10;
   renderDashNutritionPulse();
   renderDashQuote();
   renderCardioChips();
   renderCardioHistory();
-  const dpt=document.getElementById('d-protein-target');if(dpt)dpt.textContent=(profile.protein||0)+'g';
+  const dpt=document.getElementById('d-protein-target');if(dpt)dpt.textContent='/'+(profile.protein||0)+'g';
   const dpfill=document.getElementById('d-protein-fill');if(dpfill){const p=Math.min(1,profile.protein?(dayMacros.prot||0)/profile.protein:0);dpfill.style.width=(p*100).toFixed(1)+'%';}
-  const dsb=document.getElementById('d-sessions-brief');if(dsb)dsb.textContent=sessThisWeek+'/'+profile.days;
+  const dsb=document.getElementById('d-sessions-brief');if(dsb)dsb.textContent=sessThisWeek;
+  const dst=document.getElementById('d-sessions-target');if(dst)dst.textContent='/'+profile.days;
   const dsfill=document.getElementById('d-sessions-fill');if(dsfill){const sp=profile.days?Math.min(1,sessThisWeek/profile.days):0;dsfill.style.width=(sp*100).toFixed(1)+'%';}
+  const dcarbv=document.getElementById('dash-carbs-val');if(dcarbv)dcarbv.textContent=Math.round(dayMacros.carbs||0)+'<span style="color:var(--lv-muted-fg)">/'+Math.round(profile.carbs||0)+'g</span>';
+  const dfatv=document.getElementById('dash-fats-val');if(dfatv)dfatv.textContent=Math.round(dayMacros.fats||0)+'<span style="color:var(--lv-muted-fg)">/'+Math.round(profile.fats||0)+'g</span>';
+  const dprotrail=document.getElementById('dash-protein-rail-val');if(dprotrail)dprotrail.innerHTML=(Math.round((dayMacros.prot||0)*10)/10)+'<span style="color:var(--lv-muted-fg)">/'+(profile.protein||0)+'g</span>';
+  const dprotrailf=document.getElementById('dash-protein-rail-fill');if(dprotrailf){const p=Math.min(100,profile.protein?(dayMacros.prot||0)/profile.protein*100:0);dprotrailf.style.width=p+'%';}
+  const dcarbrailv=document.getElementById('dash-carbs-rail-val');if(dcarbrailv)dcarbrailv.innerHTML=Math.round(dayMacros.carbs||0)+'<span style="color:var(--lv-muted-fg)">/'+Math.round(profile.carbs||0)+'g</span>';
+  const dcarbrailf=document.getElementById('dash-carbs-rail-fill');if(dcarbrailf){const p=Math.min(100,profile.carbs?(dayMacros.carbs||0)/profile.carbs*100:0);dcarbrailf.style.width=p+'%';}
+  const dfatrailv=document.getElementById('dash-fats-rail-val');if(dfatrailv)dfatrailv.innerHTML=Math.round(dayMacros.fats||0)+'<span style="color:var(--lv-muted-fg)">/'+Math.round(profile.fats||0)+'g</span>';
+  const dfatrailf=document.getElementById('dash-fats-rail-fill');if(dfatrailf){const p=Math.min(100,profile.fats?(dayMacros.fats||0)/profile.fats*100:0);dfatrailf.style.width=p+'%';}
+  try{renderDashHeroLovable();}catch(e){console.error('renderDashHeroLovable:',e.message);}
   const sga=document.getElementById('sess-gauge-arc');if(sga){const sp=profile.days?Math.min(1,sessThisWeek/profile.days):0;sga.style.strokeDashoffset=(182.2*(1-sp)).toFixed(1);}
   const fv2=document.getElementById('flame-val');if(fv2)fv2.textContent=streak;
   const bss=document.getElementById('best-streak-sub');if(bss)bss.textContent=bestStreak>streak?'Best: '+bestStreak+' days':'';
@@ -17813,11 +17978,9 @@ function renderWeeklyRecap(){
       const d=new Date(dStr+'T00:00:00');
       const active=trainingCompletedDates.includes(dStr);
       const isToday=dStr===todayStr;
-      const bg=isToday?'linear-gradient(135deg,#F36717,#FF8342)':active?'rgba(255,122,46,.14)':'rgba(232,214,196,.04)';
-      const bd=isToday?'transparent':active?'rgba(255,122,46,.4)':'var(--border2)';
-      const col=isToday?'#2B0E00':active?'#FF9A52':'rgba(var(--white-rgb),.4)';
-      const label=active&&!isToday?'✓':dayNames[d.getDay()];
-      return `<div style="padding:13px 0;border-radius:999px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;font-family:'JetBrains Mono',monospace;background:${bg};border:1.5px solid ${bd};color:${col}">${label}</div>`;
+      const cls=active?'lv-week-cell done':isToday?'lv-week-cell today':'lv-week-cell';
+      const label=active?'<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>':dayNames[d.getDay()];
+      return `<div class="${cls}">${label}</div>`;
     }).join('');
   }
 }
