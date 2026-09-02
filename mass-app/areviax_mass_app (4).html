@@ -4722,6 +4722,15 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
   </div>
 
+  <!-- THE 12 LABORS — CTA into the Labors page, real completed/total count. -->
+  <div onclick="showPage('labors')" class="lv-surface" style="cursor:pointer;border-radius:1.75rem;padding:18px 20px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between">
+    <div>
+      <div style="font-family:var(--lv-serif);font-weight:600;font-size:17px;text-transform:uppercase;letter-spacing:.06em;color:var(--lv-fg)">The 12 Labors</div>
+      <div style="font-family:var(--lv-mono);font-size:11px;color:var(--lv-muted-fg);margin-top:4px" id="prog-labors-sub">— of 12 complete</div>
+    </div>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--lv-gold)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+  </div>
+
   </div><!-- /.prog-top-grid -->
 
   <div class="nutr-carousel-label">‹ Swipe for more ›</div>
@@ -5151,6 +5160,36 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     <div class="cabinet-row" id="cabinet-weight-row"></div>
   </div>
   </div>
+</div>
+
+<!-- THE 12 LABORS — 12 one-off challenges, each checked against real
+     already-tracked data (see the LABORS array / checkLabors()). Not a
+     Compass Drop, not luck — each one either happened or it didn't. -->
+<div class="page lv-page" id="page-labors">
+  <div class="lv-topbar lv-page-topbar" data-page="labors" style="display:none;margin:0 -20px 0">
+    <span onclick="showPage('progress')" style="display:flex;align-items:center;gap:8px;cursor:pointer">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--lv-fg)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+      <svg width="18" height="18" viewBox="0 0 48 48" fill="none" stroke="var(--lv-gold)" aria-hidden="true"><path d="M24 5 26.6 21.4 43 24 26.6 26.6 24 43 21.4 26.6 5 24 21.4 21.4Z" fill="var(--lv-gold)" stroke="none" opacity=".95"/><path d="M24 12v24M12 24h24" stroke-width=".6" opacity=".5"/><circle cx="24" cy="24" r="11" stroke-width=".7" opacity=".45"/></svg>
+      <span class="lv-wordmark" style="font-size:11px">The 12 Labors</span>
+    </span>
+    <div style="display:flex;align-items:center;gap:6px">
+      <span class="lv-pill" style="padding:4px 8px;background:var(--lv-primary);color:var(--lv-primary-fg);font-size:10px"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 22c4.4 0 7-2.9 7-6.8 0-3-1.7-5-3-7-.2 1.7-1 2.8-2 3.4.3-2.7-.7-5.6-3-7.6-.3 2.5-1.2 3.9-2.7 5.4C6.8 10.8 6 12.6 6 15c0 4 2.7 7 6 7z"/></svg> <span class="lv-streak-badge">0</span></span>
+      <span class="lv-pill" style="padding:4px 8px;border:1px solid var(--lv-border-strong);color:var(--lv-xp);font-size:10px"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.8 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg> <span class="lv-xp-badge">0</span></span>
+    </div>
+  </div>
+
+  <header class="lv-ember-wash lv-grain lv-colonnade lv-temple-glow lv-pediment" style="position:relative;overflow:hidden;margin:0 -20px 16px;padding:20px 20px 26px">
+    <span class="lv-ghost-numeral" style="right:-14px;top:38px">Ξ</span>
+    <div style="position:relative;z-index:1">
+      <p class="lv-label-eyebrow" style="color:var(--lv-gold)">Trials of Heracles</p>
+      <h1 class="lv-display-hero" style="margin-top:8px;color:var(--lv-fg)"><span id="labors-done-num">0</span><span class="lv-serif-accent lv-gold-text" style="font-size:.6em">/12</span></h1>
+      <p style="margin-top:10px;font-size:11px;line-height:1.5;color:var(--lv-muted-fg)">Twelve one-off trials, each checked against what you've actually done — no luck, no pulls.</p>
+      <div class="lv-rail-track" style="margin-top:18px"><div class="lv-rail-fill" id="labors-hero-fill" style="width:0%;background:var(--lv-primary)"></div></div>
+      <div class="lv-meander-bold" style="margin-top:18px"></div>
+    </div>
+  </header>
+
+  <div id="labors-grid" style="padding:0 20px;display:grid;grid-template-columns:1fr;gap:10px"></div>
 </div>
 
 <!-- RECOVERY — its own dedicated page. Sleep tracking, wind-down sounds, breathing, and the science of why this matters. -->
@@ -11642,7 +11681,7 @@ function showPage(id){
   // (logo+streak+XP baked into the hero/sticky bar) — the shared app
   // topbar would just duplicate that, so it's hidden only on those pages.
   const sharedTopbar=document.querySelector('.topbar');
-  if(sharedTopbar)sharedTopbar.style.display=(id==='dashboard'||id==='progress'||id==='trophycabinet')?'none':'';
+  if(sharedTopbar)sharedTopbar.style.display=(id==='dashboard'||id==='progress'||id==='trophycabinet'||id==='labors')?'none':'';
   const lvTopbars=document.querySelectorAll('.lv-page-topbar');
   lvTopbars.forEach(el=>{el.style.display=(el.dataset.page===id)?'flex':'none';});
   try{syncLvBadges();}catch(e){}
@@ -11652,7 +11691,7 @@ function showPage(id){
   if(pg)pg.classList.add('active');
   document.querySelectorAll('.sb-item').forEach(i=>{if(i.getAttribute('onclick')?.includes(id))i.classList.add('active')});
   try{
-    const titles={dashboard:'Home',workout:'Workout',session:'Session',nutrition:'Nutrition',recipes:'Recipes',progress:'Progress',trophycabinet:'Trophy Cabinet',xproad:'XP Road',trophyroad:'Trophy Road',weightroad:'Weight Road',recovery:'Recovery',schedule:'Schedule',leaderboard:'Leaderboard',leagues:'Leagues',learn:'Science',profile:'Profile',legal:'Legal',settings:'Settings',aicoach:'Ask Areviax',subscription:'Go Premium'};
+    const titles={dashboard:'Home',workout:'Workout',session:'Session',nutrition:'Nutrition',recipes:'Recipes',progress:'Progress',trophycabinet:'Trophy Cabinet',labors:'The 12 Labors',xproad:'XP Road',trophyroad:'Trophy Road',weightroad:'Weight Road',recovery:'Recovery',schedule:'Schedule',leaderboard:'Leaderboard',leagues:'Leagues',learn:'Science',profile:'Profile',legal:'Legal',settings:'Settings',aicoach:'Ask Areviax',subscription:'Go Premium'};
     const t=titles[id]||id;
     const tte=document.getElementById('tb-title');
     if(tte){tte.textContent=t;tte.classList.toggle('tb-title-sm',id==='trophycabinet');}
@@ -11684,6 +11723,7 @@ function showPage(id){
     try{checkMissedFoodDay();}catch(e){}
     try{renderAssessmentBanner();}catch(e){}
   }
+  if(id==='labors'){safeRender(renderLaborsPage,'labors');}
   if(id==='workout'){safeRender(renderExercises,'workout');safeRender(renderSessionHistory,'workout');safeRender(renderTodayPlanBanner,'workout');}
   if(id==='session'){
     // Building/committing a session happens in exactly one place now —
@@ -12158,6 +12198,31 @@ function renderProgressTrophyBanner(){
   const el=document.getElementById('prog-trophy-sub');
   if(!el)return;
   el.textContent=unlockedLegends.filter(k=>LEGEND_CARDS.some(l=>l.key===k)).length+' of '+LEGEND_CARDS.length+' unlocked';
+  const labEl=document.getElementById('prog-labors-sub');
+  if(labEl)labEl.textContent=Object.keys(laborsCompleted).length+' of '+LABORS.length+' complete';
+}
+function renderLaborsPage(){
+  const doneEl=document.getElementById('labors-done-num');
+  const fillEl=document.getElementById('labors-hero-fill');
+  const grid=document.getElementById('labors-grid');
+  if(!grid)return;
+  const doneCount=LABORS.filter(l=>laborsCompleted[l.key]).length;
+  if(doneEl)doneEl.textContent=doneCount;
+  if(fillEl)fillEl.style.width=(doneCount/LABORS.length*100)+'%';
+  grid.innerHTML=LABORS.map(l=>{
+    const done=!!laborsCompleted[l.key];
+    return `<div class="lv-surface" style="padding:16px 18px;display:flex;align-items:center;gap:14px;${done?'':'opacity:.6'}">
+      <div style="width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px;background:${done?'rgba(var(--lv-primary-rgb),.18)':'var(--lv-muted)'};border:1.5px solid ${done?'var(--lv-primary)':'var(--lv-border)'}">${done?l.icon:'🔒'}</div>
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:baseline;gap:8px">
+          <span class="lv-greek-numeral">${l.greek}</span>
+          <span style="font-family:var(--lv-sans);font-weight:700;font-size:13.5px;color:var(--lv-fg)">${l.name}</span>
+        </div>
+        <div style="font-size:11px;color:var(--lv-muted-fg);margin-top:3px">${l.desc}</div>
+      </div>
+      ${done?`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--lv-primary)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><polyline points="20 6 9 17 4 12"/></svg>`:''}
+    </div>`;
+  }).join('');
 }
 function renderProgressStack(){
   renderProgressHero();
@@ -20746,6 +20811,7 @@ setTimeout(()=>{drawCompass();renderCompass()},100);
 
 // ── LOCALSTORAGE PERSISTENCE ──
 function saveToStorage(){
+  try{checkLabors();}catch(e){}
   try{
     localStorage.setItem('arx_profile', JSON.stringify(profile));
     localStorage.setItem('arx_weightLog', JSON.stringify(weightLog));
