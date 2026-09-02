@@ -1948,6 +1948,16 @@ input[type=checkbox]{accent-color:var(--orange);width:15px;height:15px;cursor:po
                 <option value="daily">Every day — e.g. a morning run</option>
               </select>
             </div>
+            <!-- Optional — entirely skippable. Only useful once someone has
+                 a few related events (e.g. every part of a language-lesson
+                 routine) they want to visually group; not shown as a
+                 required field so it never adds friction to a quick add. -->
+            <div>
+              <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px">Colour (optional — group related events)</label>
+              <div style="display:flex;gap:8px;align-items:center" id="sched-color-row">
+                <div class="sched-color-swatch active" data-color="" onclick="setSchedColor('',this)" style="width:22px;height:22px;border-radius:50%;border:2px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--muted)">✕</div>
+              </div>
+            </div>
             <button class="btn btn-primary btn-sm" onclick="addScheduleEvent()">Add to Schedule</button>
           </div>
         </div>
@@ -3582,6 +3592,30 @@ function updateSchedDayFieldState(){
   const daySelect = document.getElementById('sched-day-select');
   if(daySelect) daySelect.disabled = (repeat === 'daily');
 }
+// Optional colour-coding — reuses the same palette Goals already uses, so
+// "orange" or "red" means the same thing across the app instead of two
+// unrelated colour systems. Defaults to none (✕) so a quick add never
+// requires a colour decision.
+const SCHED_COLORS = ['var(--orange)','var(--yellow)','var(--cyan)','var(--orange2)','var(--red)'];
+let selectedSchedColor = '';
+function renderSchedColorRow(){
+  const row = document.getElementById('sched-color-row');
+  if(!row || row.children.length>1) return; // already populated
+  SCHED_COLORS.forEach(c=>{
+    const sw = document.createElement('div');
+    sw.className = 'sched-color-swatch';
+    sw.dataset.color = c;
+    sw.onclick = () => setSchedColor(c, sw);
+    sw.style.cssText = `width:22px;height:22px;border-radius:50%;border:2px solid var(--border);cursor:pointer;background:${c}`;
+    row.appendChild(sw);
+  });
+}
+function setSchedColor(color, el){
+  selectedSchedColor = color;
+  document.querySelectorAll('#sched-color-row .sched-color-swatch').forEach(s=>{
+    s.style.borderColor = s===el ? 'var(--white)' : 'var(--border)';
+  });
+}
 function addScheduleEvent(){
   const title = document.getElementById('sched-title-input').value.trim();
   if(!title) return;
@@ -3591,9 +3625,10 @@ function addScheduleEvent(){
   const recurring = repeat !== 'none';
   const daily = repeat === 'daily';
   const weekOf = recurring ? null : getWeekMonday();
-  scheduleEvents.push({id:'sc'+Date.now(), title, dayIdx, time, recurring, daily, weekOf, subs:[]});
+  scheduleEvents.push({id:'sc'+Date.now(), title, dayIdx, time, recurring, daily, weekOf, subs:[], color: selectedSchedColor||null});
   document.getElementById('sched-title-input').value = '';
   document.getElementById('sched-time-input').value = '';
+  setSchedColor('', document.querySelector('#sched-color-row .sched-color-swatch'));
   renderScheduleWeek();
   saveState();
   showToast('🗓️', daily ? 'Added — repeats every day!' : recurring ? 'Added to schedule — repeats every week!' : 'Added to schedule for this week only!');
@@ -3715,7 +3750,7 @@ function renderScheduleWeek(){
       .map(e=>{
         const detailIdx = scheduleEventDetailData.length;
         scheduleEventDetailData.push({day:name, title:e.title, time:'No set time', recurring:e.recurring, daily:e.daily, study:false, id:e.id, subs:e.subs||[]});
-        return `<div class="cal-chip" onclick="openEventDetail(${detailIdx})"><span class="cal-chip-dot" style="background:var(--cyan)"></span>${e.daily?'📅 ':e.recurring?'🔁 ':''}${e.title}<span class="cal-chip-x" onclick="event.stopPropagation();removeScheduleEvent('${e.id}')">✕</span></div>`;
+        return `<div class="cal-chip" onclick="openEventDetail(${detailIdx})"><span class="cal-chip-dot" style="background:${e.color||'var(--cyan)'}"></span>${e.daily?'📅 ':e.recurring?'🔁 ':''}${e.title}<span class="cal-chip-x" onclick="event.stopPropagation();removeScheduleEvent('${e.id}')">✕</span></div>`;
       }).join('');
     const untimedStudy = studyBlocks.filter(sb=>sb.day===SCHED_DAY_ABBR[i] && !sb.start)
       .map(sb=>`<div class="cal-chip"><span class="cal-chip-dot" style="background:var(--orange)"></span>📚 ${sb.subject}</div>`).join('');
@@ -3733,7 +3768,7 @@ function renderScheduleWeek(){
 
     // gather this day's timed events + study blocks, sorted, with simple collision nudging
     const items = [
-      ...scheduleEvents.filter(e=>(e.daily||e.dayIdx===i) && e.time && (e.recurring || e.weekOf===getWeekMonday())).map(e=>({time:e.time,title:e.title,id:e.id,study:false,recurring:e.recurring,daily:e.daily,subs:e.subs})),
+      ...scheduleEvents.filter(e=>(e.daily||e.dayIdx===i) && e.time && (e.recurring || e.weekOf===getWeekMonday())).map(e=>({time:e.time,title:e.title,id:e.id,study:false,recurring:e.recurring,daily:e.daily,subs:e.subs,color:e.color})),
       ...studyBlocks.filter(sb=>sb.day===SCHED_DAY_ABBR[i] && sb.start).map(sb=>({time:sb.start,title:'📚 '+sb.subject,study:true})),
     ].sort((a,b)=>a.time.localeCompare(b.time));
 
@@ -3746,7 +3781,8 @@ function renderScheduleWeek(){
       top = Math.min(top, gridHeight-46);
       const detailIdx = scheduleEventDetailData.length;
       scheduleEventDetailData.push({day:name, title:it.title, time:it.time, recurring:it.recurring, daily:it.daily, study:it.study, id:it.id||null, subs:it.subs||[]});
-      return `<div class="cal-event ${it.study?'study-event':''}" style="top:${top}px;height:44px" onclick="event.stopPropagation();openEventDetail(${detailIdx})">
+      const colorStyle = it.color ? `border-left:3px solid ${it.color}` : '';
+      return `<div class="cal-event ${it.study?'study-event':''}" style="top:${top}px;height:44px;${colorStyle}" onclick="event.stopPropagation();openEventDetail(${detailIdx})">
         <span class="cal-event-time">${it.time}</span><span class="cal-event-title">${it.daily?'📅 ':it.recurring?'🔁 ':''}${it.title}</span>
       </div>`;
     }).join('');
@@ -6317,6 +6353,7 @@ function restoreState(){
   renderWorkoutHistory();
   renderWeeklyStudyLoad();
   renderStudyList();
+  renderSchedColorRow();
   renderScheduleWeek();
   renderDashSchedulePreview();
   renderRemindersList();
