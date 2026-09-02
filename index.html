@@ -88,6 +88,15 @@ a{color:inherit;text-decoration:none;}
 .animate-ember{animation:emberPulse 6s ease-in-out infinite;}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.001ms !important;transition-duration:.001ms !important;}}
 
+/* SCROLL RAIL */
+.scroll-rail{position:fixed;top:0;right:10px;bottom:0;width:3px;z-index:500;pointer-events:none;perspective:600px;}
+.scroll-rail-track{position:absolute;inset:0;border-radius:99px;background:oklch(0.3 0.03 50 / 20%);}
+.scroll-rail-fill{position:absolute;top:0;left:0;right:0;height:0%;border-radius:99px;background:var(--gradient-ember);box-shadow:0 0 12px -2px oklch(0.68 0.19 44 / 60%);}
+.scroll-rail-marker{position:absolute;top:0;left:50%;width:26px;height:26px;margin-left:-13px;border-radius:50%;background:var(--card);border:1.5px solid var(--gold);box-shadow:var(--glow-soft);display:flex;align-items:center;justify-content:center;transform-style:preserve-3d;}
+.scroll-rail-marker img{width:16px;height:16px;}
+@media (max-width:640px){.scroll-rail{right:6px;}.scroll-rail-marker{width:20px;height:20px;margin-left:-10px;}.scroll-rail-marker img{width:12px;height:12px;}}
+@media (prefers-reduced-motion:reduce){.scroll-rail-marker{transform:none !important;}}
+
 /* reveal-on-scroll */
 .reveal{opacity:0;transform:translateY(28px);transition:opacity 900ms var(--ease-temple) var(--delay,0ms), transform 900ms var(--ease-temple) var(--delay,0ms);}
 .reveal.in-view{opacity:1;transform:translateY(0);}
@@ -268,6 +277,19 @@ a{color:inherit;text-decoration:none;}
 </style>
 </head>
 <body>
+
+<!-- SCROLL RAIL — a custom right-edge progress rail replacing the native
+     scrollbar's job of "how far am I." The compass emblem rides the fill's
+     leading edge and tumbles (rotateX+rotateY) as it travels, tied to raw
+     scroll distance rather than just percent, so it keeps turning even on
+     a long page instead of stopping dead once near the top/bottom. -->
+<div class="scroll-rail" aria-hidden="true">
+  <div class="scroll-rail-track"></div>
+  <div class="scroll-rail-fill" id="scroll-rail-fill"></div>
+  <div class="scroll-rail-marker" id="scroll-rail-marker">
+    <img src="assets/compass-emblem.png" alt=""/>
+  </div>
+</div>
 
 <header class="nav-wrap">
   <nav class="nav">
@@ -733,6 +755,32 @@ document.getElementById('footer-copy').textContent =
     });
   }, { threshold: 0.4, rootMargin: '0px 0px -10% 0px' });
   document.querySelectorAll('.book').forEach(function(el){ bookIO.observe(el); });
+})();
+
+(function(){
+  var fillEl = document.getElementById('scroll-rail-fill');
+  var markerEl = document.getElementById('scroll-rail-marker');
+  if (!fillEl || !markerEl) return;
+  var ticking = false;
+  function update(){
+    ticking = false;
+    var doc = document.documentElement;
+    var scrollTop = window.scrollY || doc.scrollTop;
+    var scrollable = doc.scrollHeight - doc.clientHeight;
+    var pct = scrollable > 0 ? Math.min(1, Math.max(0, scrollTop / scrollable)) : 0;
+    fillEl.style.height = (pct * 100) + '%';
+    markerEl.style.top = (pct * 100) + '%';
+    // Tied to raw scroll distance (not just pct) so it keeps tumbling the
+    // whole way down a long page instead of slowing to a stop near 0%/100%.
+    var deg = scrollTop * 0.5;
+    markerEl.style.transform = 'translateY(-50%) rotateY(' + deg + 'deg) rotateX(' + (deg * 0.6) + 'deg)';
+  }
+  function onScroll(){
+    if (!ticking) { window.requestAnimationFrame(update); ticking = true; }
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  window.addEventListener('resize', update);
+  update();
 })();
 </script>
 </body>
