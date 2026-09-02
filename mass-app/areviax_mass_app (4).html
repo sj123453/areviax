@@ -140,7 +140,7 @@ input,input:focus,input:active,
    the topbar's content in the same max-width+auto-margin as .page fixes
    it; below 760px+padding this is a no-op (100% width), so mobile is
    pixel-identical to before. */
-.topbar{height:calc(52px + env(safe-area-inset-top,0px));padding-top:env(safe-area-inset-top,0px);box-sizing:border-box;flex-shrink:0;background:var(--bg2);border-bottom:1.5px solid var(--border)}
+.topbar{height:calc(60px + env(safe-area-inset-top,0px));padding-top:calc(env(safe-area-inset-top,0px) + 8px);box-sizing:border-box;flex-shrink:0;background:var(--bg2);border-bottom:1.5px solid var(--border)}
 .topbar-inner{max-width:760px;margin:0 auto;height:100%;display:flex;align-items:center;justify-content:space-between;padding:0 20px;box-sizing:border-box}
 .tb-left{display:flex;align-items:center}
 .tb-title{font-family:'Cinzel',sans-serif;font-weight:700;font-size:22px;letter-spacing:.01em;text-transform:uppercase;color:var(--white)}
@@ -153,7 +153,7 @@ input,input:focus,input:active,
 .tb-profile-btn{width:34px;height:34px;flex-shrink:0;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(232,214,196,.06);border:1.5px solid var(--border);color:rgba(var(--white-rgb),.75);cursor:pointer;transition:background .2s,border-color .2s,transform .08s}
 .tb-profile-btn:hover{background:rgba(232,214,196,.1);border-color:rgba(232,214,196,.22);color:var(--white)}
 .tb-profile-btn:active{transform:scale(.92)}
-.tp-green{background:rgba(243,103,23,.1);border:1.5px solid rgba(243,103,23,.2);color:var(--green)}
+.tp-green{background:rgba(79,157,224,.12);border:1.5px solid rgba(79,157,224,.3);color:#7DC4FF}
 .tp-orange{background:var(--purple-d);border:1.5px solid var(--purple-b);color:var(--purple)}
 .tp-gold{background:rgba(255,215,0,.1);border:1.5px solid rgba(255,215,0,.3);color:#E3BF76}
 
@@ -3502,7 +3502,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
           <div class="tb-title" id="tb-title">Dashboard</div>
         </div>
         <div class="tb-right">
-          <div class="tb-pill tp-green" onclick="openStreakDetail()" style="cursor:pointer">🔥 <span id="streak-val">0</span> streak</div>
+          <div class="tb-pill tp-green" onclick="openStreakDetail()" style="cursor:pointer"><svg width="13" height="13" viewBox="0 0 24 24" style="flex-shrink:0" aria-hidden="true"><defs><linearGradient id="flameGradTopbar" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#BFE4FF"/><stop offset="50%" stop-color="#4F9DE0"/><stop offset="100%" stop-color="#123A5C"/></linearGradient></defs><path fill="url(#flameGradTopbar)" d="M12 22c4.4 0 7-2.9 7-6.8 0-3-1.7-5-3-7-.2 1.7-1 2.8-2 3.4.3-2.7-.7-5.6-3-7.6-.3 2.5-1.2 3.9-2.7 5.4C6.8 10.8 6 12.6 6 15c0 4 2.7 7 6 7z"/></svg> <span id="streak-val">0</span> streak</div>
           <div class="tb-pill tp-gold">⭐ <span id="xp-val">0</span> XP</div>
           <div class="tb-profile-btn" onclick="showPage('profile')" title="Profile"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
         </div>
@@ -3586,7 +3586,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     <div style="position:relative">
       <div class="dash-greeting-date" style="font-size:9px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,122,46,.55);margin-bottom:10px" id="dash-date"></div>
       <div class="dash-greeting-text" style="font-family:'Cinzel',sans-serif;font-weight:700;font-size:52px;line-height:1.05;letter-spacing:-.02em;color:var(--white)" id="dash-greeting">Good morning</div>
-      <div class="dash-greeting-text" style="font-family:'Cinzel',sans-serif;font-weight:800;font-size:52px;line-height:1.05;letter-spacing:-.02em;margin-bottom:24px;color:transparent;-webkit-text-stroke:1.5px var(--orange)" id="dash-name">Athlete</div>
+      <div class="dash-greeting-text" style="font-family:'Cinzel',sans-serif;font-weight:800;font-size:52px;line-height:1.05;letter-spacing:-.02em;margin-bottom:24px;color:var(--orange)" id="dash-name">Athlete</div>
       <!-- Hero streak number — outline/hollow instead of a solid fill,
            matching the reference's own big-number treatment and the
            "solid word + hollow word" language already used on the Today
@@ -3601,12 +3601,12 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
            it used to sit at the top of the whole card and collided with
            long two-word names (e.g. "Sam Johnson"). -->
       <div style="position:relative">
-        <div aria-hidden="true" id="dash-streak-watermark" style="position:absolute;right:-6px;top:-28px;font-family:'Cinzel',sans-serif;font-weight:800;font-size:118px;line-height:1;color:transparent;-webkit-text-stroke:1.5px rgba(255,122,46,.14);pointer-events:none;user-select:none;z-index:0">0</div>
+        <div aria-hidden="true" id="dash-streak-watermark" style="position:absolute;right:-6px;top:-28px;font-family:'Cinzel',sans-serif;font-weight:800;font-size:118px;line-height:1;color:transparent;-webkit-text-stroke:1.5px rgba(79,157,224,.1);pointer-events:none;user-select:none;z-index:0">0</div>
         <div style="display:flex;align-items:flex-end;gap:10px;position:relative;z-index:1">
-          <span class="dash-hero-streak-num" style="font-family:'Cinzel',sans-serif;font-weight:800;font-size:64px;line-height:.9;letter-spacing:-.02em;color:transparent;-webkit-text-stroke:2px var(--white);filter:drop-shadow(0 0 20px rgba(255,122,46,.4))" id="dash-greeting-streak-num">0</span>
+          <span class="dash-hero-streak-num" style="font-family:'Cinzel',sans-serif;font-weight:800;font-size:64px;line-height:.9;letter-spacing:-.02em;color:var(--white);filter:drop-shadow(0 0 20px rgba(79,157,224,.45))" id="dash-greeting-streak-num">0</span>
           <div style="display:flex;flex-direction:column;padding-bottom:6px">
-            <svg class="streak-day-flame" viewBox="0 0 24 24" width="22" height="22" style="margin-bottom:2px;filter:drop-shadow(0 0 5px rgba(255,122,46,.65))" aria-hidden="true"><defs><linearGradient id="flameGradGreeting" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FFC466"/><stop offset="55%" stop-color="#FF8342"/><stop offset="100%" stop-color="#FF4400"/></linearGradient></defs><path fill="url(#flameGradGreeting)" d="M12 22c4.4 0 7-2.9 7-6.8 0-3-1.7-5-3-7-.2 1.7-1 2.8-2 3.4.3-2.7-.7-5.6-3-7.6-.3 2.5-1.2 3.9-2.7 5.4C6.8 10.8 6 12.6 6 15c0 4 2.7 7 6 7z"/></svg>
-            <span style="font-size:10.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,122,46,.7)">Day Streak</span>
+            <svg class="streak-day-flame" viewBox="0 0 24 24" width="22" height="22" style="margin-bottom:2px;filter:drop-shadow(0 0 5px rgba(79,157,224,.65))" aria-hidden="true"><defs><linearGradient id="flameGradGreeting" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#BFE4FF"/><stop offset="50%" stop-color="#4F9DE0"/><stop offset="100%" stop-color="#123A5C"/></linearGradient></defs><path fill="url(#flameGradGreeting)" d="M12 22c4.4 0 7-2.9 7-6.8 0-3-1.7-5-3-7-.2 1.7-1 2.8-2 3.4.3-2.7-.7-5.6-3-7.6-.3 2.5-1.2 3.9-2.7 5.4C6.8 10.8 6 12.6 6 15c0 4 2.7 7 6 7z"/></svg>
+            <span style="font-size:10.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:rgba(79,157,224,.85)">Day Streak</span>
           </div>
         </div>
       </div>
@@ -17768,7 +17768,7 @@ function renderWeeklyRecap(){
     const isToday=dStr===todayStr;
     return `<div style="text-align:center">
       <div style="font-size:8.5px;color:var(--muted);margin-bottom:3px">${dayNames[d.getDay()]}</div>
-      <div class="streak-day-box" style="background:${active?'linear-gradient(160deg,rgba(255,122,46,.22),rgba(243,103,23,.08))':'var(--border2)'};${isToday?'box-shadow:0 0 0 1.5px rgba(243,103,23,.7);':''}">${active?`<svg class="streak-day-flame" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><defs><linearGradient id="flameGradD${dStr}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#FFC466"/><stop offset="55%" stop-color="#FF8342"/><stop offset="100%" stop-color="#FF4400"/></linearGradient></defs><path fill="url(#flameGradD${dStr})" d="M12 22c4.4 0 7-2.9 7-6.8 0-3-1.7-5-3-7-.2 1.7-1 2.8-2 3.4.3-2.7-.7-5.6-3-7.6-.3 2.5-1.2 3.9-2.7 5.4C6.8 10.8 6 12.6 6 15c0 4 2.7 7 6 7z"/></svg>`:''}</div>
+      <div class="streak-day-box" style="background:${active?'linear-gradient(160deg,rgba(79,157,224,.24),rgba(79,157,224,.08))':'var(--border2)'};${isToday?'box-shadow:0 0 0 1.5px rgba(243,103,23,.7);':''}">${active?`<svg class="streak-day-flame" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><defs><linearGradient id="flameGradD${dStr}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#BFE4FF"/><stop offset="50%" stop-color="#4F9DE0"/><stop offset="100%" stop-color="#123A5C"/></linearGradient></defs><path fill="url(#flameGradD${dStr})" d="M12 22c4.4 0 7-2.9 7-6.8 0-3-1.7-5-3-7-.2 1.7-1 2.8-2 3.4.3-2.7-.7-5.6-3-7.6-.3 2.5-1.2 3.9-2.7 5.4C6.8 10.8 6 12.6 6 15c0 4 2.7 7 6 7z"/></svg>`:''}</div>
     </div>`;
   }).join('');
   daysEl.innerHTML=dayBoxes;
