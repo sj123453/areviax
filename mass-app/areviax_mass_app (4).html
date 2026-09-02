@@ -627,7 +627,10 @@ input,input:focus,input:active,
    would sit directly on top of the greeting text on mobile instead of
    above it. Desktop's banner is centered over the right column, clear
    of the greeting text already, so this is mobile-only. */
-@media(max-width:899px){.dash-grid{margin-top:40px}}
+/* margin-top:40px removed — was clearing space for the old boxed
+   greeting card that the notification banners could drop onto; the
+   Lovable-port hero has its own header now and the banners are
+   position:fixed with their own top offset, independent of this. */
 /* The greeting + Today cards are now plain stacked children of one
    .dash-hero grid item (not two separate grid areas) so a single
    absolutely-positioned backdrop behind them both reads as one
@@ -3168,7 +3171,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
 .lv-week-cell.done{border-color:var(--lv-primary);background:rgba(var(--lv-primary-rgb),.2);color:var(--lv-primary)}
 .lv-week-cell.today{border-color:var(--lv-border-strong);background:var(--lv-elevated);color:var(--lv-fg)}
 .lv-pill{border-radius:999px;padding:6px 10px;font-size:11px;font-weight:800;display:inline-flex;align-items:center;gap:4px}
-.lv-topbar{position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--lv-border);background:rgba(18,12,9,.85);backdrop-filter:blur(20px);padding:10px 20px}
+.lv-topbar{position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--lv-border);background:rgba(18,12,9,.85);backdrop-filter:blur(20px);padding:calc(10px + env(safe-area-inset-top,0px)) 20px 10px}
 .dash-qf-btn.logged{border-color:var(--lv-fuel)!important;background:rgba(var(--lv-fuel-rgb),.15)!important;color:var(--lv-fuel)!important}
 </style>
 </head>
@@ -3628,7 +3631,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
   <!-- HERO — literal port of website-refresh's HomeScreen <header>, real
        data threaded into the same slots (see renderDashHeroLovable() and
        initApp()). -->
-  <header class="lv-ember-wash lv-grain lv-colonnade lv-temple-glow lv-pediment lv-laurel-watermark" style="position:relative;overflow:hidden;margin:0 -20px;padding:20px 20px 26px;border-radius:0 0 28px 28px">
+  <header class="lv-ember-wash lv-grain lv-colonnade lv-temple-glow lv-pediment lv-laurel-watermark" style="position:relative;overflow:hidden;margin:0 -20px;padding:calc(20px + env(safe-area-inset-top,0px)) 20px 26px;border-radius:0 0 28px 28px">
     <span class="lv-ghost-numeral" style="right:-12px;top:56px">Β</span>
     <div style="position:relative;z-index:1">
       <div style="display:flex;align-items:center;justify-content:space-between">
