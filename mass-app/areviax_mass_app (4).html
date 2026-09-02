@@ -8431,7 +8431,12 @@ function renderProfileTrophySummary(){
   const cont=document.getElementById('profile-trophy-preview');
   if(!cont)return;
   const total=LEGEND_CARDS.length;
-  const owned=unlockedLegends.length;
+  // Filtered against the CURRENT card list, not a raw array length —
+  // unlockedLegends can carry stale keys from cards that were since
+  // renamed/removed during development (still in localStorage from an
+  // earlier version), which inflated this count above the real number
+  // of cards the player can actually see in their collection today.
+  const owned=unlockedLegends.filter(k=>LEGEND_CARDS.some(l=>l.key===k)).length;
   if(countEl)countEl.textContent=owned+'/'+total;
   if(owned===0){
     cont.innerHTML='<div style="font-size:11px;color:var(--muted);padding:10px 0">No cards yet — open a Compass Drop to start your collection.</div>';
@@ -11920,7 +11925,7 @@ function renderProgressBalance(){
 function renderProgressTrophyBanner(){
   const el=document.getElementById('prog-trophy-sub');
   if(!el)return;
-  el.textContent=unlockedLegends.length+' of '+LEGEND_CARDS.length+' unlocked';
+  el.textContent=unlockedLegends.filter(k=>LEGEND_CARDS.some(l=>l.key===k)).length+' of '+LEGEND_CARDS.length+' unlocked';
 }
 function renderProgressStack(){
   renderProgressHero();
