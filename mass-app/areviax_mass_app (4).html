@@ -3648,10 +3648,10 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
 
       <p class="lv-label-eyebrow lv-pulse-dot" style="margin-top:22px;color:var(--lv-fg);opacity:.7" id="dash-eyebrow-text">Session</p>
 
-      <h1 class="lv-display-hero" style="margin-top:6px;color:var(--lv-fg)">
-        <span id="d-next-word1">Push</span><br>
-        <span class="lv-serif-accent lv-gold-text" style="font-size:.8em" id="d-next-word2">upper</span>
-      </h1>
+      <h1 class="lv-display-hero" style="margin-top:6px;color:var(--lv-fg)" id="dash-greeting-headline">Good morning</h1>
+      <div style="margin-top:6px;font-family:var(--lv-sans);font-size:15px;font-weight:800;color:var(--lv-fg)">
+        <span id="d-next-word1">Push</span> <span class="lv-serif-accent lv-gold-text" id="d-next-word2">upper</span>
+      </div>
       <div id="d-next-full" style="display:none">Push Upper</div>
       <div id="d-next-sub" style="display:none"></div>
 
@@ -12701,6 +12701,14 @@ function syncLvBadges(){
 }
 function renderDashHeroLovable(){
   syncLvBadges();
+  const greetEl=document.getElementById('dash-greeting-headline');
+  if(greetEl){
+    // Name left out of the giant display-size headline on purpose — at
+    // clamp(3.75rem,22vw,6rem) uppercase, "Good evening, Alexandria" wraps
+    // to three lines on real names. Keeps it to the greeting word alone.
+    const h=new Date().getHours();
+    greetEl.textContent=h<5?'Good night':h<12?'Good morning':h<18?'Good afternoon':'Good evening';
+  }
   const eyebrowEl=document.getElementById('dash-eyebrow-text');
   if(eyebrowEl){
     const now=new Date();
