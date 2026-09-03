@@ -3632,7 +3632,13 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
   <!-- HERO — literal port of website-refresh's HomeScreen <header>, real
        data threaded into the same slots (see renderDashHeroLovable() and
        initApp()). -->
-  <header class="lv-ember-wash lv-grain lv-colonnade lv-temple-glow lv-pediment" style="position:relative;overflow:hidden;margin:0 -20px;padding:calc(20px + env(safe-area-inset-top,0px)) 20px 26px;border-radius:0 0 28px 28px">
+  <!-- Solid black spacer for the notch/status-bar strip — the header
+       below has its own gradient wash that runs edge-to-edge, so padding
+       alone (which only moves the text, not the background) still left
+       the time/wifi/battery icons sitting on top of the orange gradient
+       instead of plain black. -->
+  <div style="height:env(safe-area-inset-top,0px);background:var(--lv-bg);margin:0 -20px"></div>
+  <header class="lv-ember-wash lv-grain lv-colonnade lv-temple-glow lv-pediment" style="position:relative;overflow:hidden;margin:0 -20px;padding:20px 20px 26px;border-radius:0 0 28px 28px">
     <span class="lv-ghost-numeral" style="right:-12px;top:56px">Δ</span>
     <div style="position:relative;z-index:1">
       <div style="display:flex;align-items:center;justify-content:space-between">
