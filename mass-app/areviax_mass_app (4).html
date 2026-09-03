@@ -11675,6 +11675,16 @@ function updateStreakFromActivity(){
   if(!activeDates.includes(today))activeDates.push(today);
   const yesterday=new Date();yesterday.setDate(yesterday.getDate()-1);
   const yStr=localDateKey(yesterday);
+  // A broken streak with a live Repair offer still on the table must NOT
+  // silently reset here — this fires on ANY XP-earning action (logging a
+  // set, a food item, anything), not just ones the user takes deliberately
+  // after seeing the Repair banner. Without this guard, doing literally
+  // anything before tapping Repair reset streak to 1 first, so Repair had
+  // nothing left to restore. Leave streak/lastActiveDate untouched here —
+  // repairStreak() and dismissStreakRepair() are the only things allowed
+  // to resolve a broken streak once one's in this state.
+  const repairStillLive=lastActiveDate&&lastActiveDate!==yStr&&streak>1&&shardBank>0&&streakRepairDismissedDate!==today;
+  if(repairStillLive)return;
   streak=(lastActiveDate===yStr)?streak+1:1;
   lastActiveDate=today;
   const sv=document.getElementById('streak-val');if(sv)sv.textContent=streak;
