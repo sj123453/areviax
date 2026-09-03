@@ -11675,16 +11675,24 @@ function updateStreakFromActivity(){
 }
 
 // ── NAV ──
-function showPage(id){
-  try{updateMobileNav(id);}catch(e){}
-  // Dashboard/Progress/Trophy Cabinet carry their own Lovable-port header
-  // (logo+streak+XP baked into the hero/sticky bar) — the shared app
-  // topbar would just duplicate that, so it's hidden only on those pages.
+// Dashboard/Progress/Trophy Cabinet/Labors carry their own Lovable-port
+// header (logo+streak+XP baked into the hero/sticky bar) — the shared app
+// topbar would just duplicate that, so it's hidden only on those pages.
+// Pulled out of showPage() because initApp()'s two entry points (a
+// returning user's page load, and finishOnboarding) show the dashboard
+// directly WITHOUT going through showPage() — without this as its own
+// function they were left showing both bars stacked on first paint,
+// only fixing itself once the user navigated away and back.
+function syncPageChrome(id){
   const sharedTopbar=document.querySelector('.topbar');
   if(sharedTopbar)sharedTopbar.style.display=(id==='dashboard'||id==='progress'||id==='trophycabinet'||id==='labors')?'none':'';
   const lvTopbars=document.querySelectorAll('.lv-page-topbar');
   lvTopbars.forEach(el=>{el.style.display=(el.dataset.page===id)?'flex':'none';});
   try{syncLvBadges();}catch(e){}
+}
+function showPage(id){
+  try{updateMobileNav(id);}catch(e){}
+  syncPageChrome(id);
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.sb-item').forEach(i=>i.classList.remove('active'));
   const pg=document.getElementById('page-'+id);
@@ -12850,6 +12858,7 @@ function initApp(){
   // showPage('dashboard') — which is where the greeting name normally gets
   // set — so without this, the very first screen a brand-new user sees
   // right after onboarding greets them as "Athlete" instead of their name.
+  syncPageChrome('dashboard');
   updateGreeting();
   checkCompassWeek(); // resets sessThisWeek/compassPts if a new week has started since last open
   try{checkLeagueWeek();}catch(e){} // resolves any pending promotion/relegation early so it's ready the moment Leagues is opened
