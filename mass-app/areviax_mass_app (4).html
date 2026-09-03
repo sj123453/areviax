@@ -3868,7 +3868,40 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
 
 
 <!-- WORKOUT BUILDER -->
-<div class="page" id="page-workout">
+<div class="page lv-page" id="page-workout">
+
+  <!-- HERO — literal port of website-refresh's WorkoutScreen <header>.
+       Real wb-type/wb-time/sessionFocus/exercise-count data — see
+       renderWorkoutHeroLovable(), called from the end of renderExercises(). -->
+  <div style="height:var(--safe-top,0px);background:var(--lv-bg);margin:0 -20px"></div>
+  <header class="lv-ember-wash lv-grain lv-colonnade lv-temple-glow lv-pediment" style="position:relative;overflow:hidden;margin:0 -20px;padding:20px 20px 26px;border-radius:0 0 28px 28px">
+    <span class="lv-ghost-numeral" style="right:-14px;top:38px">Ω</span>
+    <div style="position:relative;z-index:1">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <span style="display:flex;align-items:center;gap:8px">
+          <svg width="22" height="22" viewBox="0 0 48 48" fill="none" stroke="var(--lv-gold)" aria-hidden="true"><path d="M24 5 26.6 21.4 43 24 26.6 26.6 24 43 21.4 26.6 5 24 21.4 21.4Z" fill="var(--lv-gold)" stroke="none" opacity=".95"/><path d="M24 12v24M12 24h24" stroke-width=".6" opacity=".5"/><circle cx="24" cy="24" r="11" stroke-width=".7" opacity=".45"/></svg>
+          <span class="lv-wordmark">Areviax</span>
+        </span>
+        <div style="display:flex;align-items:center;gap:6px">
+          <span class="lv-pill" style="background:var(--lv-primary);color:var(--lv-primary-fg)"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 22c4.4 0 7-2.9 7-6.8 0-3-1.7-5-3-7-.2 1.7-1 2.8-2 3.4.3-2.7-.7-5.6-3-7.6-.3 2.5-1.2 3.9-2.7 5.4C6.8 10.8 6 12.6 6 15c0 4 2.7 7 6 7z"/></svg> <span class="lv-streak-badge">0</span></span>
+          <span class="lv-pill" style="border:1px solid var(--lv-border-strong);color:var(--lv-xp)"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.8 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg> <span class="lv-xp-badge">0</span></span>
+        </div>
+      </div>
+
+      <p class="lv-label-eyebrow lv-pulse-dot" style="margin-top:22px;color:var(--lv-fg);opacity:.7" id="wo-eyebrow-text">The Palaestra</p>
+      <h1 style="margin-top:6px;color:var(--lv-fg);font-family:'Bebas Neue',sans-serif;font-weight:400;font-size:clamp(3.75rem,22vw,6rem);line-height:.82;letter-spacing:.01em;text-transform:uppercase">Forge<br><span class="lv-serif-accent lv-gold-text" style="font-size:.8em">the session</span></h1>
+
+      <div style="margin-top:18px;display:flex;align-items:flex-end;justify-content:space-between">
+        <div>
+          <p class="lv-label-eyebrow">Today</p>
+          <p class="lv-stat-huge" style="margin-top:8px" id="wo-hero-count">0<span style="margin-left:4px;font-family:var(--lv-mono);font-size:11px;color:var(--lv-muted-fg)">lifts</span></p>
+        </div>
+        <p style="font-family:var(--lv-mono);font-size:11px;color:var(--lv-muted-fg);text-align:right;max-width:55%" id="wo-hero-summary">Choose a type and time to build a session.</p>
+      </div>
+
+      <div class="lv-meander-bold" style="margin-top:18px"></div>
+    </div>
+  </header>
 
   <div id="injury-reminder" style="display:none;background:rgba(255,122,46,.07);border:1.5px solid rgba(255,122,46,.2);border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:11.5px;color:rgba(var(--white-rgb),.8)">
     <strong style="color:#F36717">Reminder:</strong> you noted <span id="injury-reminder-text"></span> at signup. Swap out anything that aggravates it, and stop if something feels wrong.
@@ -3931,8 +3964,8 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
   </div>
 
   <!-- LOAD PREVIOUS SESSION -->
-  <div class="card" id="session-history-card" style="margin-bottom:16px;display:none">
-    <div class="ch"><span class="ct" style="font-size:13px;color:var(--white)">📋 Sessions Complete</span></div>
+  <div class="card lv-surface" id="session-history-card" style="margin-bottom:16px;display:none">
+    <div class="ch"><span class="ct" style="font-size:13px;color:var(--white)"><span class="lv-greek-numeral">Δ</span> Past sessions</span></div>
     <div id="session-history-list" style="display:flex;flex-direction:column;gap:6px"></div>
   </div>
 
@@ -3944,8 +3977,8 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
 
   <!-- ── AUTO BUILDER ── -->
   <div id="auto-builder">
-    <div class="card">
-      <div class="ch" style="margin-bottom:14px"><span class="ct">Session</span></div>
+    <div class="card lv-surface">
+      <div class="ch" style="margin-bottom:14px"><span class="ct"><span class="lv-greek-numeral">Α</span> Session</span></div>
 
       <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;margin-bottom:14px">
         <div>
@@ -3974,7 +4007,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
 
       <div style="margin-bottom:14px">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-          <div class="lbl" style="margin-bottom:0">Or get more specific — target exact muscles</div>
+          <div class="lbl" style="margin-bottom:0"><span class="lv-greek-numeral" style="font-size:.85em;margin-right:4px">Β</span>Readiness — or get more specific and target exact muscles</div>
           <span id="muscle-clear" onclick="clearMuscleTargets()" style="font-size:10px;font-weight:700;color:var(--muted);cursor:pointer;display:none">Clear · use Type above</span>
         </div>
         <div style="display:flex;align-items:center;gap:12px;margin:0 0 10px;flex-wrap:wrap;font-size:9.5px;font-weight:700;color:var(--muted)">
@@ -4031,7 +4064,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
 
       <button class="btn btn-g" id="save-changes-btn" onclick="saveWorkoutChanges()" style="width:100%;margin-top:14px">💾 Save Changes</button>
     </div>
-    <div class="card"><div class="ch"><span style="display:flex;align-items:center;gap:8px"><span class="ct">Exercises</span><span id="ex-count-badge" style="font-size:10px;font-weight:700;color:var(--cyan)"></span></span><div style="display:flex;gap:8px;align-items:center"><button onclick="rerollWorkout()" style="background:var(--purple-d);border:1.5px solid var(--purple-b);color:var(--purple);border-radius:6px;padding:4px 10px;font-size:10.5px;font-weight:700;cursor:pointer;white-space:nowrap">🎲 New session</button><span class="ca" onclick="saveWorkout()">Save &amp; Start →</span></div></div>
+    <div class="card lv-surface"><div class="ch"><span style="display:flex;align-items:center;gap:8px"><span class="ct"><span class="lv-greek-numeral">Γ</span> Exercises</span><span id="ex-count-badge" style="font-size:10px;font-weight:700;color:var(--cyan)"></span></span><div style="display:flex;gap:8px;align-items:center"><button onclick="rerollWorkout()" style="background:var(--purple-d);border:1.5px solid var(--purple-b);color:var(--purple);border-radius:6px;padding:4px 10px;font-size:10.5px;font-weight:700;cursor:pointer;white-space:nowrap">🎲 New session</button><span class="ca" onclick="saveWorkout()">Save &amp; Start →</span></div></div>
       <input type="text" id="ex-search" placeholder="Search exercises by name or muscle..." oninput="renderExercises()" style="width:100%;margin-bottom:10px;padding:9px 12px;background:var(--panel2);border:1.5px solid var(--border,rgba(232,214,196,.1));border-radius:6px;color:var(--white);font-size:13px;font-family:'Outfit',sans-serif">
       <div id="ex-list"></div>
     </div>
@@ -4069,6 +4102,11 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     <div class="syn-row"><span class="syn-lbl">Goal alignment</span><div class="syn-bar"><div class="syn-fill" id="syn-g" style="width:0%;background:#B98CFF"></div></div><span class="syn-val" id="syn-gv">—</span></div>
     <div class="syn-row"><span class="syn-lbl">Fatigue order</span><div class="syn-bar"><div class="syn-fill" id="syn-f" style="width:0%;background:#44D4FF"></div></div><span class="syn-val" id="syn-fv">—</span></div>
     <div class="syn-row" style="margin-bottom:0"><span class="syn-lbl">Safety</span><div class="syn-bar"><div class="syn-fill" id="syn-s" style="width:0%;background:var(--orange)"></div></div><span class="syn-val" id="syn-sv">—</span></div>
+  </div>
+
+  <div style="margin:20px 0 8px;text-align:center;padding:0 12px">
+    <p style="font-family:var(--lv-serif,'Cormorant Garamond',serif);font-style:italic;font-size:13px;color:var(--lv-muted-fg,rgba(232,214,196,.5));line-height:1.6">"What a disgrace it is for a man to grow old without ever seeing the beauty and strength of which his body is capable."</p>
+    <p style="margin-top:4px;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--lv-muted-fg,rgba(232,214,196,.35))">— Socrates</p>
   </div>
 </div>
 
@@ -11733,7 +11771,7 @@ function updateStreakFromActivity(){
 // only fixing itself once the user navigated away and back.
 function syncPageChrome(id){
   const sharedTopbar=document.querySelector('.topbar');
-  if(sharedTopbar)sharedTopbar.style.display=(id==='dashboard'||id==='progress'||id==='trophycabinet'||id==='labors'||id==='nutrition')?'none':'';
+  if(sharedTopbar)sharedTopbar.style.display=(id==='dashboard'||id==='progress'||id==='trophycabinet'||id==='labors'||id==='nutrition'||id==='workout')?'none':'';
   const lvTopbars=document.querySelectorAll('.lv-page-topbar');
   lvTopbars.forEach(el=>{el.style.display=(el.dataset.page===id)?'flex':'none';});
   try{syncLvBadges();}catch(e){}
@@ -13732,6 +13770,34 @@ function renderExercises(){
   const badge=document.getElementById('ex-count-badge');
   if(badge)badge.textContent=exs.length?`✓ ${exs.length} exercise${exs.length===1?'':'s'} · updated`:'';
   if(cont){cont.classList.remove('ex-list-updated');void cont.offsetWidth;cont.classList.add('ex-list-updated');}
+  try{renderWorkoutHeroLovable(exs,wbType,wbTime);}catch(e){}
+}
+function renderWorkoutHeroLovable(exs,wbType,wbTime){
+  if(!document.getElementById('wo-eyebrow-text'))return;
+  try{syncLvBadges();}catch(e){}
+  const wEyebrow=document.getElementById('wo-eyebrow-text');
+  if(wEyebrow){
+    let weekNum=1,dayNum=1;
+    if(joinDate){
+      const jd=parseLocalDate(joinDate);
+      const daysSince=Math.floor((new Date()-jd)/86400000);
+      weekNum=Math.max(1,Math.floor(daysSince/7)+1);
+      dayNum=Math.max(1,(daysSince%7)+1);
+    }
+    wEyebrow.textContent='The Palaestra · Day '+dayNum+' of week '+weekNum;
+  }
+  const wCount=document.getElementById('wo-hero-count');
+  if(wCount){
+    const n=exs?exs.length:0;
+    wCount.innerHTML=n+'<span style="margin-left:4px;font-family:var(--lv-mono);font-size:11px;color:var(--lv-muted-fg)">lift'+(n===1?'':'s')+'</span>';
+  }
+  const wSummary=document.getElementById('wo-hero-summary');
+  if(wSummary&&wbType&&wbTime){
+    const typeLabel=wbType.selectedOptions[0]?.textContent||'';
+    const timeLabel=wbTime.selectedOptions[0]?.textContent||'';
+    const focusLabel=sessionFocus==='strength'?'Strength':sessionFocus==='pump'?'Pump':'Size';
+    wSummary.textContent=typeLabel+' · '+timeLabel+' · '+focusLabel;
+  }
 }
 
 function toggleEx(i){document.getElementById('ex-'+i)?.classList.toggle('open')}
