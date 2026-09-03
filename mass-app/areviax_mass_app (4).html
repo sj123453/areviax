@@ -4373,7 +4373,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        separate numbers. Real history (waterDayLog/nutritionDayLog), not
        a decorative chart — see renderNutritionTrend(). -->
   <div class="card lv-surface" style="height:100%;box-sizing:border-box">
-    <div class="ch"><span class="ct">📈 14-Day Trend</span></div>
+    <div style="display:flex;align-items:baseline;justify-content:space-between"><h2 class="lv-section-title" style="display:flex;align-items:baseline;gap:8px;font-size:1.4rem"><span class="lv-greek-numeral">Δ</span>14-day fuel</h2></div>
     <div id="nutr-trend-empty" style="font-size:11px;color:var(--muted);padding:8px 0">Log a few days of water and meals to see your trend here.</div>
     <div id="nutr-trend-chart" style="display:none;align-items:flex-end;gap:3px;height:110px;margin:10px 0 8px"></div>
     <div id="nutr-trend-caption" style="font-size:10px;color:var(--muted);line-height:1.5"></div>
@@ -4390,7 +4390,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        empty), so unlike the old display:none default this card just
        renders straight away as its own carousel slide. -->
   <div id="feeder-quest-card" class="card lv-surface">
-    <div class="ch"><span class="ct" style="display:flex;align-items:center;gap:7px">🎯 Today's Feeder Quest</span></div>
+    <div style="display:flex;align-items:baseline;justify-content:space-between"><h2 class="lv-section-title" style="display:flex;align-items:baseline;gap:8px;font-size:1.4rem"><span class="lv-greek-numeral">Ε</span>Daily rite</h2></div>
     <div id="feeder-quest-body"></div>
   </div>
   </div>
@@ -4413,15 +4413,20 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
   <!-- Quick-add foods — each item logs straight to today's macros via
        logQuickAdd() (see QUICK_ADD_FOODS + that function), same real
        logItem() flow as everything else on this page. -->
-  <div class="card lv-surface" style="box-sizing:border-box;overflow-y:auto">
-    <div class="ch"><span class="ct">Quick Add</span></div>
-    <div class="emergency-grid nutr-food-grid">
-      <div class="em-item" onclick="logQuickAdd('peanut-butter')"><div class="em-photo">🥜</div><div class="em-body"><div class="em-food">Peanut butter (2 tbsp)</div><div class="em-cals">190 kcal · 8g protein</div></div></div>
-      <div class="em-item" onclick="logQuickAdd('whole-milk')"><div class="em-photo">🥛</div><div class="em-body"><div class="em-food">Whole milk (500ml)</div><div class="em-cals">310 kcal · 16g protein</div></div></div>
-      <div class="em-item" onclick="logQuickAdd('nuts')"><div class="em-photo">🌰</div><div class="em-body"><div class="em-food">Nuts (handful)</div><div class="em-cals">170 kcal · 5g protein</div></div></div>
-      <div class="em-item" onclick="logQuickAdd('banana-pb')"><div class="em-photo">🍌</div><div class="em-body"><div class="em-food">Banana + PB</div><div class="em-cals">280 kcal · 9g protein</div></div></div>
-      <div class="em-item" onclick="logQuickAdd('greek-yoghurt')"><div class="em-photo">🥣</div><div class="em-body"><div class="em-food">Greek yoghurt</div><div class="em-cals">130 kcal · 17g protein</div></div></div>
-      <div class="em-item" onclick="logQuickAdd('oats-milk')"><div class="em-photo">🥄</div><div class="em-body"><div class="em-food">Oats + milk</div><div class="em-cals">350 kcal · 14g protein</div></div></div>
+  <div class="card lv-surface" style="box-sizing:border-box;overflow-y:auto;padding:20px">
+    <div style="display:flex;align-items:baseline;justify-content:space-between">
+      <h2 class="lv-section-title" style="display:flex;align-items:baseline;gap:8px;font-size:1.4rem"><span class="lv-greek-numeral">Γ</span>Quick add</h2>
+      <span style="font-family:var(--lv-mono);font-size:11px;color:var(--lv-muted-fg)">one tap</span>
+    </div>
+    <div style="margin-top:16px;display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <button onclick="logQuickAdd('protein-shake')" style="display:flex;flex-direction:column;align-items:flex-start;gap:4px;border:1px solid var(--lv-border-strong);border-radius:1rem;padding:12px;text-align:left;background:transparent;cursor:pointer"><span style="display:flex;width:100%;justify-content:space-between;gap:4px;font-family:var(--lv-sans);font-size:12px;font-weight:700;color:var(--lv-fg);line-height:1.2">Protein shake<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--lv-muted-fg)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span><span style="font-family:var(--lv-mono);font-size:10px;color:var(--lv-muted-fg)">113 kcal · 13g P</span></button>
+      <button onclick="logQuickAdd('peanut-butter')" style="display:flex;flex-direction:column;align-items:flex-start;gap:4px;border:1px solid var(--lv-border-strong);border-radius:1rem;padding:12px;text-align:left;background:transparent;cursor:pointer"><span style="display:flex;width:100%;justify-content:space-between;gap:4px;font-family:var(--lv-sans);font-size:12px;font-weight:700;color:var(--lv-fg);line-height:1.2">Peanut butter · 2 tbsp<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--lv-muted-fg)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span><span style="font-family:var(--lv-mono);font-size:10px;color:var(--lv-muted-fg)">190 kcal · 8g P</span></button>
+      <button onclick="logQuickAdd('whole-milk')" style="display:flex;flex-direction:column;align-items:flex-start;gap:4px;border:1px solid var(--lv-border-strong);border-radius:1rem;padding:12px;text-align:left;background:transparent;cursor:pointer"><span style="display:flex;width:100%;justify-content:space-between;gap:4px;font-family:var(--lv-sans);font-size:12px;font-weight:700;color:var(--lv-fg);line-height:1.2">Whole milk · 500ml<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--lv-muted-fg)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span><span style="font-family:var(--lv-mono);font-size:10px;color:var(--lv-muted-fg)">310 kcal · 16g P</span></button>
+      <button onclick="logQuickAdd('nuts')" style="display:flex;flex-direction:column;align-items:flex-start;gap:4px;border:1px solid var(--lv-border-strong);border-radius:1rem;padding:12px;text-align:left;background:transparent;cursor:pointer"><span style="display:flex;width:100%;justify-content:space-between;gap:4px;font-family:var(--lv-sans);font-size:12px;font-weight:700;color:var(--lv-fg);line-height:1.2">Nuts · handful<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--lv-muted-fg)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span><span style="font-family:var(--lv-mono);font-size:10px;color:var(--lv-muted-fg)">170 kcal · 5g P</span></button>
+      <button onclick="logQuickAdd('banana-pb')" style="display:flex;flex-direction:column;align-items:flex-start;gap:4px;border:1px solid var(--lv-border-strong);border-radius:1rem;padding:12px;text-align:left;background:transparent;cursor:pointer"><span style="display:flex;width:100%;justify-content:space-between;gap:4px;font-family:var(--lv-sans);font-size:12px;font-weight:700;color:var(--lv-fg);line-height:1.2">Banana + PB<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--lv-muted-fg)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span><span style="font-family:var(--lv-mono);font-size:10px;color:var(--lv-muted-fg)">280 kcal · 9g P</span></button>
+      <button onclick="logQuickAdd('greek-yoghurt')" style="display:flex;flex-direction:column;align-items:flex-start;gap:4px;border:1px solid var(--lv-border-strong);border-radius:1rem;padding:12px;text-align:left;background:transparent;cursor:pointer"><span style="display:flex;width:100%;justify-content:space-between;gap:4px;font-family:var(--lv-sans);font-size:12px;font-weight:700;color:var(--lv-fg);line-height:1.2">Greek yogurt · 200g<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--lv-muted-fg)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span><span style="font-family:var(--lv-mono);font-size:10px;color:var(--lv-muted-fg)">160 kcal · 20g P</span></button>
+      <button onclick="logQuickAdd('chicken-150')" style="display:flex;flex-direction:column;align-items:flex-start;gap:4px;border:1px solid var(--lv-border-strong);border-radius:1rem;padding:12px;text-align:left;background:transparent;cursor:pointer"><span style="display:flex;width:100%;justify-content:space-between;gap:4px;font-family:var(--lv-sans);font-size:12px;font-weight:700;color:var(--lv-fg);line-height:1.2">Chicken · 150g<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--lv-muted-fg)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span><span style="font-family:var(--lv-mono);font-size:10px;color:var(--lv-muted-fg)">245 kcal · 46g P</span></button>
+      <button onclick="logQuickAdd('rice-200')" style="display:flex;flex-direction:column;align-items:flex-start;gap:4px;border:1px solid var(--lv-border-strong);border-radius:1rem;padding:12px;text-align:left;background:transparent;cursor:pointer"><span style="display:flex;width:100%;justify-content:space-between;gap:4px;font-family:var(--lv-sans);font-size:12px;font-weight:700;color:var(--lv-fg);line-height:1.2">Rice · 200g cooked<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--lv-muted-fg)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span><span style="font-family:var(--lv-mono);font-size:10px;color:var(--lv-muted-fg)">260 kcal · 5g P</span></button>
     </div>
   </div>
   </div>
@@ -4530,7 +4535,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        above, so this card is just the log list + why-these-numbers detail
        now, not a second set of the same bars. -->
   <div class="card lv-surface" id="acc-macros">
-    <div class="ch"><span class="ct ct-mint" style="display:flex;align-items:center;gap:7px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>Logged Today</span><span class="ca" onclick="resetDay()">Reset</span></div>
+    <div style="display:flex;align-items:baseline;justify-content:space-between"><h2 class="lv-section-title" style="display:flex;align-items:baseline;gap:8px;font-size:1.4rem"><span class="lv-greek-numeral">Ζ</span>Logged</h2><span style="font-family:var(--lv-sans);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--lv-primary);cursor:pointer" onclick="resetDay()">Reset</span></div>
     <div id="today-log-list"></div>
     <div id="macro-alcohol-line" style="display:none;font-size:11.5px;color:var(--muted);margin-top:10px">🍷 <span id="macro-alcohol-val">0</span>g alcohol today</div>
     <div id="macro-why-toggle" onclick="toggleMacroWhy()" style="font-size:10.5px;color:var(--muted);cursor:pointer;margin-top:10px;text-decoration:underline;text-underline-offset:2px;display:inline-block">Why these numbers?</div>
@@ -19195,12 +19200,14 @@ function foodXPForName(name,baseAmount){
 // ── QUICK ADD — Nutrition page carousel's one-tap common foods. Reuses
 // the real logItem() flow, same as everything else on this page.
 const QUICK_ADD_FOODS={
-  'peanut-butter':{name:'Peanut butter (2 tbsp)',cals:190,prot:8,carbs:6,fats:16},
-  'whole-milk':{name:'Whole milk (500ml)',cals:310,prot:16,carbs:24,fats:17},
-  'nuts':{name:'Nuts (handful)',cals:170,prot:5,carbs:5,fats:14},
-  'banana-pb':{name:'Banana + PB',cals:280,prot:9,carbs:32,fats:13},
-  'greek-yoghurt':{name:'Greek yoghurt',cals:130,prot:17,carbs:6,fats:4},
-  'oats-milk':{name:'Oats + milk',cals:350,prot:14,carbs:45,fats:12},
+  'protein-shake':{name:'Protein shake',cals:113,prot:13,carbs:4,fats:2},
+  'peanut-butter':{name:'Peanut butter · 2 tbsp',cals:190,prot:8,carbs:6,fats:16},
+  'whole-milk':{name:'Whole milk · 500ml',cals:310,prot:16,carbs:24,fats:17},
+  'nuts':{name:'Nuts · handful',cals:170,prot:5,carbs:6,fats:15},
+  'banana-pb':{name:'Banana + PB',cals:280,prot:9,carbs:34,fats:12},
+  'greek-yoghurt':{name:'Greek yogurt · 200g',cals:160,prot:20,carbs:9,fats:5},
+  'chicken-150':{name:'Chicken · 150g',cals:245,prot:46,carbs:0,fats:6},
+  'rice-200':{name:'Rice · 200g cooked',cals:260,prot:5,carbs:57,fats:1},
 };
 function logQuickAdd(key){
   const f=QUICK_ADD_FOODS[key];
@@ -19573,15 +19580,16 @@ function renderWaterRow(){
   const over=Math.max(0,(dayMacros.water||0)-WATER_TARGET);
   const glasses=Array.from({length:WATER_TARGET},(_,i)=>{
     const filled=i<cur;
-    return `<div class="water-glass${filled?' filled':''}" onclick="addWater(${i<(dayMacros.water||0)?-1:1})" title="${filled?'Remove a glass':'Add a glass'}">
-      <svg width="16" height="20" viewBox="0 0 16 20" fill="none"><path d="M2 1h12l-1.5 17a1 1 0 01-1 .9H4.5a1 1 0 01-1-.9L2 1z" stroke="${filled?'#44CFFF':'rgba(232,214,196,.25)'}" stroke-width="1.4" fill="${filled?'rgba(68,207,255,.35)':'none'}"/></svg>
-    </div>`;
+    return `<button onclick="addWater(${i<(dayMacros.water||0)?-1:1})" title="${filled?'Remove a glass':'Add a glass'}" style="flex:1;display:flex;align-items:center;justify-content:center;height:44px;border-radius:.75rem;border:1px solid ${filled?'var(--lv-fuel)':'var(--lv-border)'};background:${filled?'rgba(var(--lv-fuel-rgb),.15)':'transparent'};color:${filled?'var(--lv-fuel)':'var(--lv-muted-fg)'};cursor:pointer">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="${filled?'currentColor':'none'}" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 2.69s-5.5 6.5-5.5 10.5a5.5 5.5 0 0 0 11 0c0-4-5.5-10.5-5.5-10.5z"/></svg>
+    </button>`;
   }).join('');
-  wrap.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-      <div class="macro-row2-label"><span class="macro-row2-icon">💧</span>Water</div>
-      <div class="macro-row2-nums"><span class="cur" style="color:#44CFFF">${dayMacros.water||0}</span><span class="tgt"> / ${WATER_TARGET} glasses</span></div>
+  wrap.innerHTML=`<div style="display:flex;align-items:baseline;justify-content:space-between">
+      <h2 class="lv-section-title" style="display:flex;align-items:baseline;gap:8px;font-size:1.4rem"><span class="lv-greek-numeral">Β</span>Water</h2>
+      <span style="font-family:var(--lv-mono);font-size:11px;color:var(--lv-fuel)">${dayMacros.water||0} / ${WATER_TARGET}</span>
     </div>
-    <div style="display:flex;gap:5px;flex-wrap:wrap">${glasses}${over>0?`<div style="font-size:10px;color:#44CFFF;align-self:center;margin-left:4px">+${over} extra</div>`:''}</div>`;
+    <div style="margin-top:16px;display:flex;gap:6px">${glasses}</div>
+    ${over>0?`<div style="margin-top:8px;font-family:var(--lv-mono);font-size:10px;color:var(--lv-fuel)">+${over} extra</div>`:''}`;
 }
 function logNutrition(){showPage('nutrition')}
 function openLogFood(){
