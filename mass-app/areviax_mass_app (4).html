@@ -3489,6 +3489,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     </div>
 
     <div class="ob-step" id="ob-6">
+      <div style="font-family:'Cinzel',sans-serif;font-weight:700;font-size:30px;letter-spacing:-.01em;color:var(--white);margin-bottom:4px" id="ob-greeting">Welcome</div>
       <div class="ob-eye">Your Numbers</div>
       <div class="ob-title" id="ob-res-title">Here is your blueprint.</div>
       <div class="lbl" style="margin-top:10px">Your BMI</div>
@@ -11902,7 +11903,13 @@ function finishPlanCalculation(){
     marker.style.left=pct+'%';
   }
 
-  const ort=document.getElementById('ob-res-title');if(ort)ort.textContent='Here are your numbers, '+profile.name+'.';
+  const obg=document.getElementById('ob-greeting');
+  if(obg){
+    const h=new Date().getHours();
+    const greetWord=h<5?'Good night':h<12?'Good morning':h<18?'Good afternoon':'Good evening';
+    obg.textContent=greetWord+(profile.name?', '+profile.name:'')+'.';
+  }
+  const ort=document.getElementById('ob-res-title');if(ort)ort.textContent='Here are your stats.';
   const orc=document.getElementById('ob-res-content');if(orc)orc.innerHTML=`
     <div style="font-size:11px;color:var(--muted);margin-bottom:10px">Your BMI: <strong style="color:var(--white)">${bmi.toFixed(1)}</strong></div>
     <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;margin-bottom:14px">
