@@ -3171,11 +3171,32 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
 .lv-week-cell.done{border-color:var(--lv-primary);background:rgba(var(--lv-primary-rgb),.2);color:var(--lv-primary)}
 .lv-week-cell.today{border-color:var(--lv-border-strong);background:var(--lv-elevated);color:var(--lv-fg)}
 .lv-pill{border-radius:999px;padding:6px 10px;font-size:11px;font-weight:800;display:inline-flex;align-items:center;gap:4px}
-.lv-topbar{position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--lv-border);background:rgba(18,12,9,.85);backdrop-filter:blur(20px);padding:calc(10px + env(safe-area-inset-top,0px)) 20px 10px}
+.lv-topbar{position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--lv-border);background:rgb(18,12,9);backdrop-filter:blur(20px);padding:calc(10px + var(--safe-top,0px)) 20px 10px}
 .dash-qf-btn.logged{border-color:var(--lv-fuel)!important;background:rgba(var(--lv-fuel-rgb),.15)!important;color:var(--lv-fuel)!important}
 </style>
 </head>
 <body>
+<script>
+// Static, JS-computed safe-area value instead of a live env() reference in
+// CSS — on iOS standalone PWAs, env(safe-area-inset-top) has been observed
+// to visibly shift for a frame when an unrelated position:fixed overlay
+// (e.g. the More sheet) opens/closes, which reads as "the whole top of the
+// page jumps." Computing it once into --safe-top decouples every spacer
+// that uses it from whatever is triggering that recalculation.
+(function(){
+  function updateSafeTopVar(){
+    var probe=document.createElement('div');
+    probe.style.cssText='position:fixed;top:0;left:0;height:0;padding-top:env(safe-area-inset-top,0px);pointer-events:none;visibility:hidden';
+    document.documentElement.appendChild(probe);
+    var px=getComputedStyle(probe).paddingTop||'0px';
+    probe.remove();
+    document.documentElement.style.setProperty('--safe-top',px);
+  }
+  updateSafeTopVar();
+  window.addEventListener('resize',updateSafeTopVar);
+  window.addEventListener('orientationchange',function(){setTimeout(updateSafeTopVar,50);});
+})();
+</script>
 <div id="rotate-lock"><div class="rl-icon">📱</div><div class="rl-title">Rotate back to portrait</div><div class="rl-sub">Areviax Mass is designed for portrait mode — turn your phone back upright to keep training.</div></div>
 <!-- Shared gradient defs for the ultralegendary trophy-cabinet ornaments
      (crown/wings) — one definition referenced via url(#lgi-holo-grad)
@@ -3637,7 +3658,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        alone (which only moves the text, not the background) still left
        the time/wifi/battery icons sitting on top of the orange gradient
        instead of plain black. -->
-  <div style="height:env(safe-area-inset-top,0px);background:var(--lv-bg);margin:0 -20px"></div>
+  <div style="height:var(--safe-top,0px);background:var(--lv-bg);margin:0 -20px"></div>
   <header class="lv-ember-wash lv-grain lv-colonnade lv-temple-glow lv-pediment" style="position:relative;overflow:hidden;margin:0 -20px;padding:20px 20px 26px;border-radius:0 0 28px 28px">
     <span class="lv-ghost-numeral" style="right:-12px;top:56px">Δ</span>
     <div style="position:relative;z-index:1">
@@ -3654,7 +3675,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
 
       <p class="lv-label-eyebrow lv-pulse-dot" style="margin-top:22px;color:var(--lv-fg);opacity:.7" id="dash-eyebrow-text">Session</p>
 
-      <h1 class="lv-display-hero" style="margin-top:6px;color:var(--lv-fg)" id="dash-greeting-headline">Good morning</h1>
+      <h1 style="margin-top:6px;color:var(--lv-fg);font-family:'Cinzel',serif;font-weight:700;font-size:clamp(2.6rem,11vw,3.4rem);line-height:1.05;letter-spacing:-.01em" id="dash-greeting-headline">Good morning</h1>
       <div style="margin-top:6px;font-family:var(--lv-sans);font-size:15px;font-weight:800;color:var(--lv-fg)">
         <span id="d-next-word1">Push</span> <span class="lv-serif-accent lv-gold-text" id="d-next-word2">upper</span>
       </div>
