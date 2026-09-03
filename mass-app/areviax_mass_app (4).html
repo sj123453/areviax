@@ -12550,38 +12550,49 @@ function renderVolumeTrend(){
 
 // ── INIT ──
 // QUOTES — real, individually-attributed classical lines (matching the
-// app's Greek framing) mixed with a handful of the original Areviax-voiced
-// ones, each still attributed as itself rather than everything getting
-// folded into one generic "— Areviax" label. Every quote surface in the
-// app (Dashboard card, Daily Perspective modal, Workout footer, and any
-// future page) reads from this one array via pickQuote() so there's a
-// single place to add more instead of N separate lists drifting apart.
+// app's Greek framing) mixed with the original Areviax-voiced ones, each
+// still attributed as itself rather than everything folded into one
+// generic "— Areviax" label. mass:true marks the ones actually about
+// physical training/growth/strength (real historical quotes specifically
+// about muscle growth basically don't exist — the ancient world had no
+// concept of hypertrophy training — so that pool leans on the Areviax
+// lines, which were written mass-specific on purpose). The Dashboard card
+// and Daily Perspective modal only draw from the mass:true pool; Workout
+// and any future page can draw from the full set via pickQuote(offset).
 const QUOTES = [
-  {text:"No citizen has a right to be an amateur in the matter of physical training. What a disgrace it is for a man to grow old without ever seeing the beauty and strength of which his body is capable.",attrib:"Socrates"},
+  {text:"No citizen has a right to be an amateur in the matter of physical training. What a disgrace it is for a man to grow old without ever seeing the beauty and strength of which his body is capable.",attrib:"Socrates",mass:true},
   {text:"First say to yourself what you would be, and then do what you have to do.",attrib:"Epictetus"},
   {text:"Waste no more time arguing about what a good man should be. Be one.",attrib:"Marcus Aurelius"},
   {text:"The impediment to action advances action. What stands in the way becomes the way.",attrib:"Marcus Aurelius"},
-  {text:"Difficulties strengthen the mind, as labor does the body.",attrib:"Seneca"},
+  {text:"Difficulties strengthen the mind, as labor does the body.",attrib:"Seneca",mass:true},
   {text:"The first and best victory is to conquer self.",attrib:"Plato"},
   {text:"No man is free who cannot command himself.",attrib:"Pythagoras"},
   {text:"Character is destiny.",attrib:"Heraclitus"},
   {text:"You have power over your mind — not outside events. Realize this, and you will find strength.",attrib:"Marcus Aurelius"},
   {text:"It is not that we have a short time to live, but that we waste a lot of it.",attrib:"Seneca"},
   {text:"How long are you going to wait before you demand the best for yourself?",attrib:"Epictetus"},
-  {text:"The last rep is the one that counts — that's where the growth actually happens.",attrib:"Areviax"},
-  {text:"Small weight, added every week, becomes a completely different body.",attrib:"Areviax"},
-  {text:"Strength is built in the sets nobody's watching.",attrib:"Areviax"},
-  {text:"Consistency beats intensity — every single time, over a long enough timeline.",attrib:"Areviax"},
-  {text:"Nobody ever regretted the workout they finished.",attrib:"Areviax"},
+  {text:"The last rep is the one that counts — that's where the growth actually happens.",attrib:"Areviax",mass:true},
+  {text:"Small weight, added every week, becomes a completely different body.",attrib:"Areviax",mass:true},
+  {text:"Strength is built in the sets nobody's watching.",attrib:"Areviax",mass:true},
+  {text:"Consistency beats intensity — every single time, over a long enough timeline.",attrib:"Areviax",mass:true},
+  {text:"Nobody ever regretted the workout they finished.",attrib:"Areviax",mass:true},
+  {text:"Muscle isn't built in a day — it's built in the thousand days you didn't quit.",attrib:"Areviax",mass:true},
+  {text:"Eating enough is a discipline too. Growth needs the surplus, not just the sets.",attrib:"Areviax",mass:true},
+  {text:"The scale moving is proof, not the goal — the goal was always getting stronger.",attrib:"Areviax",mass:true},
+  {text:"You don't get bigger from the workout. You get bigger from what you do after it — eat, sleep, repeat.",attrib:"Areviax",mass:true},
+  {text:"Every hard gainer's turning point looks the same: the day they stopped guessing and started tracking.",attrib:"Areviax",mass:true},
+  {text:"Growth is slow enough that you won't see it happening, and fast enough that one day you will.",attrib:"Areviax",mass:true},
 ];
 // offset shifts which day's quote lands on which page, so two surfaces
-// checked the same day don't always show the identical line.
-function pickQuote(offset){
+// checked the same day don't always show the identical line. massOnly
+// restricts the pool to mass:true entries (Dashboard/Daily Perspective).
+function pickQuote(offset,massOnly){
+  const pool=massOnly?QUOTES.filter(q=>q.mass):QUOTES;
   const dayNum=Math.floor(Date.now()/86400000);
-  return QUOTES[(dayNum+(offset||0)+QUOTES.length)%QUOTES.length];
+  return pool[(dayNum+(offset||0)+pool.length)%pool.length];
 }
-function renderQuoteInto(textId,attribId,offset,attribPrefix){
-  const q=pickQuote(offset);
+function renderQuoteInto(textId,attribId,offset,attribPrefix,massOnly){
+  const q=pickQuote(offset,massOnly);
   const textEl=document.getElementById(textId);
   if(textEl)textEl.textContent='"'+q.text+'"';
   const attribEl=document.getElementById(attribId);
@@ -12589,7 +12600,7 @@ function renderQuoteInto(textId,attribId,offset,attribPrefix){
   return q;
 }
 function renderDashQuote(){
-  renderQuoteInto('dash-quote-text','dash-quote-attrib',0,'');
+  renderQuoteInto('dash-quote-text','dash-quote-attrib',0,'',true);
 }
 
 // DAILY PERSPECTIVE — a once-per-day post-load briefing screen (streak,
@@ -12608,7 +12619,7 @@ function maybeShowDailyPerspective(){
   if(!el)return;
   const today=localDateKey(new Date());
   if(lastPerspectiveShownDate===today)return;
-  renderQuoteInto('dp-quote-text','dp-attrib-text',0);
+  renderQuoteInto('dp-quote-text','dp-attrib-text',0,undefined,true);
   const sNum=document.getElementById('dp-streak-num');if(sNum)sNum.textContent=streak;
   const sessNum=document.getElementById('dp-sessions-num');if(sessNum)sessNum.textContent=sessThisWeek+'/'+(profile.days||0);
   el.classList.add('show');
