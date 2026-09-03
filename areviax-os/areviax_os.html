@@ -2247,6 +2247,7 @@ input[type=checkbox]{accent-color:var(--orange);width:15px;height:15px;cursor:po
         <div class="card">
           <div class="card-header"><span class="card-title">Your Reminders</span></div>
           <div id="reminders-list"></div>
+          <button class="settings-btn" style="width:100%;margin-top:12px" onclick="previewDailyDigest()">👀 Preview today's digest notification</button>
         </div>
 
         <!-- CUSTOM REMINDERS — the 4 curated types above cover this app's
@@ -3845,7 +3846,38 @@ const REMINDER_TYPES = [
   {id:'streak-risk', label:'Streak at risk', desc:"Warns you in the evening if today's streak isn't locked in yet.", notif:"Your streak is still open. Losses hurt roughly 2x more than gains feel good — don't let today be the one that resets it.", defaultTime:'20:00', icon:'🔥'},
   {id:'habit-check', label:'Habit not logged', desc:"Reminds you if a habit hasn't been checked off yet today.", notif:"A habit's still unchecked. Consistency compounds — the days you almost skip are the ones that build it.", defaultTime:'18:00', icon:'✅'},
   {id:'weekly-review', label:'Weekly review ready', desc:'Lets you know your weekly stats and insights are ready to look at.', notif:"Your weekly review is ready. Five minutes reflecting is what turns a busy week into an improving one.", defaultTime:'09:00', icon:'📊'},
+  {id:'daily-digest', label:'Daily digest', desc:"Your open tasks and today's schedule, bundled into one notification — the closest thing to a lock-screen briefing this app can do without a background server.", notif:'', defaultTime:'07:30', icon:'📋'},
 ];
+// DAILY DIGEST — real content, not a static line like the other reminder
+// types: pulls today's still-open tasks straight from the live #all-tasks
+// DOM (tasks aren't kept as a separate JS array, see saveState()'s
+// tasksHTML) and today's scheduleEvents, so the notification always
+// reflects what's actually on the list right now.
+function buildDailyDigestBody(){
+  const openTasks = Array.from(document.querySelectorAll('#all-tasks .task-item:not(.done) .task-text')).map(el=>el.textContent.trim());
+  const jsDay = new Date().getDay();
+  const todayIdx = jsDay===0?6:jsDay-1; // 0=Mon..6=Sun, matching scheduleEvents.dayIdx
+  const wk = getWeekMonday();
+  const todaysEvents = scheduleEvents
+    .filter(e=>(e.daily||e.dayIdx===todayIdx)&&(e.recurring||e.weekOf===wk))
+    .sort((a,b)=>(a.time||'99:99').localeCompare(b.time||'99:99'));
+  const parts=[];
+  if(openTasks.length){
+    parts.push(openTasks.length+' task'+(openTasks.length===1?'':'s')+': '+openTasks.slice(0,3).join(', ')+(openTasks.length>3?', +'+(openTasks.length-3)+' more':''));
+  }
+  if(todaysEvents.length){
+    parts.push(todaysEvents.length+' on the schedule: '+todaysEvents.slice(0,3).map(e=>(e.time?e.time+' ':'')+e.title).join(', ')+(todaysEvents.length>3?', +'+(todaysEvents.length-3)+' more':''));
+  }
+  return parts.length ? parts.join(' · ') : "Nothing on today's list yet — open Areviax OS to plan it.";
+}
+function previewDailyDigest(){
+  if(!('Notification' in window)){ showToast('🔕',"This browser doesn't support notifications"); return; }
+  if(Notification.permission!=='granted'){
+    requestReminderPermission();
+    return;
+  }
+  new Notification('Areviax OS — Today', {body: buildDailyDigestBody(), tag:'daily-digest-preview'});
+}
 function requestReminderPermission(){
   if(!('Notification' in window)){
     showToast('🔕','This browser doesn\'t support notifications');
@@ -4135,7 +4167,8 @@ function checkReminders(){
     if(r.id==='habit-check' && habits.length && habits.every(h=>h.completedDates.includes(today))) return;
     const lastTs = reminderLastFired[r.id+'_ts'];
     if(lastTs && (Date.now()-lastTs) < ESCALATE_MS) return; // nudged recently, wait for the next window
-    new Notification('Areviax OS', {body: r.notif, icon: undefined, tag: r.id});
+    const body = r.id==='daily-digest' ? buildDailyDigestBody() : r.notif;
+    new Notification(r.id==='daily-digest'?'Areviax OS — Today':'Areviax OS', {body, icon: undefined, tag: r.id});
     reminderLastFired[r.id] = today;
     reminderLastFired[r.id+'_ts'] = Date.now();
     saveState();
