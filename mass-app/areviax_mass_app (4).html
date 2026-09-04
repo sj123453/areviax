@@ -1215,7 +1215,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        total width, which puts Start's own slot at the actual middle
        regardless of the 2-vs-3 button-count split. */
     #mn-home,#mn-workout{flex:1.5}
-    .mn-btn svg{width:18px;height:18px;stroke-width:1.8;transition:filter .25s}
+    .mn-btn svg{width:22px;height:22px;stroke-width:1.8;transition:filter .25s}
     .mn-btn.active,.mn-btn:active{color:var(--green)}
     .mn-btn.active svg{filter:drop-shadow(0 0 5px rgba(243,103,23,.7))}
     .mn-btn.mn-primary{color:var(--white)}
@@ -1225,7 +1225,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       border-radius:14px;padding:6px 10px;margin-bottom:1px;
       box-shadow:0 0 16px -6px rgba(243,103,23,.4);
     }
-    .mn-btn.mn-primary svg{width:20px;height:20px;stroke-width:2}
+    .mn-btn.mn-primary svg{width:24px;height:24px;stroke-width:2}
     @media(max-width:800px){
       #mobile-nav{display:flex!important}
       .sidebar{display:none!important}
@@ -3199,7 +3199,7 @@ body[data-goal-theme="cut"] .lv-page{
 .lv-streak-flame{transition:filter .4s ease}
 .lv-streak-flame.lv-flame-t2{filter:drop-shadow(0 0 3px currentColor)}
 .lv-streak-flame.lv-flame-t3{filter:drop-shadow(0 0 6px currentColor) drop-shadow(0 0 2px currentColor)}
-.lv-topbar{position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--lv-border);background:var(--lv-bg,rgb(18,12,9));backdrop-filter:blur(20px);padding:calc(10px + var(--safe-top,0px)) 20px 10px}
+.lv-topbar{position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--lv-border);background:var(--lv-bg,rgb(18,12,9));backdrop-filter:blur(20px);padding:calc(10px + max(var(--safe-top,0px),env(safe-area-inset-top,0px))) 20px 10px}
 .dash-qf-btn.logged{border-color:var(--lv-fuel)!important;background:rgba(var(--lv-fuel-rgb),.15)!important;color:var(--lv-fuel)!important}
 </style>
 </head>
@@ -3242,7 +3242,7 @@ body[data-goal-theme="cut"] .lv-page{
      appearing/disappearing around the status bar. Since rgba(0,0,0,.55)
      over solid black is still solid black, keeping this strip pure black
      at all times makes the backdrop passing over it invisible instead. -->
-<div id="status-bar-blackout" style="position:fixed;top:0;left:0;right:0;height:var(--safe-top,0px);background:#000;z-index:1000;pointer-events:none" aria-hidden="true"></div>
+<div id="status-bar-blackout" style="position:fixed;top:0;left:0;right:0;height:max(var(--safe-top,0px),env(safe-area-inset-top,0px));background:#000;z-index:1000;pointer-events:none" aria-hidden="true"></div>
 <div id="rotate-lock"><div class="rl-icon">📱</div><div class="rl-title">Rotate back to portrait</div><div class="rl-sub">Areviax Mass is designed for portrait mode — turn your phone back upright to keep training.</div></div>
 <!-- Shared gradient defs for the ultralegendary trophy-cabinet ornaments
      (crown/wings) — one definition referenced via url(#lgi-holo-grad)
@@ -3710,7 +3710,7 @@ body[data-goal-theme="cut"] .lv-page{
        alone (which only moves the text, not the background) still left
        the time/wifi/battery icons sitting on top of the orange gradient
        instead of plain black. -->
-  <div style="height:var(--safe-top,0px);background:var(--lv-bg);margin:0 -20px"></div>
+  <div style="height:max(var(--safe-top,0px),env(safe-area-inset-top,0px));background:var(--lv-bg);margin:0 -20px"></div>
   <header class="lv-ember-wash lv-grain lv-colonnade lv-temple-glow lv-pediment" style="position:relative;overflow:hidden;margin:0 -20px;padding:20px 20px 26px;border-radius:0 0 28px 28px">
     <span class="lv-ghost-numeral" style="right:-12px;top:56px">Δ</span>
     <div style="position:relative;z-index:1">
@@ -3925,7 +3925,7 @@ body[data-goal-theme="cut"] .lv-page{
   <!-- HERO — literal port of website-refresh's WorkoutScreen <header>.
        Real wb-type/wb-time/sessionFocus/exercise-count data — see
        renderWorkoutHeroLovable(), called from the end of renderExercises(). -->
-  <div style="height:var(--safe-top,0px);background:var(--lv-bg);margin:0 -20px"></div>
+  <div style="height:max(var(--safe-top,0px),env(safe-area-inset-top,0px));background:var(--lv-bg);margin:0 -20px"></div>
   <header class="lv-ember-wash lv-grain lv-colonnade lv-temple-glow lv-pediment" style="position:relative;overflow:hidden;margin:0 -20px;padding:20px 20px 26px;border-radius:0 0 28px 28px">
     <span class="lv-ghost-numeral" style="right:-14px;top:38px">Ω</span>
     <div style="position:relative;z-index:1">
@@ -4164,7 +4164,7 @@ body[data-goal-theme="cut"] .lv-page{
 
 <!-- SESSION -->
 <div class="page lv-page" id="page-session">
-  <div style="height:var(--safe-top,0px);background:var(--lv-bg);margin:0 -20px"></div>
+  <div style="height:max(var(--safe-top,0px),env(safe-area-inset-top,0px));background:var(--lv-bg);margin:0 -20px"></div>
   <header class="lv-ember-wash lv-grain lv-colonnade lv-temple-glow lv-pediment" style="position:relative;overflow:hidden;margin:0 -20px 16px;padding:20px 20px 26px;border-radius:0 0 28px 28px">
     <span class="lv-ghost-numeral" style="right:-14px;top:38px">Σ</span>
     <div style="position:relative;z-index:1">
@@ -4248,7 +4248,7 @@ body[data-goal-theme="cut"] .lv-page{
 
   <!-- HERO — literal port of website-refresh's NutritionScreen <header>.
        Real dayMacros/profile data — see renderNutritionHeroLovable(). -->
-  <div style="height:var(--safe-top,0px);background:var(--lv-bg);margin:0 -20px"></div>
+  <div style="height:max(var(--safe-top,0px),env(safe-area-inset-top,0px));background:var(--lv-bg);margin:0 -20px"></div>
   <header class="lv-ember-wash lv-grain lv-colonnade lv-temple-glow lv-pediment" style="position:relative;overflow:hidden;margin:0 -20px;padding:20px 20px 26px;border-radius:0 0 28px 28px">
     <span class="lv-ghost-numeral" style="right:-14px;top:38px">Θ</span>
     <div style="position:relative;z-index:1">
@@ -4668,7 +4668,7 @@ body[data-goal-theme="cut"] .lv-page{
      clean placeholder (icon + macro chips) instead of a fake stock
      photo, ready to swap for real images once provided. -->
 <div class="page lv-page" id="page-recipes">
-  <div style="height:var(--safe-top,0px);background:var(--lv-bg);margin:0 -20px"></div>
+  <div style="height:max(var(--safe-top,0px),env(safe-area-inset-top,0px));background:var(--lv-bg);margin:0 -20px"></div>
   <header class="lv-ember-wash lv-grain lv-colonnade lv-temple-glow lv-pediment" style="position:relative;overflow:hidden;margin:0 -20px 16px;padding:20px 20px 26px;border-radius:0 0 28px 28px">
     <span class="lv-ghost-numeral" style="right:-14px;top:38px">Ρ</span>
     <div style="position:relative;z-index:1">
@@ -5071,7 +5071,7 @@ body[data-goal-theme="cut"] .lv-page{
      real (a Compass Drop, spare shards, or a guaranteed Legend Card at the
      big ones). Reached from the XP Road hub card on Progress. -->
 <div class="page" id="page-xproad">
-  <div style="height:var(--safe-top,0px);background:#0D0806;margin:0 -20px"></div>
+  <div style="height:max(var(--safe-top,0px),env(safe-area-inset-top,0px));background:#0D0806;margin:0 -20px"></div>
   <div class="road-page-head">
     <button class="btn btn-out btn-sm" onclick="showPage('progress')">← Progress</button>
     <span class="ct glow-title xp" style="font-size:17px"><img src="images/roads/xp-compass.png" alt="" class="road-title-icon" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'"><span class="road-title-icon-fallback">🛤️</span> XP Road</span>
@@ -5118,7 +5118,7 @@ body[data-goal-theme="cut"] .lv-page{
      ridge, sparkle particles instead of rising embers). Reached from
      the Trophy Road hub card on Progress. -->
 <div class="page" id="page-trophyroad">
-  <div style="height:var(--safe-top,0px);background:#0D0806;margin:0 -20px"></div>
+  <div style="height:max(var(--safe-top,0px),env(safe-area-inset-top,0px));background:#0D0806;margin:0 -20px"></div>
   <div class="road-page-head">
     <button class="btn btn-out btn-sm" onclick="showPage('progress')">← Progress</button>
     <span class="ct glow-title trophy" style="font-size:17px"><img src="images/roads/trophy-compass.png" alt="" class="road-title-icon" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'"><span class="road-title-icon-fallback">⚔️</span> Road to Olympus</span>
@@ -5167,7 +5167,7 @@ body[data-goal-theme="cut"] .lv-page{
      Road's warm ember-dusk trail. Reached from the Weight Road hub card
      on Progress. -->
 <div class="page" id="page-weightroad">
-  <div style="height:var(--safe-top,0px);background:#0D0806;margin:0 -20px"></div>
+  <div style="height:max(var(--safe-top,0px),env(safe-area-inset-top,0px));background:#0D0806;margin:0 -20px"></div>
   <div class="road-page-head">
     <button class="btn btn-out btn-sm" onclick="showPage('progress')">← Progress</button>
     <span class="ct glow-title weight" style="font-size:17px"><img src="images/roads/weight-compass.png" alt="" class="road-title-icon" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'"><span class="road-title-icon-fallback">🏋️</span> Weight Road</span>
@@ -5325,7 +5325,7 @@ body[data-goal-theme="cut"] .lv-page{
 
 <!-- RECOVERY — its own dedicated page. Sleep tracking, wind-down sounds, breathing, and the science of why this matters. -->
 <div class="page lv-page" id="page-recovery">
-  <div style="height:var(--safe-top,0px);background:var(--lv-bg);margin:0 -20px"></div>
+  <div style="height:max(var(--safe-top,0px),env(safe-area-inset-top,0px));background:var(--lv-bg);margin:0 -20px"></div>
   <header class="lv-ember-wash lv-grain lv-colonnade lv-temple-glow lv-pediment" style="position:relative;overflow:hidden;margin:0 -20px 16px;padding:20px 20px 26px;border-radius:0 0 28px 28px">
     <span class="lv-ghost-numeral" style="right:-14px;top:38px">Λ</span>
     <div style="position:relative;z-index:1">
@@ -5646,7 +5646,7 @@ body[data-goal-theme="cut"] .lv-page{
 
 <!-- SCHEDULE -->
 <div class="page lv-page" id="page-schedule">
-  <div style="height:var(--safe-top,0px);background:var(--lv-bg);margin:0 -20px"></div>
+  <div style="height:max(var(--safe-top,0px),env(safe-area-inset-top,0px));background:var(--lv-bg);margin:0 -20px"></div>
   <header class="lv-ember-wash lv-grain lv-colonnade lv-temple-glow lv-pediment" style="position:relative;overflow:hidden;margin:0 -20px 16px;padding:20px 20px 26px;border-radius:0 0 28px 28px">
     <span class="lv-ghost-numeral" style="right:-14px;top:38px">Ψ</span>
     <div style="position:relative;z-index:1">
@@ -5682,7 +5682,7 @@ body[data-goal-theme="cut"] .lv-page{
 
 <!-- LEADERBOARD -->
 <div class="page lv-page" id="page-leaderboard">
-  <div style="height:var(--safe-top,0px);background:var(--lv-bg);margin:0 -20px"></div>
+  <div style="height:max(var(--safe-top,0px),env(safe-area-inset-top,0px));background:var(--lv-bg);margin:0 -20px"></div>
   <header class="lv-ember-wash lv-grain lv-colonnade lv-temple-glow lv-pediment" style="position:relative;overflow:hidden;margin:0 -20px 16px;padding:20px 20px 26px;border-radius:0 0 28px 28px">
     <span class="lv-ghost-numeral" style="right:-14px;top:38px">Ρ</span>
     <div style="position:relative;z-index:1">
@@ -5727,14 +5727,14 @@ body[data-goal-theme="cut"] .lv-page{
 
 <!-- LEAGUES — dedicated weekly promotion-ladder page. -->
 <div class="page" id="page-leagues">
-  <div style="height:var(--safe-top,0px);background:#0D0806;margin:0 -20px"></div>
+  <div style="height:max(var(--safe-top,0px),env(safe-area-inset-top,0px));background:#0D0806;margin:0 -20px"></div>
   <div class="companion" style="margin-top:16px"><div class="companion-msg">Same idea as the leaderboard, with real stakes each week — finish strong and climb, coast and you'll slip back down.</div></div>
   <div id="leagues-body"></div>
 </div>
 
 <!-- LEARN / SCIENCE EDUCATION -->
 <div class="page lv-page" id="page-learn">
-  <div style="height:var(--safe-top,0px);background:var(--lv-bg);margin:0 -20px"></div>
+  <div style="height:max(var(--safe-top,0px),env(safe-area-inset-top,0px));background:var(--lv-bg);margin:0 -20px"></div>
   <header class="lv-ember-wash lv-grain lv-colonnade lv-temple-glow lv-pediment" style="position:relative;overflow:hidden;margin:0 -20px 16px;padding:20px 20px 26px;border-radius:0 0 28px 28px">
     <span class="lv-ghost-numeral" style="right:-14px;top:38px">Μ</span>
     <div style="position:relative;z-index:1">
@@ -6201,7 +6201,7 @@ body[data-goal-theme="cut"] .lv-page{
 
 <!-- PROFILE -->
 <div class="page lv-page" id="page-profile">
-  <div style="height:var(--safe-top,0px);background:var(--lv-bg);margin:0 -20px"></div>
+  <div style="height:max(var(--safe-top,0px),env(safe-area-inset-top,0px));background:var(--lv-bg);margin:0 -20px"></div>
   <header class="lv-ember-wash lv-grain lv-colonnade lv-temple-glow lv-pediment" style="position:relative;overflow:hidden;margin:0 -20px 16px;padding:20px 20px 26px;border-radius:0 0 28px 28px">
     <span class="lv-ghost-numeral" style="right:-14px;top:38px">Φ</span>
     <div style="position:relative;z-index:1;text-align:center">
@@ -6380,7 +6380,7 @@ body[data-goal-theme="cut"] .lv-page{
 
 <!-- LEGAL -->
 <div class="page lv-page" id="page-legal">
-  <div style="height:var(--safe-top,0px);background:var(--lv-bg);margin:0 -20px"></div>
+  <div style="height:max(var(--safe-top,0px),env(safe-area-inset-top,0px));background:var(--lv-bg);margin:0 -20px"></div>
   <div class="lv-topbar" style="margin:0 -20px 16px">
     <span style="display:flex;align-items:center;gap:8px">
       <svg width="18" height="18" viewBox="0 0 48 48" fill="none" stroke="var(--lv-gold)" aria-hidden="true"><path d="M24 5 26.6 21.4 43 24 26.6 26.6 24 43 21.4 26.6 5 24 21.4 21.4Z" fill="var(--lv-gold)" stroke="none" opacity=".95"/><path d="M24 12v24M12 24h24" stroke-width=".6" opacity=".5"/><circle cx="24" cy="24" r="11" stroke-width=".7" opacity=".45"/></svg>
@@ -6481,7 +6481,7 @@ body[data-goal-theme="cut"] .lv-page{
 
 <!-- SETTINGS -->
 <div class="page lv-page" id="page-settings">
-  <div style="height:var(--safe-top,0px);background:var(--lv-bg);margin:0 -20px"></div>
+  <div style="height:max(var(--safe-top,0px),env(safe-area-inset-top,0px));background:var(--lv-bg);margin:0 -20px"></div>
   <div class="lv-topbar" style="margin:0 -20px 16px">
     <span style="display:flex;align-items:center;gap:8px">
       <svg width="18" height="18" viewBox="0 0 48 48" fill="none" stroke="var(--lv-gold)" aria-hidden="true"><path d="M24 5 26.6 21.4 43 24 26.6 26.6 24 43 21.4 26.6 5 24 21.4 21.4Z" fill="var(--lv-gold)" stroke="none" opacity=".95"/><path d="M24 12v24M12 24h24" stroke-width=".6" opacity=".5"/><circle cx="24" cy="24" r="11" stroke-width=".7" opacity=".45"/></svg>
@@ -6599,7 +6599,7 @@ body[data-goal-theme="cut"] .lv-page{
      FAQ layer for now, with a clear escalation to a real human the
      moment it can't help, rather than pretending to be a full AI. -->
 <div class="page lv-page" id="page-aicoach">
-  <div style="height:var(--safe-top,0px);background:var(--lv-bg);margin:0 -20px"></div>
+  <div style="height:max(var(--safe-top,0px),env(safe-area-inset-top,0px));background:var(--lv-bg);margin:0 -20px"></div>
   <div class="lv-topbar" style="margin:0 -20px 16px">
     <span style="display:flex;align-items:center;gap:8px">
       <div style="flex-shrink:0;width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--lv-ember1),var(--lv-ember2));display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px -2px rgba(var(--lv-primary-rgb),.65)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="3" r="1.3" fill="#fff"/><line x1="12" y1="4.3" x2="12" y2="7" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/><circle cx="12" cy="14" r="7" stroke="#fff" stroke-width="1.6"/><circle cx="9.3" cy="14" r="1.15" fill="#fff"/><circle cx="14.7" cy="14" r="1.15" fill="#fff"/><path d="M9 17.2c1.2.9 3.8.9 5 0" stroke="#fff" stroke-width="1.4" stroke-linecap="round"/></svg></div>
@@ -6637,7 +6637,7 @@ body[data-goal-theme="cut"] .lv-page{
      a card. Free-tier limits shown are the current design's proposal,
      not something enforced elsewhere in the app yet. -->
 <div class="page lv-page" id="page-subscription">
-  <div style="height:var(--safe-top,0px);background:var(--lv-bg);margin:0 -20px"></div>
+  <div style="height:max(var(--safe-top,0px),env(safe-area-inset-top,0px));background:var(--lv-bg);margin:0 -20px"></div>
   <div class="lv-topbar" style="margin:0 -20px 16px">
     <span style="display:flex;align-items:center;gap:8px">
       <svg width="18" height="18" viewBox="0 0 48 48" fill="none" stroke="var(--lv-gold)" aria-hidden="true"><path d="M24 5 26.6 21.4 43 24 26.6 26.6 24 43 21.4 26.6 5 24 21.4 21.4Z" fill="var(--lv-gold)" stroke="none" opacity=".95"/><path d="M24 12v24M12 24h24" stroke-width=".6" opacity=".5"/><circle cx="24" cy="24" r="11" stroke-width=".7" opacity=".45"/></svg>
