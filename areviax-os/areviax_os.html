@@ -2217,9 +2217,29 @@ input[type=checkbox]{accent-color:var(--orange);width:15px;height:15px;cursor:po
           <div class="card">
             <div class="card-header"><span class="card-title">🌅 Morning Pages</span></div>
             <div style="font-size:12px;color:var(--muted);line-height:1.6;margin-bottom:14px">
-              Ten prompts to get everything out of your head before the day starts — fill them in here, or print a blank sheet and write it out by hand with coffee in hand.
+              Prompts to get everything out of your head before the day starts — fill them in here, or print a blank sheet and write it out by hand with coffee in hand.
             </div>
             <button class="btn btn-secondary btn-sm" onclick="printMorningSheet()">🖨️ Print blank sheet</button>
+          </div>
+          <!-- TEMPLATE PICKER — a few real starting points (default
+               reflection, business/project ideas, processing stress,
+               setting the day's intent) plus a fully custom one someone
+               builds themselves. Picking a template just changes which
+               prompt set renderMorningSheetForm() reads from; past
+               entries stay keyed to whatever prompts were active the day
+               they were written, so switching templates never rewrites
+               history. -->
+          <div class="card">
+            <div class="card-header"><span class="card-title">Today's prompts</span></div>
+            <div id="morning-template-picker" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px"></div>
+            <div id="morning-custom-editor" style="display:none;margin-top:4px">
+              <div style="font-size:11.5px;color:var(--muted);line-height:1.5;margin-bottom:10px">Build your own — add whatever questions you actually want to sit with each morning. Saved on this device, edit any time.</div>
+              <div id="morning-custom-list" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px"></div>
+              <div style="display:flex;gap:8px">
+                <input type="text" id="morning-custom-new" placeholder="Add a question…" style="flex:1" onkeydown="if(event.key==='Enter'){event.preventDefault();addCustomMorningPrompt();}">
+                <button class="btn btn-secondary btn-sm" onclick="addCustomMorningPrompt()">Add</button>
+              </div>
+            </div>
           </div>
           <div class="card">
             <div id="morning-sheet-fields" style="display:flex;flex-direction:column;gap:16px"></div>
@@ -2631,6 +2651,8 @@ let pomoSessionsTotal = saved.pomoSessionsTotal ?? 0;
 let habits = saved.habits || [];
 let journalEntries = saved.journalEntries || [];
 let morningEntries = saved.morningEntries || [];
+let activeMorningTemplateId = saved.activeMorningTemplateId || 'default';
+let customMorningPrompts = saved.customMorningPrompts || [];
 let selectedMood = null;
 let dailyLog = saved.dailyLog || []; // [{date, tasksDone, tasksTotal, xpEarned}]
 let tasksDone = saved.tasksDone ?? 0;
@@ -2674,7 +2696,7 @@ const levels = [
 function saveState(){
   localStorage.setItem(SK, JSON.stringify({
     xp, shards, bestStreak, lastVisitDate, compassDates, habits, pomoSessionsTotal,
-    journalEntries, morningEntries, dailyLog, tasksDone, tasksTotal, xpAtDayStart, goals,
+    journalEntries, morningEntries, activeMorningTemplateId, customMorningPrompts, dailyLog, tasksDone, tasksTotal, xpAtDayStart, goals,
     streakFreezes, usedFreezeDates, milestonesHit, workoutHistory, studyBlocks, scheduleEvents,
     reminderSettings, reminderLastFired, customReminders, reminderAcknowledged, styxArchive,
     doneListLog, doneListHourlyEnabled, doneListLastFiredHour,
@@ -6092,31 +6114,126 @@ function renderJournal(){
 // here or printed and filled by hand. Kept as its own data array/prompt
 // list rather than reusing journalEntries, since it's a distinct habit
 // (wake-up brain dump vs. end-of-day review) with its own multi-field shape.
-const MORNING_PROMPTS = [
-  {id:'dump', text:"Brain dump — what's floating around in your head right now? Get it all out, it doesn't need to make sense.", lines:5},
-  {id:'ontoday', text:"What's the first thing on your mind when you think about today?", lines:2},
-  {id:'weighing', text:"What's weighing on you that you can put down for now?", lines:2},
-  {id:'grateful', text:"Three things you're grateful for this morning.", lines:3},
-  {id:'win', text:"What's the ONE thing that would make today feel like a win?", lines:2},
-  {id:'body', text:"How does your body feel right now — any tension, energy, tiredness?", lines:2},
-  {id:'forward', text:"What are you looking forward to today?", lines:2},
-  {id:'letgo', text:"What's a worry you can let go of, at least for the next hour?", lines:2},
-  {id:'choose', text:"Complete the sentence: today, I choose to…", lines:2},
-  {id:'feel', text:"One word for how you want to feel by the end of today.", lines:1},
+// MORNING TEMPLATES — a few real starting points instead of one fixed
+// list everyone gets whether it fits them or not, plus a fully custom
+// one. Each prompt keeps a stable id so saved answers stay attached to
+// the right question even as templates get added to later; switching
+// which template is active never touches past entries (see
+// getActiveMorningPrompts()/saveMorningEntry() — answers are keyed by
+// prompt id, and old entries simply don't render fields for prompts
+// that weren't part of whatever template was active that day).
+const MORNING_TEMPLATES = [
+  {id:'default', name:'Reflect & Ground', desc:"The original ten — brain dump, gratitude, what's weighing on you, how you want today to feel.", prompts:[
+    {id:'dump', text:"Brain dump — what's floating around in your head right now? Get it all out, it doesn't need to make sense.", lines:5},
+    {id:'ontoday', text:"What's the first thing on your mind when you think about today?", lines:2},
+    {id:'weighing', text:"What's weighing on you that you can put down for now?", lines:2},
+    {id:'grateful', text:"Three things you're grateful for this morning.", lines:3},
+    {id:'win', text:"What's the ONE thing that would make today feel like a win?", lines:2},
+    {id:'body', text:"How does your body feel right now — any tension, energy, tiredness?", lines:2},
+    {id:'forward', text:"What are you looking forward to today?", lines:2},
+    {id:'letgo', text:"What's a worry you can let go of, at least for the next hour?", lines:2},
+    {id:'choose', text:"Complete the sentence: today, I choose to…", lines:2},
+    {id:'feel', text:"One word for how you want to feel by the end of today.", lines:1},
+  ]},
+  {id:'ideas', name:'Idea Dump', desc:"For getting a backlog of ideas out of your head — business, project, creative, whatever. Quantity over quality, on purpose.", prompts:[
+    {id:'ten', text:"Ten ideas — business, project, whatever's on your mind. Write ten, fast, no filter. They do not have to be good. Most won't be, and that's the point — the point is emptying the tank, not judging what comes out.", lines:10},
+    {id:'curious', text:"Which one, even slightly, are you curious enough to poke at today?", lines:2},
+    {id:'kill', text:"Which one can you just cross off and forget? (Saying no to an idea is progress too.)", lines:2},
+  ]},
+  {id:'stress', name:'Process Stress', desc:"For mornings where something's sitting heavy before the day's even started.", prompts:[
+    {id:'first', text:"What's the first stressful thought that shows up when you think about today?", lines:2},
+    {id:'control', text:"Is there anything you can actually do about it right now — or does it just need to be named and put down for a bit?", lines:3},
+    {id:'incontrol', text:"What's one thing that's fully within your control today?", lines:2},
+    {id:'enough', text:"What would 'good enough' look like today, instead of 'perfect'?", lines:2},
+  ]},
+  {id:'intent', name:'Set Your Day', desc:"For setting a clear intention before it gets away from you.", prompts:[
+    {id:'want', text:"What do you actually want to get out of today?", lines:2},
+    {id:'win2', text:"What's the ONE thing that would make today feel like a win?", lines:2},
+    {id:'next', text:"What's one small thing you can do in the next hour that moves you forward?", lines:2},
+    {id:'feel2', text:"How do you want to feel by the end of today?", lines:1},
+  ]},
+  {id:'custom', name:'Design Your Own', desc:"Build your own set of questions below — whatever you actually want to sit with each morning.", prompts:null}, // prompts pulled live from customMorningPrompts
 ];
+function getActiveMorningTemplate(){
+  return MORNING_TEMPLATES.find(t=>t.id===activeMorningTemplateId) || MORNING_TEMPLATES[0];
+}
+function getActiveMorningPrompts(){
+  const t = getActiveMorningTemplate();
+  if(t.id==='custom'){
+    return customMorningPrompts.map((text,i)=>({id:'custom_'+i, text, lines:3}));
+  }
+  return t.prompts;
+}
+function renderMorningTemplatePicker(){
+  const wrap = document.getElementById('morning-template-picker');
+  if(!wrap) return;
+  wrap.innerHTML = MORNING_TEMPLATES.map(t=>`
+    <div class="settings-row" style="cursor:pointer;padding:10px 12px;border-radius:8px;background:${t.id===activeMorningTemplateId?'rgba(255,90,0,.08)':'transparent'};border:1.5px solid ${t.id===activeMorningTemplateId?'rgba(255,90,0,.35)':'var(--border-soft,rgba(255,255,255,.07))'}" onclick="setActiveMorningTemplate('${t.id}')">
+      <div>
+        <div class="settings-label" style="font-size:12.5px;color:${t.id===activeMorningTemplateId?'var(--orange)':'var(--white)'}">${t.name}</div>
+        <div class="settings-desc" style="font-size:11px;margin-top:2px">${t.desc}</div>
+      </div>
+      ${t.id===activeMorningTemplateId?'<span style="color:var(--orange);font-size:16px">✓</span>':''}
+    </div>`).join('');
+  const customEditor = document.getElementById('morning-custom-editor');
+  if(customEditor) customEditor.style.display = activeMorningTemplateId==='custom' ? 'block' : 'none';
+  if(activeMorningTemplateId==='custom') renderCustomMorningList();
+}
+function setActiveMorningTemplate(id){
+  activeMorningTemplateId = id;
+  saveState();
+  renderMorningTemplatePicker();
+  renderMorningSheetForm();
+}
+function renderCustomMorningList(){
+  const list = document.getElementById('morning-custom-list');
+  if(!list) return;
+  if(!customMorningPrompts.length){
+    list.innerHTML = '<div style="font-size:11.5px;color:var(--muted)">No questions yet — add your first one below.</div>';
+    return;
+  }
+  list.innerHTML = customMorningPrompts.map((text,i)=>`
+    <div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:rgba(255,255,255,.03);border:1.5px solid var(--border-soft,rgba(255,255,255,.07));border-radius:8px">
+      <span style="flex:1;font-size:12px;color:var(--white)">${text.replace(/</g,'&lt;')}</span>
+      <span onclick="removeCustomMorningPrompt(${i})" style="cursor:pointer;color:var(--muted);font-size:14px;padding:0 2px">✕</span>
+    </div>`).join('');
+}
+function addCustomMorningPrompt(){
+  const input = document.getElementById('morning-custom-new');
+  const text = (input?.value||'').trim();
+  if(!text) return;
+  customMorningPrompts.push(text);
+  input.value = '';
+  saveState();
+  renderCustomMorningList();
+  if(activeMorningTemplateId==='custom') renderMorningSheetForm();
+}
+function removeCustomMorningPrompt(i){
+  customMorningPrompts.splice(i,1);
+  saveState();
+  renderCustomMorningList();
+  if(activeMorningTemplateId==='custom') renderMorningSheetForm();
+}
 function renderMorningSheetForm(){
   const wrap = document.getElementById('morning-sheet-fields');
   if(!wrap) return;
-  wrap.innerHTML = MORNING_PROMPTS.map((p,i)=>`
+  renderMorningTemplatePicker();
+  const prompts = getActiveMorningPrompts();
+  if(!prompts.length){
+    wrap.innerHTML = '<div style="font-size:12px;color:var(--muted);text-align:center;padding:12px 0">Add a question above to build your own sheet.</div>';
+    return;
+  }
+  wrap.innerHTML = prompts.map((p,i)=>`
     <div>
       <label style="font-size:12px;color:var(--white);display:block;margin-bottom:6px;line-height:1.4"><span style="color:var(--orange);font-weight:700">${i+1}.</span> ${p.text}</label>
       <textarea id="morning-${p.id}" rows="${p.lines}" style="min-height:${p.lines*24}px"></textarea>
     </div>`).join('');
 }
 function saveMorningEntry(){
+  const prompts = getActiveMorningPrompts();
   const answers = {};
   let hasText = false;
-  MORNING_PROMPTS.forEach(p=>{
+  prompts.forEach(p=>{
     const val = (document.getElementById('morning-'+p.id)?.value||'').trim();
     if(val) hasText = true;
     answers[p.id] = val;
@@ -6129,8 +6246,9 @@ function saveMorningEntry(){
   const existing = morningEntries.find(e=>e.date===today);
   if(existing){
     existing.answers = answers;
+    existing.templateId = activeMorningTemplateId;
   } else {
-    morningEntries.unshift({date: today, answers});
+    morningEntries.unshift({date: today, answers, templateId: activeMorningTemplateId});
     addXP(8,'Morning Pages');
   }
   renderMorningEntries();
@@ -6161,7 +6279,7 @@ function printMorningSheet(){
   const now = new Date();
   const todayLabel = now.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
   const stamp = now.toLocaleDateString('en-GB',{day:'2-digit',month:'2-digit',year:'2-digit'}).replace(/\//g,'.');
-  const rows = MORNING_PROMPTS.map((p,i)=>{
+  const rows = getActiveMorningPrompts().map((p,i)=>{
     const val = (document.getElementById('morning-'+p.id)?.value||'').replace(/</g,'&lt;');
     const lineHeight = 28;
     const minHeight = p.lines*lineHeight;
