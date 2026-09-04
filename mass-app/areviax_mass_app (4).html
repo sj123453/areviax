@@ -3601,7 +3601,7 @@ body[data-goal-theme="cut"] .lv-page{
       <span class="sb-brand-text">AREVIAX MASS</span>
     </div>
     <div class="sb-item active" onclick="showPage('dashboard')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><span class="sb-label">Dashboard</span></div>
-    <div class="sb-item" onclick="showPage('workout')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4v6a6 6 0 0012 0V4M6 20h12M4 4h2M18 4h2M4 20h2M18 20h2"/></svg><span class="sb-label">Workout Builder</span></div>
+    <div class="sb-item" onclick="showPage('workout')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20h7"/><path d="M6.5 20v-2.5a2 2 0 0 1 2-2H12"/><path d="M11 12.5 17.5 6"/><path d="M15 4l4.5 4.5"/><path d="M13.5 6.5l3.5 3.5"/></svg><span class="sb-label">The Forge</span></div>
     <div class="sb-item" onclick="showPage('session')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polygon points="5,3 19,12 5,21 5,3"/></svg><span class="sb-label">Today's Session</span></div>
     <div class="sb-item" onclick="showPage('nutrition')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/></svg><span class="sb-label">Nutrition</span></div>
     <div class="sb-item" onclick="showPage('progress')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg><span class="sb-label">Progress</span></div>
@@ -11944,7 +11944,7 @@ function showPage(id){
   if(pg)pg.classList.add('active');
   document.querySelectorAll('.sb-item').forEach(i=>{if(i.getAttribute('onclick')?.includes(id))i.classList.add('active')});
   try{
-    const titles={dashboard:'Home',workout:'Workout',session:'Session',nutrition:'Nutrition',recipes:'Recipes',progress:'Progress',trophycabinet:'Trophy Cabinet',labors:'The 12 Labors',xproad:'XP Road',trophyroad:'Road to Olympus',weightroad:'Weight Road',recovery:'Recovery',schedule:'Schedule',leaderboard:'Leaderboard',leagues:'Leagues',learn:'Science',profile:'Profile',legal:'Legal',settings:'Settings',aicoach:'Ask Areviax',subscription:'Go Premium'};
+    const titles={dashboard:'Home',workout:'The Forge',session:'Session',nutrition:'Nutrition',recipes:'Recipes',progress:'Progress',trophycabinet:'Trophy Cabinet',labors:'The 12 Labors',xproad:'XP Road',trophyroad:'Road to Olympus',weightroad:'Weight Road',recovery:'Recovery',schedule:'Schedule',leaderboard:'Leaderboard',leagues:'Leagues',learn:'Science',profile:'Profile',legal:'Legal',settings:'Settings',aicoach:'Ask Areviax',subscription:'Go Premium'};
     const t=titles[id]||id;
     const tte=document.getElementById('tb-title');
     if(tte){tte.textContent=t;tte.classList.toggle('tb-title-sm',id==='trophycabinet');}
@@ -16801,7 +16801,7 @@ const AI_COACH_KB=[
   {q:'What are Compass Drops?',kw:['compass drop','crate','drop','bronze drop','areviax drop'],
    a:'Compass Drops are the collectible-card crates (Bronze through the Areviax Drop) — check the Compass Drops section on your Progress page for how each tier is earned and its exact odds via the ⓘ on each crate.'},
   {q:'Why is my workout missing a muscle group?',kw:['muscle','missing','back','chest','not included','balance'],
-   a:"The auto-generator spreads exercises across every major muscle group it can fit, prioritizing your rarest muscle groups first — but a very short session length (or Reduced Sets) genuinely can't fit everything every time. Swap any exercise via the Swap button, or add more time/exercises in Workout Builder if a specific muscle keeps getting squeezed out."},
+   a:"The auto-generator spreads exercises across every major muscle group it can fit, prioritizing your rarest muscle groups first — but a very short session length (or Reduced Sets) genuinely can't fit everything every time. Swap any exercise via the Swap button, or add more time/exercises in The Forge if a specific muscle keeps getting squeezed out."},
   {q:'What\'s a good rep range for muscle growth?',kw:['rep range','reps','hypertrophy','how many reps'],
    a:"Roughly 6–15 reps per set, taken close to failure, is the sweet spot for most hypertrophy work — the exact number matters less than training hard and progressively adding weight or reps over time. This app's auto-generated sessions already default into that range per exercise."},
   {q:'How does the XP Road work?',kw:['xp road','xp','checkpoint','level up'],
@@ -16827,7 +16827,7 @@ const AI_COACH_KB=[
   {q:'What are warm-up sets for?',kw:['warm up','warmup','warm-up set','warmup sets'],
    a:"Warm-up sets are the lighter, ramping-weight sets the app suggests before your first working set of an exercise, scaled off your last logged working weight — they're there to prep the joints and groove the movement, not to count toward your working volume, so they don't need to be taken close to failure."},
   {q:'What does Reduced Sets mode do?',kw:['reduced sets','fewer sets','less time workout','shorter workout'],
-   a:"Reduced Sets trades sets-per-exercise for more exercise variety when you're short on time — it caps most exercises to 2 sets instead of skipping muscle groups entirely, so a tight session still touches everything your plan intended. Toggle it from Workout Builder or the Session screen."},
+   a:"Reduced Sets trades sets-per-exercise for more exercise variety when you're short on time — it caps most exercises to 2 sets instead of skipping muscle groups entirely, so a tight session still touches everything your plan intended. Toggle it from The Forge or the Session screen."},
   {q:'How do I swap an exercise?',kw:['swap exercise','swap','change exercise','replace exercise','different exercise'],
    a:'Tap the Swap button on any exercise card in your session or plan — it offers alternatives that target the same muscle group with equipment you actually have, so swapping never leaves a gap in your training.'},
   {q:'How do portions work in Smart Log?',kw:['smart log portion','1 whole','one whole','one half','portion size','how much is a serving','smart log amount'],
@@ -16883,7 +16883,7 @@ const AI_COACH_KB=[
   {q:'How do I change my goal?',kw:['change my goal','switch goal','change goal'],
    a:'Go to Settings, change the Goal dropdown (Bulk/Lean/Maintain), and tap Save Changes — your calorie and macro targets recalculate immediately from your existing stats.'},
   {q:'Can I build my own workout instead of the auto-generated one?',kw:['custom workout','build my own workout','own workout','make my own plan'],
-   a:"Yes — Workout Builder lets you save a fully custom exercise list under its own name, separate from the auto-generated plan. Once saved, you can start it from Session just like any generated day."},
+   a:"Yes — The Forge lets you save a fully custom exercise list under its own name, separate from the auto-generated plan. Once saved, you can start it from Session just like any generated day."},
   {q:'How many training days should I pick?',kw:['how many training days','how many days a week','training days per week'],
    a:"Whatever you can actually sustain most weeks — 3-4 days works well for most people balancing recovery and consistency, more if you're experienced and recover well. You can change your Training Days number in Settings any time; your weekly plan and Lift Rank targets adjust to match."},
   {q:'What if I miss a planned session?',kw:['missed a session','skip a session','miss a workout day','miss a session','planned session'],
@@ -21569,8 +21569,8 @@ document.addEventListener('DOMContentLoaded', function(){
       Home
     </button>
     <button class="mn-btn" id="mn-workout" onclick="showPage('workout')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M6 4v6a6 6 0 0012 0V4M6 20h12M4 4h2M18 4h2M4 20h2M18 20h2"/></svg>
-      Build
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20h7"/><path d="M6.5 20v-2.5a2 2 0 0 1 2-2H12"/><path d="M11 12.5 17.5 6"/><path d="M15 4l4.5 4.5"/><path d="M13.5 6.5l3.5 3.5"/></svg>
+      Forge
     </button>
     <button class="mn-btn mn-primary" id="mn-session" onclick="showPage('session')">
       <div class="mn-icon-wrap">
