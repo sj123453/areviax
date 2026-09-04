@@ -3156,7 +3156,14 @@ body[data-goal-theme="cut"] .lv-page{
 .lv-hairline-grid{border:1px solid var(--lv-border);border-radius:1.75rem;overflow:hidden;display:grid;grid-template-columns:repeat(3,1fr);background:rgba(30,22,19,.6)}
 .lv-hairline-grid>*{border-right:1px solid var(--lv-border)}
 .lv-hairline-grid>*:last-child{border-right:0}
-.lv-ghost-numeral{font-family:var(--lv-display);font-size:14rem;line-height:.7;color:transparent;-webkit-text-stroke:1px var(--lv-border);opacity:.5;pointer-events:none;user-select:none;position:absolute}
+/* Cinzel, not var(--lv-display)/Bebas Neue — Bebas Neue is Latin-only
+   with no Greek glyph coverage, so a Greek letter here (most of them —
+   real headline text never hits this, only the decorative numeral)
+   silently fell back to whatever Greek-supporting font the browser
+   picked, which didn't match Bebas Neue's stroke style at this size and
+   rendered as a visibly wrong/boxy glyph. Cinzel is loaded already and
+   has real Greek coverage designed to match its Latin forms. */
+.lv-ghost-numeral{font-family:'Cinzel',serif;font-size:14rem;line-height:.7;color:transparent;-webkit-text-stroke:1px var(--lv-border);opacity:.5;pointer-events:none;user-select:none;position:absolute}
 @keyframes lvRise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
 .lv-rise{animation:lvRise .6s cubic-bezier(.22,1,.36,1) both}
 @keyframes lvPulseDot{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(var(--lv-primary-rgb),.6)}50%{opacity:.6;box-shadow:0 0 0 5px rgba(var(--lv-primary-rgb),0)}}
@@ -3719,7 +3726,7 @@ body[data-goal-theme="cut"] .lv-page{
 
       <p class="lv-label-eyebrow lv-pulse-dot" style="margin-top:22px;color:var(--lv-fg);opacity:.7" id="dash-eyebrow-text">Session</p>
 
-      <h1 style="margin-top:6px;color:var(--lv-fg);font-family:'Cinzel',serif;font-weight:700;font-size:clamp(2.6rem,11vw,3.4rem);line-height:1.05;letter-spacing:-.01em" id="dash-greeting-headline">Good morning</h1>
+      <h1 style="margin-top:6px;color:var(--lv-fg);font-family:'Bebas Neue',sans-serif;font-weight:400;font-size:clamp(2.6rem,14vw,4rem);line-height:.9;letter-spacing:.01em;text-transform:uppercase"><span id="dash-greeting-word1">Good</span><br><span class="lv-serif-accent lv-gold-text" id="dash-greeting-word2" style="font-size:.8em">morning</span></h1>
       <div style="margin-top:6px;font-family:var(--lv-sans);font-size:15px;font-weight:800;color:var(--lv-fg)">
         <span id="d-next-word1">Push</span> <span class="lv-serif-accent lv-gold-text" id="d-next-word2">upper</span>
       </div>
@@ -4779,12 +4786,13 @@ body[data-goal-theme="cut"] .lv-page{
       <p class="lv-label-eyebrow" style="color:var(--lv-primary)">Total volume · <span id="prog-hero-range-label">12W</span></p>
       <h1 class="lv-display-hero" style="margin-top:8px;color:var(--lv-fg)"><span id="prog-hero-num">0</span><span class="lv-serif-accent lv-gold-text" style="font-size:.7em">t</span></h1>
       <div style="margin-top:10px;display:flex;align-items:center;gap:10px;font-family:var(--lv-mono);font-size:11px;color:var(--lv-muted-fg)" id="prog-hero-trend">Log a session to start tracking volume.</div>
+      <div class="lv-rail-track" style="margin-top:12px;height:6px"><div class="lv-rail-fill" id="prog-hero-fill" style="width:0%;background:var(--lv-primary)"></div></div>
       <div style="display:flex;gap:8px;margin-top:18px" id="prog-hero-range-pills">
         <div class="prog-range-pill" data-weeks="4" onclick="setProgressRange(4)" style="flex:1;text-align:center;padding:9px;border-radius:.75rem;border:1.5px solid var(--lv-border);font-family:var(--lv-sans);font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--lv-muted-fg);cursor:pointer">4W</div>
         <div class="prog-range-pill active" data-weeks="12" onclick="setProgressRange(12)" style="flex:1;text-align:center;padding:9px;border-radius:.75rem;border:1.5px solid var(--lv-primary);background:rgba(var(--lv-primary-rgb),.2);font-family:var(--lv-sans);font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--lv-primary);cursor:pointer">12W</div>
         <div class="prog-range-pill" data-weeks="52" onclick="setProgressRange(52)" style="flex:1;text-align:center;padding:9px;border-radius:.75rem;border:1.5px solid var(--lv-border);font-family:var(--lv-sans);font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--lv-muted-fg);cursor:pointer">1Y</div>
       </div>
-      <div class="lv-meander" style="margin-top:18px"></div>
+      <div class="lv-meander-bold" style="margin-top:18px"></div>
     </div>
   </header>
 
@@ -12261,6 +12269,7 @@ function renderProgressHero(){
   const wmEl=document.getElementById('prog-hero-watermark');
   const rangeLabelEl=document.getElementById('prog-hero-range-label');
   const trendEl=document.getElementById('prog-hero-trend');
+  const fillEl=document.getElementById('prog-hero-fill');
   if(!numEl)return;
   const rangeLabel=progressRangeWeeks===4?'4W':progressRangeWeeks===12?'12W':'1Y';
   if(rangeLabelEl)rangeLabelEl.textContent=rangeLabel;
@@ -12268,6 +12277,7 @@ function renderProgressHero(){
   if(!tonnageLog.length){
     numEl.textContent='0';
     if(trendEl)trendEl.textContent='Log a session to start tracking volume.';
+    if(fillEl)fillEl.style.width='0%';
     return;
   }
   const weeks=weeklyTonnageBuckets(progressRangeWeeks);
@@ -12283,6 +12293,14 @@ function renderProgressHero(){
   const sessionsInRange=trainingCompletedDates.filter(d=>parseLocalDate(d)>=weeks[0].start).length;
   const sessLine=sessionsInRange+' session'+(sessionsInRange===1?'':'s')+' logged';
   if(trendEl)trendEl.textContent=trendStr?trendStr+' · '+sessLine:sessLine;
+  // Rail — this range's current week vs. its own best week in the same
+  // range, real tonnage data. Gives the hero a genuine full-width visual
+  // element instead of the number sitting alone against empty space.
+  if(fillEl){
+    const bestWeek=Math.max(...weeks.map(w=>w.total),1);
+    const pct=Math.min(100,Math.round(lastWeek.total/bestWeek*100));
+    fillEl.style.width=pct+'%';
+  }
 }
 function renderProgressTonnage(){
   const card=document.getElementById('prog-tonnage-card');
@@ -12977,13 +12995,21 @@ function syncLvBadges(){
 }
 function renderDashHeroLovable(){
   syncLvBadges();
-  const greetEl=document.getElementById('dash-greeting-headline');
-  if(greetEl){
+  const greetW1=document.getElementById('dash-greeting-word1');
+  const greetW2=document.getElementById('dash-greeting-word2');
+  if(greetW1&&greetW2){
     // Name left out of the giant display-size headline on purpose — at
-    // clamp(3.75rem,22vw,6rem) uppercase, "Good evening, Alexandria" wraps
-    // to three lines on real names. Keeps it to the greeting word alone.
+    // this clamp size uppercase, "Good evening, Alexandria" wraps to
+    // three lines on real names. Keeps it to the greeting word alone.
+    // Split into two spans (bold word + italic gold word) to match the
+    // same two-line Bebas Neue + Cormorant-italic-gold treatment every
+    // other ported hero (Workout, Nutrition, Recovery, Session…) uses —
+    // this used to be a single Cinzel line, the one hero that predated
+    // that pattern and never got updated to match it.
     const h=new Date().getHours();
-    greetEl.textContent=h<5?'Good night':h<12?'Good morning':h<18?'Good afternoon':'Good evening';
+    const [w1,w2]=h<5?['Good','night']:h<12?['Good','morning']:h<18?['Good','afternoon']:['Good','evening'];
+    greetW1.textContent=w1;
+    greetW2.textContent=w2;
   }
   const eyebrowEl=document.getElementById('dash-eyebrow-text');
   if(eyebrowEl){
