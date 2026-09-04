@@ -727,7 +727,15 @@ body{background:linear-gradient(160deg,#0B0B0B 0%,#0B0B0B 100%) fixed;background
 /* ── SCHEDULE — real weekly time-grid calendar, not a flat list ── */
 .cal-wrap{display:flex;flex-direction:column;gap:0;width:100%;min-width:0}
 .cal-header-row{display:grid;grid-template-columns:52px repeat(7,minmax(64px,1fr));gap:0;margin-bottom:2px;width:max-content;min-width:100%}
-.cal-header-gutter{}
+/* Sticky LEFT gutter — the hour-of-day column stayed put on the vertical
+   axis (.cal-header-row/.cal-untimed-row already had position:sticky;
+   top) but had nothing pinning it horizontally, so scrolling right to
+   see later days scrolled the times away with everything else — you'd
+   lose track of which hour row you were even looking at. Mirrors the
+   same sticky pattern on the other axis. */
+.cal-header-gutter{position:sticky;left:0;z-index:4;background:var(--panel-solid,#161616)}
+.cal-untimed-gutter{position:sticky;left:0;z-index:3;background:var(--panel-solid,#161616)}
+.cal-hour-gutter{position:sticky;left:0;z-index:1}
 .cal-header-day{
   text-align:center;padding:8px 4px 10px;font-size:11px;font-weight:800;
   letter-spacing:.08em;text-transform:uppercase;color:var(--muted);
@@ -3746,7 +3754,7 @@ function renderScheduleWeek(){
   ).join('');
 
   // ── Untimed strip — events/study blocks with no time go here as chips ──
-  const untimedHTML = `<div></div>` + SCHED_DAY_NAMES.map((name,i)=>{
+  const untimedHTML = `<div class="cal-untimed-gutter"></div>` + SCHED_DAY_NAMES.map((name,i)=>{
     const untimedCustom = scheduleEvents.filter(e=>(e.daily||e.dayIdx===i) && !e.time && (e.recurring || e.weekOf===getWeekMonday()))
       .map(e=>{
         const detailIdx = scheduleEventDetailData.length;
@@ -3806,7 +3814,7 @@ function renderScheduleWeek(){
       <div class="cal-header-row" style="position:sticky;top:0;z-index:3;background:var(--panel-solid,#161616)">${headerHTML}</div>
       <div class="cal-untimed-row" style="position:sticky;top:34px;z-index:2;background:var(--panel-solid,#161616)">${untimedHTML}</div>
       <div class="cal-grid">
-        <div>${hourLabelsHTML}</div>
+        <div class="cal-hour-gutter">${hourLabelsHTML}</div>
         ${dayColsHTML}
       </div>
     </div>
