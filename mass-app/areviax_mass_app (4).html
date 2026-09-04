@@ -3351,9 +3351,10 @@ body[data-goal-theme="cut"] .lv-page{
           <div id="height-unit-toggle" style="display:flex;gap:4px"><button type="button" class="equip-chip active" data-u="cm" onclick="setHeightUnit('cm')" style="padding:3px 10px;font-size:10px">cm</button><button type="button" class="equip-chip" data-u="ftin" onclick="setHeightUnit('ftin')" style="padding:3px 10px;font-size:10px">ft/in</button></div>
         </div>
         <div id="ob-height-cm-wrap"><input type="number" id="ob-height" placeholder="e.g. 178"></div>
-        <div id="ob-height-ftin-wrap" style="display:none;gap:8px">
-          <div style="flex:1"><input type="number" id="ob-height-ft" placeholder="ft" min="3" max="8"></div>
-          <div style="flex:1"><input type="number" id="ob-height-in" placeholder="in" min="0" max="11"></div>
+        <div id="ob-height-ftin-wrap" style="display:none">
+          <input type="number" id="ob-height-ftin">
+          <input type="hidden" id="ob-height-ft" value="5">
+          <input type="hidden" id="ob-height-in" value="7">
         </div>
       </div>
 
@@ -6498,9 +6499,10 @@ body[data-goal-theme="cut"] .lv-page{
       <div><div style="display:flex;align-items:center;justify-content:space-between"><label class="lbl" style="margin:0">Weight</label><div id="set-weight-unit-toggle" style="display:flex;gap:4px"><button type="button" class="equip-chip active" data-u="lbs" onclick="setWeightUnit('lbs',true)" style="padding:3px 10px;font-size:10px">lbs</button><button type="button" class="equip-chip" data-u="kg" onclick="setWeightUnit('kg',true)" style="padding:3px 10px;font-size:10px">kg</button></div></div><input type="number" id="set-weight"></div>
       <div><div style="display:flex;align-items:center;justify-content:space-between"><label class="lbl" style="margin:0">Height</label><div id="set-height-unit-toggle" style="display:flex;gap:4px"><button type="button" class="equip-chip active" data-u="cm" onclick="setHeightUnit('cm',true)" style="padding:3px 10px;font-size:10px">cm</button><button type="button" class="equip-chip" data-u="ftin" onclick="setHeightUnit('ftin',true)" style="padding:3px 10px;font-size:10px">ft/in</button></div></div>
         <div id="set-height-cm-wrap"><input type="number" id="set-height"></div>
-        <div id="set-height-ftin-wrap" style="display:none;gap:8px">
-          <div style="flex:1"><input type="number" id="set-height-ft" placeholder="ft" min="3" max="8"></div>
-          <div style="flex:1"><input type="number" id="set-height-in" placeholder="in" min="0" max="11"></div>
+        <div id="set-height-ftin-wrap" style="display:none">
+          <input type="number" id="set-height-ftin">
+          <input type="hidden" id="set-height-ft" value="5">
+          <input type="hidden" id="set-height-in" value="7">
         </div>
       </div>
     </div>
@@ -11514,10 +11516,28 @@ function spSyncInput(id){const el=document.getElementById(id);if(el&&el._spSync)
 // fields are mounted separately, inside buildSession() itself, since
 // those elements don't exist until that template runs.
 function mountHeightPickers(isSettings){
-  const cmId=isSettings?'set-height':'ob-height',ftId=isSettings?'set-height-ft':'ob-height-ft',inId=isSettings?'set-height-in':'ob-height-in';
+  const cmId=isSettings?'set-height':'ob-height',ftId=isSettings?'set-height-ft':'ob-height-ft',inId=isSettings?'set-height-in':'ob-height-in',
+    combinedId=isSettings?'set-height-ftin':'ob-height-ftin';
   mountScrollPicker(document.getElementById(cmId),{min:100,max:230,step:1,decimals:0,unit:'cm',default:170});
-  mountScrollPicker(document.getElementById(ftId),{min:3,max:8,step:1,decimals:0,unit:'ft',default:5});
-  mountScrollPicker(document.getElementById(inId),{min:0,max:11,step:1,decimals:0,unit:'in',default:7});
+  // ONE continuous picker over total inches (3'0" to 8'11") instead of two
+  // separate ft/in bars — scrolls through 5'1", 5'2", 5'3"... as a single
+  // scale. Still keeps the real ob-height-ft/ob-height-in hidden inputs in
+  // sync on every change since finishPlanCalculation() and saveSettings()
+  // both read those two ids directly.
+  const ftEl=document.getElementById(ftId),inEl=document.getElementById(inId);
+  const startFt=parseFloat(ftEl?.value)||5,startIn=parseFloat(inEl?.value)||7;
+  const combinedEl=document.getElementById(combinedId);
+  mountScrollPicker(combinedEl,{
+    min:36,max:107,step:1,decimals:0,default:startFt*12+startIn,
+    display:v=>({num:Math.floor(v/12)+"'"+(v%12)+'"',unit:''}),
+  });
+  if(combinedEl){
+    combinedEl.addEventListener('change',()=>{
+      const total=Math.round(parseFloat(combinedEl.value)||0);
+      if(ftEl)ftEl.value=Math.floor(total/12);
+      if(inEl)inEl.value=total%12;
+    });
+  }
 }
 function mountWeightPickers(){
   const wu=weightUnit==='kg';
@@ -11566,6 +11586,7 @@ function mountScrollPicker(input,opts){
   const track=wrap.querySelector('.sp-track');
   const ruler=wrap.querySelector('.sp-ruler');
   const numEl=wrap.querySelector('.sp-num');
+  const unitEl=wrap.querySelector('.sp-unit');
   track.style.width=trackWidth+'px';
   track.style.height='100%';
   track.style.backgroundRepeat='repeat-x,repeat-x';
@@ -11585,10 +11606,20 @@ function mountScrollPicker(input,opts){
     if(s.indexOf('.')!==-1)s=s.replace(/0+$/,'').replace(/\.$/,'');
     return s;
   }
+  // opts.display lets a picker show something other than "<number> <unit>"
+  // (e.g. the combined feet+inches height picker below shows 5'7" for a
+  // raw value of 67 total inches) while input.value/fire still carry the
+  // real underlying number every existing reader expects.
   function commit(v,fire){
     value=Math.min(max,Math.max(min,v));
     const s=fmt(value);
-    numEl.textContent=s;
+    if(opts.display){
+      const d=opts.display(value);
+      numEl.textContent=d.num;
+      if(unitEl)unitEl.textContent=d.unit!==undefined?d.unit:unit;
+    }else{
+      numEl.textContent=s;
+    }
     input.value=s;
     if(fire){input.dispatchEvent(new Event('input',{bubbles:true}));input.dispatchEvent(new Event('change',{bubbles:true}));}
   }
@@ -11602,7 +11633,6 @@ function mountScrollPicker(input,opts){
   // rather than adding a second node, so anything already reading its id
   // keeps working unchanged.
   const valueEl=wrap.querySelector('.sp-value');
-  const unitEl=wrap.querySelector('.sp-unit');
   function openEdit(){
     if(dragging)return;
     numEl.style.display='none';
