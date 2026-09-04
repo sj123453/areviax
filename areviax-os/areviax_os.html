@@ -1966,6 +1966,17 @@ input[type=checkbox]{accent-color:var(--orange);width:15px;height:15px;cursor:po
                 <div class="sched-color-swatch active" data-color="" onclick="setSchedColor('',this)" style="width:22px;height:22px;border-radius:50%;border:2px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--muted)">✕</div>
               </div>
             </div>
+            <!-- LINK TO HABIT/GOAL — entirely optional, defaults to "None"
+                 so a quick add stays quick. When set, this slot becomes a
+                 real scheduled time for working toward that habit/goal —
+                 the event detail popup gets a one-tap "mark done"/"+1"
+                 action that calls the exact same real update functions
+                 the Habits/Goals pages themselves use, not a separate
+                 parallel completion system. -->
+            <div>
+              <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px">Link to a habit or goal (optional)</label>
+              <select id="sched-link-select"><option value="">None</option></select>
+            </div>
             <button class="btn btn-primary btn-sm" onclick="addScheduleEvent()">Add to Schedule</button>
           </div>
         </div>
@@ -3647,6 +3658,29 @@ function setSchedColor(color, el){
     s.style.borderColor = s===el ? 'var(--white)' : 'var(--border)';
   });
 }
+// LINK SELECT — real habits + real goals (mini-goals shown indented
+// under their parent, matching how they're already grouped on the
+// Goals page), populated fresh every time the Schedule page renders so
+// a habit/goal added elsewhere shows up here without a reload.
+function renderSchedLinkSelect(){
+  const sel = document.getElementById('sched-link-select');
+  if(!sel) return;
+  const prev = sel.value;
+  let html = '<option value="">None</option>';
+  if(habits.length){
+    html += '<optgroup label="Habits">' + habits.map(h=>`<option value="habit:${h.id}">${(h.name||'').replace(/</g,'&lt;')}</option>`).join('') + '</optgroup>';
+  }
+  const topGoals = goals.filter(g=>!g.parentId);
+  if(topGoals.length){
+    html += '<optgroup label="Goals">' + topGoals.map(g=>{
+      const minis = goals.filter(m=>m.parentId===g.id);
+      return `<option value="goal:${g.id}">${(g.title||'').replace(/</g,'&lt;')}</option>` +
+        minis.map(m=>`<option value="goal:${m.id}">&nbsp;&nbsp;↳ ${(m.title||'').replace(/</g,'&lt;')}</option>`).join('');
+    }).join('') + '</optgroup>';
+  }
+  sel.innerHTML = html;
+  if([...sel.options].some(o=>o.value===prev)) sel.value = prev;
+}
 function addScheduleEvent(){
   const title = document.getElementById('sched-title-input').value.trim();
   if(!title) return;
@@ -3656,9 +3690,12 @@ function addScheduleEvent(){
   const recurring = repeat !== 'none';
   const daily = repeat === 'daily';
   const weekOf = recurring ? null : getWeekMonday();
-  scheduleEvents.push({id:'sc'+Date.now(), title, dayIdx, time, recurring, daily, weekOf, subs:[], color: selectedSchedColor||null});
+  const linkVal = document.getElementById('sched-link-select')?.value || '';
+  const [linkType, linkId] = linkVal ? linkVal.split(':') : [null, null];
+  scheduleEvents.push({id:'sc'+Date.now(), title, dayIdx, time, recurring, daily, weekOf, subs:[], color: selectedSchedColor||null, linkType, linkId});
   document.getElementById('sched-title-input').value = '';
   document.getElementById('sched-time-input').value = '';
+  if(document.getElementById('sched-link-select')) document.getElementById('sched-link-select').value = '';
   setSchedColor('', document.querySelector('#sched-color-row .sched-color-swatch'));
   renderScheduleWeek();
   saveState();
@@ -3687,9 +3724,66 @@ function openEventDetail(idx){
   if(titleEl) titleEl.textContent = (d.daily?'📅 ':d.recurring?'🔁 ':'') + (d.study?'📚 ':'') + d.title;
   if(metaEl) metaEl.textContent = d.time + (d.daily?' · Repeats every day':d.recurring?' · Repeats every week':d.study?' · Study block':' · One-off, this week only');
   renderEventDetailSubs(d);
+  renderEventDetailLink(d);
   const deleteBtn = document.querySelector('#event-detail-backdrop .event-detail-actions button:last-child');
   if(deleteBtn) deleteBtn.style.display = d.id ? '' : 'none'; // study blocks are managed from the Study page, not deletable here
   document.getElementById('event-detail-backdrop').classList.add('show');
+}
+// LINK ACTION — this scheduled slot working toward a real habit/goal, see
+// renderSchedLinkSelect(). Reuses the exact same completion paths those
+// pages themselves use (toggleHabitDay's completedDates push, goals'
+// .current field) rather than a parallel "schedule thinks it's done" flag
+// that could drift out of sync with the actual habit/goal state.
+function renderEventDetailLink(d){
+  const wrap = document.getElementById('event-detail-link');
+  if(!wrap) return;
+  if(!d.linkType || !d.linkId){ wrap.style.display='none'; return; }
+  if(d.linkType==='habit'){
+    const h = habits.find(x=>x.id===d.linkId);
+    if(!h){ wrap.style.display='none'; return; }
+    const doneToday = h.completedDates.includes(todayISO());
+    wrap.style.display='block';
+    wrap.innerHTML = `<button class="btn ${doneToday?'btn-secondary':'btn-primary'}" style="width:100%" onclick="markLinkedHabitDone('${h.id}')" ${doneToday?'disabled':''}>${doneToday?'✓ Done for today':'Mark "'+h.name.replace(/</g,'&lt;')+'" done'}</button>`;
+  } else if(d.linkType==='goal'){
+    const g = goals.find(x=>x.id===d.linkId);
+    if(!g){ wrap.style.display='none'; return; }
+    const complete = g.current>=g.target;
+    wrap.style.display='block';
+    wrap.innerHTML = `<button class="btn ${complete?'btn-secondary':'btn-primary'}" style="width:100%" onclick="markLinkedGoalProgress('${g.id}')" ${complete?'disabled':''}>${complete?'✓ Goal complete':'+1 toward "'+g.title.replace(/</g,'&lt;')+'" ('+g.current+'/'+g.target+')'}</button>`;
+  } else {
+    wrap.style.display='none';
+  }
+}
+function markLinkedHabitDone(hid){
+  const h = habits.find(x=>x.id===hid);
+  if(!h) return;
+  const today = todayISO();
+  if(!h.completedDates.includes(today)){
+    h.completedDates.push(today);
+    addXP(5,'Habit checked');
+  }
+  renderHabits();
+  renderGoals();
+  saveState();
+  const d = scheduleEventDetailData[currentEventDetailIdx];
+  if(d) renderEventDetailLink(d);
+  showToast('✅',h.name+' — done for today');
+}
+function markLinkedGoalProgress(gid){
+  const g = goals.find(x=>x.id===gid);
+  if(!g) return;
+  const wasComplete = g.current>=g.target;
+  g.current = Math.min(g.target, (g.current||0)+1);
+  renderGoals();
+  saveState();
+  const d = scheduleEventDetailData[currentEventDetailIdx];
+  if(d) renderEventDetailLink(d);
+  if(!wasComplete && g.current>=g.target){
+    addXP(40,'Goal hit: '+g.title);
+    showToast('🏆','Goal complete! '+g.title);
+  } else {
+    showToast('📈',g.title+' — '+g.current+'/'+g.target);
+  }
 }
 function closeEventDetail(){
   document.getElementById('event-detail-backdrop').classList.remove('show');
@@ -3780,7 +3874,7 @@ function renderScheduleWeek(){
     const untimedCustom = scheduleEvents.filter(e=>(e.daily||e.dayIdx===i) && !e.time && (e.recurring || e.weekOf===getWeekMonday()))
       .map(e=>{
         const detailIdx = scheduleEventDetailData.length;
-        scheduleEventDetailData.push({day:name, title:e.title, time:'No set time', recurring:e.recurring, daily:e.daily, study:false, id:e.id, subs:e.subs||[]});
+        scheduleEventDetailData.push({day:name, title:e.title, time:'No set time', recurring:e.recurring, daily:e.daily, study:false, id:e.id, subs:e.subs||[], linkType:e.linkType, linkId:e.linkId});
         return `<div class="cal-chip" onclick="openEventDetail(${detailIdx})"><span class="cal-chip-dot" style="background:${e.color||'var(--cyan)'}"></span>${e.daily?'📅 ':e.recurring?'🔁 ':''}${e.title}<span class="cal-chip-x" onclick="event.stopPropagation();removeScheduleEvent('${e.id}')">✕</span></div>`;
       }).join('');
     const untimedStudy = studyBlocks.filter(sb=>sb.day===SCHED_DAY_ABBR[i] && !sb.start)
@@ -3799,7 +3893,7 @@ function renderScheduleWeek(){
 
     // gather this day's timed events + study blocks, sorted, with simple collision nudging
     const items = [
-      ...scheduleEvents.filter(e=>(e.daily||e.dayIdx===i) && e.time && (e.recurring || e.weekOf===getWeekMonday())).map(e=>({time:e.time,title:e.title,id:e.id,study:false,recurring:e.recurring,daily:e.daily,subs:e.subs,color:e.color})),
+      ...scheduleEvents.filter(e=>(e.daily||e.dayIdx===i) && e.time && (e.recurring || e.weekOf===getWeekMonday())).map(e=>({time:e.time,title:e.title,id:e.id,study:false,recurring:e.recurring,daily:e.daily,subs:e.subs,color:e.color,linkType:e.linkType,linkId:e.linkId})),
       ...studyBlocks.filter(sb=>sb.day===SCHED_DAY_ABBR[i] && sb.start).map(sb=>({time:sb.start,title:'📚 '+sb.subject,study:true})),
     ].sort((a,b)=>a.time.localeCompare(b.time));
 
@@ -3811,7 +3905,7 @@ function renderScheduleWeek(){
       placedTops.push(top);
       top = Math.min(top, gridHeight-46);
       const detailIdx = scheduleEventDetailData.length;
-      scheduleEventDetailData.push({day:name, title:it.title, time:it.time, recurring:it.recurring, daily:it.daily, study:it.study, id:it.id||null, subs:it.subs||[]});
+      scheduleEventDetailData.push({day:name, title:it.title, time:it.time, recurring:it.recurring, daily:it.daily, study:it.study, id:it.id||null, subs:it.subs||[], linkType:it.linkType, linkId:it.linkId});
       const colorStyle = it.color ? `border-left:3px solid ${it.color}` : '';
       return `<div class="cal-event ${it.study?'study-event':''}" style="top:${top}px;height:44px;${colorStyle}" onclick="event.stopPropagation();openEventDetail(${detailIdx})">
         <span class="cal-event-time">${it.time}</span><span class="cal-event-title">${it.daily?'📅 ':it.recurring?'🔁 ':''}${it.title}</span>
@@ -6513,6 +6607,7 @@ function restoreState(){
   renderWeeklyStudyLoad();
   renderStudyList();
   renderSchedColorRow();
+  renderSchedLinkSelect();
   renderScheduleWeek();
   renderDashSchedulePreview();
   renderRemindersList();
@@ -6930,6 +7025,7 @@ showPage = function(id){
     <div class="event-detail-title" id="event-detail-title"></div>
     <div class="event-detail-meta" id="event-detail-meta"></div>
     <div id="event-detail-subs" style="margin-bottom:16px"></div>
+    <div id="event-detail-link" style="display:none;margin-bottom:16px"></div>
     <div class="event-detail-actions">
       <button class="btn btn-secondary" style="flex:1" onclick="closeEventDetail()">Close</button>
       <button class="btn" style="flex:1;background:rgba(255,60,60,.15);border:1.5px solid rgba(255,60,60,.4);color:#FF6B6B" onclick="deleteEventFromDetail()">Delete</button>
