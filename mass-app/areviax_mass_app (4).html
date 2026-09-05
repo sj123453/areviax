@@ -558,7 +558,7 @@ input,input:focus,input:active,
 /* GO PREMIUM */
 .sub-period-btn{flex:1;background:transparent;border:none;border-radius:999px;padding:8px;font-size:11.5px;font-weight:800;color:var(--muted);cursor:pointer;font-family:'Outfit',sans-serif}
 .sub-period-btn.active{background:rgba(243,103,23,.14);color:var(--orange)}
-.sub-plan-card{background:var(--panel);border:1.5px solid var(--border2);border-radius:16px;padding:20px;margin-bottom:14px;position:relative}
+.sub-plan-card{background:var(--panel);border:1.5px solid var(--border2);border-radius:0;padding:20px;margin:0 -20px 14px;position:relative}
 .sub-plan-card.premium{border-color:rgba(255,180,80,.5);background:linear-gradient(160deg,rgba(255,150,40,.1),rgba(232,214,196,.02));box-shadow:0 0 30px -14px rgba(255,150,40,.4)}
 .sub-plan-badge{position:absolute;top:-11px;right:20px;background:linear-gradient(135deg,#FFD24A,#FF9A3D);color:#2B1300;font-size:9px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:4px 10px;border-radius:999px}
 .sub-plan-name{font-size:13px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px}
@@ -3005,11 +3005,11 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
 
 
     /* ── EDUCATION SECTION ── */
-    .edu-chapter{margin-bottom:18px}
+    .edu-chapter{margin-bottom:18px;margin-left:-20px;margin-right:-20px}
     .edu-chapter-header{
       display:flex;align-items:center;gap:16px;padding:16px 20px;
       background:linear-gradient(135deg,rgba(243,103,23,.18),rgba(var(--bg-rgb),.95));
-      border:1.5px solid rgba(243,103,23,.3);border-radius:6px 6px 0 0;
+      border:1.5px solid rgba(243,103,23,.3);border-radius:0;
       position:relative;overflow:hidden;
     }
     .edu-chapter-header::before{
@@ -3026,7 +3026,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .edu-chapter-body{
       background:rgba(var(--bg-rgb),.6);
       border:1.5px solid rgba(243,103,23,.15);border-top:none;
-      border-radius:0 0 6px 6px;overflow:hidden;
+      border-radius:0;overflow:hidden;
     }
     .edu-section{
       display:grid;grid-template-columns:320px 1fr;
@@ -3154,6 +3154,27 @@ body[data-goal-theme="cut"] .lv-page{
 .lv-page h1,.lv-page h2,.lv-page h3{font-family:var(--lv-display);letter-spacing:.02em}
 .lv-marble{background-color:var(--lv-bg);background-image:linear-gradient(100deg,transparent 0 46%,rgba(232,232,222,.035) 46% 47%,transparent 47% 100%),linear-gradient(72deg,transparent 0 22%,rgba(232,232,222,.025) 22% 23%,transparent 23% 100%),radial-gradient(140% 60% at 50% 0%,rgba(var(--lv-ember1-rgb),.1),transparent 70%);background-size:340px 100%,220px 100%,100% 100%}
 .lv-surface{position:relative;background-image:linear-gradient(160deg,var(--lv-cardg1) 0%,var(--lv-cardg2) 70%);border:1px solid var(--lv-border);border-top-color:var(--lv-gold-soft);box-shadow:0 18px 40px -28px rgba(0,0,0,.9),inset 0 1px 0 0 rgba(var(--lv-gold-rgb),.12);border-radius:1.75rem}
+/* Body content bleeding edge-to-edge to match the header, same reasoning
+   as the header's own full-bleed fix: a rounded top-level card sitting
+   right at the true screen edge cuts a corner out of itself and reveals
+   the plain page background there — small versions of the exact bug the
+   header had. Only DIRECT children (the top-level cards) get squared;
+   nested elements inside them (progress pills, quick-add buttons) never
+   touch the true edge and keep their own rounding untouched. !important
+   is required here since several of these cards set border-radius via
+   inline style, which no ordinary stylesheet rule can outrank. */
+.lv-bleed-body>section,.lv-bleed-body>div,.lv-bleed-body>button{border-radius:0!important}
+/* Same fix, self-applied — for pages whose post-header content isn't
+   wrapped in a single container (older, pre-Lovable-port markup using
+   .card instead of .lv-surface), added directly to each top-level card
+   instead of relying on a wrapper parent. */
+.lv-bleed-card{margin-left:-20px!important;margin-right:-20px!important;border-radius:0!important}
+/* Same idea, but only below the settings-grid/profile-grid's 899px
+   breakpoint — those cards are a real 2-column grid on wide/desktop
+   viewports, where bleeding a single item would break the grid, but
+   collapse to a single stacked column on every phone width this app
+   is actually used at, where the same black-margin mismatch applies. */
+@media(max-width:899px){.lv-bleed-grid-mobile{margin-left:-20px!important;margin-right:-20px!important;border-radius:0!important}}
 .lv-ember{background-image:linear-gradient(135deg,var(--lv-ember1),var(--lv-ember2));color:var(--lv-primary-fg);box-shadow:0 12px 30px -12px rgba(var(--lv-primary-rgb),.55)}
 .lv-label-eyebrow{font-size:.6875rem;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--lv-muted-fg)}
 .lv-grain{position:relative}
@@ -3754,7 +3775,7 @@ body[data-goal-theme="cut"] .lv-page{
     </div>
   </header>
 
-  <main style="padding:0 20px;margin-top:12px;display:flex;flex-direction:column;gap:12px">
+  <main class="lv-bleed-body" style="margin:0 -20px;margin-top:12px;display:flex;flex-direction:column;gap:12px">
 
     <!-- volume + trend -->
     <section class="lv-surface" style="padding:20px">
@@ -3963,7 +3984,7 @@ body[data-goal-theme="cut"] .lv-page{
     </div>
   </header>
 
-  <div id="injury-reminder" style="display:none;background:rgba(255,122,46,.07);border:1.5px solid rgba(255,122,46,.2);border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:11.5px;color:rgba(var(--white-rgb),.8)">
+  <div id="injury-reminder" class="lv-bleed-card" style="display:none;background:rgba(255,122,46,.07);border:1.5px solid rgba(255,122,46,.2);border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:11.5px;color:rgba(var(--white-rgb),.8)">
     <strong style="color:#F36717">Reminder:</strong> you noted <span id="injury-reminder-text"></span> at signup. Swap out anything that aggravates it, and stop if something feels wrong.
   </div>
 
@@ -3972,7 +3993,7 @@ body[data-goal-theme="cut"] .lv-page{
        silently letting a different session become "today's session" with
        no acknowledgement a specific one was already scheduled. See
        renderTodayPlanBanner. -->
-  <div id="today-plan-banner" style="display:none;background:rgba(68,207,255,.06);border:1.5px solid rgba(68,207,255,.25);border-radius:8px;padding:12px 14px;margin-bottom:16px"></div>
+  <div id="today-plan-banner" class="lv-bleed-card" style="display:none;background:rgba(68,207,255,.06);border:1.5px solid rgba(68,207,255,.25);border-radius:8px;padding:12px 14px;margin-bottom:16px"></div>
 
   <!-- EMERGENCY WORKOUT — protects the streak on a genuinely bad day without
        pretending it was a real training session. Lives here rather than on
@@ -3982,7 +4003,7 @@ body[data-goal-theme="cut"] .lv-page{
     <div onclick="toggleEmergencyWorkout()" style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:11px;color:var(--muted)">
       <span style="font-size:13px">⚡</span><span>Can't train properly today? Do a 3-minute rescue session instead</span>
     </div>
-    <div id="emergency-workout-panel" style="display:none;margin-top:10px;background:var(--panel);border:1.5px solid rgba(255,122,46,.25);border-radius:10px;padding:14px 16px">
+    <div id="emergency-workout-panel" class="lv-bleed-card" style="display:none;margin-top:10px;background:var(--panel);border:1.5px solid rgba(255,122,46,.25);border-radius:10px;padding:14px 16px">
       <div style="font-weight:800;font-size:12.5px;color:#FF8342;margin-bottom:8px">3-Minute Rescue Session</div>
       <div style="font-size:11.5px;color:rgba(var(--white-rgb),.8);line-height:1.9;margin-bottom:10px">
         20 bodyweight squats<br>
@@ -3998,7 +4019,7 @@ body[data-goal-theme="cut"] .lv-page{
   <!-- CARDIO & SPORT — standalone from the strength-training builder since
        duration/distance/intensity don't fit the sets×reps×weight model at
        all. Real logging, own history, still earns XP like any session. -->
-  <div class="card" style="margin-bottom:16px">
+  <div class="card lv-bleed-card" style="margin-bottom:16px">
     <div class="ch" style="margin-bottom:10px"><span class="ct" style="font-size:13px;color:var(--white)">🏃 Cardio & Sport</span></div>
     <div style="font-size:11px;color:var(--muted);margin-bottom:10px">Running, cycling, football, swimming — anything that isn't sets and reps.</div>
     <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px" id="cardio-activity-chips"></div>
@@ -4024,7 +4045,7 @@ body[data-goal-theme="cut"] .lv-page{
   </div>
 
   <!-- LOAD PREVIOUS SESSION -->
-  <div class="card lv-surface" id="session-history-card" style="margin-bottom:16px;display:none">
+  <div class="card lv-surface lv-bleed-card" id="session-history-card" style="margin-bottom:16px;display:none">
     <div class="ch"><span class="ct" style="font-size:13px;color:var(--white)"><span class="lv-greek-numeral">Δ</span> Past sessions</span></div>
     <div id="session-history-list" style="display:flex;flex-direction:column;gap:6px"></div>
   </div>
@@ -4037,7 +4058,7 @@ body[data-goal-theme="cut"] .lv-page{
 
   <!-- ── AUTO BUILDER ── -->
   <div id="auto-builder">
-    <div class="card lv-surface">
+    <div class="card lv-surface lv-bleed-card">
       <div class="ch" style="margin-bottom:14px"><span class="ct"><span class="lv-greek-numeral">Α</span> Session</span></div>
 
       <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;margin-bottom:14px">
@@ -4124,7 +4145,7 @@ body[data-goal-theme="cut"] .lv-page{
 
       <button class="btn btn-g" id="save-changes-btn" onclick="saveWorkoutChanges()" style="width:100%;margin-top:14px">💾 Save Changes</button>
     </div>
-    <div class="card lv-surface"><div class="ch"><span style="display:flex;align-items:center;gap:8px"><span class="ct"><span class="lv-greek-numeral">Γ</span> Exercises</span><span id="ex-count-badge" style="font-size:10px;font-weight:700;color:var(--cyan)"></span></span><div style="display:flex;gap:8px;align-items:center"><button onclick="rerollWorkout()" style="background:var(--purple-d);border:1.5px solid var(--purple-b);color:var(--purple);border-radius:6px;padding:4px 10px;font-size:10.5px;font-weight:700;cursor:pointer;white-space:nowrap">🎲 New session</button><span class="ca" onclick="saveWorkout()">Save &amp; Start →</span></div></div>
+    <div class="card lv-surface lv-bleed-card"><div class="ch"><span style="display:flex;align-items:center;gap:8px"><span class="ct"><span class="lv-greek-numeral">Γ</span> Exercises</span><span id="ex-count-badge" style="font-size:10px;font-weight:700;color:var(--cyan)"></span></span><div style="display:flex;gap:8px;align-items:center"><button onclick="rerollWorkout()" style="background:var(--purple-d);border:1.5px solid var(--purple-b);color:var(--purple);border-radius:6px;padding:4px 10px;font-size:10.5px;font-weight:700;cursor:pointer;white-space:nowrap">🎲 New session</button><span class="ca" onclick="saveWorkout()">Save &amp; Start →</span></div></div>
       <input type="text" id="ex-search" placeholder="Search exercises by name or muscle..." oninput="renderExercises()" style="width:100%;margin-bottom:10px;padding:9px 12px;background:var(--panel2);border:1.5px solid var(--border,rgba(232,214,196,.1));border-radius:6px;color:var(--white);font-size:13px;font-family:'Outfit',sans-serif">
       <div id="ex-list"></div>
     </div>
@@ -4132,23 +4153,23 @@ body[data-goal-theme="cut"] .lv-page{
 
   <!-- ── CUSTOM BUILDER ── -->
   <div id="custom-builder" style="display:none">
-    <div class="card">
+    <div class="card lv-bleed-card">
       <div class="ch"><span class="ct">Your Session</span><span class="ca" onclick="saveCustomTemplate()">💾 Save as template</span></div>
       <div id="custom-selected"></div>
       <button class="btn btn-g" onclick="commitAndStartSession()" style="width:100%;margin-top:12px">💾 Save & Start Session →</button>
     </div>
-    <div class="card" style="margin-bottom:12px">
+    <div class="card lv-bleed-card" style="margin-bottom:12px">
       <div class="ch"><span class="ct">Saved Templates</span></div>
       <div id="template-list"></div>
     </div>
-    <div class="card">
+    <div class="card lv-bleed-card">
       <div class="ch"><span class="ct">Add Exercises</span></div>
       <div id="custom-available" style="max-height:340px;overflow-y:auto"></div>
     </div>
   </div>
 
   <!-- SCORE — shared between both modes -->
-  <div class="card" id="syn-panel" style="border-color:rgba(243,103,23,.15)">
+  <div class="card lv-bleed-card" id="syn-panel" style="border-color:rgba(243,103,23,.15)">
     <div class="ch" style="margin-bottom:2px">
       <span class="ct">Session score</span>
       <div style="display:flex;align-items:baseline;gap:4px">
@@ -4186,7 +4207,7 @@ body[data-goal-theme="cut"] .lv-page{
       <div class="lv-meander-bold" style="margin-top:18px"></div>
     </div>
   </header>
-  <div class="companion"><div class="companion-msg" id="session-companion">Ready when you are. Tap Start when you walk in.</div></div>
+  <div class="companion lv-bleed-card"><div class="companion-msg" id="session-companion">Ready when you are. Tap Start when you walk in.</div></div>
   <div class="g2">
     <div class="card lv-surface" style="text-align:center">
       <div style="font-size:9px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px">Session Timer</div>
@@ -4223,7 +4244,7 @@ body[data-goal-theme="cut"] .lv-page{
       <div style="font-size:11px;color:var(--muted);line-height:1.55">Tap after each set. A timer pops up so you can rest properly between sets.</div>
     </div>
   </div>
-  <div class="card lv-surface" style="margin-bottom:16px">
+  <div class="card lv-surface lv-bleed-card" style="margin-bottom:16px">
     <div class="ch"><span class="ct" style="display:flex;align-items:center;gap:7px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0118 0v6"/><path d="M21 19a2 2 0 01-2 2h-1v-8h3zM3 19a2 2 0 002 2h1v-8H3z"/></svg>Focus sounds</span></div>
     <div style="font-size:10.5px;color:var(--muted);margin-bottom:10px">Something to block out the gym noise and lock in — generated live, no earbuds sync issues, works offline.</div>
     <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px" id="focus-sound-chips">
@@ -4237,7 +4258,7 @@ body[data-goal-theme="cut"] .lv-page{
       <input type="range" min="0" max="100" value="55" id="focus-sound-volume" oninput="setSleepVolume(this.value)" style="flex:1">
     </div>
   </div>
-  <div id="sess-exercises"></div>
+  <div id="sess-exercises" class="lv-bleed-body" style="margin:0 -20px"></div>
   <div class="prog-prompt" id="prog-prompt" style="display:none">
     <div class="prog-q" id="prog-q">How did that feel?</div>
     <div class="prog-signal" id="prog-signal" style="display:none"></div>
@@ -4287,7 +4308,7 @@ body[data-goal-theme="cut"] .lv-page{
     </div>
   </header>
 
-  <main style="padding:0 20px;margin-top:12px;display:flex;flex-direction:column;gap:12px">
+  <main class="lv-bleed-body" style="margin:0 -20px;margin-top:12px;display:flex;flex-direction:column;gap:12px">
 
   <!-- CONSEQUENCE BANNER — hidden until checkNutritionConsequenceWarning()
        actually finds a real pattern (3 of the last 5 days missed, not one
@@ -4691,7 +4712,7 @@ body[data-goal-theme="cut"] .lv-page{
     </div>
   </header>
 
-  <div class="companion" style="margin-bottom:14px"><div class="companion-msg">Real meals, built for a surplus — tap any card for full ingredients and steps.</div></div>
+  <div class="companion lv-bleed-card" style="margin-bottom:14px"><div class="companion-msg">Real meals, built for a surplus — tap any card for full ingredients and steps.</div></div>
 
   <div class="data-terminal-tabs" id="recipe-type-tabs" style="margin-bottom:14px">
     <button class="data-terminal-tab active" data-type="all" onclick="switchRecipeType('all',this)">All</button>
@@ -4827,7 +4848,7 @@ body[data-goal-theme="cut"] .lv-page{
 
   <!-- TONNAGE — weekly bar chart across the same selected range. Real
        tonnageLog weekly bucketing via renderProgressTonnage(). -->
-  <div id="prog-tonnage-card" class="lv-surface" style="display:none;padding:20px;margin-bottom:12px">
+  <div id="prog-tonnage-card" class="lv-surface lv-bleed-card" style="display:none;padding:20px;margin-bottom:12px">
     <div style="display:flex;align-items:baseline;justify-content:space-between">
       <h2 class="lv-section-title" style="display:flex;align-items:baseline;gap:8px;font-size:1.4rem"><span class="lv-greek-numeral">Α</span>Tonnage</h2>
       <span style="font-family:var(--lv-mono);font-size:11px;color:var(--lv-muted-fg)">tonnes / week</span>
@@ -4841,7 +4862,7 @@ body[data-goal-theme="cut"] .lv-page{
   <!-- RECORDS — real prs/lastPerformance data. No fabricated dates/deltas
        — that history isn't tracked anywhere yet, and inventing it would
        be worse than just not showing it. -->
-  <div class="lv-surface" style="padding:20px;margin-bottom:12px">
+  <div class="lv-surface lv-bleed-card" style="padding:20px;margin-bottom:12px">
     <div style="display:flex;align-items:baseline;justify-content:space-between">
       <h2 class="lv-section-title" style="display:flex;align-items:baseline;gap:8px;font-size:1.4rem"><span class="lv-greek-numeral">Β</span>Records</h2>
       <span style="font-family:var(--lv-mono);font-size:11px;color:var(--lv-muted-fg)" id="prog-records-count"></span>
@@ -4850,7 +4871,7 @@ body[data-goal-theme="cut"] .lv-page{
   </div>
 
   <!-- BODYWEIGHT — real weightLog, same big-number treatment. -->
-  <div id="prog-bodyweight-card" class="lv-surface" style="display:none;padding:20px;margin-bottom:12px">
+  <div id="prog-bodyweight-card" class="lv-surface lv-bleed-card" style="display:none;padding:20px;margin-bottom:12px">
     <div style="display:flex;align-items:baseline;justify-content:space-between">
       <div>
         <span class="lv-label-eyebrow" style="color:var(--lv-fuel)">Bodyweight</span>
@@ -4862,7 +4883,7 @@ body[data-goal-theme="cut"] .lv-page{
   </div>
 
   <!-- CONSISTENCY — 4-week heatmap, real trainingCompletedDates. -->
-  <div class="lv-surface" style="padding:20px;margin-bottom:12px">
+  <div class="lv-surface lv-bleed-card" style="padding:20px;margin-bottom:12px">
     <div style="display:flex;align-items:baseline;justify-content:space-between">
       <h2 class="lv-section-title" style="display:flex;align-items:baseline;gap:8px;font-size:1.4rem"><span class="lv-greek-numeral">Γ</span>Consistency</h2>
       <span style="font-family:var(--lv-mono);font-size:11px;color:var(--lv-muted-fg)" id="prog-consistency-count"></span>
@@ -4875,17 +4896,17 @@ body[data-goal-theme="cut"] .lv-page{
 
   <!-- BALANCE — real tonnageLog bucketed by muscle into push/pull/legs/core
        (a set = one tonnageLog entry, since logSet() pushes one per set). -->
-  <div class="lv-surface" style="padding:20px;margin-bottom:12px">
+  <div class="lv-surface lv-bleed-card" style="padding:20px;margin-bottom:12px">
     <h2 class="lv-section-title" style="display:flex;align-items:baseline;gap:8px;font-size:1.4rem"><span class="lv-greek-numeral">Δ</span>Balance</h2>
     <div id="prog-balance-rows" style="margin-top:16px"></div>
     <div id="prog-balance-note" style="display:none;margin-top:16px;font-size:11px;line-height:1.5;color:var(--lv-muted-fg);display:flex;align-items:flex-start;gap:8px"></div>
   </div>
 
   <!-- 3-STAT ROW — Training/Protein/Sleep this week, real renderConsistency() data. -->
-  <div id="prog-stat-row" class="lv-hairline-grid" style="margin-bottom:12px"></div>
+  <div id="prog-stat-row" class="lv-hairline-grid lv-bleed-card" style="margin-bottom:12px"></div>
 
   <!-- TROPHY ROOM — CTA into the Trophy Cabinet, real unlocked/total count. -->
-  <div onclick="showPage('trophycabinet')" class="lv-ember lv-grain" style="cursor:pointer;border-radius:1.75rem;padding:18px 20px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between">
+  <div onclick="showPage('trophycabinet')" class="lv-ember lv-grain lv-bleed-card" style="cursor:pointer;border-radius:1.75rem;padding:18px 20px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between">
     <div>
       <div style="font-family:var(--lv-sans);font-weight:800;font-size:17px;text-transform:uppercase;letter-spacing:.1em">Trophy room</div>
       <div style="font-family:var(--lv-mono);font-size:11px;opacity:.8;margin-top:4px" id="prog-trophy-sub">— of — unlocked</div>
@@ -4894,7 +4915,7 @@ body[data-goal-theme="cut"] .lv-page{
   </div>
 
   <!-- THE 12 LABORS — CTA into the Labors page, real completed/total count. -->
-  <div onclick="showPage('labors')" class="lv-surface" style="cursor:pointer;border-radius:1.75rem;padding:18px 20px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between">
+  <div onclick="showPage('labors')" class="lv-surface lv-bleed-card" style="cursor:pointer;border-radius:1.75rem;padding:18px 20px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between">
     <div>
       <div style="font-family:var(--lv-serif);font-weight:600;font-size:17px;text-transform:uppercase;letter-spacing:.06em;color:var(--lv-fg)">The 12 Labors</div>
       <div style="font-family:var(--lv-mono);font-size:11px;color:var(--lv-muted-fg);margin-top:4px" id="prog-labors-sub">— of 12 complete</div>
@@ -5274,7 +5295,7 @@ body[data-goal-theme="cut"] .lv-page{
   <!-- CLOSEST UNLOCK — real nearest weight milestone by % progress (the
        one collectible tier here with a genuine "distance to go" instead
        of a pure-luck pull). -->
-  <div id="troph-closest-card" class="lv-surface" style="display:none;padding:20px;margin:0 20px 12px">
+  <div id="troph-closest-card" class="lv-surface lv-bleed-card" style="display:none;padding:20px;margin:0 20px 12px">
     <div style="display:flex;align-items:center;justify-content:space-between">
       <span class="lv-label-eyebrow" style="color:var(--lv-primary)">Closest unlock</span>
       <span style="font-family:var(--lv-mono);font-size:11px;color:var(--lv-muted-fg)" id="troph-closest-pct"></span>
@@ -5368,7 +5389,7 @@ body[data-goal-theme="cut"] .lv-page{
       <div class="lv-meander-bold" style="margin-top:18px"></div>
     </div>
   </header>
-  <div class="companion"><div class="companion-msg">Training breaks you down. This is where you actually grow.</div></div>
+  <div class="companion lv-bleed-card"><div class="companion-msg">Training breaks you down. This is where you actually grow.</div></div>
 
   <!-- QUICK CHECK-IN — honesty over guilt. Once per day (guarded in JS) so
        it's a real check-in, not a way to farm XP by tapping repeatedly.
@@ -5386,7 +5407,7 @@ body[data-goal-theme="cut"] .lv-page{
        The page's hero: this is the single most actionable answer someone
        opens Recovery looking for, so it leads rather than sitting as just
        another accordion tile. -->
-  <div class="muscle-map-card lv-surface">
+  <div class="muscle-map-card lv-surface lv-bleed-card">
     <div class="glow-title recovery" style="font-size:15px;font-weight:900;margin-bottom:2px">💪 Muscle Readiness</div>
     <div style="font-size:11px;color:rgba(var(--white-rgb),.45);margin-bottom:16px">Based on what you've actually lifted, not a generic timer</div>
     <div id="muscle-readiness-empty" style="display:none;font-size:12px;color:var(--muted);line-height:1.6;text-align:center;padding:24px 12px">Log your first set and this fills in with real per-muscle recovery times.</div>
@@ -5695,8 +5716,8 @@ body[data-goal-theme="cut"] .lv-page{
        generateFullWeek/autoRescheduleMissedDays). Content is filled in by
        renderSchedule() since it depends on whether a week's already been
        generated. -->
-  <div class="card lv-surface" id="sched-generate-card" style="margin-bottom:20px;border-color:rgba(255,122,46,.25)"></div>
-  <div class="card lv-surface"><div class="ch"><span class="ct"><span class="lv-greek-numeral">Α</span> Your training week</span></div><div class="sched-grid" id="sched-grid"></div></div>
+  <div class="card lv-surface lv-bleed-card" id="sched-generate-card" style="margin-bottom:20px;border-color:rgba(255,122,46,.25)"></div>
+  <div class="card lv-surface lv-bleed-card"><div class="ch"><span class="ct"><span class="lv-greek-numeral">Α</span> Your training week</span></div><div class="sched-grid" id="sched-grid"></div></div>
   <div class="g2">
     <div class="card lv-surface"><div class="ch"><span class="ct"><span class="lv-greek-numeral">Β</span> Session modes</span></div>
       <div style="display:flex;flex-direction:column;gap:7px">
@@ -5725,8 +5746,8 @@ body[data-goal-theme="cut"] .lv-page{
       <div class="lv-meander-bold" style="margin-top:18px"></div>
     </div>
   </header>
-  <div class="companion"><div class="companion-msg">This board matches you against profiles at your <strong>exact stage</strong> — not people who started years ago — so the comparison is actually fair. (These are illustrative benchmarks, not live user data — real community rankings are coming.)</div></div>
-  <div class="card lv-surface" style="border-color:rgba(243,103,23,.15)">
+  <div class="companion lv-bleed-card"><div class="companion-msg">This board matches you against profiles at your <strong>exact stage</strong> — not people who started years ago — so the comparison is actually fair. (These are illustrative benchmarks, not live user data — real community rankings are coming.)</div></div>
+  <div class="card lv-surface lv-bleed-card" style="border-color:rgba(243,103,23,.15)">
     <div style="font-weight:700;font-size:14px;margin-bottom:4px">Join the leaderboard</div>
     <div style="font-size:12px;color:var(--muted);margin-bottom:12px">Optional and anonymous by default. You only see people at the same stage as you.</div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
@@ -5738,7 +5759,7 @@ body[data-goal-theme="cut"] .lv-page{
   <!-- LEAGUES CROSS-LINK — the weekly promotion ladder lives on its own
        page, reached from here the same way Trophy Cabinet is reached
        from Progress. -->
-  <div class="card" style="margin-bottom:14px;cursor:pointer;border-color:rgba(68,207,255,.2);background:rgba(68,207,255,.03)" onclick="showPage('leagues')">
+  <div class="card lv-bleed-card" style="margin-bottom:14px;cursor:pointer;border-color:rgba(68,207,255,.2);background:rgba(68,207,255,.03)" onclick="showPage('leagues')">
     <div class="ch"><span class="ct" style="display:flex;align-items:center;gap:7px">🏅 Leagues</span></div>
     <div style="font-size:11.5px;color:var(--muted);line-height:1.6">Weekly promotion ladder — climb through 8 tiers by outpacing your group, right up to the Areviax League.</div>
     <button class="btn btn-out btn-sm" style="width:100%;margin-top:12px" onclick="event.stopPropagation();showPage('leagues')">Enter Leagues →</button>
@@ -5757,7 +5778,7 @@ body[data-goal-theme="cut"] .lv-page{
 <!-- LEAGUES — dedicated weekly promotion-ladder page. -->
 <div class="page" id="page-leagues">
   <div style="height:max(var(--safe-top,0px),env(safe-area-inset-top,0px));background:#0D0806;margin:0 -20px"></div>
-  <div class="companion" style="margin-top:16px"><div class="companion-msg">Same idea as the leaderboard, with real stakes each week — finish strong and climb, coast and you'll slip back down.</div></div>
+  <div class="companion lv-bleed-card" style="margin-top:16px"><div class="companion-msg">Same idea as the leaderboard, with real stakes each week — finish strong and climb, coast and you'll slip back down.</div></div>
   <div id="leagues-body"></div>
 </div>
 
@@ -5777,7 +5798,7 @@ body[data-goal-theme="cut"] .lv-page{
       <div class="lv-meander-bold" style="margin-top:18px"></div>
     </div>
   </header>
-  <div class="companion" style="background:linear-gradient(135deg,rgba(243,103,23,.08),rgba(var(--bg-rgb),.9));border:1.5px solid rgba(243,103,23,.2);padding:14px 18px;border-radius:6px">
+  <div class="companion lv-bleed-card" style="background:linear-gradient(135deg,rgba(243,103,23,.08),rgba(var(--bg-rgb),.9));border:1.5px solid rgba(243,103,23,.2);padding:14px 18px;border-radius:6px">
     <div class="companion-msg" style="font-size:12px;color:rgba(var(--white-rgb),.8);line-height:1.7">The science behind everything the app asks you to do — written in plain English. You do not need to read it all at once. Come back whenever you want to understand the why behind a decision.</div>
   </div>
 
@@ -6244,7 +6265,7 @@ body[data-goal-theme="cut"] .lv-page{
   <div class="profile-grid">
   <div>
   <!-- CONSISTENCY HEATMAP -->
-  <div class="card lv-surface" style="margin-bottom:14px">
+  <div class="card lv-surface lv-bleed-grid-mobile" style="margin-bottom:14px">
     <div class="ch"><span class="ct">Consistency</span></div>
     <div id="heatmap-grid" style="display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px;margin-bottom:8px"></div>
     <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--muted)">
@@ -6253,7 +6274,7 @@ body[data-goal-theme="cut"] .lv-page{
   </div>
 
   <!-- THIS WEEK RECAP -->
-  <div class="card lv-surface" style="margin-bottom:14px">
+  <div class="card lv-surface lv-bleed-grid-mobile" style="margin-bottom:14px">
     <div class="ch"><span class="ct">This Week</span></div>
     <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:10px">
       <div style="font-size:26px;font-weight:900;color:var(--green)" id="recap-week-count">0</div>
@@ -6264,7 +6285,7 @@ body[data-goal-theme="cut"] .lv-page{
   </div>
 
   <!-- PERFECT DAYS + TRAINING PATTERN -->
-  <div class="card lv-surface" style="margin-bottom:14px">
+  <div class="card lv-surface lv-bleed-grid-mobile" style="margin-bottom:14px">
     <div class="ch"><span class="ct">Training Patterns</span></div>
     <div style="display:flex;gap:10px;margin-bottom:14px">
       <div style="flex:1;background:rgba(232,214,196,.025);border:1.5px solid rgba(232,214,196,.07);border-radius:8px;padding:12px">
@@ -6279,7 +6300,7 @@ body[data-goal-theme="cut"] .lv-page{
   </div>
 
   <!-- LIFETIME STATS PLAQUE -->
-  <div class="card lv-surface" style="margin-bottom:14px">
+  <div class="card lv-surface lv-bleed-grid-mobile" style="margin-bottom:14px">
     <div class="ch"><span class="ct">Lifetime Record</span></div>
     <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px">
       <div onclick="openMilestones()" style="cursor:pointer;background:rgba(232,214,196,.025);border:1.5px solid rgba(232,214,196,.07);border-radius:8px;padding:14px">
@@ -6305,7 +6326,7 @@ body[data-goal-theme="cut"] .lv-page{
 
   <div>
   <!-- STATUE CENTERPIECE — larger version of the dashboard statue -->
-  <div class="card lv-surface" style="margin-bottom:14px">
+  <div class="card lv-surface lv-bleed-grid-mobile" style="margin-bottom:14px">
     <div class="statue-stage" style="width:320px;padding-top:28px">
       <div class="statue-spotlight" style="width:480px;height:320px"></div>
       <div class="statue-figure" style="width:270px;height:517px">
@@ -6326,7 +6347,7 @@ body[data-goal-theme="cut"] .lv-page{
   </div>
 
   <!-- HALL OF STATUES -->
-  <div class="card lv-surface" style="margin-bottom:14px">
+  <div class="card lv-surface lv-bleed-grid-mobile" style="margin-bottom:14px">
     <div class="ch"><span class="ct">Hall of Statues</span></div>
     <div style="font-size:11px;color:var(--muted);margin-bottom:14px">Every tier you've passed stays lit. The rest are waiting.</div>
     <div id="hall-of-statues" class="hall-grid"></div>
@@ -6339,7 +6360,7 @@ body[data-goal-theme="cut"] .lv-page{
        pulled, not just a link out to the full room. Preview strip reuses
        the same .legend-card/.legend-card-icon markup the Cabinet itself
        uses so an unlocked card looks identical in both places. -->
-  <div class="card lv-surface" style="margin-bottom:14px;cursor:pointer" onclick="showPage('trophycabinet')">
+  <div class="card lv-surface lv-bleed-card" style="margin-bottom:14px;cursor:pointer" onclick="showPage('trophycabinet')">
     <div class="ch"><span class="ct glow-title trophy" style="display:flex;align-items:center;gap:7px">🏆 Trophy Cabinet</span><span style="font-size:11px;font-weight:800;color:var(--muted)" id="profile-trophy-count"></span></div>
     <div style="font-size:11px;color:var(--muted);margin-bottom:12px">Every card you've pulled from a Compass Drop, all in one room.</div>
     <div id="profile-trophy-preview" style="display:flex;gap:8px;overflow-x:auto;padding-bottom:2px"></div>
@@ -6347,7 +6368,7 @@ body[data-goal-theme="cut"] .lv-page{
   </div>
 
   <!-- COMPARE WITH OTHERS -->
-  <div class="card lv-surface">
+  <div class="card lv-surface lv-bleed-card">
     <div class="ch"><span class="ct">Compare With Others</span></div>
     <!-- Only shown once profile.lbName is set (i.e. joined the
          Leaderboard) — computeMyLBRank() needs that same opt-in, so
@@ -6375,13 +6396,13 @@ body[data-goal-theme="cut"] .lv-page{
   </div>
 
   <!-- INSTALL AS APP -->
-  <div class="card lv-surface" style="margin-top:14px">
+  <div class="card lv-surface lv-bleed-card" style="margin-top:14px">
     <div class="ch"><span class="ct">Install as an App</span></div>
     <div id="install-section">Checking...</div>
   </div>
 
   <!-- BACKUP & RESTORE -->
-  <div class="card lv-surface" style="margin-top:14px">
+  <div class="card lv-surface lv-bleed-card" style="margin-top:14px">
     <div class="ch"><span class="ct">Backup Your Data</span></div>
     <div style="font-size:12px;color:rgba(var(--white-rgb),.7);line-height:1.7;margin-bottom:14px">
       Everything — your stats, streak, PRs, achievements, statue progress — lives only on this device. Clear your browser data or switch phones and it's gone for good. Download a backup now and again every so often so you never lose it.
@@ -6417,7 +6438,7 @@ body[data-goal-theme="cut"] .lv-page{
     </span>
   </div>
 
-  <div class="legal-disclaimer-banner">
+  <div class="legal-disclaimer-banner lv-bleed-card">
     <strong>Not medical advice.</strong> Areviax provides general fitness and nutrition information for educational purposes. It is not a substitute for advice from a doctor, registered dietitian, or other qualified professional. Talk to a doctor before starting any new exercise or nutrition programme, especially if you have an existing health condition, injury, or take medication.
   </div>
 
@@ -6427,7 +6448,7 @@ body[data-goal-theme="cut"] .lv-page{
     <button class="legal-tab" onclick="switchLegal(this,'legal-health')">Health Disclaimer</button>
   </div>
 
-  <div id="legal-privacy" class="card legal-doc lv-surface">
+  <div id="legal-privacy" class="card legal-doc lv-surface lv-bleed-card">
     <h3>Privacy Policy</h3>
     <p class="legal-updated">Last updated: 24 June 2026</p>
 
@@ -6457,7 +6478,7 @@ body[data-goal-theme="cut"] .lv-page{
     <p>Questions about this policy: <em>areviaxsupport@gmail.com</em></p>
   </div>
 
-  <div id="legal-terms" class="card legal-doc lv-surface" style="display:none">
+  <div id="legal-terms" class="card legal-doc lv-surface lv-bleed-card" style="display:none">
     <h3>Terms of Service</h3>
     <p class="legal-updated">Last updated: 24 June 2026</p>
 
@@ -6486,7 +6507,7 @@ body[data-goal-theme="cut"] .lv-page{
     <p>These terms are governed by the laws of England and Wales.</p>
   </div>
 
-  <div id="legal-health" class="card legal-doc lv-surface" style="display:none">
+  <div id="legal-health" class="card legal-doc lv-surface lv-bleed-card" style="display:none">
     <h3>Health Disclaimer</h3>
     <p class="legal-updated">Last updated: 24 June 2026</p>
 
@@ -6520,7 +6541,7 @@ body[data-goal-theme="cut"] .lv-page{
 
   <div class="settings-grid">
   <div>
-  <div class="card lv-surface" style="margin-bottom:14px">
+  <div class="card lv-surface lv-bleed-grid-mobile" style="margin-bottom:14px">
     <div class="ch"><span class="ct">Your Details</span></div>
     <label class="lbl" style="margin-top:0">Name</label>
     <input type="text" id="set-name">
@@ -6539,7 +6560,7 @@ body[data-goal-theme="cut"] .lv-page{
     <input type="number" id="set-age">
   </div>
 
-  <div class="card lv-surface" style="margin-bottom:14px">
+  <div class="card lv-surface lv-bleed-grid-mobile" style="margin-bottom:14px">
     <div class="ch"><span class="ct">Appearance</span></div>
     <div style="display:flex;align-items:center;justify-content:space-between">
       <label class="lbl" style="margin:0">Theme</label>
@@ -6557,7 +6578,7 @@ body[data-goal-theme="cut"] .lv-page{
        for the evening still gets caught before the day's a write-off.
        Opt-in and off by default — the permission prompt only fires from
        this actual click, never silently on load. -->
-  <div class="card lv-surface" style="margin-bottom:14px">
+  <div class="card lv-surface lv-bleed-grid-mobile" style="margin-bottom:14px">
     <div class="ch"><span class="ct">Shield Reminders</span></div>
     <div style="display:flex;align-items:center;justify-content:space-between">
       <label class="lbl" style="margin:0">Evening nudges</label>
@@ -6568,7 +6589,7 @@ body[data-goal-theme="cut"] .lv-page{
   </div>
 
   <div>
-  <div class="card lv-surface" style="margin-bottom:14px">
+  <div class="card lv-surface lv-bleed-grid-mobile" style="margin-bottom:14px">
     <div class="ch"><span class="ct">Goal & Training</span></div>
     <label class="lbl" style="margin-top:0">Goal</label>
     <select id="set-goal">
@@ -6599,7 +6620,7 @@ body[data-goal-theme="cut"] .lv-page{
     <div id="injury-warning-status" style="margin-top:8px;font-size:11px;color:var(--muted)"></div>
   </div>
 
-  <div class="card lv-surface" style="margin-bottom:14px">
+  <div class="card lv-surface lv-bleed-grid-mobile" style="margin-bottom:14px">
     <div id="settings-preview" style="font-size:12px;color:var(--muted);line-height:1.7"></div>
   </div>
   </div>
@@ -6608,7 +6629,7 @@ body[data-goal-theme="cut"] .lv-page{
   <button class="btn btn-g" style="width:100%;justify-content:center" onclick="saveSettings()">Save Changes</button>
   <div style="font-size:10.5px;color:var(--muted);text-align:center;margin-top:8px">Calories and macros recalculate automatically when you save.</div>
 
-  <div class="card lv-surface" style="margin-top:14px">
+  <div class="card lv-surface lv-bleed-card" style="margin-top:14px">
     <div class="ch"><span class="ct">Testing</span></div>
     <div style="font-size:11px;color:var(--muted);margin-bottom:10px">Banks one Bronze/Silver/Gold/Diamond crate so you can check the open/reveal flow without waiting to earn them.</div>
     <button class="btn btn-out" style="width:100%" onclick="grantTestCrates()">🎁 Grant test crates</button>
@@ -6639,9 +6660,9 @@ body[data-goal-theme="cut"] .lv-page{
       <span class="lv-pill" style="padding:4px 8px;border:1px solid var(--lv-border-strong);color:var(--lv-xp);font-size:10px"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.8 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z"/></svg> <span class="lv-xp-badge">0</span></span>
     </div>
   </div>
-  <div class="companion" style="margin-bottom:14px"><div class="companion-msg">Quick answers pulled straight from how the app actually works. Can't find it? Message support and a real person will get back to you.</div></div>
+  <div class="companion lv-bleed-card" style="margin-bottom:14px"><div class="companion-msg">Quick answers pulled straight from how the app actually works. Can't find it? Message support and a real person will get back to you.</div></div>
 
-  <div class="card lv-surface" style="margin-bottom:14px">
+  <div class="card lv-surface lv-bleed-card" style="margin-bottom:14px">
     <div id="aicoach-thread" style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px"></div>
     <div style="display:flex;gap:8px">
       <input type="text" id="aicoach-input" placeholder="Ask something…" onkeydown="if(event.key==='Enter')askAiCoach()">
@@ -6649,7 +6670,7 @@ body[data-goal-theme="cut"] .lv-page{
     </div>
   </div>
 
-  <div class="card lv-surface">
+  <div class="card lv-surface lv-bleed-card">
     <div class="ch"><span class="ct"><span class="lv-greek-numeral">Α</span> Try one of these</span></div>
     <div id="aicoach-samples" style="display:flex;flex-wrap:wrap;gap:8px"></div>
   </div>
@@ -6673,7 +6694,7 @@ body[data-goal-theme="cut"] .lv-page{
       <span class="lv-wordmark" style="font-size:11px">Go Premium</span>
     </span>
   </div>
-  <div class="companion" style="margin-bottom:14px"><div class="companion-msg">One plan for the training/nutrition core everyone gets for free — Premium adds the AI-powered layer on top.</div></div>
+  <div class="companion lv-bleed-card" style="margin-bottom:14px"><div class="companion-msg">One plan for the training/nutrition core everyone gets for free — Premium adds the AI-powered layer on top.</div></div>
 
   <div style="position:relative;display:flex;gap:4px;background:var(--panel2);border:1.5px solid var(--border2);border-radius:999px;padding:4px;margin-bottom:22px">
     <div style="position:absolute;top:-9px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#FFD24A,#FF9A3D);color:#2B1300;font-size:8px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:2px 9px;border-radius:999px;white-space:nowrap;z-index:2">Recommended</div>
