@@ -1988,6 +1988,24 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .crate-icon-wrap.areviax.ready{--crate-glow-blur:34px}
     .crate-icon-wrap.areviax.ready .crate-icon-glow{animation:crateGlowPulse 1.8s ease-in-out infinite}
     @keyframes crateGlowPulse{0%,100%{opacity:.7}50%{opacity:1}}
+    /* Anticipation beat before a crate's reel/reveal actually appears —
+       see openCompassDrop(). The crate itself now renders as a real
+       hinged chest (or crystal for diamond) instead of a flat icon, so
+       it can actually sell "about to open" with a shake + glow build,
+       the same anticipation->release->reveal shape validated in the
+       standalone crate prototype earlier tonight, applied here via pure
+       CSS on the existing static image rather than embedding a live
+       WebGL scene into the reveal modal (real integration risk for a
+       feature this size — this gets the felt improvement safely). */
+    .crate-icon-wrap.opening{animation:crateShakeOpen .5s cubic-bezier(.36,.07,.19,.97)}
+    .crate-icon-wrap.opening .crate-icon-glow{animation:crateGlowBuild .5s ease-in forwards}
+    @keyframes crateShakeOpen{
+      10%,90%{transform:translateX(-1px) rotate(-1deg)}
+      20%,80%{transform:translateX(2px) rotate(1.5deg)}
+      30%,50%,70%{transform:translateX(-3px) rotate(-2deg)}
+      40%,60%{transform:translateX(3px) rotate(2deg)}
+    }
+    @keyframes crateGlowBuild{0%{opacity:.7;filter:brightness(1)}100%{opacity:1;filter:brightness(1.6)}}
     /* Every "ready" crate keeps its glow+burst animating continuously in
        the background even while a reveal/achievement overlay is showing
        on top of it — on a page with several crates ready at once, that's
@@ -10476,8 +10494,25 @@ function openCompassDrop(tier){
   legendCounts[pick.key]=(legendCounts[pick.key]||0)+1;
   if(tier==='areviax')shardBank+=2; // the best drop in the app pays a bonus on top of the guaranteed card
   saveToStorage();
+  // Anticipation beat on the actual crate tile — a real chest/crystal
+  // render can now sell "about to open" (shake + glow build) before the
+  // reel takes over, instead of the reel just appearing instantly. Bank
+  // deduction/roll above already happened so renderAchievements() below
+  // (which redraws this exact element) reflects the new count — the
+  // shake plays on whichever instance exists after that redraw, not the
+  // pre-redraw one, so it's grabbed fresh after render rather than
+  // before it.
   renderAchievements();
-  showLegendReveal(pick,isNew,tier,legendCounts[pick.key]);
+  const crateEl=document.querySelector('.crate-icon-wrap.'+tier);
+  if(crateEl){
+    crateEl.classList.add('opening');
+    setTimeout(()=>{
+      crateEl.classList.remove('opening');
+      showLegendReveal(pick,isNew,tier,legendCounts[pick.key]);
+    },500);
+  }else{
+    showLegendReveal(pick,isNew,tier,legendCounts[pick.key]);
+  }
 }
 // \u2500\u2500 CRATE SOUND \u2014 procedurally synthesized (no audio files), same
 // Web Audio API pattern already used for ambient/sleep sounds
