@@ -1904,6 +1904,24 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        own row) the same way. */
     .cabinet-row{display:flex;flex-wrap:wrap;justify-content:center;gap:9px;padding:4px 2px 6px}
     .legend-card.cabinet-slot{width:78px;padding:8px 4px 6px;flex:0 0 auto}
+    /* ── DISPLAY SHELF — a wooden plank band running behind each row of
+       trophies, with a lit top edge and a soft shadow underneath each
+       row, so unlocked trophies read as objects actually sitting on a
+       museum shelf rather than icons floating in a plain grid. Only the
+       shelf itself is decorative (::before/::after, no layout impact) —
+       .cabinet-row's own flex/gap/wrap behavior is untouched. */
+    .cabinet-tier{position:relative}
+    .cabinet-row{position:relative;z-index:1}
+    .cabinet-row::before{
+      content:'';position:absolute;left:-4px;right:-4px;bottom:2px;height:14px;z-index:-1;
+      background:linear-gradient(180deg,rgba(120,84,46,.55) 0%,rgba(66,44,22,.7) 55%,rgba(30,18,8,.85) 100%);
+      border-radius:4px;
+      box-shadow:0 1px 0 rgba(255,200,140,.18) inset,0 10px 18px -6px rgba(0,0,0,.55);
+    }
+    .cabinet-row::after{
+      content:'';position:absolute;left:-4px;right:-4px;bottom:15px;height:1.5px;z-index:-1;
+      background:rgba(255,205,150,.35);
+    }
 
     /* ── COMPASS DROP CRATES — a Brawl-Stars-Star-Drop-style capsule
        (hexagonal gem, tier-tinted gradient + glow, gentle float when
