@@ -1047,8 +1047,15 @@ select option{background:var(--panel)}
 .sbo-label{font-size:12.5px;font-weight:700;color:var(--white)}
 
 /* TOAST */
-#toast{position:fixed;bottom:76px;left:50%;transform:translateX(-50%) translateY(20px);z-index:600;background:rgba(13,11,32,.95);backdrop-filter:blur(12px);border:1.5px solid var(--purple-b);padding:10px 18px;display:flex;align-items:center;gap:10px;font-size:13px;font-family:"Outfit",sans-serif;color:var(--white);font-weight:500;opacity:0;pointer-events:none;transition:transform .3s cubic-bezier(.16,1,.3,1),opacity .3s cubic-bezier(.16,1,.3,1);border-radius:10px;white-space:normal;max-width:min(340px,calc(100vw - 32px));box-shadow:0 0 24px -8px rgba(142,142,147,.4)}
+/* Apple-style notification banner: docks just under the status bar/
+   notch and springs DOWN into view (translateY negative→0), rather
+   than the old small pill that rose up from above the bottom nav.
+   z-index sits above the safe-area blackout (1000) and every
+   bottom-sheet modal (9999) since a real OS banner would interrupt
+   whatever's on screen too. */
+#toast{position:fixed;top:max(var(--safe-top,0px),env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%) translateY(-130%);z-index:10000;background:rgba(24,19,15,.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.08);padding:11px 14px;display:flex;align-items:center;gap:11px;font-size:13px;font-family:"Outfit",sans-serif;color:var(--white);font-weight:500;opacity:0;pointer-events:none;transition:transform .45s cubic-bezier(.32,1.1,.34,1),opacity .3s ease;border-radius:18px;white-space:normal;width:min(400px,calc(100vw - 24px));margin-top:8px;box-shadow:0 14px 34px -10px rgba(0,0,0,.55),0 2px 10px -2px rgba(0,0,0,.35)}
 #toast.show{opacity:1!important;transform:translateX(-50%) translateY(0)!important;pointer-events:auto;cursor:pointer}
+#toast #ti{flex-shrink:0;width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,rgba(243,103,23,.3),rgba(243,103,23,.1));display:flex;align-items:center;justify-content:center;font-size:15px;line-height:1}
 
 /* ONBOARDING */
 #onboarding{position:fixed;inset:0;background:var(--bg);z-index:900;display:flex;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;-webkit-overflow-scrolling:touch}
@@ -3303,7 +3310,7 @@ body[data-goal-theme="cut"] .lv-page{
   <div class="dp-attrib" id="dp-attrib-text">— Areviax</div>
 </div>
 
-<div id="toast" onclick="dismissToast()"><span id="ti">💪</span><span id="tm" style="font-weight:600">XP</span></div>
+<div id="toast" onclick="dismissToast()"><span id="ti">💪</span><span id="tm" style="font-weight:600;flex:1;min-width:0">XP</span></div>
 
 <div id="rest-overlay">
   <div class="rest-ring">
@@ -6593,6 +6600,16 @@ body[data-goal-theme="cut"] .lv-page{
     </div>
     <div style="font-size:10.5px;color:var(--muted);margin-top:6px;line-height:1.5">Get a notification if the Caloric Shield is still behind in the evening — one at risk, one if it starts cracking, one if it breaks. Only fires while this device has the app installed or a tab open; won't wake a fully closed app days later.</div>
   </div>
+
+  <!-- IN-APP ALERTS — per-category on/off for the celebratory toast
+       banners. Action-confirmation toasts (saved, deleted, warnings)
+       are never listed here since they're direct feedback to something
+       just tapped, not an optional alert. -->
+  <div class="card lv-surface" style="margin-bottom:14px">
+    <div class="ch"><span class="ct">In-App Alerts</span></div>
+    <div style="font-size:10.5px;color:var(--muted);margin-bottom:4px;line-height:1.5">Turn off the banner for any of these — everything still tracks in the background either way.</div>
+    <div id="notif-pref-rows"></div>
+  </div>
   </div>
 
   <div>
@@ -7415,6 +7432,20 @@ let shieldGreatSaveAwardedToday=false; // one-time-per-day guard so "Great Save"
 // before. Resets at day rollover alongside the other shield-day flags.
 let shieldNotifStage=0;
 let shieldNotifsEnabled=false;
+// ── IN-APP ALERT PREFERENCES — per-category on/off for the celebratory
+// toast banners (XP, streaks, PRs, Compass Drops). Deliberately NOT a
+// blanket "mute all toasts" — action-confirmation toasts (saved,
+// deleted, "enter a duration first") are the app's only feedback that
+// something the user just tapped worked, so those always show and are
+// never gated by category. toast()'s 3rd arg opts a call into a
+// category; calls that omit it always show, same as before this existed.
+const NOTIF_CATEGORIES=[
+  {key:'xp',    label:'XP earned',        icon:'⭐'},
+  {key:'streak',label:'Streaks',          icon:'🔥'},
+  {key:'pr',    label:'Personal records', icon:'🏆'},
+  {key:'drops', label:'Compass Drops',    icon:'🎁'},
+];
+let notifPrefs={xp:true,streak:true,pr:true,drops:true};
 let sleepLog=[];
 let cnsTapLog=[]; // [{date, taps, score}] — raw tap counts for computing a rolling personal baseline
 let winddownDate='',winddownChecked={};
@@ -10140,7 +10171,7 @@ function grantTestCrates(){
   bronzeDropBank++;silverDropBank++;shardBank++;diamondDropBank++;
   saveToStorage();
   renderAchievements();
-  toast('🎁','Test crates granted — check Compass Drops');
+  toast('🎁','Test crates granted — check Compass Drops','drops');
 }
 function openCompassDrop(tier){
   const cfg=CRATE_TIERS[tier];
@@ -10774,6 +10805,7 @@ function renderSettings(){
   if(!nameEl)return;
   nameEl.value=profile.name||'';
   renderShieldNotifToggle();
+  renderNotifPrefs();
   document.getElementById('set-weight').value=profile.weight?(weightUnit==='kg'?Math.round(profile.weight*0.453592*10)/10:profile.weight):'';
   if(heightUnit==='ftin'&&profile.height){
     const totalIn=profile.height/2.54;
@@ -11608,7 +11640,13 @@ function checkProteinQuest(){
 }
 
 // ── TOAST ──
-function toast(icon,msg){const t=document.getElementById('toast');if(!t)return;const ti=document.getElementById('ti');const tm=document.getElementById('tm');if(ti)ti.textContent=icon;if(tm)tm.textContent=msg;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),3000)}
+function toast(icon,msg,category){
+  if(category&&notifPrefs[category]===false)return;
+  const t=document.getElementById('toast');if(!t)return;
+  const ti=document.getElementById('ti');const tm=document.getElementById('tm');
+  if(ti)ti.textContent=icon;if(tm)tm.textContent=msg;
+  t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),3000);
+}
 function dismissToast(){const t=document.getElementById('toast');if(!t)return;clearTimeout(t._t);t.classList.remove('show')}
 // ── SCROLL PICKER — a drag-to-select ruler that replaces a plain
 // type=number input. The original input is kept in the DOM (as
@@ -11909,7 +11947,7 @@ function addXP(n,l=''){
   xpLog.push({date:localDateKey(new Date()),amount:n,label:l||'Other'});
   if(xpLog.length>500)xpLog=xpLog.slice(-500);
   const xve=document.getElementById('xp-val');if(xve)xve.textContent=xp;
-  toast('⭐',`+${n} XP${l?' — '+l:''}`);
+  toast('⭐',`+${n} XP${l?' — '+l:''}`,'xp');
   try{updateAvatar();}catch(e){}
   updateStreakFromActivity();
   try{checkStreakAtRisk();}catch(e){}
@@ -12056,10 +12094,10 @@ function updateStreakFromActivity(){
     if(card){card.classList.remove('streak-pop');void card.offsetWidth;card.classList.add('streak-pop');}
     if(fv){fv.classList.remove('streak-pop');void fv.offsetWidth;fv.classList.add('streak-pop');}
     if(isNewBest){
-      toast('🏆','New personal best — '+streak+' days!');
+      toast('🏆','New personal best — '+streak+' days!','streak');
       celebrateBurst(['🔥','🏆','⭐','💥'],22);
     }else{
-      toast('🔥',streak+' day streak — keep it going!');
+      toast('🔥',streak+' day streak — keep it going!','streak');
       celebrateBurst(['🔥'],14);
     }
   }
@@ -15398,10 +15436,10 @@ function claimCompassPoint(){
   playShardFlyAnimation(btn);
   renderCompassClaimStatus();
   if(justPerfected){
-    toast('🔷','Compass point earned — perfect week! +1 Compass Shard');
+    toast('🔷','Compass point earned — perfect week! +1 Compass Shard','drops');
     celebrateBurst(['🔷','✨'],16);
   }else{
-    toast('🧭','Compass point earned — '+compassPts+'/7 this week');
+    toast('🧭','Compass point earned — '+compassPts+'/7 this week','drops');
   }
 }
 // Clean one-shot reward flourish — a hexagon "shard" pops from the claim
@@ -15620,7 +15658,7 @@ function markTrainedToday(){
   if(bronzeDropProgress>=BRONZE_DROP_DAYS){
     bronzeDropProgress=0;
     bronzeDropBank++;
-    toast('🧭','Bronze Compass Drop earned!');
+    toast('🧭','Bronze Compass Drop earned!','drops');
   }
 }
 
@@ -15700,7 +15738,7 @@ function logSet(ei,si,name,muscle){
     chip.textContent=`🏆 ${w}×${r}`;
     const pd=document.getElementById('pr-d-'+ei);
     if(pd)pd.textContent='PR: '+w+'kg';
-    toast('🏆',isWeightPR?'New PR on '+name+': '+w+'kg!':'New PR on '+name+': '+w+'kg×'+r+' (more reps)!');
+    toast('🏆',isWeightPR?'New PR on '+name+': '+w+'kg!':'New PR on '+name+': '+w+'kg×'+r+' (more reps)!','pr');
     celebrateBurst(['🏆','⭐','💥'],14);
     checkQuestWeek();questProgress.prs=(questProgress.prs||0)+1;renderQuests();checkAchievements();
   }
@@ -15842,7 +15880,7 @@ function checkCompassWeek(){
     // to fire that moment.
     if(compassPts>=7&&!perfectWeekShardBanked){
       shardBank++;
-      toast('🔷','Perfect week — banked a Compass Shard!');
+      toast('🔷','Perfect week — banked a Compass Shard!','drops');
     }
     compassWeekStart=thisMonday;
     compassPts=0;
@@ -15911,7 +15949,7 @@ function repairStreak(){
   lastActiveDate=localDateKey(yesterday); // makes today read as a valid continuation, not a fresh restart
   const banner=document.getElementById('streak-repair-banner');
   if(banner)banner.style.display='none';
-  toast('🔷','Streak repaired — '+streak+' days saved');
+  toast('🔷','Streak repaired — '+streak+' days saved','streak');
   saveToStorage();
 }
 function checkScheduleWeek(){
@@ -19426,6 +19464,20 @@ function renderShieldNotifToggle(){
   btn.classList.toggle('active',shieldNotifsEnabled);
   btn.disabled=blocked&&!shieldNotifsEnabled;
 }
+function toggleNotifPref(key){
+  notifPrefs[key]=!notifPrefs[key];
+  saveToStorage();
+  renderNotifPrefs();
+}
+function renderNotifPrefs(){
+  const wrap=document.getElementById('notif-pref-rows');
+  if(!wrap)return;
+  wrap.innerHTML=NOTIF_CATEGORIES.map(c=>`
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-top:1px solid var(--border2)">
+      <label class="lbl" style="margin:0">${c.icon} ${c.label}</label>
+      <button type="button" class="equip-chip ${notifPrefs[c.key]?'active':''}" onclick="toggleNotifPref('${c.key}')" style="padding:3px 10px;font-size:10px">${notifPrefs[c.key]?'🔔 On':'🔕 Off'}</button>
+    </div>`).join('');
+}
 function notifyShieldStage(stage,title,body){
   if(!shieldNotifsEnabled||typeof Notification==='undefined'||Notification.permission!=='granted')return;
   if(stage<=shieldNotifStage)return; // only escalate, never re-notify the same or a lower stage
@@ -21504,6 +21556,7 @@ function saveToStorage(){
     localStorage.setItem('arx_shieldGreatSaveAwardedToday', shieldGreatSaveAwardedToday?'1':'0');
     localStorage.setItem('arx_shieldNotifStage', String(shieldNotifStage));
     localStorage.setItem('arx_shieldNotifsEnabled', shieldNotifsEnabled?'1':'0');
+    localStorage.setItem('arx_notifPrefs', JSON.stringify(notifPrefs));
     localStorage.setItem('arx_customRecipes', JSON.stringify(customRecipes));
     localStorage.setItem('arx_sleepLog', JSON.stringify(sleepLog));
     localStorage.setItem('arx_cnsTapLog', JSON.stringify(cnsTapLog));
@@ -21656,6 +21709,8 @@ function loadFromStorage(){
     shieldGreatSaveAwardedToday=localStorage.getItem('arx_shieldGreatSaveAwardedToday')==='1';
     shieldNotifStage=parseInt(localStorage.getItem('arx_shieldNotifStage'))||0;
     shieldNotifsEnabled=localStorage.getItem('arx_shieldNotifsEnabled')==='1';
+    const np=localStorage.getItem('arx_notifPrefs');
+    if(np){try{Object.assign(notifPrefs,JSON.parse(np));}catch(e){}}
     const cr=localStorage.getItem('arx_customRecipes');
     if(cr){try{customRecipes=JSON.parse(cr);}catch(e){customRecipes=[];}}
     const sl=localStorage.getItem('arx_sleepLog');
@@ -21721,7 +21776,7 @@ document.addEventListener('DOMContentLoaded', function(){
       bronzeDropBank++;silverDropBank++;shardBank++;diamondDropBank++;
       saveToStorage();
       history.replaceState(null,'',location.pathname+location.hash);
-      setTimeout(()=>{try{toast('🎁','Test crates granted — check Compass Drops');}catch(e){}},800);
+      setTimeout(()=>{try{toast('🎁','Test crates granted — check Compass Drops','drops');}catch(e){}},800);
     }
   }catch(e){}
   try{applyStreakBreak();}catch(e){console.error('applyStreakBreak:',e.message);}
