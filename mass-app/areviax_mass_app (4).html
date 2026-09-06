@@ -1503,6 +1503,39 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     }
     .achievement-overlay.show .achievement-modal{transform:scale(1) translateY(0);opacity:1}
     .achievement-icon{font-size:52px;margin-bottom:10px;filter:drop-shadow(0 4px 12px rgba(255,210,74,.4))}
+
+    /* ── TROPHY SHOWCASE — tapping a trophy in the Cabinet used to just
+       toast its name. This is the actual "step up and look at it" view:
+       the same 3D-rendered relic art, large, on a lit pedestal, slowly
+       turning under the light like a museum display case — the closest
+       a static PNG can get to feeling like a real 3D object without
+       shipping a live WebGL viewer for 22 separate models. */
+    .trophy-showcase-modal{max-width:340px;padding:28px 24px 26px}
+    .trophy-showcase-stage{
+      position:relative;width:200px;height:200px;margin:0 auto 6px;
+      perspective:700px;
+    }
+    .trophy-showcase-pedestal{
+      position:absolute;left:50%;bottom:6px;width:120px;height:14px;
+      transform:translateX(-50%);border-radius:50%;
+      background:radial-gradient(closest-side,rgba(0,0,0,.55),transparent 75%);
+    }
+    .trophy-showcase-img-wrap{
+      width:100%;height:100%;display:flex;align-items:center;justify-content:center;
+      animation:trophyShowcaseTurn 6s ease-in-out infinite;
+      transform-style:preserve-3d;
+    }
+    @keyframes trophyShowcaseTurn{
+      0%,100%{transform:rotateY(-14deg) rotateX(2deg)}
+      50%{transform:rotateY(14deg) rotateX(2deg)}
+    }
+    .trophy-showcase-img-wrap img{max-width:82%;max-height:82%;object-fit:contain;filter:drop-shadow(0 14px 18px rgba(0,0,0,.5))}
+    .trophy-showcase-img-wrap .trophy-showcase-locked-glyph{font-size:64px;opacity:.35;filter:grayscale(1)}
+    .trophy-showcase-beam{
+      position:absolute;inset:-20% -10% auto -10%;height:70%;
+      background:radial-gradient(ellipse at center,var(--showcase-c,rgba(255,212,0,.28)),transparent 70%);
+      pointer-events:none;
+    }
     .achievement-unlocked-label{font-size:10px;font-weight:800;letter-spacing:.22em;color:#FFD24A;margin-bottom:10px}
     .achievement-title{font-size:19px;font-weight:900;color:#fff;margin-bottom:8px;letter-spacing:-.01em}
     .achievement-desc{font-size:12.5px;color:rgba(var(--white-rgb),.65);line-height:1.6;margin-bottom:22px}
@@ -10279,11 +10312,36 @@ function viewAchievementBadge(key){
   const unlocked=unlockedAchievements.includes(key);
   toast(unlocked?a.icon:'\ud83d\udd12',unlocked?a.label+' \u2014 '+a.desc:a.label+' \u2014 locked');
 }
+// Tapping a trophy used to just toast its name \u2014 a "you can't actually
+// look at the thing you unlocked" dead end. This opens a real showcase:
+// the trophy's own 3D-rendered art, large, slowly turning on a lit
+// pedestal \u2014 every relic already has this art (see images/relics/*.png),
+// it just never got shown any bigger than a 32px hex icon before.
 function viewLegendCard(key){
   const l=LEGEND_CARDS.find(x=>x.key===key);
   if(!l)return;
   const unlocked=unlockedLegends.includes(key);
-  toast(unlocked?l.icon:'\u2753',unlocked?l.name+' \u2014 '+l.title:'Locked \u2014 open a Compass Drop for a chance at this card');
+  if(!unlocked){
+    toast('\ud83d\udd12','Locked \u2014 open a Compass Drop for a chance at this card');
+    return;
+  }
+  const count=legendCounts[key]||1;
+  const overlay=document.createElement('div');
+  overlay.className='achievement-overlay';
+  overlay.innerHTML=`<div class="achievement-modal trophy-showcase-modal" style="border-color:${RARITY_BORDER[l.rarity]}">
+    <div class="legend-reveal-rarity rarity-${l.rarity}">${l.rarity==='ultralegendary'?'ULTRA LEGENDARY':l.rarity.toUpperCase()}</div>
+    <div class="trophy-showcase-stage">
+      <div class="trophy-showcase-beam" style="--showcase-c:${RARITY_GLOW[l.rarity]}"></div>
+      <div class="trophy-showcase-pedestal"></div>
+      <div class="trophy-showcase-img-wrap">${l.img?'<img src="'+l.img+'" alt="'+l.name+'">':'<span class="trophy-showcase-locked-glyph">'+l.icon+'</span>'}</div>
+    </div>
+    ${count>1?'<div style="font-size:10px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:rgba(var(--white-rgb),.4);margin-bottom:2px">\u00d7'+count+' owned</div>':''}
+    <div class="achievement-title reveal-name-serif">${l.name}</div>
+    <div class="achievement-desc">${l.title}</div>
+    <button class="achievement-close-btn" onclick="this.closest('.achievement-overlay').remove()">Close</button>
+  </div>`;
+  document.body.appendChild(overlay);
+  requestAnimationFrame(()=>overlay.classList.add('show'));
 }
 // Small "i" badge on every real trophy card \u2014 same reveal as tapping the
 // card itself (viewLegendCard already correctly withholds the
