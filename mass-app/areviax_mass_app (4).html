@@ -661,30 +661,42 @@ input,input:focus,input:active,
    untouched). Chart/graph work on this page is separate, tracked
    independently. */
 /* DASHBOARD NOTIFICATIONS — the banners above (muscle-balance, streak-risk,
-   streak-repair, sleep-reminder, walk-tip, daily-spin) used to sit
-   permanently inline, pushing everything below them down for as long as
-   they were relevant. Now they drop in from the top like a real
-   notification the moment the dashboard decides to show one, then slide
-   back out on their own — dashNotifWatch() below arms/disarms this per
-   element by watching its own display toggle, so none of the existing
-   "should I show this today" logic anywhere else in the file had to
-   change, only how the result is presented. Position only (not display,
-   background, etc.) so it layers on top of each banner's own inline
-   style without a specificity fight. */
+   streak-repair, sleep-reminder, walk-tip, daily-spin) drop in from the
+   top like a real notification the moment the dashboard decides to show
+   one, then slide back out on their own — dashNotifWatch() below
+   arms/disarms this per element by watching its own display toggle, so
+   none of the existing "should I show this today" logic anywhere else
+   in the file had to change, only how the result is presented. Now
+   carries the exact same frosted-glass card look as #toast (see that
+   rule) instead of each banner painting its own flat bg/border — a real
+   iOS notification and a real iOS toast are the same visual object, just
+   one lingers until dismissed/timed-out and the other doesn't. Every
+   banner's own inline background/border/border-radius is redundant now
+   but harmless (specificity favors this class's later declaration for
+   the properties it sets); left in place rather than stripped from each
+   one to keep this a style-only change. */
 .dash-notif-fixed{
   position:fixed;left:16px;right:16px;z-index:640;
   top:calc(env(safe-area-inset-top,0px) + 62px);
   transform:translateY(-130%);opacity:0;
   transition:transform .42s cubic-bezier(.16,1,.3,1),opacity .3s ease,top .25s ease;
-  pointer-events:none;box-shadow:0 14px 30px -10px rgba(0,0,0,.55);
+  pointer-events:none;
+  background:rgba(36,32,30,.78)!important;
+  backdrop-filter:blur(24px) saturate(1.6);-webkit-backdrop-filter:blur(24px) saturate(1.6);
+  border:.5px solid rgba(255,255,255,.15)!important;
+  border-radius:16px!important;
+  box-shadow:0 1px 3px rgba(0,0,0,.3),0 16px 32px -12px rgba(0,0,0,.5);
 }
 .dash-notif-fixed.dash-notif-in{transform:translateY(0);opacity:1;pointer-events:auto}
 @media(min-width:900px){.dash-notif-fixed{left:50%;right:auto;width:420px;transform:translate(-50%,-130%)}.dash-notif-fixed.dash-notif-in{transform:translate(-50%,0)}}
-/* restackDashNotifs() pushes this down via inline margin-top on mobile
-   so the banner stack never covers the greeting — see that function's
-   comment. Transition here (not on the banners themselves) so the push
-   reads as the hero making room, not a sudden jump. */
-#page-dashboard #dash-eyebrow-text{transition:margin-top .3s ease}
+.dnf-head{display:flex;align-items:flex-start;gap:10px;padding:12px 13px}
+.dnf-icon{flex-shrink:0;width:20px;height:20px;border-radius:5.5px;display:flex;align-items:center;justify-content:center;font-size:12px;line-height:1;box-shadow:0 1px 2px rgba(0,0,0,.25)}
+.dnf-body{flex:1;min-width:0}
+.dnf-toprow{display:flex;align-items:baseline;gap:6px;margin-bottom:1px}
+.dnf-app{font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:rgba(255,255,255,.5)}
+.dnf-time{font-size:10px;color:rgba(255,255,255,.38);flex-shrink:0;margin-left:auto}
+.dnf-msg{font-size:13.5px;font-weight:600;line-height:1.35;color:rgba(var(--white-rgb),.92)}
+.dnf-actions{display:flex;align-items:center;gap:12px;margin-top:6px}
 /* Dashboard/Nutrition's <main> card stack used a flat 20px side padding
    at every width, stacked ON TOP of .content's own responsive padding
    (which itself drops to 16px at <=800px, 12px at <=700px) — 36px of
@@ -3747,42 +3759,84 @@ body[data-goal-theme="cut"] .lv-page{
 <!-- DASHBOARD -->
 <div class="page active greek-page" id="page-dashboard">
 
-  <div id="muscle-balance-banner" class="dash-notif-fixed" style="display:none;background:rgb(20,14,10);border:1.5px solid rgba(68,207,255,.35);border-radius:12px;padding:12px 14px"></div>
+  <div id="muscle-balance-banner" class="dash-notif-fixed" style="display:none"></div>
 
-  <div id="streak-risk-banner" class="dash-notif-fixed" style="display:none;align-items:center;gap:8px;background:rgb(20,14,10);border:1.5px solid rgba(255,122,46,.4);border-radius:12px;padding:12px 14px;font-size:11.5px;color:rgba(var(--white-rgb),.85)">
-    <span style="font-size:15px">🔥</span><span id="streak-risk-text"></span>
+  <div id="streak-risk-banner" class="dash-notif-fixed" style="display:none">
+    <div class="dnf-head">
+      <span class="dnf-icon" style="background:linear-gradient(160deg,#FF9A3D,#F36717)">🔥</span>
+      <div class="dnf-body">
+        <div class="dnf-toprow"><span class="dnf-app">Areviax</span><span class="dnf-time">now</span></div>
+        <div class="dnf-msg" id="streak-risk-text"></div>
+      </div>
+    </div>
   </div>
 
-  <div id="streak-repair-banner" class="dash-notif-fixed" style="display:none;align-items:center;gap:8px;background:rgb(20,14,10);border:1.5px solid rgba(68,207,255,.4);border-radius:12px;padding:12px 14px;font-size:11.5px;color:rgba(var(--white-rgb),.85)">
-    <span style="font-size:15px">🔷</span><span id="streak-repair-text" style="flex:1"></span>
-    <span onclick="repairStreak()" style="cursor:pointer;color:#44CFFF;font-weight:700;text-decoration:underline;text-underline-offset:2px;white-space:nowrap">Repair</span>
-    <span onclick="dismissStreakRepair()" style="cursor:pointer;color:var(--muted);font-size:15px;padding:0 2px 0 8px">✕</span>
+  <div id="streak-repair-banner" class="dash-notif-fixed" style="display:none">
+    <div class="dnf-head">
+      <span class="dnf-icon" style="background:linear-gradient(160deg,#7FE3FF,#2AA9D6)">🔷</span>
+      <div class="dnf-body">
+        <div class="dnf-toprow"><span class="dnf-app">Areviax</span><span class="dnf-time">now</span></div>
+        <div class="dnf-msg" id="streak-repair-text"></div>
+        <div class="dnf-actions">
+          <span onclick="repairStreak()" style="cursor:pointer;color:#44CFFF;font-weight:700;font-size:12.5px">Repair</span>
+          <span onclick="dismissStreakRepair()" style="cursor:pointer;color:var(--muted);font-size:12.5px">Dismiss</span>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <div id="sleep-reminder-banner" class="dash-notif-fixed" style="display:none;align-items:center;gap:8px;background:rgb(20,14,10);border:1.5px solid rgba(255,122,46,.4);border-radius:12px;padding:12px 14px;font-size:11.5px;color:rgba(var(--white-rgb),.85)">
-    <span style="font-size:15px">😴</span><span id="sleep-reminder-text"></span>
+  <div id="sleep-reminder-banner" class="dash-notif-fixed" style="display:none">
+    <div class="dnf-head">
+      <span class="dnf-icon" style="background:linear-gradient(160deg,#B98CFF,#6E4FE0)">😴</span>
+      <div class="dnf-body">
+        <div class="dnf-toprow"><span class="dnf-app">Areviax</span><span class="dnf-time">now</span></div>
+        <div class="dnf-msg" id="sleep-reminder-text"></div>
+      </div>
+    </div>
   </div>
 
-  <div id="walk-tip-card" class="dash-notif-fixed" style="display:none;align-items:center;gap:8px;background:rgb(20,14,10);border:1.5px solid var(--border2);border-radius:12px;padding:12px 14px;font-size:11.5px;color:rgba(var(--white-rgb),.85)">
-    <span style="font-size:15px">🚶</span>
-    <span style="flex:1">Mostly-sitting day today — sneak in a short walk. Keeps joints mobile and circulation up, separate from whatever training you're doing.</span>
-    <span onclick="dismissWalkTip()" style="cursor:pointer;color:var(--muted);font-size:15px;padding:0 2px 0 8px">✕</span>
+  <div id="walk-tip-card" class="dash-notif-fixed" style="display:none">
+    <div class="dnf-head">
+      <span class="dnf-icon" style="background:linear-gradient(160deg,#8FAE9E,#5A7A6C)">🚶</span>
+      <div class="dnf-body">
+        <div class="dnf-toprow"><span class="dnf-app">Areviax</span><span class="dnf-time">now</span></div>
+        <div class="dnf-msg">Mostly-sitting day today — sneak in a short walk. Keeps joints mobile and circulation up, separate from whatever training you're doing.</div>
+        <div class="dnf-actions"><span onclick="dismissWalkTip()" style="cursor:pointer;color:var(--muted);font-size:12.5px">Dismiss</span></div>
+      </div>
+    </div>
   </div>
 
-  <div id="daily-spin-banner" class="dash-notif-fixed" style="display:none;align-items:center;gap:10px;cursor:pointer;background:linear-gradient(135deg,rgba(243,103,23,.22),rgb(24,14,6));border:1.5px solid rgba(243,103,23,.4);border-radius:12px;padding:12px 14px;font-size:11.5px;color:rgba(var(--white-rgb),.85)" onclick="showPage('progress');setTimeout(()=>{const el=document.getElementById('daily-spin-card');if(el)el.scrollIntoView({behavior:'smooth',block:'center'});},350)">
-    <span style="font-size:16px">🎁</span>
-    <span style="flex:1">A Gift from the Gods awaits — a key to Bronze, Silver, Gold, even Diamond.</span>
-    <span style="color:var(--orange);font-weight:800;white-space:nowrap">Open →</span>
+  <div id="daily-spin-banner" class="dash-notif-fixed" style="display:none;cursor:pointer" onclick="showPage('progress');setTimeout(()=>{const el=document.getElementById('daily-spin-card');if(el)el.scrollIntoView({behavior:'smooth',block:'center'});},350)">
+    <div class="dnf-head">
+      <span class="dnf-icon" style="background:linear-gradient(160deg,#FF9A3D,#F36717)">🎁</span>
+      <div class="dnf-body">
+        <div class="dnf-toprow"><span class="dnf-app">Areviax</span><span class="dnf-time">now</span></div>
+        <div class="dnf-msg">A Gift from the Gods awaits — a key to Bronze, Silver, Gold, even Diamond.</div>
+        <div class="dnf-actions"><span style="color:var(--orange);font-weight:700;font-size:12.5px">Open →</span></div>
+      </div>
+    </div>
   </div>
 
-  <div id="missed-food-banner" class="dash-notif-fixed" style="display:none;align-items:center;gap:8px;background:rgb(20,14,10);border:1.5px solid rgba(255,122,46,.4);border-radius:12px;padding:12px 14px;font-size:11.5px;color:rgba(var(--white-rgb),.85)">
-    <span style="font-size:15px">🍽️</span><span id="missed-food-text" style="flex:1">You didn't log any food yesterday — consistent logging is what makes your Shield, Arete, and progress tracking actually mean something over months, not just today.</span>
-    <span onclick="dismissMissedFoodDay()" style="cursor:pointer;color:var(--muted);font-size:15px;padding:0 2px 0 8px">✕</span>
+  <div id="missed-food-banner" class="dash-notif-fixed" style="display:none">
+    <div class="dnf-head">
+      <span class="dnf-icon" style="background:linear-gradient(160deg,#FF9A3D,#F36717)">🍽️</span>
+      <div class="dnf-body">
+        <div class="dnf-toprow"><span class="dnf-app">Areviax</span><span class="dnf-time">now</span></div>
+        <div class="dnf-msg" id="missed-food-text">You didn't log any food yesterday — consistent logging is what makes your Shield, Arete, and progress tracking actually mean something over months, not just today.</div>
+        <div class="dnf-actions"><span onclick="dismissMissedFoodDay()" style="cursor:pointer;color:var(--muted);font-size:12.5px">Dismiss</span></div>
+      </div>
+    </div>
   </div>
 
-  <div id="weekly-assessment-banner" class="dash-notif-fixed" style="display:none;align-items:center;gap:8px;cursor:pointer;background:rgb(20,14,10);border:1.5px solid rgba(68,212,255,.4);border-radius:12px;padding:12px 14px;font-size:11.5px;color:rgba(var(--white-rgb),.85)" onclick="viewAssessment()">
-    <span style="font-size:15px">📊</span><span id="weekly-assessment-text" style="flex:1">Your Week's Assessment is ready.</span>
-    <span onclick="dismissWeeklyAssessmentBanner(event)" style="cursor:pointer;color:var(--muted);font-size:15px;padding:0 2px 0 8px">✕</span>
+  <div id="weekly-assessment-banner" class="dash-notif-fixed" style="display:none;cursor:pointer" onclick="viewAssessment()">
+    <div class="dnf-head">
+      <span class="dnf-icon" style="background:linear-gradient(160deg,#7FE3FF,#2AA9D6)">📊</span>
+      <div class="dnf-body">
+        <div class="dnf-toprow"><span class="dnf-app">Areviax</span><span class="dnf-time">now</span></div>
+        <div class="dnf-msg" id="weekly-assessment-text">Your Week's Assessment is ready.</div>
+        <div class="dnf-actions"><span onclick="dismissWeeklyAssessmentBanner(event)" style="cursor:pointer;color:var(--muted);font-size:12.5px">Dismiss</span></div>
+      </div>
+    </div>
   </div>
 
   <!-- DASHBOARD GRID — named-area layout: mobile stacks single-column
@@ -13439,64 +13493,23 @@ function renderTodaySessionName(name){
 const DASH_NOTIF_IDS=['muscle-balance-banner','streak-risk-banner','streak-repair-banner','sleep-reminder-banner','walk-tip-card','daily-spin-banner','missed-food-banner','weekly-assessment-banner'];
 let _dashNotifArmed=false;
 function restackDashNotifs(){
-  // Used to special-case >=900px here by measuring #dash-name's bottom
-  // for extra clearance — but #dash-name lives inside the "hidden legacy
-  // anchors" block (display:none, old JS-target leftovers, see that
-  // comment near dash-date/dash-greeting), so getBoundingClientRect()
-  // on it is always all-zeros. That branch was always a no-op; the
-  // eyebrow-push below now covers both widths for real instead.
+  // Real iOS notifications float over whatever's on screen and never
+  // reserve layout space for themselves — they arrive, sit on top for a
+  // few seconds (armDashNotifWatchers' 6s auto-dismiss below already
+  // matches that), and leave without anything underneath having moved.
+  // This used to also push the dashboard greeting down to stay clear of
+  // the banner stack, which was the opposite of that: it made the
+  // banners behave like permanent inline content wearing a notification
+  // skin. Now this only positions multiple stacked banners relative to
+  // each other (top offset), never touches the page underneath.
   let offset=62;
-  let anyVisible=false, maxBottom=0;
   DASH_NOTIF_IDS.forEach(id=>{
     const el=document.getElementById(id);
     if(el&&el.classList.contains('dash-notif-in')){
-      const topPx=offset;
       el.style.top='calc(env(safe-area-inset-top,0px) + '+offset+'px)';
-      const h=el.offsetHeight;
-      offset+=h+10;
-      anyVisible=true;
-      // Not el.getBoundingClientRect().bottom — this runs the instant
-      // dash-notif-in is added, before the slide-down transition has
-      // moved the banner off its off-screen translateY(-130%) start, so
-      // the real rect briefly reports the banner still up near the top
-      // of the viewport. topPx+h is the banner's settled target bottom,
-      // unaffected by the transform's current animation progress.
-      maxBottom=Math.max(maxBottom, topPx+h);
+      offset+=el.offsetHeight+10;
     }
   });
-  // Despite an earlier comment claiming space was already reserved for
-  // this, nothing actually kept these fixed banners clear of the real
-  // greeting at any width — a single banner alone covered "Good evening"
-  // outright, and two stacking (a real case: e.g. Gift from the Gods +
-  // Weekly Assessment both eligible the same day) buried it further.
-  // Push the eyebrow/greeting/subtitle block down by however much the
-  // live banner stack actually needs — targeting the eyebrow specifically
-  // (not the whole <header>) so the push starts right after the topbar
-  // row instead of shoving the topbar/logo down too.
-  const heroEl=document.querySelector('#page-dashboard #dash-eyebrow-text');
-  if(heroEl){
-    // Two banners can each arrive within moments of each other (their
-    // own MutationObservers fire separately), so back-to-back calls here
-    // land inside each other's margin-top transition. Reading
-    // getBoundingClientRect() mid-transition samples the animating
-    // value, not the true natural position — undershooting the push.
-    // Disabling the transition for this one synchronous measurement
-    // (then restoring it) keeps the read exact regardless of timing.
-    const prevTransition=heroEl.style.transition;
-    heroEl.style.transition='none';
-    heroEl.style.marginTop='22px';
-    const naturalTop=heroEl.getBoundingClientRect().top;
-    // naturalTop is a real rendered viewport position, so it already
-    // includes this device's actual safe-area inset — maxBottom (built
-    // from the plain px offsets used in the banners' own calc()) needs
-    // that same inset added before the two are comparable.
-    const spacer=document.querySelector('#page-dashboard .dash-grid>div:first-child');
-    const safeTop=spacer?spacer.getBoundingClientRect().height:0;
-    const need=anyVisible?Math.max(0,(maxBottom+safeTop)-naturalTop+12):0;
-    heroEl.style.marginTop=(22+need)+'px';
-    heroEl.getBoundingClientRect(); // flush the jump before re-enabling the transition
-    heroEl.style.transition=prevTransition;
-  }
 }
 function armDashNotifWatchers(){
   if(_dashNotifArmed)return;_dashNotifArmed=true;
@@ -21208,11 +21221,15 @@ function checkMuscleBalanceNudge(){
   const allocatedLabel=dev.allocatedName||getSessionTypeLabel(dev.allocatedType);
   const actualLabel=getSessionTypeLabel(dev.actualType);
   el.style.display='block';
-  el.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
-    <div style="font-size:11.5px;color:rgba(var(--white-rgb),.85)">🔄 We noticed you did <strong style="color:var(--cyan)">${actualLabel}</strong> yesterday instead of the planned <strong style="color:var(--cyan)">${allocatedLabel}</strong> — want to do that today instead?</div>
-    <div style="display:flex;gap:6px;flex-shrink:0">
-      <button class="btn btn-g btn-sm" onclick="switchToRecommendedType()">Switch today</button>
-      <button class="btn btn-ghost btn-sm" onclick="dismissMuscleBalanceNudge()">Not today</button>
+  el.innerHTML=`<div class="dnf-head">
+    <span class="dnf-icon" style="background:linear-gradient(160deg,#7FE3FF,#2AA9D6)">🔄</span>
+    <div class="dnf-body">
+      <div class="dnf-toprow"><span class="dnf-app">Areviax</span><span class="dnf-time">now</span></div>
+      <div class="dnf-msg">We noticed you did <strong style="color:var(--cyan)">${actualLabel}</strong> yesterday instead of the planned <strong style="color:var(--cyan)">${allocatedLabel}</strong> — want to do that today instead?</div>
+      <div class="dnf-actions">
+        <span onclick="switchToRecommendedType()" style="cursor:pointer;color:#44CFFF;font-weight:700;font-size:12.5px">Switch today</span>
+        <span onclick="dismissMuscleBalanceNudge()" style="cursor:pointer;color:var(--muted);font-size:12.5px">Not today</span>
+      </div>
     </div>
   </div>`;
 }
