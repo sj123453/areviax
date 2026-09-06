@@ -1070,8 +1070,15 @@ select option{background:var(--panel)}
 .sbo-label{font-size:12.5px;font-weight:700;color:var(--white)}
 
 /* TOAST */
-#toast{position:fixed;bottom:76px;left:50%;transform:translateX(-50%) translateY(20px);z-index:600;background:rgba(13,11,32,.95);backdrop-filter:blur(12px);border:1.5px solid var(--purple-b);padding:10px 18px;display:flex;align-items:center;gap:10px;font-size:13px;font-family:"Outfit",sans-serif;color:var(--white);font-weight:500;opacity:0;pointer-events:none;transition:transform .3s cubic-bezier(.16,1,.3,1),opacity .3s cubic-bezier(.16,1,.3,1);border-radius:10px;white-space:normal;max-width:min(340px,calc(100vw - 32px));box-shadow:0 0 24px -8px rgba(142,142,147,.4)}
+/* Apple-style notification banner: docks just under the status bar/
+   notch and springs DOWN into view (translateY negative→0), rather
+   than the old small pill that rose up from above the bottom nav.
+   z-index sits above the safe-area blackout (1000) and every
+   bottom-sheet modal (9999) since a real OS banner would interrupt
+   whatever's on screen too. */
+#toast{position:fixed;top:max(var(--safe-top,0px),env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%) translateY(-130%);z-index:10000;background:rgba(24,19,15,.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.08);padding:11px 14px;display:flex;align-items:center;gap:11px;font-size:13px;font-family:"Outfit",sans-serif;color:var(--white);font-weight:500;opacity:0;pointer-events:none;transition:transform .45s cubic-bezier(.32,1.1,.34,1),opacity .3s ease;border-radius:18px;white-space:normal;width:min(400px,calc(100vw - 24px));margin-top:8px;box-shadow:0 14px 34px -10px rgba(0,0,0,.55),0 2px 10px -2px rgba(0,0,0,.35)}
 #toast.show{opacity:1!important;transform:translateX(-50%) translateY(0)!important;pointer-events:auto;cursor:pointer}
+#toast #ti{flex-shrink:0;width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,rgba(243,103,23,.3),rgba(243,103,23,.1));display:flex;align-items:center;justify-content:center;font-size:15px;line-height:1}
 
 /* ONBOARDING */
 #onboarding{position:fixed;inset:0;background:var(--bg);z-index:900;display:flex;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;-webkit-overflow-scrolling:touch}
@@ -3359,7 +3366,7 @@ body[data-goal-theme="cut"] .lv-page{
   <div class="dp-attrib" id="dp-attrib-text">— Areviax</div>
 </div>
 
-<div id="toast" onclick="dismissToast()"><span id="ti">💪</span><span id="tm" style="font-weight:600">Arete</span></div>
+<div id="toast" onclick="dismissToast()"><span id="ti">💪</span><span id="tm" style="font-weight:600;flex:1;min-width:0">Arete</span></div>
 
 <div id="rest-overlay">
   <div class="rest-ring">
@@ -4293,6 +4300,41 @@ body[data-goal-theme="cut"] .lv-page{
       <button class="btn btn-g btn-sm" onclick="progResponse('up')">Could do more weight</button>
       <button class="btn btn-out btn-sm" onclick="progResponse('same')">Weight felt right</button>
       <button class="btn btn-out btn-sm" onclick="progResponse('down')">Too heavy — drop it</button>
+    </div>
+  </div>
+  <!-- ADD CARDIO — optional, for tacking something onto the end of a
+       lifting session that doesn't fit sets×reps×weight (a swim, a run,
+       a match). Same underlying activity list/calorie estimate/XP as
+       the Forge page's standalone Cardio & Sport card — see
+       CARDIO_WIDGET_PREFIXES — just its own ids so both widgets render
+       and log independently while sharing one history. -->
+  <div class="card lv-surface" style="margin-bottom:16px">
+    <div onclick="toggleSessCardio()" style="cursor:pointer;display:flex;align-items:center;gap:8px">
+      <span style="flex:1;font-size:13px;font-weight:800;color:var(--white)">🏊 Add cardio to finish? <span style="font-weight:400;color:var(--muted);font-size:11px">optional</span></span>
+      <span id="sess-cardio-chev" style="color:var(--muted);font-size:11px;transition:transform .2s;display:inline-block">▼</span>
+    </div>
+    <div id="sess-cardio-body" style="display:none;margin-top:12px">
+      <div style="font-size:10.5px;color:var(--muted);margin-bottom:10px">Swam, ran, played a match after lifting? Log it here — counts toward today's calories and XP same as the Forge page.</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px" id="sess-cardio-activity-chips"></div>
+      <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;margin-bottom:10px">
+        <div><label style="font-size:10px;color:var(--muted);display:block;margin-bottom:3px">Duration (mins)</label><input type="number" id="sess-cardio-duration" placeholder="30" min="1"></div>
+        <div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
+            <label style="font-size:10px;color:var(--muted)">Distance (optional)</label>
+            <div style="display:flex;gap:4px" id="sess-cardio-distance-unit-toggle">
+              <button type="button" class="equip-chip active" data-u="km" onclick="setCardioDistanceUnit('km')" style="padding:2px 8px;font-size:9px">km</button>
+              <button type="button" class="equip-chip" data-u="mi" onclick="setCardioDistanceUnit('mi')" style="padding:2px 8px;font-size:9px">mi</button>
+            </div>
+          </div>
+          <input type="number" id="sess-cardio-distance" placeholder="5" min="0" step="0.1">
+        </div>
+      </div>
+      <div style="margin-bottom:12px">
+        <label style="font-size:10px;color:var(--muted);display:block;margin-bottom:5px">Intensity</label>
+        <div style="display:flex;gap:6px" id="sess-cardio-intensity-chips"></div>
+      </div>
+      <button class="btn btn-g btn-sm" style="width:100%" onclick="logCardioSession('sess-')">Log Cardio</button>
+      <div id="sess-cardio-history-list" style="margin-top:12px;display:flex;flex-direction:column;gap:6px"></div>
     </div>
   </div>
   <div id="compass-claim-card"></div>
@@ -5360,8 +5402,9 @@ body[data-goal-theme="cut"] .lv-page{
   <div class="cabinet-tier">
     <div class="cabinet-tier-plaque">
       <span class="cabinet-tier-name">Lift Ranks</span>
+      <span class="cabinet-tier-count" style="cursor:pointer;text-decoration:underline;text-underline-offset:2px" onclick="openRankTiers()">What do the tiers mean?</span>
     </div>
-    <div class="cabinet-tier-sub">Your estimated 1-rep max, ranked against your bodyweight</div>
+    <div class="cabinet-tier-sub">Your top-ranked lifts, based on estimated 1-rep max against your bodyweight</div>
     <div class="cabinet-row" id="cabinet-liftranks-row"></div>
   </div>
   </div>
@@ -6626,6 +6669,16 @@ body[data-goal-theme="cut"] .lv-page{
     </div>
     <div style="font-size:10.5px;color:var(--muted);margin-top:6px;line-height:1.5">Get a notification if the Caloric Shield is still behind in the evening — one at risk, one if it starts cracking, one if it breaks. Only fires while this device has the app installed or a tab open; won't wake a fully closed app days later.</div>
   </div>
+
+  <!-- IN-APP ALERTS — per-category on/off for the celebratory toast
+       banners. Action-confirmation toasts (saved, deleted, warnings)
+       are never listed here since they're direct feedback to something
+       just tapped, not an optional alert. -->
+  <div class="card lv-surface" style="margin-bottom:14px">
+    <div class="ch"><span class="ct">In-App Alerts</span></div>
+    <div style="font-size:10.5px;color:var(--muted);margin-bottom:4px;line-height:1.5">Turn off the banner for any of these — everything still tracks in the background either way.</div>
+    <div id="notif-pref-rows"></div>
+  </div>
   </div>
 
   <div>
@@ -6910,6 +6963,22 @@ body[data-goal-theme="cut"] .lv-page{
     <div id="ms-next-card" style="text-align:center;background:var(--panel2);border:1.5px solid var(--border2);border-radius:12px;padding:18px;margin-bottom:18px"></div>
     <div style="font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:8px">All milestones</div>
     <div id="ms-list"></div>
+  </div>
+</div>
+
+<!-- RANK TIERS EXPLAINER — Wood through Olympian, each with its own line
+     in one continuous "building something great" narrative rather than
+     a bare percentile, so a rank badge means something the moment
+     someone taps it, not just "you're in the top X%". -->
+<div id="rank-tiers-backdrop" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9998" onclick="closeRankTiers()"></div>
+<div id="rank-tiers-modal" style="display:none;position:fixed;inset:16px;z-index:9999;max-width:480px;margin:0 auto;background:var(--panel);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1.5px solid var(--border);border-radius:16px;box-shadow:0 20px 60px -20px rgba(0,0,0,.7);flex-direction:column;overflow:hidden">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1.5px solid var(--border2);flex-shrink:0">
+    <div style="font-weight:800;font-size:14px">Rank Tiers</div>
+    <button onclick="closeRankTiers()" style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;line-height:1;padding:4px 8px">✕</button>
+  </div>
+  <div style="flex:1;min-height:0;overflow-y:auto;padding:16px">
+    <div style="text-align:center;font-size:11px;color:var(--muted);margin-bottom:16px;line-height:1.6">Every lift you log is ranked Wood through Olympian, based on your estimated 1-rep max relative to your bodyweight — the same tiers as the Trophy Cabinet's Lift Ranks.</div>
+    <div id="rank-tiers-list"></div>
   </div>
 </div>
 
@@ -7443,6 +7512,20 @@ let shieldGreatSaveAwardedToday=false; // one-time-per-day guard so "Great Save"
 // before. Resets at day rollover alongside the other shield-day flags.
 let shieldNotifStage=0;
 let shieldNotifsEnabled=false;
+// ── IN-APP ALERT PREFERENCES — per-category on/off for the celebratory
+// toast banners (XP, streaks, PRs, Compass Drops). Deliberately NOT a
+// blanket "mute all toasts" — action-confirmation toasts (saved,
+// deleted, "enter a duration first") are the app's only feedback that
+// something the user just tapped worked, so those always show and are
+// never gated by category. toast()'s 3rd arg opts a call into a
+// category; calls that omit it always show, same as before this existed.
+const NOTIF_CATEGORIES=[
+  {key:'xp',    label:'XP earned',        icon:'⭐'},
+  {key:'streak',label:'Streaks',          icon:'🔥'},
+  {key:'pr',    label:'Personal records', icon:'🏆'},
+  {key:'drops', label:'Compass Drops',    icon:'🎁'},
+];
+let notifPrefs={xp:true,streak:true,pr:true,drops:true};
 let sleepLog=[];
 let cnsTapLog=[]; // [{date, taps, score}] — raw tap counts for computing a rolling personal baseline
 let winddownDate='',winddownChecked={};
@@ -10166,25 +10249,43 @@ function viewCabinetLocked(label){
 // badge language stays identical across the app.
 const LGR_WREATH_SVG='<svg viewBox="-5 -5 110 115"><path class="lgr-stem" d="M46.2,95.8 L29.9,91.2 L16.6,80.7 L8.3,66.0 L6.1,49.3 L10.4,32.9 L20.5,19.4 L35.0,10.7"/><path class="lgr-stem" d="M53.8,95.8 L70.1,91.2 L83.4,80.7 L91.7,66.0 L93.9,49.3 L89.6,32.9 L79.5,19.4 L65.0,10.7"/><path class="lgr-leaf" d="M47.6,94.1 Q38.5,95.5 38.2,105.8 Q48.2,103.2 47.6,94.1 Z"/><path class="lgr-vein" d="M47.6,94.1 L38.2,105.8"/><path class="lgr-leaf" d="M31.8,90.1 Q23.4,88.1 19.4,97.0 Q29.1,98.3 31.8,90.1 Z"/><path class="lgr-vein" d="M31.8,90.1 L19.4,97.0"/><path class="lgr-leaf" d="M18.6,80.5 Q12.0,75.7 5.4,82.1 Q13.4,86.6 18.6,80.5 Z"/><path class="lgr-vein" d="M18.6,80.5 L5.4,82.1"/><path class="lgr-leaf" d="M10.1,66.5 Q6.0,60.1 -1.9,63.3 Q3.4,70.0 10.1,66.5 Z"/><path class="lgr-vein" d="M10.1,66.5 L-1.9,63.3"/><path class="lgr-leaf" d="M7.5,50.3 Q6.2,43.4 -1.7,43.3 Q0.4,51.0 7.5,50.3 Z"/><path class="lgr-vein" d="M7.5,50.3 L-1.7,43.3"/><path class="lgr-leaf" d="M11.2,34.3 Q12.5,27.9 5.7,25.1 Q4.9,32.4 11.2,34.3 Z"/><path class="lgr-vein" d="M11.2,34.3 L5.7,25.1"/><path class="lgr-leaf" d="M20.7,20.8 Q24.1,15.9 19.2,11.1 Q16.0,17.0 20.7,20.8 Z"/><path class="lgr-vein" d="M20.7,20.8 L19.2,11.1"/><path class="lgr-leaf" d="M34.6,12.0 Q39.2,8.9 36.8,3.2 Q32.0,7.1 34.6,12.0 Z"/><path class="lgr-vein" d="M34.6,12.0 L36.8,3.2"/><path class="lgr-leaf" d="M52.4,94.1 Q51.8,103.2 61.8,105.8 Q61.5,95.5 52.4,94.1 Z"/><path class="lgr-vein" d="M52.4,94.1 L61.8,105.8"/><path class="lgr-leaf" d="M68.2,90.1 Q70.9,98.3 80.6,97.0 Q76.6,88.1 68.2,90.1 Z"/><path class="lgr-vein" d="M68.2,90.1 L80.6,97.0"/><path class="lgr-leaf" d="M81.4,80.5 Q86.6,86.6 94.6,82.1 Q88.0,75.7 81.4,80.5 Z"/><path class="lgr-vein" d="M81.4,80.5 L94.6,82.1"/><path class="lgr-leaf" d="M89.9,66.5 Q96.6,70.0 101.9,63.3 Q94.0,60.1 89.9,66.5 Z"/><path class="lgr-vein" d="M89.9,66.5 L101.9,63.3"/><path class="lgr-leaf" d="M92.5,50.3 Q99.6,51.0 101.7,43.3 Q93.8,43.4 92.5,50.3 Z"/><path class="lgr-vein" d="M92.5,50.3 L101.7,43.3"/><path class="lgr-leaf" d="M88.8,34.3 Q95.1,32.4 94.3,25.1 Q87.5,27.9 88.8,34.3 Z"/><path class="lgr-vein" d="M88.8,34.3 L94.3,25.1"/><path class="lgr-leaf" d="M79.3,20.8 Q84.0,17.0 80.8,11.1 Q75.9,15.9 79.3,20.8 Z"/><path class="lgr-vein" d="M79.3,20.8 L80.8,11.1"/><path class="lgr-leaf" d="M65.4,12.0 Q68.0,7.1 63.2,3.2 Q60.8,8.9 65.4,12.0 Z"/><path class="lgr-vein" d="M65.4,12.0 L63.2,3.2"/></svg>';
 const LRK_BARBELL_SVG='<svg viewBox="0 0 64 24" class="lrk-icon-svg"><rect x="27" y="9" width="10" height="6" rx="1" class="lrk-bar"/><rect x="1" y="1" width="11" height="22" rx="2.5" class="lrk-plate"/><rect x="52" y="1" width="11" height="22" rx="2.5" class="lrk-plate"/><rect x="13" y="5" width="7" height="14" rx="2" class="lrk-plate-sm"/><rect x="44" y="5" width="7" height="14" rx="2" class="lrk-plate-sm"/></svg>';
+// Top ranks across EVERY logged exercise, not just the curated Big 4 \u2014
+// getExerciseRank() already covers any exercise with a PR (curated
+// curve or a RANK_FAMILY_CURVES fallback), so this just ranks every
+// exercise the user actually has a PR for and surfaces their best few,
+// i.e. their real personal records rather than a fixed compound-lift
+// checklist someone may not even train.
+const LIFT_RANKS_SHOWN=6;
+function getTopLiftRanks(){
+  return Object.keys(prs).map(name=>{
+    const r=getExerciseRank(name);
+    return r?{name,r}:null;
+  }).filter(Boolean).sort((a,b)=>{
+    if(b.r.tierIdx!==a.r.tierIdx)return b.r.tierIdx-a.r.tierIdx;
+    if(b.r.subIdx!==a.r.subIdx)return b.r.subIdx-a.r.subIdx;
+    return b.r.progressPct-a.r.progressPct;
+  }).slice(0,LIFT_RANKS_SHOWN);
+}
 function renderLiftRanks(){
   const row=document.getElementById('cabinet-liftranks-row');
   if(!row)return;
-  row.innerHTML=LIFT_RANK_LIFTS.map(lift=>{
-    const r=getLiftRank(lift);
-    if(!r){
-      return `<div class="lift-rank-card">
-        <div class="lrk-name">${lift.label}</div>
-        <div class="lrk-badge-wrap">
-          <div class="lrk-badge locked">${LRK_BARBELL_SVG}</div>
-        </div>
-        <div class="lrk-tier-label unranked">Unranked</div>
-        <div class="lrk-percentile">Log a set to get ranked</div>
-      </div>`;
-    }
+  const top=getTopLiftRanks();
+  if(!top.length){
+    row.innerHTML=`<div class="lift-rank-card" onclick="openRankTiers()" style="cursor:pointer">
+      <div class="lrk-name">Top Ranks</div>
+      <div class="lrk-badge-wrap">
+        <div class="lrk-badge locked">${LRK_BARBELL_SVG}</div>
+      </div>
+      <div class="lrk-tier-label unranked">Unranked</div>
+      <div class="lrk-percentile">Log a set to get ranked</div>
+    </div>`;
+    return;
+  }
+  row.innerHTML=top.map(({name,r})=>{
     const t=r.tier;
     const nextText=r.atLadderTop?'Ladder maxed \u2014 Olympian I':(r.kgToNext>0?`+${r.kgToNext}kg \u2192 ${r.nextLabel}`:r.nextLabel);
-    return `<div class="lift-rank-card" style="--orn-c1:${t.c1};--orn-c2:${t.c2};--lrk-ring1:${t.ring1};--lrk-ring2:${t.ring2}">
-      <div class="lrk-name">${lift.label}</div>
+    return `<div class="lift-rank-card" onclick="openRankTiers()" style="cursor:pointer;--orn-c1:${t.c1};--orn-c2:${t.c2};--lrk-ring1:${t.ring1};--lrk-ring2:${t.ring2}">
+      <div class="lrk-name">${name}</div>
       <div class="lrk-badge-wrap">
         <div class="lrk-badge-glow"></div>
         <div class="lrk-wreath">${LGR_WREATH_SVG}</div>
@@ -10332,7 +10433,7 @@ function grantTestCrates(){
   bronzeDropBank++;silverDropBank++;shardBank++;diamondDropBank++;
   saveToStorage();
   renderAchievements();
-  toast('🎁','Test crates granted — check Compass Drops');
+  toast('🎁','Test crates granted — check Compass Drops','drops');
 }
 function openCompassDrop(tier){
   const cfg=CRATE_TIERS[tier];
@@ -10910,6 +11011,7 @@ function renderSettings(){
   if(!nameEl)return;
   nameEl.value=profile.name||'';
   renderShieldNotifToggle();
+  renderNotifPrefs();
   document.getElementById('set-weight').value=profile.weight?(weightUnit==='kg'?Math.round(profile.weight*0.453592*10)/10:profile.weight):'';
   if(heightUnit==='ftin'&&profile.height){
     const totalIn=profile.height/2.54;
@@ -11497,6 +11599,29 @@ function closeMilestones(){
   document.getElementById('milestones-modal').style.display='none';
   document.body.style.overflow='';
 }
+function openRankTiers(){
+  renderRankTiers();
+  document.getElementById('rank-tiers-backdrop').style.display='block';
+  document.getElementById('rank-tiers-modal').style.display='flex';
+  document.body.style.overflow='hidden';
+}
+function closeRankTiers(){
+  document.getElementById('rank-tiers-backdrop').style.display='none';
+  document.getElementById('rank-tiers-modal').style.display='none';
+  document.body.style.overflow='';
+}
+function renderRankTiers(){
+  const listEl=document.getElementById('rank-tiers-list');
+  if(!listEl)return;
+  listEl.innerHTML=LIFT_RANK_TIERS.map(t=>`
+    <div style="display:flex;gap:12px;padding:12px;background:var(--panel2);border:1.5px solid var(--border2);border-top-color:${t.ring1};border-top-width:2px;border-radius:10px;margin-bottom:8px">
+      <div style="flex-shrink:0;width:34px;height:34px;border-radius:50%;background:linear-gradient(160deg,${t.ring1},${t.ring2});box-shadow:0 0 0 1.5px rgba(0,0,0,.2) inset"></div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12.5px;font-weight:800;color:var(--white);margin-bottom:3px">${t.name}</div>
+        <div style="font-size:11px;color:var(--muted);line-height:1.55">${t.flavor}</div>
+      </div>
+    </div>`).join('');
+}
 function renderMilestones(){
   const vol=totalVolume||0;
   const totEl=document.getElementById('ms-total');
@@ -11725,7 +11850,13 @@ function checkProteinQuest(){
 }
 
 // ── TOAST ──
-function toast(icon,msg){const t=document.getElementById('toast');if(!t)return;const ti=document.getElementById('ti');const tm=document.getElementById('tm');if(ti)ti.textContent=icon;if(tm)tm.textContent=msg;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),3000)}
+function toast(icon,msg,category){
+  if(category&&notifPrefs[category]===false)return;
+  const t=document.getElementById('toast');if(!t)return;
+  const ti=document.getElementById('ti');const tm=document.getElementById('tm');
+  if(ti)ti.textContent=icon;if(tm)tm.textContent=msg;
+  t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),3000);
+}
 function dismissToast(){const t=document.getElementById('toast');if(!t)return;clearTimeout(t._t);t.classList.remove('show')}
 // ── SCROLL PICKER — a drag-to-select ruler that replaces a plain
 // type=number input. The original input is kept in the DOM (as
@@ -11777,7 +11908,9 @@ function mountWeightPickers(){
   mountScrollPicker(document.getElementById('set-weight'),opts);
 }
 function mountCardioDistancePicker(){
-  mountScrollPicker(document.getElementById('cardio-distance'),{min:0,max:cardioDistanceUnit==='mi'?40:60,step:0.1,decimals:1,unit:cardioDistanceUnit||'km'});
+  ['','sess-'].forEach(p=>{
+    mountScrollPicker(document.getElementById(p+'cardio-distance'),{min:0,max:cardioDistanceUnit==='mi'?40:60,step:0.1,decimals:1,unit:cardioDistanceUnit||'km'});
+  });
 }
 function mountStaticScrollPickers(){
   mountWeightPickers();
@@ -11789,6 +11922,7 @@ function mountStaticScrollPickers(){
   mountScrollPicker(document.getElementById('log-sleep'),{min:0,max:14,step:0.5,decimals:1,unit:'hrs'});
   mountScrollPicker(document.getElementById('log-sleep-yesterday'),{min:0,max:14,step:0.5,decimals:1,unit:'hrs'});
   mountScrollPicker(document.getElementById('cardio-duration'),{min:0,max:240,step:1,decimals:0,unit:'min'});
+  mountScrollPicker(document.getElementById('sess-cardio-duration'),{min:0,max:240,step:1,decimals:0,unit:'min'});
   mountCardioDistancePicker();
   mountScrollPicker(document.getElementById('food-cals'),{min:0,max:2000,step:5,decimals:0,unit:'cal'});
   mountScrollPicker(document.getElementById('food-prot'),{min:0,max:300,step:1,decimals:0,unit:'g'});
@@ -12023,7 +12157,7 @@ function addXP(n,l=''){
   xpLog.push({date:localDateKey(new Date()),amount:n,label:l||'Other'});
   if(xpLog.length>500)xpLog=xpLog.slice(-500);
   const xve=document.getElementById('xp-val');if(xve)xve.textContent=xp;
-  toast('⭐',`+${n} Arete${l?' — '+l:''}`);
+  toast('⭐',`+${n} Arete${l?' — '+l:''}`,'xp');
   try{updateAvatar();}catch(e){}
   updateStreakFromActivity();
   try{checkStreakAtRisk();}catch(e){}
@@ -12170,10 +12304,10 @@ function updateStreakFromActivity(){
     if(card){card.classList.remove('streak-pop');void card.offsetWidth;card.classList.add('streak-pop');}
     if(fv){fv.classList.remove('streak-pop');void fv.offsetWidth;fv.classList.add('streak-pop');}
     if(isNewBest){
-      toast('🏆','New personal best — '+streak+' days!');
+      toast('🏆','New personal best — '+streak+' days!','streak');
       celebrateBurst(['🔥','🏆','⭐','💥'],22);
     }else{
-      toast('🔥',streak+' day streak — keep it going!');
+      toast('🔥',streak+' day streak — keep it going!','streak');
       celebrateBurst(['🔥'],14);
     }
   }
@@ -13118,39 +13252,50 @@ let cardioDistanceUnit = 'km';
 let cardioLog = []; // [{activity, duration, distance, unit, intensity, date}] — restored from localStorage at init below
 
 function setCardioDistanceUnit(u){
-  const inp=document.getElementById('cardio-distance');
-  if(inp&&inp.value){
-    const cur=parseFloat(inp.value);
-    if(!isNaN(cur)){
-      // convert whatever's currently typed from the OLD unit into the NEW one, so switching doesn't just blank/misinterpret it
-      if(cardioDistanceUnit==='km'&&u==='mi')inp.value=Math.round(cur*0.621371*100)/100;
-      else if(cardioDistanceUnit==='mi'&&u==='km')inp.value=Math.round(cur/0.621371*100)/100;
+  CARDIO_WIDGET_PREFIXES.forEach(p=>{
+    const inp=document.getElementById(p+'cardio-distance');
+    if(inp&&inp.value){
+      const cur=parseFloat(inp.value);
+      if(!isNaN(cur)){
+        // convert whatever's currently typed from the OLD unit into the NEW one, so switching doesn't just blank/misinterpret it
+        if(cardioDistanceUnit==='km'&&u==='mi')inp.value=Math.round(cur*0.621371*100)/100;
+        else if(cardioDistanceUnit==='mi'&&u==='km')inp.value=Math.round(cur/0.621371*100)/100;
+      }
     }
-  }
+    const t=document.getElementById(p+'cardio-distance-unit-toggle');
+    if(t)t.querySelectorAll('.equip-chip').forEach(b=>b.classList.toggle('active',b.dataset.u===u));
+  });
   cardioDistanceUnit=u;
-  const t=document.getElementById('cardio-distance-unit-toggle');
-  if(t)t.querySelectorAll('.equip-chip').forEach(b=>b.classList.toggle('active',b.dataset.u===u));
   if(typeof mountCardioDistancePicker==='function')mountCardioDistancePicker();
   saveToStorage();
 }
 
+// Prefixes for every place the Cardio & Sport widget is mounted — the
+// Forge/builder page's standalone card ('') and the optional "add
+// cardio to finish" section at the bottom of a live Session (''sess-').
+// Both read/write the same cardioSelectedActivity/cardioLog state, so
+// logging from either one behaves identically and shows up in both.
+const CARDIO_WIDGET_PREFIXES = ['','sess-'];
 function renderCardioChips(){
-  const actWrap = document.getElementById('cardio-activity-chips');
-  if(actWrap){
-    actWrap.innerHTML = CARDIO_ACTIVITIES.map(a=>`<span onclick="selectCardioActivity('${a}')" class="equip-chip ${cardioSelectedActivity===a?'active':''}" style="cursor:pointer;font-size:11px;padding:6px 10px">${a}</span>`).join('');
-  }
-  const intWrap = document.getElementById('cardio-intensity-chips');
-  if(intWrap){
-    intWrap.innerHTML = CARDIO_INTENSITIES.map(i=>`<span onclick="selectCardioIntensity('${i}')" class="equip-chip ${cardioSelectedIntensity===i?'active':''}" style="cursor:pointer;flex:1;text-align:center;font-size:11px;padding:6px 8px">${i}</span>`).join('');
-  }
-  const distToggle = document.getElementById('cardio-distance-unit-toggle');
-  if(distToggle)distToggle.querySelectorAll('.equip-chip').forEach(b=>b.classList.toggle('active',b.dataset.u===cardioDistanceUnit));
+  CARDIO_WIDGET_PREFIXES.forEach(p=>{
+    const actWrap = document.getElementById(p+'cardio-activity-chips');
+    if(actWrap){
+      actWrap.innerHTML = CARDIO_ACTIVITIES.map(a=>`<span onclick="selectCardioActivity('${a}')" class="equip-chip ${cardioSelectedActivity===a?'active':''}" style="cursor:pointer;font-size:11px;padding:6px 10px">${a}</span>`).join('');
+    }
+    const intWrap = document.getElementById(p+'cardio-intensity-chips');
+    if(intWrap){
+      intWrap.innerHTML = CARDIO_INTENSITIES.map(i=>`<span onclick="selectCardioIntensity('${i}')" class="equip-chip ${cardioSelectedIntensity===i?'active':''}" style="cursor:pointer;flex:1;text-align:center;font-size:11px;padding:6px 8px">${i}</span>`).join('');
+    }
+    const distToggle = document.getElementById(p+'cardio-distance-unit-toggle');
+    if(distToggle)distToggle.querySelectorAll('.equip-chip').forEach(b=>b.classList.toggle('active',b.dataset.u===cardioDistanceUnit));
+  });
 }
 function selectCardioActivity(a){ cardioSelectedActivity=a; renderCardioChips(); }
 function selectCardioIntensity(i){ cardioSelectedIntensity=i; renderCardioChips(); }
-function logCardioSession(){
-  const durEl = document.getElementById('cardio-duration');
-  const distEl = document.getElementById('cardio-distance');
+function logCardioSession(prefix){
+  prefix = prefix||'';
+  const durEl = document.getElementById(prefix+'cardio-duration');
+  const distEl = document.getElementById(prefix+'cardio-distance');
   const duration = parseInt(durEl.value);
   if(!duration || duration<1){ toast('⚠️','Enter a duration first'); return; }
   const distance = distEl.value ? parseFloat(distEl.value) : null;
@@ -13176,6 +13321,14 @@ function logCardioSession(){
   renderCaloricShield();
   saveToStorage();
 }
+function toggleSessCardio(){
+  const body=document.getElementById('sess-cardio-body');
+  const chev=document.getElementById('sess-cardio-chev');
+  if(!body)return;
+  const opening=body.style.display==='none';
+  body.style.display=opening?'':'none';
+  if(chev)chev.style.transform=opening?'rotate(180deg)':'';
+}
 function deleteCardioEntry(idx){
   const entry=cardioLog[idx];
   if(entry&&entry.caloriesBurned&&entry.date===localDateKey(new Date())){
@@ -13190,14 +13343,16 @@ function deleteCardioEntry(idx){
   saveToStorage();
 }
 function renderCardioHistory(){
-  const wrap = document.getElementById('cardio-history-list');
-  if(!wrap) return;
-  if(!cardioLog.length){ wrap.innerHTML=''; return; }
-  wrap.innerHTML = cardioLog.slice(0,5).map((c,i)=>`
-    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:var(--panel2);border-radius:6px;font-size:11px">
-      <span>${c.activity} · ${c.duration}min${c.distance?' · '+c.distance+(c.unit||'km'):''} · ${c.intensity}${c.caloriesBurned?' · ~'+c.caloriesBurned+' cal':''}</span>
-      <span onclick="deleteCardioEntry(${i})" style="color:var(--muted);cursor:pointer;padding:0 4px">✕</span>
-    </div>`).join('');
+  CARDIO_WIDGET_PREFIXES.forEach(p=>{
+    const wrap = document.getElementById(p+'cardio-history-list');
+    if(!wrap) return;
+    if(!cardioLog.length){ wrap.innerHTML=''; return; }
+    wrap.innerHTML = cardioLog.slice(0,5).map((c,i)=>`
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:var(--panel2);border-radius:6px;font-size:11px">
+        <span>${c.activity} · ${c.duration}min${c.distance?' · '+c.distance+(c.unit||'km'):''} · ${c.intensity}${c.caloriesBurned?' · ~'+c.caloriesBurned+' cal':''}</span>
+        <span onclick="deleteCardioEntry(${i})" style="color:var(--muted);cursor:pointer;padding:0 4px">✕</span>
+      </div>`).join('');
+  });
 }
 
 // A single honest, real-data glanceable line for the dashboard's Today
@@ -15217,16 +15372,29 @@ function estimate1RM(name){
 // silently drops the WHOLE shadow list if any layer is invalid, so the
 // ring always gets a real solid colour, same split the legend-card
 // medallion ring (--lgi-ring) already uses against the same holo sprite.
+// pct: short label for the compact per-lift badge card (fits ~120px).
+// flavor: the fuller "building something great" narrative shown in the
+// Rank Tiers explainer sheet — every tier reads as one continuous story
+// of a build getting more ambitious, not a random flavour line each.
 const LIFT_RANK_TIERS=[
-  {name:'Wood',    c1:'#C9A377', c2:'#6B4226', ring1:'#C9A377', ring2:'#6B4226', pct:'Just getting started'},
-  {name:'Bronze',  c1:'#F0C08E', c2:'#9A5522', ring1:'#F0C08E', ring2:'#9A5522', pct:'Top 75%'},
-  {name:'Silver',  c1:'#E4E7EC', c2:'#A59D95', ring1:'#E4E7EC', ring2:'#A59D95', pct:'Top 55%'},
-  {name:'Gold',    c1:'#FFEB99', c2:'#E8B400', ring1:'#FFEB99', ring2:'#E8B400', pct:'Top 35%'},
-  {name:'Platinum',c1:'#EAF6FF', c2:'#6E9BC2', ring1:'#EAF6FF', ring2:'#6E9BC2', pct:'Top 20%'},
-  {name:'Elite',   c1:'#B8FFE0', c2:'#16A37A', ring1:'#B8FFE0', ring2:'#16A37A', pct:'Top 10%'},
-  {name:'Champion',c1:'#FFAEB5', c2:'#E23B4E', ring1:'#FFAEB5', ring2:'#E23B4E', pct:'Top 5%'},
-  {name:'Titan',   c1:'#E4C4FF', c2:'#A855F7', ring1:'#E4C4FF', ring2:'#A855F7', pct:'Top 1.5%'},
-  {name:'Olympian',c1:'url(#lgi-holo-grad)', c2:'url(#lgi-holo-grad)', ring1:'#FFD9A8', ring2:'#FF9A3D', pct:'Top 0.3%'},
+  {name:'Wood',    c1:'#C9A377', c2:'#6B4226', ring1:'#C9A377', ring2:'#6B4226', pct:'Laying the foundations',
+   flavor:"You're building foundations to build fantastic things on."},
+  {name:'Bronze',  c1:'#F0C08E', c2:'#9A5522', ring1:'#F0C08E', ring2:'#9A5522', pct:'The first blocks are down',
+   flavor:"You're starting to build — laying out the first blocks toward something beautiful."},
+  {name:'Silver',  c1:'#E4E7EC', c2:'#A59D95', ring1:'#E4E7EC', ring2:'#A59D95', pct:"The frame's going up",
+   flavor:"The frame is going up. What you're building is starting to take real shape."},
+  {name:'Gold',    c1:'#FFEB99', c2:'#E8B400', ring1:'#FFEB99', ring2:'#E8B400', pct:'Solid, built to last',
+   flavor:"Solid and dependable — this is built to last, not just to look good."},
+  {name:'Platinum',c1:'#EAF6FF', c2:'#6E9BC2', ring1:'#EAF6FF', ring2:'#6E9BC2', pct:'Fewer build this far',
+   flavor:"Most people stop long before this floor. You kept building anyway."},
+  {name:'Elite',   c1:'#B8FFE0', c2:'#16A37A', ring1:'#B8FFE0', ring2:'#16A37A', pct:'Rare craftsmanship',
+   flavor:"This is rare craftsmanship now — built better than almost anyone attempts."},
+  {name:'Champion',c1:'#FFAEB5', c2:'#E23B4E', ring1:'#FFAEB5', ring2:'#E23B4E', pct:'A structure people notice',
+   flavor:"A structure people stop and notice. What you've built speaks for itself."},
+  {name:'Titan',   c1:'#E4C4FF', c2:'#A855F7', ring1:'#E4C4FF', ring2:'#A855F7', pct:'Among the strongest built',
+   flavor:"Among the strongest things ever built here — the top 1.5%."},
+  {name:'Olympian',c1:'url(#lgi-holo-grad)', c2:'url(#lgi-holo-grad)', ring1:'#FFD9A8', ring2:'#FF9A3D', pct:'The finished monument',
+   flavor:"The finished monument. You're building at the very top of what's possible."},
 ];
 // Ratio curves are estimated-1RM ÷ bodyweight(kg) at the START of each
 // tier above. Squat/deadlift standards sit higher than press standards
@@ -15584,10 +15752,10 @@ function claimCompassPoint(){
   playShardFlyAnimation(btn);
   renderCompassClaimStatus();
   if(justPerfected){
-    toast('🔷','Compass point earned — perfect week! +1 Compass Shard');
+    toast('🔷','Compass point earned — perfect week! +1 Compass Shard','drops');
     celebrateBurst(['🔷','✨'],16);
   }else{
-    toast('🧭','Compass point earned — '+compassPts+'/7 this week');
+    toast('🧭','Compass point earned — '+compassPts+'/7 this week','drops');
   }
 }
 // Clean one-shot reward flourish — a hexagon "shard" pops from the claim
@@ -15806,7 +15974,7 @@ function markTrainedToday(){
   if(bronzeDropProgress>=BRONZE_DROP_DAYS){
     bronzeDropProgress=0;
     bronzeDropBank++;
-    toast('🧭','Bronze Compass Drop earned!');
+    toast('🧭','Bronze Compass Drop earned!','drops');
   }
 }
 
@@ -15886,7 +16054,7 @@ function logSet(ei,si,name,muscle){
     chip.textContent=`🏆 ${w}×${r}`;
     const pd=document.getElementById('pr-d-'+ei);
     if(pd)pd.textContent='PR: '+w+'kg';
-    toast('🏆',isWeightPR?'New PR on '+name+': '+w+'kg!':'New PR on '+name+': '+w+'kg×'+r+' (more reps)!');
+    toast('🏆',isWeightPR?'New PR on '+name+': '+w+'kg!':'New PR on '+name+': '+w+'kg×'+r+' (more reps)!','pr');
     celebrateBurst(['🏆','⭐','💥'],14);
     checkQuestWeek();questProgress.prs=(questProgress.prs||0)+1;renderQuests();checkAchievements();
   }
@@ -16058,7 +16226,7 @@ function checkCompassWeek(){
     // to fire that moment.
     if(compassPts>=7&&!perfectWeekShardBanked){
       shardBank++;
-      toast('🔷','Perfect week — banked a Compass Shard!');
+      toast('🔷','Perfect week — banked a Compass Shard!','drops');
     }
     compassWeekStart=thisMonday;
     compassPts=0;
@@ -16127,7 +16295,7 @@ function repairStreak(){
   lastActiveDate=localDateKey(yesterday); // makes today read as a valid continuation, not a fresh restart
   const banner=document.getElementById('streak-repair-banner');
   if(banner)banner.style.display='none';
-  toast('🔷','Streak repaired — '+streak+' days saved');
+  toast('🔷','Streak repaired — '+streak+' days saved','streak');
   saveToStorage();
 }
 function checkScheduleWeek(){
@@ -19642,6 +19810,20 @@ function renderShieldNotifToggle(){
   btn.classList.toggle('active',shieldNotifsEnabled);
   btn.disabled=blocked&&!shieldNotifsEnabled;
 }
+function toggleNotifPref(key){
+  notifPrefs[key]=!notifPrefs[key];
+  saveToStorage();
+  renderNotifPrefs();
+}
+function renderNotifPrefs(){
+  const wrap=document.getElementById('notif-pref-rows');
+  if(!wrap)return;
+  wrap.innerHTML=NOTIF_CATEGORIES.map(c=>`
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-top:1px solid var(--border2)">
+      <label class="lbl" style="margin:0">${c.icon} ${c.label}</label>
+      <button type="button" class="equip-chip ${notifPrefs[c.key]?'active':''}" onclick="toggleNotifPref('${c.key}')" style="padding:3px 10px;font-size:10px">${notifPrefs[c.key]?'🔔 On':'🔕 Off'}</button>
+    </div>`).join('');
+}
 function notifyShieldStage(stage,title,body){
   if(!shieldNotifsEnabled||typeof Notification==='undefined'||Notification.permission!=='granted')return;
   if(stage<=shieldNotifStage)return; // only escalate, never re-notify the same or a lower stage
@@ -21728,6 +21910,7 @@ function saveToStorage(){
     localStorage.setItem('arx_shieldGreatSaveAwardedToday', shieldGreatSaveAwardedToday?'1':'0');
     localStorage.setItem('arx_shieldNotifStage', String(shieldNotifStage));
     localStorage.setItem('arx_shieldNotifsEnabled', shieldNotifsEnabled?'1':'0');
+    localStorage.setItem('arx_notifPrefs', JSON.stringify(notifPrefs));
     localStorage.setItem('arx_customRecipes', JSON.stringify(customRecipes));
     localStorage.setItem('arx_sleepLog', JSON.stringify(sleepLog));
     localStorage.setItem('arx_cnsTapLog', JSON.stringify(cnsTapLog));
@@ -21882,6 +22065,8 @@ function loadFromStorage(){
     shieldGreatSaveAwardedToday=localStorage.getItem('arx_shieldGreatSaveAwardedToday')==='1';
     shieldNotifStage=parseInt(localStorage.getItem('arx_shieldNotifStage'))||0;
     shieldNotifsEnabled=localStorage.getItem('arx_shieldNotifsEnabled')==='1';
+    const np=localStorage.getItem('arx_notifPrefs');
+    if(np){try{Object.assign(notifPrefs,JSON.parse(np));}catch(e){}}
     const cr=localStorage.getItem('arx_customRecipes');
     if(cr){try{customRecipes=JSON.parse(cr);}catch(e){customRecipes=[];}}
     const sl=localStorage.getItem('arx_sleepLog');
@@ -21947,7 +22132,7 @@ document.addEventListener('DOMContentLoaded', function(){
       bronzeDropBank++;silverDropBank++;shardBank++;diamondDropBank++;
       saveToStorage();
       history.replaceState(null,'',location.pathname+location.hash);
-      setTimeout(()=>{try{toast('🎁','Test crates granted — check Compass Drops');}catch(e){}},800);
+      setTimeout(()=>{try{toast('🎁','Test crates granted — check Compass Drops','drops');}catch(e){}},800);
     }
   }catch(e){}
   try{applyStreakBreak();}catch(e){console.error('applyStreakBreak:',e.message);}
