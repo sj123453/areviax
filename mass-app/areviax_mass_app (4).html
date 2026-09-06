@@ -2293,6 +2293,23 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .crate-flash.areviax{--flash-c1:rgba(255,220,170,.95);--flash-c2:rgba(255,120,30,.35)}
     @keyframes crateFlashPop{0%{opacity:0}12%{opacity:1}100%{opacity:0}}
 
+    /* ── MULTI-SLOT CRATE REVEAL — Brawl Box style: a crate open now pays
+       out a short sequence (Arete, then the trophy), tapped through one
+       beat at a time, instead of one flat reveal. Gift from the Gods
+       (tier==='areviax') deliberately skips all of this — see
+       showLegendReveal's own comment on why that stays a single reward. */
+    .crate-tap-prompt{margin-top:14px;font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:rgba(var(--white-rgb),.55);transition:opacity .2s ease;animation:crateTapPulse 1.4s ease-in-out infinite}
+    @keyframes crateTapPulse{0%,100%{opacity:.55}50%{opacity:1}}
+    .crate-slot-counter{position:absolute;top:-8px;right:-8px;min-width:26px;height:26px;padding:0 6px;border-radius:50%;background:rgba(20,14,10,.92);border:1.5px solid rgba(232,214,196,.35);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:800;color:var(--white);z-index:2;transition:background .2s,border-color .2s,transform .2s}
+    .crate-slot-counter.glow-alert{background:rgba(255,70,70,.9);border-color:#fff;color:#fff;animation:crateCounterGlow .5s ease-in-out infinite alternate;transform:scale(1.15)}
+    @keyframes crateCounterGlow{0%{box-shadow:0 0 6px 1px rgba(255,70,70,.7)}100%{box-shadow:0 0 16px 4px rgba(255,70,70,.9)}}
+    .crate-slot-pop{animation:crateSlotPopIn .35s cubic-bezier(.34,1.56,.64,1) both}
+    @keyframes crateSlotPopIn{0%{opacity:0;transform:scale(.5) rotate(-8deg)}70%{opacity:1}100%{opacity:1;transform:scale(1) rotate(0)}}
+    .crate-xp-slot{display:flex;flex-direction:column;align-items:center;gap:6px;padding:20px 0}
+    .crate-xp-slot-icon{width:64px;height:64px;border-radius:50%;background:linear-gradient(160deg,#FFD24A,#FF8342);display:flex;align-items:center;justify-content:center;font-size:30px;box-shadow:0 8px 22px -8px rgba(255,140,40,.6)}
+    .crate-xp-slot-label{font-size:22px;font-weight:900;color:var(--white)}
+    .crate-xp-slot-sub{font-size:10px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:rgba(var(--white-rgb),.5)}
+
     /* ── GIFT FROM THE GODS — one free daily login reward, replacing the
        old spin-wheel gimmick. A sealed gift opens (tap) into a key
        matching whichever crate tier it won underneath (same weighted
@@ -10832,63 +10849,27 @@ function buildCrateReelHTML(finalCard){
   }
   return {html,landIdx};
 }
+// Tap-to-open reveal. Gift from the Gods (tier==='areviax', only ever
+// reached via spinDailyWheel — the crate row's own areviax tile isn't
+// tappable, see renderAchievements) stays exactly what it's always been:
+// one sealed thing, one reward, shown once. Every real bank crate
+// (bronze/silver/gold/diamond, opened from the Compass Drops row) now
+// pays out as a short Brawl-Box-style sequence instead — Arete first,
+// then the trophy — tapped through one beat at a time with a remaining-
+// count badge, rather than one flat reveal. Total value granted is
+// unchanged from before (same XP, same one card); only the pacing of
+// *seeing* it changed to feel like unwrapping multiple things.
+// .crate-shake/.crack-out/.crate-icon-burst.flare were already sitting in
+// the stylesheet, tier-timed to CRATE_OPEN_TIMING's windupMs/crackMs
+// (260/300/380/460/580ms) but never wired to a click handler until now.
 function showLegendReveal(l,isNew,tier,count){
   const cfg=CRATE_OPEN_TIMING[tier]||CRATE_OPEN_TIMING.bronze;
-  // Kick the prize image's fetch off immediately, in parallel with the
-  // reel/crack beats below, instead of only creating the <img> tag at
-  // reveal time. This gives a slow-loading asset a head start so it's
-  // normally already cached by the time the reveal card shows.
   if(l.img){const _preload=new Image();_preload.src=l.img;}
-  const {html:reelHTML,landIdx}=buildCrateReelHTML(l);
-  const overlay=document.createElement('div');
-  overlay.className='achievement-overlay';
-  overlay.innerHTML=
-    '<div class="achievement-modal crate-reveal-stage">'+
-      '<div class="crate-reel-window">'+
-        '<div class="crate-reel-center-mark"></div>'+
-        '<div class="crate-reel-track" id="reveal-reel-track" style="transition-duration:'+cfg.reelMs+'ms">'+reelHTML+'</div>'+
-      '</div>'+
-    '</div>';
-  document.body.appendChild(overlay);
-  requestAnimationFrame(()=>overlay.classList.add('show'));
+  const xpAmount=isNew?25:10;
+  const multiSlot=tier!=='areviax';
 
-  // playCrateTick gives the spin some texture without looping a sound
-  // the whole way through — same one-shot-per-tick approach
-  // spinDailyWheel already uses.
-  requestAnimationFrame(()=>{
-    const track=overlay.querySelector('#reveal-reel-track');
-    if(track){
-      playCrateSpinTicks(cfg.reelMs);
-      track.style.transform='translateX('+(CRATE_REEL_ITEM_W*(2-(landIdx+1)))+'px)';
-    }
-  });
-
-  // The reel lands on the real card's own tile — no detour through a
-  // separate "mystery crate" graphic that then has to be cracked open
-  // separately before you see what you actually got. A landed-pop +
-  // crack sound (+ flash on the richer tiers) punctuates the moment
-  // the reel settles, then that same card grows into the full reveal.
-  setTimeout(()=>{
-    const items=overlay.querySelectorAll('.crate-reel-item');
-    const landedCard=items[landIdx]?items[landIdx].querySelector('.crate-reel-card'):null;
-    if(landedCard)landedCard.classList.add('landed');
-    playCrateCrackSound(tier);
-    if(cfg.flash){
-      const flash=document.createElement('div');
-      flash.className='crate-flash'+(tier==='diamond'?' diamond':tier==='areviax'?' areviax':'');
-      document.body.appendChild(flash);
-      setTimeout(()=>flash.remove(),550);
-    }
-  },cfg.reelMs);
-
-  setTimeout(()=>{
-    const modal=overlay.querySelector('.achievement-modal');
-    if(!modal)return;
-    modal.style.setProperty('--reveal-glow',RARITY_GLOW[l.rarity]);
-    modal.style.borderColor=RARITY_BORDER[l.rarity];
-    modal.classList.add('glow');
-    modal.innerHTML=
-      '<div class="legend-reveal-rarity rarity-'+l.rarity+'">'+(l.rarity==='ultralegendary'?'ULTRA LEGENDARY':l.rarity.toUpperCase())+'</div>'+
+  function trophySlotHTML(){
+    return '<div class="legend-reveal-rarity rarity-'+l.rarity+'">'+(l.rarity==='ultralegendary'?'ULTRA LEGENDARY':l.rarity.toUpperCase())+'</div>'+
       '<div class="reveal-badge-wrap" style="--ray-c:'+RARITY_RAY[l.rarity]+'">'+
         '<div class="reveal-ray-burst"></div>'+
         '<div class="legend-reveal-icon shine spin-in rarity-'+l.rarity+'">'+legendIconHTML(l)+'</div>'+
@@ -10896,22 +10877,107 @@ function showLegendReveal(l,isNew,tier,count){
       '<div style="font-size:10.5px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:'+(isNew?'#8FE8FF':'rgba(var(--white-rgb),.4)')+';margin:2px 0 12px">'+(isNew?'NEW':'DUPLICATE'+(count>1?' ×'+count:''))+'</div>'+
       '<div class="achievement-title reveal-name-serif">'+l.name+'</div>'+
       '<div class="achievement-desc">'+l.title+'</div>'+
-      (tier==='areviax'?'<div style="font-size:11px;font-weight:700;color:#FFB347;margin-top:8px">🔥 The Areviax Drop — +2 bonus Compass Shards</div>':'')+
-      '<button class="achievement-close-btn" onclick="this.closest(\'.achievement-overlay\').remove()">Continue</button>';
-    playCrateRevealChime(l.rarity);
-    // addXP's own side effects (streak/achievement/road bookkeeping,
-    // each with its own render pass) and the confetti burst both used to
-    // fire in this same tick as the innerHTML above — right as the
-    // browser is trying to paint the modal's own shine/spin-in/rarity-
-    // pulse animations starting up for the first time. Pushing them one
-    // frame later lets that entrance actually paint before more
-    // JS-driven DOM work competes for the same frame — see
-    // renderRoadPath's visibility guard for the bigger half of this fix.
-    requestAnimationFrame(()=>{
-      addXP(isNew?25:10,isNew?'New trophy':'Compass Drop');
-      if(isNew)celebrateBurst(['🔥','⭐','🏆'],cfg.burstCount);
-    });
-  },cfg.reelMs+cfg.windupMs+cfg.crackMs);
+      (tier==='areviax'?'<div style="font-size:11px;font-weight:700;color:#FFB347;margin-top:8px">🔥 The Areviax Drop — +2 bonus Compass Shards</div>':'');
+  }
+  function xpSlotHTML(){
+    return '<div class="crate-xp-slot crate-slot-pop">'+
+        '<div class="crate-xp-slot-icon">⭐</div>'+
+        '<div class="crate-xp-slot-label">+'+xpAmount+' Arete</div>'+
+        '<div class="crate-xp-slot-sub">'+(isNew?'New trophy bonus':'Compass Drop')+'</div>'+
+      '</div>';
+  }
+  // Order matters for pacing (small beat first, big prize last) — not
+  // for economy, both slots always grant exactly what a single-reveal
+  // crate open always has.
+  const slots=multiSlot?[{render:xpSlotHTML,onShow:()=>addXP(xpAmount,isNew?'New trophy':'Compass Drop')},{render:trophySlotHTML,onShow:()=>{if(isNew)celebrateBurst(['🔥','⭐','🏆'],cfg.burstCount);}}]:[];
+
+  const overlay=document.createElement('div');
+  overlay.className='achievement-overlay';
+  overlay.innerHTML=
+    '<div class="achievement-modal crate-reveal-stage">'+
+      '<div class="crate-icon-wrap '+tier+' ready" id="reveal-crate-wrap" style="cursor:pointer">'+
+        '<div class="crate-icon-glow"></div><div class="crate-icon-burst" id="reveal-crate-burst"></div>'+
+        '<div class="compass-crate '+tier+'" id="reveal-crate-icon"><span class="crate-icon">'+crateIconHTML(tier)+'</span></div>'+
+        (multiSlot?'<div class="crate-slot-counter" id="reveal-slot-counter">'+slots.length+'</div>':'')+
+      '</div>'+
+      '<div class="crate-tap-prompt" id="reveal-tap-prompt">Tap to open</div>'+
+    '</div>';
+  document.body.appendChild(overlay);
+  requestAnimationFrame(()=>overlay.classList.add('show'));
+
+  const wrap=overlay.querySelector('#reveal-crate-wrap');
+  const icon=overlay.querySelector('#reveal-crate-icon');
+  const burst=overlay.querySelector('#reveal-crate-burst');
+  const prompt=overlay.querySelector('#reveal-tap-prompt');
+  const counter=overlay.querySelector('#reveal-slot-counter');
+  let opened=false,slotIdx=0;
+
+  function showSlot(){
+    const modal=overlay.querySelector('.achievement-modal');
+    if(!modal)return;
+    const slot=slots[slotIdx];
+    const isLast=slotIdx===slots.length-1;
+    if(counter){
+      counter.textContent=slots.length-slotIdx;
+      counter.classList.toggle('glow-alert',isLast);
+    }
+    modal.style.setProperty('--reveal-glow',RARITY_GLOW[l.rarity]);
+    modal.style.borderColor=RARITY_BORDER[l.rarity];
+    modal.classList.add('glow');
+    modal.innerHTML=slot.render()+
+      (isLast
+        ? '<button class="achievement-close-btn" onclick="this.closest(\'.achievement-overlay\').remove()">Continue</button>'
+        : '<div class="crate-tap-prompt" style="margin-top:16px" onclick="this.closest(\'.achievement-modal\').dispatchEvent(new Event(\'advance\'))">Tap to continue</div>');
+    playCrateRevealChime(slotIdx===slots.length-1?l.rarity:'common');
+    slot.onShow&&slot.onShow();
+    if(!isLast){
+      modal.addEventListener('advance',()=>{ slotIdx++; showSlot(); },{once:true});
+      // Same "don't gate the reward behind a tap" rule as the box open
+      // itself — advances on its own if the player doesn't tap.
+      setTimeout(()=>{ if(overlay.isConnected&&modal.querySelector('.crate-tap-prompt')){ slotIdx++; showSlot(); } },1800);
+    }
+  }
+
+  function doOpen(){
+    if(opened)return; opened=true;
+    prompt.style.opacity='0';
+    wrap.style.cursor='default';
+    playCrateSpinTicks(cfg.windupMs);
+    icon.classList.add('crate-shake');
+    setTimeout(()=>{
+      icon.classList.add('crack-out');
+      burst.classList.add('flare');
+      playCrateCrackSound(tier);
+      if(cfg.flash){
+        const flash=document.createElement('div');
+        flash.className='crate-flash'+(tier==='diamond'?' diamond':tier==='areviax'?' areviax':'');
+        document.body.appendChild(flash);
+        setTimeout(()=>flash.remove(),550);
+      }
+    },cfg.windupMs);
+    setTimeout(()=>{
+      if(multiSlot){ showSlot(); return; }
+      // Gift from the Gods path — unchanged single reveal.
+      const modal=overlay.querySelector('.achievement-modal');
+      if(!modal)return;
+      modal.style.setProperty('--reveal-glow',RARITY_GLOW[l.rarity]);
+      modal.style.borderColor=RARITY_BORDER[l.rarity];
+      modal.classList.add('glow');
+      modal.innerHTML=trophySlotHTML()+'<button class="achievement-close-btn" onclick="this.closest(\'.achievement-overlay\').remove()">Continue</button>';
+      playCrateRevealChime(l.rarity);
+      requestAnimationFrame(()=>{
+        addXP(xpAmount,isNew?'New trophy':'Compass Drop');
+        if(isNew)celebrateBurst(['🔥','⭐','🏆'],cfg.burstCount);
+      });
+    },cfg.windupMs+cfg.crackMs);
+  }
+  wrap.addEventListener('click',doOpen);
+
+  // A player who never taps still gets their reward — the tap is a beat,
+  // not a gate. Auto-triggers a little after the prompt fades in so a
+  // real tap (which fires first) always wins the race, opened guards
+  // against double-firing either way.
+  setTimeout(doOpen,1400);
 }
 
 // ── GIFT FROM THE GODS — one free daily login reward, weighted heavily
