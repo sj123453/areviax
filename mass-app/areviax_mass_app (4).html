@@ -4239,6 +4239,41 @@ body[data-goal-theme="cut"] .lv-page{
       <button class="btn btn-out btn-sm" onclick="progResponse('down')">Too heavy — drop it</button>
     </div>
   </div>
+  <!-- ADD CARDIO — optional, for tacking something onto the end of a
+       lifting session that doesn't fit sets×reps×weight (a swim, a run,
+       a match). Same underlying activity list/calorie estimate/XP as
+       the Forge page's standalone Cardio & Sport card — see
+       CARDIO_WIDGET_PREFIXES — just its own ids so both widgets render
+       and log independently while sharing one history. -->
+  <div class="card lv-surface" style="margin-bottom:16px">
+    <div onclick="toggleSessCardio()" style="cursor:pointer;display:flex;align-items:center;gap:8px">
+      <span style="flex:1;font-size:13px;font-weight:800;color:var(--white)">🏊 Add cardio to finish? <span style="font-weight:400;color:var(--muted);font-size:11px">optional</span></span>
+      <span id="sess-cardio-chev" style="color:var(--muted);font-size:11px;transition:transform .2s;display:inline-block">▼</span>
+    </div>
+    <div id="sess-cardio-body" style="display:none;margin-top:12px">
+      <div style="font-size:10.5px;color:var(--muted);margin-bottom:10px">Swam, ran, played a match after lifting? Log it here — counts toward today's calories and XP same as the Forge page.</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px" id="sess-cardio-activity-chips"></div>
+      <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;margin-bottom:10px">
+        <div><label style="font-size:10px;color:var(--muted);display:block;margin-bottom:3px">Duration (mins)</label><input type="number" id="sess-cardio-duration" placeholder="30" min="1"></div>
+        <div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
+            <label style="font-size:10px;color:var(--muted)">Distance (optional)</label>
+            <div style="display:flex;gap:4px" id="sess-cardio-distance-unit-toggle">
+              <button type="button" class="equip-chip active" data-u="km" onclick="setCardioDistanceUnit('km')" style="padding:2px 8px;font-size:9px">km</button>
+              <button type="button" class="equip-chip" data-u="mi" onclick="setCardioDistanceUnit('mi')" style="padding:2px 8px;font-size:9px">mi</button>
+            </div>
+          </div>
+          <input type="number" id="sess-cardio-distance" placeholder="5" min="0" step="0.1">
+        </div>
+      </div>
+      <div style="margin-bottom:12px">
+        <label style="font-size:10px;color:var(--muted);display:block;margin-bottom:5px">Intensity</label>
+        <div style="display:flex;gap:6px" id="sess-cardio-intensity-chips"></div>
+      </div>
+      <button class="btn btn-g btn-sm" style="width:100%" onclick="logCardioSession('sess-')">Log Cardio</button>
+      <div id="sess-cardio-history-list" style="margin-top:12px;display:flex;flex-direction:column;gap:6px"></div>
+    </div>
+  </div>
   <div id="compass-claim-card"></div>
   <button class="btn btn-g" style="width:100%;justify-content:center;margin-top:10px" onclick="completeSession()">Complete session ✓</button>
 </div>
@@ -11567,7 +11602,9 @@ function mountWeightPickers(){
   mountScrollPicker(document.getElementById('set-weight'),opts);
 }
 function mountCardioDistancePicker(){
-  mountScrollPicker(document.getElementById('cardio-distance'),{min:0,max:cardioDistanceUnit==='mi'?40:60,step:0.1,decimals:1,unit:cardioDistanceUnit||'km'});
+  ['','sess-'].forEach(p=>{
+    mountScrollPicker(document.getElementById(p+'cardio-distance'),{min:0,max:cardioDistanceUnit==='mi'?40:60,step:0.1,decimals:1,unit:cardioDistanceUnit||'km'});
+  });
 }
 function mountStaticScrollPickers(){
   mountWeightPickers();
@@ -11579,6 +11616,7 @@ function mountStaticScrollPickers(){
   mountScrollPicker(document.getElementById('log-sleep'),{min:0,max:14,step:0.5,decimals:1,unit:'hrs'});
   mountScrollPicker(document.getElementById('log-sleep-yesterday'),{min:0,max:14,step:0.5,decimals:1,unit:'hrs'});
   mountScrollPicker(document.getElementById('cardio-duration'),{min:0,max:240,step:1,decimals:0,unit:'min'});
+  mountScrollPicker(document.getElementById('sess-cardio-duration'),{min:0,max:240,step:1,decimals:0,unit:'min'});
   mountCardioDistancePicker();
   mountScrollPicker(document.getElementById('food-cals'),{min:0,max:2000,step:5,decimals:0,unit:'cal'});
   mountScrollPicker(document.getElementById('food-prot'),{min:0,max:300,step:1,decimals:0,unit:'g'});
@@ -12846,39 +12884,50 @@ let cardioDistanceUnit = 'km';
 let cardioLog = []; // [{activity, duration, distance, unit, intensity, date}] — restored from localStorage at init below
 
 function setCardioDistanceUnit(u){
-  const inp=document.getElementById('cardio-distance');
-  if(inp&&inp.value){
-    const cur=parseFloat(inp.value);
-    if(!isNaN(cur)){
-      // convert whatever's currently typed from the OLD unit into the NEW one, so switching doesn't just blank/misinterpret it
-      if(cardioDistanceUnit==='km'&&u==='mi')inp.value=Math.round(cur*0.621371*100)/100;
-      else if(cardioDistanceUnit==='mi'&&u==='km')inp.value=Math.round(cur/0.621371*100)/100;
+  CARDIO_WIDGET_PREFIXES.forEach(p=>{
+    const inp=document.getElementById(p+'cardio-distance');
+    if(inp&&inp.value){
+      const cur=parseFloat(inp.value);
+      if(!isNaN(cur)){
+        // convert whatever's currently typed from the OLD unit into the NEW one, so switching doesn't just blank/misinterpret it
+        if(cardioDistanceUnit==='km'&&u==='mi')inp.value=Math.round(cur*0.621371*100)/100;
+        else if(cardioDistanceUnit==='mi'&&u==='km')inp.value=Math.round(cur/0.621371*100)/100;
+      }
     }
-  }
+    const t=document.getElementById(p+'cardio-distance-unit-toggle');
+    if(t)t.querySelectorAll('.equip-chip').forEach(b=>b.classList.toggle('active',b.dataset.u===u));
+  });
   cardioDistanceUnit=u;
-  const t=document.getElementById('cardio-distance-unit-toggle');
-  if(t)t.querySelectorAll('.equip-chip').forEach(b=>b.classList.toggle('active',b.dataset.u===u));
   if(typeof mountCardioDistancePicker==='function')mountCardioDistancePicker();
   saveToStorage();
 }
 
+// Prefixes for every place the Cardio & Sport widget is mounted — the
+// Forge/builder page's standalone card ('') and the optional "add
+// cardio to finish" section at the bottom of a live Session (''sess-').
+// Both read/write the same cardioSelectedActivity/cardioLog state, so
+// logging from either one behaves identically and shows up in both.
+const CARDIO_WIDGET_PREFIXES = ['','sess-'];
 function renderCardioChips(){
-  const actWrap = document.getElementById('cardio-activity-chips');
-  if(actWrap){
-    actWrap.innerHTML = CARDIO_ACTIVITIES.map(a=>`<span onclick="selectCardioActivity('${a}')" class="equip-chip ${cardioSelectedActivity===a?'active':''}" style="cursor:pointer;font-size:11px;padding:6px 10px">${a}</span>`).join('');
-  }
-  const intWrap = document.getElementById('cardio-intensity-chips');
-  if(intWrap){
-    intWrap.innerHTML = CARDIO_INTENSITIES.map(i=>`<span onclick="selectCardioIntensity('${i}')" class="equip-chip ${cardioSelectedIntensity===i?'active':''}" style="cursor:pointer;flex:1;text-align:center;font-size:11px;padding:6px 8px">${i}</span>`).join('');
-  }
-  const distToggle = document.getElementById('cardio-distance-unit-toggle');
-  if(distToggle)distToggle.querySelectorAll('.equip-chip').forEach(b=>b.classList.toggle('active',b.dataset.u===cardioDistanceUnit));
+  CARDIO_WIDGET_PREFIXES.forEach(p=>{
+    const actWrap = document.getElementById(p+'cardio-activity-chips');
+    if(actWrap){
+      actWrap.innerHTML = CARDIO_ACTIVITIES.map(a=>`<span onclick="selectCardioActivity('${a}')" class="equip-chip ${cardioSelectedActivity===a?'active':''}" style="cursor:pointer;font-size:11px;padding:6px 10px">${a}</span>`).join('');
+    }
+    const intWrap = document.getElementById(p+'cardio-intensity-chips');
+    if(intWrap){
+      intWrap.innerHTML = CARDIO_INTENSITIES.map(i=>`<span onclick="selectCardioIntensity('${i}')" class="equip-chip ${cardioSelectedIntensity===i?'active':''}" style="cursor:pointer;flex:1;text-align:center;font-size:11px;padding:6px 8px">${i}</span>`).join('');
+    }
+    const distToggle = document.getElementById(p+'cardio-distance-unit-toggle');
+    if(distToggle)distToggle.querySelectorAll('.equip-chip').forEach(b=>b.classList.toggle('active',b.dataset.u===cardioDistanceUnit));
+  });
 }
 function selectCardioActivity(a){ cardioSelectedActivity=a; renderCardioChips(); }
 function selectCardioIntensity(i){ cardioSelectedIntensity=i; renderCardioChips(); }
-function logCardioSession(){
-  const durEl = document.getElementById('cardio-duration');
-  const distEl = document.getElementById('cardio-distance');
+function logCardioSession(prefix){
+  prefix = prefix||'';
+  const durEl = document.getElementById(prefix+'cardio-duration');
+  const distEl = document.getElementById(prefix+'cardio-distance');
   const duration = parseInt(durEl.value);
   if(!duration || duration<1){ toast('⚠️','Enter a duration first'); return; }
   const distance = distEl.value ? parseFloat(distEl.value) : null;
@@ -12904,6 +12953,14 @@ function logCardioSession(){
   renderCaloricShield();
   saveToStorage();
 }
+function toggleSessCardio(){
+  const body=document.getElementById('sess-cardio-body');
+  const chev=document.getElementById('sess-cardio-chev');
+  if(!body)return;
+  const opening=body.style.display==='none';
+  body.style.display=opening?'':'none';
+  if(chev)chev.style.transform=opening?'rotate(180deg)':'';
+}
 function deleteCardioEntry(idx){
   const entry=cardioLog[idx];
   if(entry&&entry.caloriesBurned&&entry.date===localDateKey(new Date())){
@@ -12918,14 +12975,16 @@ function deleteCardioEntry(idx){
   saveToStorage();
 }
 function renderCardioHistory(){
-  const wrap = document.getElementById('cardio-history-list');
-  if(!wrap) return;
-  if(!cardioLog.length){ wrap.innerHTML=''; return; }
-  wrap.innerHTML = cardioLog.slice(0,5).map((c,i)=>`
-    <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:var(--panel2);border-radius:6px;font-size:11px">
-      <span>${c.activity} · ${c.duration}min${c.distance?' · '+c.distance+(c.unit||'km'):''} · ${c.intensity}${c.caloriesBurned?' · ~'+c.caloriesBurned+' cal':''}</span>
-      <span onclick="deleteCardioEntry(${i})" style="color:var(--muted);cursor:pointer;padding:0 4px">✕</span>
-    </div>`).join('');
+  CARDIO_WIDGET_PREFIXES.forEach(p=>{
+    const wrap = document.getElementById(p+'cardio-history-list');
+    if(!wrap) return;
+    if(!cardioLog.length){ wrap.innerHTML=''; return; }
+    wrap.innerHTML = cardioLog.slice(0,5).map((c,i)=>`
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:var(--panel2);border-radius:6px;font-size:11px">
+        <span>${c.activity} · ${c.duration}min${c.distance?' · '+c.distance+(c.unit||'km'):''} · ${c.intensity}${c.caloriesBurned?' · ~'+c.caloriesBurned+' cal':''}</span>
+        <span onclick="deleteCardioEntry(${i})" style="color:var(--muted);cursor:pointer;padding:0 4px">✕</span>
+      </div>`).join('');
+  });
 }
 
 // A single honest, real-data glanceable line for the dashboard's Today
