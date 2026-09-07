@@ -27,6 +27,7 @@
   --border:rgba(232,214,196,.1);--border2:rgba(232,214,196,.07);
   --bg-rgb:13,8,6;
   --gold:#E3BF76;--gold-soft:rgba(227,191,118,.35);
+  --accent1:#F36717;--accent2:#FF8342;
 }
 /* LIGHT THEME — flips every var(--...) reference. --white-rgb/--bg-rgb
    exist so the many inline rgba(var(--white-rgb),X) "off-white text" and
@@ -46,6 +47,34 @@
 }
 [data-theme="light"] html{background:#F5F5F2}
 [data-theme="light"] body{background:linear-gradient(160deg,#F5F5F2 0%,#EAEAE5 100%) fixed;background-color:#F5F5F2}
+/* ── ACCENT THEMES — a cosmetic reward (see unlockAccentTheme/
+   setAccentTheme), separate from the dark/light toggle above. Two color
+   systems both need overriding for this to actually be visible: the
+   older --blue/--cyan/--mint/--green (all already consolidated to one
+   accent, --orange, in :root above) covers most of the app, and the
+   separate --lv-* system the ported Dashboard/Progress/Trophy Cabinet
+   pages use needs --lv-primary et al overridden too — same pattern
+   body[data-goal-theme="cut"] .lv-page already uses above for the
+   olive-grove goal palette, just keyed off this attribute instead.
+   Bronze needs no rule — it's just the :root/.lv-page defaults. */
+[data-accent-theme="silver"]{
+  --blue:#6E8BA8;--blue-l:#6E8BA8;--cyan:#6E8BA8;
+  --orange:#6E8BA8;--orange2:#9FC3E0;
+  --mint:#6E8BA8;--mint2:#6E8BA8;--green:#6E8BA8;--green2:#6E8BA8;
+}
+html[data-accent-theme="silver"] .lv-page{
+  --lv-primary:#6E8BA8;--lv-primary-rgb:110,139,168;--lv-primary-fg:#0B1218;--lv-primary-soft:#2A3844;
+  --lv-ember1:#6E8BA8;--lv-ember1-rgb:110,139,168;--lv-ember2:#3D5266;
+}
+[data-accent-theme="gold"]{
+  --blue:#C9971E;--blue-l:#C9971E;--cyan:#C9971E;
+  --orange:#C9971E;--orange2:#FFD866;
+  --mint:#C9971E;--mint2:#C9971E;--green:#C9971E;--green2:#C9971E;
+}
+html[data-accent-theme="gold"] .lv-page{
+  --lv-primary:#C9971E;--lv-primary-rgb:201,151,30;--lv-primary-fg:#1A1204;--lv-primary-soft:#4A3A14;
+  --lv-ember1:#C9971E;--lv-ember1-rgb:201,151,30;--lv-ember2:#8A6A10;
+}
 html{height:100%;background:#0D0806;overscroll-behavior:none}body{height:100%;background:linear-gradient(160deg,#0D0806 0%,#000000 100%) fixed;background-color:#0D0806;color:var(--white);font-family:'Outfit',sans-serif;font-weight:400;overflow:hidden;overscroll-behavior:none;touch-action:manipulation;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
 /* Without this, double-clicking anywhere in the app shell (topbar,
    dashboard, cards) triggers the browser's native text-selection —
@@ -6834,6 +6863,11 @@ body[data-goal-theme="cut"] .lv-page{
       </div>
     </div>
     <div style="font-size:10.5px;color:var(--muted);margin-top:6px;line-height:1.5">Every page has had a light-mode pass now — flag anything that still looks off and it'll get fixed.</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:14px">
+      <label class="lbl" style="margin:0">Accent</label>
+      <div id="set-accent-toggle" style="display:flex;gap:4px"></div>
+    </div>
+    <div style="font-size:10.5px;color:var(--muted);margin-top:6px;line-height:1.5">A cosmetic reward, not a setting — Silver unlocks from opening a Diamond Crate, Gold from the Areviax Crate.</div>
   </div>
 
   <!-- SHIELD REMINDERS — a real OS-level notification (not just an
@@ -7680,6 +7714,44 @@ function setTheme(t){
   saveToStorage();
   const swt=document.getElementById('set-theme-toggle');
   if(swt)swt.querySelectorAll('.equip-chip').forEach(b=>b.classList.toggle('active',b.dataset.u===appTheme));
+}
+// ACCENT THEMES — a cosmetic reward, not a light/dark mode (see setTheme
+// above, unrelated). Only overrides --orange/--orange2, the one root
+// custom property the app's main accent color actually flows through
+// (verified: exactly one :root declaration for it) — safe blast radius,
+// doesn't touch the separate --lv-* system Nutrition/Dashboard use.
+// Bronze is the default, always unlocked. Silver/Gold are earned by
+// reaching real milestones (opening a Diamond crate / winning the
+// Areviax crate) — tied to actual progression, not random luck, same
+// as everything else cosmetic-adjacent in this app.
+const ACCENT_THEMES={
+  bronze:{name:'Bronze',c1:'#F36717',c2:'#FF8342'},
+  silver:{name:'Silver',c1:'#6E8BA8',c2:'#9FC3E0'},
+  gold:{name:'Gold',c1:'#C9971E',c2:'#FFD866'},
+};
+let unlockedThemes=['bronze'];
+let equippedAccentTheme='bronze';
+function unlockAccentTheme(key,announce){
+  if(!ACCENT_THEMES[key]||unlockedThemes.includes(key))return;
+  unlockedThemes.push(key);
+  saveToStorage();
+  if(announce)toast('🎨','New theme unlocked — '+ACCENT_THEMES[key].name+'. Equip it in Settings → Appearance.');
+}
+function setAccentTheme(key){
+  if(!ACCENT_THEMES[key]||!unlockedThemes.includes(key))return;
+  equippedAccentTheme=key;
+  document.documentElement.setAttribute('data-accent-theme',key);
+  saveToStorage();
+  renderAccentThemePicker();
+}
+function renderAccentThemePicker(){
+  const cont=document.getElementById('set-accent-toggle');
+  if(!cont)return;
+  cont.innerHTML=Object.keys(ACCENT_THEMES).map(key=>{
+    const t=ACCENT_THEMES[key];
+    const unlocked=unlockedThemes.includes(key);
+    return `<button type="button" class="equip-chip${key===equippedAccentTheme?' active':''}" ${unlocked?`onclick="setAccentTheme('${key}')"`:'disabled'} style="padding:3px 10px;font-size:10px;opacity:${unlocked?1:.4}"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${t.c1};margin-right:4px;vertical-align:middle"></span>${t.name}${unlocked?'':' 🔒'}</button>`;
+  }).join('');
 }
 let joinDate='';
 let lastAnniversaryYear=0;
@@ -10715,6 +10787,8 @@ function openCompassDrop(tier){
   if(isNew)unlockedLegends.push(pick.key);
   legendCounts[pick.key]=(legendCounts[pick.key]||0)+1;
   if(tier==='areviax')shardBank+=2; // the best drop in the app pays a bonus on top of the guaranteed card
+  if(tier==='diamond')unlockAccentTheme('silver',true);
+  if(tier==='areviax')unlockAccentTheme('gold',true);
   // A real bank crate has a modest chance to also drop a Key — the
   // "add other rewards in there" ask, as its own slot in the reveal
   // sequence below rather than a silent background grant. Areviax skips
@@ -11382,6 +11456,7 @@ function renderSettings(){
   const swt=document.getElementById('set-weight-unit-toggle');if(swt)swt.querySelectorAll('.equip-chip').forEach(b=>b.classList.toggle('active',b.dataset.u===weightUnit));
   const sht=document.getElementById('set-height-unit-toggle');if(sht)sht.querySelectorAll('.equip-chip').forEach(b=>b.classList.toggle('active',b.dataset.u===heightUnit));
   const stt=document.getElementById('set-theme-toggle');if(stt)stt.querySelectorAll('.equip-chip').forEach(b=>b.classList.toggle('active',b.dataset.u===appTheme));
+  renderAccentThemePicker();
   document.getElementById('set-age').value=profile.age||'';
   document.getElementById('set-goal').value=profile.goal||'bulk';
   document.getElementById('set-equip').value=profile.equip||'full';
@@ -22150,6 +22225,8 @@ function saveToStorage(){
     localStorage.setItem('arx_laborsCompleted', JSON.stringify(laborsCompleted));
     localStorage.setItem('arx_weekSessionLength', weekSessionLength);
     localStorage.setItem('arx_appTheme', appTheme);
+    localStorage.setItem('arx_unlockedThemes', JSON.stringify(unlockedThemes));
+    localStorage.setItem('arx_equippedAccentTheme', equippedAccentTheme);
     localStorage.setItem('arx_deviationLog', JSON.stringify(deviationLog));
     localStorage.setItem('arx_lowerBodyNudgeDismissedAt', lowerBodyNudgeDismissedAt||'');
     localStorage.setItem('arx_muscleBalanceNudgeDismissedDate', muscleBalanceNudgeDismissedDate||'');
@@ -22275,6 +22352,11 @@ function loadFromStorage(){
     const th=localStorage.getItem('arx_appTheme');
     appTheme=th==='light'?'light':'dark';
     document.documentElement.setAttribute('data-theme',appTheme);
+    { const ut=localStorage.getItem('arx_unlockedThemes'); if(ut){try{unlockedThemes=JSON.parse(ut);}catch(e){unlockedThemes=['bronze'];}} }
+    if(!unlockedThemes.includes('bronze'))unlockedThemes.unshift('bronze');
+    equippedAccentTheme=localStorage.getItem('arx_equippedAccentTheme')||'bronze';
+    if(!unlockedThemes.includes(equippedAccentTheme))equippedAccentTheme='bronze';
+    document.documentElement.setAttribute('data-accent-theme',equippedAccentTheme);
     const dl=localStorage.getItem('arx_deviationLog');
     if(dl){try{deviationLog=JSON.parse(dl);}catch(e){deviationLog=[];}}
     lowerBodyNudgeDismissedAt=localStorage.getItem('arx_lowerBodyNudgeDismissedAt')||null;
