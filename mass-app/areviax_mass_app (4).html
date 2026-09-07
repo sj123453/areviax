@@ -1559,7 +1559,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     #compass-main.pulse{animation:compassPulse .7s cubic-bezier(.16,1,.3,1)}
 
     /* ── ACHIEVEMENTS GRID — trophies (existing ACHIEVEMENTS milestones)
-       on top, Legend Cards (Compass Drop collectibles) below, both as
+       on top, Legend Cards (Areviax Crate collectibles) below, both as
        compact horizontal-scroll rows of badges instead of Trophy Road's
        old tall vertical list — same underlying unlock data, just laid
        out so both collections fit one card without a page-length scroll. */
@@ -2011,18 +2011,17 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        this is a separate component that happens to share the silhouette. */
     .compass-crate{
       width:56px;height:56px;position:relative;z-index:1;
-      clip-path:polygon(50% 0%,93% 25%,93% 75%,50% 100%,7% 75%,7% 25%);
       display:flex;align-items:center;justify-content:center;
       --crate-sat:1;
       filter:saturate(var(--crate-sat));
-      /* Rarity-tinted hex background — was fully transparent before,
-         showing nothing but the icon art with no visual differentiation
-         at a glance between tiers beyond the surrounding glow. Reads
-         --crate-glow-color from the .crate-icon-wrap ancestor (already
-         defined per-tier for the glow/burst), so every crate a tier
-         already has a color for gets that same color on its own hex
-         now too, fading into the same dark base every tier shares. */
-      background:linear-gradient(160deg,var(--crate-glow-color,transparent) 0%,rgba(20,16,10,.94) 78%),linear-gradient(160deg,#2A2420,#14100a);
+      /* Used to hex-clip the chest art itself (a leftover from the flat
+         emoji-icon era) — the real 3D-rendered chest PNGs already carry
+         their own silhouette, outline and drop shadow, so clipping them
+         into a hexagon just cropped the art (visibly cutting off the
+         lid/base on every tier). No background fill either now — the
+         image stands on its own, same as it does everywhere else in the
+         app; .crate-icon-glow (the ancestor's radial glow, unclipped and
+         separate from this element) still gives every tier its color. */
     }
     /* Unclipped glow, sized to whatever .compass-crate is (56px in most
        places, 46px in the crate row, 44px in the drop-info modal) —
@@ -2207,36 +2206,19 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        Both sit ABOVE the icon layer (z-index:2 vs the icon's 1) so the
        Areviax emblem — full-bleed onto the hex below — still reads as a
        lit, faceted surface rather than a flat sticker pasted over it. */
-    .compass-crate::before{
-      content:'';position:absolute;inset:0;z-index:2;
-      clip-path:polygon(50% 0%,93% 25%,93% 75%,50% 100%,7% 75%,7% 25%);
-      background:linear-gradient(160deg,transparent 40%,rgba(0,0,0,.32) 100%);
-      pointer-events:none;
-    }
-    .compass-crate::after{
-      content:'';position:absolute;inset:0;z-index:2;
-      clip-path:polygon(50% 0%,93% 25%,93% 75%,50% 100%,7% 75%,7% 25%);
-      background:linear-gradient(160deg,rgba(232,214,196,.4),transparent 50%);
-      pointer-events:none;
-    }
     .compass-crate .crate-icon{position:relative;z-index:1;display:flex;filter:drop-shadow(0 1px 2px rgba(0,0,0,.35))}
     .compass-crate .crate-icon svg{width:26px;height:26px;color:#fff}
-    /* Full-bleed onto the hex itself (clipped to it by .compass-crate's
-       own clip-path) instead of a small circular badge floating in the
-       middle — reads as the logo actually stamped onto the crate rather
-       than a sticker sitting on top of it. The sheen/shade overlays
-       above (z-index:2) give it the same lit-surface depth as every
-       other tier's plain color fill. */
-    .compass-crate.bronze{background:linear-gradient(160deg,#E8A85C,#B8622A)}
-    .compass-crate.silver{background:linear-gradient(160deg,#F2F5F9,#9AA7B4)}
-    .compass-crate.gold{background:linear-gradient(160deg,#FFE58A,#D4970A)}
-    .compass-crate.diamond{background:linear-gradient(115deg,#EAFBFF,#9FE8FF,#EAFBFF,#5FD0F2);background-size:260% 100%;animation:rarityShimmerSweep 3.4s linear infinite}
-    /* Same near-black-plus-amber-ring material as .league-areviax's own
-       hex (see line ~837) — this used to be a bright orange gradient
-       under a busy photographic emblem, which read as a different,
-       louder identity from the League page's clean dark mark despite
-       both meaning "the single best thing in the app." */
-    .compass-crate.areviax{background:linear-gradient(160deg,#2A1206,#0A0503);box-shadow:inset 0 0 0 1.5px rgba(255,170,60,.55)}
+    /* Every tier's background fill, sheen overlay, and shimmer sweep
+       above were all clipped to the hex silhouette (.compass-crate's own
+       clip-path, removed above) — with that gone they showed as a
+       mismatched rectangular tint peeking out from behind the real chest
+       art instead of a lit hex surface. The chest PNGs already carry
+       their own lit-surface shading, silhouette and shadow; nothing
+       behind them is needed anymore for bronze/silver/gold/diamond.
+       Areviax keeps its own dark backing + amber ring (below) since its
+       icon can still be the plain compass mark in places without a
+       chest image. */
+    .compass-crate.areviax{background:linear-gradient(160deg,#2A1206,#0A0503);border-radius:50%;box-shadow:inset 0 0 0 1.5px rgba(255,170,60,.55)}
     .compass-crate.areviax .crate-icon svg{color:#FFB347}
     /* Locked keeps each tier's own colour, just dimmer — a flat
        grayscale filter would desaturate the glow above too, leaving
@@ -2262,7 +2244,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     }
     .crate-slot-sub{font-size:8.5px;color:var(--muted);text-align:center;line-height:1.35}
 
-    /* Compass Drop opening — a single pass of a horizontal reel (the
+    /* Areviax Crate opening — a single pass of a horizontal reel (the
        "slot-reel" beat, brought back by request) straight into a crack
        beat and the reveal, instead of the old charge-then-repeated-
        shake-then-slot-reel chain that took 3.5-7.6s and read as a
@@ -5293,7 +5275,7 @@ body[data-goal-theme="cut"] .lv-page{
     <div class="road-hub-card-chev">→</div>
   </div>
 
-  <!-- REWARDS — Gift from the Gods (daily login reward) + Compass Drops.
+  <!-- REWARDS — Gift from the Gods (daily login reward) + Areviax Crates.
        Gift from the Gods replaced the old spin-wheel gimmick: the
        underlying crate system, odds, and banks are untouched (see
        renderDailySpin/spinDailyWheel), only the reveal is now a sealed
@@ -5301,9 +5283,9 @@ body[data-goal-theme="cut"] .lv-page{
   <div class="card" style="margin-bottom:14px">
     <div class="ch"><span class="ct">Rewards</span></div>
     <div style="font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:4px" id="daily-spin-card">Gift from the Gods</div>
-    <div style="font-size:10.5px;color:var(--muted);margin-bottom:2px">One free gift a day — a key to Bronze, Silver, Gold, Diamond, even the Areviax Drop.</div>
+    <div style="font-size:10.5px;color:var(--muted);margin-bottom:2px">One free gift a day — a key to Bronze, Silver, Gold, Diamond, even the Areviax Crate.</div>
     <div id="daily-spin-wheel" class="spin-wheel-card"></div>
-    <div style="font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:14px 0 4px">Compass Drops</div>
+    <div style="font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:14px 0 4px">Areviax Crates</div>
     <div class="crate-row" id="crate-row"></div>
   </div>
 
@@ -5314,7 +5296,7 @@ body[data-goal-theme="cut"] .lv-page{
 </div>
 
 <!-- Arete ROAD PAGE — checkpoints along lifetime Arete, each unlocking something
-     real (a Compass Drop, spare shards, or a guaranteed Legend Card at the
+     real (a crate, spare shards, or a guaranteed Legend Card at the
      big ones). Reached from the Arete Road hub card on Progress. -->
 <div class="page" id="page-xproad">
   <div style="height:max(var(--safe-top,0px),env(safe-area-inset-top,0px));background:#0D0806;margin:0 -20px"></div>
@@ -5544,7 +5526,7 @@ body[data-goal-theme="cut"] .lv-page{
 
   <!-- LIFT RANKS — a live ladder per lift (Wood → Olympian, each with
        a I/II/III sub-rank), driven by real estimated-1RM vs bodyweight
-       rather than a Compass Drop pull. Sits above the collectible tiers
+       rather than a crate pull. Sits above the collectible tiers
        since it's the one section that updates from actual training,
        not luck — the same "rank leads, collectibles follow" ordering
        Liftoff uses. -->
@@ -5567,7 +5549,7 @@ body[data-goal-theme="cut"] .lv-page{
       <span class="cabinet-tier-name">Weight Milestones</span>
       <span class="cabinet-tier-count" id="cabinet-weight-count"></span>
     </div>
-    <div class="cabinet-tier-sub" id="cabinet-weight-sub">Earned by lifetime volume, not a Compass Drop</div>
+    <div class="cabinet-tier-sub" id="cabinet-weight-sub">Earned by lifetime volume, not a crate</div>
     <div class="cabinet-row" id="cabinet-weight-row"></div>
   </div>
   </div>
@@ -5575,7 +5557,7 @@ body[data-goal-theme="cut"] .lv-page{
 
 <!-- THE 12 LABORS — 12 one-off challenges, each checked against real
      already-tracked data (see the LABORS array / checkLabors()). Not a
-     Compass Drop, not luck — each one either happened or it didn't. -->
+     Areviax Crate, not luck — each one either happened or it didn't. -->
 <div class="page lv-page" id="page-labors">
   <!-- Missing on this page until now (every other hero page has it) —
        without it the back button and "Trials of Heracles" sat right at
@@ -6595,7 +6577,7 @@ body[data-goal-theme="cut"] .lv-page{
        uses so an unlocked card looks identical in both places. -->
   <div class="card lv-surface" style="margin-bottom:14px;cursor:pointer" onclick="showPage('trophycabinet')">
     <div class="ch"><span class="ct glow-title trophy" style="display:flex;align-items:center;gap:7px">🏆 Trophy Cabinet</span><span style="font-size:11px;font-weight:800;color:var(--muted)" id="profile-trophy-count"></span></div>
-    <div style="font-size:11px;color:var(--muted);margin-bottom:12px">Every card you've pulled from a Compass Drop, all in one room.</div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:12px">Every card you've pulled from a crate, all in one room.</div>
     <div id="profile-trophy-preview" style="display:flex;gap:8px;overflow-x:auto;padding-bottom:2px"></div>
     <button class="btn btn-out btn-sm" style="width:100%;margin-top:12px" onclick="event.stopPropagation();showPage('trophycabinet')">Enter Trophy Cabinet →</button>
   </div>
@@ -7281,7 +7263,7 @@ let xp=0,streak=0,compassPts=0,totalSess=0,sessThisWeek=0;
 // 7-day week, spendable on repairing a broken streak.
 let shardBank=0;
 let streakRepairDismissedDate='';
-// Bronze Compass Drops — a second, free-and-frequent track alongside the
+// The Bronze Crate — a second, free-and-frequent track alongside the
 // shard-funded Gold Drop, so the Legend Card collection keeps moving for
 // everyone training regularly, not just people who complete a full
 // perfect week. bronzeDropProgress counts real trained days (via
@@ -7663,7 +7645,7 @@ let shieldGreatSaveAwardedToday=false; // one-time-per-day guard so "Great Save"
 let shieldNotifStage=0;
 let shieldNotifsEnabled=false;
 // ── IN-APP ALERT PREFERENCES — per-category on/off for the celebratory
-// toast banners (XP, streaks, PRs, Compass Drops). Deliberately NOT a
+// toast banners (XP, streaks, PRs, Areviax Crates). Deliberately NOT a
 // blanket "mute all toasts" — action-confirmation toasts (saved,
 // deleted, "enter a duration first") are the app's only feedback that
 // something the user just tapped worked, so those always show and are
@@ -7673,7 +7655,7 @@ const NOTIF_CATEGORIES=[
   {key:'xp',    label:'XP earned',        icon:'⭐'},
   {key:'streak',label:'Streaks',          icon:'🔥'},
   {key:'pr',    label:'Personal records', icon:'🏆'},
-  {key:'drops', label:'Compass Drops',    icon:'🎁'},
+  {key:'drops', label:'Areviax Crates',    icon:'🎁'},
 ];
 let notifPrefs={xp:true,streak:true,pr:true,drops:true};
 let sleepLog=[];
@@ -9162,7 +9144,7 @@ function renderProfileTrophySummary(){
   const owned=unlockedLegends.filter(k=>LEGEND_CARDS.some(l=>l.key===k)).length;
   if(countEl)countEl.textContent=owned+'/'+total;
   if(owned===0){
-    cont.innerHTML='<div style="font-size:11px;color:var(--muted);padding:10px 0">No cards yet — open a Compass Drop to start your collection.</div>';
+    cont.innerHTML='<div style="font-size:11px;color:var(--muted);padding:10px 0">No cards yet — open a crate to start your collection.</div>';
     return;
   }
   const ownedCards=LEGEND_CARDS.filter(l=>unlockedLegends.includes(l.key))
@@ -9329,7 +9311,7 @@ function milestoneIconHTML(m){
   return m.img?'<img src="'+m.img+'" alt="'+m.name+'">':m.icon;
 }
 
-// \u2500\u2500 LEGEND CARDS \u2014 Compass Drop collectibles. Real bodybuilding
+// \u2500\u2500 LEGEND CARDS \u2014 Areviax Crate collectibles. Real bodybuilding
 // greats, factual titles only (no invented quotes attributed to real
 // people) \u2014 this is a nostalgic trivia-card collectible inside a
 // personal training app, not a claim of endorsement. Rarity weights
@@ -9584,7 +9566,7 @@ function grantXpRoadReward(node){
     if(!document.querySelector('.achievement-overlay')){
       // Same iOS unlock reasoning as openCompassDrop — this can be the
       // very first crate-sound-triggering interaction of the session
-      // (an Arete Road legend claim, not a Compass Drop open), so the
+      // (an Arete Road legend claim, not a crate open), so the
       // AudioContext still needs unlocking synchronously in this tap's
       // call stack, not left to first fire inside showLegendReveal.
       getCrateAudioCtx();
@@ -9972,15 +9954,15 @@ function renderXpRoadGallery(){
 // and rare for Silver/Gold/Diamond (keeps some tiered structure rather
 // than collapsing into a common/rare coin-flip). Turning any of the
 // three back on later is still the one-line odds change this ladder
-// was built for. Areviax Drop is deliberately not a gamble at all —
+// was built for. Areviax Crate is deliberately not a gamble at all —
 // 100% legendary, the tier that DOES have real content — see
 // openCompassDrop() for how it bypasses the normal currency cost too.
 const CRATE_TIERS={
-  bronze:{label:'Bronze Drop',odds:{common:79.95,rare:20,superrare:0,epic:0,mythic:0,legendary:0.05,ultralegendary:0}},
-  silver:{label:'Silver Drop',odds:{common:61.8,rare:38,superrare:0,epic:0,mythic:0,legendary:0.15,ultralegendary:0.05}},
-  gold:{label:'Gold Drop',odds:{common:52.85,rare:46.75,superrare:0,epic:0,mythic:0,legendary:0.3,ultralegendary:0.1}},
-  diamond:{label:'Diamond Drop',odds:{common:47.5,rare:51,superrare:0,epic:0,mythic:0,legendary:1.2,ultralegendary:0.3}},
-  areviax:{label:'Areviax Drop',odds:{common:0,rare:0,superrare:0,epic:0,mythic:0,legendary:92,ultralegendary:8}},
+  bronze:{label:'Bronze Crate',odds:{common:79.95,rare:20,superrare:0,epic:0,mythic:0,legendary:0.05,ultralegendary:0}},
+  silver:{label:'Silver Crate',odds:{common:61.8,rare:38,superrare:0,epic:0,mythic:0,legendary:0.15,ultralegendary:0.05}},
+  gold:{label:'Gold Crate',odds:{common:52.85,rare:46.75,superrare:0,epic:0,mythic:0,legendary:0.3,ultralegendary:0.1}},
+  diamond:{label:'Diamond Crate',odds:{common:47.5,rare:51,superrare:0,epic:0,mythic:0,legendary:1.2,ultralegendary:0.3}},
+  areviax:{label:'Areviax Crate',odds:{common:0,rare:0,superrare:0,epic:0,mythic:0,legendary:92,ultralegendary:8}},
 };
 // rarest-first, matches roll-resolution order everywhere a rarity is
 // picked from odds. mythic/epic/superrare sit at 0% odds above until
@@ -10096,7 +10078,7 @@ function renderAchievements(){
       return `<div class="crate-slot${s.ready?'':' not-ready'}"${tileOnclick?` onclick="${tileOnclick}" style="cursor:pointer"`:''}>
         <span class="crate-info-btn" onclick="viewDropInfo('${tier}',event)">i</span>
         <div class="crate-icon-wrap ${tier}${s.ready?' ready':s.always?'':' locked'}">
-          <div class="crate-icon-glow"></div><div class="crate-icon-burst"></div><div class="crate-crown"><svg viewBox="0 0 100 100" preserveAspectRatio="none"><path class="lgi-crown-body" d="M0,90 L0,32 L25,58 L40,6 L50,42 L60,6 L75,58 L100,32 L100,90 Z"/><path class="lgi-crown-rim" d="M0,32 L25,58 L40,6 L50,42 L60,6 L75,58 L100,32"/><circle class="lgi-crown-jewel" cx="40" cy="10" r="6"/><circle class="lgi-crown-jewel" cx="60" cy="10" r="6"/><circle class="lgi-crown-jewel" cx="50" cy="76" r="5"/></svg></div><div class="crate-wreath"><svg viewBox="-5 -5 110 115"><path class="lgr-stem" d="M46.2,95.8 L29.9,91.2 L16.6,80.7 L8.3,66.0 L6.1,49.3 L10.4,32.9 L20.5,19.4 L35.0,10.7"/><path class="lgr-stem" d="M53.8,95.8 L70.1,91.2 L83.4,80.7 L91.7,66.0 L93.9,49.3 L89.6,32.9 L79.5,19.4 L65.0,10.7"/><path class="lgr-leaf" d="M47.6,94.1 Q38.5,95.5 38.2,105.8 Q48.2,103.2 47.6,94.1 Z"/><path class="lgr-vein" d="M47.6,94.1 L38.2,105.8"/><path class="lgr-leaf" d="M31.8,90.1 Q23.4,88.1 19.4,97.0 Q29.1,98.3 31.8,90.1 Z"/><path class="lgr-vein" d="M31.8,90.1 L19.4,97.0"/><path class="lgr-leaf" d="M18.6,80.5 Q12.0,75.7 5.4,82.1 Q13.4,86.6 18.6,80.5 Z"/><path class="lgr-vein" d="M18.6,80.5 L5.4,82.1"/><path class="lgr-leaf" d="M10.1,66.5 Q6.0,60.1 -1.9,63.3 Q3.4,70.0 10.1,66.5 Z"/><path class="lgr-vein" d="M10.1,66.5 L-1.9,63.3"/><path class="lgr-leaf" d="M7.5,50.3 Q6.2,43.4 -1.7,43.3 Q0.4,51.0 7.5,50.3 Z"/><path class="lgr-vein" d="M7.5,50.3 L-1.7,43.3"/><path class="lgr-leaf" d="M11.2,34.3 Q12.5,27.9 5.7,25.1 Q4.9,32.4 11.2,34.3 Z"/><path class="lgr-vein" d="M11.2,34.3 L5.7,25.1"/><path class="lgr-leaf" d="M20.7,20.8 Q24.1,15.9 19.2,11.1 Q16.0,17.0 20.7,20.8 Z"/><path class="lgr-vein" d="M20.7,20.8 L19.2,11.1"/><path class="lgr-leaf" d="M34.6,12.0 Q39.2,8.9 36.8,3.2 Q32.0,7.1 34.6,12.0 Z"/><path class="lgr-vein" d="M34.6,12.0 L36.8,3.2"/><path class="lgr-leaf" d="M52.4,94.1 Q51.8,103.2 61.8,105.8 Q61.5,95.5 52.4,94.1 Z"/><path class="lgr-vein" d="M52.4,94.1 L61.8,105.8"/><path class="lgr-leaf" d="M68.2,90.1 Q70.9,98.3 80.6,97.0 Q76.6,88.1 68.2,90.1 Z"/><path class="lgr-vein" d="M68.2,90.1 L80.6,97.0"/><path class="lgr-leaf" d="M81.4,80.5 Q86.6,86.6 94.6,82.1 Q88.0,75.7 81.4,80.5 Z"/><path class="lgr-vein" d="M81.4,80.5 L94.6,82.1"/><path class="lgr-leaf" d="M89.9,66.5 Q96.6,70.0 101.9,63.3 Q94.0,60.1 89.9,66.5 Z"/><path class="lgr-vein" d="M89.9,66.5 L101.9,63.3"/><path class="lgr-leaf" d="M92.5,50.3 Q99.6,51.0 101.7,43.3 Q93.8,43.4 92.5,50.3 Z"/><path class="lgr-vein" d="M92.5,50.3 L101.7,43.3"/><path class="lgr-leaf" d="M88.8,34.3 Q95.1,32.4 94.3,25.1 Q87.5,27.9 88.8,34.3 Z"/><path class="lgr-vein" d="M88.8,34.3 L94.3,25.1"/><path class="lgr-leaf" d="M79.3,20.8 Q84.0,17.0 80.8,11.1 Q75.9,15.9 79.3,20.8 Z"/><path class="lgr-vein" d="M79.3,20.8 L80.8,11.1"/><path class="lgr-leaf" d="M65.4,12.0 Q68.0,7.1 63.2,3.2 Q60.8,8.9 65.4,12.0 Z"/><path class="lgr-vein" d="M65.4,12.0 L63.2,3.2"/></svg></div>
+          <div class="crate-icon-glow"></div><div class="crate-icon-burst"></div>
           <div class="compass-crate ${tier}${s.ready?' ready':s.always?'':' locked'}"><span class="crate-icon">${crateIconHTML(tier)}</span></div>
         </div>
         <div class="crate-slot-label">${s.label}</div>
@@ -10340,7 +10322,7 @@ function viewLegendCard(key){
   if(!l)return;
   const unlocked=unlockedLegends.includes(key);
   if(!unlocked){
-    toast('\ud83d\udd12','Locked \u2014 open a Compass Drop for a chance at this card');
+    toast('\ud83d\udd12','Locked \u2014 open a crate for a chance at this card');
     return;
   }
   const count=legendCounts[key]||1;
@@ -10477,7 +10459,7 @@ function renderLiftRanks(){
 // sources (LEGEND_CARDS pulls + WEIGHT_MILESTONES), gold-locked count, Arete
 // banked, and a "closest unlock" card computed from the one tier with a
 // genuine measurable distance to go (weight milestones — LEGEND_CARDS are
-// pure-luck Compass Drop pulls with no "progress" to show honestly).
+// pure-luck Areviax Crate pulls with no "progress" to show honestly).
 function setTrophyFilter(targetId,btnEl){
   document.querySelectorAll('.troph-filter-btn').forEach(b=>{
     const active=b===btnEl;
@@ -10552,7 +10534,7 @@ function renderTrophyCabinet(){
   }).join('');
   // LEGENDS — a separate bonus section, not one of the 7 numbered
   // layers: the bodybuilder cards that already exist in LEGEND_CARDS
-  // and already drop from Compass Drops today, moved out of the
+  // and already drop from Areviax Crates today, moved out of the
   // compact Achievements-card row and given real room here instead.
   // Peak slot — The Areviax Trophy (ultralegendary, 1-of-1) — now real
   // content instead of an eternally-locked placeholder. Updates in
@@ -10608,7 +10590,7 @@ function grantTestCrates(){
   bronzeDropBank++;silverDropBank++;shardBank++;diamondDropBank++;
   saveToStorage();
   renderAchievements();
-  toast('🎁','Test crates granted — check Compass Drops','drops');
+  toast('🎁','Test crates granted — check Areviax Crates','drops');
 }
 function openCompassDrop(tier){
   const cfg=CRATE_TIERS[tier];
@@ -10929,7 +10911,7 @@ function buildCrateReelHTML(finalCard){
 // reached via spinDailyWheel — the crate row's own areviax tile isn't
 // tappable, see renderAchievements) stays exactly what it's always been:
 // one sealed thing, one reward, shown once. Every real bank crate
-// (bronze/silver/gold/diamond, opened from the Compass Drops row) now
+// (bronze/silver/gold/diamond, opened from the Areviax Crates row) now
 // pays out as a short Brawl-Box-style sequence instead — Arete first,
 // then the trophy — tapped through one beat at a time with a remaining-
 // count badge, rather than one flat reveal. Total value granted is
@@ -10953,19 +10935,19 @@ function showLegendReveal(l,isNew,tier,count){
       '<div style="font-size:10.5px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:'+(isNew?'#8FE8FF':'rgba(var(--white-rgb),.4)')+';margin:2px 0 12px">'+(isNew?'NEW':'DUPLICATE'+(count>1?' ×'+count:''))+'</div>'+
       '<div class="achievement-title reveal-name-serif">'+l.name+'</div>'+
       '<div class="achievement-desc">'+l.title+'</div>'+
-      (tier==='areviax'?'<div style="font-size:11px;font-weight:700;color:#FFB347;margin-top:8px">🔥 The Areviax Drop — +2 bonus Compass Shards</div>':'');
+      (tier==='areviax'?'<div style="font-size:11px;font-weight:700;color:#FFB347;margin-top:8px">🔥 The Areviax Crate — +2 bonus Compass Shards</div>':'');
   }
   function xpSlotHTML(){
     return '<div class="crate-xp-slot crate-slot-pop">'+
         '<div class="crate-xp-slot-icon">⭐</div>'+
         '<div class="crate-xp-slot-label">+'+xpAmount+' Arete</div>'+
-        '<div class="crate-xp-slot-sub">'+(isNew?'New trophy bonus':'Compass Drop')+'</div>'+
+        '<div class="crate-xp-slot-sub">'+(isNew?'New trophy bonus':'Areviax Crate')+'</div>'+
       '</div>';
   }
   // Order matters for pacing (small beat first, big prize last) — not
   // for economy, both slots always grant exactly what a single-reveal
   // crate open always has.
-  const slots=multiSlot?[{render:xpSlotHTML,onShow:()=>addXP(xpAmount,isNew?'New trophy':'Compass Drop')},{render:trophySlotHTML,onShow:()=>{if(isNew)celebrateBurst(['🔥','⭐','🏆'],cfg.burstCount);}}]:[];
+  const slots=multiSlot?[{render:xpSlotHTML,onShow:()=>addXP(xpAmount,isNew?'New trophy':'Areviax Crate')},{render:trophySlotHTML,onShow:()=>{if(isNew)celebrateBurst(['🔥','⭐','🏆'],cfg.burstCount);}}]:[];
 
   const overlay=document.createElement('div');
   overlay.className='achievement-overlay';
@@ -11042,7 +11024,7 @@ function showLegendReveal(l,isNew,tier,count){
       modal.innerHTML=trophySlotHTML()+'<button class="achievement-close-btn" onclick="this.closest(\'.achievement-overlay\').remove()">Continue</button>';
       playCrateRevealChime(l.rarity);
       requestAnimationFrame(()=>{
-        addXP(xpAmount,isNew?'New trophy':'Compass Drop');
+        addXP(xpAmount,isNew?'New trophy':'Areviax Crate');
         if(isNew)celebrateBurst(['🔥','⭐','🏆'],cfg.burstCount);
       });
     },cfg.windupMs+cfg.crackMs);
@@ -11057,7 +11039,7 @@ function showLegendReveal(l,isNew,tier,count){
 }
 
 // ── GIFT FROM THE GODS — one free daily login reward, weighted heavily
-// toward Bronze with a razor-thin sliver for the Areviax Drop, same "a
+// toward Bronze with a razor-thin sliver for the Areviax Crate, same "a
 // rare thing needs a rare-feeling odds" logic the rarity ladder itself
 // uses. Odds/order untouched from the old spin wheel this replaced —
 // only the reveal changed, from a spun wedge to an opened gift
@@ -11117,7 +11099,7 @@ function renderDailySpin(){
       '<div class="gift-box'+(ready?'':' opened')+'" id="gift-box">'+(ready?giftBoxIconSVG():giftBoxIconSVG())+'</div>'+
     '</div>'+
     '<button class="btn btn-g btn-sm spin-wheel-btn" id="spin-wheel-btn" '+(ready?'':'disabled')+' onclick="spinDailyWheel()">'+(ready?'🎁 Open Gift from the Gods':'Return tomorrow for another gift')+'</button>'+
-    '<div class="gift-sub" id="gift-result-sub">'+(ready?'A key to Bronze, Silver, Gold, Diamond — or, rarely, the Areviax Drop itself.':'')+'</div>';
+    '<div class="gift-sub" id="gift-result-sub">'+(ready?'A key to Bronze, Silver, Gold, Diamond — or, rarely, the Areviax Crate itself.':'')+'</div>';
 }
 function spinDailyWheel(){
   if(!isDailySpinReady())return;
@@ -11128,7 +11110,7 @@ function spinDailyWheel(){
   const burst=document.getElementById('gift-burst');
   if(box){
     box.classList.add('opened');
-    box.innerHTML='<div class="gift-key-reveal">'+keyIconSVG(tier,44)+'<span class="gift-tier-label gift-key-tier-'+tier+'"'+(tier==='areviax'?' style="background:linear-gradient(90deg,#FFD24A,#FF8342);-webkit-background-clip:text;background-clip:text;color:transparent"':'')+'>'+CRATE_TIERS[tier].label.replace(' Drop',' Key')+'</span></div>';
+    box.innerHTML='<div class="gift-key-reveal">'+keyIconSVG(tier,44)+'<span class="gift-tier-label gift-key-tier-'+tier+'"'+(tier==='areviax'?' style="background:linear-gradient(90deg,#FFD24A,#FF8342);-webkit-background-clip:text;background-clip:text;color:transparent"':'')+'>'+CRATE_TIERS[tier].label.replace(' Crate',' Key')+'</span></div>';
   }
   if(burst){burst.classList.remove('show');void burst.offsetWidth;burst.classList.add('show');}
   playCrateSpinTicks(800);
@@ -11147,7 +11129,7 @@ function spinDailyWheel(){
       else if(tier==='diamond')diamondDropBank++;
       saveToStorage();
       renderAchievements();
-      toast(tier==='gold'?'🔷':'🗝️',(tier==='gold'?'+1 Compass Shard':'Found the '+CRATE_TIERS[tier].label.replace(' Drop','')+' Key')+' — unlocked a '+CRATE_TIERS[tier].label+', tap it below to open');
+      toast(tier==='gold'?'🔷':'🗝️',(tier==='gold'?'+1 Compass Shard':'Found the '+CRATE_TIERS[tier].label.replace(' Crate','')+' Key')+' — unlocked a '+CRATE_TIERS[tier].label+', tap it below to open');
     }
     const sub=document.getElementById('gift-result-sub');
     if(sub)sub.textContent='';
@@ -11180,7 +11162,7 @@ function viewDropInfo(tier,event){
     '<div class="achievement-modal" style="max-width:300px;text-align:left">'+
       '<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">'+
         '<div class="crate-icon-wrap '+tier+'">'+
-          '<div class="crate-icon-glow"></div><div class="crate-icon-burst"></div><div class="crate-crown"><svg viewBox="0 0 100 100" preserveAspectRatio="none"><path class="lgi-crown-body" d="M0,90 L0,32 L25,58 L40,6 L50,42 L60,6 L75,58 L100,32 L100,90 Z"/><path class="lgi-crown-rim" d="M0,32 L25,58 L40,6 L50,42 L60,6 L75,58 L100,32"/><circle class="lgi-crown-jewel" cx="40" cy="10" r="6"/><circle class="lgi-crown-jewel" cx="60" cy="10" r="6"/><circle class="lgi-crown-jewel" cx="50" cy="76" r="5"/></svg></div><div class="crate-wreath"><svg viewBox="-5 -5 110 115"><path class="lgr-stem" d="M46.2,95.8 L29.9,91.2 L16.6,80.7 L8.3,66.0 L6.1,49.3 L10.4,32.9 L20.5,19.4 L35.0,10.7"/><path class="lgr-stem" d="M53.8,95.8 L70.1,91.2 L83.4,80.7 L91.7,66.0 L93.9,49.3 L89.6,32.9 L79.5,19.4 L65.0,10.7"/><path class="lgr-leaf" d="M47.6,94.1 Q38.5,95.5 38.2,105.8 Q48.2,103.2 47.6,94.1 Z"/><path class="lgr-vein" d="M47.6,94.1 L38.2,105.8"/><path class="lgr-leaf" d="M31.8,90.1 Q23.4,88.1 19.4,97.0 Q29.1,98.3 31.8,90.1 Z"/><path class="lgr-vein" d="M31.8,90.1 L19.4,97.0"/><path class="lgr-leaf" d="M18.6,80.5 Q12.0,75.7 5.4,82.1 Q13.4,86.6 18.6,80.5 Z"/><path class="lgr-vein" d="M18.6,80.5 L5.4,82.1"/><path class="lgr-leaf" d="M10.1,66.5 Q6.0,60.1 -1.9,63.3 Q3.4,70.0 10.1,66.5 Z"/><path class="lgr-vein" d="M10.1,66.5 L-1.9,63.3"/><path class="lgr-leaf" d="M7.5,50.3 Q6.2,43.4 -1.7,43.3 Q0.4,51.0 7.5,50.3 Z"/><path class="lgr-vein" d="M7.5,50.3 L-1.7,43.3"/><path class="lgr-leaf" d="M11.2,34.3 Q12.5,27.9 5.7,25.1 Q4.9,32.4 11.2,34.3 Z"/><path class="lgr-vein" d="M11.2,34.3 L5.7,25.1"/><path class="lgr-leaf" d="M20.7,20.8 Q24.1,15.9 19.2,11.1 Q16.0,17.0 20.7,20.8 Z"/><path class="lgr-vein" d="M20.7,20.8 L19.2,11.1"/><path class="lgr-leaf" d="M34.6,12.0 Q39.2,8.9 36.8,3.2 Q32.0,7.1 34.6,12.0 Z"/><path class="lgr-vein" d="M34.6,12.0 L36.8,3.2"/><path class="lgr-leaf" d="M52.4,94.1 Q51.8,103.2 61.8,105.8 Q61.5,95.5 52.4,94.1 Z"/><path class="lgr-vein" d="M52.4,94.1 L61.8,105.8"/><path class="lgr-leaf" d="M68.2,90.1 Q70.9,98.3 80.6,97.0 Q76.6,88.1 68.2,90.1 Z"/><path class="lgr-vein" d="M68.2,90.1 L80.6,97.0"/><path class="lgr-leaf" d="M81.4,80.5 Q86.6,86.6 94.6,82.1 Q88.0,75.7 81.4,80.5 Z"/><path class="lgr-vein" d="M81.4,80.5 L94.6,82.1"/><path class="lgr-leaf" d="M89.9,66.5 Q96.6,70.0 101.9,63.3 Q94.0,60.1 89.9,66.5 Z"/><path class="lgr-vein" d="M89.9,66.5 L101.9,63.3"/><path class="lgr-leaf" d="M92.5,50.3 Q99.6,51.0 101.7,43.3 Q93.8,43.4 92.5,50.3 Z"/><path class="lgr-vein" d="M92.5,50.3 L101.7,43.3"/><path class="lgr-leaf" d="M88.8,34.3 Q95.1,32.4 94.3,25.1 Q87.5,27.9 88.8,34.3 Z"/><path class="lgr-vein" d="M88.8,34.3 L94.3,25.1"/><path class="lgr-leaf" d="M79.3,20.8 Q84.0,17.0 80.8,11.1 Q75.9,15.9 79.3,20.8 Z"/><path class="lgr-vein" d="M79.3,20.8 L80.8,11.1"/><path class="lgr-leaf" d="M65.4,12.0 Q68.0,7.1 63.2,3.2 Q60.8,8.9 65.4,12.0 Z"/><path class="lgr-vein" d="M65.4,12.0 L63.2,3.2"/></svg></div>'+
+          '<div class="crate-icon-glow"></div><div class="crate-icon-burst"></div>'+
           '<div class="compass-crate '+tier+'" style="width:44px;height:44px"><span class="crate-icon">'+crateIconHTML(tier)+'</span></div>'+
         '</div>'+
         '<div style="font-size:15px;font-weight:900;color:var(--white)">'+cfg.label+'</div>'+
@@ -16192,7 +16174,7 @@ function markTrainedToday(){
   if(bronzeDropProgress>=BRONZE_DROP_DAYS){
     bronzeDropProgress=0;
     bronzeDropBank++;
-    toast('🧭','Bronze Compass Drop earned!','drops');
+    toast('🧭','Bronze Crate earned!','drops');
   }
 }
 
@@ -17581,14 +17563,14 @@ const AI_COACH_KB=[
    a:'Your streak counts any day you did something — a logged session, a meal, or sleep — not just training days. It resets when a full day passes with zero logged activity. If it broke and you think that\'s wrong, check the Day Streak history on your Profile page to see exactly which day it lapsed.'},
   {q:'How is Estimated 1RM calculated?',kw:['1rm','one rep max','estimated 1rm','e1rm'],
    a:"Est 1RM averages the Epley and Brzycki formulas from your heaviest logged set of that exercise (reps capped at 15, since both formulas get unreliable past that). Averaging two different formulas tracks real 1RMs more closely than either alone. It's still an estimate, not a tested max, so treat it as a trend to track over time rather than a number to attempt cold."},
-  {q:'What are Compass Drops?',kw:['compass drop','crate','drop','bronze drop','areviax drop'],
-   a:'Compass Drops are the collectible-card crates (Bronze through the Areviax Drop) — check the Compass Drops section on your Progress page for how each tier is earned and its exact odds via the ⓘ on each crate.'},
+  {q:'What are Areviax Crates?',kw:['compass drop','crate','drop','bronze drop','areviax drop'],
+   a:'Areviax Crates are the collectible-card crates (Bronze through the Areviax Crate) — check the Areviax Crates section on your Progress page for how each tier is earned and its exact odds via the ⓘ on each crate.'},
   {q:'Why is my workout missing a muscle group?',kw:['muscle','missing','back','chest','not included','balance'],
    a:"The auto-generator spreads exercises across every major muscle group it can fit, prioritizing your rarest muscle groups first — but a very short session length (or Reduced Sets) genuinely can't fit everything every time. Swap any exercise via the Swap button, or add more time/exercises in The Forge if a specific muscle keeps getting squeezed out."},
   {q:'What\'s a good rep range for muscle growth?',kw:['rep range','reps','hypertrophy','how many reps'],
    a:"Roughly 6–15 reps per set, taken close to failure, is the sweet spot for most hypertrophy work — the exact number matters less than training hard and progressively adding weight or reps over time. This app's auto-generated sessions already default into that range per exercise."},
   {q:'How does the Arete Road work?',kw:['xp road','xp','checkpoint','level up'],
-   a:'Arete Road is a checkpoint ladder — every real action (a logged session, hitting your nutrition target, a streak milestone) earns Arete, and crossing each checkpoint unlocks a real reward (a Compass Drop, shards, or a guaranteed card at the big ones). See the full path on its own page from the Progress hub.'},
+   a:'Arete Road is a checkpoint ladder — every real action (a logged session, hitting your nutrition target, a streak milestone) earns Arete, and crossing each checkpoint unlocks a real reward (a crate, shards, or a guaranteed card at the big ones). See the full path on its own page from the Progress hub.'},
   {q:'Can I change my daily calorie target?',kw:['change calories','calorie target','change target','macros wrong'],
    a:'Yes — go to Settings, update your weight/goal/activity details, and tap Save Changes. Your calorie and macro targets recalculate automatically from those numbers.'},
   {q:'What happened to my workout plan?',kw:['workout plan','plan disappeared','lost my workout','plan gone','missing workout'],
@@ -17624,9 +17606,9 @@ const AI_COACH_KB=[
   {q:'What is Muscle Readiness on the Recovery page?',kw:['muscle readiness','recovery heatmap','sore muscles','which muscles recovered'],
    a:"Muscle Readiness is a heatmap of your body that highlights which muscle groups you've trained recently and how recovered they likely are, based on how long ago and how hard you hit each one. It's a guide for which muscles are probably still fatigued, not a medical read on soreness or injury."},
   {q:'What is the Daily Spin?',kw:['daily spin','free spin','spin wheel'],
-   a:"Daily Spin is one free wheel spin every day, weighted heavily toward Bronze with progressively smaller odds for Silver, Gold, Diamond and a razor-thin sliver for the Areviax Drop. Find it on the Progress page — it resets once every 24 hours whether you use it or not."},
-  {q:'What are the exact Compass Drop odds?',kw:['drop odds','crate odds','chance of mythic','chance of legendary','odds percentage'],
-   a:"Every crate tier lists its own exact rarity percentages — tap the ⓘ icon on any Compass Drop tile (Bronze through the Areviax Drop) on the Progress page to see the full breakdown. Higher tiers trade a lower common rate for real odds at mythic and above; the Areviax Drop is the only tier that guarantees legendary or better every time."},
+   a:"Daily Spin is one free wheel spin every day, weighted heavily toward Bronze with progressively smaller odds for Silver, Gold, Diamond and a razor-thin sliver for the Areviax Crate. Find it on the Progress page — it resets once every 24 hours whether you use it or not."},
+  {q:'What are the exact Areviax Crate odds?',kw:['drop odds','crate odds','chance of mythic','chance of legendary','odds percentage'],
+   a:"Every crate tier lists its own exact rarity percentages — tap the ⓘ icon on any Areviax Crate tile (Bronze through the Areviax Crate) on the Progress page to see the full breakdown. Higher tiers trade a lower common rate for real odds at mythic and above; the Areviax Crate is the only tier that guarantees legendary or better every time."},
   {q:'What happens if I pull a card I already have?',kw:['duplicate card','duplicate legend','already have this card','pulled the same card'],
    a:"Duplicate pulls still count — you'll see \"DUPLICATE\" instead of \"NEW\" on the reveal, and a small ×N badge appears on that card everywhere it's shown (Trophy Cabinet, your Profile preview) so you can see exactly how many times you've pulled it. Duplicates still award a smaller Arete bonus, they just don't add a new card to your collection count."},
   {q:'What is Weight Road?',kw:['weight road'],
@@ -17644,7 +17626,7 @@ const AI_COACH_KB=[
   {q:'How do achievements work?',kw:['achievements','how to unlock achievements','achievement list'],
    a:"Achievements unlock automatically the moment you hit their condition — things like session counts, streak lengths, or lifetime volume milestones. Check your Profile page for the full list, including which ones you've already unlocked and roughly what's needed for the ones you haven't."},
   {q:'What are the layers in the Trophy Cabinet?',kw:['trophy cabinet layers','cabinet layers','what are the layers'],
-   a:"The Trophy Cabinet is organized into rarity tiers, from common equipment-style cards up through the rarest Hall of Masters and Mythic cards, plus one true 1-of-1 peak trophy at the very top. Every card in every layer can drop from Compass Drops — it's just a display grouped by how rare each card is."},
+   a:"The Trophy Cabinet is organized into rarity tiers, from common equipment-style cards up through the rarest Hall of Masters and Mythic cards, plus one true 1-of-1 peak trophy at the very top. Every card in every layer can drop from Areviax Crates — it's just a display grouped by how rare each card is."},
   {q:'Can I switch between kg and lb?',kw:['kg or lb','switch units','pounds or kilos','change weight unit','kg','lb','kilos'],
    a:'Yes — in Settings there\'s a unit toggle for bodyweight (kg/lbs) and height (cm/in). Switching converts your existing numbers automatically, it doesn\'t reset them.'},
   {q:'How do I switch to dark or light mode?',kw:['dark mode','light mode','theme','switch theme'],
@@ -17683,8 +17665,8 @@ const AI_COACH_KB=[
    a:'Email areviaxsupport@gmail.com any time — that goes to a real person, not this FAQ matcher.'},
   {q:'What are Compass Shards and how do I get them?',kw:['compass shard','shard','shards','what are shards'],
    a:"Compass Shards are the app's spendable currency — earn one from a perfect training week or a lucky Daily Spin, then spend it to open a Gold Drop, or to repair a broken streak if you've got one banked when a Repair prompt shows up. Check your current balance on the Progress page."},
-  {q:'How do I earn Silver, Gold, Diamond or the Areviax Drop?',kw:['silver drop','gold drop','diamond drop','earn crates','more crates','where do crates come from'],
-   a:"Bronze fills automatically after 5 training days. Everything above it — Silver, Diamond, and the Areviax Drop — comes from winning it on the Daily Spin; Gold is the one exception, costing 1 Compass Shard to open. Tap the ⓘ on any crate on the Progress page for its exact odds and source."},
+  {q:'How do I earn Silver, Gold, Diamond or the Areviax Crate?',kw:['silver drop','gold drop','diamond drop','earn crates','more crates','where do crates come from'],
+   a:"Bronze fills automatically after 5 training days. Everything above it — Silver, Diamond, and the Areviax Crate — comes from winning it on the Daily Spin; Gold is the one exception, costing 1 Compass Shard to open. Tap the ⓘ on any crate on the Progress page for its exact odds and source."},
   {q:'Can I repair a broken streak?',kw:['repair streak','broken streak','streak repair','fix my streak','save my streak'],
    a:"If your streak breaks and you've got a Compass Shard banked, a Repair banner shows up the next time you open the app — tap Repair to spend the shard and keep the streak alive. It only appears the day after the miss; dismiss it (or don't have a shard) and the streak resets to 1 like normal."},
   {q:'How do progress photos work?',kw:['progress photo','photo comparison','day 1 photo','before after photo','progress photos'],
@@ -17693,8 +17675,8 @@ const AI_COACH_KB=[
    a:'Cardio & Sport is its own card on the Workout page, separate from the strength builder — pick an activity, log duration (plus distance/intensity where relevant), and tap Log Session. It earns Arete and counts toward your activity streak just like a lifting session.'},
   {q:'How much Arete do different actions give?',kw:['how much xp','xp amounts','xp per action','xp values','how does xp work'],
    a:"It varies by action and effort — a logged set is worth a few Arete, a full completed session is the single biggest chunk (50 Arete), and meals, sleep and water logging each add smaller amounts. Every gain shows its source in the toast that pops up, so you can always see exactly what just paid out."},
-  {q:'What\'s the difference between Compass Drops and the Daily Spin?',kw:['compass drop vs daily spin','drop vs spin','crates vs spin'],
-   a:'Compass Drops are crates you bank and open whenever you want — Bronze fills from training, the rest come from Shards or the Spin. Daily Spin is one free wheel spin every 24 hours that can hand you a crate, a shard, or (rarely) the Areviax Drop outright — think of it as the thing that feeds your crate bank, not a separate collection system.'},
+  {q:'What\'s the difference between Areviax Crates and the Daily Spin?',kw:['compass drop vs daily spin','drop vs spin','crates vs spin'],
+   a:'Areviax Crates are crates you bank and open whenever you want — Bronze fills from training, the rest come from Shards or the Spin. Daily Spin is one free wheel spin every 24 hours that can hand you a crate, a shard, or (rarely) the Areviax Crate outright — think of it as the thing that feeds your crate bank, not a separate collection system.'},
   {q:'Can I track body measurements like my waist?',kw:['body measurements','waist','track measurements','log measurements','bicep measurement'],
    a:'Yes — the Data Terminal on your Progress page has a Body Measurements tab alongside Personal Records and Weight Log. Log a new set of measurements any time and Log Measurements builds a trackable history.'},
   {q:'What counts as a Personal Record?',kw:['personal record','personal records','pr','prs','what is a pr'],
@@ -17779,7 +17761,7 @@ function pushAiCoachExchange(question,answer){
 // display; no purchase actually happens (tapUpgrade() is honest about
 // that) since there's no payment processor wired up.
 let subPeriod='monthly';
-const SUB_FREE_FEATS=['Full workout logging & auto-generated sessions','Nutrition tracking, Caloric Shield, recipes','The Road to Olympus, Compass Drops, Leagues','Add your own foods & recipes'];
+const SUB_FREE_FEATS=['Full workout logging & auto-generated sessions','Nutrition tracking, Caloric Shield, recipes','The Road to Olympus, Areviax Crates, Leagues','Add your own foods & recipes'];
 const SUB_PREMIUM_FEATS=['Everything in Free','\ud83e\udd16 Full AI Coach \u2014 real conversations, not just FAQ matching','\ud83d\udcf8 AI Food Scan \u2014 snap a meal, get macros instantly','\ud83d\udcd6 The Mass Blueprint \u2014 \u00a315.99 instead of \u00a319 when bundled','\u2601\ufe0f Cross-device backup & sync','\ud83d\udeab No ads, priority support'];
 function setSubPeriod(period){
   subPeriod=period;
@@ -21833,7 +21815,7 @@ const LEAGUE_TIERS=[
 // look like the same material. Areviax gets its own bespoke nova/
 // compass mark — an 8-point star (4 long cardinal spikes + 4 shorter
 // diagonal ones) with a bright core, echoing the compass motif used
-// everywhere else in the app (Compass Drops, Compass Points) since
+// everywhere else in the app (Areviax Crates, Compass Points) since
 // this is the single most prestigious thing in the whole reward
 // economy and deserves its own mark rather than a recolored crate icon.
 const LEAGUE_ICON_SVG={
@@ -21999,8 +21981,8 @@ function showLeagueResultReveal(result){
     :'Finished #'+result.rank+' of '+result.groupSize+' in '+result.from+' — safely in the middle, staying put.';
   const crateLine=isPromo&&result.crateTier?(
     isAreviaxPromo
-      ? '<div style="font-size:11.5px;font-weight:700;color:#FFB347;margin-top:10px">🔥 Reaching the top league unlocks the Areviax Drop — opening next.</div>'
-      : '<div style="font-size:11.5px;font-weight:700;color:#44CFFF;margin-top:10px">🎁 +1 '+CRATE_TIERS[result.crateTier].label+' — find it under Compass Drops</div>'
+      ? '<div style="font-size:11.5px;font-weight:700;color:#FFB347;margin-top:10px">🔥 Reaching the top league unlocks the Areviax Crate — opening next.</div>'
+      : '<div style="font-size:11.5px;font-weight:700;color:#44CFFF;margin-top:10px">🎁 +1 '+CRATE_TIERS[result.crateTier].label+' — find it under Areviax Crates</div>'
   ):'';
   const closeAction=isAreviaxPromo?'closeLeagueRevealThenOpenAreviax(this)':'this.closest(\'.achievement-overlay\').remove()';
   overlay.innerHTML=
@@ -22354,7 +22336,7 @@ document.addEventListener('DOMContentLoaded', function(){
       bronzeDropBank++;silverDropBank++;shardBank++;diamondDropBank++;
       saveToStorage();
       history.replaceState(null,'',location.pathname+location.hash);
-      setTimeout(()=>{try{toast('🎁','Test crates granted — check Compass Drops','drops');}catch(e){}},800);
+      setTimeout(()=>{try{toast('🎁','Test crates granted — check Areviax Crates','drops');}catch(e){}},800);
     }
   }catch(e){}
   try{applyStreakBreak();}catch(e){console.error('applyStreakBreak:',e.message);}
