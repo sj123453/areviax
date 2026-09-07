@@ -1993,6 +1993,12 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       transition:transform .1s,box-shadow .15s;
     }
     .crate-open-btn:active{transform:scale(.95);box-shadow:0 1px 5px -2px rgba(243,103,23,.6)}
+    /* Only shown when the player both has a crate of this tier banked
+       AND enough Keys — never a required step, never visible otherwise,
+       so it reads as a bonus shortcut, not a gate on opening anything. */
+    .crate-upgrade-btn{margin-top:5px;font-size:8.5px;font-weight:800;text-align:center;color:#C9D4DE;border:1px solid rgba(201,212,222,.35);border-radius:999px;padding:3px 6px;cursor:pointer;white-space:nowrap;transition:background .15s}
+    .crate-upgrade-btn:active{background:rgba(201,212,222,.15)}
+    .key-bank-badge{display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:800;color:rgba(var(--white-rgb),.7);background:rgba(232,214,196,.06);border:1px solid var(--border2);border-radius:999px;padding:3px 9px}
     .crate-row .compass-crate{width:54px;height:54px}
     .crate-row .compass-crate .crate-icon svg{width:25px;height:25px}
     /* The crown/wreath's default size (62x65 / 26x13) is tuned for the
@@ -5325,7 +5331,10 @@ body[data-goal-theme="cut"] .lv-page{
       <div style="font-size:10.5px;color:rgba(var(--white-rgb),.6);margin-bottom:2px">One free gift a day — a key to Bronze, Silver, Gold, Diamond, even the Areviax Crate.</div>
       <div id="daily-spin-wheel" class="spin-wheel-card"></div>
     </div>
-    <div style="font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:14px 0 4px">Areviax Crates</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin:14px 0 4px">
+      <span style="font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)">Areviax Crates</span>
+      <span class="key-bank-badge" title="Spend Keys to upgrade a banked crate to the next tier">🗝️ <span id="key-bank-count">0</span></span>
+    </div>
     <div class="crate-row" id="crate-row"></div>
   </div>
 
@@ -7321,6 +7330,12 @@ const BRONZE_DROP_DAYS=5;
 let silverDropBank=0;
 let diamondDropBank=0;
 let dailySpinDate='';
+// Keys — a small, purely-additive currency. Never gates opening a crate
+// you already have (the old Clash-Royale key-timer problem this
+// deliberately avoids); the only thing keys do is let you spend a
+// stack of them to upgrade one already-banked crate to the next tier
+// up, whenever you want. See KEY_UPGRADE_COST / upgradeCrateWithKeys.
+let keyBank=0;
 // Every addXP() call already carries a human label ('Session complete',
 // 'Sleep logged', etc) — logging each award here (capped, oldest first
 // out) is what lets a breakdown view answer "what's actually been
@@ -10009,6 +10024,34 @@ const CRATE_TIERS={
   diamond:{label:'Diamond Crate',odds:{common:47.5,rare:51,superrare:0,epic:0,mythic:0,legendary:1.2,ultralegendary:0.3}},
   areviax:{label:'Areviax Crate',odds:{common:0,rare:0,superrare:0,epic:0,mythic:0,legendary:92,ultralegendary:8}},
 };
+// KEYS — spend a stack to instantly turn one already-banked crate into
+// the next tier up. Never a requirement to open anything you already
+// have (that's the old key-timer problem, deliberately not this) —
+// purely an optional accelerant. diamond has no upgrade path (nothing
+// above it to upgrade TO other than areviax, which isn't earnable this
+// way on purpose — see openCompassDrop's areviax branch).
+const KEY_UPGRADE_PATH={bronze:'silver',silver:'gold',gold:'diamond'};
+const KEY_UPGRADE_COST={bronze:3,silver:5,gold:8};
+function crateBankRef(tier){
+  if(tier==='bronze')return {get v(){return bronzeDropBank;},set v(n){bronzeDropBank=n;}};
+  if(tier==='silver')return {get v(){return silverDropBank;},set v(n){silverDropBank=n;}};
+  if(tier==='gold')return {get v(){return shardBank;},set v(n){shardBank=n;}};
+  if(tier==='diamond')return {get v(){return diamondDropBank;},set v(n){diamondDropBank=n;}};
+  return null;
+}
+function upgradeCrateWithKeys(tier){
+  const next=KEY_UPGRADE_PATH[tier];
+  const cost=KEY_UPGRADE_COST[tier];
+  if(!next||!cost)return;
+  const from=crateBankRef(tier),to=crateBankRef(next);
+  if(!from||!to||from.v<=0||keyBank<cost)return;
+  keyBank-=cost;
+  from.v=from.v-1;
+  to.v=to.v+1;
+  saveToStorage();
+  renderAchievements();
+  toast('🗝️','Spent '+cost+' Keys — upgraded a '+CRATE_TIERS[tier].label+' into a '+CRATE_TIERS[next].label,'drops');
+}
 // rarest-first, matches roll-resolution order everywhere a rarity is
 // picked from odds. mythic/epic/superrare sit at 0% odds above until
 // real items are assigned to them again \u2014 the tiers and their full
@@ -10130,9 +10173,14 @@ function renderAchievements(){
         ${s.ready
           ? `<button class="crate-open-btn" onclick="openCompassDrop('${tier}')">Open</button>`
           : `<div class="crate-slot-sub">${s.sub}</div>`}
+        ${(s.ready&&KEY_UPGRADE_PATH[tier]&&keyBank>=KEY_UPGRADE_COST[tier])
+          ? `<div class="crate-upgrade-btn" onclick="event.stopPropagation();upgradeCrateWithKeys('${tier}')">🗝️ ${KEY_UPGRADE_COST[tier]} → ${CRATE_TIERS[KEY_UPGRADE_PATH[tier]].label}</div>`
+          : ''}
       </div>`;
     }).join('');
   }
+  const keyCountEl=document.getElementById('key-bank-count');
+  if(keyCountEl)keyCountEl.textContent=keyBank;
 }
 // Trophy Road \u2014 Achievements as the same horizontal path as Arete/Weight.
 // Achievements have no single numeric threshold to bar-fill against
@@ -10667,6 +10715,12 @@ function openCompassDrop(tier){
   if(isNew)unlockedLegends.push(pick.key);
   legendCounts[pick.key]=(legendCounts[pick.key]||0)+1;
   if(tier==='areviax')shardBank+=2; // the best drop in the app pays a bonus on top of the guaranteed card
+  // A real bank crate has a modest chance to also drop a Key — the
+  // "add other rewards in there" ask, as its own slot in the reveal
+  // sequence below rather than a silent background grant. Areviax skips
+  // this too (free/instant path, single reward, unchanged).
+  const keyWon=tier!=='areviax'&&Math.random()<0.18;
+  if(keyWon)keyBank++;
   saveToStorage();
   // Anticipation beat on the actual crate tile — a real chest/crystal
   // render can now sell "about to open" (shake + glow build) before the
@@ -10682,10 +10736,10 @@ function openCompassDrop(tier){
     crateEl.classList.add('opening');
     setTimeout(()=>{
       crateEl.classList.remove('opening');
-      showLegendReveal(pick,isNew,tier,legendCounts[pick.key]);
+      showLegendReveal(pick,isNew,tier,legendCounts[pick.key],keyWon);
     },500);
   }else{
-    showLegendReveal(pick,isNew,tier,legendCounts[pick.key]);
+    showLegendReveal(pick,isNew,tier,legendCounts[pick.key],keyWon);
   }
 }
 // \u2500\u2500 CRATE SOUND \u2014 procedurally synthesized (no audio files), same
@@ -10965,7 +11019,7 @@ function buildCrateReelHTML(finalCard){
 // .crate-shake/.crack-out/.crate-icon-burst.flare were already sitting in
 // the stylesheet, tier-timed to CRATE_OPEN_TIMING's windupMs/crackMs
 // (260/300/380/460/580ms) but never wired to a click handler until now.
-function showLegendReveal(l,isNew,tier,count){
+function showLegendReveal(l,isNew,tier,count,keyWon){
   const cfg=CRATE_OPEN_TIMING[tier]||CRATE_OPEN_TIMING.bronze;
   if(l.img){const _preload=new Image();_preload.src=l.img;}
   const xpAmount=isNew?25:10;
@@ -10989,10 +11043,23 @@ function showLegendReveal(l,isNew,tier,count){
         '<div class="crate-xp-slot-sub">'+(isNew?'New trophy bonus':'Areviax Crate')+'</div>'+
       '</div>';
   }
-  // Order matters for pacing (small beat first, big prize last) — not
-  // for economy, both slots always grant exactly what a single-reveal
-  // crate open always has.
-  const slots=multiSlot?[{render:xpSlotHTML,onShow:()=>addXP(xpAmount,isNew?'New trophy':'Areviax Crate')},{render:trophySlotHTML,onShow:()=>{if(isNew)celebrateBurst(['🔥','⭐','🏆'],cfg.burstCount);}}]:[];
+  function keySlotHTML(){
+    return '<div class="crate-xp-slot crate-slot-pop">'+
+        '<div class="crate-xp-slot-icon" style="background:linear-gradient(160deg,#E8E0D0,#8A98A8)">🗝️</div>'+
+        '<div class="crate-xp-slot-label">+1 Key</div>'+
+        '<div class="crate-xp-slot-sub">Spend keys to upgrade a crate</div>'+
+      '</div>';
+  }
+  // Order matters for pacing (small beats first, big prize last) — not
+  // for economy, every slot always grants exactly what would've been
+  // granted with no reveal sequence at all. Key slot only appears when
+  // openCompassDrop actually rolled one (keyWon) — most opens are just
+  // the two base slots.
+  const slots=multiSlot?[
+    {render:xpSlotHTML,onShow:()=>addXP(xpAmount,isNew?'New trophy':'Areviax Crate')},
+    ...(keyWon?[{render:keySlotHTML,onShow:()=>{}}]:[]),
+    {render:trophySlotHTML,onShow:()=>{if(isNew)celebrateBurst(['🔥','⭐','🏆'],cfg.burstCount);}},
+  ]:[];
 
   const overlay=document.createElement('div');
   overlay.className='achievement-overlay';
@@ -22094,6 +22161,7 @@ function saveToStorage(){
     localStorage.setItem('arx_bronzeDropBank', bronzeDropBank);
     localStorage.setItem('arx_silverDropBank', silverDropBank);
     localStorage.setItem('arx_diamondDropBank', diamondDropBank);
+    localStorage.setItem('arx_keyBank', keyBank);
     localStorage.setItem('arx_dailySpinDate', dailySpinDate);
     localStorage.setItem('arx_bronzeDropProgress', bronzeDropProgress);
     localStorage.setItem('arx_streakRepairDismissedDate', streakRepairDismissedDate);
@@ -22221,6 +22289,7 @@ function loadFromStorage(){
     bronzeDropBank=parseInt(localStorage.getItem('arx_bronzeDropBank')||'0');
     silverDropBank=parseInt(localStorage.getItem('arx_silverDropBank')||'0');
     diamondDropBank=parseInt(localStorage.getItem('arx_diamondDropBank')||'0');
+    keyBank=parseInt(localStorage.getItem('arx_keyBank')||'0');
     dailySpinDate=localStorage.getItem('arx_dailySpinDate')||'';
     bronzeDropProgress=parseInt(localStorage.getItem('arx_bronzeDropProgress')||'0');
     streakRepairDismissedDate=localStorage.getItem('arx_streakRepairDismissedDate')||'';
