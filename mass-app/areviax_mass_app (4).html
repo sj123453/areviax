@@ -224,7 +224,7 @@ input,input:focus,input:active,
    predates .lv-page and never had this third layer; --lv-ember1-rgb
    falls back to the default dark-theme orange since Dashboard doesn't
    also carry the .lv-page class that normally defines it. */
-.greek-page{position:relative;background-color:var(--lv-bg,#120C09);background-image:linear-gradient(100deg,transparent 0 46%,rgba(232,214,196,.035) 46% 47%,transparent 47% 100%),linear-gradient(72deg,transparent 0 22%,rgba(232,214,196,.025) 22% 23%,transparent 23% 100%),radial-gradient(140% 60% at 50% 0%,rgba(var(--lv-ember1-rgb,255,115,0),.1),transparent 70%);background-size:340px 100%,220px 100%,100% 100%;counter-reset:greeknum}
+.greek-page{position:relative;background-color:var(--lv-bg,#120C09);background-image:linear-gradient(100deg,transparent 0 46%,rgba(232,214,196,.035) 46% 47%,transparent 47% 100%),linear-gradient(72deg,transparent 0 22%,rgba(232,214,196,.025) 22% 23%,transparent 23% 100%),radial-gradient(140% 60% at 50% 0%,rgba(var(--lv-ember1-rgb,255,115,0),.1),transparent 70%);background-size:340px 100%,220px 100%,100% 100vh;background-repeat:repeat,repeat,no-repeat;counter-reset:greeknum}
 .greek-page .ch{counter-increment:greeknum}
 .greek-page .ch>.ct{position:relative;padding-bottom:10px;font-family:'Cinzel',serif;letter-spacing:.1em}
 .greek-page .ch>.ct::before{content:counter(greeknum,lower-greek) ".";color:var(--gold);margin-right:6px;font-weight:700;opacity:1}
@@ -3292,7 +3292,14 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
      under the meander line. */
   background-color:var(--lv-bg);
   background-image:linear-gradient(100deg,transparent 0 46%,rgba(232,232,222,.035) 46% 47%,transparent 47% 100%),linear-gradient(72deg,transparent 0 22%,rgba(232,232,222,.025) 22% 23%,transparent 23% 100%),radial-gradient(140% 60% at 50% 0%,rgba(var(--lv-ember1-rgb),.1),transparent 70%);
-  background-size:340px 100%,220px 100%,100% 100%;
+  /* The glow layer is sized to the VIEWPORT (100vh), not 100% of the
+     page's own box — .page's box is the full scrollable content height,
+     so tying the glow to 100% of THAT made it fade out a fraction of the
+     way down and leave everything below flat black on any page with more
+     than about one screen's worth of cards. no-repeat + a fixed-ish
+     height keeps the glow's reach consistent regardless of page length. */
+  background-size:340px 100%,220px 100%,100% 100vh;
+  background-repeat:repeat,repeat,no-repeat;
   color:var(--lv-fg);font-family:var(--lv-sans);-webkit-font-smoothing:antialiased
 }
 /* OLIVE GROVE — goal-driven theme swap. Same layout, same components,
@@ -3311,7 +3318,7 @@ body[data-goal-theme="cut"] .lv-page{
   --lv-cardg1:#1C2716;--lv-cardg2:#10160C;
 }
 .lv-page h1,.lv-page h2,.lv-page h3{font-family:var(--lv-display);letter-spacing:.02em}
-.lv-marble{background-color:var(--lv-bg);background-image:linear-gradient(100deg,transparent 0 46%,rgba(232,232,222,.035) 46% 47%,transparent 47% 100%),linear-gradient(72deg,transparent 0 22%,rgba(232,232,222,.025) 22% 23%,transparent 23% 100%),radial-gradient(140% 60% at 50% 0%,rgba(var(--lv-ember1-rgb),.1),transparent 70%);background-size:340px 100%,220px 100%,100% 100%}
+.lv-marble{background-color:var(--lv-bg);background-image:linear-gradient(100deg,transparent 0 46%,rgba(232,232,222,.035) 46% 47%,transparent 47% 100%),linear-gradient(72deg,transparent 0 22%,rgba(232,232,222,.025) 22% 23%,transparent 23% 100%),radial-gradient(140% 60% at 50% 0%,rgba(var(--lv-ember1-rgb),.1),transparent 70%);background-size:340px 100%,220px 100%,100% 100vh;background-repeat:repeat,repeat,no-repeat}
 .lv-surface{position:relative;background-image:linear-gradient(160deg,var(--lv-cardg1) 0%,var(--lv-cardg2) 70%);border:1px solid var(--lv-border);border-top-color:var(--lv-gold-soft);box-shadow:0 18px 40px -28px rgba(0,0,0,.9),inset 0 1px 0 0 rgba(var(--lv-gold-rgb),.12);border-radius:1.75rem}
 .lv-ember{background-image:linear-gradient(135deg,var(--lv-ember1),var(--lv-ember2));color:var(--lv-primary-fg);box-shadow:0 12px 30px -12px rgba(var(--lv-primary-rgb),.55)}
 .lv-label-eyebrow{font-size:.6875rem;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--lv-muted-fg)}
