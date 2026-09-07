@@ -2564,6 +2564,19 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .road-realm-strip-inner{position:absolute;top:0;left:0;height:100%;display:flex}
     .road-realm-band{flex:0 0 auto;height:100%;background-size:cover;background-position:center 55%;position:relative}
     .road-realm-band::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(8,6,5,.1) 0%,rgba(8,6,5,.5) 68%,rgba(8,6,5,.82) 100%)}
+    /* ── REALM GATES — a stone archway straddling each seam between
+       realms, sitting inside .road-realm-strip-inner so it scrolls with
+       the bands (always exactly on the boundary, no separate position
+       math to keep in sync with the scroll-driven transform above).
+       Static rather than scroll-triggered on purpose — hijacking the
+       scroll-sync transform to pause/snap at each gate would fight the
+       same property renderRoadRealmStrip() already owns continuously;
+       this reads as "passing through a gate" simply by being there to
+       scroll past, without touching that live mechanic at all. */
+    .road-realm-gate{position:absolute;top:0;bottom:0;width:64px;margin-left:-32px;z-index:2;pointer-events:none;display:flex;justify-content:space-between}
+    .road-realm-gate-post{width:15px;height:100%;background:linear-gradient(180deg,rgba(232,214,196,.9),rgba(160,140,110,.6) 55%,rgba(60,48,34,.5));box-shadow:0 0 18px 2px rgba(255,210,140,.35);border-radius:3px}
+    .road-realm-gate-lintel{position:absolute;left:0;right:0;top:8%;height:12px;background:linear-gradient(90deg,rgba(232,214,196,.9),rgba(255,225,170,.95),rgba(232,214,196,.9));box-shadow:0 0 14px 2px rgba(255,210,140,.4);border-radius:3px}
+    .road-realm-gate-glow{position:absolute;inset:8% -30px 0 -30px;background:radial-gradient(ellipse at center,rgba(255,215,150,.28),transparent 70%);pointer-events:none}
     .road-ember{
       position:absolute;bottom:8%;width:3px;height:3px;border-radius:50%;
       background:#FF9A3D;box-shadow:0 0 6px 1.5px rgba(255,154,61,.85);
@@ -9689,8 +9702,13 @@ function renderRoadRealmStrip(scenery,track){
   if(!strip){
     strip=document.createElement('div');
     strip.className='road-realm-strip';
-    strip.innerHTML='<div class="road-realm-strip-inner">'+ROAD_REALMS.map(r=>
-      `<div class="road-realm-band" style="background-image:url('${r.img}')"></div>`
+    // A gate sits at every seam BETWEEN realms — ROAD_REALMS.length-1 of
+    // them, none before the first band or after the last (nothing to
+    // pass "through" at either open end of the road).
+    strip.innerHTML='<div class="road-realm-strip-inner">'+ROAD_REALMS.map((r,i)=>
+      `<div class="road-realm-band" style="background-image:url('${r.img}')">`+
+        (i<ROAD_REALMS.length-1?'<div class="road-realm-gate" style="left:100%"><div class="road-realm-gate-glow"></div><div class="road-realm-gate-lintel"></div><div class="road-realm-gate-post"></div><div class="road-realm-gate-post"></div></div>':'')+
+      '</div>'
     ).join('')+'</div>';
     scenery.insertBefore(strip,scenery.firstChild);
     scenery.classList.add('has-realm-art');
