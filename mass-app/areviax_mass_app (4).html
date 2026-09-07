@@ -11022,7 +11022,11 @@ function showLegendReveal(l,isNew,tier,count){
     const isLast=slotIdx===slots.length-1;
     if(counter){
       counter.textContent=slots.length-slotIdx;
-      counter.classList.toggle('glow-alert',isLast);
+      // Only glows on the last item when it's actually new — a
+      // duplicate landing last is still the biggest reveal of the
+      // sequence, but "glowing like something special" when it's a
+      // card you already own would be a false promise.
+      counter.classList.toggle('glow-alert',isLast&&isNew);
     }
     modal.style.setProperty('--reveal-glow',RARITY_GLOW[l.rarity]);
     modal.style.borderColor=RARITY_BORDER[l.rarity];
