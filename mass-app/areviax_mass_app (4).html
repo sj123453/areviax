@@ -10607,9 +10607,15 @@ function viewAchievementBadge(key){
 // object never jumps between frames). Only relics with that folder \u2014
 // i.e. every real .png relic, not the flat-icon placeholder cards \u2014
 // get the drag-rotate viewer; everything else keeps the CSS tilt.
+// Explicit allowlist rather than inferring from the flat image's
+// filename — the 9 Heroic Path cards added afterward (odysseus,
+// perseus, etc.) are real images/relics/*.png files too and would
+// otherwise match the same pattern and point at a relics_spin/ folder
+// that was never rendered for them.
+const RELIC_SPIN_KEYS=new Set(['amphora','caduceus','cornucopia','crystalwave','fist','globe','hourglass','lion','lyre','medallion','moon','nike','ouranos','owl','shield','spear','talos','thunderbolt','torch','trident','ultra_trophy','wreath']);
 function relicSpinKey(img){
   const m=img&&img.match(/^images\/relics\/([a-z_]+)\.png$/);
-  return m?m[1]:null;
+  return m&&RELIC_SPIN_KEYS.has(m[1])?m[1]:null;
 }
 const RELIC_SPIN_FRAMES=12;
 function viewLegendCard(key){
