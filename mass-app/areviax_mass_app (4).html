@@ -2423,9 +2423,15 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        showLegendReveal's own comment on why that stays a single reward. */
     .crate-tap-prompt{margin-top:14px;font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:rgba(var(--white-rgb),.55);transition:opacity .2s ease;animation:crateTapPulse 1.4s ease-in-out infinite}
     @keyframes crateTapPulse{0%,100%{opacity:.55}50%{opacity:1}}
-    .crate-slot-counter{position:absolute;top:-8px;right:-8px;min-width:26px;height:26px;padding:0 6px;border-radius:50%;background:rgba(20,14,10,.92);border:1.5px solid rgba(232,214,196,.35);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:800;color:var(--white);z-index:2;transition:background .2s,border-color .2s,transform .2s}
-    .crate-slot-counter.glow-alert{background:rgba(255,70,70,.9);border-color:#fff;color:#fff;animation:crateCounterGlow .5s ease-in-out infinite alternate;transform:scale(1.15)}
-    @keyframes crateCounterGlow{0%{box-shadow:0 0 6px 1px rgba(255,70,70,.7)}100%{box-shadow:0 0 16px 4px rgba(255,70,70,.9)}}
+    /* .achievement-modal>* (see PREMIUM REVEAL below) forces position:
+       relative on every direct child to layer content above the glow
+       pseudo-element — the counter now renders as a direct child of the
+       modal on every slot, so it needs the extra specificity here to
+       keep its own position:absolute corner-pin from being clobbered. */
+    .achievement-modal>.crate-slot-counter,
+    .crate-slot-counter{position:absolute;top:-8px;right:-8px;min-width:26px;height:26px;padding:0 6px;border-radius:50%;background:rgba(196,28,28,.95);border:1.5px solid rgba(255,255,255,.55);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:800;color:#fff;z-index:3;box-shadow:0 2px 10px rgba(0,0,0,.45);transition:background .2s,border-color .2s,transform .2s}
+    .crate-slot-counter.glow-alert{background:rgba(255,60,60,.95);border-color:#fff;animation:crateCounterGlow .5s ease-in-out infinite alternate;transform:scale(1.15)}
+    @keyframes crateCounterGlow{0%{box-shadow:0 0 6px 1px rgba(255,70,70,.7)}100%{box-shadow:0 0 18px 5px rgba(255,70,70,.95)}}
     .crate-slot-pop{animation:crateSlotPopIn .35s cubic-bezier(.34,1.56,.64,1) both}
     @keyframes crateSlotPopIn{0%{opacity:0;transform:scale(.5) rotate(-8deg)}70%{opacity:1}100%{opacity:1;transform:scale(1) rotate(0)}}
     .crate-xp-slot{display:flex;flex-direction:column;align-items:center;gap:6px;padding:20px 0}
@@ -2500,7 +2506,57 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       100%{transform:rotate(360deg) scale(1);opacity:1}
     }
     .legend-reveal-icon.spin-in{animation:revealSpinIn .5s cubic-bezier(.22,1.4,.36,1) both}
-    .reveal-badge-wrap{position:relative;width:96px;margin:0 auto 14px}
+    .reveal-badge-wrap{position:relative;width:96px;margin:0 auto 14px;perspective:420px}
+
+    /* ── MYSTERY SPIN — Brawl-Stars-box-open style "?" badge that plays
+       before the real trophy icon: spins toward the viewer on entry, then
+       idles/tumbles on a real rotateY (not a flat 2D spin) so the player
+       can grab and spin it themselves before it locks in and flips over
+       to the rarity-coloured .legend-reveal-icon underneath. Circular
+       instead of the star clip-path — the star shape is what says "this
+       IS the prize", so keeping the mystery phase a plain coin/disc keeps
+       that reveal moment from being spoiled early. */
+    .legend-mystery-icon{
+      width:96px;height:96px;border-radius:50%;
+      background:radial-gradient(circle at 50% 30%,#4B505A,#1B1E24 72%);
+      display:flex;align-items:center;justify-content:center;
+      box-shadow:inset 0 0 0 3px rgba(232,214,196,.28),inset 0 -10px 16px rgba(0,0,0,.45),inset 0 7px 11px rgba(232,214,196,.16),0 0 20px rgba(160,166,174,.35);
+      cursor:grab;touch-action:pan-y;
+    }
+    .legend-mystery-icon.dragging{cursor:grabbing}
+    .legend-mystery-icon .mystery-q{
+      font-family:'Cinzel',serif;font-weight:800;font-size:46px;line-height:1;
+      color:rgba(232,214,196,.92);text-shadow:0 3px 10px rgba(0,0,0,.55);
+      pointer-events:none;
+    }
+    @keyframes mysterySpinToward{
+      0%{transform:rotateY(-1080deg) scale(.2);opacity:0}
+      55%{opacity:1}
+      100%{transform:rotateY(0deg) scale(1);opacity:1}
+    }
+    .legend-mystery-icon.spin-toward{animation:mysterySpinToward .75s cubic-bezier(.22,1,.36,1) both}
+    .legend-mystery-icon.locking{transition:transform .4s cubic-bezier(.22,1.4,.36,1)}
+    /* Name/rarity text stays hidden until the mystery badge locks in —
+       showing the rarity label under a "?" would give the reveal away. */
+    .mystery-hide{opacity:0;transition:opacity .45s ease}
+
+    /* Thin light beams shot outward from the badge the instant it locks
+       in — the "lights come out of it" beat, coloured per-rarity via an
+       inline background set at burst time. Positioned the same fixed
+       50%/38% viewport point celebrateBurst's .burst-emoji already uses
+       for this exact modal, so both bursts originate from the badge. */
+    .light-ray-shard{
+      position:fixed;z-index:99999;pointer-events:none;left:50%;top:38%;
+      width:3px;height:60px;border-radius:2px;
+      transform-origin:50% 100%;
+      transform:translate(-50%,-100%) rotate(var(--ray-angle)) scaleY(.3);
+      opacity:0;animation:lightRayShoot .55s cubic-bezier(.16,1,.3,1) forwards;
+    }
+    @keyframes lightRayShoot{
+      0%{opacity:0;transform:translate(-50%,-100%) rotate(var(--ray-angle)) translateY(0) scaleY(.3)}
+      22%{opacity:1}
+      100%{opacity:0;transform:translate(-50%,-100%) rotate(var(--ray-angle)) translateY(calc(var(--ray-dist) * -1)) scaleY(1.6)}
+    }
 
     /* STAR BADGE — 7-point star (Brawl-Stars-style rarity badge mechanism,
        not its exact art) replacing the flat hex for the reveal moment
@@ -11152,6 +11208,87 @@ function playCrateRevealChime(rarity){
     shimmer.start(shimmerStart);shimmer.stop(shimmerStart+1.15);
   }
 }
+// Thin light beams shot outward from the reveal badge the instant the
+// mystery "?" locks in — the physical "lights come out of it" beat.
+// Positioned at the same fixed 50%/38% viewport point celebrateBurst's
+// .burst-emoji already uses for this exact modal, so both bursts read as
+// coming from the same spot the badge sits at.
+function lightRayBurst(color,count){
+  count=count||10;
+  for(let i=0;i<count;i++){
+    const el=document.createElement('div');
+    el.className='light-ray-shard';
+    const angle=(360/count)*i+(Math.random()*10-5);
+    const dist=100+Math.random()*130;
+    el.style.setProperty('--ray-angle',angle+'deg');
+    el.style.setProperty('--ray-dist',dist+'px');
+    el.style.background='linear-gradient(180deg,'+color+',transparent)';
+    document.body.appendChild(el);
+    setTimeout(()=>el.remove(),650);
+  }
+}
+// The "?" mystery-badge phase, Brawl-Stars-box-open style: spins toward
+// the viewer on entry, idles on a real rotateY the player can grab and
+// spin themselves, then locks in and flips over into the rarity-coloured
+// .legend-reveal-icon (reusing that class's existing shine/spin-in/rarity
+// animations rather than re-deriving a second reveal flourish) with a
+// light-ray burst and the rarity chime landing at that exact moment.
+// Shared by both the multi-slot trophy beat and the single Gift-from-
+// the-Gods reveal — modal is whichever .achievement-modal currently has
+// the trophySlotHTML() markup in it.
+function runMysteryReveal(modal,l,isNew,cfg){
+  const wrap=modal.querySelector('#reveal-badge-wrap');
+  const mystery=modal.querySelector('#reveal-mystery-icon');
+  if(!wrap||!mystery)return;
+  let dragging=false,startX=0,rotY=0,rafId=null,locked=false;
+  mystery.classList.add('spin-toward');
+  playCrateSpinTicks(750);
+
+  function frame(){
+    if(locked)return;
+    if(!dragging){ rotY=(rotY+2.6)%360; mystery.style.transform='rotateY('+rotY+'deg)'; }
+    rafId=requestAnimationFrame(frame);
+  }
+  const idleTimer=setTimeout(()=>{ if(!locked)rafId=requestAnimationFrame(frame); },550);
+
+  function pos(e){ return e.touches?e.touches[0].clientX:e.clientX; }
+  function onDown(e){ if(locked)return; dragging=true; startX=pos(e); mystery.classList.add('dragging'); }
+  function onMove(e){
+    if(!dragging||locked)return;
+    const x=pos(e); rotY=(rotY+(x-startX)*0.7+360)%360; startX=x;
+    mystery.style.transform='rotateY('+rotY+'deg)';
+  }
+  function onUp(){ dragging=false; mystery.classList.remove('dragging'); }
+  mystery.addEventListener('pointerdown',onDown);
+  window.addEventListener('pointermove',onMove);
+  window.addEventListener('pointerup',onUp);
+  mystery.addEventListener('click',lock);
+
+  function lock(){
+    if(locked)return; locked=true;
+    clearTimeout(idleTimer);
+    if(rafId)cancelAnimationFrame(rafId);
+    mystery.removeEventListener('pointerdown',onDown);
+    window.removeEventListener('pointermove',onMove);
+    window.removeEventListener('pointerup',onUp);
+    mystery.classList.add('locking');
+    mystery.style.transform='rotateY(360deg)';
+    setTimeout(()=>{
+      if(!wrap.isConnected)return;
+      wrap.style.setProperty('--ray-c',RARITY_RAY[l.rarity]);
+      wrap.innerHTML='<div class="reveal-ray-burst" id="reveal-ray-burst"></div>'+
+        '<div class="legend-reveal-icon shine spin-in rarity-'+l.rarity+'">'+legendIconHTML(l)+'</div>';
+      modal.querySelectorAll('.mystery-hide').forEach(el=>el.classList.remove('mystery-hide'));
+      lightRayBurst(RARITY_RAY[l.rarity],8+Math.round((cfg.burstCount||12)/2));
+      playCrateRevealChime(l.rarity);
+      if(isNew)celebrateBurst(['🔥','⭐','🏆'],cfg.burstCount);
+    },380);
+  }
+  // A player who never taps or drags still gets the reveal — same
+  // "don't gate the reward behind an interaction" rule as the crate tap
+  // itself and the slot auto-advance.
+  setTimeout(lock,1700);
+}
 const RARITY_GLOW={
   common:'rgba(170,176,184,.3)',
   rare:'rgba(46,204,113,.4)',
@@ -11282,15 +11419,20 @@ function showLegendReveal(l,isNew,tier,count,keyWon){
   const multiSlot=tier!=='areviax';
 
   function trophySlotHTML(){
-    return '<div class="legend-reveal-rarity rarity-'+l.rarity+'">'+(l.rarity==='ultralegendary'?'ULTRA LEGENDARY':l.rarity.toUpperCase())+'</div>'+
-      '<div class="reveal-badge-wrap" style="--ray-c:'+RARITY_RAY[l.rarity]+'">'+
-        '<div class="reveal-ray-burst"></div>'+
-        '<div class="legend-reveal-icon shine spin-in rarity-'+l.rarity+'">'+legendIconHTML(l)+'</div>'+
+    // Opens on the "?" mystery badge, not the real icon — runMysteryReveal
+    // (called from onShow) drives the spin-toward-viewer entrance, the
+    // player-draggable idle spin, and the lock-in that swaps this markup
+    // for the rarity-coloured .legend-reveal-icon. Name/rarity text stays
+    // .mystery-hide (opacity 0) until that lock so nothing spoils early.
+    return '<div class="legend-reveal-rarity rarity-'+l.rarity+' mystery-hide" id="reveal-rarity-label">'+(l.rarity==='ultralegendary'?'ULTRA LEGENDARY':l.rarity.toUpperCase())+'</div>'+
+      '<div class="reveal-badge-wrap" id="reveal-badge-wrap" style="--ray-c:#9AA0A8">'+
+        '<div class="reveal-ray-burst" id="reveal-ray-burst"></div>'+
+        '<div class="legend-mystery-icon" id="reveal-mystery-icon"><span class="mystery-q">?</span></div>'+
       '</div>'+
-      '<div style="font-size:10.5px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:'+(isNew?'#8FE8FF':'rgba(var(--white-rgb),.4)')+';margin:2px 0 12px">'+(isNew?'NEW':'DUPLICATE'+(count>1?' ×'+count:''))+'</div>'+
-      '<div class="achievement-title reveal-name-serif">'+l.name+'</div>'+
-      '<div class="achievement-desc">'+l.title+'</div>'+
-      (tier==='areviax'?'<div style="font-size:11px;font-weight:700;color:#FFB347;margin-top:8px">🔥 The Areviax Crate — +2 bonus Compass Shards</div>':'');
+      '<div style="font-size:10.5px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:'+(isNew?'#8FE8FF':'rgba(var(--white-rgb),.4)')+';margin:2px 0 12px" class="mystery-hide">'+(isNew?'NEW':'DUPLICATE'+(count>1?' ×'+count:''))+'</div>'+
+      '<div class="achievement-title reveal-name-serif mystery-hide">'+l.name+'</div>'+
+      '<div class="achievement-desc mystery-hide">'+l.title+'</div>'+
+      (tier==='areviax'?'<div style="font-size:11px;font-weight:700;color:#FFB347;margin-top:8px" class="mystery-hide">🔥 The Areviax Crate — +2 bonus Compass Shards</div>':'');
   }
   function xpSlotHTML(){
     return '<div class="crate-xp-slot crate-slot-pop">'+
@@ -11314,8 +11456,16 @@ function showLegendReveal(l,isNew,tier,count,keyWon){
   const slots=multiSlot?[
     {render:xpSlotHTML,onShow:()=>addXP(xpAmount,isNew?'New trophy':'Areviax Crate')},
     ...(keyWon?[{render:keySlotHTML,onShow:()=>{}}]:[]),
-    {render:trophySlotHTML,onShow:()=>{if(isNew)celebrateBurst(['🔥','⭐','🏆'],cfg.burstCount);}},
+    {render:trophySlotHTML,onShow:(modal)=>runMysteryReveal(modal,l,isNew,cfg)},
   ]:[];
+  // Anything above common counts as "a special item is coming out" for the
+  // counter badge — it glows red from the very first slot, not just once
+  // the trophy itself is showing, so the badge is advance warning through
+  // the whole sequence rather than a retroactive label.
+  const isSpecialPull=isNew||l.rarity!=='common';
+  function counterBadgeHTML(remaining){
+    return '<div class="crate-slot-counter'+(isSpecialPull?' glow-alert':'')+'" id="reveal-slot-counter">'+remaining+'</div>';
+  }
 
   const overlay=document.createElement('div');
   overlay.className='achievement-overlay';
@@ -11324,7 +11474,7 @@ function showLegendReveal(l,isNew,tier,count,keyWon){
       '<div class="crate-icon-wrap '+tier+' ready" id="reveal-crate-wrap" style="cursor:pointer">'+
         '<div class="crate-icon-glow"></div><div class="crate-icon-burst" id="reveal-crate-burst"></div>'+
         '<div class="compass-crate '+tier+'" id="reveal-crate-icon"><span class="crate-icon">'+crateIconHTML(tier)+'</span></div>'+
-        (multiSlot?'<div class="crate-slot-counter" id="reveal-slot-counter">'+slots.length+'</div>':'')+
+        (multiSlot?counterBadgeHTML(slots.length):'')+
       '</div>'+
       '<div class="crate-tap-prompt" id="reveal-tap-prompt">Tap to open</div>'+
     '</div>';
@@ -11335,31 +11485,30 @@ function showLegendReveal(l,isNew,tier,count,keyWon){
   const icon=overlay.querySelector('#reveal-crate-icon');
   const burst=overlay.querySelector('#reveal-crate-burst');
   const prompt=overlay.querySelector('#reveal-tap-prompt');
-  const counter=overlay.querySelector('#reveal-slot-counter');
   let opened=false,slotIdx=0;
 
+  // Every slot's innerHTML fully replaces the modal's previous content
+  // (including whatever counter badge was in it), so the counter is
+  // rebuilt fresh as part of THIS slot's markup on every call instead of
+  // living on a captured reference that goes stale — that stale-reference
+  // bug was why the badge used to vanish after the first slot.
   function showSlot(){
     const modal=overlay.querySelector('.achievement-modal');
     if(!modal)return;
     const slot=slots[slotIdx];
     const isLast=slotIdx===slots.length-1;
-    if(counter){
-      counter.textContent=slots.length-slotIdx;
-      // Only glows on the last item when it's actually new — a
-      // duplicate landing last is still the biggest reveal of the
-      // sequence, but "glowing like something special" when it's a
-      // card you already own would be a false promise.
-      counter.classList.toggle('glow-alert',isLast&&isNew);
-    }
     modal.style.setProperty('--reveal-glow',RARITY_GLOW[l.rarity]);
     modal.style.borderColor=RARITY_BORDER[l.rarity];
     modal.classList.add('glow');
-    modal.innerHTML=slot.render()+
+    modal.innerHTML=counterBadgeHTML(slots.length-slotIdx)+slot.render()+
       (isLast
         ? '<button class="achievement-close-btn" onclick="this.closest(\'.achievement-overlay\').remove()">Continue</button>'
         : '<div class="crate-tap-prompt" style="margin-top:16px" onclick="this.closest(\'.achievement-modal\').dispatchEvent(new Event(\'advance\'))">Tap to continue</div>');
-    playCrateRevealChime(slotIdx===slots.length-1?l.rarity:'common');
-    slot.onShow&&slot.onShow();
+    // The trophy slot's own chime fires later, at the mystery badge's
+    // lock-in moment (see runMysteryReveal) so the "successful" sound
+    // lands with the actual reveal, not a second early with the "?".
+    if(!isLast)playCrateRevealChime('common');
+    slot.onShow&&slot.onShow(modal);
     if(!isLast){
       modal.addEventListener('advance',()=>{ slotIdx++; showSlot(); },{once:true});
       // Same "don't gate the reward behind a tap" rule as the box open
@@ -11394,11 +11543,8 @@ function showLegendReveal(l,isNew,tier,count,keyWon){
       modal.style.borderColor=RARITY_BORDER[l.rarity];
       modal.classList.add('glow');
       modal.innerHTML=trophySlotHTML()+'<button class="achievement-close-btn" onclick="this.closest(\'.achievement-overlay\').remove()">Continue</button>';
-      playCrateRevealChime(l.rarity);
-      requestAnimationFrame(()=>{
-        addXP(xpAmount,isNew?'New trophy':'Areviax Crate');
-        if(isNew)celebrateBurst(['🔥','⭐','🏆'],cfg.burstCount);
-      });
+      addXP(xpAmount,isNew?'New trophy':'Areviax Crate');
+      runMysteryReveal(modal,l,isNew,cfg);
     },cfg.windupMs+cfg.crackMs);
   }
   wrap.addEventListener('click',doOpen);
