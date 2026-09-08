@@ -1622,7 +1622,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        the name visible yet, same idea as the priority-dial colour
        system elsewhere in the app. */
     .legend-card{
-      flex:0 0 auto;width:100px;border-radius:10px;padding:8px 6px 6px;text-align:center;
+      flex:0 0 auto;width:76px;border-radius:10px;padding:8px 4px 6px;text-align:center;
       background:transparent;border:none;cursor:pointer;position:relative;
       -webkit-tap-highlight-color:transparent;transition:transform .15s;
     }
@@ -1685,8 +1685,8 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        legendCardFrameHTML and the TROPHY_LAYERS render blocks, which
        stopped emitting that decoration entirely. */
     .legend-card-icon{
-      width:82px;height:82px;margin:0 auto 6px;position:relative;z-index:1;
-      display:flex;align-items:center;justify-content:center;font-size:36px;
+      width:56px;height:56px;margin:0 auto 6px;position:relative;z-index:1;
+      display:flex;align-items:center;justify-content:center;font-size:26px;
       transition:filter .2s;
       filter:grayscale(1) opacity(.4);
     }
@@ -1739,12 +1739,12 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     /* Shade/sheen facet overlays retired along with the hexagon medallion
        they were cut to fit — a plain PNG doesn't need a lighting fake. */
     .legend-card-icon::before,.legend-card-icon::after{content:none}
-    .legend-card-icon img{width:82px;height:82px;object-fit:contain;filter:inherit;position:relative;z-index:1}
+    .legend-card-icon img{width:56px;height:56px;object-fit:contain;filter:inherit;position:relative;z-index:1}
     /* The Areviax Trophy's icon is the real brand mark (inline SVG, same
        markup as the sidebar/splash logo) rather than an emoji — svg
        doesn't pick up the img sizing rule above since it isn't an img
        tag, so it needs its own matching rule. */
-    .legend-card-icon svg.lgi-brand-mark{width:82px;height:82px;position:relative;z-index:1}
+    .legend-card-icon svg.lgi-brand-mark{width:56px;height:56px;position:relative;z-index:1}
     /* Full names, not just the last word — several cards legitimately
        share a last word (every Training Crest ends in "Crest", Jump
        Rope/Battle Rope both end in "Rope"), which made them read as
@@ -1902,12 +1902,12 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        isn't boxed into a 52px hex. */
     #cabinet-peak-slot{width:auto}
     #cabinet-peak-slot .legend-card-icon.peak-bare{
-      width:170px;height:170px;margin:0 auto 10px;background:none;clip-path:none;box-shadow:none;
+      width:108px;height:108px;margin:0 auto 10px;background:none;clip-path:none;box-shadow:none;
     }
     #cabinet-peak-slot .legend-card-icon.peak-bare::before,
     #cabinet-peak-slot .legend-card-icon.peak-bare::after{content:none}
-    #cabinet-peak-slot .legend-card-icon.peak-bare img{width:170px;height:170px}
-    #cabinet-peak-slot .legend-card-icon.peak-bare svg.lgi-brand-mark{width:170px;height:170px}
+    #cabinet-peak-slot .legend-card-icon.peak-bare img{width:108px;height:108px}
+    #cabinet-peak-slot .legend-card-icon.peak-bare svg.lgi-brand-mark{width:108px;height:108px}
 
     .cabinet-tier{margin-bottom:20px}
     .cabinet-tier-plaque{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:2px}
@@ -1930,24 +1930,39 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        gap to their right. Also tidies the final partial row of the
        longer 7-layer sections (e.g. Equipment's 13th item alone on its
        own row) the same way. */
-    .cabinet-row{display:flex;flex-wrap:wrap;justify-content:center;gap:9px;padding:4px 2px 6px}
-    .legend-card.cabinet-slot{width:100px;padding:8px 6px 6px;flex:0 0 auto}
-    /* ── DISPLAY SHELF — a wooden plank band running behind each row of
-       trophies, with a lit top edge and a soft shadow underneath each
-       row, so unlocked trophies read as objects actually sitting on a
-       museum shelf rather than icons floating in a plain grid. Only the
-       shelf itself is decorative (::before/::after, no layout impact) —
-       .cabinet-row's own flex/gap/wrap behavior is untouched. */
+    .legend-card.cabinet-slot{width:76px;padding:8px 4px 6px;flex:0 0 auto}
+    /* ── DISPLAY CASE — every row of trophies now sits behind actual
+       glass in a black metal cabinet frame, like a museum vitrine: a
+       dark bevelled border, a faint diagonal glass sheen catching the
+       light, and a wooden shelf plank at the bottom the trophies stand
+       on. Real reference: a black-framed glass display cabinet with
+       oak shelves. The frame lives on .cabinet-row itself (border/
+       background/padding — no layout properties touched, so flex/gap/
+       wrap/justify-content are untouched); the shelf plank is still
+       the ::before/::after pair, just inset within the new frame
+       instead of overhanging a borderless row. */
     .cabinet-tier{position:relative}
-    .cabinet-row{position:relative;z-index:1}
+    .cabinet-row{
+      display:flex;flex-wrap:wrap;justify-content:center;gap:9px;
+      position:relative;z-index:1;overflow:hidden;
+      padding:16px 10px 22px;border-radius:5px;
+      border:3px solid #16110b;
+      background:
+        linear-gradient(122deg,rgba(255,255,255,.09) 0%,transparent 22%,transparent 78%,rgba(255,255,255,.05) 100%),
+        rgba(12,8,5,.4);
+      box-shadow:
+        inset 0 0 0 1px rgba(255,255,255,.06),
+        inset 0 1px 0 rgba(255,255,255,.08),
+        0 14px 26px -18px rgba(0,0,0,.7);
+    }
     .cabinet-row::before{
-      content:'';position:absolute;left:-4px;right:-4px;bottom:2px;height:14px;z-index:-1;
+      content:'';position:absolute;left:4px;right:4px;bottom:4px;height:14px;z-index:-1;
       background:linear-gradient(180deg,rgba(120,84,46,.55) 0%,rgba(66,44,22,.7) 55%,rgba(30,18,8,.85) 100%);
-      border-radius:4px;
+      border-radius:3px;
       box-shadow:0 1px 0 rgba(255,200,140,.18) inset,0 10px 18px -6px rgba(0,0,0,.55);
     }
     .cabinet-row::after{
-      content:'';position:absolute;left:-4px;right:-4px;bottom:15px;height:1.5px;z-index:-1;
+      content:'';position:absolute;left:4px;right:4px;bottom:17px;height:1.5px;z-index:-1;
       background:rgba(255,205,150,.35);
     }
 
