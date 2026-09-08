@@ -2390,14 +2390,15 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        matching whichever crate tier it won underneath (same weighted
        odds as before, see DAILY_SPIN_WEIGHTS/rollDailySpinTier) — the
        key is flavor for "this unlocks that crate", not a separate
-       inventory item. Built from CSS + inline SVG only, no photo assets,
-       so it reuses the app's existing flat-icon line-art language
-       (see KEY_ICON_PATHS) rather than needing new generated art. */
+       inventory item. The gift itself is a generated raster image of an
+       altar with a gift box (see gift_altar.png in images/relics/); the
+       key-reveal still uses the app's existing flat-icon line-art
+       (KEY_ICON_PATHS). */
     .spin-wheel-card{text-align:center}
     .gift-box-wrap{position:relative;width:120px;margin:6px auto 0}
     .gift-box{position:relative;width:100%;aspect-ratio:1/1;border-radius:50%;background:radial-gradient(circle at 35% 28%,rgba(255,196,110,.16),rgba(13,8,6,.92) 72%);border:1.5px solid rgba(232,214,196,.22);display:flex;align-items:center;justify-content:center;box-shadow:0 10px 26px -10px rgba(0,0,0,.6);transition:border-color .3s}
     .gift-box.opened{border-color:rgba(255,180,60,.55)}
-    .gift-box-icon{width:52%;height:52%;color:rgba(232,214,196,.85)}
+    .gift-box-icon{width:68%;height:68%;object-fit:contain}
     .gift-key-reveal{display:flex;flex-direction:column;align-items:center;gap:5px;animation:giftKeyPop .5s cubic-bezier(.16,1,.3,1)}
     @keyframes giftKeyPop{0%{opacity:0;transform:scale(.4) rotate(-25deg)}70%{opacity:1;transform:scale(1.08) rotate(4deg)}100%{opacity:1;transform:scale(1) rotate(0)}}
     .gift-tier-label{font-size:10.5px;font-weight:800}
@@ -11310,30 +11311,15 @@ function isDailySpinReady(){
 // container a moment later (it also refreshes the crate row banks,
 // which really did just change) before the player has actually seen it.
 let _giftJustOpened=false;
-// Sealed-gift glyph (a simple gift box) shown before opening; swapped
-// for a key reveal by spinDailyWheel() once tapped. Kept as inline SVG
-// rather than a photo so it matches the same flat-icon language as the
-// rest of the Rewards card (crate icons, key icons) with no image asset.
-// A wrapped-present bow was never a mythological image — the actual
-// framing everywhere else on this card ("A Gift from the Gods", "a key
-// to Bronze, Silver...") is a divine offering left on an altar, not a
-// birthday present. This draws that instead: a fluted stone altar with a
-// laurel-wreathed amphora on top, catching a shaft of light from above —
-// the same "something was left here by the gods" image the copy already
-// promises. Reuses the amphora silhouette and leaf-path shape already
-// established elsewhere in this file (the wreath SVGs) rather than
-// inventing a new visual language just for this one icon.
+// Sealed-gift image shown before opening; swapped for a key reveal by
+// spinDailyWheel() once tapped. A wrapped-present bow was never a
+// mythological image — the actual framing everywhere else on this card
+// ("A Gift from the Gods", "a key to Bronze, Silver...") is a divine
+// offering left on an altar, not a birthday present. This shows that
+// instead: a fluted stone altar/pillar with a gift box left on top,
+// generated to match the app's warm bronze/ember palette.
 function giftBoxIconSVG(){
-  return '<svg class="gift-box-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">'+
-    '<g opacity=".55">'+
-      '<path d="M12 1v3M6.5 3l1.3 2.6M17.5 3l-1.3 2.6M2.5 8l2.6 1.3M21.5 8l-2.6 1.3"/>'+
-    '</g>'+
-    '<path d="M9 10.2c0-1.6.9-2.8 3-2.8s3 1.2 3 2.8v3.3H9v-3.3Z" fill="currentColor" fill-opacity=".16"/>'+
-    '<path d="M9.6 8.7c-1-.4-2.3-.1-2.3 1.1 0 1 1.4 1.4 2.7.7M14.4 8.7c1-.4 2.3-.1 2.3 1.1 0 1-1.4 1.4-2.7.7" opacity=".85"/>'+
-    '<path d="M9 13.5h6v1.2c0 .5-.4.9-.9.9H9.9c-.5 0-.9-.4-.9-.9v-1.2Z"/>'+
-    '<path d="M6.4 22h11.2l-1.1-4.4a1 1 0 0 0-1-.76H8.5a1 1 0 0 0-1 .76L6.4 22Z"/>'+
-    '<path d="M5 22h14M7.3 22v-1.6M16.7 22v-1.6" opacity=".7"/>'+
-  '</svg>';
+  return '<img class="gift-box-icon" src="images/relics/gift_altar.png" alt="">';
 }
 function renderDailySpin(){
   const cont=document.getElementById('daily-spin-wheel');
