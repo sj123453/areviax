@@ -3992,6 +3992,7 @@ body[data-goal-theme="cut"] .lv-page{
       <p class="lv-label-eyebrow lv-pulse-dot" style="margin-top:22px;color:var(--lv-fg);opacity:.7" id="dash-eyebrow-text">Session</p>
 
       <h1 style="margin-top:6px;color:var(--lv-fg);font-family:'Bebas Neue',sans-serif;font-weight:400;font-size:clamp(2.6rem,14vw,4rem);line-height:.9;letter-spacing:.01em;text-transform:uppercase"><span id="dash-greeting-word1">Good</span><br><span class="lv-serif-accent lv-gold-text" id="dash-greeting-word2" style="font-size:.8em">morning</span></h1>
+      <div id="dash-title-badge" style="display:none;margin-top:4px;font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--lv-gold)"></div>
       <div style="margin-top:6px;font-family:var(--lv-sans);font-size:15px;font-weight:800;color:var(--lv-fg)">
         <span id="d-next-word1">Push</span> <span class="lv-serif-accent lv-gold-text" id="d-next-word2">upper</span>
       </div>
@@ -6868,6 +6869,11 @@ body[data-goal-theme="cut"] .lv-page{
       <div id="set-accent-toggle" style="display:flex;gap:4px"></div>
     </div>
     <div style="font-size:10.5px;color:var(--muted);margin-top:6px;line-height:1.5">A cosmetic reward, not a setting — Silver unlocks from opening a Diamond Crate, Gold from the Areviax Crate.</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:14px;flex-wrap:wrap;gap:6px">
+      <label class="lbl" style="margin:0">Title</label>
+      <div id="set-title-toggle" style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end"></div>
+    </div>
+    <div style="font-size:10.5px;color:var(--muted);margin-top:6px;line-height:1.5">Earned, not spun — The Unbowed (first Labor), The Disciplined (7-day streak), The Ascendant (unlock the Areviax Trophy).</div>
   </div>
 
   <!-- SHIELD REMINDERS — a real OS-level notification (not just an
@@ -7751,6 +7757,56 @@ function renderAccentThemePicker(){
     const t=ACCENT_THEMES[key];
     const unlocked=unlockedThemes.includes(key);
     return `<button type="button" class="equip-chip${key===equippedAccentTheme?' active':''}" ${unlocked?`onclick="setAccentTheme('${key}')"`:'disabled'} style="padding:3px 10px;font-size:10px;opacity:${unlocked?1:.4}"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${t.c1};margin-right:4px;vertical-align:middle"></span>${t.name}${unlocked?'':' 🔒'}</button>`;
+  }).join('');
+}
+// TITLES — a second cosmetic reward track alongside Keys/Themes, same
+// "real milestone, not random luck" rule. Shown as a small line under
+// the Dashboard greeting when one's equipped; "none" is always the
+// default and needs no unlock. checkTitleUnlocks() is called from the
+// same places that already check labor/streak/road progress, so it
+// piggybacks on existing state instead of tracking anything new.
+const TITLES={
+  unbowed:{name:'The Unbowed',hint:'Complete your first Labor'},
+  disciplined:{name:'The Disciplined',hint:'Reach a 7-day streak'},
+  ascendant:{name:'The Ascendant',hint:'Unlock The Areviax Trophy'},
+};
+let unlockedTitles=[];
+let equippedTitle='';
+function unlockTitle(key,announce){
+  if(!TITLES[key]||unlockedTitles.includes(key))return;
+  unlockedTitles.push(key);
+  saveToStorage();
+  if(announce)toast('🏅','New title unlocked — "'+TITLES[key].name+'". Equip it in Settings → Appearance.');
+}
+function checkTitleUnlocks(){
+  if(Object.keys(laborsCompleted||{}).length>0)unlockTitle('unbowed',true);
+  if(streak>=7)unlockTitle('disciplined',true);
+  if(unlockedLegends.includes('areviax_trophy'))unlockTitle('ascendant',true);
+}
+function setEquippedTitle(key){
+  if(key&&(!TITLES[key]||!unlockedTitles.includes(key)))return;
+  equippedTitle=key||'';
+  saveToStorage();
+  renderTitlePicker();
+  renderDashTitleBadge();
+}
+function renderDashTitleBadge(){
+  const el=document.getElementById('dash-title-badge');
+  if(!el)return;
+  if(equippedTitle&&TITLES[equippedTitle]){
+    el.textContent=TITLES[equippedTitle].name;
+    el.style.display='block';
+  }else{
+    el.style.display='none';
+  }
+}
+function renderTitlePicker(){
+  const cont=document.getElementById('set-title-toggle');
+  if(!cont)return;
+  const chips=[{key:'',label:'None'}].concat(Object.keys(TITLES).map(k=>({key:k,label:TITLES[k].name})));
+  cont.innerHTML=chips.map(c=>{
+    const unlocked=c.key===''||unlockedTitles.includes(c.key);
+    return `<button type="button" class="equip-chip${c.key===equippedTitle?' active':''}" ${unlocked?`onclick="setEquippedTitle('${c.key}')"`:'disabled'} style="padding:3px 10px;font-size:10px;opacity:${unlocked?1:.4}">${c.label}${unlocked?'':' 🔒'}</button>`;
   }).join('');
 }
 let joinDate='';
@@ -11457,6 +11513,7 @@ function renderSettings(){
   const sht=document.getElementById('set-height-unit-toggle');if(sht)sht.querySelectorAll('.equip-chip').forEach(b=>b.classList.toggle('active',b.dataset.u===heightUnit));
   const stt=document.getElementById('set-theme-toggle');if(stt)stt.querySelectorAll('.equip-chip').forEach(b=>b.classList.toggle('active',b.dataset.u===appTheme));
   renderAccentThemePicker();
+  renderTitlePicker();
   document.getElementById('set-age').value=profile.age||'';
   document.getElementById('set-goal').value=profile.goal||'bulk';
   document.getElementById('set-equip').value=profile.equip||'full';
@@ -13904,6 +13961,8 @@ function syncLvBadges(){
 }
 function renderDashHeroLovable(){
   syncLvBadges();
+  checkTitleUnlocks();
+  renderDashTitleBadge();
   const greetW1=document.getElementById('dash-greeting-word1');
   const greetW2=document.getElementById('dash-greeting-word2');
   if(greetW1&&greetW2){
@@ -22227,6 +22286,8 @@ function saveToStorage(){
     localStorage.setItem('arx_appTheme', appTheme);
     localStorage.setItem('arx_unlockedThemes', JSON.stringify(unlockedThemes));
     localStorage.setItem('arx_equippedAccentTheme', equippedAccentTheme);
+    localStorage.setItem('arx_unlockedTitles', JSON.stringify(unlockedTitles));
+    localStorage.setItem('arx_equippedTitle', equippedTitle);
     localStorage.setItem('arx_deviationLog', JSON.stringify(deviationLog));
     localStorage.setItem('arx_lowerBodyNudgeDismissedAt', lowerBodyNudgeDismissedAt||'');
     localStorage.setItem('arx_muscleBalanceNudgeDismissedDate', muscleBalanceNudgeDismissedDate||'');
@@ -22357,6 +22418,9 @@ function loadFromStorage(){
     equippedAccentTheme=localStorage.getItem('arx_equippedAccentTheme')||'bronze';
     if(!unlockedThemes.includes(equippedAccentTheme))equippedAccentTheme='bronze';
     document.documentElement.setAttribute('data-accent-theme',equippedAccentTheme);
+    { const ut2=localStorage.getItem('arx_unlockedTitles'); if(ut2){try{unlockedTitles=JSON.parse(ut2);}catch(e){unlockedTitles=[];}} }
+    equippedTitle=localStorage.getItem('arx_equippedTitle')||'';
+    if(equippedTitle&&!unlockedTitles.includes(equippedTitle))equippedTitle='';
     const dl=localStorage.getItem('arx_deviationLog');
     if(dl){try{deviationLog=JSON.parse(dl);}catch(e){deviationLog=[];}}
     lowerBodyNudgeDismissedAt=localStorage.getItem('arx_lowerBodyNudgeDismissedAt')||null;
