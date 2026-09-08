@@ -7402,7 +7402,7 @@ let xp=0,streak=0,compassPts=0,totalSess=0,sessThisWeek=0;
 let shardBank=0;
 let streakRepairDismissedDate='';
 // The Bronze Crate — a second, free-and-frequent track alongside the
-// shard-funded Gold Drop, so the Legend Card collection keeps moving for
+// shard-funded Gold Crate, so the Legend Card collection keeps moving for
 // everyone training regularly, not just people who complete a full
 // perfect week. bronzeDropProgress counts real trained days (via
 // markTrainedToday) toward the next banked drop, resetting at the
@@ -9721,7 +9721,7 @@ function checkLabors(){
 // 19 checkpoints spanning 50-35,000 Arete (up from 10 topping out at
 // 4,000) — enough that the road is still handing out real, varied
 // rewards well past the point a dedicated user reaches it. The summit
-// prize is Diamond Drops rather than a guaranteed Ultra Legendary —
+// prize is Diamond Crates rather than a guaranteed Ultra Legendary —
 // there's only ONE ultralegendary item in the whole game (the Areviax
 // Trophy), so handing it out for free on a deterministic checkpoint
 // would flatten it into "just log enough Arete" instead of the real,
@@ -9751,22 +9751,22 @@ const XP_ROAD=[
 let claimedXpRoad=[]; // persistent \u2014 xp thresholds already paid out, so crossing one twice (or loading old data) can't double-grant
 function xpRoadRewardExtraLabel(extra){
   if(!extra)return '';
-  if(extra.type==='bronze')return ' + '+extra.amount+' Bronze Drop'+(extra.amount>1?'s':'');
-  if(extra.type==='silver')return ' + '+extra.amount+' Silver Drop'+(extra.amount>1?'s':'');
+  if(extra.type==='bronze')return ' + '+extra.amount+' Bronze Crate'+(extra.amount>1?'s':'');
+  if(extra.type==='silver')return ' + '+extra.amount+' Silver Crate'+(extra.amount>1?'s':'');
   return '';
 }
 function xpRoadRewardLabel(node){
-  if(node.type==='bronze')return node.amount+' Bronze Drop'+(node.amount>1?'s':'');
-  if(node.type==='silver')return node.amount+' Silver Drop'+(node.amount>1?'s':'');
-  if(node.type==='diamond')return node.amount+' Diamond Drop'+(node.amount>1?'s':'');
+  if(node.type==='bronze')return node.amount+' Bronze Crate'+(node.amount>1?'s':'');
+  if(node.type==='silver')return node.amount+' Silver Crate'+(node.amount>1?'s':'');
+  if(node.type==='diamond')return node.amount+' Diamond Crate'+(node.amount>1?'s':'');
   if(node.type==='shard')return node.amount+' Compass Shard'+(node.amount>1?'s':'')+xpRoadRewardExtraLabel(node.extra);
   if(node.type==='legend')return 'Guaranteed '+node.rarity[0].toUpperCase()+node.rarity.slice(1)+' Trophy';
   return '';
 }
 // Distinct per reward type instead of the same compass glyph for
-// everything \u2014 Bronze Drop nodes reuse the actual crate icon (same
+// everything \u2014 Bronze Crate nodes reuse the actual crate icon (same
 // glyph you'll see when you open it), Compass Shard gets its own
-// crystal mark (so it doesn't get confused with the Diamond Drop's
+// crystal mark (so it doesn't get confused with the Diamond Crate's
 // gem icon), Legend Card nodes keep their crown/trophy split by rarity.
 const SHARD_ICON_SVG='<svg viewBox="-12 -12 24 24" fill="none" stroke="#44CFFF" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M0-9l7.8 4.5v9L0 9l-7.8-4.5v-9L0-9z"/><path d="M0-9v18M-7.8-4.5L7.8 4.5M7.8-4.5L-7.8 4.5"/></svg>';
 const SHARD_ICON_IMG='<img src="images/icons/shard.png" alt="Compass Shard" style="width:100%;height:100%;object-fit:contain">';
@@ -10028,7 +10028,7 @@ function renderRoadPath(containerId,nodes){
     // so a low-value next node stays modest and a high-value one reads as
     // both "you are here" and genuinely big.
     // Wider, steeper range than the first pass \u2014 adjacent reward tiers
-    // (e.g. a Bronze Drop at weight .32 vs a Compass Shard at .18) need
+    // (e.g. a Bronze Crate at weight .32 vs a Compass Shard at .18) need
     // to read as visibly different sizes at a glance, not just a few
     // px apart. Deliberately allowed to exceed its 104px flex slot at
     // the top end (the reference's own Mega Box does the same) \u2014 the
@@ -10117,7 +10117,7 @@ function renderRewardRow(prefix,nodes){
   fillBox(prefix+'-reward-then',then,false);
 }
 // How big a deal each Arete Road reward actually is (0..1), for hex sizing —
-// a shard or single Bronze Drop is a small, frequent trickle; a guaranteed
+// a shard or single Bronze Crate is a small, frequent trickle; a guaranteed
 // Legend Card is the showpiece prize on this whole road, so it should read
 // visibly bigger regardless of whether it's the very next checkpoint.
 const XP_NODE_TYPE_WEIGHT={shard:0.18,bronze:0.32,silver:0.55,diamond:0.8,legend:0.85};
@@ -18005,7 +18005,7 @@ const AI_COACH_KB=[
   {q:'How do I contact support?',kw:['contact support','email support','real person','human support','talk to someone'],
    a:'Email areviaxsupport@gmail.com any time — that goes to a real person, not this FAQ matcher.'},
   {q:'What are Compass Shards and how do I get them?',kw:['compass shard','shard','shards','what are shards'],
-   a:"Compass Shards are the app's spendable currency — earn one from a perfect training week or a lucky Daily Spin, then spend it to open a Gold Drop, or to repair a broken streak if you've got one banked when a Repair prompt shows up. Check your current balance on the Progress page."},
+   a:"Compass Shards are the app's spendable currency — earn one from a perfect training week or a lucky Daily Spin, then spend it to open a Gold Crate, or to repair a broken streak if you've got one banked when a Repair prompt shows up. Check your current balance on the Progress page."},
   {q:'How do I earn Silver, Gold, Diamond or the Areviax Crate?',kw:['silver drop','gold drop','diamond drop','earn crates','more crates','where do crates come from'],
    a:"Bronze fills automatically after 5 training days. Everything above it — Silver, Diamond, and the Areviax Crate — comes from winning it on the Daily Spin; Gold is the one exception, costing 1 Compass Shard to open. Tap the ⓘ on any crate on the Progress page for its exact odds and source."},
   {q:'Can I repair a broken streak?',kw:['repair streak','broken streak','streak repair','fix my streak','save my streak'],
@@ -22152,7 +22152,7 @@ const LEAGUE_TIERS=[
 // empty gradient hexagon. Bronze/silver/gold share a plain star (medal
 // iconography — the material gradient alone carries the tier), the
 // three gem tiers share a faceted gem outline, and Diamond reuses the
-// Diamond Drop's own crateIconSVG so the crate and league genuinely
+// Diamond Crate's own crateIconSVG so the crate and league genuinely
 // look like the same material. Areviax gets its own bespoke nova/
 // compass mark — an 8-point star (4 long cardinal spikes + 4 shorter
 // diagonal ones) with a bright core, echoing the compass motif used
