@@ -1679,18 +1679,16 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       --lgi-ring:#8A8D96;--lgi-ring-light:#B4B7C0;--lgi-glow-blur:0px;--lgi-glow-color:transparent;
       --lgi-aura-spread:0px;--lgi-aura-color:transparent;
     }
+    /* No more hexagon medallion — every card (locked or unlocked) now
+       just shows its icon/photo plain, sized up to fill the room the
+       hex/rings/glow/burst/crown/wreath used to share with it. See
+       legendCardFrameHTML and the TROPHY_LAYERS render blocks, which
+       stopped emitting that decoration entirely. */
     .legend-card-icon{
-      width:52px;height:52px;margin:0 auto 6px;position:relative;z-index:1;
-      clip-path:polygon(50% 0%,93% 25%,93% 75%,50% 100%,7% 75%,7% 25%);
-      display:flex;align-items:center;justify-content:center;font-size:24px;
-      background:linear-gradient(160deg,#2A2A38,#18181F);transition:box-shadow .2s;
+      width:62px;height:62px;margin:0 auto 6px;position:relative;z-index:1;
+      display:flex;align-items:center;justify-content:center;font-size:28px;
+      transition:filter .2s;
       filter:grayscale(1) opacity(.4);
-      box-shadow:
-        inset 0 0 0 2px rgba(0,0,0,.55),
-        inset 0 0 0 4.5px var(--lgi-ring-light),
-        inset 0 0 0 7px var(--lgi-ring),
-        inset 0 0 0 9px rgba(232,214,196,.55),
-        inset 0 0 0 10.5px rgba(0,0,0,.4);
     }
     /* Unclipped glow layer, painted behind the hex (DOM order, no
        z-index needed against the icon) — a soft blurred radial bloom
@@ -1738,28 +1736,15 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       transition:opacity .25s;
     }
     @keyframes legendBurstSpin{from{transform:translateX(-50%) rotate(0deg)}to{transform:translateX(-50%) rotate(360deg)}}
-    /* Shade first (bottom-right, gives the facet weight), sheen on top
-       (top-left) — both above the icon (z-index:2 vs the icon's 1) so
-       real trophy photography still reads as a lit, faceted badge
-       instead of a flat sticker, same language as the compass crates. */
-    .legend-card-icon::before{
-      content:'';position:absolute;inset:0;z-index:2;
-      clip-path:polygon(50% 0%,93% 25%,93% 75%,50% 100%,7% 75%,7% 25%);
-      background:linear-gradient(160deg,transparent 45%,rgba(0,0,0,.3) 100%);
-      pointer-events:none;
-    }
-    .legend-card-icon::after{
-      content:'';position:absolute;inset:0;z-index:2;
-      clip-path:polygon(50% 0%,93% 25%,93% 75%,50% 100%,7% 75%,7% 25%);
-      background:linear-gradient(160deg,rgba(232,214,196,.28),transparent 55%);
-      pointer-events:none;
-    }
-    .legend-card-icon img{width:32px;height:32px;object-fit:contain;filter:inherit;position:relative;z-index:1}
+    /* Shade/sheen facet overlays retired along with the hexagon medallion
+       they were cut to fit — a plain PNG doesn't need a lighting fake. */
+    .legend-card-icon::before,.legend-card-icon::after{content:none}
+    .legend-card-icon img{width:62px;height:62px;object-fit:contain;filter:inherit;position:relative;z-index:1}
     /* The Areviax Trophy's icon is the real brand mark (inline SVG, same
        markup as the sidebar/splash logo) rather than an emoji — svg
        doesn't pick up the img sizing rule above since it isn't an img
        tag, so it needs its own matching rule. */
-    .legend-card-icon svg.lgi-brand-mark{width:32px;height:32px;position:relative;z-index:1}
+    .legend-card-icon svg.lgi-brand-mark{width:62px;height:62px;position:relative;z-index:1}
     /* Full names, not just the last word — several cards legitimately
        share a last word (every Training Crest ends in "Crest", Jump
        Rope/Battle Rope both end in "Rope"), which made them read as
@@ -1801,9 +1786,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     @keyframes glowPulseSoft{0%,100%{opacity:.75}50%{opacity:1}}
     @keyframes glowPulseStrong{0%,100%{opacity:.7;transform:scale(1)}50%{opacity:1;transform:scale(1.08)}}
     .legend-card.rarity-common.unlocked{--lgi-glow-blur:8px;--lgi-glow-color:rgba(170,176,184,.35)}
-    .legend-card.rarity-common.unlocked .legend-card-icon{background:linear-gradient(160deg,#C7CBD1,#5B5F66)}
     .legend-card.rarity-rare.unlocked{--lgi-glow-blur:14px;--lgi-glow-color:rgba(46,204,113,.6);--lgi-ring:#2FA35C}
-    .legend-card.rarity-rare.unlocked .legend-card-icon{background:linear-gradient(160deg,#6EE7A0,#16803D)}
     /* Superrare and up get a second, lighter bevel ring (two-tone metal
        instead of flat colour) plus a crisp outer aura ring on top of the
        soft glow blur — the combination is what actually reads as
@@ -1813,18 +1796,17 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        its metal — this is the part that was completely invisible before
        (clip-path was silently deleting every non-inset shadow). */
     .legend-card.rarity-superrare.unlocked{--lgi-glow-blur:30px;--lgi-glow-color:rgba(59,130,246,.9);--lgi-ring:#2E7BDB;--lgi-ring-light:#8FC1FF;--lgi-aura-spread:4px;--lgi-aura-color:rgba(59,130,246,.5)}
-    .legend-card.rarity-superrare.unlocked .legend-card-icon{background:linear-gradient(160deg,#8FC1FF,#1D4ED8);animation:rarityPulseSoft 2.6s ease-in-out infinite}
+    .legend-card.rarity-superrare.unlocked .legend-card-icon{animation:rarityPulseSoft 2.6s ease-in-out infinite}
     .legend-card.rarity-superrare.unlocked .legend-card-icon-glow{animation:glowPulseSoft 2.6s ease-in-out infinite}
     .legend-card.rarity-epic.unlocked{--lgi-glow-blur:38px;--lgi-glow-color:rgba(168,85,247,1);--lgi-ring:#A855F7;--lgi-ring-light:#E4C4FF;--lgi-aura-spread:5px;--lgi-aura-color:rgba(168,85,247,.55)}
-    .legend-card.rarity-epic.unlocked .legend-card-icon{background:linear-gradient(115deg,#F1DCFF,#D8A6FF,#F1DCFF,#B266FF);background-size:260% 100%;animation:rarityShimmerSweep 3.2s linear infinite}
     .legend-card.rarity-epic.unlocked .legend-card-icon-glow{animation:glowPulseStrong 2.8s ease-in-out infinite}
     .legend-card.rarity-epic.unlocked .legend-card-icon-burst{opacity:.3}
     .legend-card.rarity-mythic.unlocked{--lgi-glow-blur:42px;--lgi-glow-color:rgba(239,68,68,1);--lgi-ring:#E23B4E;--lgi-ring-light:#FFAEB5;--lgi-aura-spread:5px;--lgi-aura-color:rgba(239,68,68,.6)}
-    .legend-card.rarity-mythic.unlocked .legend-card-icon{background:linear-gradient(160deg,#FF8A93,#C81E3A);animation:rarityPulseStrong 2s ease-in-out infinite}
+    .legend-card.rarity-mythic.unlocked .legend-card-icon{animation:rarityPulseStrong 2s ease-in-out infinite}
     .legend-card.rarity-mythic.unlocked .legend-card-icon-glow{animation:glowPulseStrong 2s ease-in-out infinite}
     .legend-card.rarity-mythic.unlocked .legend-card-icon-burst{opacity:.35}
     .legend-card.rarity-legendary.unlocked{--lgi-glow-blur:46px;--lgi-glow-color:rgba(255,212,0,1);--lgi-ring:#E8B400;--lgi-ring-light:#FFEB99;--lgi-aura-spread:6px;--lgi-aura-color:rgba(255,212,0,.65)}
-    .legend-card.rarity-legendary.unlocked .legend-card-icon{background:linear-gradient(160deg,#FFE066,#E8B400);animation:rarityPulseStrong 1.6s ease-in-out infinite}
+    .legend-card.rarity-legendary.unlocked .legend-card-icon{animation:rarityPulseStrong 1.6s ease-in-out infinite}
     .legend-card.rarity-legendary.unlocked .legend-card-icon-glow{animation:glowPulseStrong 1.6s ease-in-out infinite}
     .legend-card.rarity-legendary.unlocked .legend-card-icon-burst{opacity:.4}
     /* Weight Milestones aren't gacha-pull rarities — no rarity field,
@@ -1832,14 +1814,11 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        rarity-X class, matching the steel palette Weight Road used
        before it moved into the Cabinet. */
     .legend-card.iron.unlocked{--lgi-glow-blur:14px;--lgi-glow-color:rgba(90,170,255,.55);--lgi-ring:#4A9FD8;--lgi-ring-light:#B8E4FF}
-    .legend-card.iron.unlocked .legend-card-icon{background:linear-gradient(160deg,#8FD8FF,#1B4F73)}
     .legend-card.rarity-ultralegendary.unlocked{
       --lgi-glow-blur:54px;--lgi-glow-color:rgba(0,230,118,.85);--lgi-ring:#00B368;--lgi-ring-light:#6FFFB0;--lgi-aura-spread:7px;--lgi-aura-color:rgba(0,230,118,.6);
     }
     .legend-card.rarity-ultralegendary.unlocked .legend-card-icon{
-      background:linear-gradient(115deg,#00E676,#00B368,#004D26,#00B368,#00E676);
-      background-size:300% 100%;
-      animation:holoShift 3.6s linear infinite,rarityPulseStrong 1.4s ease-in-out infinite;
+      animation:rarityPulseStrong 1.4s ease-in-out infinite;
     }
     .legend-card.rarity-ultralegendary.unlocked .legend-card-icon-glow{animation:glowPulseStrong 1.4s ease-in-out infinite}
     .legend-card.rarity-ultralegendary.unlocked .legend-card-icon-burst{opacity:.5;animation-duration:9s}
@@ -10529,7 +10508,7 @@ function renderCabinetWeightMilestones(){
   cont.innerHTML=sorted.map(m=>{
     const claimed=vol>=m.kg;
     return `<div class="legend-card cabinet-slot iron${claimed?' unlocked':''}" onclick="viewWeightMilestone(${m.kg})">
-      <div class="legend-card-icon-glow"></div><div class="legend-card-icon-burst"></div><div class="legend-card-crown"><svg viewBox="0 0 100 100" preserveAspectRatio="none"><path class="lgi-crown-body" d="M0,90 L0,32 L25,58 L40,6 L50,42 L60,6 L75,58 L100,32 L100,90 Z"/><path class="lgi-crown-rim" d="M0,32 L25,58 L40,6 L50,42 L60,6 L75,58 L100,32"/><circle class="lgi-crown-jewel" cx="40" cy="10" r="6"/><circle class="lgi-crown-jewel" cx="60" cy="10" r="6"/><circle class="lgi-crown-jewel" cx="50" cy="76" r="5"/></svg></div><div class="legend-card-wreath"><svg viewBox="-5 -5 110 115"><path class="lgr-stem" d="M46.2,95.8 L29.9,91.2 L16.6,80.7 L8.3,66.0 L6.1,49.3 L10.4,32.9 L20.5,19.4 L35.0,10.7"/><path class="lgr-stem" d="M53.8,95.8 L70.1,91.2 L83.4,80.7 L91.7,66.0 L93.9,49.3 L89.6,32.9 L79.5,19.4 L65.0,10.7"/><path class="lgr-leaf" d="M47.6,94.1 Q38.5,95.5 38.2,105.8 Q48.2,103.2 47.6,94.1 Z"/><path class="lgr-vein" d="M47.6,94.1 L38.2,105.8"/><path class="lgr-leaf" d="M31.8,90.1 Q23.4,88.1 19.4,97.0 Q29.1,98.3 31.8,90.1 Z"/><path class="lgr-vein" d="M31.8,90.1 L19.4,97.0"/><path class="lgr-leaf" d="M18.6,80.5 Q12.0,75.7 5.4,82.1 Q13.4,86.6 18.6,80.5 Z"/><path class="lgr-vein" d="M18.6,80.5 L5.4,82.1"/><path class="lgr-leaf" d="M10.1,66.5 Q6.0,60.1 -1.9,63.3 Q3.4,70.0 10.1,66.5 Z"/><path class="lgr-vein" d="M10.1,66.5 L-1.9,63.3"/><path class="lgr-leaf" d="M7.5,50.3 Q6.2,43.4 -1.7,43.3 Q0.4,51.0 7.5,50.3 Z"/><path class="lgr-vein" d="M7.5,50.3 L-1.7,43.3"/><path class="lgr-leaf" d="M11.2,34.3 Q12.5,27.9 5.7,25.1 Q4.9,32.4 11.2,34.3 Z"/><path class="lgr-vein" d="M11.2,34.3 L5.7,25.1"/><path class="lgr-leaf" d="M20.7,20.8 Q24.1,15.9 19.2,11.1 Q16.0,17.0 20.7,20.8 Z"/><path class="lgr-vein" d="M20.7,20.8 L19.2,11.1"/><path class="lgr-leaf" d="M34.6,12.0 Q39.2,8.9 36.8,3.2 Q32.0,7.1 34.6,12.0 Z"/><path class="lgr-vein" d="M34.6,12.0 L36.8,3.2"/><path class="lgr-leaf" d="M52.4,94.1 Q51.8,103.2 61.8,105.8 Q61.5,95.5 52.4,94.1 Z"/><path class="lgr-vein" d="M52.4,94.1 L61.8,105.8"/><path class="lgr-leaf" d="M68.2,90.1 Q70.9,98.3 80.6,97.0 Q76.6,88.1 68.2,90.1 Z"/><path class="lgr-vein" d="M68.2,90.1 L80.6,97.0"/><path class="lgr-leaf" d="M81.4,80.5 Q86.6,86.6 94.6,82.1 Q88.0,75.7 81.4,80.5 Z"/><path class="lgr-vein" d="M81.4,80.5 L94.6,82.1"/><path class="lgr-leaf" d="M89.9,66.5 Q96.6,70.0 101.9,63.3 Q94.0,60.1 89.9,66.5 Z"/><path class="lgr-vein" d="M89.9,66.5 L101.9,63.3"/><path class="lgr-leaf" d="M92.5,50.3 Q99.6,51.0 101.7,43.3 Q93.8,43.4 92.5,50.3 Z"/><path class="lgr-vein" d="M92.5,50.3 L101.7,43.3"/><path class="lgr-leaf" d="M88.8,34.3 Q95.1,32.4 94.3,25.1 Q87.5,27.9 88.8,34.3 Z"/><path class="lgr-vein" d="M88.8,34.3 L94.3,25.1"/><path class="lgr-leaf" d="M79.3,20.8 Q84.0,17.0 80.8,11.1 Q75.9,15.9 79.3,20.8 Z"/><path class="lgr-vein" d="M79.3,20.8 L80.8,11.1"/><path class="lgr-leaf" d="M65.4,12.0 Q68.0,7.1 63.2,3.2 Q60.8,8.9 65.4,12.0 Z"/><path class="lgr-vein" d="M65.4,12.0 L63.2,3.2"/></svg></div><div class="legend-card-icon">${claimed?milestoneIconHTML(m):'\ud83d\udd12'}</div>
+      <div class="legend-card-icon">${claimed?milestoneIconHTML(m):'\ud83d\udd12'}</div>
       <div class="legend-card-name">${claimed?m.name:'???'}</div>
     </div>`;
   }).join('');
@@ -10598,14 +10577,11 @@ function legendDupeBadgeHTML(key){
 // gets it (that's still the only "this is special" cue a plain emoji
 // icon has).
 function legendCardFrameHTML(l){
-  // Legendary drops the crown/wreath medallion (pure decoration, built
-  // for flat emoji icons -- redundant on a real trophy photo that
-  // already reads as a complete object), but keeps the glow bloom +
-  // ray-burst behind it -- that's the actual rarity effect, not
-  // decoration, and stripping it along with the crown left legendary
-  // cards with no glow at all.
-  if(l&&l.rarity==='legendary')return '<div class="legend-card-icon-glow"></div><div class="legend-card-icon-burst"></div>';
-  return '<div class="legend-card-icon-glow"></div><div class="legend-card-icon-burst"></div><div class="legend-card-crown"><svg viewBox="0 0 100 100" preserveAspectRatio="none"><path class="lgi-crown-body" d="M0,90 L0,32 L25,58 L40,6 L50,42 L60,6 L75,58 L100,32 L100,90 Z"/><path class="lgi-crown-rim" d="M0,32 L25,58 L40,6 L50,42 L60,6 L75,58 L100,32"/><circle class="lgi-crown-jewel" cx="40" cy="10" r="6"/><circle class="lgi-crown-jewel" cx="60" cy="10" r="6"/><circle class="lgi-crown-jewel" cx="50" cy="76" r="5"/></svg></div><div class="legend-card-wreath"><svg viewBox="-5 -5 110 115"><path class="lgr-stem" d="M46.2,95.8 L29.9,91.2 L16.6,80.7 L8.3,66.0 L6.1,49.3 L10.4,32.9 L20.5,19.4 L35.0,10.7"/><path class="lgr-stem" d="M53.8,95.8 L70.1,91.2 L83.4,80.7 L91.7,66.0 L93.9,49.3 L89.6,32.9 L79.5,19.4 L65.0,10.7"/><path class="lgr-leaf" d="M47.6,94.1 Q38.5,95.5 38.2,105.8 Q48.2,103.2 47.6,94.1 Z"/><path class="lgr-vein" d="M47.6,94.1 L38.2,105.8"/><path class="lgr-leaf" d="M31.8,90.1 Q23.4,88.1 19.4,97.0 Q29.1,98.3 31.8,90.1 Z"/><path class="lgr-vein" d="M31.8,90.1 L19.4,97.0"/><path class="lgr-leaf" d="M18.6,80.5 Q12.0,75.7 5.4,82.1 Q13.4,86.6 18.6,80.5 Z"/><path class="lgr-vein" d="M18.6,80.5 L5.4,82.1"/><path class="lgr-leaf" d="M10.1,66.5 Q6.0,60.1 -1.9,63.3 Q3.4,70.0 10.1,66.5 Z"/><path class="lgr-vein" d="M10.1,66.5 L-1.9,63.3"/><path class="lgr-leaf" d="M7.5,50.3 Q6.2,43.4 -1.7,43.3 Q0.4,51.0 7.5,50.3 Z"/><path class="lgr-vein" d="M7.5,50.3 L-1.7,43.3"/><path class="lgr-leaf" d="M11.2,34.3 Q12.5,27.9 5.7,25.1 Q4.9,32.4 11.2,34.3 Z"/><path class="lgr-vein" d="M11.2,34.3 L5.7,25.1"/><path class="lgr-leaf" d="M20.7,20.8 Q24.1,15.9 19.2,11.1 Q16.0,17.0 20.7,20.8 Z"/><path class="lgr-vein" d="M20.7,20.8 L19.2,11.1"/><path class="lgr-leaf" d="M34.6,12.0 Q39.2,8.9 36.8,3.2 Q32.0,7.1 34.6,12.0 Z"/><path class="lgr-vein" d="M34.6,12.0 L36.8,3.2"/><path class="lgr-leaf" d="M52.4,94.1 Q51.8,103.2 61.8,105.8 Q61.5,95.5 52.4,94.1 Z"/><path class="lgr-vein" d="M52.4,94.1 L61.8,105.8"/><path class="lgr-leaf" d="M68.2,90.1 Q70.9,98.3 80.6,97.0 Q76.6,88.1 68.2,90.1 Z"/><path class="lgr-vein" d="M68.2,90.1 L80.6,97.0"/><path class="lgr-leaf" d="M81.4,80.5 Q86.6,86.6 94.6,82.1 Q88.0,75.7 81.4,80.5 Z"/><path class="lgr-vein" d="M81.4,80.5 L94.6,82.1"/><path class="lgr-leaf" d="M89.9,66.5 Q96.6,70.0 101.9,63.3 Q94.0,60.1 89.9,66.5 Z"/><path class="lgr-vein" d="M89.9,66.5 L101.9,63.3"/><path class="lgr-leaf" d="M92.5,50.3 Q99.6,51.0 101.7,43.3 Q93.8,43.4 92.5,50.3 Z"/><path class="lgr-vein" d="M92.5,50.3 L101.7,43.3"/><path class="lgr-leaf" d="M88.8,34.3 Q95.1,32.4 94.3,25.1 Q87.5,27.9 88.8,34.3 Z"/><path class="lgr-vein" d="M88.8,34.3 L94.3,25.1"/><path class="lgr-leaf" d="M79.3,20.8 Q84.0,17.0 80.8,11.1 Q75.9,15.9 79.3,20.8 Z"/><path class="lgr-vein" d="M79.3,20.8 L80.8,11.1"/><path class="lgr-leaf" d="M65.4,12.0 Q68.0,7.1 63.2,3.2 Q60.8,8.9 65.4,12.0 Z"/><path class="lgr-vein" d="M65.4,12.0 L63.2,3.2"/></svg></div>';
+  // No frame at all anymore, for any rarity — the hexagon medallion,
+  // glow bloom, ray-burst, crown and wreath were all decoration built
+  // for flat emoji icons and boxed in what are now real trophy photos.
+  // Every card just shows its plain icon now, sized up in its place.
+  return '';
 }
 
 // \u2500\u2500 TROPHY CABINET \u2014 the full 7-layer collection plan, in
@@ -10748,12 +10724,12 @@ function renderTrophyCabinet(){
       return `<div class="legend-card cabinet-slot rarity-${l.rarity}${unlocked?' unlocked':''}" onclick="viewLegendCard('${l.key}')">
         ${legendInfoBadgeHTML(l.key)}
         ${legendDupeBadgeHTML(l.key)}
-        <div class="legend-card-icon-glow"></div><div class="legend-card-icon-burst"></div><div class="legend-card-crown"><svg viewBox="0 0 100 100" preserveAspectRatio="none"><path class="lgi-crown-body" d="M0,90 L0,32 L25,58 L40,6 L50,42 L60,6 L75,58 L100,32 L100,90 Z"/><path class="lgi-crown-rim" d="M0,32 L25,58 L40,6 L50,42 L60,6 L75,58 L100,32"/><circle class="lgi-crown-jewel" cx="40" cy="10" r="6"/><circle class="lgi-crown-jewel" cx="60" cy="10" r="6"/><circle class="lgi-crown-jewel" cx="50" cy="76" r="5"/></svg></div><div class="legend-card-wreath"><svg viewBox="-5 -5 110 115"><path class="lgr-stem" d="M46.2,95.8 L29.9,91.2 L16.6,80.7 L8.3,66.0 L6.1,49.3 L10.4,32.9 L20.5,19.4 L35.0,10.7"/><path class="lgr-stem" d="M53.8,95.8 L70.1,91.2 L83.4,80.7 L91.7,66.0 L93.9,49.3 L89.6,32.9 L79.5,19.4 L65.0,10.7"/><path class="lgr-leaf" d="M47.6,94.1 Q38.5,95.5 38.2,105.8 Q48.2,103.2 47.6,94.1 Z"/><path class="lgr-vein" d="M47.6,94.1 L38.2,105.8"/><path class="lgr-leaf" d="M31.8,90.1 Q23.4,88.1 19.4,97.0 Q29.1,98.3 31.8,90.1 Z"/><path class="lgr-vein" d="M31.8,90.1 L19.4,97.0"/><path class="lgr-leaf" d="M18.6,80.5 Q12.0,75.7 5.4,82.1 Q13.4,86.6 18.6,80.5 Z"/><path class="lgr-vein" d="M18.6,80.5 L5.4,82.1"/><path class="lgr-leaf" d="M10.1,66.5 Q6.0,60.1 -1.9,63.3 Q3.4,70.0 10.1,66.5 Z"/><path class="lgr-vein" d="M10.1,66.5 L-1.9,63.3"/><path class="lgr-leaf" d="M7.5,50.3 Q6.2,43.4 -1.7,43.3 Q0.4,51.0 7.5,50.3 Z"/><path class="lgr-vein" d="M7.5,50.3 L-1.7,43.3"/><path class="lgr-leaf" d="M11.2,34.3 Q12.5,27.9 5.7,25.1 Q4.9,32.4 11.2,34.3 Z"/><path class="lgr-vein" d="M11.2,34.3 L5.7,25.1"/><path class="lgr-leaf" d="M20.7,20.8 Q24.1,15.9 19.2,11.1 Q16.0,17.0 20.7,20.8 Z"/><path class="lgr-vein" d="M20.7,20.8 L19.2,11.1"/><path class="lgr-leaf" d="M34.6,12.0 Q39.2,8.9 36.8,3.2 Q32.0,7.1 34.6,12.0 Z"/><path class="lgr-vein" d="M34.6,12.0 L36.8,3.2"/><path class="lgr-leaf" d="M52.4,94.1 Q51.8,103.2 61.8,105.8 Q61.5,95.5 52.4,94.1 Z"/><path class="lgr-vein" d="M52.4,94.1 L61.8,105.8"/><path class="lgr-leaf" d="M68.2,90.1 Q70.9,98.3 80.6,97.0 Q76.6,88.1 68.2,90.1 Z"/><path class="lgr-vein" d="M68.2,90.1 L80.6,97.0"/><path class="lgr-leaf" d="M81.4,80.5 Q86.6,86.6 94.6,82.1 Q88.0,75.7 81.4,80.5 Z"/><path class="lgr-vein" d="M81.4,80.5 L94.6,82.1"/><path class="lgr-leaf" d="M89.9,66.5 Q96.6,70.0 101.9,63.3 Q94.0,60.1 89.9,66.5 Z"/><path class="lgr-vein" d="M89.9,66.5 L101.9,63.3"/><path class="lgr-leaf" d="M92.5,50.3 Q99.6,51.0 101.7,43.3 Q93.8,43.4 92.5,50.3 Z"/><path class="lgr-vein" d="M92.5,50.3 L101.7,43.3"/><path class="lgr-leaf" d="M88.8,34.3 Q95.1,32.4 94.3,25.1 Q87.5,27.9 88.8,34.3 Z"/><path class="lgr-vein" d="M88.8,34.3 L94.3,25.1"/><path class="lgr-leaf" d="M79.3,20.8 Q84.0,17.0 80.8,11.1 Q75.9,15.9 79.3,20.8 Z"/><path class="lgr-vein" d="M79.3,20.8 L80.8,11.1"/><path class="lgr-leaf" d="M65.4,12.0 Q68.0,7.1 63.2,3.2 Q60.8,8.9 65.4,12.0 Z"/><path class="lgr-vein" d="M65.4,12.0 L63.2,3.2"/></svg></div><div class="legend-card-icon">${unlocked?legendIconHTML(l):'\u2753'}</div>
+        <div class="legend-card-icon">${unlocked?legendIconHTML(l):'\u2753'}</div>
         <div class="legend-card-name">${unlocked?l.name:'???'}</div>
       </div>`;
     }).join(''):Array.from({length:layer.count}).map(()=>
       `<div class="legend-card cabinet-slot rarity-${layer.rarity}" onclick="viewCabinetLocked('${layer.label}')">
-        <div class="legend-card-icon-glow"></div><div class="legend-card-icon-burst"></div><div class="legend-card-crown"><svg viewBox="0 0 100 100" preserveAspectRatio="none"><path class="lgi-crown-body" d="M0,90 L0,32 L25,58 L40,6 L50,42 L60,6 L75,58 L100,32 L100,90 Z"/><path class="lgi-crown-rim" d="M0,32 L25,58 L40,6 L50,42 L60,6 L75,58 L100,32"/><circle class="lgi-crown-jewel" cx="40" cy="10" r="6"/><circle class="lgi-crown-jewel" cx="60" cy="10" r="6"/><circle class="lgi-crown-jewel" cx="50" cy="76" r="5"/></svg></div><div class="legend-card-wreath"><svg viewBox="-5 -5 110 115"><path class="lgr-stem" d="M46.2,95.8 L29.9,91.2 L16.6,80.7 L8.3,66.0 L6.1,49.3 L10.4,32.9 L20.5,19.4 L35.0,10.7"/><path class="lgr-stem" d="M53.8,95.8 L70.1,91.2 L83.4,80.7 L91.7,66.0 L93.9,49.3 L89.6,32.9 L79.5,19.4 L65.0,10.7"/><path class="lgr-leaf" d="M47.6,94.1 Q38.5,95.5 38.2,105.8 Q48.2,103.2 47.6,94.1 Z"/><path class="lgr-vein" d="M47.6,94.1 L38.2,105.8"/><path class="lgr-leaf" d="M31.8,90.1 Q23.4,88.1 19.4,97.0 Q29.1,98.3 31.8,90.1 Z"/><path class="lgr-vein" d="M31.8,90.1 L19.4,97.0"/><path class="lgr-leaf" d="M18.6,80.5 Q12.0,75.7 5.4,82.1 Q13.4,86.6 18.6,80.5 Z"/><path class="lgr-vein" d="M18.6,80.5 L5.4,82.1"/><path class="lgr-leaf" d="M10.1,66.5 Q6.0,60.1 -1.9,63.3 Q3.4,70.0 10.1,66.5 Z"/><path class="lgr-vein" d="M10.1,66.5 L-1.9,63.3"/><path class="lgr-leaf" d="M7.5,50.3 Q6.2,43.4 -1.7,43.3 Q0.4,51.0 7.5,50.3 Z"/><path class="lgr-vein" d="M7.5,50.3 L-1.7,43.3"/><path class="lgr-leaf" d="M11.2,34.3 Q12.5,27.9 5.7,25.1 Q4.9,32.4 11.2,34.3 Z"/><path class="lgr-vein" d="M11.2,34.3 L5.7,25.1"/><path class="lgr-leaf" d="M20.7,20.8 Q24.1,15.9 19.2,11.1 Q16.0,17.0 20.7,20.8 Z"/><path class="lgr-vein" d="M20.7,20.8 L19.2,11.1"/><path class="lgr-leaf" d="M34.6,12.0 Q39.2,8.9 36.8,3.2 Q32.0,7.1 34.6,12.0 Z"/><path class="lgr-vein" d="M34.6,12.0 L36.8,3.2"/><path class="lgr-leaf" d="M52.4,94.1 Q51.8,103.2 61.8,105.8 Q61.5,95.5 52.4,94.1 Z"/><path class="lgr-vein" d="M52.4,94.1 L61.8,105.8"/><path class="lgr-leaf" d="M68.2,90.1 Q70.9,98.3 80.6,97.0 Q76.6,88.1 68.2,90.1 Z"/><path class="lgr-vein" d="M68.2,90.1 L80.6,97.0"/><path class="lgr-leaf" d="M81.4,80.5 Q86.6,86.6 94.6,82.1 Q88.0,75.7 81.4,80.5 Z"/><path class="lgr-vein" d="M81.4,80.5 L94.6,82.1"/><path class="lgr-leaf" d="M89.9,66.5 Q96.6,70.0 101.9,63.3 Q94.0,60.1 89.9,66.5 Z"/><path class="lgr-vein" d="M89.9,66.5 L101.9,63.3"/><path class="lgr-leaf" d="M92.5,50.3 Q99.6,51.0 101.7,43.3 Q93.8,43.4 92.5,50.3 Z"/><path class="lgr-vein" d="M92.5,50.3 L101.7,43.3"/><path class="lgr-leaf" d="M88.8,34.3 Q95.1,32.4 94.3,25.1 Q87.5,27.9 88.8,34.3 Z"/><path class="lgr-vein" d="M88.8,34.3 L94.3,25.1"/><path class="lgr-leaf" d="M79.3,20.8 Q84.0,17.0 80.8,11.1 Q75.9,15.9 79.3,20.8 Z"/><path class="lgr-vein" d="M79.3,20.8 L80.8,11.1"/><path class="lgr-leaf" d="M65.4,12.0 Q68.0,7.1 63.2,3.2 Q60.8,8.9 65.4,12.0 Z"/><path class="lgr-vein" d="M65.4,12.0 L63.2,3.2"/></svg></div><div class="legend-card-icon">\ud83d\udd12</div>
+        <div class="legend-card-icon">\ud83d\udd12</div>
         <div class="legend-card-name">???</div>
       </div>`
     ).join('');
