@@ -1543,9 +1543,11 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     /* ── TROPHY SHOWCASE — tapping a trophy in the Cabinet used to just
        toast its name. This is the actual "step up and look at it" view:
        the same 3D-rendered relic art, large, on a lit pedestal, slowly
-       turning under the light like a museum display case — the closest
-       a static PNG can get to feeling like a real 3D object without
-       shipping a live WebGL viewer for 22 separate models. */
+       turning under the light like a museum display case. Every relic
+       with real trophy photography also ships a 12-frame Y-axis
+       turntable (see images/relics_spin/) — .trophy-spin-wrap swaps
+       in the real drag-rotate viewer over this fallback CSS tilt,
+       which now only covers the handful of flat-icon cards. */
     .trophy-showcase-modal{max-width:340px;padding:28px 24px 26px}
     .trophy-showcase-stage{
       position:relative;width:200px;height:200px;margin:0 auto 6px;
@@ -1567,6 +1569,16 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     }
     .trophy-showcase-img-wrap img{max-width:82%;max-height:82%;object-fit:contain;filter:drop-shadow(0 14px 18px rgba(0,0,0,.5))}
     .trophy-showcase-img-wrap .trophy-showcase-locked-glyph{font-size:64px;opacity:.35;filter:grayscale(1)}
+    .trophy-showcase-img-wrap.trophy-spin-wrap{animation:none;cursor:grab;touch-action:none}
+    .trophy-showcase-img-wrap.trophy-spin-wrap:active{cursor:grabbing}
+    .trophy-showcase-img-wrap.trophy-spin-wrap img{pointer-events:none;user-select:none;-webkit-user-drag:none}
+    .trophy-spin-hint{
+      position:absolute;left:50%;bottom:-2px;transform:translateX(-50%);
+      font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;
+      color:rgba(var(--white-rgb),.42);pointer-events:none;transition:opacity .35s;
+    }
+    .trophy-spin-hint::before{content:'↔ ';}
+    .trophy-spin-hint.hidden{opacity:0}
     .trophy-showcase-beam{
       position:absolute;inset:-20% -10% auto -10%;height:70%;
       background:radial-gradient(ellipse at center,var(--showcase-c,rgba(255,212,0,.28)),transparent 70%);
@@ -1949,6 +1961,35 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .cabinet-row::after{
       content:'';position:absolute;left:-4px;right:-4px;bottom:15px;height:1.5px;z-index:-1;
       background:rgba(255,205,150,.35);
+    }
+    /* ── CABINET INTERIOR — the whole Trophy Cabinet page now reads as
+       looking INTO a lit display case (real display-cabinet reference:
+       dark wood frame, warm interior glow, a diagonal glass sheen)
+       instead of sitting on a flat page background. Two thin layers:
+       a warm top-down wash + faint vertical hairlines suggesting the
+       cabinet's compartment mullions, plus a soft diagonal light
+       streak like glass catching a room light. Both are decorative,
+       z-indexed behind everything, no layout impact. */
+    #page-trophycabinet{
+      background:
+        radial-gradient(140% 55% at 50% 0%,rgba(var(--lv-ember1-rgb,227,191,118),.12) 0%,transparent 58%),
+        repeating-linear-gradient(90deg,rgba(255,205,150,.045) 0 1px,transparent 1px 94px),
+        var(--lv-bg);
+      position:relative;
+    }
+    #page-trophycabinet::before{
+      content:'';position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.5;
+      background:linear-gradient(115deg,transparent 38%,rgba(255,238,210,.05) 47%,rgba(255,238,210,.09) 50%,rgba(255,238,210,.05) 53%,transparent 62%);
+    }
+    #page-trophycabinet>*{position:relative;z-index:1}
+    /* Locked slots read as still-behind-glass — dimmer, desaturated,
+       with the lock badge pinned to the corner instead of just being
+       the card's only icon, so it reads as "there's an empty mount
+       behind the glass" rather than a generic unknown item. */
+    .legend-card.cabinet-slot:not(.unlocked){filter:saturate(.55) brightness(.72)}
+    .legend-card.cabinet-slot:not(.unlocked)::before{
+      content:'🔒';position:absolute;left:2px;top:2px;font-size:9px;line-height:1;
+      opacity:.85;filter:none;z-index:2;
     }
 
     /* ── COMPASS DROP CRATES — a Brawl-Stars-Star-Drop-style capsule
@@ -10531,6 +10572,17 @@ function viewAchievementBadge(key){
 // the trophy's own 3D-rendered art, large, slowly turning on a lit
 // pedestal \u2014 every relic already has this art (see images/relics/*.png),
 // it just never got shown any bigger than a 32px hex icon before.
+// Real trophy photography ships as a 12-frame Y-axis turntable at
+// images/relics_spin/<key>/00.png..11.png (rendered by orbiting the
+// camera in the same tuned hero shot used for the flat image, so the
+// object never jumps between frames). Only relics with that folder \u2014
+// i.e. every real .png relic, not the flat-icon placeholder cards \u2014
+// get the drag-rotate viewer; everything else keeps the CSS tilt.
+function relicSpinKey(img){
+  const m=img&&img.match(/^images\/relics\/([a-z_]+)\.png$/);
+  return m?m[1]:null;
+}
+const RELIC_SPIN_FRAMES=12;
 function viewLegendCard(key){
   const l=LEGEND_CARDS.find(x=>x.key===key);
   if(!l)return;
@@ -10540,6 +10592,7 @@ function viewLegendCard(key){
     return;
   }
   const count=legendCounts[key]||1;
+  const spinKey=l.img?relicSpinKey(l.img):null;
   const overlay=document.createElement('div');
   overlay.className='achievement-overlay';
   overlay.innerHTML=`<div class="achievement-modal trophy-showcase-modal" style="border-color:${RARITY_BORDER[l.rarity]}">
@@ -10547,7 +10600,8 @@ function viewLegendCard(key){
     <div class="trophy-showcase-stage">
       <div class="trophy-showcase-beam" style="--showcase-c:${RARITY_GLOW[l.rarity]}"></div>
       <div class="trophy-showcase-pedestal"></div>
-      <div class="trophy-showcase-img-wrap">${l.img?'<img src="'+l.img+'" alt="'+l.name+'">':'<span class="trophy-showcase-locked-glyph">'+l.icon+'</span>'}</div>
+      <div class="trophy-showcase-img-wrap${spinKey?' trophy-spin-wrap':''}" id="trophy-showcase-wrap">${spinKey?`<img id="trophy-spin-img" src="images/relics_spin/${spinKey}/00.png" alt="${l.name}" draggable="false">`:(l.img?'<img src="'+l.img+'" alt="'+l.name+'">':'<span class="trophy-showcase-locked-glyph">'+l.icon+'</span>')}</div>
+      ${spinKey?'<div class="trophy-spin-hint" id="trophy-spin-hint">drag to rotate</div>':''}
     </div>
     ${count>1?'<div style="font-size:10px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:rgba(var(--white-rgb),.4);margin-bottom:2px">\u00d7'+count+' owned</div>':''}
     <div class="achievement-title reveal-name-serif">${l.name}</div>
@@ -10556,6 +10610,48 @@ function viewLegendCard(key){
   </div>`;
   document.body.appendChild(overlay);
   requestAnimationFrame(()=>overlay.classList.add('show'));
+  if(spinKey)initTrophySpin(spinKey);
+}
+// Drag-rotate turntable: pointer capture on the wrap so drags tracked
+// past its edges keep working, an idle auto-spin when untouched, and a
+// self-stopping rAF loop (checks the wrap is still in the DOM each
+// tick) so nothing needs to hook into however the modal gets closed
+// (Close button, Continue button, future backdrop-click, etc.).
+function initTrophySpin(spinKey){
+  const wrap=document.getElementById('trophy-showcase-wrap');
+  const img=document.getElementById('trophy-spin-img');
+  const hint=document.getElementById('trophy-spin-hint');
+  if(!wrap||!img)return;
+  for(let i=1;i<RELIC_SPIN_FRAMES;i++){
+    const pre=new Image();
+    pre.src=`images/relics_spin/${spinKey}/${String(i).padStart(2,'0')}.png`;
+  }
+  let frame=0,dragging=false,startX=0,startFrame=0,lastAuto=performance.now();
+  function setFrame(f){
+    frame=((f%RELIC_SPIN_FRAMES)+RELIC_SPIN_FRAMES)%RELIC_SPIN_FRAMES;
+    img.src=`images/relics_spin/${spinKey}/${String(frame).padStart(2,'0')}.png`;
+  }
+  function onDown(e){
+    dragging=true;startX=e.clientX;startFrame=frame;
+    if(hint)hint.classList.add('hidden');
+    try{wrap.setPointerCapture(e.pointerId);}catch(err){}
+  }
+  function onMove(e){
+    if(!dragging)return;
+    const df=Math.round((e.clientX-startX)/14);
+    setFrame(startFrame-df);
+  }
+  function onUp(){dragging=false;}
+  wrap.addEventListener('pointerdown',onDown);
+  wrap.addEventListener('pointermove',onMove);
+  wrap.addEventListener('pointerup',onUp);
+  wrap.addEventListener('pointercancel',onUp);
+  function tick(now){
+    if(!document.body.contains(wrap))return;
+    if(!dragging&&now-lastAuto>220){setFrame(frame+1);lastAuto=now;}
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
 }
 // Small "i" badge on every real trophy card \u2014 same reveal as tapping the
 // card itself (viewLegendCard already correctly withholds the
@@ -10724,7 +10820,7 @@ function renderTrophyCabinet(){
       return `<div class="legend-card cabinet-slot rarity-${l.rarity}${unlocked?' unlocked':''}" onclick="viewLegendCard('${l.key}')">
         ${legendInfoBadgeHTML(l.key)}
         ${legendDupeBadgeHTML(l.key)}
-        <div class="legend-card-icon">${unlocked?legendIconHTML(l):'\u2753'}</div>
+        <div class="legend-card-icon">${unlocked?legendIconHTML(l):'\ud83d\udd12'}</div>
         <div class="legend-card-name">${unlocked?l.name:'???'}</div>
       </div>`;
     }).join(''):Array.from({length:layer.count}).map(()=>
@@ -10778,7 +10874,7 @@ function renderTrophyCabinet(){
       return `<div class="legend-card cabinet-slot rarity-${l.rarity}${unlocked?' unlocked':''}" onclick="viewLegendCard('${l.key}')">
         ${legendInfoBadgeHTML(l.key)}
         ${legendDupeBadgeHTML(l.key)}
-        ${legendCardFrameHTML(l)}<div class="legend-card-icon">${unlocked?legendIconHTML(l):'❓'}</div>
+        ${legendCardFrameHTML(l)}<div class="legend-card-icon">${unlocked?legendIconHTML(l):'🔒'}</div>
         <div class="legend-card-name">${unlocked?l.name:'???'}</div>
       </div>`;
     }).join('');
