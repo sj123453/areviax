@@ -1943,21 +1943,37 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        longer 7-layer sections (e.g. Equipment's 13th item alone on its
        own row) the same way. */
     .legend-card.cabinet-slot{width:76px;padding:8px 4px 6px;flex:0 0 auto}
-    /* ── DISPLAY CASE — every row of trophies now sits behind actual
-       glass in a black metal cabinet frame, like a museum vitrine: a
-       dark bevelled border, a faint diagonal glass sheen catching the
-       light, and a wooden shelf plank at the bottom the trophies stand
-       on. Real reference: a black-framed glass display cabinet with
-       oak shelves. The frame lives on .cabinet-row itself (border/
-       background/padding — no layout properties touched, so flex/gap/
-       wrap/justify-content are untouched); the shelf plank is still
-       the ::before/::after pair, just inset within the new frame
-       instead of overhanging a borderless row. */
+    /* ── DISPLAY SHELF — every row of trophies sits on a wooden shelf
+       plank (::before/::after), directly on the page's own lit-cabinet
+       background (#page-trophycabinet below) rather than inside its
+       own boxed card — no border/background/box-shadow on .cabinet-row
+       itself, so the icons genuinely read as sitting in the room, not
+       behind another layer of glass. The one exception is the peak
+       Areviax Trophy slot (.cabinet-row-peak below), which keeps its
+       own dedicated framed-glass-case treatment since it's the single
+       hero display, not one of many rows. */
     .cabinet-tier{position:relative}
     .cabinet-row{
       display:flex;flex-wrap:wrap;justify-content:center;gap:9px;
-      position:relative;z-index:1;overflow:hidden;
-      padding:16px 10px 22px;border-radius:5px;
+      position:relative;z-index:1;
+      padding:4px 2px 22px;
+    }
+    .cabinet-row::before{
+      content:'';position:absolute;left:-4px;right:-4px;bottom:2px;height:14px;z-index:-1;
+      background:linear-gradient(180deg,rgba(120,84,46,.55) 0%,rgba(66,44,22,.7) 55%,rgba(30,18,8,.85) 100%);
+      border-radius:4px;
+      box-shadow:0 1px 0 rgba(255,200,140,.18) inset,0 10px 18px -6px rgba(0,0,0,.55);
+    }
+    .cabinet-row::after{
+      content:'';position:absolute;left:-4px;right:-4px;bottom:15px;height:1.5px;z-index:-1;
+      background:rgba(255,205,150,.35);
+    }
+    /* ── PEAK DISPLAY CASE — The Areviax Trophy alone keeps the black
+       metal glass-case frame (bevelled border, diagonal glass sheen)
+       every row briefly had — it's the single 1-of-1 hero slot, so it
+       staying boxed off from the rest of the cabinet is the point. */
+    .cabinet-row-peak{
+      overflow:hidden;padding:16px 10px 22px;border-radius:5px;
       border:3px solid #16110b;
       background:
         linear-gradient(122deg,rgba(255,255,255,.09) 0%,transparent 22%,transparent 78%,rgba(255,255,255,.05) 100%),
@@ -1967,16 +1983,8 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
         inset 0 1px 0 rgba(255,255,255,.08),
         0 14px 26px -18px rgba(0,0,0,.7);
     }
-    .cabinet-row::before{
-      content:'';position:absolute;left:4px;right:4px;bottom:4px;height:14px;z-index:-1;
-      background:linear-gradient(180deg,rgba(120,84,46,.55) 0%,rgba(66,44,22,.7) 55%,rgba(30,18,8,.85) 100%);
-      border-radius:3px;
-      box-shadow:0 1px 0 rgba(255,200,140,.18) inset,0 10px 18px -6px rgba(0,0,0,.55);
-    }
-    .cabinet-row::after{
-      content:'';position:absolute;left:4px;right:4px;bottom:17px;height:1.5px;z-index:-1;
-      background:rgba(255,205,150,.35);
-    }
+    .cabinet-row-peak::before{left:4px;right:4px;bottom:4px}
+    .cabinet-row-peak::after{left:4px;right:4px;bottom:17px}
     /* ── CABINET INTERIOR — the whole Trophy Cabinet page now reads as
        looking INTO a lit display case (real display-cabinet reference:
        dark wood frame, warm interior glow, a diagonal glass sheen)
@@ -3464,6 +3472,25 @@ body[data-goal-theme="cut"] .lv-page{
 .lv-week-cell.done{border-color:var(--lv-primary);background:rgba(var(--lv-primary-rgb),.2);color:var(--lv-primary)}
 .lv-week-cell.today{border-color:var(--lv-border-strong);background:var(--lv-elevated);color:var(--lv-fg)}
 .lv-pill{border-radius:999px;padding:6px 10px;font-size:11px;font-weight:800;display:inline-flex;align-items:center;gap:4px}
+/* PROFILE BUTTON — the tap-through to the Profile page (name/stats,
+   Trophy Cabinet preview, and now Title equip) from every main hero
+   header, plus the unseen-rewards badge: a small red flashing circle
+   with a white count, bumped whenever a title/theme/new-trophy lands
+   and cleared the moment the player actually opens Profile to look. */
+.lv-profile-btn{
+  position:relative;width:30px;height:30px;border-radius:50%;flex-shrink:0;
+  background:rgba(0,0,0,.25);border:1px solid var(--lv-border-strong);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+.lv-profile-badge{
+  position:absolute;top:-4px;right:-4px;min-width:16px;height:16px;padding:0 3px;
+  border-radius:999px;background:#E23532;color:#fff;font-size:9.5px;font-weight:900;
+  display:none;align-items:center;justify-content:center;line-height:1;
+  box-shadow:0 0 0 2px var(--lv-bg,#0D0806);
+  animation:lvProfileBadgeFlash 1.1s ease-in-out infinite;
+}
+@keyframes lvProfileBadgeFlash{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.2);opacity:.7}}
 /* Streak flame glows brighter the longer the streak runs — same silhouette
    everywhere (still reads as "the flame icon"), intensity only, driven by
    a tier class syncLvBadges() sets from the real streak count. */
@@ -4035,6 +4062,7 @@ body[data-goal-theme="cut"] .lv-page{
         <div style="display:flex;align-items:center;gap:6px">
           <span class="lv-pill" style="background:var(--lv-primary);color:var(--lv-primary-fg)"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="lv-streak-flame"><path d="M12 22c4.4 0 7-2.9 7-6.8 0-3-1.7-5-3-7-.2 1.7-1 2.8-2 3.4.3-2.7-.7-5.6-3-7.6-.3 2.5-1.2 3.9-2.7 5.4C6.8 10.8 6 12.6 6 15c0 4 2.7 7 6 7z"/></svg> <span id="dash-streak-badge" class="lv-streak-badge">0</span></span>
           <span class="lv-pill" style="border:1px solid var(--lv-border-strong);color:var(--lv-xp)"><img src="images/icons/arete.png" alt="" style="width:13px;height:13px;border-radius:50%;flex-shrink:0"> <span id="dash-xp-badge" class="lv-xp-badge">0</span></span>
+          <button type="button" class="lv-profile-btn" onclick="showPage('profile')" aria-label="Profile"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--lv-fg)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="lv-profile-badge"></span></button>
         </div>
       </div>
 
@@ -4251,6 +4279,7 @@ body[data-goal-theme="cut"] .lv-page{
         <div style="display:flex;align-items:center;gap:6px">
           <span class="lv-pill" style="background:var(--lv-primary);color:var(--lv-primary-fg)"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="lv-streak-flame"><path d="M12 22c4.4 0 7-2.9 7-6.8 0-3-1.7-5-3-7-.2 1.7-1 2.8-2 3.4.3-2.7-.7-5.6-3-7.6-.3 2.5-1.2 3.9-2.7 5.4C6.8 10.8 6 12.6 6 15c0 4 2.7 7 6 7z"/></svg> <span class="lv-streak-badge">0</span></span>
           <span class="lv-pill" style="border:1px solid var(--lv-border-strong);color:var(--lv-xp)"><img src="images/icons/arete.png" alt="" style="width:13px;height:13px;border-radius:50%;flex-shrink:0"> <span class="lv-xp-badge">0</span></span>
+          <button type="button" class="lv-profile-btn" onclick="showPage('"profile"')" aria-label="Profile"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--lv-fg)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="lv-profile-badge"></span></button>
         </div>
       </div>
 
@@ -4609,6 +4638,7 @@ body[data-goal-theme="cut"] .lv-page{
         <div style="display:flex;align-items:center;gap:6px">
           <span class="lv-pill" style="background:var(--lv-primary);color:var(--lv-primary-fg)"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="lv-streak-flame"><path d="M12 22c4.4 0 7-2.9 7-6.8 0-3-1.7-5-3-7-.2 1.7-1 2.8-2 3.4.3-2.7-.7-5.6-3-7.6-.3 2.5-1.2 3.9-2.7 5.4C6.8 10.8 6 12.6 6 15c0 4 2.7 7 6 7z"/></svg> <span class="lv-streak-badge">0</span></span>
           <span class="lv-pill" style="border:1px solid var(--lv-border-strong);color:var(--lv-xp)"><img src="images/icons/arete.png" alt="" style="width:13px;height:13px;border-radius:50%;flex-shrink:0"> <span class="lv-xp-badge">0</span></span>
+          <button type="button" class="lv-profile-btn" onclick="showPage('"profile"')" aria-label="Profile"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--lv-fg)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="lv-profile-badge"></span></button>
         </div>
       </div>
 
@@ -5147,6 +5177,7 @@ body[data-goal-theme="cut"] .lv-page{
         <div style="display:flex;align-items:center;gap:6px">
           <span class="lv-pill" style="background:var(--lv-primary);color:var(--lv-primary-fg)"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="lv-streak-flame"><path d="M12 22c4.4 0 7-2.9 7-6.8 0-3-1.7-5-3-7-.2 1.7-1 2.8-2 3.4.3-2.7-.7-5.6-3-7.6-.3 2.5-1.2 3.9-2.7 5.4C6.8 10.8 6 12.6 6 15c0 4 2.7 7 6 7z"/></svg> <span class="lv-streak-badge">0</span></span>
           <span class="lv-pill" style="border:1px solid var(--lv-border-strong);color:var(--lv-xp)"><img src="images/icons/arete.png" alt="" style="width:13px;height:13px;border-radius:50%;flex-shrink:0"> <span class="lv-xp-badge">0</span></span>
+          <button type="button" class="lv-profile-btn" onclick="showPage('"profile"')" aria-label="Profile"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--lv-fg)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="lv-profile-badge"></span></button>
         </div>
       </div>
       <p class="lv-label-eyebrow" style="color:var(--lv-primary)">Total volume · <span id="prog-hero-range-label">12W</span></p>
@@ -5629,7 +5660,7 @@ body[data-goal-theme="cut"] .lv-page{
       <span class="cabinet-tier-count">1-of-1</span>
     </div>
     <div class="cabinet-tier-sub">Ultralegendary — the single rarest pull in the game</div>
-    <div class="cabinet-row">
+    <div class="cabinet-row cabinet-row-peak">
       <div id="cabinet-peak-slot" class="legend-card cabinet-slot rarity-ultralegendary"></div>
     </div>
   </div>
@@ -6689,6 +6720,15 @@ body[data-goal-theme="cut"] .lv-page{
     <div style="text-align:center;margin-top:14px;font-size:11px;font-weight:700;color:var(--green)" id="profile-pct">0% cast</div>
   </div>
 
+  <!-- TITLE — a crate-only cosmetic, equipped here rather than buried in
+       Settings, since "tap your profile, see what you've earned, equip
+       it" is the actual flow now that there's a real Profile button. -->
+  <div class="card lv-surface" style="margin-bottom:14px">
+    <div class="ch"><span class="ct">Title</span></div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:12px">Earned only from crates — never a guaranteed unlock.</div>
+    <div id="profile-title-toggle" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+  </div>
+
   <!-- HALL OF STATUES -->
   <div class="card lv-surface" style="margin-bottom:14px">
     <div class="ch"><span class="ct">Hall of Statues</span></div>
@@ -6922,7 +6962,7 @@ body[data-goal-theme="cut"] .lv-page{
       <label class="lbl" style="margin:0">Title</label>
       <div id="set-title-toggle" style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end"></div>
     </div>
-    <div style="font-size:10.5px;color:var(--muted);margin-top:6px;line-height:1.5">Earned, not spun — The Unbowed (first Labor), The Disciplined (7-day streak), The Ascendant (unlock the Areviax Trophy).</div>
+    <div style="font-size:10.5px;color:var(--muted);margin-top:6px;line-height:1.5">A rare crate pull, same odds family as Keys — never a guaranteed milestone unlock.</div>
   </div>
 
   <!-- SHIELD REMINDERS — a real OS-level notification (not just an
@@ -7789,6 +7829,7 @@ let equippedAccentTheme='bronze';
 function unlockAccentTheme(key,announce){
   if(!ACCENT_THEMES[key]||unlockedThemes.includes(key))return;
   unlockedThemes.push(key);
+  bumpUnseenReward();
   saveToStorage();
   if(announce)toast('🎨','New theme unlocked — '+ACCENT_THEMES[key].name+'. Equip it in Settings → Appearance.');
 }
@@ -7808,29 +7849,30 @@ function renderAccentThemePicker(){
     return `<button type="button" class="equip-chip${key===equippedAccentTheme?' active':''}" ${unlocked?`onclick="setAccentTheme('${key}')"`:'disabled'} style="padding:3px 10px;font-size:10px;opacity:${unlocked?1:.4}"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${t.c1};margin-right:4px;vertical-align:middle"></span>${t.name}${unlocked?'':' 🔒'}</button>`;
   }).join('');
 }
-// TITLES — a second cosmetic reward track alongside Keys/Themes, same
-// "real milestone, not random luck" rule. Shown as a small line under
-// the Dashboard greeting when one's equipped; "none" is always the
-// default and needs no unlock. checkTitleUnlocks() is called from the
-// same places that already check labor/streak/road progress, so it
-// piggybacks on existing state instead of tracking anything new.
+// TITLES — a crate-only cosmetic reward (like the trophy itself, never
+// a milestone freebie): a real crate open has a small chance to also
+// drop a still-locked title, surfaced as its own slot in the reveal
+// sequence (see openCompassDrop/showLegendReveal's titleWon param).
 const TITLES={
-  unbowed:{name:'The Unbowed',hint:'Complete your first Labor'},
-  disciplined:{name:'The Disciplined',hint:'Reach a 7-day streak'},
-  ascendant:{name:'The Ascendant',hint:'Unlock The Areviax Trophy'},
+  unbowed:{name:'The Unbowed',hint:'A rare pull from any crate'},
+  disciplined:{name:'The Disciplined',hint:'A rare pull from any crate'},
+  ascendant:{name:'The Ascendant',hint:'A rare pull from any crate'},
 };
 let unlockedTitles=[];
 let equippedTitle='';
 function unlockTitle(key,announce){
   if(!TITLES[key]||unlockedTitles.includes(key))return;
   unlockedTitles.push(key);
+  bumpUnseenReward();
   saveToStorage();
-  if(announce)toast('🏅','New title unlocked — "'+TITLES[key].name+'". Equip it in Settings → Appearance.');
+  if(announce)toast('🏅','New title unlocked — "'+TITLES[key].name+'". Equip it on your Profile.');
 }
-function checkTitleUnlocks(){
-  if(Object.keys(laborsCompleted||{}).length>0)unlockTitle('unbowed',true);
-  if(streak>=7)unlockTitle('disciplined',true);
-  if(unlockedLegends.includes('areviax_trophy'))unlockTitle('ascendant',true);
+// Picks a random still-locked title, or null once every title is
+// owned — callers must check for null (see openCompassDrop).
+function randomLockedTitle(){
+  const locked=Object.keys(TITLES).filter(k=>!unlockedTitles.includes(k));
+  if(!locked.length)return null;
+  return locked[Math.floor(Math.random()*locked.length)];
 }
 function setEquippedTitle(key){
   if(key&&(!TITLES[key]||!unlockedTitles.includes(key)))return;
@@ -7849,14 +7891,46 @@ function renderDashTitleBadge(){
     el.style.display='none';
   }
 }
+// Rendered in two places now — Settings > Appearance (#set-title-toggle)
+// and the Profile page (#profile-title-toggle) — same markup/behavior,
+// just synced to whichever container(s) actually exist on the page.
 function renderTitlePicker(){
-  const cont=document.getElementById('set-title-toggle');
-  if(!cont)return;
+  const conts=[document.getElementById('set-title-toggle'),document.getElementById('profile-title-toggle')].filter(Boolean);
+  if(!conts.length)return;
   const chips=[{key:'',label:'None'}].concat(Object.keys(TITLES).map(k=>({key:k,label:TITLES[k].name})));
-  cont.innerHTML=chips.map(c=>{
+  const html=chips.map(c=>{
     const unlocked=c.key===''||unlockedTitles.includes(c.key);
     return `<button type="button" class="equip-chip${c.key===equippedTitle?' active':''}" ${unlocked?`onclick="setEquippedTitle('${c.key}')"`:'disabled'} style="padding:3px 10px;font-size:10px;opacity:${unlocked?1:.4}">${c.label}${unlocked?'':' 🔒'}</button>`;
   }).join('');
+  conts.forEach(c=>c.innerHTML=html);
+}
+// ── UNSEEN REWARDS BADGE — the small red flashing count on the Profile
+// button: bumps by 1 for a new title, a new accent theme, or a new
+// (non-duplicate) trophy pull, and clears the moment the player opens
+// the Profile page to go look. Deliberately one shared counter rather
+// than per-type badges — the ask was "something's waiting for you",
+// not a breakdown of what.
+let unseenRewardCount=0;
+function bumpUnseenReward(){
+  unseenRewardCount++;
+  saveToStorage();
+  syncProfileBadge();
+}
+function clearUnseenRewards(){
+  if(unseenRewardCount===0)return;
+  unseenRewardCount=0;
+  saveToStorage();
+  syncProfileBadge();
+}
+function syncProfileBadge(){
+  document.querySelectorAll('.lv-profile-badge').forEach(el=>{
+    if(unseenRewardCount>0){
+      el.textContent=unseenRewardCount>9?'9+':unseenRewardCount;
+      el.style.display='flex';
+    }else{
+      el.style.display='none';
+    }
+  });
 }
 let joinDate='';
 let lastAnniversaryYear=0;
@@ -9309,6 +9383,7 @@ if(!window._greetingInterval){window._greetingInterval=setInterval(updateGreetin
 function renderProfile(){
   const fill=document.getElementById('profile-statue-fill');
   if(!fill)return; // page not active
+  try{renderTitlePicker();}catch(e){console.error('renderTitlePicker:',e.message);}
   try{renderConsistencyHeatmap();}catch(e){console.error('renderConsistencyHeatmap:',e.message);}
   try{renderWeeklyRecap();}catch(e){console.error('renderWeeklyRecap:',e.message);}
   try{renderTrainingPatterns();}catch(e){console.error('renderTrainingPatterns:',e.message);}
@@ -10966,7 +11041,7 @@ function openCompassDrop(tier){
   const pool=LEGEND_CARDS.filter(l=>l.rarity===rarity);
   const pick=pool[Math.floor(Math.random()*pool.length)];
   const isNew=!unlockedLegends.includes(pick.key);
-  if(isNew)unlockedLegends.push(pick.key);
+  if(isNew){unlockedLegends.push(pick.key);bumpUnseenReward();}
   legendCounts[pick.key]=(legendCounts[pick.key]||0)+1;
   if(tier==='areviax')shardBank+=2; // the best drop in the app pays a bonus on top of the guaranteed card
   if(tier==='diamond')unlockAccentTheme('silver',true);
@@ -10977,6 +11052,12 @@ function openCompassDrop(tier){
   // this too (free/instant path, single reward, unchanged).
   const keyWon=tier!=='areviax'&&Math.random()<0.18;
   if(keyWon)keyBank++;
+  // Titles are crate-only, never a milestone freebie — same small-
+  // chance-per-real-open pattern as Keys, its own slot in the reveal
+  // when it lands. randomLockedTitle() returns null once all 3 are
+  // owned, so this naturally stops rolling once there's nothing left.
+  const titleWon=tier!=='areviax'&&Math.random()<0.07?randomLockedTitle():null;
+  if(titleWon)unlockTitle(titleWon,false);
   saveToStorage();
   // Anticipation beat on the actual crate tile — a real chest/crystal
   // render can now sell "about to open" (shake + glow build) before the
@@ -10992,10 +11073,10 @@ function openCompassDrop(tier){
     crateEl.classList.add('opening');
     setTimeout(()=>{
       crateEl.classList.remove('opening');
-      showLegendReveal(pick,isNew,tier,legendCounts[pick.key],keyWon);
+      showLegendReveal(pick,isNew,tier,legendCounts[pick.key],keyWon,titleWon);
     },500);
   }else{
-    showLegendReveal(pick,isNew,tier,legendCounts[pick.key],keyWon);
+    showLegendReveal(pick,isNew,tier,legendCounts[pick.key],keyWon,titleWon);
   }
 }
 // \u2500\u2500 CRATE SOUND \u2014 procedurally synthesized (no audio files), same
@@ -11275,7 +11356,16 @@ function buildCrateReelHTML(finalCard){
 // .crate-shake/.crack-out/.crate-icon-burst.flare were already sitting in
 // the stylesheet, tier-timed to CRATE_OPEN_TIMING's windupMs/crackMs
 // (260/300/380/460/580ms) but never wired to a click handler until now.
-function showLegendReveal(l,isNew,tier,count,keyWon){
+// Closing a reveal on a genuinely NEW trophy (not a duplicate) rolls
+// straight into the full pedestal showcase — the drag-rotate turntable
+// — instead of just dropping the player back on the crate row. That's
+// the "proper intro" a new pull deserves, same beat as Brawl Stars
+// walking you into a new Brawler's own screen the moment you unlock it.
+function closeCrateRevealAndShowcase(btn,key,isNew){
+  btn.closest('.achievement-overlay').remove();
+  if(isNew)setTimeout(()=>viewLegendCard(key),260);
+}
+function showLegendReveal(l,isNew,tier,count,keyWon,titleWon){
   const cfg=CRATE_OPEN_TIMING[tier]||CRATE_OPEN_TIMING.bronze;
   if(l.img){const _preload=new Image();_preload.src=l.img;}
   const xpAmount=isNew?25:10;
@@ -11306,14 +11396,23 @@ function showLegendReveal(l,isNew,tier,count,keyWon){
         '<div class="crate-xp-slot-sub">Spend keys to upgrade a crate</div>'+
       '</div>';
   }
+  function titleSlotHTML(){
+    const t=TITLES[titleWon];
+    return '<div class="crate-xp-slot crate-slot-pop">'+
+        '<div class="crate-xp-slot-icon" style="background:linear-gradient(160deg,#FFE066,#C9971E)">🏅</div>'+
+        '<div class="crate-xp-slot-label">New Title</div>'+
+        '<div class="crate-xp-slot-sub">"'+t.name+'" — equip it on your Profile</div>'+
+      '</div>';
+  }
   // Order matters for pacing (small beats first, big prize last) — not
   // for economy, every slot always grants exactly what would've been
-  // granted with no reveal sequence at all. Key slot only appears when
-  // openCompassDrop actually rolled one (keyWon) — most opens are just
-  // the two base slots.
+  // granted with no reveal sequence at all. Key/Title slots only appear
+  // when openCompassDrop actually rolled one (keyWon/titleWon) — most
+  // opens are just the two base slots.
   const slots=multiSlot?[
     {render:xpSlotHTML,onShow:()=>addXP(xpAmount,isNew?'New trophy':'Areviax Crate')},
     ...(keyWon?[{render:keySlotHTML,onShow:()=>{}}]:[]),
+    ...(titleWon?[{render:titleSlotHTML,onShow:()=>{}}]:[]),
     {render:trophySlotHTML,onShow:()=>{if(isNew)celebrateBurst(['🔥','⭐','🏆'],cfg.burstCount);}},
   ]:[];
 
@@ -11336,7 +11435,7 @@ function showLegendReveal(l,isNew,tier,count,keyWon){
   const burst=overlay.querySelector('#reveal-crate-burst');
   const prompt=overlay.querySelector('#reveal-tap-prompt');
   const counter=overlay.querySelector('#reveal-slot-counter');
-  let opened=false,slotIdx=0;
+  let opened=false,slotIdx=0,autoAdvanceTimer=null;
 
   function showSlot(){
     const modal=overlay.querySelector('.achievement-modal');
@@ -11356,15 +11455,21 @@ function showLegendReveal(l,isNew,tier,count,keyWon){
     modal.classList.add('glow');
     modal.innerHTML=slot.render()+
       (isLast
-        ? '<button class="achievement-close-btn" onclick="this.closest(\'.achievement-overlay\').remove()">Continue</button>'
+        ? '<button class="achievement-close-btn" onclick="closeCrateRevealAndShowcase(this,\''+l.key+'\','+isNew+')">Continue</button>'
         : '<div class="crate-tap-prompt" style="margin-top:16px" onclick="this.closest(\'.achievement-modal\').dispatchEvent(new Event(\'advance\'))">Tap to continue</div>');
     playCrateRevealChime(slotIdx===slots.length-1?l.rarity:'common');
     slot.onShow&&slot.onShow();
     if(!isLast){
-      modal.addEventListener('advance',()=>{ slotIdx++; showSlot(); },{once:true});
+      // clearTimeout on both paths — without it, a manual tap that beats
+      // the 1800ms auto-advance still leaves that old timer pending, and
+      // it can later fire against a LATER slot's own tap-prompt (same
+      // modal element, just re-rendered), double-advancing and silently
+      // skipping a slot. Caught via a quick multi-tap test on the new
+      // Title slot.
+      modal.addEventListener('advance',()=>{ clearTimeout(autoAdvanceTimer); slotIdx++; showSlot(); },{once:true});
       // Same "don't gate the reward behind a tap" rule as the box open
       // itself — advances on its own if the player doesn't tap.
-      setTimeout(()=>{ if(overlay.isConnected&&modal.querySelector('.crate-tap-prompt')){ slotIdx++; showSlot(); } },1800);
+      autoAdvanceTimer=setTimeout(()=>{ if(overlay.isConnected&&modal.querySelector('.crate-tap-prompt')){ slotIdx++; showSlot(); } },1800);
     }
   }
 
@@ -11393,7 +11498,7 @@ function showLegendReveal(l,isNew,tier,count,keyWon){
       modal.style.setProperty('--reveal-glow',RARITY_GLOW[l.rarity]);
       modal.style.borderColor=RARITY_BORDER[l.rarity];
       modal.classList.add('glow');
-      modal.innerHTML=trophySlotHTML()+'<button class="achievement-close-btn" onclick="this.closest(\'.achievement-overlay\').remove()">Continue</button>';
+      modal.innerHTML=trophySlotHTML()+'<button class="achievement-close-btn" onclick="closeCrateRevealAndShowcase(this,\''+l.key+'\','+isNew+')">Continue</button>';
       playCrateRevealChime(l.rarity);
       requestAnimationFrame(()=>{
         addXP(xpAmount,isNew?'New trophy':'Areviax Crate');
@@ -12933,6 +13038,7 @@ function syncPageChrome(id){
 function showPage(id){
   try{updateMobileNav(id);}catch(e){}
   syncPageChrome(id);
+  if(id==='profile')clearUnseenRewards();
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.sb-item').forEach(i=>i.classList.remove('active'));
   const pg=document.getElementById('page-'+id);
@@ -14069,10 +14175,10 @@ function syncLvBadges(){
     el.classList.toggle('lv-flame-t2',streak>=7&&streak<30);
     el.classList.toggle('lv-flame-t3',streak>=30);
   });
+  syncProfileBadge();
 }
 function renderDashHeroLovable(){
   syncLvBadges();
-  checkTitleUnlocks();
   renderDashTitleBadge();
   const greetW1=document.getElementById('dash-greeting-word1');
   const greetW2=document.getElementById('dash-greeting-word2');
@@ -22399,6 +22505,7 @@ function saveToStorage(){
     localStorage.setItem('arx_equippedAccentTheme', equippedAccentTheme);
     localStorage.setItem('arx_unlockedTitles', JSON.stringify(unlockedTitles));
     localStorage.setItem('arx_equippedTitle', equippedTitle);
+    localStorage.setItem('arx_unseenRewardCount', unseenRewardCount);
     localStorage.setItem('arx_deviationLog', JSON.stringify(deviationLog));
     localStorage.setItem('arx_lowerBodyNudgeDismissedAt', lowerBodyNudgeDismissedAt||'');
     localStorage.setItem('arx_muscleBalanceNudgeDismissedDate', muscleBalanceNudgeDismissedDate||'');
@@ -22532,6 +22639,7 @@ function loadFromStorage(){
     { const ut2=localStorage.getItem('arx_unlockedTitles'); if(ut2){try{unlockedTitles=JSON.parse(ut2);}catch(e){unlockedTitles=[];}} }
     equippedTitle=localStorage.getItem('arx_equippedTitle')||'';
     if(equippedTitle&&!unlockedTitles.includes(equippedTitle))equippedTitle='';
+    unseenRewardCount=parseInt(localStorage.getItem('arx_unseenRewardCount'))||0;
     const dl=localStorage.getItem('arx_deviationLog');
     if(dl){try{deviationLog=JSON.parse(dl);}catch(e){deviationLog=[];}}
     lowerBodyNudgeDismissedAt=localStorage.getItem('arx_lowerBodyNudgeDismissedAt')||null;
