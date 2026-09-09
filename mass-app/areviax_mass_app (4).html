@@ -723,7 +723,7 @@ input,input:focus,input:active,
   top:calc(env(safe-area-inset-top,0px) + 2px);
   transform:translateY(-130%);opacity:0;
   transition:transform .42s cubic-bezier(.16,1,.3,1),opacity .3s ease,top .25s ease;
-  pointer-events:none;
+  pointer-events:none;touch-action:pan-x;
   background:rgba(36,32,30,.78)!important;
   backdrop-filter:blur(24px) saturate(1.6);-webkit-backdrop-filter:blur(24px) saturate(1.6);
   border:.5px solid rgba(255,255,255,.15)!important;
@@ -14839,6 +14839,7 @@ function armDashNotifWatchers(){
   DASH_NOTIF_IDS.forEach(id=>{
     const el=document.getElementById(id);
     if(!el)return;
+    initDashNotifSwipe(id);
     const obs=new MutationObserver(()=>{
       const visible=getComputedStyle(el).display!=='none';
       if(visible&&!el.classList.contains('dash-notif-shown')&&!dashNotifQueue.includes(id)&&dashNotifShowing!==id){
@@ -14865,6 +14866,41 @@ function dismissDashNotif(id){
     dashNotifShowing=null;
     setTimeout(tryShowNextDashNotif,300);
   }
+}
+// Swipe-up-to-dismiss-early — same request as the achievement toast's
+// own swipe (initToastSwipe), just for this separate banner system.
+// Deliberately calls the existing dismissDashNotif(id) (a purely visual
+// slide-away/queue-advance, same thing the 6s auto-timer already
+// triggers) rather than any banner's own dismissMissedFoodDay()-style
+// function — those carry real "don't show again today" persistence,
+// which swiping isn't meant to invoke; swiping just makes THIS showing
+// leave sooner, exactly like tapping through a real iOS notification
+// early rather than waiting for it to time out on its own.
+// translate(-50%,...) only matters on desktop's centred layout (see the
+// 900px media query above) — read live via matchMedia at drag time
+// rather than baked in, so this keeps working if that breakpoint moves.
+function initDashNotifSwipe(id){
+  const el=document.getElementById(id);
+  if(!el||el._dashSwipeInit)return;el._dashSwipeInit=true;
+  let startY=null,dragging=false;
+  const centered=()=>matchMedia('(min-width:900px)').matches;
+  el.addEventListener('pointerdown',e=>{startY=e.clientY;dragging=true;el.style.transition='none';});
+  el.addEventListener('pointermove',e=>{
+    if(!dragging||startY==null)return;
+    const dy=e.clientY-startY;
+    if(dy<0)el.style.transform='translate('+(centered()?'-50%':'0')+','+dy+'px)';
+  });
+  const end=e=>{
+    if(!dragging)return;
+    dragging=false;
+    el.style.transition='';
+    const dy=e.clientY-(startY==null?e.clientY:startY);
+    startY=null;
+    el.style.transform='';
+    if(dy<-24)dismissDashNotif(id);
+  };
+  el.addEventListener('pointerup',end);
+  el.addEventListener('pointercancel',end);
 }
 // Armed immediately at script load, not inside initApp() — these banner
 // divs are already in the static HTML by the time this script runs, and
