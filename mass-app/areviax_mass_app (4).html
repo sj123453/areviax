@@ -11258,31 +11258,49 @@ function playCrateSpinTicks(durationMs){
     setTimeout(schedule,interval);
   })();
 }
+// Per-rarity MOTIF — a genuinely different tune per tier, not the same
+// rising arpeggio with extra notes stapled on as it climbs. Different
+// interval shapes (a repeated-note alarm for Mythic, a wide leaping
+// fifth for Rare, a full ascending run for Legendary...) and a
+// different oscillator timbre per tier, so two tiers played back to
+// back are recognizably different songs, not just "louder"/"longer"
+// versions of one song. gaps[i] is the ms before note i+1 starts
+// (one shorter than notes, since the last note has no note after it).
+const RARITY_MOTIF={
+  common:        {notes:[523.25],                                   gaps:[],                wave:'triangle'},
+  rare:          {notes:[523.25,783.99],                            gaps:[110],              wave:'triangle'},
+  superrare:     {notes:[523.25,659.25,987.77],                     gaps:[90,120],           wave:'sine'},
+  epic:          {notes:[466.16,622.25,830.61,1108.73],             gaps:[100,100,150],      wave:'sine'},
+  // Repeated low note then a jump then a drop — an "alarm/tension" shape,
+  // not a rising run, matching Mythic's red danger identity.
+  mythic:        {notes:[311.13,311.13,466.16,233.08],              gaps:[80,80,170],        wave:'sawtooth'},
+  legendary:     {notes:[440,554.37,659.25,880,1108.73],            gaps:[85,85,85,120],     wave:'triangle'},
+  ultralegendary:{notes:[392,493.88,587.33,739.99,987.77,1174.66],  gaps:[70,70,70,90,120],  wave:'sine'},
+};
 function playCrateRevealChime(rarity){
   const ctx=getCrateAudioCtx();
   if(!ctx)return;
-  const notesByRarity={
-    common:[523.25],
-    rare:[523.25,659.25],
-    superrare:[523.25,659.25,783.99],
-    epic:[440,554.37,659.25,880],
-    mythic:[523.25,659.25,783.99,1046.5],
-    legendary:[440,554.37,659.25,880,1108.73],
-    ultralegendary:[392,493.88,587.33,739.99,987.77,1174.66],
-  };
-  const notes=notesByRarity[rarity]||notesByRarity.common;
+  const motif=RARITY_MOTIF[rarity]||RARITY_MOTIF.common;
+  const notes=motif.notes;
   // Rank-based intensity (0..1) so the reveal gets audibly bigger the
-  // better the pull is, not just a longer note list — the whole chime
-  // (note volume, final-note landing weight, shimmer count) scales off
+  // better the pull is, not just a different tune — note volume,
+  // final-note landing weight, and shimmer count all still scale off
   // this one number the same way CRATE_SOUND_INTENSITY scales the crack.
   const rank=RARITY_RANK[rarity]!=null?RARITY_RANK[rarity]:0;
   const drama=rank/6;
   const t0=ctx.currentTime;
+  // Cumulative note-start offsets from motif.gaps, instead of every
+  // note landing a fixed 90ms apart — this is what actually lets each
+  // tier's motif have its own rhythm (Mythic's alarm stutter, Legendary's
+  // steady climb) rather than just different pitches at the same beat.
+  const starts=[0];
+  for(let i=0;i<motif.gaps.length;i++)starts.push(starts[i]+motif.gaps[i]/1000);
+  const lastStart=starts[starts.length-1];
   notes.forEach((freq,i)=>{
-    const start=t0+i*0.09;
+    const start=t0+starts[i];
     const isLast=i===notes.length-1;
     const osc=ctx.createOscillator();
-    osc.type=isLast?'triangle':'sine';
+    osc.type=isLast?'triangle':motif.wave;
     osc.frequency.setValueAtTime(freq,start);
     const g=ctx.createGain();
     const peak=isLast?0.32+0.16*drama:0.22+0.06*drama;
@@ -11296,7 +11314,7 @@ function playCrateRevealChime(rarity){
   // physical weight instead of just a brighter chime — silent for
   // common/rare, ramps in from superrare up, biggest on Ultra Legendary.
   if(rank>=2){
-    const landStart=t0+(notes.length-1)*0.09;
+    const landStart=t0+lastStart;
     const bass=ctx.createOscillator();
     bass.type='sine';
     bass.frequency.setValueAtTime(90-8*drama,landStart);
@@ -11311,7 +11329,7 @@ function playCrateRevealChime(rarity){
   const shimmerTiers={superrare:1,epic:2,mythic:2,legendary:3,ultralegendary:4};
   const shimmerLayers=shimmerTiers[rarity]||0;
   for(let layer=0;layer<shimmerLayers;layer++){
-    const shimmerStart=t0+notes.length*0.09+layer*0.12;
+    const shimmerStart=t0+lastStart+0.09+layer*0.12;
     const shimmer=ctx.createOscillator();
     shimmer.type='sine';
     shimmer.frequency.setValueAtTime(notes[notes.length-1]*(2+layer*0.5),shimmerStart);
@@ -16290,8 +16308,22 @@ function detectPlateau(name){
 // have this problem (there's only one weight to read off), so those are
 // left with the plain "Weight (kg)" label.
 const MACHINE_CABLE_EQUIP=new Set(['cableMachine','calfRaiseMachine','chestPressMachine','deltFlyMachine','ghdMachine','hackSquatMachine','latPulldown','legCurlMachine','legExtensionMachine','legPress','rowMachine','shoulderPressMachine','smithMachine']);
+function isAssistedEquip(equip){ return !!(equip&&equip.includes('assisted')); }
+// profile.weight is always stored in lbs regardless of the user's
+// display-unit preference (see weightUnit's own comment where it's
+// declared) — this is the one shared conversion to a real kg number,
+// used wherever a calculation (not just a display string) needs it.
+function bodyweightKg(){
+  return profile.weight?Math.round(profile.weight*0.453592*10)/10:0;
+}
 function weightInputLabel(e){
   const equip=e.equip||[];
+  // Assist machines (Assisted Dips/Pull-ups) read a PIN weight, not a
+  // weight being lifted — logSet converts it into the actual effective
+  // load (bodyweight minus this number), so the label says exactly what
+  // to type rather than leaving "Weight (kg)" ambiguous about which
+  // direction more assist goes.
+  if(isAssistedEquip(equip))return 'Assist weight (kg) — subtracted from bodyweight';
   if(equip.includes('dumbbells'))return 'Weight per dumbbell (kg)';
   if(equip.some(x=>MACHINE_CABLE_EQUIP.has(x)))return 'Weight (kg) — total stack';
   return 'Weight (kg)';
@@ -16310,6 +16342,22 @@ function suggestNextWeight(e){
   const last=lastPerformance[e.name];
   if(!last)return null;
   const upper=repRangeTop(e.reps);
+  // last.weight is already the EFFECTIVE load (bodyweight minus assist,
+  // see logSet) for an assist machine — but the input itself takes the
+  // PIN number, and progression there means LESS assist, not more. Both
+  // the suggested input value and the note get converted back to assist
+  // terms so what's shown matches what the player actually types.
+  if(isAssistedEquip(e.equip)){
+    const bwKg=bodyweightKg();
+    if(bwKg>0){
+      const lastAssist=Math.max(0,Math.round((bwKg-last.weight)*10)/10);
+      if(last.reps>=upper){
+        const nextAssist=Math.max(0,Math.round((lastAssist-2.5)*10)/10);
+        return {weight:nextAssist,note:`Last: ${lastAssist}kg assist × ${last.reps} (≈${last.weight}kg lifted) — hit the top of your range. Try ${nextAssist}kg assist.`};
+      }
+      return {weight:lastAssist,note:`Last: ${lastAssist}kg assist × ${last.reps} (≈${last.weight}kg lifted). Same assist — aim for one more rep before reducing it.`};
+    }
+  }
   if(last.reps>=upper){
     const next=Math.round((last.weight+2.5)*10)/10;
     return {weight:next,note:`Last: ${last.weight}kg×${last.reps} — hit the top of your range. Try ${next}kg.`};
@@ -16617,7 +16665,10 @@ function buildSession(){
     const sug=suggestNextWeight(e);
     const plateau=detectPlateau(e.name);
     const saved=liveSessionProgress[e.name]&&liveSessionProgress[e.name].date===localDateKey(new Date())?liveSessionProgress[e.name]:null;
-    const warmup=warmupSets(sug?sug.weight:null);
+    // sug.weight is an assist-machine PIN number here, not a real load —
+    // a 40/60/80% ramp off that number doesn't mean anything physically,
+    // so assist exercises skip the warm-up ramp entirely.
+    const warmup=isAssistedEquip(e.equip)?[]:warmupSets(sug?sug.weight:null);
     const e1rm=estimate1RM(e.name);
     const isSkipped=skippedExercises.has(i);
     return `
@@ -16992,8 +17043,18 @@ const DOUBLE_DUMBBELL_EXERCISES=new Set([
   'Step-ups','Tate Press','Walking Lunges','Zottman Curl',
 ]);
 function logSet(ei,si,name,muscle){
-  const w=parseFloat(document.getElementById('sw-'+ei).value)||0;
+  const wRaw=parseFloat(document.getElementById('sw-'+ei).value)||0;
   const r=parseInt(document.getElementById('sr-'+ei).value)||0;
+  // Assist machines (Assisted Dips/Pull-ups) log the PIN weight — a
+  // bigger number there means LESS load, the opposite of every other
+  // exercise's weight field. Convert to the actual effective load
+  // (bodyweight minus assist) here so PR/volume/1RM/progression below
+  // all work on "how much did they actually lift" like everywhere else
+  // — wRaw (the raw pin number typed in) is kept separately just for
+  // liveSessionProgress, so the input still echoes back what was typed
+  // rather than a computed kg figure if they log a second set.
+  const bwKg=isAssistedEquip(EX_BY_NAME[name]&&EX_BY_NAME[name].equip)?bodyweightKg():0;
+  const w=bwKg>0?Math.max(0,Math.round((bwKg-wRaw)*10)/10):wRaw;
   const effW=DOUBLE_DUMBBELL_EXERCISES.has(name)?w*2:w;
   const chip=document.getElementById('sc-'+ei+'-'+si);
   if(chip.classList.contains('done'))return;
@@ -17014,8 +17075,12 @@ function logSet(ei,si,name,muscle){
     });
     if(tonnageLog.length>2000)tonnageLog=tonnageLog.slice(-2000); // cap growth, keep it from growing forever
   }
-  if(!liveSessionProgress[name])liveSessionProgress[name]={weight:w,reps:r,doneSets:[],date:localDateKey(new Date())};
-  liveSessionProgress[name].weight=w;
+  // Stores wRaw, not w — this only ever feeds the input's own value=""
+  // pre-fill on this same page (see the sw-${i} input above), so it
+  // needs to echo back exactly what was typed (an assist pin number),
+  // not the computed effective load.
+  if(!liveSessionProgress[name])liveSessionProgress[name]={weight:wRaw,reps:r,doneSets:[],date:localDateKey(new Date())};
+  liveSessionProgress[name].weight=wRaw;
   liveSessionProgress[name].reps=r;
   liveSessionProgress[name].date=localDateKey(new Date());
   if(!liveSessionProgress[name].doneSets.includes(si))liveSessionProgress[name].doneSets.push(si);
