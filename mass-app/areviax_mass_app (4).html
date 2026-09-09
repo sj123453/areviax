@@ -11927,23 +11927,26 @@ function showLegendReveal(l,isNew,tier,count,keyWon,titleWon){
     }
   }
 
-  // A single tap opens it — "Tap-tap!" (see the initial markup above) is
-  // flavor text calling the player to action, not a literal two-tap
-  // requirement the way an earlier version of this had a multi-tap
-  // charge-up. Still never gates the reward — autoOpenTimer fires the
-  // same explode() on its own if the player doesn't tap.
-  let exploding=false,autoOpenTimer=null;
+  // "Tap-tap!" is now a literal two-tap requirement — a wider version
+  // of this (2-6 taps, scaled by tier) was tried earlier and reverted
+  // back to single-tap; this is a flat 2-tap beat across every tier
+  // instead, the anticipation without the extra friction that got the
+  // wider version pulled. Still never gates the reward — autoOpenTimer
+  // fires explode() on its own if the player doesn't tap (enough).
+  let exploding=false,autoOpenTimer=null,taps=0;
+  const TAPS_NEEDED=2;
 
   function onTap(){
     if(exploding)return;
-    // One quick kick + tick right on tap, before the bigger shake/crack
-    // sequence in explode() — the same instant-feedback beat the old
-    // per-tap charge-up had, just for the single tap instead of several.
+    taps++;
+    // A kick + tick on every tap, before the bigger shake/crack
+    // sequence in explode() once the count is met.
     icon.classList.remove('crate-tap-pulse');
     void icon.offsetWidth;
     icon.classList.add('crate-tap-pulse');
     const actx=getCrateAudioCtx();
-    if(actx)playCrateTick(actx,0.9);
+    if(actx)playCrateTick(actx,0.6+0.3*(taps/TAPS_NEEDED));
+    if(taps<TAPS_NEEDED){ if(prompt)prompt.textContent='Tap again!'; return; }
     explode();
   }
 
@@ -11996,8 +11999,9 @@ function showLegendReveal(l,isNew,tier,count,keyWon,titleWon){
 
   // A player who never taps still gets their reward — the tap is a beat,
   // not a gate. Auto-triggers a little after the prompt fades in so a
-  // real tap (which fires first) always wins the race.
-  autoOpenTimer=setTimeout(explode,1400);
+  // real tap (which fires first) always wins the race — widened from
+  // 1400ms for the single-tap version to give room for a real 2-tap.
+  autoOpenTimer=setTimeout(explode,2000);
 }
 
 // ── GIFT FROM THE GODS — one free daily login reward, weighted heavily
