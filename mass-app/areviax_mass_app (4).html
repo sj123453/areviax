@@ -2435,9 +2435,13 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        relative on every direct child to layer content above the glow
        pseudo-element — the counter now renders as a direct child of the
        modal on every slot, so it needs the extra specificity here to
-       keep its own position:absolute corner-pin from being clobbered. */
+       keep its own position:absolute corner-pin from being clobbered.
+       Sits at a POSITIVE top/right inset (not hanging past the edge) —
+       .achievement-modal has overflow:hidden for its shine-sweep/glow
+       clipping, and a negative inset here used to get silently clipped
+       by that, leaving only an unreadable red sliver in the corner. */
     .achievement-modal>.crate-slot-counter,
-    .crate-slot-counter{position:absolute;top:-8px;right:-8px;min-width:26px;height:26px;padding:0 6px;border-radius:50%;background:rgba(196,28,28,.95);border:1.5px solid rgba(255,255,255,.55);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:800;color:#fff;z-index:3;box-shadow:0 2px 10px rgba(0,0,0,.45);transition:background .2s,border-color .2s,transform .2s}
+    .crate-slot-counter{position:absolute;top:8px;right:8px;min-width:28px;height:28px;padding:0 7px;border-radius:50%;background:rgba(196,28,28,.95);border:2px solid rgba(255,255,255,.7);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:800;color:#fff;z-index:3;box-shadow:0 2px 10px rgba(0,0,0,.55);transition:background .2s,border-color .2s,transform .2s}
     .crate-slot-counter.glow-alert{background:rgba(255,60,60,.95);border-color:#fff;animation:crateCounterGlow .5s ease-in-out infinite alternate;transform:scale(1.15)}
     @keyframes crateCounterGlow{0%{box-shadow:0 0 6px 1px rgba(255,70,70,.7)}100%{box-shadow:0 0 18px 5px rgba(255,70,70,.95)}}
     .crate-slot-pop{animation:crateSlotPopIn .35s cubic-bezier(.34,1.56,.64,1) both}
@@ -11240,7 +11244,6 @@ function playCrateRevealChime(rarity){
   // better the pull is, not just a longer note list — the whole chime
   // (note volume, final-note landing weight, shimmer count) scales off
   // this one number the same way CRATE_SOUND_INTENSITY scales the crack.
-  const RARITY_RANK={common:0,rare:1,superrare:2,epic:3,mythic:4,legendary:5,ultralegendary:6};
   const rank=RARITY_RANK[rarity]!=null?RARITY_RANK[rarity]:0;
   const drama=rank/6;
   const t0=ctx.currentTime;
@@ -11289,6 +11292,103 @@ function playCrateRevealChime(rarity){
     shimmer.start(shimmerStart);shimmer.stop(shimmerStart+1.15);
   }
 }
+// Shared rarity ranking — 0 (common) through 6 (ultralegendary) — so
+// both the reveal chime above and the intro sting below scale off one
+// number instead of each keeping its own copy of the tier list.
+const RARITY_RANK={common:0,rare:1,superrare:2,epic:3,mythic:4,legendary:5,ultralegendary:6};
+// "Something huge is landing" sting for Superrare and up — a noise riser
+// under a rising sub tone, cut off by a snap+thump hit, with a detuned
+// sawtooth power-chord stab layered on top from Epic up. Deliberately a
+// DIFFERENT sound (not just a louder version of playCrateRevealChime)
+// so a top-tier pull has its own identity — played during the mystery
+// badge's spin-up (see runMysteryReveal) so it reads as an intro to the
+// reveal, landing its hit before the badge actually locks in. Common/
+// Rare get nothing extra here — they stay exactly as playCrateRevealChime
+// alone already sounds, which is the "normal to nothing" end of the ask.
+function playRarityIntroSting(rarity){
+  const rank=RARITY_RANK[rarity]!=null?RARITY_RANK[rarity]:0;
+  if(rank<2)return;
+  const ctx=getCrateAudioCtx();
+  if(!ctx)return;
+  const drama=(rank-2)/4; // 0 at Superrare, 1 at Ultra Legendary
+  const t0=ctx.currentTime;
+  const riseDur=0.42+0.18*drama;
+
+  // Riser — noise bed under a lowpass sweeping open, gain climbing to
+  // the hit. The standard "here it comes" build.
+  const bufSize=Math.floor(ctx.sampleRate*(riseDur+0.05));
+  const buf=ctx.createBuffer(1,bufSize,ctx.sampleRate);
+  const data=buf.getChannelData(0);
+  for(let i=0;i<bufSize;i++)data[i]=Math.random()*2-1;
+  const noise=ctx.createBufferSource();
+  noise.buffer=buf;
+  const lp=ctx.createBiquadFilter();
+  lp.type='lowpass';
+  lp.frequency.setValueAtTime(200,t0);
+  lp.frequency.exponentialRampToValueAtTime(3800+2200*drama,t0+riseDur);
+  const ng=ctx.createGain();
+  ng.gain.setValueAtTime(0,t0);
+  ng.gain.linearRampToValueAtTime(0.16+0.1*drama,t0+riseDur*0.85);
+  ng.gain.exponentialRampToValueAtTime(0.001,t0+riseDur+0.12);
+  noise.connect(lp);lp.connect(ng);ng.connect(ctx.destination);
+  noise.start(t0);noise.stop(t0+riseDur+0.15);
+
+  // Rising sub tone under the noise — the pitch climb that sells the
+  // build before the hit lands.
+  const riser=ctx.createOscillator();
+  riser.type='sawtooth';
+  riser.frequency.setValueAtTime(70,t0);
+  riser.frequency.exponentialRampToValueAtTime(180+60*drama,t0+riseDur);
+  const rg=ctx.createGain();
+  rg.gain.setValueAtTime(0,t0);
+  rg.gain.linearRampToValueAtTime(0.1+0.06*drama,t0+riseDur*0.9);
+  rg.gain.exponentialRampToValueAtTime(0.001,t0+riseDur+0.1);
+  riser.connect(rg);rg.connect(ctx.destination);
+  riser.start(t0);riser.stop(t0+riseDur+0.12);
+
+  // The hit — a short noise snap plus a punchy low thump, landing right
+  // as the riser peaks.
+  const hitT=t0+riseDur;
+  const snapBuf=ctx.createBuffer(1,Math.floor(ctx.sampleRate*0.12),ctx.sampleRate);
+  const snapData=snapBuf.getChannelData(0);
+  for(let i=0;i<snapData.length;i++)snapData[i]=(Math.random()*2-1)*Math.pow(1-i/snapData.length,2);
+  const snap=ctx.createBufferSource();
+  snap.buffer=snapBuf;
+  const sg=ctx.createGain();
+  sg.gain.setValueAtTime(0.3+0.18*drama,hitT);
+  sg.gain.exponentialRampToValueAtTime(0.001,hitT+0.14);
+  snap.connect(sg);sg.connect(ctx.destination);
+  snap.start(hitT);snap.stop(hitT+0.15);
+
+  const thump=ctx.createOscillator();
+  thump.type='sine';
+  thump.frequency.setValueAtTime(150,hitT);
+  thump.frequency.exponentialRampToValueAtTime(40,hitT+0.3+0.15*drama);
+  const tg=ctx.createGain();
+  tg.gain.setValueAtTime(0.28+0.2*drama,hitT);
+  tg.gain.exponentialRampToValueAtTime(0.001,hitT+0.4+0.2*drama);
+  thump.connect(tg);tg.connect(ctx.destination);
+  thump.start(hitT);thump.stop(hitT+0.45+0.2*drama);
+
+  // Brass-stab power chord (root/fifth/octave, slightly detuned) landing
+  // with the hit — only Epic and up (rank>=3), so Superrare stays a
+  // riser+hit without the full fanfare treatment.
+  if(rank>=3){
+    const root=220+40*drama;
+    [1,1.5,2].forEach((mult,i)=>{
+      const osc=ctx.createOscillator();
+      osc.type='sawtooth';
+      osc.frequency.setValueAtTime(root*mult,hitT);
+      osc.detune.setValueAtTime((i-1)*6,hitT);
+      const og=ctx.createGain();
+      og.gain.setValueAtTime(0,hitT);
+      og.gain.linearRampToValueAtTime(0.1+0.06*drama,hitT+0.02);
+      og.gain.exponentialRampToValueAtTime(0.001,hitT+0.55+0.3*drama);
+      osc.connect(og);og.connect(ctx.destination);
+      osc.start(hitT);osc.stop(hitT+0.6+0.3*drama);
+    });
+  }
+}
 // Thin light beams shot outward from the reveal badge the instant the
 // mystery "?" locks in — the physical "lights come out of it" beat.
 // Positioned at the same fixed 50%/38% viewport point celebrateBurst's
@@ -11324,6 +11424,10 @@ function runMysteryReveal(modal,l,isNew,cfg){
   let dragging=false,startX=0,rotY=0,rafId=null,locked=false;
   mystery.classList.add('spin-toward');
   playCrateSpinTicks(750);
+  // Superrare-and-up gets its riser+stab intro right here, during the
+  // spin-up — by the time the badge actually locks in a few beats later,
+  // the player's already heard this is a big one.
+  playRarityIntroSting(l.rarity);
 
   function frame(){
     if(locked)return;
@@ -11361,7 +11465,10 @@ function runMysteryReveal(modal,l,isNew,cfg){
         '<div class="legend-reveal-icon shine spin-in rarity-'+l.rarity+'">'+legendIconHTML(l)+'</div>';
       modal.querySelectorAll('.mystery-hide').forEach(el=>el.classList.remove('mystery-hide'));
       lightRayBurst(RARITY_RAY[l.rarity],8+Math.round((cfg.burstCount||12)/2));
-      playCrateRevealChime(l.rarity);
+      // Common lands silent here — "normal to nothing" — Rare and up
+      // still get the landing chime (Superrare+ already had its intro
+      // sting play during the spin-up above).
+      if(l.rarity!=='common')playCrateRevealChime(l.rarity);
       if(isNew)celebrateBurst(['🔥','⭐','🏆'],cfg.burstCount);
     },380);
   }
