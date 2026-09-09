@@ -1776,6 +1776,13 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     }
     .legend-card.unlocked .legend-card-icon{filter:none}
     .legend-card.unlocked .legend-card-name{color:var(--white)}
+    /* The little rarity jewel — see legendRarityJewelHTML(). Colour and
+       glow are inlined per-card (RARITY_RAY doesn't have a clean CSS-var
+       equivalent without duplicating the same ladder twice), this rule
+       only handles shape/position/visibility. Hidden on locked slots —
+       nothing to reveal yet, matches the grey/dim icon convention. */
+    .legend-card-rarity-jewel{display:none;width:7px;height:7px;border-radius:50%;margin:3px auto 0}
+    .legend-card.unlocked .legend-card-rarity-jewel{display:block}
     /* ── RARITY LADDER — seven tiers. The trophy art itself already
        carries its own material (bronze equipment, gold physique
        trophies, etc.) so the hexagon behind it is a flat rarity-code
@@ -9675,6 +9682,7 @@ function renderProfileTrophySummary(){
     `<div class="legend-card rarity-${l.rarity} unlocked" onclick="event.stopPropagation();viewLegendCard('${l.key}')">
       ${legendDupeBadgeHTML(l.key)}
       ${legendCardFrameHTML(l)}<div class="legend-card-icon">${legendIconHTML(l)}</div>
+      ${legendRarityJewelHTML(l.rarity)}
       <div class="legend-card-name">${l.name}</div>
     </div>`
   ).join('');
@@ -11030,11 +11038,29 @@ function legendDupeBadgeHTML(key){
 // gets it (that's still the only "this is special" cue a plain emoji
 // icon has).
 function legendCardFrameHTML(l){
-  // No frame at all anymore, for any rarity — the hexagon medallion,
-  // glow bloom, ray-burst, crown and wreath were all decoration built
-  // for flat emoji icons and boxed in what are now real trophy photos.
-  // Every card just shows its plain icon now, sized up in its place.
-  return '';
+  // The hexagon medallion, ray-burst, crown and wreath stay retired —
+  // decoration built for flat emoji icons that boxed in what are now
+  // real trophy photos. But dropping ALL of it also dropped the only
+  // thing that made a card visibly belong to its rarity tier at a
+  // glance — direct feedback confirmed that gap ("nothing makes them
+  // seem like they belong from one rarity to another"). This brings
+  // back just the soft glow bloom (.legend-card-icon-glow, still fully
+  // wired in the CSS above from when the medallion existed) — an
+  // unclipped radial colour wash behind the photo, escalating/pulsing
+  // with rarity exactly like it always did, but with none of the
+  // opaque frame geometry that actually competed with the artwork.
+  return '<div class="legend-card-icon-glow"></div>';
+}
+// A literal small "jewel" per card — RARITY_RAY's already-tuned solid
+// colour ladder (grey→green→blue→purple→red→gold→bright green) turned
+// into a tiny faceted gem dot rather than reused as a glow. Sits between
+// the icon and the name so it reads as its own rarity cue even at a
+// glance that misses the (subtler, pulsing) glow bloom behind the photo.
+// Gated the same way the glow is — only unlocked cards show it, keeping
+// locked slots flat/grey/mysterious as they already are.
+function legendRarityJewelHTML(rarity){
+  const c=RARITY_RAY[rarity]||RARITY_RAY.common;
+  return `<div class="legend-card-rarity-jewel" style="background:radial-gradient(circle at 32% 28%,#fff,${c} 50%,${c});box-shadow:inset 0 -1px 1px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.5),0 0 5px 0 ${c}"></div>`;
 }
 
 // \u2500\u2500 TROPHY CABINET \u2014 the full 7-layer collection plan, in
@@ -11177,7 +11203,8 @@ function renderTrophyCabinet(){
       return `<div class="legend-card cabinet-slot rarity-${l.rarity}${unlocked?' unlocked':''}" onclick="viewLegendCard('${l.key}')">
         ${legendInfoBadgeHTML(l.key)}
         ${legendDupeBadgeHTML(l.key)}
-        <div class="legend-card-icon">${unlocked?legendIconHTML(l):'\ud83d\udd12'}</div>
+        ${legendCardFrameHTML(l)}<div class="legend-card-icon">${unlocked?legendIconHTML(l):'\ud83d\udd12'}</div>
+        ${unlocked?legendRarityJewelHTML(l.rarity):''}
         <div class="legend-card-name">${unlocked?l.name:'???'}</div>
       </div>`;
     }).join(''):Array.from({length:layer.count}).map(()=>
@@ -11232,6 +11259,7 @@ function renderTrophyCabinet(){
         ${legendInfoBadgeHTML(l.key)}
         ${legendDupeBadgeHTML(l.key)}
         ${legendCardFrameHTML(l)}<div class="legend-card-icon">${unlocked?legendIconHTML(l):'🔒'}</div>
+        ${unlocked?legendRarityJewelHTML(l.rarity):''}
         <div class="legend-card-name">${unlocked?l.name:'???'}</div>
       </div>`;
     }).join('');
