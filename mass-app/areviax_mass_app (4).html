@@ -2393,12 +2393,35 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .compass-crate.gold.crate-shake{animation:crateWindup .38s cubic-bezier(.4,0,.2,1) 1 forwards}
     .compass-crate.diamond.crate-shake{animation:crateWindup .46s cubic-bezier(.4,0,.2,1) 1 forwards}
     .compass-crate.areviax.crate-shake{animation:crateWindup .58s cubic-bezier(.4,0,.2,1) 1 forwards}
+    /* Lid-opens-while-ascending — the crate body punches up briefly then
+       rises and fades, while a second clipped copy of the SAME artwork
+       (.crate-lid-layer, top ~48% only) hinges open on its own rotateX
+       and rises further/faster, reading as the lid coming free and
+       floating off while the chest ascends beneath it. No separate lid/
+       base art assets exist, so this reuses one image sliced by
+       clip-path rather than two real layers — a deliberate approximation
+       until real split art exists. */
     @keyframes crateCrackOut{
-      0%{transform:scale(1.1) rotate(3deg);opacity:1;filter:brightness(1)}
-      35%{transform:scale(1.35) rotate(0deg);opacity:1;filter:brightness(1.7)}
-      100%{transform:scale(.5) rotate(0deg);opacity:0;filter:brightness(2.2)}
+      0%{transform:translateY(0) scale(1.1) rotate(3deg);opacity:1;filter:brightness(1)}
+      28%{transform:translateY(-8px) scale(1.28) rotate(0deg);opacity:1;filter:brightness(1.3)}
+      68%{transform:translateY(-42px) scale(1.08) rotate(0deg);opacity:1;filter:brightness(1.15)}
+      100%{transform:translateY(-100px) scale(.92) rotate(0deg);opacity:0;filter:brightness(1)}
     }
-    .compass-crate.crack-out{animation:crateCrackOut .22s cubic-bezier(.4,0,1,1) forwards}
+    .compass-crate.crack-out{animation:crateCrackOut .4s cubic-bezier(.22,.61,.36,1) forwards}
+    .crate-icon-wrap{perspective:360px}
+    .crate-icon.crate-lid-layer{
+      position:absolute;inset:0;z-index:2;
+      clip-path:inset(0 0 52% 0);
+      transform-origin:50% 46%;
+      pointer-events:none;
+    }
+    @keyframes crateLidOpenFly{
+      0%{transform:rotateX(0deg) translateY(0);opacity:1}
+      60%{transform:rotateX(-120deg) translateY(-14px);opacity:1}
+      100%{transform:rotateX(-135deg) translateY(-90px);opacity:0}
+    }
+    .compass-crate .crate-icon.crate-lid-layer{animation:none}
+    .compass-crate.crack-out .crate-icon.crate-lid-layer{animation:crateLidOpenFly .4s cubic-bezier(.34,1.4,.64,1) forwards}
     /* ── FULL-SCREEN CRATE STAGE — Brawl-Stars-style: the box-opening
        beat now takes over the entire viewport instead of sitting in the
        normal small boxed modal card, with a much bigger chest and a
@@ -2424,14 +2447,11 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        inside a big icon instead of framing it. */
     .crate-reveal-stage .crate-icon-burst{width:280px;height:280px}
     .crate-reveal-stage .crate-tap-prompt{font-size:14px;letter-spacing:.18em;margin-top:30px}
-    /* Tap-charge feedback — a quick punchy kick on every tap (distinct
-       from crateWindup's own single wind-up-then-hold shake, which only
-       plays once at the very end) plus a glow that visibly brightens
-       with --charge (0..1, set per-tap in JS) so the build genuinely
-       reads as "getting closer", not just a counting label. */
+    /* Tap feedback — a quick punchy kick right on the tap (distinct from
+       crateWindup's own single wind-up-then-hold shake in explode(),
+       which plays right after this). */
     @keyframes crateTapKick{0%{transform:scale(1)}35%{transform:scale(1.14) rotate(-3deg)}65%{transform:scale(.95) rotate(2deg)}100%{transform:scale(1)}}
     .compass-crate.crate-tap-pulse{animation:crateTapKick .22s ease-out}
-    .crate-icon-wrap.charging .crate-icon-glow{filter:brightness(calc(1 + var(--charge,0) * .9)) blur(var(--crate-glow-blur,11px))}
     /* One-shot ray flare at the crack moment, reusing the same element
        the idle "ready" ambient burst uses elsewhere — this animates once
        and stops rather than looping. */
@@ -2495,6 +2515,32 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .gift-box-wrap{position:relative;width:120px;margin:6px auto 0}
     .gift-box{position:relative;width:100%;aspect-ratio:1/1;border-radius:50%;background:radial-gradient(circle at 35% 28%,rgba(255,196,110,.16),rgba(13,8,6,.92) 72%);border:1.5px solid rgba(232,214,196,.22);display:flex;align-items:center;justify-content:center;box-shadow:0 10px 26px -10px rgba(0,0,0,.6);transition:border-color .3s}
     .gift-box.opened{border-color:rgba(255,180,60,.55)}
+    /* SUSPENSE — a beat of anticipation before the key actually shows,
+       instead of the box flipping open the instant it's tapped: the box
+       glows brighter while a beam of light descends onto it from above,
+       then the reveal happens once that beam lands (see spinDailyWheel).
+       "Holy light" fits the altar framing this whole card already uses
+       (a divine offering, not a wrapped present). */
+    @keyframes giftSuspenseGlow{0%{box-shadow:0 10px 26px -10px rgba(0,0,0,.6)}100%{box-shadow:0 10px 26px -10px rgba(0,0,0,.6),0 0 34px 6px rgba(255,210,120,.55)}}
+    .gift-box.charging{animation:giftSuspenseGlow .9s ease-in forwards}
+    /* The card this sits in (see the "Gift from the Gods" markup) is
+       overflow:hidden — its own temple-art background already reads as
+       sky above the box, so the beam only needs to travel that visible
+       distance, not the full 150px a taller card would allow. Anything
+       longer gets silently clipped by the card and never renders. */
+    .gift-holy-beam{
+      position:absolute;left:50%;top:-68px;width:56px;height:92px;
+      transform:translateX(-50%) scaleY(0);transform-origin:top center;
+      background:linear-gradient(180deg,rgba(255,244,210,0) 0%,rgba(255,238,180,.95) 55%,rgba(255,220,140,.45) 85%,transparent 100%);
+      filter:blur(3px);opacity:0;pointer-events:none;z-index:0;mix-blend-mode:screen;
+    }
+    .gift-holy-beam.show{animation:giftHolyBeamDescend .9s cubic-bezier(.22,.68,.36,1) forwards}
+    @keyframes giftHolyBeamDescend{
+      0%{opacity:0;transform:translateX(-50%) scaleY(0)}
+      18%{opacity:1}
+      75%{opacity:.95;transform:translateX(-50%) scaleY(1)}
+      100%{opacity:0;transform:translateX(-50%) scaleY(1.08)}
+    }
     .gift-box-icon{width:68%;height:68%;object-fit:contain}
     .gift-key-reveal{display:flex;flex-direction:column;align-items:center;gap:5px;animation:giftKeyPop .5s cubic-bezier(.16,1,.3,1)}
     @keyframes giftKeyPop{0%{opacity:0;transform:scale(.4) rotate(-25deg)}70%{opacity:1;transform:scale(1.08) rotate(4deg)}100%{opacity:1;transform:scale(1) rotate(0)}}
@@ -2599,6 +2645,24 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       0%{opacity:0;transform:translate(-50%,-100%) rotate(var(--ray-angle)) translateY(0) scaleY(.3)}
       22%{opacity:1}
       100%{opacity:0;transform:translate(-50%,-100%) rotate(var(--ray-angle)) translateY(calc(var(--ray-dist) * -1)) scaleY(1.6)}
+    }
+
+    /* Little brand-star/light-orb glyphs drifting down across the whole
+       screen at the reveal's lock-in moment — see spawnUnlockGlyphs().
+       position:fixed so the achievement-modal's own overflow:hidden
+       (see PREMIUM REVEAL below) can't clip them the way it clipped an
+       earlier, unrelated element pinned too far outside its own box. */
+    .unlock-glyph{
+      position:fixed;top:-24px;z-index:99998;pointer-events:none;
+      opacity:0;animation:unlockGlyphDrift 3s ease-in forwards;
+    }
+    .unlock-glyph svg{width:100%;height:100%;display:block;filter:drop-shadow(0 0 4px currentColor)}
+    .unlock-glyph.orb{border-radius:50%;filter:blur(.5px)}
+    @keyframes unlockGlyphDrift{
+      0%{opacity:0;transform:translate(0,0) rotate(0deg)}
+      12%{opacity:.85}
+      82%{opacity:.65}
+      100%{opacity:0;transform:translate(var(--drift-x),112vh) rotate(var(--drift-rot))}
     }
 
     /* STAR BADGE — 7-point star (Brawl-Stars-style rarity badge mechanism,
@@ -3515,7 +3579,17 @@ body[data-goal-theme="cut"] .lv-page{
 }
 .lv-page h1,.lv-page h2,.lv-page h3{font-family:var(--lv-display);letter-spacing:.02em}
 .lv-marble{background-color:var(--lv-bg);background-image:linear-gradient(100deg,transparent 0 46%,rgba(232,232,222,.035) 46% 47%,transparent 47% 100%),linear-gradient(72deg,transparent 0 22%,rgba(232,232,222,.025) 22% 23%,transparent 23% 100%),radial-gradient(140% 60% at 50% 0%,rgba(var(--lv-ember1-rgb),.1),transparent 70%);background-size:340px 100%,220px 100%,100% 100vh;background-repeat:repeat,repeat,no-repeat}
-.lv-surface{position:relative;background-image:linear-gradient(160deg,var(--lv-cardg1) 0%,var(--lv-cardg2) 70%);border:1px solid var(--lv-border);border-top-color:var(--lv-gold-soft);box-shadow:0 18px 40px -28px rgba(0,0,0,.9),inset 0 1px 0 0 rgba(var(--lv-gold-rgb),.12);border-radius:1.75rem}
+/* Every card used to sit inside its own filled/bordered/shadowed panel —
+   a "black box" floating on top of the page's own ember-gradient
+   background. Dropped the fill, border and shadow so cards blend
+   straight into that background instead, by request: the hero header
+   at the top of each page (a separate element, untouched here) is the
+   one thing meant to read as a distinct surface — every card below it
+   should NOT compete with that. Kept position/radius since those are
+   layout, not "box" styling, and a hairline border-bottom (not a full
+   border) as the only separator between stacked cards, faint enough to
+   not read as a box edge. */
+.lv-surface{position:relative;border-radius:1.75rem;border-bottom:1px solid rgba(var(--lv-border-rgb),.4)}
 .lv-ember{background-image:linear-gradient(135deg,var(--lv-ember1),var(--lv-ember2));color:var(--lv-primary-fg);box-shadow:0 12px 30px -12px rgba(var(--lv-primary-rgb),.55)}
 .lv-label-eyebrow{font-size:.6875rem;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--lv-muted-fg)}
 .lv-grain{position:relative}
@@ -5237,18 +5311,6 @@ body[data-goal-theme="cut"] .lv-page{
 <div class="page lv-page" id="page-progress">
 
 
-  <!-- DESKTOP MASONRY WRAP — on mobile this is just the plain vertical
-       card stack it always was (no layout change below 900px). Past
-       900px, .prog-top-grid switches these 8 cards into 2 CSS columns
-       instead of one long centered strip stretched wider — the gap this
-       page had against the Dashboard's real 2-column desktop layout.
-       column-count needs no HTML restructuring (each card is still a
-       plain sibling div), just break-inside:avoid per card so a column
-       break can't cut one in half. The carousel below stays outside
-       this wrapper since a horizontal swipe strip doesn't make sense
-       inside a multi-column flow. -->
-  <div class="prog-top-grid lv-page">
-
   <!-- HERO — literal port of website-refresh's ProgressScreen <header>.
        Real tonnageLog data — see renderProgressHero(). This page's header
        was missing both the icon+wordmark row every sibling lv-page header
@@ -5287,6 +5349,23 @@ body[data-goal-theme="cut"] .lv-page{
   <!-- hidden legacy anchor — old watermark digit, no visible equivalent
        in the ported hero, kept only so renderProgressHero() doesn't error. -->
   <div id="prog-hero-watermark" style="display:none">12</div>
+
+  <!-- DESKTOP MASONRY WRAP — on mobile this is just the plain vertical
+       card stack it always was (no layout change below 900px). Past
+       900px, .prog-top-grid switches these 8 cards into 2 CSS columns
+       instead of one long centered strip stretched wider — the gap this
+       page had against the Dashboard's real 2-column desktop layout.
+       column-count needs no HTML restructuring (each card is still a
+       plain sibling div), just break-inside:avoid per card so a column
+       break can't cut one in half. The carousel below stays outside
+       this wrapper since a horizontal swipe strip doesn't make sense
+       inside a multi-column flow. Deliberately opens AFTER the hero
+       header, not before it — it used to wrap the header too, which
+       pulled the header into the same column-count flow as the cards
+       on desktop and made it lay out beside them at the same level
+       instead of spanning full width above them like every other
+       page's hero does. -->
+  <div class="prog-top-grid lv-page">
 
   <!-- TONNAGE — weekly bar chart across the same selected range. Real
        tonnageLog weekly bucketing via renderProgressTonnage(). -->
@@ -11457,6 +11536,46 @@ function lightRayBurst(color,count){
     setTimeout(()=>el.remove(),650);
   }
 }
+// Little brand/rarity shapes drifting down across the whole screen at
+// the same lock-in moment as the light-ray burst — the reveal-badge-
+// wrap's own ray-burst already colours the immediate background per
+// rarity; this scatters that same colour further out across the full
+// viewport as falling glyphs, mixing the app's own 8-point compass-star
+// mark (same path used in the League/Progress hero glyphs elsewhere)
+// with small glowing orbs for the "blessed light" feel on the best
+// pulls. Shape mix and density both escalate with rarity rather than
+// just colour, per the ask for "change in colour and shape depending
+// on the unlock" — common stays a light sprinkle of stars only; orbs
+// only start appearing from Rare up, and density climbs with rank.
+const AREVIAX_STAR_PATH='M24 5 26.6 21.4 43 24 26.6 26.6 24 43 21.4 26.6 5 24 21.4 21.4Z';
+function spawnUnlockGlyphs(rarity){
+  const color=RARITY_RAY[rarity]||RARITY_RAY.common;
+  const rank=RARITY_RANK[rarity]!=null?RARITY_RANK[rarity]:0;
+  const count=6+rank*2;
+  for(let i=0;i<count;i++){
+    const el=document.createElement('div');
+    el.className='unlock-glyph';
+    const isOrb=rank>=1&&Math.random()<0.35;
+    if(isOrb){
+      el.classList.add('orb');
+      el.style.background='radial-gradient(circle,'+color+',transparent 70%)';
+      const size=4+Math.random()*5;
+      el.style.width=size+'px';el.style.height=size+'px';
+    }else{
+      const size=8+Math.random()*9;
+      el.style.width=size+'px';el.style.height=size+'px';
+      el.style.color=color;
+      el.innerHTML='<svg viewBox="0 0 48 48" fill="currentColor"><path d="'+AREVIAX_STAR_PATH+'"/></svg>';
+    }
+    el.style.left=(Math.random()*100)+'%';
+    el.style.setProperty('--drift-x',(Math.random()*70-35)+'px');
+    el.style.setProperty('--drift-rot',(Math.random()*200-100)+'deg');
+    el.style.animationDelay=(Math.random()*0.5)+'s';
+    el.style.animationDuration=(2.4+Math.random()*1.8)+'s';
+    document.body.appendChild(el);
+    setTimeout(()=>el.remove(),4600);
+  }
+}
 // The "?" mystery-badge phase, Brawl-Stars-box-open style: spins toward
 // the viewer on entry, idles on a real rotateY the player can grab and
 // spin themselves, then locks in and flips over into the rarity-coloured
@@ -11514,6 +11633,7 @@ function runMysteryReveal(modal,l,isNew,cfg){
         '<div class="legend-reveal-icon shine spin-in rarity-'+l.rarity+'">'+legendIconHTML(l)+'</div>';
       modal.querySelectorAll('.mystery-hide').forEach(el=>el.classList.remove('mystery-hide'));
       lightRayBurst(RARITY_RAY[l.rarity],8+Math.round((cfg.burstCount||12)/2));
+      spawnUnlockGlyphs(l.rarity);
       // Common lands silent here — "normal to nothing" — Rare and up
       // still get the landing chime (Superrare+ already had its intro
       // sting play during the spin-up above).
@@ -11568,16 +11688,16 @@ const RARITY_RAY={
 // frame is a real stutter/glitch trigger, not just a big number — capped
 // each tier to roughly what every other celebration moment in the app
 // already uses (most sit at 10-22; see celebrateBurst call sites).
-// taps: how many times the player has to tap the full-screen chest to
-// charge it up before it cracks open (see showLegendReveal's onTap/
-// explode) — climbs with tier the same way every other beat here does,
-// so the best drops also take the most work to charge.
+// crackMs needs to cover the .4s crateCrackOut/crateLidOpenFly CSS
+// animations (lid hinges open while the chest rises) — bumped up from
+// the old flat shrink-and-fade's shorter window so the lid actually
+// finishes its arc before modal.innerHTML wipes it for the reveal.
 const CRATE_OPEN_TIMING={
-  bronze:{reelMs:500, windupMs:260, crackMs:200, burstCount:12, flash:false, taps:2},
-  silver:{reelMs:600, windupMs:300, crackMs:210, burstCount:16, flash:false, taps:3},
-  gold:  {reelMs:700, windupMs:380, crackMs:230, burstCount:20, flash:true,  taps:4},
-  diamond:{reelMs:850,windupMs:460,crackMs:250, burstCount:24, flash:true,  taps:5},
-  areviax:{reelMs:1000,windupMs:580,crackMs:280, burstCount:28, flash:true, taps:6},
+  bronze:{reelMs:500, windupMs:260, crackMs:400, burstCount:12, flash:false},
+  silver:{reelMs:600, windupMs:300, crackMs:410, burstCount:16, flash:false},
+  gold:  {reelMs:700, windupMs:380, crackMs:430, burstCount:20, flash:true},
+  diamond:{reelMs:850,windupMs:460,crackMs:450, burstCount:24, flash:true},
+  areviax:{reelMs:1000,windupMs:580,crackMs:480, burstCount:28, flash:true},
 };
 // Filler tiles for the reel strip \u2014 weighted toward common like the
 // real odds tables so the strip doesn't flash top-rarity art the whole
@@ -11732,10 +11852,10 @@ function showLegendReveal(l,isNew,tier,count,keyWon,titleWon){
     '<div class="achievement-modal crate-reveal-stage">'+
       '<div class="crate-icon-wrap '+tier+' ready" id="reveal-crate-wrap" style="cursor:pointer">'+
         '<div class="crate-icon-glow"></div><div class="crate-icon-burst" id="reveal-crate-burst"></div>'+
-        '<div class="compass-crate '+tier+'" id="reveal-crate-icon"><span class="crate-icon">'+crateIconHTML(tier)+'</span></div>'+
+        '<div class="compass-crate '+tier+'" id="reveal-crate-icon"><span class="crate-icon">'+crateIconHTML(tier)+'</span><span class="crate-icon crate-lid-layer" aria-hidden="true">'+crateIconHTML(tier)+'</span></div>'+
         (multiSlot?counterBadgeHTML(slots.length):'')+
       '</div>'+
-      '<div class="crate-tap-prompt" id="reveal-tap-prompt">Tap to open</div>'+
+      '<div class="crate-tap-prompt" id="reveal-tap-prompt">Tap-tap!</div>'+
     '</div>';
   document.body.appendChild(overlay);
   requestAnimationFrame(()=>overlay.classList.add('show'));
@@ -11782,47 +11902,43 @@ function showLegendReveal(l,isNew,tier,count,keyWon,titleWon){
     }
   }
 
-  // Brawl-Stars-style charge-up: the chest needs tapsRequired real taps
-  // before it cracks, each one a visible kick + brightening glow + tick
-  // sound, instead of opening on the very first tap (or auto-opening on
-  // its own after 1.4s the way the old single-tap version did). Still
-  // never gates the reward indefinitely — autoCompleteTimer finishes the
-  // remaining taps on its own if the player walks away.
-  const tapsRequired=cfg.taps||3;
-  let taps=0,exploding=false,autoCompleteTimer=null;
-
-  function updatePrompt(){
-    if(!prompt)return;
-    prompt.textContent=taps===0?'Tap to open':(tapsRequired-taps)+' more tap'+(tapsRequired-taps===1?'':'s')+'!';
-  }
+  // A single tap opens it — "Tap-tap!" (see the initial markup above) is
+  // flavor text calling the player to action, not a literal two-tap
+  // requirement the way an earlier version of this had a multi-tap
+  // charge-up. Still never gates the reward — autoOpenTimer fires the
+  // same explode() on its own if the player doesn't tap.
+  let exploding=false,autoOpenTimer=null;
 
   function onTap(){
     if(exploding)return;
-    taps++;
-    wrap.classList.add('charging');
-    wrap.style.setProperty('--charge',String(taps/tapsRequired));
+    // One quick kick + tick right on tap, before the bigger shake/crack
+    // sequence in explode() — the same instant-feedback beat the old
+    // per-tap charge-up had, just for the single tap instead of several.
     icon.classList.remove('crate-tap-pulse');
-    void icon.offsetWidth; // restart the kick animation on every tap
+    void icon.offsetWidth;
     icon.classList.add('crate-tap-pulse');
     const actx=getCrateAudioCtx();
-    if(actx)playCrateTick(actx,0.4+0.6*(taps/tapsRequired));
-    updatePrompt();
-    if(taps>=tapsRequired)explode();
+    if(actx)playCrateTick(actx,0.9);
+    explode();
   }
 
   function explode(){
     if(exploding)return; exploding=true;
-    clearTimeout(autoCompleteTimer);
+    clearTimeout(autoOpenTimer);
     wrap.removeEventListener('click',onTap);
-    // Set the text before fading — without this, a tap landing right on
-    // tapsRequired briefly shows "0 more taps!" while opacity is still
-    // transitioning out.
     if(prompt)prompt.textContent='Opening…';
     prompt.style.opacity='0';
     wrap.style.cursor='default';
     playCrateSpinTicks(cfg.windupMs);
     icon.classList.add('crate-shake');
     setTimeout(()=>{
+      // crate-shake (3-class tier rules like .compass-crate.gold.crate-
+      // shake) and crate-tap-pulse (tied specificity with crack-out,
+      // but declared later in the stylesheet, so it wins the tie) both
+      // have to actually come OFF, not just be out-added — either one
+      // left in place silently keeps its own animation-name and the
+      // crack-out one never visibly plays.
+      icon.classList.remove('crate-shake','crate-tap-pulse');
       icon.classList.add('crack-out');
       burst.classList.add('flare');
       playCrateCrackSound(tier);
@@ -11851,13 +11967,11 @@ function showLegendReveal(l,isNew,tier,count,keyWon,titleWon){
     },cfg.windupMs+cfg.crackMs);
   }
   wrap.addEventListener('click',onTap);
-  updatePrompt();
 
-  // A player who never taps (or stops partway through charging) still
-  // gets their reward — same "tap is a beat, not a gate" rule the old
-  // single-tap version already followed, just applied across the whole
-  // charge-up instead of one tap.
-  autoCompleteTimer=setTimeout(()=>{ taps=tapsRequired; explode(); },4200);
+  // A player who never taps still gets their reward — the tap is a beat,
+  // not a gate. Auto-triggers a little after the prompt fades in so a
+  // real tap (which fires first) always wins the race.
+  autoOpenTimer=setTimeout(explode,1400);
 }
 
 // ── GIFT FROM THE GODS — one free daily login reward, weighted heavily
@@ -11911,21 +12025,37 @@ function renderDailySpin(){
 function spinDailyWheel(){
   if(!isDailySpinReady())return;
   const btn=document.getElementById('spin-wheel-btn');
-  if(btn){btn.disabled=true;btn.textContent='Opening…';}
+  if(btn){btn.disabled=true;btn.textContent='…';}
   const tier=rollDailySpinTier();
   const box=document.getElementById('gift-box');
   const burst=document.getElementById('gift-burst');
+  // SUSPENSE — the box glows and a beam of holy light descends onto it
+  // for ~900ms before anything is actually revealed, instead of the key
+  // appearing the instant the button is tapped. Ticks fill that wait so
+  // it doesn't read as a stall.
   if(box){
-    box.classList.add('opened');
-    box.innerHTML='<div class="gift-key-reveal">'+keyIconSVG(tier,44)+'<span class="gift-tier-label gift-key-tier-'+tier+'"'+(tier==='areviax'?' style="background:linear-gradient(90deg,#FFD24A,#FF8342);-webkit-background-clip:text;background-clip:text;color:transparent"':'')+'>'+CRATE_TIERS[tier].label.replace(' Crate',' Key')+'</span></div>';
+    box.classList.add('charging');
+    const wrap=box.closest('.gift-box-wrap');
+    if(wrap){
+      const beam=document.createElement('div');
+      beam.className='gift-holy-beam';
+      wrap.insertBefore(beam,box);
+      requestAnimationFrame(()=>beam.classList.add('show'));
+      setTimeout(()=>beam.remove(),1000);
+    }
   }
-  if(burst){burst.classList.remove('show');void burst.offsetWidth;burst.classList.add('show');}
-  playCrateSpinTicks(800);
+  playCrateSpinTicks(850);
   dailySpinDate=localDateKey(new Date());
   _giftJustOpened=true;
   saveToStorage();
   checkDailySpinBanner();
   setTimeout(()=>{
+    if(box){
+      box.classList.remove('charging');
+      box.classList.add('opened');
+      box.innerHTML='<div class="gift-key-reveal">'+keyIconSVG(tier,44)+'<span class="gift-tier-label gift-key-tier-'+tier+'"'+(tier==='areviax'?' style="background:linear-gradient(90deg,#FFD24A,#FF8342);-webkit-background-clip:text;background-clip:text;color:transparent"':'')+'>'+CRATE_TIERS[tier].label.replace(' Crate',' Key')+'</span></div>';
+    }
+    if(burst){burst.classList.remove('show');void burst.offsetWidth;burst.classList.add('show');}
     playCrateCrackSound(tier);
     if(tier==='areviax'){
       openCompassDrop('areviax');
@@ -11941,8 +12071,8 @@ function spinDailyWheel(){
     const sub=document.getElementById('gift-result-sub');
     if(sub)sub.textContent='';
     if(btn)btn.textContent='Return tomorrow for another gift';
-  },800);
-  setTimeout(()=>{_giftJustOpened=false;},2400);
+  },900);
+  setTimeout(()=>{_giftJustOpened=false;},2500);
 }
 // ── DROP INFO — odds breakdown + how-to-earn for any crate tier, so
 // the crate row isn't a black box about what you're actually chasing.
