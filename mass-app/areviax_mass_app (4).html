@@ -2447,6 +2447,26 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        inside a big icon instead of framing it. */
     .crate-reveal-stage .crate-icon-burst{width:280px;height:280px}
     .crate-reveal-stage .crate-tap-prompt{font-size:14px;letter-spacing:.18em;margin-top:30px}
+    /* The whole reward sequence (Arete/Key/Title/trophy) now stays on
+       this full-screen stage instead of dropping into the small boxed
+       card once the chest cracks — every slot's own content needs to
+       scale up to match, or it reads as the same small card just
+       floating on a bigger background. */
+    .crate-reveal-stage .crate-xp-slot-icon{width:120px;height:120px;font-size:56px}
+    .crate-reveal-stage .crate-xp-slot-label{font-size:34px}
+    .crate-reveal-stage .crate-xp-slot-sub{font-size:13px;letter-spacing:.16em}
+    .crate-reveal-stage .legend-reveal-rarity{font-size:24px}
+    .crate-reveal-stage .legend-reveal-rarity.rarity-ultralegendary{font-size:21px}
+    .crate-reveal-stage .reveal-badge-wrap{width:150px;margin-bottom:20px}
+    .crate-reveal-stage .legend-reveal-icon,
+    .crate-reveal-stage .legend-mystery-icon{width:150px;height:150px}
+    .crate-reveal-stage .legend-reveal-icon img{width:76px;height:76px}
+    .crate-reveal-stage .legend-mystery-icon .mystery-q{font-size:68px}
+    .crate-reveal-stage .reveal-ray-burst{width:420px;height:420px}
+    .crate-reveal-stage .achievement-title{font-size:28px}
+    .crate-reveal-stage .achievement-desc{font-size:15px;max-width:320px;margin-left:auto;margin-right:auto}
+    .crate-reveal-stage .achievement-close-btn{max-width:280px;margin:0 auto;padding:14px;font-size:14px}
+    .crate-reveal-stage .crate-slot-counter{top:calc(env(safe-area-inset-top,0px) + 14px);right:calc(env(safe-area-inset-right,0px) + 14px)}
     /* Tap feedback — a quick punchy kick right on the tap (distinct from
        crateWindup's own single wind-up-then-hold shake in explode(),
        which plays right after this). */
@@ -11831,10 +11851,15 @@ function showLegendReveal(l,isNew,tier,count,keyWon,titleWon){
   // granted with no reveal sequence at all. Key/Title slots only appear
   // when openCompassDrop actually rolled one (keyWon/titleWon) — most
   // opens are just the two base slots.
+  // Every slot gets its own light-burst flourish on the way in — colour-
+  // matched to that slot's own icon gradient — instead of only the
+  // trophy slot having a "moment". Small/quick next to the trophy's own
+  // full mystery-spin treatment, but each beat in the sequence now
+  // visibly arrives rather than just popping into place.
   const slots=multiSlot?[
-    {render:xpSlotHTML,onShow:()=>addXP(xpAmount,isNew?'New trophy':'Areviax Crate')},
-    ...(keyWon?[{render:keySlotHTML,onShow:()=>{}}]:[]),
-    ...(titleWon?[{render:titleSlotHTML,onShow:()=>{}}]:[]),
+    {render:xpSlotHTML,onShow:()=>{addXP(xpAmount,isNew?'New trophy':'Areviax Crate');lightRayBurst('#FFB347',7);}},
+    ...(keyWon?[{render:keySlotHTML,onShow:()=>lightRayBurst('#B9C4CE',7)}]:[]),
+    ...(titleWon?[{render:titleSlotHTML,onShow:()=>lightRayBurst('#FFD24A',7)}]:[]),
     {render:trophySlotHTML,onShow:(modal)=>runMysteryReveal(modal,l,isNew,cfg)},
   ]:[];
   // Anything above common counts as "a special item is coming out" for the
@@ -11950,11 +11975,12 @@ function showLegendReveal(l,isNew,tier,count,keyWon,titleWon){
       }
     },cfg.windupMs);
     setTimeout(()=>{
-      // Drops out of the full-screen chest stage back into the normal
-      // boxed modal card for the reward slots/trophy — .crate-reveal-
-      // stage is a pre-open-only look, not carried into the reveal.
+      // Stays on the full-screen .crate-reveal-stage look for the whole
+      // reward sequence now, not just the pre-open chest — every slot
+      // (Arete, Key, Title, the trophy itself) gets its own full-screen
+      // moment instead of shrinking down into a small boxed card once
+      // the chest actually cracks.
       const modal=overlay.querySelector('.achievement-modal');
-      if(modal)modal.classList.remove('crate-reveal-stage');
       if(multiSlot){ showSlot(); return; }
       // Gift from the Gods path — unchanged single reveal.
       if(!modal)return;
