@@ -2399,8 +2399,39 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       100%{transform:scale(.5) rotate(0deg);opacity:0;filter:brightness(2.2)}
     }
     .compass-crate.crack-out{animation:crateCrackOut .22s cubic-bezier(.4,0,1,1) forwards}
-    .crate-reveal-stage .compass-crate{width:84px;height:84px;margin:0 auto 14px}
-    .crate-reveal-stage .compass-crate .crate-icon svg{width:42px;height:42px}
+    /* ── FULL-SCREEN CRATE STAGE — Brawl-Stars-style: the box-opening
+       beat now takes over the entire viewport instead of sitting in the
+       normal small boxed modal card, with a much bigger chest and a
+       real multi-tap charge-up before it cracks. .crate-reveal-stage is
+       stripped back off the modal element (see showLegendReveal) the
+       moment the reward slots start rendering, so this only ever
+       applies to the pre-open beat — everything after reverts to the
+       normal compact card look, counter badge included. Two classes on
+       one selector (.achievement-modal.crate-reveal-stage) so this
+       reliably beats the base .achievement-modal card rule regardless
+       of source order. */
+    .achievement-modal.crate-reveal-stage{
+      position:fixed;inset:0;width:100vw;height:100dvh;max-width:none;
+      display:flex;flex-direction:column;align-items:center;justify-content:center;
+      background:radial-gradient(circle at 50% 38%,rgba(255,150,60,.14),transparent 62%),
+                 linear-gradient(180deg,#0c0a08 0%,#050403 100%);
+      border:none;border-radius:0;padding:0 24px;box-shadow:none;
+    }
+    .crate-reveal-stage .compass-crate{width:190px;height:190px;margin:0 auto 26px}
+    .crate-reveal-stage .compass-crate .crate-icon svg{width:92px;height:92px}
+    /* The ambient ray-burst ring (96px by default) needs to scale up to
+       match the much bigger chest, or it reads as a small ring floating
+       inside a big icon instead of framing it. */
+    .crate-reveal-stage .crate-icon-burst{width:280px;height:280px}
+    .crate-reveal-stage .crate-tap-prompt{font-size:14px;letter-spacing:.18em;margin-top:30px}
+    /* Tap-charge feedback — a quick punchy kick on every tap (distinct
+       from crateWindup's own single wind-up-then-hold shake, which only
+       plays once at the very end) plus a glow that visibly brightens
+       with --charge (0..1, set per-tap in JS) so the build genuinely
+       reads as "getting closer", not just a counting label. */
+    @keyframes crateTapKick{0%{transform:scale(1)}35%{transform:scale(1.14) rotate(-3deg)}65%{transform:scale(.95) rotate(2deg)}100%{transform:scale(1)}}
+    .compass-crate.crate-tap-pulse{animation:crateTapKick .22s ease-out}
+    .crate-icon-wrap.charging .crate-icon-glow{filter:brightness(calc(1 + var(--charge,0) * .9)) blur(var(--crate-glow-blur,11px))}
     /* One-shot ray flare at the crack moment, reusing the same element
        the idle "ready" ambient burst uses elsewhere — this animates once
        and stops rather than looping. */
@@ -11519,12 +11550,16 @@ const RARITY_RAY={
 // frame is a real stutter/glitch trigger, not just a big number — capped
 // each tier to roughly what every other celebration moment in the app
 // already uses (most sit at 10-22; see celebrateBurst call sites).
+// taps: how many times the player has to tap the full-screen chest to
+// charge it up before it cracks open (see showLegendReveal's onTap/
+// explode) — climbs with tier the same way every other beat here does,
+// so the best drops also take the most work to charge.
 const CRATE_OPEN_TIMING={
-  bronze:{reelMs:500, windupMs:260, crackMs:200, burstCount:12, flash:false},
-  silver:{reelMs:600, windupMs:300, crackMs:210, burstCount:16, flash:false},
-  gold:  {reelMs:700, windupMs:380, crackMs:230, burstCount:20, flash:true},
-  diamond:{reelMs:850,windupMs:460,crackMs:250, burstCount:24, flash:true},
-  areviax:{reelMs:1000,windupMs:580,crackMs:280, burstCount:28, flash:true},
+  bronze:{reelMs:500, windupMs:260, crackMs:200, burstCount:12, flash:false, taps:2},
+  silver:{reelMs:600, windupMs:300, crackMs:210, burstCount:16, flash:false, taps:3},
+  gold:  {reelMs:700, windupMs:380, crackMs:230, burstCount:20, flash:true,  taps:4},
+  diamond:{reelMs:850,windupMs:460,crackMs:250, burstCount:24, flash:true,  taps:5},
+  areviax:{reelMs:1000,windupMs:580,crackMs:280, burstCount:28, flash:true, taps:6},
 };
 // Filler tiles for the reel strip \u2014 weighted toward common like the
 // real odds tables so the strip doesn't flash top-rarity art the whole
@@ -11691,7 +11726,7 @@ function showLegendReveal(l,isNew,tier,count,keyWon,titleWon){
   const icon=overlay.querySelector('#reveal-crate-icon');
   const burst=overlay.querySelector('#reveal-crate-burst');
   const prompt=overlay.querySelector('#reveal-tap-prompt');
-  let opened=false,slotIdx=0,autoAdvanceTimer=null;
+  let slotIdx=0,autoAdvanceTimer=null;
 
   // Every slot's innerHTML fully replaces the modal's previous content
   // (including whatever counter badge was in it), so the counter is
@@ -11729,8 +11764,42 @@ function showLegendReveal(l,isNew,tier,count,keyWon,titleWon){
     }
   }
 
-  function doOpen(){
-    if(opened)return; opened=true;
+  // Brawl-Stars-style charge-up: the chest needs tapsRequired real taps
+  // before it cracks, each one a visible kick + brightening glow + tick
+  // sound, instead of opening on the very first tap (or auto-opening on
+  // its own after 1.4s the way the old single-tap version did). Still
+  // never gates the reward indefinitely — autoCompleteTimer finishes the
+  // remaining taps on its own if the player walks away.
+  const tapsRequired=cfg.taps||3;
+  let taps=0,exploding=false,autoCompleteTimer=null;
+
+  function updatePrompt(){
+    if(!prompt)return;
+    prompt.textContent=taps===0?'Tap to open':(tapsRequired-taps)+' more tap'+(tapsRequired-taps===1?'':'s')+'!';
+  }
+
+  function onTap(){
+    if(exploding)return;
+    taps++;
+    wrap.classList.add('charging');
+    wrap.style.setProperty('--charge',String(taps/tapsRequired));
+    icon.classList.remove('crate-tap-pulse');
+    void icon.offsetWidth; // restart the kick animation on every tap
+    icon.classList.add('crate-tap-pulse');
+    const actx=getCrateAudioCtx();
+    if(actx)playCrateTick(actx,0.4+0.6*(taps/tapsRequired));
+    updatePrompt();
+    if(taps>=tapsRequired)explode();
+  }
+
+  function explode(){
+    if(exploding)return; exploding=true;
+    clearTimeout(autoCompleteTimer);
+    wrap.removeEventListener('click',onTap);
+    // Set the text before fading — without this, a tap landing right on
+    // tapsRequired briefly shows "0 more taps!" while opacity is still
+    // transitioning out.
+    if(prompt)prompt.textContent='Opening…';
     prompt.style.opacity='0';
     wrap.style.cursor='default';
     playCrateSpinTicks(cfg.windupMs);
@@ -11747,9 +11816,13 @@ function showLegendReveal(l,isNew,tier,count,keyWon,titleWon){
       }
     },cfg.windupMs);
     setTimeout(()=>{
+      // Drops out of the full-screen chest stage back into the normal
+      // boxed modal card for the reward slots/trophy — .crate-reveal-
+      // stage is a pre-open-only look, not carried into the reveal.
+      const modal=overlay.querySelector('.achievement-modal');
+      if(modal)modal.classList.remove('crate-reveal-stage');
       if(multiSlot){ showSlot(); return; }
       // Gift from the Gods path — unchanged single reveal.
-      const modal=overlay.querySelector('.achievement-modal');
       if(!modal)return;
       modal.style.setProperty('--reveal-glow',RARITY_GLOW[l.rarity]);
       modal.style.borderColor=RARITY_BORDER[l.rarity];
@@ -11759,13 +11832,14 @@ function showLegendReveal(l,isNew,tier,count,keyWon,titleWon){
       runMysteryReveal(modal,l,isNew,cfg);
     },cfg.windupMs+cfg.crackMs);
   }
-  wrap.addEventListener('click',doOpen);
+  wrap.addEventListener('click',onTap);
+  updatePrompt();
 
-  // A player who never taps still gets their reward — the tap is a beat,
-  // not a gate. Auto-triggers a little after the prompt fades in so a
-  // real tap (which fires first) always wins the race, opened guards
-  // against double-firing either way.
-  setTimeout(doOpen,1400);
+  // A player who never taps (or stops partway through charging) still
+  // gets their reward — same "tap is a beat, not a gate" rule the old
+  // single-tap version already followed, just applied across the whole
+  // charge-up instead of one tap.
+  autoCompleteTimer=setTimeout(()=>{ taps=tapsRequired; explode(); },4200);
 }
 
 // ── GIFT FROM THE GODS — one free daily login reward, weighted heavily
