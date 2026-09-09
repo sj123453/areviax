@@ -13067,6 +13067,15 @@ let toastQueue=[];
 let toastShowing=false;
 function toast(icon,msg,category){
   if(category&&notifPrefs[category]===false)return;
+  // A full-screen .achievement-overlay (crate reveal, trophy showcase,
+  // level-up, etc.) already owns the whole screen for that moment — a
+  // background toast (z-index 10000, above the overlay's own 5000) was
+  // rendering on top of it and visually cutting across the reveal's own
+  // corner badges (e.g. addXP's "+N Arete" toast slicing through the
+  // crate-reveal-stage's slot counter). The overlay's own UI already
+  // shows the same info, so dropping it here (not even queuing it for
+  // after the overlay closes) is never a silent loss.
+  if(document.querySelector('.achievement-overlay'))return;
   initToastSwipe();
   toastQueue.push({icon,msg});
   processToastQueue();
@@ -13390,7 +13399,21 @@ function mountScrollPicker(input,opts){
 function syncOverlayOpenClass(mutations){
   for(const m of mutations){
     for(const n of m.addedNodes){
-      if(n.nodeType===1&&n.classList&&n.classList.contains('achievement-overlay')){document.body.classList.add('overlay-open');return;}
+      if(n.nodeType===1&&n.classList&&n.classList.contains('achievement-overlay')){
+        document.body.classList.add('overlay-open');
+        // A toast fired just before the overlay was created (its own
+        // z-index of 10000 sits above the overlay's 5000) could still be
+        // mid-flight and visually slice across the overlay's own corner
+        // badges for the rest of its 3s lifetime — toast()'s own overlay
+        // guard only stops NEW toasts, so this clears anything already
+        // showing the instant an overlay actually lands. Also drops
+        // anything still queued from before the overlay opened — those
+        // would otherwise sit and pop up stale once the overlay closes,
+        // for events the overlay's own UI already covered.
+        toastQueue=[];
+        dismissToast();
+        return;
+      }
     }
     for(const n of m.removedNodes){
       if(n.nodeType===1&&n.classList&&n.classList.contains('achievement-overlay')){document.body.classList.toggle('overlay-open',!!document.querySelector('.achievement-overlay'));return;}
