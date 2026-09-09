@@ -1129,7 +1129,7 @@ select option{background:var(--panel)}
    structure as a real Notification Center banner, not just a dark
    pill with an emoji in it. Docks under the status bar/notch and
    springs down into view. */
-#toast{position:fixed;top:max(var(--safe-top,0px),env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%) translateY(-130%);z-index:10000;background:rgba(36,32,30,.78);backdrop-filter:blur(24px) saturate(1.6);-webkit-backdrop-filter:blur(24px) saturate(1.6);border:.5px solid rgba(255,255,255,.15);padding:12px 13px;display:flex;align-items:flex-start;gap:10px;font-family:"Outfit",sans-serif;color:var(--white);opacity:0;pointer-events:none;transition:transform .5s cubic-bezier(.25,1.2,.3,1),opacity .3s ease;border-radius:16px;white-space:normal;width:min(400px,calc(100vw - 16px));margin-top:6px;box-shadow:0 1px 3px rgba(0,0,0,.3),0 16px 32px -12px rgba(0,0,0,.5)}
+#toast{position:fixed;top:max(var(--safe-top,0px),env(safe-area-inset-top,0px));left:50%;transform:translateX(-50%) translateY(-130%);z-index:10000;background:rgba(36,32,30,.78);backdrop-filter:blur(24px) saturate(1.6);-webkit-backdrop-filter:blur(24px) saturate(1.6);border:.5px solid rgba(255,255,255,.15);padding:12px 13px;display:flex;align-items:flex-start;gap:10px;font-family:"Outfit",sans-serif;color:var(--white);opacity:0;pointer-events:none;transition:transform .5s cubic-bezier(.25,1.2,.3,1),opacity .3s ease;border-radius:16px;white-space:normal;width:min(400px,calc(100vw - 16px));margin-top:2px;box-shadow:0 1px 3px rgba(0,0,0,.3),0 16px 32px -12px rgba(0,0,0,.5);touch-action:pan-x}
 #toast.show{opacity:1!important;transform:translateX(-50%) translateY(0)!important;pointer-events:auto;cursor:pointer}
 #toast #ti{flex-shrink:0;width:20px;height:20px;border-radius:5.5px;background:linear-gradient(160deg,#FF9A3D,#F36717);display:flex;align-items:center;justify-content:center;font-size:12px;line-height:1;box-shadow:0 1px 2px rgba(0,0,0,.25)}
 #toast-body{flex:1;min-width:0}
@@ -13056,14 +13056,75 @@ function checkProteinQuest(){
 }
 
 // ── TOAST ──
+// One notification banner at a time, iOS-style: each one shows, leaves,
+// THEN the next comes in — never two competing for the same slot. A
+// second toast() call while one is already showing used to just
+// overwrite the visible text and restart the timer, which read as the
+// message randomly changing mid-display rather than a real sequence.
+// Queued instead, with the same .show/hide transition doing the
+// arrive/leave animation for every item in turn.
+let toastQueue=[];
+let toastShowing=false;
 function toast(icon,msg,category){
   if(category&&notifPrefs[category]===false)return;
-  const t=document.getElementById('toast');if(!t)return;
-  const ti=document.getElementById('ti');const tm=document.getElementById('tm');
-  if(ti)ti.textContent=icon;if(tm)tm.textContent=msg;
-  t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),3000);
+  initToastSwipe();
+  toastQueue.push({icon,msg});
+  processToastQueue();
 }
-function dismissToast(){const t=document.getElementById('toast');if(!t)return;clearTimeout(t._t);t.classList.remove('show')}
+function processToastQueue(){
+  if(toastShowing||!toastQueue.length)return;
+  const t=document.getElementById('toast');if(!t)return;
+  const next=toastQueue.shift();
+  const ti=document.getElementById('ti');const tm=document.getElementById('tm');
+  if(ti)ti.textContent=next.icon;if(tm)tm.textContent=next.msg;
+  toastShowing=true;
+  t.style.transform='';t.style.transition='';
+  t.classList.add('show');
+  clearTimeout(t._t);
+  t._t=setTimeout(hideCurrentToast,3000);
+}
+function hideCurrentToast(){
+  const t=document.getElementById('toast');if(!t)return;
+  clearTimeout(t._t);
+  t.classList.remove('show');
+  toastShowing=false;
+  // Gives the .5s leave transition (see #toast's own transition) room to
+  // actually finish before the next one arrives, instead of the next
+  // toast popping in while this one is still animating out.
+  setTimeout(processToastQueue,420);
+}
+function dismissToast(){hideCurrentToast();}
+// Swipe-up-to-dismiss — tap already closed it via onclick; this adds a
+// drag gesture on top, following the finger while dragging and only
+// actually dismissing past a real threshold so an accidental brush
+// doesn't close it. Bound once, lazily, the first time a toast actually
+// shows (the element is static in the DOM from load, but initializing
+// here keeps this colocated with the rest of the toast system instead
+// of a separate page-load hook).
+let _toastSwipeInit=false;
+function initToastSwipe(){
+  if(_toastSwipeInit)return;_toastSwipeInit=true;
+  const t=document.getElementById('toast');
+  if(!t)return;
+  let startY=null,dragging=false;
+  t.addEventListener('pointerdown',e=>{startY=e.clientY;dragging=true;t.style.transition='none';});
+  t.addEventListener('pointermove',e=>{
+    if(!dragging||startY==null)return;
+    const dy=e.clientY-startY;
+    if(dy<0)t.style.transform='translateX(-50%) translateY('+dy+'px)';
+  });
+  const end=e=>{
+    if(!dragging)return;
+    dragging=false;
+    t.style.transition='';
+    const dy=e.clientY-(startY==null?e.clientY:startY);
+    startY=null;
+    if(dy<-24){hideCurrentToast();}
+    else{t.style.transform='';}
+  };
+  t.addEventListener('pointerup',end);
+  t.addEventListener('pointercancel',end);
+}
 // ── SCROLL PICKER — a drag-to-select ruler that replaces a plain
 // type=number input. The original input is kept in the DOM (as
 // type=hidden) and stays the real source of truth: every existing call
