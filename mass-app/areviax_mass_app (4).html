@@ -14598,44 +14598,51 @@ function renderTodaySessionName(name){
 // it back out on its own. A tap on the banner's own action, or its own
 // dismiss ✕, still works during that window — this only changes how it
 // enters and (if the user never touches it) how it leaves.
+// One at a time, queued — was stacking every currently-visible banner on
+// top of each other (restackDashNotifs offsetting each one below the
+// last); now only the front of dashNotifQueue is ever shown, and the
+// next one slides in a beat after the current one clears, matching how a
+// real phone surfaces one notification at a time instead of piling them.
 const DASH_NOTIF_IDS=['muscle-balance-banner','streak-risk-banner','streak-repair-banner','sleep-reminder-banner','walk-tip-card','daily-spin-banner','missed-food-banner','weekly-assessment-banner'];
 let _dashNotifArmed=false;
+let dashNotifQueue=[];
+let dashNotifShowing=null;
 function restackDashNotifs(){
-  // Real iOS notifications float over whatever's on screen and never
-  // reserve layout space for themselves — they arrive, sit on top for a
-  // few seconds (armDashNotifWatchers' 6s auto-dismiss below already
-  // matches that), and leave without anything underneath having moved.
-  // This used to also push the dashboard greeting down to stay clear of
-  // the banner stack, which was the opposite of that: it made the
-  // banners behave like permanent inline content wearing a notification
-  // skin. Now this only positions multiple stacked banners relative to
-  // each other (top offset), never touches the page underneath.
-  let offset=62;
-  DASH_NOTIF_IDS.forEach(id=>{
-    const el=document.getElementById(id);
-    if(el&&el.classList.contains('dash-notif-in')){
-      el.style.top='calc(env(safe-area-inset-top,0px) + '+offset+'px)';
-      offset+=el.offsetHeight+10;
-    }
-  });
+  // Single-slot now — just anchors whichever one banner is currently
+  // showing at the fixed top offset (no more stacking math needed).
+  const el=dashNotifShowing&&document.getElementById(dashNotifShowing);
+  if(el)el.style.top='calc(env(safe-area-inset-top,0px) + 62px)';
+}
+function tryShowNextDashNotif(){
+  if(dashNotifShowing)return; // something's already up — it'll call this again when it clears
+  if(!dashNotifQueue.length)return;
+  const id=dashNotifQueue.shift();
+  const el=document.getElementById(id);
+  if(!el||getComputedStyle(el).display==='none'){tryShowNextDashNotif();return;} // hidden again before its turn — skip it
+  dashNotifShowing=id;
+  el.classList.add('dash-notif-shown');
+  requestAnimationFrame(()=>{el.classList.add('dash-notif-in');restackDashNotifs();});
+  clearTimeout(el._dashNotifHideTimer);
+  el._dashNotifHideTimer=setTimeout(()=>dismissDashNotif(id),6000);
 }
 function armDashNotifWatchers(){
   if(_dashNotifArmed)return;_dashNotifArmed=true;
   DASH_NOTIF_IDS.forEach(id=>{
     const el=document.getElementById(id);
     if(!el)return;
-    let hideTimer=null;
     const obs=new MutationObserver(()=>{
       const visible=getComputedStyle(el).display!=='none';
-      if(visible&&!el.classList.contains('dash-notif-shown')){
-        el.classList.add('dash-notif-shown');
-        requestAnimationFrame(()=>{el.classList.add('dash-notif-in');restackDashNotifs();});
-        clearTimeout(hideTimer);
-        hideTimer=setTimeout(()=>dismissDashNotif(id),6000);
+      if(visible&&!el.classList.contains('dash-notif-shown')&&!dashNotifQueue.includes(id)&&dashNotifShowing!==id){
+        dashNotifQueue.push(id);
+        tryShowNextDashNotif();
       }else if(!visible){
+        dashNotifQueue=dashNotifQueue.filter(x=>x!==id);
         el.classList.remove('dash-notif-shown','dash-notif-in');
-        clearTimeout(hideTimer);
-        restackDashNotifs();
+        clearTimeout(el._dashNotifHideTimer);
+        if(dashNotifShowing===id){
+          dashNotifShowing=null;
+          setTimeout(tryShowNextDashNotif,300); // small gap before the next one slides in
+        }
       }
     });
     obs.observe(el,{attributes:true,attributeFilter:['style']});
@@ -14645,7 +14652,10 @@ function dismissDashNotif(id){
   const el=document.getElementById(id);
   if(!el)return;
   el.classList.remove('dash-notif-in');
-  setTimeout(restackDashNotifs,50);
+  if(dashNotifShowing===id){
+    dashNotifShowing=null;
+    setTimeout(tryShowNextDashNotif,300);
+  }
 }
 // Armed immediately at script load, not inside initApp() — these banner
 // divs are already in the static HTML by the time this script runs, and
