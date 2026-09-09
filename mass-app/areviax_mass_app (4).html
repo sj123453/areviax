@@ -2401,13 +2401,14 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .compass-crate.diamond.crate-shake{animation:crateWindup .46s cubic-bezier(.4,0,.2,1) 1 forwards}
     .compass-crate.areviax.crate-shake{animation:crateWindup .58s cubic-bezier(.4,0,.2,1) 1 forwards}
     /* Lid-opens-while-ascending — the crate body punches up briefly then
-       rises and fades, while a second clipped copy of the SAME artwork
-       (.crate-lid-layer, top ~48% only) hinges open on its own rotateX
-       and rises further/faster, reading as the lid coming free and
-       floating off while the chest ascends beneath it. No separate lid/
-       base art assets exist, so this reuses one image sliced by
-       clip-path rather than two real layers — a deliberate approximation
-       until real split art exists. */
+       rises and fades, while the lid (a real separate rendered layer for
+       bronze/silver/gold/diamond — see crateLidImg()/crateBaseImg(), two
+       actual images exported from the 3D scene's own articulated lid
+       group, not one image sliced by clip-path) hinges open on its own
+       rotateX and rises further/faster, reading as the lid coming free
+       and floating off while the chest ascends beneath it. Areviax has
+       no split art yet, so it still falls back to the old clip-path
+       slice via .crate-lid-layer.clip-fallback. */
     @keyframes crateCrackOut{
       0%{transform:translateY(0) scale(1.1) rotate(3deg);opacity:1;filter:brightness(1)}
       28%{transform:translateY(-8px) scale(1.28) rotate(0deg);opacity:1;filter:brightness(1.3)}
@@ -2418,10 +2419,10 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .crate-icon-wrap{perspective:360px}
     .crate-icon.crate-lid-layer{
       position:absolute;inset:0;z-index:2;
-      clip-path:inset(0 0 52% 0);
       transform-origin:50% 46%;
       pointer-events:none;
     }
+    .crate-icon.crate-lid-layer.clip-fallback{clip-path:inset(0 0 52% 0)}
     @keyframes crateLidOpenFly{
       0%{transform:rotateX(0deg) translateY(0);opacity:1}
       60%{transform:rotateX(-120deg) translateY(-14px);opacity:1}
@@ -10624,6 +10625,27 @@ function crateIconHTML(tier){
   if(CRATE_ICON_IMG[tier])return '<img src="'+CRATE_ICON_IMG[tier]+'" alt="'+tier+' crate" style="width:100%;height:100%;object-fit:contain">';
   return crateIconSVG(tier);
 }
+// Real separate lid/base renders (see export_crate_lid_base.js) — the
+// scene's own articulated lidGroup captured in isolation, not the old
+// single sealed image sliced in half by CSS clip-path. Areviax has no
+// split art yet, so crackOutIconHTML() below falls back to the old
+// clip-path slice for that one tier only.
+const CRATE_BASE_IMG={
+  bronze:'images/icons/crate-bronze-base.png', silver:'images/icons/crate-silver-base.png',
+  gold:'images/icons/crate-gold-base.png', diamond:'images/icons/crate-diamond-base.png',
+};
+const CRATE_LID_IMG={
+  bronze:'images/icons/crate-bronze-lid.png', silver:'images/icons/crate-silver-lid.png',
+  gold:'images/icons/crate-gold-lid.png', diamond:'images/icons/crate-diamond-lid.png',
+};
+function crackOutIconHTML(tier){
+  if(CRATE_BASE_IMG[tier]&&CRATE_LID_IMG[tier]){
+    return '<span class="crate-icon"><img src="'+CRATE_BASE_IMG[tier]+'" alt="'+tier+' crate" style="width:100%;height:100%;object-fit:contain"></span>'+
+      '<span class="crate-icon crate-lid-layer" aria-hidden="true"><img src="'+CRATE_LID_IMG[tier]+'" alt="" style="width:100%;height:100%;object-fit:contain"></span>';
+  }
+  return '<span class="crate-icon">'+crateIconHTML(tier)+'</span>'+
+    '<span class="crate-icon crate-lid-layer clip-fallback" aria-hidden="true">'+crateIconHTML(tier)+'</span>';
+}
 
 function renderAchievements(){
   renderTrophyRoad();
@@ -11400,16 +11422,22 @@ function playCrateSpinTicks(durationMs){
 // back are recognizably different songs, not just "louder"/"longer"
 // versions of one song. gaps[i] is the ms before note i+1 starts
 // (one shorter than notes, since the last note has no note after it).
+// Whole ladder shifted up one step of richness from an earlier pass —
+// Common used to be a single silent-landing note (felt like nothing
+// happened); it now gets what used to be Rare's motif, and everything
+// from Rare up got a genuinely bigger, more elaborate motif of its own
+// so the ladder still climbs all the way to Ultra Legendary instead of
+// compressing into the top few tiers.
 const RARITY_MOTIF={
-  common:        {notes:[523.25],                                   gaps:[],                wave:'triangle'},
-  rare:          {notes:[523.25,783.99],                            gaps:[110],              wave:'triangle'},
-  superrare:     {notes:[523.25,659.25,987.77],                     gaps:[90,120],           wave:'sine'},
-  epic:          {notes:[466.16,622.25,830.61,1108.73],             gaps:[100,100,150],      wave:'sine'},
+  common:        {notes:[523.25,783.99],                                        gaps:[110],                 wave:'triangle'},
+  rare:          {notes:[523.25,659.25,987.77],                                 gaps:[85,110],               wave:'sine'},
+  superrare:     {notes:[587.33,739.99,880,1174.66],                            gaps:[85,85,120],            wave:'sine'},
+  epic:          {notes:[523.25,659.25,783.99,1046.50,1318.51],                 gaps:[80,80,80,130],         wave:'triangle'},
   // Repeated low note then a jump then a drop — an "alarm/tension" shape,
   // not a rising run, matching Mythic's red danger identity.
-  mythic:        {notes:[311.13,311.13,466.16,233.08],              gaps:[80,80,170],        wave:'sawtooth'},
-  legendary:     {notes:[440,554.37,659.25,880,1108.73],            gaps:[85,85,85,120],     wave:'triangle'},
-  ultralegendary:{notes:[392,493.88,587.33,739.99,987.77,1174.66],  gaps:[70,70,70,90,120],  wave:'sine'},
+  mythic:        {notes:[311.13,311.13,311.13,466.16,233.08,466.16],            gaps:[70,70,90,160,90],      wave:'sawtooth'},
+  legendary:     {notes:[440,554.37,659.25,739.99,880,1108.73],                 gaps:[75,75,75,75,110],      wave:'triangle'},
+  ultralegendary:{notes:[392,493.88,587.33,659.25,739.99,880,1046.50,1318.51],  gaps:[60,60,60,60,60,90,120],wave:'sine'},
 };
 function playCrateRevealChime(rarity){
   const ctx=getCrateAudioCtx();
@@ -11446,8 +11474,8 @@ function playCrateRevealChime(rarity){
   });
   // A sub-bass landing hit under the final note gives the best pulls real
   // physical weight instead of just a brighter chime — silent for
-  // common/rare, ramps in from superrare up, biggest on Ultra Legendary.
-  if(rank>=2){
+  // common, ramps in from rare up, biggest on Ultra Legendary.
+  if(rank>=1){
     const landStart=t0+lastStart;
     const bass=ctx.createOscillator();
     bass.type='sine';
@@ -11460,7 +11488,7 @@ function playCrateRevealChime(rarity){
     bass.connect(bg);bg.connect(ctx.destination);
     bass.start(landStart);bass.stop(landStart+1.0+0.4*drama);
   }
-  const shimmerTiers={superrare:1,epic:2,mythic:2,legendary:3,ultralegendary:4};
+  const shimmerTiers={rare:1,superrare:2,epic:2,mythic:3,legendary:4,ultralegendary:5};
   const shimmerLayers=shimmerTiers[rarity]||0;
   for(let layer=0;layer<shimmerLayers;layer++){
     const shimmerStart=t0+lastStart+0.09+layer*0.12;
@@ -11490,10 +11518,14 @@ const RARITY_RANK={common:0,rare:1,superrare:2,epic:3,mythic:4,legendary:5,ultra
 // alone already sounds, which is the "normal to nothing" end of the ask.
 function playRarityIntroSting(rarity){
   const rank=RARITY_RANK[rarity]!=null?RARITY_RANK[rarity]:0;
-  if(rank<2)return;
+  // Used to skip entirely below Superrare — Common/Rare silhouettes
+  // approached with no whoosh at all. Every rarity now gets the riser
+  // + hit (drama clamped to 0 below Superrare so it stays a light,
+  // minimal whoosh rather than the full escalating build), so there's
+  // always something as the silhouette comes in, just much smaller.
   const ctx=getCrateAudioCtx();
   if(!ctx)return;
-  const drama=(rank-2)/4; // 0 at Superrare, 1 at Ultra Legendary
+  const drama=Math.max(0,(rank-2)/4); // 0 through Superrare, climbs to 1 at Ultra Legendary
   const t0=ctx.currentTime;
   const riseDur=0.42+0.18*drama;
 
@@ -11683,16 +11715,31 @@ function runMysteryReveal(modal,l,isNew,cfg){
     mystery.style.transform='rotateY(360deg)';
     setTimeout(()=>{
       if(!wrap.isConnected)return;
+      // Modal glow/border land in this exact same beat as the icon swap
+      // below — the rarity colour and the silhouette disappearing happen
+      // together, not the colour spoiling the reveal early.
+      modal.style.setProperty('--reveal-glow',RARITY_GLOW[l.rarity]);
+      modal.style.borderColor=RARITY_BORDER[l.rarity];
+      modal.classList.add('glow');
       wrap.style.setProperty('--ray-c',RARITY_RAY[l.rarity]);
       wrap.innerHTML='<div class="reveal-ray-burst" id="reveal-ray-burst"></div>'+
         '<div class="legend-reveal-icon shine spin-in rarity-'+l.rarity+'">'+legendIconHTML(l)+'</div>';
       modal.querySelectorAll('.mystery-hide').forEach(el=>el.classList.remove('mystery-hide'));
       lightRayBurst(RARITY_RAY[l.rarity],8+Math.round((cfg.burstCount||12)/2));
       spawnUnlockGlyphs(l.rarity);
-      // Common lands silent here — "normal to nothing" — Rare and up
-      // still get the landing chime (Superrare+ already had its intro
-      // sting play during the spin-up above).
-      if(l.rarity!=='common')playCrateRevealChime(l.rarity);
+      // Every rarity now gets a real landing chime — Common used to land
+      // silent ("normal to nothing"), which read as less of a reward
+      // than opening the crate itself. Superrare+ already had its own
+      // intro sting play during the spin-up above, on top of this.
+      playCrateRevealChime(l.rarity);
+      // Epic+ repeats its own victory motif a few beats later — once
+      // more for Epic/Mythic, twice more for Legendary, three times for
+      // Ultra Legendary — so a genuinely rare pull keeps celebrating
+      // instead of a single chime that's over as soon as it starts.
+      const victoryRepeats={epic:1,mythic:1,legendary:2,ultralegendary:3}[l.rarity]||0;
+      for(let i=1;i<=victoryRepeats;i++){
+        setTimeout(()=>{ if(overlay.isConnected)playCrateRevealChime(l.rarity); },i*650);
+      }
       if(isNew)celebrateBurst(['🔥','⭐','🏆'],cfg.burstCount);
     },380);
   }
@@ -11912,7 +11959,7 @@ function showLegendReveal(l,isNew,tier,count,keyWon,titleWon){
     '<div class="achievement-modal crate-reveal-stage">'+
       '<div class="crate-icon-wrap '+tier+' ready" id="reveal-crate-wrap" style="cursor:pointer">'+
         '<div class="crate-icon-glow"></div><div class="crate-icon-burst" id="reveal-crate-burst"></div>'+
-        '<div class="compass-crate '+tier+'" id="reveal-crate-icon"><span class="crate-icon">'+crateIconHTML(tier)+'</span><span class="crate-icon crate-lid-layer" aria-hidden="true">'+crateIconHTML(tier)+'</span></div>'+
+        '<div class="compass-crate '+tier+'" id="reveal-crate-icon">'+crackOutIconHTML(tier)+'</div>'+
         (multiSlot?counterBadgeHTML(slots.length):'')+
       '</div>'+
       '<div class="crate-tap-prompt" id="reveal-tap-prompt">Tap-tap!</div>'+
@@ -11936,10 +11983,21 @@ function showLegendReveal(l,isNew,tier,count,keyWon,titleWon){
     if(!modal)return;
     const slot=slots[slotIdx];
     const isLast=slotIdx===slots.length-1;
-    modal.style.setProperty('--reveal-glow',RARITY_GLOW[l.rarity]);
-    modal.style.borderColor=RARITY_BORDER[l.rarity];
-    modal.classList.add('glow');
-    modal.innerHTML=counterBadgeHTML(slots.length-slotIdx)+slot.render()+
+    // The trophy slot (always last) withholds its rarity glow/border
+    // until runMysteryReveal's lock() actually swaps the "?" silhouette
+    // for the real icon — revealing the colour early was spoiling the
+    // rarity before the silhouette even disappeared, the opposite of
+    // how Brawl Stars paces this. Every other slot has no silhouette
+    // beat, so they still colour in immediately.
+    if(!isLast){
+      modal.style.setProperty('--reveal-glow',RARITY_GLOW[l.rarity]);
+      modal.style.borderColor=RARITY_BORDER[l.rarity];
+      modal.classList.add('glow');
+    }else{
+      modal.classList.remove('glow');
+      modal.style.borderColor='';
+    }
+    modal.innerHTML=(isLast?'':counterBadgeHTML(slots.length-slotIdx))+slot.render()+
       (isLast
         ? '<button class="achievement-close-btn" onclick="closeCrateRevealAndShowcase(this,\''+l.key+'\','+isNew+')">Continue</button>'
         : '<div class="crate-tap-prompt" style="margin-top:16px" onclick="this.closest(\'.achievement-modal\').dispatchEvent(new Event(\'advance\'))">Tap to continue</div>');
