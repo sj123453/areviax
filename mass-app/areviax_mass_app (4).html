@@ -216,8 +216,15 @@ input,input:focus,input:active,
 
 /* Equipment chips */
 .equip-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
-.equip-chip{display:flex;align-items:center;justify-content:center;gap:5px;padding:6px 11px;border-radius:20px;border:1.5px solid var(--border);background:var(--panel2);color:var(--muted);font-size:11px;font-weight:600;cursor:pointer;transition:all .18s;white-space:nowrap}
-.equip-chip.active{background:rgba(243,103,23,.06);border-color:rgba(243,103,23,.55);color:var(--orange)}
+/* var(--panel2) alone (a dark rgba fairly close in hue/value to the
+   page's own near-black background) read as barely-there — a pill in
+   name only, not something that visibly reads as filled. A real
+   gradient fill plus an inset top highlight gives every one of these
+   (cardio/mealplan/shake-builder pickers, notification toggles, accent
+   themes, titles — 80+ uses of this one shared chip) actual presence
+   regardless of what page it's on. */
+.equip-chip{display:flex;align-items:center;justify-content:center;gap:5px;padding:6px 11px;border-radius:20px;border:1.5px solid var(--border);background:linear-gradient(160deg,rgba(255,255,255,.09),rgba(255,255,255,.02));color:rgba(var(--white-rgb),.75);font-size:11px;font-weight:700;cursor:pointer;transition:all .18s;white-space:nowrap;box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}
+.equip-chip.active{background:linear-gradient(160deg,rgba(243,103,23,.4),rgba(243,103,23,.14));border-color:rgba(243,103,23,.85);color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.15),0 0 0 1px rgba(243,103,23,.25)}
 
 /* Priority dials */
 .priority-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;margin-top:6px}
@@ -713,7 +720,7 @@ input,input:focus,input:active,
    one to keep this a style-only change. */
 .dash-notif-fixed{
   position:fixed;left:16px;right:16px;z-index:640;
-  top:calc(env(safe-area-inset-top,0px) + 62px);
+  top:calc(env(safe-area-inset-top,0px) + 2px);
   transform:translateY(-130%);opacity:0;
   transition:transform .42s cubic-bezier(.16,1,.3,1),opacity .3s ease,top .25s ease;
   pointer-events:none;
@@ -8084,13 +8091,29 @@ function renderDashTitleBadge(){
 // Rendered in two places now — Settings > Appearance (#set-title-toggle)
 // and the Profile page (#profile-title-toggle) — same markup/behavior,
 // just synced to whichever container(s) actually exist on the page.
+// Each title gets its own strong colour fill instead of sharing the
+// generic chip look everything else uses — titles are earned, named,
+// flavoured things, not just another settings toggle, so they read as
+// genuinely exclusive rather than one more grey pill in the list. The
+// equipped one on top of that gets a real white glow ring, not just a
+// colour swap, so "this is the one you're wearing" is unmistakable at a
+// glance the way a selected skin/title reads in other games.
+const TITLE_CHIP_STYLE={
+  unbowed:{bg:'linear-gradient(160deg,#E85D5D,#8E1F1F)',border:'#FF9E9E',text:'#FFF3F3'},
+  disciplined:{bg:'linear-gradient(160deg,#5E97E8,#1F4A8E)',border:'#A8CBFF',text:'#F1F7FF'},
+  ascendant:{bg:'linear-gradient(160deg,#FFCE54,#B87A0A)',border:'#FFE9A8',text:'#FFF9E8'},
+};
 function renderTitlePicker(){
   const conts=[document.getElementById('set-title-toggle'),document.getElementById('profile-title-toggle')].filter(Boolean);
   if(!conts.length)return;
   const chips=[{key:'',label:'None'}].concat(Object.keys(TITLES).map(k=>({key:k,label:TITLES[k].name})));
   const html=chips.map(c=>{
     const unlocked=c.key===''||unlockedTitles.includes(c.key);
-    return `<button type="button" class="equip-chip${c.key===equippedTitle?' active':''}" ${unlocked?`onclick="setEquippedTitle('${c.key}')"`:'disabled'} style="padding:3px 10px;font-size:10px;opacity:${unlocked?1:.4}">${c.label}${unlocked?'':' 🔒'}</button>`;
+    const cs=TITLE_CHIP_STYLE[c.key];
+    const isEquipped=c.key===equippedTitle;
+    const colourStyle=unlocked&&cs?`background:${cs.bg};border-color:${cs.border};color:${cs.text};text-shadow:0 1px 2px rgba(0,0,0,.35);`:'';
+    const ring=isEquipped?'box-shadow:inset 0 1px 0 rgba(255,255,255,.3),0 0 0 2px rgba(255,255,255,.9),0 0 16px -2px rgba(255,255,255,.6);':'';
+    return `<button type="button" class="equip-chip${isEquipped?' active':''}" ${unlocked?`onclick="setEquippedTitle('${c.key}')"`:'disabled'} style="padding:6px 14px;font-size:11px;font-weight:800;opacity:${unlocked?1:.45};${colourStyle}${ring}">${c.label}${unlocked?'':' 🔒'}</button>`;
   }).join('');
   conts.forEach(c=>c.innerHTML=html);
 }
@@ -10069,8 +10092,20 @@ function grantXpRoadReward(node){
   else if(node.type==='diamond'){diamondDropBank+=node.amount;}
   else if(node.type==='shard'){shardBank+=node.amount;}
   else if(node.type==='legend'){
-    const pool=LEGEND_CARDS.filter(l=>l.rarity===node.rarity);
+    // Mythic/epic/superrare have no real cards assigned yet (see
+    // RARITY_ORDER's own comment) — filtering straight to node.rarity
+    // could return an empty pool, and pick.key below would throw on the
+    // undefined result. Falls through toward more common tiers until one
+    // actually has cards, so a "guaranteed X trophy" milestone still
+    // grants something real instead of crashing the moment a player
+    // crosses 8,000 or 27,000 XP on the Arete Road.
+    const startIdx=RARITY_ORDER.indexOf(node.rarity);
+    let pool=[];
+    for(let i=Math.max(startIdx,0);i<RARITY_ORDER.length&&!pool.length;i++){
+      pool=LEGEND_CARDS.filter(l=>l.rarity===RARITY_ORDER[i]);
+    }
     const pick=pool[Math.floor(Math.random()*pool.length)];
+    if(!pick)return;
     const isNew=!unlockedLegends.includes(pick.key);
     if(isNew)unlockedLegends.push(pick.key);
     legendCounts[pick.key]=(legendCounts[pick.key]||0)+1;
@@ -14699,7 +14734,7 @@ function restackDashNotifs(){
   // Single-slot now — just anchors whichever one banner is currently
   // showing at the fixed top offset (no more stacking math needed).
   const el=dashNotifShowing&&document.getElementById(dashNotifShowing);
-  if(el)el.style.top='calc(env(safe-area-inset-top,0px) + 62px)';
+  if(el)el.style.top='calc(env(safe-area-inset-top,0px) + 2px)';
 }
 function tryShowNextDashNotif(){
   if(dashNotifShowing)return; // something's already up — it'll call this again when it clears
