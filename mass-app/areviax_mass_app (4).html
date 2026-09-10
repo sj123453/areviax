@@ -11083,10 +11083,22 @@ function legendRarityJewelHTML(rarity){
 const TROPHY_LAYERS=[
   {rarity:'legendary', label:'Apex + Titan',                sub:'Beyond legendary.',                                            count:2,  items:LEGEND_CARDS.filter(l=>['coleman','goggins'].includes(l.key))},
   {rarity:'legendary', label:'Diamond \u2014 Legendary Relics',  sub:'You\u2019ve reached the highest level of ordinary achievement.', count:4,  items:LEGEND_CARDS.filter(l=>['diamond_olympian','diamond_physique','diamond_unbreakable','diamond_victor'].includes(l.key))},
-  {rarity:'legendary', label:'Gold \u2014 Divine Relics',        sub:'You begin entering the realm of the gods.',                    count:6,  items:LEGEND_CARDS.filter(l=>['diamond_universe','diamond_dream','relic_caduceus','relic_trident','relic_cornucopia','ball'].includes(l.key))},
+  // Only 18 legendary cards exist total, all already spoken for by the
+  // other 3 legendary shelves (2+4+10=16) plus this one's real 2
+  // (diamond_universe/diamond_dream) \u2014 no spares left to fill this out
+  // to 6. Used to pad the remaining 4 slots with common-rarity "divine"-
+  // named relics (caduceus/trident/cornucopia/the sphere) instead, on
+  // a thematic ("divine") rather than strict-rarity read. That read fine
+  // when nothing on a card showed its rarity \u2014 now that every card
+  // carries its own true-rarity jewel (see legendRarityJewelHTML), a
+  // shelf plaqued "Gold" showing four grey jewels beside two gold ones
+  // just reads as wrong. Real-rarity accuracy wins: this shelf now only
+  // claims the 2 cards that are actually legendary, and the 4 common
+  // ones moved down to Bronze below, where their jewels match the shelf.
+  {rarity:'legendary', label:'Gold \u2014 Divine Relics',        sub:'You begin entering the realm of the gods.',                    count:2,  items:LEGEND_CARDS.filter(l=>['diamond_universe','diamond_dream'].includes(l.key))},
   {rarity:'rare',      label:'Mythic Trials',               sub:'The trials that test whether you\u2019re ready to become a hero.', count:8,  items:LEGEND_CARDS.filter(l=>['aura_breakthrough','aura_patience','aura_heart','aura_summit','aura_strategy','aura_focus','aura_resilience','aura_mind'].includes(l.key))},
   {rarity:'legendary', label:'Heroic Path',                 sub:'You prove that you\u2019re worthy of becoming a hero.',         count:10, items:LEGEND_CARDS.filter(l=>['arnold','hero_odysseus','hero_perseus','hero_theseus','hero_jason','hero_bellerophon','hero_orpheus','hero_atalanta','hero_cadmus','hero_oedipus'].includes(l.key))},
-  {rarity:'common',    label:'Bronze \u2014 Mortal Foundations', sub:'You begin your journey.',                                      count:12, items:LEGEND_CARDS.filter(l=>['dumbbell','kettlebell','plate','jumprope','stopwatch','shaker','straps','abwheel','battlerope','towel','liftingbelt','gloves'].includes(l.key))},
+  {rarity:'common',    label:'Bronze \u2014 Mortal Foundations', sub:'You begin your journey.',                                      count:16, items:LEGEND_CARDS.filter(l=>['dumbbell','kettlebell','plate','jumprope','stopwatch','shaker','straps','abwheel','battlerope','towel','liftingbelt','gloves','relic_caduceus','relic_trident','relic_cornucopia','ball'].includes(l.key))},
 ];
 function viewCabinetLocked(label){
   toast('\ud83d\udd12',label+' \u2014 coming soon.');
