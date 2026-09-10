@@ -11818,9 +11818,16 @@ function runMysteryReveal(modal,l,isNew,cfg){
       // more for Epic/Mythic, twice more for Legendary, three times for
       // Ultra Legendary — so a genuinely rare pull keeps celebrating
       // instead of a single chime that's over as soon as it starts.
+      // modal.isConnected, not overlay — overlay is showLegendReveal's
+      // local variable, out of scope here (runMysteryReveal is a
+      // top-level function, not a nested closure), so this threw
+      // "overlay is not defined" on literally every epic+ pull, the
+      // exact rarities meant to get the extra celebration. modal is
+      // already a real parameter and serves the same "did the player
+      // already close this reveal" check.
       const victoryRepeats={epic:1,mythic:1,legendary:2,ultralegendary:3}[l.rarity]||0;
       for(let i=1;i<=victoryRepeats;i++){
-        setTimeout(()=>{ if(overlay.isConnected)playCrateRevealChime(l.rarity); },i*650);
+        setTimeout(()=>{ if(modal.isConnected)playCrateRevealChime(l.rarity); },i*650);
       }
       if(isNew)celebrateBurst(['🔥','⭐','🏆'],cfg.burstCount);
     },380);
