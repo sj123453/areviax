@@ -1514,7 +1514,21 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       -webkit-mask-size:contain;-webkit-mask-repeat:no-repeat;-webkit-mask-position:top center;
       mask-image:url('images/misc/statue-mask.png');
       mask-size:contain;mask-repeat:no-repeat;mask-position:top center;
+      /* Ambient gleam — a slow drift of the metal gradient's own highlight
+         band across the statue, like light catching bronze/gold/silver as
+         it turns. !important since the tier colour itself is set via JS
+         (element.style.background=r.metal, a shorthand that resets
+         background-size to its own initial value each render) — a plain
+         stylesheet background-size would just get clobbered on every
+         re-render otherwise. The animation targets background-position
+         only, which (unlike a plain declaration) wins over inline style
+         for the properties it drives regardless, so it survives that
+         same re-render untouched. */
+      background-size:220% 220%!important;
+      animation:statueMetalGleam 7s ease-in-out infinite;
     }
+    @keyframes statueMetalGleam{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+    @media(prefers-reduced-motion:reduce){.statue-metal-base,.statue-metal-fill{animation:none!important}}
     .statue-metal-base{opacity:.7;transition:background .8s cubic-bezier(.16,1,.3,1)}
     .statue-metal-fill{clip-path:inset(100% 0 0 0);transition:clip-path 1.4s cubic-bezier(.4,0,.2,1),background .8s cubic-bezier(.16,1,.3,1)}
     .statue-pedestal{width:230px;margin:0 auto;margin-top:-6px;position:relative;z-index:2}
