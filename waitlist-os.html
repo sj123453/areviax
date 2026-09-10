@@ -360,8 +360,8 @@ footer{position:relative;z-index:1;padding:32px 0 50px;text-align:center}
     <div class="reserve-panel" data-reveal="0">
       <div class="reserve-copy">
         <p class="s-tag">Join the waitlist</p>
-        <div class="reserve-h" data-word-flip>Be first through the door.</div>
-        <p class="reserve-sub" data-char-light>Free to join — no deposit, no card. Founder members get early access and a heads-up before it opens to everyone else.</p>
+        <div class="reserve-h">Be first through the door.</div>
+        <p class="reserve-sub">Free to join — no deposit, no card. Founder members get early access and a heads-up before it opens to everyone else.</p>
       </div>
       <div class="price-card">
         <div class="price-note" style="margin-bottom:14px">Planned pricing at launch: <strong id="price-launch-val">£16</strong>/mo — waitlist members get first access at that rate before it's public.</div>
@@ -382,7 +382,7 @@ footer{position:relative;z-index:1;padding:32px 0 50px;text-align:center}
       <a href="waitlist.html">Areviax Mass Waitlist</a>
       <a href="legal.html">Terms & Privacy</a>
     </div>
-    <div class="footer-fine">© 2026 Areviax. Deposits are fully refundable before launch.</div>
+    <div class="footer-fine">© 2026 Areviax. No spam, ever — unsubscribe anytime.</div>
   </footer>
 </div>
 
@@ -560,7 +560,13 @@ initScrollReveals();
 // ── WORD / CHAR SCROLL-HIGHLIGHT — text starts dim and "lights up"
 // word-by-word or character-by-character as it scrolls through the
 // viewport, tied directly to scroll position via a lightweight rAF+lerp
-// scrub. Same technique as waitlist.html.
+// scrub. Was applied to the reserve panel's headline/paragraph via
+// [data-word-flip]/[data-char-light] — pulled those attributes off both
+// elements since being purely a function of live scroll position meant
+// scrolling back up past the panel re-dimmed already-read text to ~.15
+// opacity, and it competed with that panel's own reliable one-shot
+// IntersectionObserver fade for no real benefit. No element on the page
+// currently carries either attribute, so this whole block is inert.
 function splitWords(el){
   const text=el.textContent;
   el.textContent='';
@@ -610,7 +616,17 @@ function initScrollHighlights(){
       const n=it.parts.length;
       it.parts.forEach((el2,i)=>{
         const w=clamp01((p*n-i)/1.6);
-        el2.style.opacity=String(.15+.85*w);
+        // Was a pure function of live scroll position — scrolling back up
+        // past this section (e.g. to re-read the hero, then continuing
+        // down again) re-ran the same math with a smaller p and dimmed
+        // already-read text back down to .15 opacity, sometimes nearly
+        // unreadable. Track each span's highest opacity reached and never
+        // go back below it, so this still lights up as you scroll down
+        // the first time but never un-reveals text you've already seen.
+        const op=.15+.85*w;
+        const next=Math.max(op,el2._maxOp||0);
+        el2._maxOp=next;
+        el2.style.opacity=String(next);
       });
     }
     requestAnimationFrame(tick);
