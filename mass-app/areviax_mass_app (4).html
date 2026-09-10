@@ -2351,8 +2351,23 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        every locked crate looking like an identical grey nothing
        instead of "an unopened bronze/silver/gold/diamond crate". */
     .compass-crate.locked{opacity:.5;--crate-sat:.75}
-    @keyframes crateFloat{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-4px) rotate(-4deg)}}
-    .compass-crate.ready{animation:crateFloat 2.4s ease-in-out infinite}
+    /* Something's moving in there — a calm float most of the cycle, then
+       a real jolt/jump around 60% through (as if whatever's inside just
+       bumped the lid), rather than one smooth continuous bob the whole
+       time. Direct ask: "make the crate shake and jump a bit almost
+       like its got something inside it." Paired with a soft synced
+       thump sound — see armCrateIdleThump() below. */
+    @keyframes crateFloat{
+      0%,100%{transform:translateY(0) rotate(0) scale(1)}
+      15%{transform:translateY(-3px) rotate(-2deg) scale(1)}
+      32%{transform:translateY(0) rotate(1.5deg) scale(1)}
+      48%{transform:translateY(-2px) rotate(-1deg) scale(1)}
+      58%{transform:translateY(3px) rotate(4deg) scale(1.035)}
+      64%{transform:translateY(-2px) rotate(-4deg) scale(.98)}
+      70%{transform:translateY(1px) rotate(2deg) scale(1.01)}
+      76%{transform:translateY(0) rotate(0) scale(1)}
+    }
+    .compass-crate.ready{animation:crateFloat 3.4s ease-in-out infinite}
     @keyframes areviaxAura{0%,100%{filter:brightness(1) hue-rotate(0deg)}50%{filter:brightness(1.3) hue-rotate(-18deg)}}
     .compass-crate.areviax.ready{
       animation:crateFloat 2.2s ease-in-out infinite,areviaxAura 2.4s ease-in-out infinite;
@@ -2495,7 +2510,16 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .crate-reveal-stage .achievement-title{font-size:28px}
     .crate-reveal-stage .achievement-desc{font-size:15px;max-width:320px;margin-left:auto;margin-right:auto}
     .crate-reveal-stage .achievement-close-btn{max-width:280px;margin:0 auto;padding:14px;font-size:14px}
-    .crate-reveal-stage .crate-slot-counter{top:calc(env(safe-area-inset-top,0px) + 14px);right:calc(env(safe-area-inset-right,0px) + 14px)}
+    /* Pulled onto the crate itself, not the screen edge — this badge
+       lives inside #reveal-crate-wrap (position:relative, sized to the
+       crate icon), so top/right were always relative to the CRATE, not
+       the viewport. But env(safe-area-inset-top)+14px still landed it
+       right at the icon's extreme corner, half hanging off into the
+       ray-burst's empty space rather than reading as attached to the
+       box — direct feedback ("keep the flashing number closer, not all
+       the way in the corner"). No safe-area logic needed either; this
+       element was never actually screen-edge-anchored. */
+    .crate-reveal-stage .crate-slot-counter{top:22px;right:18px}
     /* Tap feedback — a quick punchy kick right on the tap (distinct from
        crateWindup's own single wind-up-then-hold shake in explode(),
        which plays right after this). */
@@ -11500,6 +11524,24 @@ function playCrateCrackSound(tier){
   osc.connect(og);og.connect(ctx.destination);
   osc.start(t);osc.stop(t+0.34);
 }
+// A soft single thump — synced to the idle crateFloat keyframe's jolt
+// (see its CSS comment) so the "something's alive in there" shake has
+// a sound to go with it, not just visual motion. Much quieter/shorter
+// than playCrateCrackSound — this has to read as "faint bump from
+// inside a closed box," not compete with the actual crack later.
+function playCrateIdleThump(ctx){
+  if(!ctx)return;
+  const t=ctx.currentTime;
+  const osc=ctx.createOscillator();
+  osc.type='sine';
+  osc.frequency.setValueAtTime(95,t);
+  osc.frequency.exponentialRampToValueAtTime(52,t+0.1);
+  const g=ctx.createGain();
+  g.gain.setValueAtTime(0.1,t);
+  g.gain.exponentialRampToValueAtTime(0.001,t+0.16);
+  osc.connect(g);g.connect(ctx.destination);
+  osc.start(t);osc.stop(t+0.18);
+}
 function playCrateSpinTicks(durationMs){
   const ctx=getCrateAudioCtx();
   if(!ctx)return;
@@ -12102,7 +12144,13 @@ function showLegendReveal(l,isNew,tier,count,keyWon,titleWon){
       modal.classList.remove('glow');
       modal.style.borderColor='';
     }
-    modal.innerHTML=(isLast?'':counterBadgeHTML(slots.length-slotIdx))+slot.render()+
+    // Counter now renders on every slot including the last one — it used
+    // to vanish entirely on the trophy slot instead of ever showing "1",
+    // which is exactly the "shows 3 but I only see 2" report: the count
+    // silently disappeared one reveal before the sequence actually
+    // ended, instead of ticking all the way down to 1 like an honest
+    // running total should.
+    modal.innerHTML=counterBadgeHTML(slots.length-slotIdx)+slot.render()+
       (isLast
         ? '<button class="achievement-close-btn" onclick="closeCrateRevealAndShowcase(this,\''+l.key+'\','+isNew+')">Continue</button>'
         : '<div class="crate-tap-prompt" style="margin-top:16px" onclick="this.closest(\'.achievement-modal\').dispatchEvent(new Event(\'advance\'))">Tap to continue</div>');
@@ -12134,6 +12182,15 @@ function showLegendReveal(l,isNew,tier,count,keyWon,titleWon){
   let exploding=false,autoOpenTimer=null,taps=0;
   const TAPS_NEEDED=2;
 
+  // Synced to crateFloat's ~58% jolt point (3.4s cycle → ~1970ms in).
+  // Cleared the moment explode() fires so it can never fire a thump
+  // over the actual crack sound or a closed/gone overlay.
+  const idleThumpInterval=setInterval(()=>{
+    if(exploding||!overlay.isConnected)return;
+    playCrateIdleThump(getCrateAudioCtx());
+  },3400);
+  setTimeout(()=>{ if(!exploding&&overlay.isConnected)playCrateIdleThump(getCrateAudioCtx()); },1970);
+
   function onTap(){
     if(exploding)return;
     taps++;
@@ -12151,6 +12208,7 @@ function showLegendReveal(l,isNew,tier,count,keyWon,titleWon){
   function explode(){
     if(exploding)return; exploding=true;
     clearTimeout(autoOpenTimer);
+    clearInterval(idleThumpInterval);
     wrap.removeEventListener('click',onTap);
     if(prompt)prompt.textContent='Opening…';
     prompt.style.opacity='0';
