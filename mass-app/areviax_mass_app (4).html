@@ -1342,12 +1342,13 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       transition:opacity .7s cubic-bezier(.16,1,.3,1), visibility .7s cubic-bezier(.16,1,.3,1);
     }
     #intro.done{opacity:0;visibility:hidden;pointer-events:none}
-    /* Same 8-point "rose" compass the marketing site's own loading screen
-       draws (drawIntroCompass in index.html) — ported directly rather than
-       the simpler nav-logo mark, since that's specifically the "cool
-       looking one" this should match. Canvas-drawn (not a static image)
-       so the grow-in + slowing-spin animation is identical too. */
-    #intro-canvas{display:block}
+    /* Same wreath + star emblem as the main site's nav logo — was its own
+       separately-drawn 8-point rose before, a different-looking compass
+       from the rest of the brand. Grows in + fades on load (.show, added
+       by JS a frame after intro shows) rather than a canvas-driven spin. */
+    .intro-emblem{width:220px;height:220px;opacity:0;transform:scale(.55);transition:opacity .7s cubic-bezier(.16,1,.3,1),transform .7s cubic-bezier(.16,1,.3,1)}
+    .intro-emblem.show{opacity:1;transform:scale(1)}
+    @media (prefers-reduced-motion: reduce){.intro-emblem{transition:opacity .3s}.intro-emblem.show{transform:none}}
     .intro-wordmark{
       margin-top:28px;
       font-weight:800;font-size:22px;letter-spacing:.22em;text-transform:uppercase;
@@ -3863,7 +3864,7 @@ body[data-goal-theme="cut"] .lv-page{
      Being first guarantees it's on screen before anything it's meant to
      hide ever gets a chance to paint. -->
 <div id="intro">
-  <canvas id="intro-canvas" width="220" height="220"></canvas>
+  <img class="intro-emblem" id="intro-emblem" src="images/misc/compass-emblem.png" alt="Areviax compass emblem">
   <div class="intro-wordmark" id="intro-word">AREVIAX</div>
   <div class="intro-tagline" id="intro-tag">Making Success Real</div>
   <button class="intro-skip" id="intro-skip">Skip →</button>
@@ -7606,83 +7607,13 @@ window.addEventListener('unhandledrejection',function(e){console.error('PROMISE:
 // ── INTRO ANIMATION ──
 document.addEventListener('DOMContentLoaded', function(){
   const introEl = document.getElementById('intro');
-  const introCanvas = document.getElementById('intro-canvas');
+  const introEmblem = document.getElementById('intro-emblem');
   const introWord = document.getElementById('intro-word');
   const introTag  = document.getElementById('intro-tag');
   const introSkip = document.getElementById('intro-skip');
-  if(!introEl || !introCanvas || !introCanvas.getContext) return;
-
-  // Same 8-point "rose" compass drawIntroCompass() draws on the marketing
-  // site's own loading screen (index.html) — ported directly rather than
-  // reimplemented, so the two loading screens are guaranteed to look
-  // identical instead of two separate hand-tuned approximations.
-  const iCtx = introCanvas.getContext('2d');
-  const IW=220, IC=110;
-  let introAngle=0, introProgress=0, introDone=false;
-
-  function drawIntroCompass(progress){
-    iCtx.clearRect(0,0,IW,IW);
-    const r = IC*.88*Math.min(progress,1);
-    if(r<2) return;
-    for(let i=8;i>0;i--){
-      iCtx.beginPath();iCtx.arc(IC,IC,r*(i/8),0,Math.PI*2);
-      iCtx.strokeStyle=`rgba(243,103,23,${.05*(i/8)})`;iCtx.lineWidth=2;
-      iCtx.globalAlpha=1;iCtx.stroke();
-    }
-    const bg=iCtx.createRadialGradient(IC,IC,0,IC,IC,r);
-    bg.addColorStop(0,'rgba(200,80,0,.95)');bg.addColorStop(1,'rgba(7,9,15,.6)');
-    iCtx.beginPath();iCtx.arc(IC,IC,r,0,Math.PI*2);
-    iCtx.fillStyle=bg;iCtx.globalAlpha=1;iCtx.fill();
-    iCtx.beginPath();iCtx.arc(IC,IC,r,0,Math.PI*2);
-    iCtx.strokeStyle='rgba(255,140,60,.8)';iCtx.lineWidth=.8;iCtx.stroke();
-
-    function iRoseSpike(ang,len,bulgeR,hw,lightCol,darkCol){
-      const a=ang*Math.PI/180;
-      const dx=Math.cos(a), dy=Math.sin(a), px=-dy, py=dx;
-      const backR=r*.06;
-      const tip={x:IC+dx*len,y:IC+dy*len};
-      const back={x:IC+dx*backR,y:IC+dy*backR};
-      const midX=IC+dx*bulgeR, midY=IC+dy*bulgeR;
-      const midLeft={x:midX+px*hw,y:midY+py*hw};
-      const midRight={x:midX-px*hw,y:midY-py*hw};
-      const a2=alphaMul*Math.min(progress,1);
-      iCtx.globalAlpha=a2*.92;
-      iCtx.beginPath();iCtx.moveTo(back.x,back.y);iCtx.lineTo(midLeft.x,midLeft.y);iCtx.lineTo(tip.x,tip.y);iCtx.closePath();
-      iCtx.fillStyle=darkCol;iCtx.fill();
-      iCtx.beginPath();iCtx.moveTo(back.x,back.y);iCtx.lineTo(tip.x,tip.y);iCtx.lineTo(midRight.x,midRight.y);iCtx.closePath();
-      iCtx.fillStyle=lightCol;iCtx.fill();
-    }
-    const rot=introAngle;
-    const alphaMul=1;
-    const iRoseDirs=[0,45,90,135,180,225,270,315];
-    iRoseDirs.forEach((a,i)=>{
-      const isLong=i%2===0;
-      iRoseSpike(a+rot, isLong?r*.88:r*.5, isLong?r*.34:r*.28, isLong?r*.07:r*.055, '#FF8C47','#B8390A');
-    });
-
-    iCtx.globalAlpha=Math.min(progress,1);
-    iCtx.fillStyle='#F36717';iCtx.shadowColor='#F36717';iCtx.shadowBlur=10;
-    iCtx.beginPath();iCtx.arc(IC,IC,r*.045,0,Math.PI*2);iCtx.fill();
-    iCtx.fillStyle='white';iCtx.shadowBlur=0;
-    iCtx.beginPath();iCtx.arc(IC,IC,r*.018,0,Math.PI*2);iCtx.fill();
-  }
-
-  let introStart=null;
-  function introLoop(ts){
-    if(!introStart)introStart=ts;
-    const elapsed=ts-introStart;
-    introProgress=Math.min(elapsed/800,1);
-    introAngle+=1.8*(1-introProgress*.7);
-    drawIntroCompass(introProgress);
-    if(introProgress>.6){
-      if(introWord)introWord.classList.add('show');
-      if(introTag)introTag.classList.add('show');
-    }
-    if(!introDone)requestAnimationFrame(introLoop);
-  }
+  if(!introEl) return;
 
   function closeIntro(){
-    introDone=true;
     introEl.classList.add('done');
   }
 
@@ -7698,13 +7629,16 @@ document.addEventListener('DOMContentLoaded', function(){
     introEl.classList.add('done');
   }else{
     localStorage.setItem(introKey,introToday);
-    requestAnimationFrame(introLoop);
-    // 1080ms is the compass finishing its 800ms draw plus the wordmark's
-    // own 600ms fade-in starting at the 480ms/60%-progress mark (480+600).
-    // The extra ~400ms past that is a deliberate beat to actually register
-    // the settled brand moment before handing off, not a re-guessed
-    // constant — first-time-today only; every repeat visit skips it above.
-    setTimeout(closeIntro, 1500);
+    // Emblem grows in immediately; wordmark/tagline follow a beat later
+    // once it's had a moment to actually arrive — same overall shape as
+    // the old canvas version's grow-in-then-text timing, just driven by
+    // CSS transitions on a real image instead of a per-frame redraw.
+    requestAnimationFrame(()=>{ if(introEmblem)introEmblem.classList.add('show'); });
+    setTimeout(()=>{
+      if(introWord)introWord.classList.add('show');
+      if(introTag)introTag.classList.add('show');
+    },420);
+    setTimeout(closeIntro,1500);
   }
   if(introSkip) introSkip.addEventListener('click', closeIntro);
 });
