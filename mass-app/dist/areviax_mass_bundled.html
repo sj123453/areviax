@@ -13636,7 +13636,14 @@ function mountScrollPicker(input,opts){
     commit(v,fire);
   }
   function stepMomentum(){
-    velocity*=0.94;
+    // Was 0.94 — direct report: "so slippery... hard to get the slider in
+    // the right place." At 0.94 decay a moderate flick kept gliding for
+    // over a second and well past where a finger actually let go, which
+    // reads as slippery on exactly the kind of precise numeric value
+    // (food calories, protein) someone is trying to land on. 0.85 stops
+    // roughly twice as fast/short — still a real glide on a genuine flick,
+    // not a dead stop.
+    velocity*=0.85;
     if(Math.abs(velocity)<0.4){momentumRAF=null;snap(currentTx,true);return;}
     currentTx+=velocity;
     const clampMin=valueToTx(max),clampMax=valueToTx(min);
@@ -13668,7 +13675,12 @@ function mountScrollPicker(input,opts){
   function pointerUp(){
     if(!dragging)return;
     dragging=false;ruler.classList.remove('dragging');
-    if(Math.abs(velocity)>1.5){momentumRAF=requestAnimationFrame(stepMomentum);}
+    // Raised from 1.5 — that let an ordinary drag-and-release (not a real
+    // flick) still glide on a bit, which is exactly the "overshoots where
+    // I meant to stop" feeling being reported. A slow, deliberate drag
+    // now stops dead where the finger lifted; only an actual flick still
+    // glides.
+    if(Math.abs(velocity)>3){momentumRAF=requestAnimationFrame(stepMomentum);}
     else{snap(currentTx,true);}
   }
   ruler.addEventListener('pointerdown',pointerDown);
