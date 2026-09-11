@@ -3402,6 +3402,20 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .smartlog-noresult{padding:12px;font-size:11px;color:var(--muted);line-height:1.5}
     .smartlog-hint{font-size:10px;color:var(--muted);margin-top:6px;line-height:1.5}
     .smartlog-empty{font-size:11.5px;color:var(--muted);text-align:center;padding:14px 0}
+    /* A blank "type a portion" field asks someone to do maths before they've
+       even picked up their phone properly — three real, food-specific
+       options (see smartLogQuickAmountsHTML) cover most real logs in one
+       tap, with the text field still right there for anything else. Kept
+       to exactly 3 so this reads as "here are your best options", not
+       another list to scan. */
+    .smartlog-quick-amounts{display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap}
+    .smartlog-quick-chip{
+      flex:1;min-width:0;background:rgba(232,214,196,.04);border:1.5px solid var(--border2);
+      border-radius:8px;padding:8px 6px;font-family:'Outfit',sans-serif;font-size:11px;font-weight:700;
+      color:rgba(var(--white-rgb),.85);text-align:center;cursor:pointer;transition:background .15s,border-color .15s;
+    }
+    .smartlog-quick-chip:active{background:rgba(243,103,23,.15);border-color:rgba(243,103,23,.4)}
+    .smartlog-quick-chip span{display:block;font-size:9px;font-weight:600;color:var(--muted);margin-top:2px;font-family:'JetBrains Mono',monospace}
     .smartlog-est{font-size:11px;color:var(--green);font-weight:700;text-align:center;margin-bottom:8px}
     .smartlog-macros{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;text-align:center}
     .smartlog-macros div{background:rgba(232,214,196,.03);border-radius:6px;padding:8px 4px}
@@ -5207,6 +5221,7 @@ body[data-goal-theme="cut"] .lv-page{
       </div>
       <div id="smartlog-amount-wrap" style="display:none;margin-top:12px">
         <div class="lbl" style="margin-top:0" id="smartlog-amount-label">About how much?</div>
+        <div class="smartlog-quick-amounts" id="smartlog-quick-amounts"></div>
         <input type="text" id="smartlog-amount" placeholder="e.g. 200g, 1 cup, 2 handfuls, 1 palm" oninput="updateSmartLogPreview()" autocomplete="off">
         <div class="smartlog-hint" id="smartlog-hint">cup · handful · palm · fist · slice · tbsp · bowl · plate</div>
       </div>
@@ -19555,7 +19570,34 @@ function selectSmartLogFood(idx){
     if(amountInput)amountInput.placeholder='e.g. 200g, 1 cup, 2 handfuls, 1 palm';
     if(amountHint)amountHint.textContent='Type a weight (200g) or an everyday measure: cup, handful, palm, fist, slice, piece, tbsp, bowl, plate';
   }
+  const quickAmounts=document.getElementById('smartlog-quick-amounts');
+  if(quickAmounts)quickAmounts.innerHTML=smartLogQuickAmountsHTML(smartLogFood);
   if(amountInput){amountInput.value='';amountInput.focus();}
+  updateSmartLogPreview();
+}
+
+// Three real, tappable options instead of a blank field asking someone to
+// do maths — chosen per food type so they're actually the ones someone
+// would reach for, not just the first three AMOUNT_WORDS entries. Every
+// value here is text parseAmount() already understands, so a tap produces
+// the exact same gram figure typing it would have.
+function smartLogQuickAmountsHTML(food){
+  const chip=(label,sub,value)=>'<button type="button" class="smartlog-quick-chip" onclick="setSmartLogAmount(\''+String(value).replace(/'/g,"\\'")+'\')">'+label+'<span>'+sub+'</span></button>';
+  if(food.unitName){
+    const u=food.unitName;
+    return chip('½ '+u,Math.round(food.unitGrams/2)+'g','half')+
+           chip('1 '+u,food.unitGrams+'g','1')+
+           chip('2 '+u+'s',(food.unitGrams*2)+'g','2');
+  }
+  if(food.isLiquid){
+    return chip('Glass','250ml','250ml')+chip('Can','330ml','330ml')+chip('Bottle','500ml','500ml');
+  }
+  return chip('Palm','85g','palm')+chip('Handful','50g','handful')+chip('Cup','150g','cup');
+}
+function setSmartLogAmount(value){
+  const amountInput=document.getElementById('smartlog-amount');
+  if(!amountInput)return;
+  amountInput.value=value;
   updateSmartLogPreview();
 }
 
@@ -19697,6 +19739,7 @@ function logSmartFood(cals,prot,carbs,fats,alcohol){
   const input=document.getElementById('smartlog-search');if(input)input.value='';
   const amountInput=document.getElementById('smartlog-amount');if(amountInput)amountInput.value='';
   const amountSection=document.getElementById('smartlog-amount-wrap');if(amountSection)amountSection.style.display='none';
+  const quickAmounts=document.getElementById('smartlog-quick-amounts');if(quickAmounts)quickAmounts.innerHTML='';
   updateSmartLogPreview();
 }
 
