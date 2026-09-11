@@ -10783,11 +10783,20 @@ function renderAchievements(){
       // crate, and the info button (now free to have a much bigger real
       // tap area since nothing below it competes for the same touch anymore).
       const tileOnclick=s.always?"viewDropInfo('"+tier+"')":'';
+      // Areviax is "always" shown (never bankable, see the comment on its
+      // states entry above) but was landing with neither .ready nor
+      // .locked — the CSS already has a dedicated ready-state float+aura
+      // for it (.compass-crate.areviax.ready), it just never actually
+      // got applied. Direct report: only the first three tiles were
+      // floating. .always tiles get the same "alive" treatment as a
+      // genuinely ready one; only a real locked tile (not yet earned)
+      // should look inert.
+      const animClass=(s.ready||s.always)?' ready':' locked';
       return `<div class="crate-slot${s.ready?'':' not-ready'}"${tileOnclick?` onclick="${tileOnclick}" style="cursor:pointer"`:''}>
         <span class="crate-info-btn" onclick="viewDropInfo('${tier}',event)">i</span>
-        <div class="crate-icon-wrap ${tier}${s.ready?' ready':s.always?'':' locked'}">
+        <div class="crate-icon-wrap ${tier}${animClass}">
           <div class="crate-icon-glow"></div><div class="crate-icon-burst"></div>
-          <div class="compass-crate ${tier}${s.ready?' ready':s.always?'':' locked'}"><span class="crate-icon">${crateIconHTML(tier)}</span></div>
+          <div class="compass-crate ${tier}${animClass}"><span class="crate-icon">${crateIconHTML(tier)}</span></div>
         </div>
         <div class="crate-slot-label">${s.label}</div>
         ${s.ready
@@ -12048,7 +12057,14 @@ function showLegendReveal(l,isNew,tier,count,keyWon,titleWon){
   const cfg=CRATE_OPEN_TIMING[tier]||CRATE_OPEN_TIMING.bronze;
   if(l.img){const _preload=new Image();_preload.src=l.img;}
   const xpAmount=isNew?25:10;
-  const multiSlot=tier!=='areviax';
+  // Areviax used to skip the whole slot sequence (a "single reveal" path
+  // that set the XP and rendered the trophy card in one shot, Continue
+  // button and all, before the mystery spin even played) — direct
+  // report: it "just loads straight in", no XP beat, no suspense. Every
+  // other tier already goes through the same slots array below just
+  // fine with no key/title slots most of the time (see keyWon/titleWon
+  // being false there), so there's nothing areviax-specific left to special-case.
+  const multiSlot=true;
 
   function trophySlotHTML(){
     // Opens on the "?" mystery badge, not the real icon — runMysteryReveal
@@ -12251,20 +12267,10 @@ function showLegendReveal(l,isNew,tier,count,keyWon,titleWon){
     },cfg.windupMs);
     setTimeout(()=>{
       // Stays on the full-screen .crate-reveal-stage look for the whole
-      // reward sequence now, not just the pre-open chest — every slot
-      // (Arete, Key, Title, the trophy itself) gets its own full-screen
-      // moment instead of shrinking down into a small boxed card once
-      // the chest actually cracks.
-      const modal=overlay.querySelector('.achievement-modal');
-      if(multiSlot){ showSlot(); return; }
-      // Gift from the Gods path — unchanged single reveal.
-      if(!modal)return;
-      modal.style.setProperty('--reveal-glow',RARITY_GLOW[l.rarity]);
-      modal.style.borderColor=RARITY_BORDER[l.rarity];
-      modal.classList.add('glow');
-      modal.innerHTML=trophySlotHTML()+'<button class="achievement-close-btn" onclick="closeCrateRevealAndShowcase(this,\''+l.key+'\','+isNew+')">Continue</button>';
-      addXP(xpAmount,isNew?'New trophy':'Areviax Crate');
-      runMysteryReveal(modal,l,isNew,cfg);
+      // reward sequence — every slot (Arete, Key, Title, the trophy
+      // itself) gets its own full-screen moment instead of shrinking
+      // down into a small boxed card once the chest actually cracks.
+      showSlot();
     },cfg.windupMs+cfg.crackMs);
   }
   wrap.addEventListener('click',onTap);
