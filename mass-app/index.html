@@ -6908,6 +6908,19 @@ body[data-goal-theme="cut"] .lv-page{
 
   <div class="profile-grid">
   <div>
+  <!-- AREVIAX HERO — one Level shared with Areviax OS, see heroLinkRender() -->
+  <div class="card lv-surface" style="margin-bottom:14px">
+    <div class="ch"><span class="ct">Areviax Hero</span></div>
+    <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:8px">
+      <div style="font-size:26px;font-weight:900;color:var(--green)" class="hero-link-level">Lv. 1</div>
+      <div style="font-size:11px;color:var(--muted)" class="hero-link-xp">0 combined XP</div>
+    </div>
+    <div style="height:6px;border-radius:3px;background:rgba(232,214,196,.08);overflow:hidden;margin-bottom:9px">
+      <div class="hero-link-fill" style="height:100%;border-radius:3px;width:0%;background:var(--green);transition:width .5s ease"></div>
+    </div>
+    <div style="font-size:10.5px;color:var(--muted);line-height:1.4">One Level, earned everywhere — this rises with Arete here <em>and</em> XP in Areviax OS. Level up and a Key is waiting in your crates.</div>
+  </div>
+
   <!-- CONSISTENCY HEATMAP -->
   <div class="card lv-surface" style="margin-bottom:14px">
     <div class="ch"><span class="ct">Consistency</span></div>
@@ -9719,6 +9732,7 @@ function renderProfile(){
   renderProfileTrophySummary();
   checkCloudBackup();
   renderInstallSection();
+  try{heroLinkRender();}catch(e){console.error('heroLinkRender:',e.message);}
 }
 // Trophy Cabinet summary card — a real preview of owned cards (not just
 // a bare link), reusing the exact .legend-card/.legend-card-icon markup
@@ -13713,6 +13727,54 @@ function addXP(n,l=''){
   try{checkStreakAtRisk();}catch(e){}
   try{renderXpBreakdown();}catch(e){}
   try{checkXpRoad();}catch(e){console.error('checkXpRoad:',e.message);}
+  try{heroLinkContribute(n);}catch(e){console.error('heroLinkContribute:',e.message);}
+}
+// ── AREVIAX HERO — a shared progression pool between Areviax Mass and
+// Areviax OS. Both apps are served from the same origin, so they already
+// share one localStorage — this just gives them one small key to both
+// read and write instead of only ever looking at their own. Neither app's
+// own economy (Arete/XP, crates, shards) changes at all; this purely adds
+// on top, so there's no risk to anything that already works. See the
+// matching block in areviax_os.html — same key, same level curve, same
+// shape, kept in sync by hand since the two apps don't share a JS file.
+const HERO_LINK_KEY='areviax_hero_v1';
+function heroLinkRead(){
+  try{const d=JSON.parse(localStorage.getItem(HERO_LINK_KEY));return(d&&typeof d.xp==='number')?d:{xp:0,grantedLevels:[]};}
+  catch(e){return{xp:0,grantedLevels:[]};}
+}
+function heroLinkLevel(x){return Math.floor(x/300)+1;}
+function heroLinkContribute(amount){
+  if(!amount)return;
+  const h=heroLinkRead();
+  const before=heroLinkLevel(h.xp);
+  h.xp+=amount;
+  localStorage.setItem(HERO_LINK_KEY,JSON.stringify(h));
+  heroLinkRender();
+  const after=heroLinkLevel(h.xp);
+  if(after>before)heroLinkGrant(after);
+}
+function heroLinkGrant(level){
+  const h=heroLinkRead();
+  if(h.grantedLevels.includes(level))return;
+  h.grantedLevels.push(level);
+  localStorage.setItem(HERO_LINK_KEY,JSON.stringify(h));
+  // Reward lands in whichever app is open when the level-up is noticed —
+  // there's no live channel between two static pages, so the other app
+  // just sees the new shared Level next time it's opened.
+  keyBank=(keyBank||0)+1;
+  try{saveToStorage();}catch(e){}
+  const keyCountEl=document.getElementById('key-bank-count');if(keyCountEl)keyCountEl.textContent=keyBank;
+  toast('🗝️',`Hero Level ${level} — +1 Key from your combined Mass + OS progress`,'xp');
+  try{renderAchievements();}catch(e){}
+}
+function heroLinkRender(){
+  const h=heroLinkRead();
+  const lvl=heroLinkLevel(h.xp);
+  const floor=(lvl-1)*300,ceil=lvl*300;
+  const pct=Math.min(100,Math.round((h.xp-floor)/(ceil-floor)*100));
+  document.querySelectorAll('.hero-link-level').forEach(el=>el.textContent='Lv. '+lvl);
+  document.querySelectorAll('.hero-link-xp').forEach(el=>el.textContent=h.xp+' combined XP');
+  document.querySelectorAll('.hero-link-fill').forEach(el=>el.style.width=pct+'%');
 }
 // ── Arete SOURCE BREAKDOWN — sums xpLog by label over a trailing 7-day
 // window, so "why did my Arete go up this week" has a real answer instead

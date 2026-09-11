@@ -2442,6 +2442,20 @@ input[type=checkbox]{accent-color:var(--orange);width:15px;height:15px;cursor:po
           </div>
         </div>
 
+        <!-- AREVIAX HERO — one Level shared with Areviax Mass, see heroLinkRender() -->
+        <div class="prog-card">
+          <div class="prog-card-title">Areviax Hero</div>
+          <div class="prog-level-row">
+            <div class="prog-level-icon">⭐</div>
+            <div class="prog-level-info">
+              <div class="prog-level-name hero-link-level">Lv. 1</div>
+              <div class="prog-level-xp hero-link-xp">0 combined XP</div>
+              <div class="prog-level-track"><div class="prog-level-fill hero-link-fill" style="width:0%"></div></div>
+            </div>
+          </div>
+          <div style="font-size:11px;color:var(--muted);margin-top:10px;line-height:1.4">One Level, earned everywhere — this rises with XP here <em>and</em> Arete in Areviax Mass. Level up and a streak freeze is waiting for you.</div>
+        </div>
+
         <div class="prog-card">
           <div class="prog-card-title">This Week — Tasks Completed</div>
           <div class="prog-week-bars" id="prog-week-bars"></div>
@@ -2861,6 +2875,54 @@ function addXP(amount, label='') {
   document.getElementById('xp-badge-val').textContent = xp + ' XP';
   updateLevel();
   showToast('⭐', `+${amount} XP${label?' · '+label:''}`);
+  try{ heroLinkContribute(amount); }catch(e){ console.error('heroLinkContribute:', e.message); }
+}
+// ── AREVIAX HERO — a shared progression pool between Areviax OS and
+// Areviax Mass. Both apps are served from the same origin, so they
+// already share one localStorage — this just gives them one small key to
+// both read and write instead of only ever looking at their own. Neither
+// app's own economy (XP, shards, streaks) changes at all; this purely
+// adds on top, so there's no risk to anything that already works. See
+// the matching block in areviax_mass_app.html — same key, same level
+// curve, same shape, kept in sync by hand since the two apps don't share
+// a JS file.
+const HERO_LINK_KEY = 'areviax_hero_v1';
+function heroLinkRead(){
+  try{ const d = JSON.parse(localStorage.getItem(HERO_LINK_KEY)); return (d && typeof d.xp === 'number') ? d : {xp:0, grantedLevels:[]}; }
+  catch(e){ return {xp:0, grantedLevels:[]}; }
+}
+function heroLinkLevel(x){ return Math.floor(x/300) + 1; }
+function heroLinkContribute(amount){
+  if(!amount) return;
+  const h = heroLinkRead();
+  const before = heroLinkLevel(h.xp);
+  h.xp += amount;
+  localStorage.setItem(HERO_LINK_KEY, JSON.stringify(h));
+  heroLinkRender();
+  const after = heroLinkLevel(h.xp);
+  if(after > before) heroLinkGrant(after);
+}
+function heroLinkGrant(level){
+  const h = heroLinkRead();
+  if(h.grantedLevels.includes(level)) return;
+  h.grantedLevels.push(level);
+  localStorage.setItem(HERO_LINK_KEY, JSON.stringify(h));
+  // Reward lands in whichever app is open when the level-up is noticed —
+  // there's no live channel between two static pages, so the other app
+  // just sees the new shared Level next time it's opened.
+  streakFreezes += 1;
+  try{ saveState(); }catch(e){}
+  try{ renderStreakFreezeUI(); }catch(e){}
+  showToast('❄️', `Hero Level ${level} — +1 streak freeze from your combined OS + Mass progress`);
+}
+function heroLinkRender(){
+  const h = heroLinkRead();
+  const lvl = heroLinkLevel(h.xp);
+  const floor = (lvl-1)*300, ceil = lvl*300;
+  const pct = Math.min(100, Math.round((h.xp-floor)/(ceil-floor)*100));
+  document.querySelectorAll('.hero-link-level').forEach(el=>el.textContent = 'Lv. '+lvl);
+  document.querySelectorAll('.hero-link-xp').forEach(el=>el.textContent = h.xp+' combined XP');
+  document.querySelectorAll('.hero-link-fill').forEach(el=>el.style.width = pct+'%');
 }
 
 function updateLevel(){
@@ -3262,6 +3324,7 @@ function renderProgressExpanded(){
     if(xpEl) xpEl.textContent = xp + ' XP · Max level reached';
     if(fillEl) fillEl.style.width = '100%';
   }
+  try{ heroLinkRender(); }catch(e){ console.error('heroLinkRender:', e.message); }
 
   // This Week — tasks completed per day, from dailyLog, oldest to newest
   const weekWrap = document.getElementById('prog-week-bars');
