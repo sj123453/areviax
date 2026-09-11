@@ -10732,17 +10732,19 @@ function crateIconHTML(tier){
 }
 // Real separate lid/base renders (see export_crate_lid_base.js) — the
 // scene's own articulated lidGroup captured in isolation, not the old
-// single sealed image sliced in half by CSS clip-path. Areviax has no
-// split art yet, so crackOutIconHTML() below falls back to the old
-// clip-path slice for that one tier only.
-const CRATE_BASE_IMG={
-  bronze:'images/icons/crate-bronze-base.png', silver:'images/icons/crate-silver-base.png',
-  gold:'images/icons/crate-gold-base.png', diamond:'images/icons/crate-diamond-base.png',
-};
-const CRATE_LID_IMG={
-  bronze:'images/icons/crate-bronze-lid.png', silver:'images/icons/crate-silver-lid.png',
-  gold:'images/icons/crate-gold-lid.png', diamond:'images/icons/crate-diamond-lid.png',
-};
+// single sealed image sliced in half by CSS clip-path. Turned out every
+// one of those exports had the SAME defect: the 3D scene's own crop
+// window cut the chest off partway down, below the strap — no amount of
+// recropping the PNG fixes that, since the missing geometry was never
+// rendered in the first place. CRATE_ICON_IMG's single flat renders (see
+// crateIconHTML above) don't have that problem — full chest, real ground
+// shadow — so every tier now goes through crackOutIconHTML()'s clip-path
+// fallback below (same technique Areviax already used, since it never
+// had split art at all) instead of these broken exports. Left empty
+// rather than deleted so real split art can drop back in later without
+// re-plumbing crackOutIconHTML.
+const CRATE_BASE_IMG={};
+const CRATE_LID_IMG={};
 function crackOutIconHTML(tier){
   if(CRATE_BASE_IMG[tier]&&CRATE_LID_IMG[tier]){
     return '<span class="crate-icon"><img src="'+CRATE_BASE_IMG[tier]+'" alt="'+tier+' crate" style="width:100%;height:100%;object-fit:contain"></span>'+
