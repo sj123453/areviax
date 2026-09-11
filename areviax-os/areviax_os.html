@@ -1784,7 +1784,7 @@ input[type=checkbox]{accent-color:var(--orange);width:15px;height:15px;cursor:po
           <div class="card">
             <div class="card-header"><span class="card-title">All Tasks</span><span class="card-action" id="clear-done-btn" onclick="clearDone()">Clear completed</span></div>
             <div id="all-tasks">
-              <div style="font-size:12px;color:var(--muted);text-align:center;padding:24px 0">No tasks yet today — add your first one above.</div>
+              <div class="tasks-empty-msg" style="font-size:12px;color:var(--muted);text-align:center;padding:24px 0">No tasks yet today — add your first one above.</div>
             </div>
           </div>
 
@@ -2942,6 +2942,39 @@ function renderDashTasks(){
   }).join('');
 }
 
+// Shows/hides the "No tasks yet today" placeholder to match reality —
+// #all-tasks starts with that message hardcoded in the static HTML, and
+// nothing ever cleared it back out except resurrectStyxTask() (which had
+// its own inline copy of this exact check). addTask() and
+// quickAddRouletteTask() both just appendChild()'d a real task straight
+// in without touching it, so the placeholder and a real task could (and
+// did — confirmed live) show at the same time; sendTaskToStyx() never
+// brought it back either, so clearing your last task left an empty list
+// with no message at all. One shared helper, called after every mutation
+// that can change whether #all-tasks is empty.
+function syncTasksEmptyState(){
+  const list=document.getElementById('all-tasks');
+  if(!list)return;
+  const hasTasks=!!list.querySelector('.task-item');
+  // .tasks-empty-msg, not a style-attribute substring match — the
+  // original code (resurrectStyxTask's own inline version of this same
+  // check) used querySelector('div[style*="No tasks yet"]'), which tests
+  // the STYLE ATTRIBUTE STRING, not the element's text — that attribute
+  // never contained "No tasks yet" (it's the textContent), so that
+  // selector could never actually match anything. Confirmed live: it
+  // silently found nothing on every call, so the placeholder was never
+  // really being removed by the "fix" that appeared to be there already.
+  const empty=list.querySelector('.tasks-empty-msg');
+  if(hasTasks){
+    if(empty)empty.remove();
+  }else if(!empty){
+    const msg=document.createElement('div');
+    msg.className='tasks-empty-msg';
+    msg.style.cssText='font-size:12px;color:var(--muted);text-align:center;padding:24px 0';
+    msg.textContent='No tasks yet today — add your first one above.';
+    list.appendChild(msg);
+  }
+}
 function addTask(){
   const text=document.getElementById('new-task-text').value.trim();
   if(!text) return;
@@ -2960,6 +2993,7 @@ function addTask(){
     <div class="subtask-list"></div>
     <span class="subtask-add-btn" onclick="event.stopPropagation();showSubtaskInput(this)">+ add a step</span>`;
   document.getElementById('all-tasks').appendChild(el);
+  syncTasksEmptyState();
   document.getElementById('new-task-text').value='';
   tasksTotal++; updateTaskStats();
   saveState();
@@ -3020,6 +3054,7 @@ function sendTaskToStyx(el,silent){
   styxArchive.unshift({id:'styx-'+Date.now()+Math.random().toString(36).slice(2,6), text, cat, pri, wasCompleted: el.classList.contains('done'), archivedDate: todayISO()});
   if(styxArchive.length>100) styxArchive = styxArchive.slice(0,100); // keep it a river, not a landfill
   el.remove();
+  syncTasksEmptyState();
   updateTaskStats();
   saveState();
   renderStyxArchive();
@@ -3041,10 +3076,8 @@ function resurrectStyxTask(id){
     <span onclick="event.stopPropagation();sendTaskToStyx(this.closest('.task-item'))" title="Send to the River Styx" style="margin-left:auto;color:var(--muted);cursor:pointer;font-size:13px;padding:2px 4px">🌊</span></div>
     <div class="subtask-list"></div>
     <span class="subtask-add-btn" onclick="event.stopPropagation();showSubtaskInput(this)">+ add a step</span>`;
-  const list = document.getElementById('all-tasks');
-  const empty = list?.querySelector('div[style*="No tasks yet"]');
-  if(empty) empty.remove();
-  list?.appendChild(el);
+  document.getElementById('all-tasks')?.appendChild(el);
+  syncTasksEmptyState();
   tasksTotal++; updateTaskStats();
   saveState();
   renderStyxArchive();
@@ -4206,6 +4239,7 @@ function quickAddRouletteTask(text, cat, pri){
     <div class="subtask-list"></div>
     <span class="subtask-add-btn" onclick="event.stopPropagation();showSubtaskInput(this)">+ add a step</span>`;
   document.getElementById('all-tasks').appendChild(el);
+  syncTasksEmptyState();
   tasksTotal++; updateTaskStats();
   saveState();
   showToast('🎡', text+' added to the wheel');
@@ -6581,6 +6615,13 @@ function restoreState(){
   if(!FIRST_VISIT){
     if(saved.tasksHTML !== undefined){
       const tEl=document.getElementById('all-tasks'); if(tEl) tEl.innerHTML = saved.tasksHTML;
+      // Defensive cleanup for saves made before syncTasksEmptyState()
+      // existed — addTask() used to appendChild a real task without ever
+      // clearing the "No tasks yet" placeholder first, so a save made
+      // while that bug was live could have baked both into tasksHTML
+      // together. This straightens that out on load rather than leaving
+      // it saved wrong forever.
+      syncTasksEmptyState();
     }
 
     if(saved.exercisesHTML !== undefined){
