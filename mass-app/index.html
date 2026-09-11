@@ -2109,7 +2109,16 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     /* Only shown when the player both has a crate of this tier banked
        AND enough Keys — never a required step, never visible otherwise,
        so it reads as a bonus shortcut, not a gate on opening anything. */
-    .crate-upgrade-btn{margin-top:5px;font-size:8.5px;font-weight:800;text-align:center;color:#C9D4DE;border:1px solid rgba(201,212,222,.35);border-radius:999px;padding:3px 6px;cursor:pointer;white-space:nowrap;transition:background .15s}
+    /* white-space:nowrap plus "🗝️ 8 → Diamond Crate" (the longest case,
+       gold→diamond) never fit inside a ~54px-wide crate-row tile on a
+       real phone — nowrap just let it spill out past the tile's own
+       rounded border instead of wrapping or shrinking. max-width caps it
+       to the tile regardless of parent padding, and removing nowrap lets
+       it wrap onto a second line rather than overflow. Border-radius
+       stays a full pill on the common single-line case (shortened label
+       below, see crateRow's own render call) and simply rounds less
+       dramatically if it ever does wrap. */
+    .crate-upgrade-btn{margin-top:5px;font-size:8.5px;font-weight:800;text-align:center;color:#C9D4DE;border:1px solid rgba(201,212,222,.35);border-radius:999px;padding:3px 6px;cursor:pointer;max-width:100%;box-sizing:border-box;line-height:1.3;transition:background .15s}
     .crate-upgrade-btn:active{background:rgba(201,212,222,.15)}
     .key-bank-badge{display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:800;color:rgba(var(--white-rgb),.7);background:rgba(232,214,196,.06);border:1px solid var(--border2);border-radius:999px;padding:3px 9px}
     .crate-row .compass-crate{width:54px;height:54px}
@@ -7921,6 +7930,15 @@ const SESSION_TYPE_MAJORS={
   'full':['chest','back','shoulders','biceps','triceps','quads','hamstrings','glutes','calves'],
   'arms':['biceps','triceps']
 };
+// Every split above except 'lower' (which has its own bespoke quad
+// guarantee — see the comment where it's applied) touches more than one
+// major muscle, so a short session's plain slice-off-the-top can just as
+// easily drop an entire muscle from Push (shoulders/triceps losing out to
+// chest) or Pull (biceps losing out to back) as it always could from
+// Upper Full — topUpMissingMuscles never assumed full-body scope, it was
+// just never wired up for these types. Direct report: "Push Upper 15
+// only includes chest."
+const MUSCLE_BALANCED_TYPES=['upper-push','upper-pull','upper-full','full','arms'];
 function getUnrecoveredMajorsForSlot(slot,readinessData){
   if(!slot||slot.type==='rest')return[];
   const MAJOR=['chest','back','shoulders','biceps','triceps','quads','hamstrings','glutes','calves'];
@@ -10803,7 +10821,10 @@ function renderAchievements(){
           ? `<button class="crate-open-btn" onclick="openCompassDrop('${tier}')">Open</button>`
           : `<div class="crate-slot-sub">${s.sub}</div>`}
         ${(s.ready&&KEY_UPGRADE_PATH[tier]&&keyBank>=KEY_UPGRADE_COST[tier])
-          ? `<div class="crate-upgrade-btn" onclick="event.stopPropagation();upgradeCrateWithKeys('${tier}')">🗝️ ${KEY_UPGRADE_COST[tier]} → ${CRATE_TIERS[KEY_UPGRADE_PATH[tier]].label}</div>`
+          // Just the tier name, not the full "Diamond Crate" label — this
+          // tile is already labelled "Bronze"/"Silver"/etc. above, and the
+          // full label was the longest-case overflow culprit on a phone.
+          ? `<div class="crate-upgrade-btn" onclick="event.stopPropagation();upgradeCrateWithKeys('${tier}')">🗝️ ${KEY_UPGRADE_COST[tier]} → ${KEY_UPGRADE_PATH[tier][0].toUpperCase()+KEY_UPGRADE_PATH[tier].slice(1)}</div>`
           : ''}
       </div>`;
     }).join('');
@@ -15796,7 +15817,7 @@ function moveExercise(index,direction){
   const filtered=allEx.filter(e=>equipOk(e));
   const timeVal=wbTime.value;
   const maxEx=maxExForTime(timeVal,filtered.length);
-  let exs=selectedMuscles.size>0 ? spreadBySelectedMuscle(filtered,maxEx) : (type==='upper-full'||type==='full') ? topUpMissingMuscles(spreadByMuscle(filtered,maxEx),filtered) : filtered.slice(0,maxEx);
+  let exs=selectedMuscles.size>0 ? spreadBySelectedMuscle(filtered,maxEx) : MUSCLE_BALANCED_TYPES.includes(type) ? topUpMissingMuscles(spreadByMuscle(filtered,maxEx),filtered) : filtered.slice(0,maxEx);
   exs=applyBeginnerSubs(exs);
   exs=applyCustomOrder(exs,type);
   const newIndex=index+direction;
@@ -16079,7 +16100,7 @@ function renderExercises(){
   // the auto-week generator) swaps back in whichever MAJOR muscle came up
   // empty, so a 30-min Upper Full still touches every major group at least
   // once instead of silently dropping back work.
-  let exs=(selectedMuscles.size>0&&!searchTerm) ? spreadBySelectedMuscle(filtered,maxEx) : ((type==='upper-full'||type==='full')&&!searchTerm) ? topUpMissingMuscles(spreadByMuscle(filtered,maxEx),filtered) : filtered.slice(0,maxEx);
+  let exs=(selectedMuscles.size>0&&!searchTerm) ? spreadBySelectedMuscle(filtered,maxEx) : (MUSCLE_BALANCED_TYPES.includes(type)&&!searchTerm) ? topUpMissingMuscles(spreadByMuscle(filtered,maxEx),filtered) : filtered.slice(0,maxEx);
   // 'lower' sessions don't get the full spread treatment above (deadlift/RDL variants
   // score too well on safety+synergy for a naive spread to actually rebalance them —
   // it ends up swapping "two hinge movements" for "glutes + calves", still no quad
@@ -16649,7 +16670,7 @@ function rerollWorkout(){
   // reroll, independent of the fix already applied there. Same guarantee,
   // same reason: spreadByMuscle's smallest-group-first bias still needs
   // topUpMissingMuscles backing it up once the slot count gets small.
-  const exs=applyBeginnerSubs((type==='upper-full'||type==='full')?topUpMissingMuscles(spreadByMuscle(pool,maxEx),pool):pool.slice(0,maxEx));
+  const exs=applyBeginnerSubs(MUSCLE_BALANCED_TYPES.includes(type)?topUpMissingMuscles(spreadByMuscle(pool,maxEx),pool):pool.slice(0,maxEx));
   const cont=document.getElementById('ex-list');
   if(!cont)return;
   cont.innerHTML=exs.map((e,i)=>`
