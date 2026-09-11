@@ -4432,10 +4432,14 @@ function renderPendingReminders(){
   });
   if(!pending.length){ card.style.display = 'none'; return; }
   card.style.display = '';
+  // Daily Digest carries no static notif text (see REMINDER_TYPES) — its
+  // real body is built fresh from today's actual tasks/schedule, same as
+  // the live notification in checkReminders(). Missing this case left the
+  // pending card showing a blank line for it once it fired.
   list.innerHTML = pending.map(r=>`
     <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
       <span style="font-size:16px">${r.icon}</span>
-      <span style="flex:1;font-size:12px;color:var(--white);line-height:1.4">${r.notif}</span>
+      <span style="flex:1;font-size:12px;color:var(--white);line-height:1.4">${r.id==='daily-digest'?buildDailyDigestBody():r.notif}</span>
       <button class="btn btn-sm" onclick="acknowledgeReminder('${r.id}')">Got it</button>
     </div>`).join('');
 }
