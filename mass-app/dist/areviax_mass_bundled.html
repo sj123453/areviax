@@ -19576,6 +19576,16 @@ function selectSmartLogFood(idx){
   updateSmartLogPreview();
 }
 
+// Cuts of meat/fish where "how big is it really" is a real, common
+// question — a school/canteen chicken breast can be visibly smaller than
+// whatever unitGrams assumes, and half of a wrong number is still wrong.
+// These get a size comparison (the standard "palm-sized portion" nutrition
+// heuristic, same 85g AMOUNT_WORDS already uses elsewhere) instead of a
+// flat fraction, since it's a check against the actual food in front of
+// someone rather than a multiple of a guessed "standard" weight. Doesn't
+// apply to a donut/muffin/cookie/egg/tin — nobody sizes those against
+// their palm, the ½/1/2 fraction is the natural read there instead.
+const PALM_SIZED_UNITS=['breast','thigh','fillet','steak','chop'];
 // Three real, tappable options instead of a blank field asking someone to
 // do maths — chosen per food type so they're actually the ones someone
 // would reach for, not just the first three AMOUNT_WORDS entries. Every
@@ -19583,6 +19593,11 @@ function selectSmartLogFood(idx){
 // the exact same gram figure typing it would have.
 function smartLogQuickAmountsHTML(food){
   const chip=(label,sub,value)=>'<button type="button" class="smartlog-quick-chip" onclick="setSmartLogAmount(\''+String(value).replace(/'/g,"\\'")+'\')">'+label+'<span>'+sub+'</span></button>';
+  if(food.unitName&&PALM_SIZED_UNITS.includes(food.unitName)){
+    return chip('Small','palm · 85g','palm')+
+           chip('1 '+food.unitName,food.unitGrams+'g','1')+
+           chip('2 '+food.unitName+'s',(food.unitGrams*2)+'g','2');
+  }
   if(food.unitName){
     const u=food.unitName;
     return chip('½ '+u,Math.round(food.unitGrams/2)+'g','half')+
