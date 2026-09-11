@@ -2467,16 +2467,15 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .compass-crate .crate-icon.crate-lid-layer{animation:none}
     .compass-crate.crack-out .crate-icon.crate-lid-layer{animation:crateLidOpenFly .4s cubic-bezier(.34,1.4,.64,1) forwards}
     /* ── FULL-SCREEN CRATE STAGE — Brawl-Stars-style: the box-opening
-       beat now takes over the entire viewport instead of sitting in the
+       beat takes over the entire viewport instead of sitting in the
        normal small boxed modal card, with a much bigger chest and a
-       real multi-tap charge-up before it cracks. .crate-reveal-stage is
-       stripped back off the modal element (see showLegendReveal) the
-       moment the reward slots start rendering, so this only ever
-       applies to the pre-open beat — everything after reverts to the
-       normal compact card look, counter badge included. Two classes on
-       one selector (.achievement-modal.crate-reveal-stage) so this
-       reliably beats the base .achievement-modal card rule regardless
-       of source order. */
+       real multi-tap charge-up before it cracks, and STAYS on this
+       full-screen stage for the whole reward sequence (Arete/Key/
+       Title/trophy) — showLegendReveal never strips this class back
+       off mid-sequence (a "flatten before or after" pass would find no
+       .classList.remove('crate-reveal-stage') call anywhere to it, on
+       purpose). Two classes on one selector so this reliably beats the
+       base .achievement-modal card rule regardless of source order. */
     .achievement-modal.crate-reveal-stage{
       position:fixed;inset:0;width:100vw;height:100dvh;max-width:none;
       display:flex;flex-direction:column;align-items:center;justify-content:center;
@@ -2484,42 +2483,70 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
                  linear-gradient(180deg,#0c0a08 0%,#050403 100%);
       border:none;border-radius:0;padding:0 24px;box-shadow:none;
     }
-    .crate-reveal-stage .compass-crate{width:190px;height:190px;margin:0 auto 26px}
-    .crate-reveal-stage .compass-crate .crate-icon svg{width:92px;height:92px}
+    /* Sizes below were flat pixel values tuned for a ~400px-wide phone —
+       looked "cut off"/small on anything wider (a tablet, a desktop
+       browser window) since the content never grew past that same fixed
+       size, just sat lost in the middle of a much bigger dark screen.
+       clamp() lets every piece scale up with the viewport (via vw) but
+       caps out at a sane max so it doesn't get absurd on an actual
+       monitor — direct report: "all the crates are glitched... they
+       aren't full screen they are cut off." The background/overlay was
+       always genuinely full-screen; only the content inside it wasn't
+       scaling to match. */
+    .crate-reveal-stage .compass-crate{width:clamp(190px,38vw,320px);height:clamp(190px,38vw,320px);margin:0 auto 26px}
+    .crate-reveal-stage .compass-crate .crate-icon svg{width:clamp(92px,18vw,150px);height:clamp(92px,18vw,150px)}
     /* The ambient ray-burst ring (96px by default) needs to scale up to
        match the much bigger chest, or it reads as a small ring floating
        inside a big icon instead of framing it. */
-    .crate-reveal-stage .crate-icon-burst{width:280px;height:280px}
+    .crate-reveal-stage .crate-icon-burst{width:clamp(280px,52vw,460px);height:clamp(280px,52vw,460px)}
     .crate-reveal-stage .crate-tap-prompt{font-size:14px;letter-spacing:.18em;margin-top:30px}
-    /* The whole reward sequence (Arete/Key/Title/trophy) now stays on
-       this full-screen stage instead of dropping into the small boxed
-       card once the chest cracks — every slot's own content needs to
-       scale up to match, or it reads as the same small card just
-       floating on a bigger background. */
-    .crate-reveal-stage .crate-xp-slot-icon{width:120px;height:120px;font-size:56px}
-    .crate-reveal-stage .crate-xp-slot-label{font-size:34px}
+    /* The whole reward sequence (Arete/Key/Title/trophy) stays on this
+       full-screen stage instead of dropping into the small boxed card
+       once the chest cracks — every slot's own content scales up to
+       match (see clamp() note above), or it reads as the same small
+       card just floating on a bigger background. */
+    .crate-reveal-stage .crate-xp-slot-icon{width:clamp(120px,22vw,190px);height:clamp(120px,22vw,190px);font-size:clamp(56px,10vw,88px)}
+    .crate-reveal-stage .crate-xp-slot-label{font-size:clamp(34px,6vw,52px)}
     .crate-reveal-stage .crate-xp-slot-sub{font-size:13px;letter-spacing:.16em}
     .crate-reveal-stage .legend-reveal-rarity{font-size:24px}
     .crate-reveal-stage .legend-reveal-rarity.rarity-ultralegendary{font-size:21px}
-    .crate-reveal-stage .reveal-badge-wrap{width:150px;margin-bottom:20px}
+    .crate-reveal-stage .reveal-badge-wrap{width:clamp(150px,28vw,240px);margin-bottom:20px}
     .crate-reveal-stage .legend-reveal-icon,
-    .crate-reveal-stage .legend-mystery-icon{width:150px;height:150px}
-    .crate-reveal-stage .legend-reveal-icon img{width:76px;height:76px}
-    .crate-reveal-stage .legend-mystery-icon .mystery-q{font-size:68px}
-    .crate-reveal-stage .reveal-ray-burst{width:420px;height:420px}
+    .crate-reveal-stage .legend-mystery-icon{width:clamp(150px,28vw,240px);height:clamp(150px,28vw,240px)}
+    .crate-reveal-stage .legend-reveal-icon img{width:clamp(76px,14vw,120px);height:clamp(76px,14vw,120px)}
+    .crate-reveal-stage .legend-mystery-icon .mystery-q{font-size:clamp(68px,12vw,100px)}
+    .crate-reveal-stage .reveal-ray-burst{width:clamp(420px,60vw,620px);height:clamp(420px,60vw,620px)}
     .crate-reveal-stage .achievement-title{font-size:28px}
     .crate-reveal-stage .achievement-desc{font-size:15px;max-width:320px;margin-left:auto;margin-right:auto}
     .crate-reveal-stage .achievement-close-btn{max-width:280px;margin:0 auto;padding:14px;font-size:14px}
-    /* Pulled onto the crate itself, not the screen edge — this badge
-       lives inside #reveal-crate-wrap (position:relative, sized to the
-       crate icon), so top/right were always relative to the CRATE, not
-       the viewport. But env(safe-area-inset-top)+14px still landed it
-       right at the icon's extreme corner, half hanging off into the
-       ray-burst's empty space rather than reading as attached to the
-       box — direct feedback ("keep the flashing number closer, not all
-       the way in the corner"). No safe-area logic needed either; this
-       element was never actually screen-edge-anchored. */
-    .crate-reveal-stage .crate-slot-counter{top:22px;right:18px}
+    /* Anchored to the centre of the SCREEN, not a corner — on the
+       sealed crate the badge lives inside #reveal-crate-wrap (a small
+       box sized to the crate icon, position:relative), so a corner
+       offset naturally landed near the crate. But once a slot renders,
+       this badge is a direct child of the full-screen modal itself —
+       "top:22px;right:18px" there meant 22/18px from the actual screen
+       edge, nowhere near the centred content, worse the wider the
+       viewport (confirmed live: a desktop-width screenshot showed it
+       stranded in the literal corner, far from a centred reveal badge).
+       Centring the anchor point and pushing out from there tracks the
+       centred content regardless of viewport size instead of the
+       screen's own corner.
+       Both rules below need .achievement-modal on the selector, not
+       just .crate-reveal-stage — the plain 2-class version tied in
+       specificity with .achievement-modal>.crate-slot-counter further
+       down (also 2 classes) and LOST on source order (that rule comes
+       later), so top/right were silently reverting to that rule's 8px/
+       8px — with left ALSO set here, the badge stretched into a giant
+       box spanning from 50% to 8px-from-the-right instead of staying
+       badge-sized. Confirmed via a live getBoundingClientRect() check
+       (696px wide, not ~32px) before adding the extra specificity. */
+    .achievement-modal.crate-reveal-stage .crate-slot-counter{
+      top:50%;right:auto;left:50%;
+      transform:translate(calc(-50% + 78px),calc(-50% - 96px));
+    }
+    .achievement-modal.crate-reveal-stage #reveal-crate-wrap .crate-slot-counter{
+      top:22px;left:auto;right:18px;transform:none;
+    }
     /* Tap feedback — a quick punchy kick right on the tap (distinct from
        crateWindup's own single wind-up-then-hold shake in explode(),
        which plays right after this). */
@@ -11119,59 +11146,29 @@ function legendRarityJewelHTML(rarity){
   return `<div class="legend-card-rarity-jewel" style="background:radial-gradient(circle at 32% 28%,#fff,${c} 50%,${c});box-shadow:inset 0 -1px 1px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.5),0 0 5px 0 ${c}"></div>`;
 }
 
-// \u2500\u2500 TROPHY CABINET \u2014 the full 7-layer collection plan, in
-// descending-rarity display order (peak trophy is its own hero block
-// above this list, not row 1 here). Layer 1 (Equipment) is the only
-// layer with real content right now, so it points at the actual
-// common-tier LEGEND_CARDS entries; Layers 2-7 are correctly
-// labelled/counted locked shelves until that art exists \u2014 wiring in
-// each new layer later is adding an `items` array here, nothing else.
-// A story of ascension told top-to-bottom on the page \u2014 the peak slot
-// (Areviax, 1-of-1) sits above this array already, and every layer here
-// keeps that same taper going: 2, 4, 6, 8, 10, 12, a real pyramid rather
-// than the old arbitrary per-rarity counts. Every layer now has real
-// content sized to exactly fill its slot (no "coming soon" filler),
-// picked by explicit key list rather than a straight rarity filter
-// since a shelf like "Gold \u2014 Divine Relics" deliberately mixes minor-god
-// legendary cards with divine-named common relics. Talos, Ares' Fire and
-// Demeter's Harvest don't fit any shelf's theme and are left unassigned
-// rather than forced somewhere they don't belong.
+// \u2500\u2500 TROPHY CABINET \u2014 one row per rarity tier, descending (peak trophy
+// is its own hero block above this list, not row 1 here). Used to be
+// split into 9 separate themed shelves (legendary alone had 4: "Apex +
+// Titan", "Diamond \u2014 Legendary Relics", "Gold \u2014 Divine Relics", and
+// "Heroic Path") \u2014 direct report: "there are 2 more [rows] than the 6
+// descending rarity tiers... too many rows, doesn't align with the
+// rarity thing." Collapsed to exactly one shelf per real rarity
+// (legendary/mythic/epic/superrare/rare/common \u2014 ultralegendary is the
+// standalone peak slot above this array, never a row here), each
+// showing every card of that rarity via a straight filter instead of a
+// hand-picked key list. That straight filter also caught 4 cards the
+// old hand-picked lists had silently dropped and never shown anywhere
+// in the Cabinet: cutler (Talos, the Bronze Guardian \u2014 legendary), and
+// relic_amphora/relic_wreath/relic_medallion (common) \u2014 found by diffing
+// LEGEND_CARDS against every old shelf's item list.
 const TROPHY_LAYERS=[
-  {rarity:'legendary', label:'Apex + Titan',                sub:'Beyond legendary.',                                            count:2,  items:LEGEND_CARDS.filter(l=>['coleman','goggins'].includes(l.key))},
-  {rarity:'legendary', label:'Diamond \u2014 Legendary Relics',  sub:'You\u2019ve reached the highest level of ordinary achievement.', count:4,  items:LEGEND_CARDS.filter(l=>['diamond_olympian','diamond_physique','diamond_unbreakable','diamond_victor'].includes(l.key))},
-  // Only 18 legendary cards exist total, all already spoken for by the
-  // other 3 legendary shelves (2+4+10=16) plus this one's real 2
-  // (diamond_universe/diamond_dream) \u2014 no spares left to fill this out
-  // to 6. This shelf now only claims the 2 cards that are actually
-  // legendary \u2014 see the Sacred Relics shelf below for where the other 4
-  // ("divine" relics, previously padded in here as common) ended up.
-  {rarity:'legendary', label:'Gold \u2014 Divine Relics',        sub:'You begin entering the realm of the gods.',                    count:2,  items:LEGEND_CARDS.filter(l=>['diamond_universe','diamond_dream'].includes(l.key))},
-  // Caduceus/trident/cornucopia/the sphere used to be rarity:'common',
-  // padded into the Gold shelf above on a thematic ("divine") read \u2014
-  // that predates every card carrying its own true-rarity jewel
-  // (legendRarityJewelHTML), and once it did, a "Gold" shelf showing
-  // four grey jewels beside two gold ones read as visibly wrong.
-  // Superrare had zero real cards at all (odds were zeroed out
-  // everywhere rather than left to crash on an empty pool \u2014 see
-  // CRATE_TIERS) \u2014 these 4 are a natural fit for it: already real
-  // trophy art, thematically "belongs to a god" reads as more than
-  // common, and it's the one tier this fills honestly without waiting
-  // on new Higgsfield art. Promoted rarity:'common'\u2192'superrare' on the
-  // LEGEND_CARDS entries themselves; CRATE_TIERS odds restored to match
-  // below so these are actually obtainable again, not just reachable
-  // via this cabinet's pre-existing/dev-granted state.
-  {rarity:'superrare', label:'Sacred Relics',               sub:'Favoured by the gods, not yet legend.',                        count:4,  items:LEGEND_CARDS.filter(l=>['relic_caduceus','relic_trident','relic_cornucopia','ball'].includes(l.key))},
-  {rarity:'rare',      label:'Mythic Trials',               sub:'The trials that test whether you\u2019re ready to become a hero.', count:8,  items:LEGEND_CARDS.filter(l=>['aura_breakthrough','aura_patience','aura_heart','aura_summit','aura_strategy','aura_focus','aura_resilience','aura_mind'].includes(l.key))},
-  // Epic and Mythic were 0% everywhere in CRATE_TIERS for the same
-  // reason superrare was \u2014 zero real cards, so any odds there were a
-  // guaranteed empty-pool crash. Promoted 2 heroes each out of Heroic
-  // Path (which had 10 \u2014 plenty to spare) rather than wait on new art;
-  // Heroic Path below keeps the other 6 and its count dropped to match.
-  {rarity:'epic',      label:'Trial by Riddle',             sub:'Not every test is a monster.',                                 count:2,  items:LEGEND_CARDS.filter(l=>['hero_cadmus','hero_oedipus'].includes(l.key))},
-  {rarity:'mythic',    label:'Beyond the Underworld',       sub:'Where even heroes rarely return from.',                        count:2,  items:LEGEND_CARDS.filter(l=>['hero_bellerophon','hero_orpheus'].includes(l.key))},
-  {rarity:'legendary', label:'Heroic Path',                 sub:'You prove that you\u2019re worthy of becoming a hero.',         count:6,  items:LEGEND_CARDS.filter(l=>['arnold','hero_odysseus','hero_perseus','hero_theseus','hero_jason','hero_atalanta'].includes(l.key))},
-  {rarity:'common',    label:'Bronze \u2014 Mortal Foundations', sub:'You begin your journey.',                                      count:12, items:LEGEND_CARDS.filter(l=>['dumbbell','kettlebell','plate','jumprope','stopwatch','shaker','straps','abwheel','battlerope','towel','liftingbelt','gloves'].includes(l.key))},
-];
+  {rarity:'legendary', label:'Legendary',  sub:'The pinnacle \u2014 beyond this, only one thing.',            items:LEGEND_CARDS.filter(l=>l.rarity==='legendary')},
+  {rarity:'mythic',    label:'Mythic',     sub:'Where even heroes rarely return from.',                  items:LEGEND_CARDS.filter(l=>l.rarity==='mythic')},
+  {rarity:'epic',      label:'Epic',       sub:'Not every test is a monster.',                           items:LEGEND_CARDS.filter(l=>l.rarity==='epic')},
+  {rarity:'superrare', label:'Superrare',  sub:'Favoured by the gods, not yet legend.',                  items:LEGEND_CARDS.filter(l=>l.rarity==='superrare')},
+  {rarity:'rare',      label:'Rare',       sub:'The trials that test whether you\u2019re ready to become a hero.', items:LEGEND_CARDS.filter(l=>l.rarity==='rare')},
+  {rarity:'common',    label:'Common',     sub:'You begin your journey.',                                items:LEGEND_CARDS.filter(l=>l.rarity==='common')},
+].map(layer=>({...layer,count:layer.items.length}));
 function viewCabinetLocked(label){
   toast('\ud83d\udd12',label+' \u2014 coming soon.');
 }
@@ -12144,13 +12141,16 @@ function showLegendReveal(l,isNew,tier,count,keyWon,titleWon){
       modal.classList.remove('glow');
       modal.style.borderColor='';
     }
-    // Counter now renders on every slot including the last one — it used
-    // to vanish entirely on the trophy slot instead of ever showing "1",
-    // which is exactly the "shows 3 but I only see 2" report: the count
-    // silently disappeared one reveal before the sequence actually
-    // ended, instead of ticking all the way down to 1 like an honest
-    // running total should.
-    modal.innerHTML=counterBadgeHTML(slots.length-slotIdx)+slot.render()+
+    // Counter means "how many MORE reveals are coming after this one" —
+    // not "how many total including the one on screen right now". Direct
+    // correction: it should show 1 when there's genuinely one more still
+    // coming, not on the very last reveal where nothing follows (that
+    // read as a lie — "1" implies something's still coming). So this
+    // counts down 2,1 across a 2-slot pull's first slot then second, and
+    // simply doesn't render at all on the last slot (0 more to go) —
+    // same as showing nothing rather than a pointless "0".
+    const moreAfterThis=slots.length-1-slotIdx;
+    modal.innerHTML=(moreAfterThis>0?counterBadgeHTML(moreAfterThis):'')+slot.render()+
       (isLast
         ? '<button class="achievement-close-btn" onclick="closeCrateRevealAndShowcase(this,\''+l.key+'\','+isNew+')">Continue</button>'
         : '<div class="crate-tap-prompt" style="margin-top:16px" onclick="this.closest(\'.achievement-modal\').dispatchEvent(new Event(\'advance\'))">Tap to continue</div>');
