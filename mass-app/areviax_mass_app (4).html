@@ -1639,6 +1639,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .sc-stat-icon{display:block;width:20px;height:20px;margin:0 auto 6px;object-fit:contain}
     .sc-stat-val{font-size:15px;font-weight:900;color:#fff;letter-spacing:-.01em}
     .sc-stat-lbl{font-size:8px;font-weight:800;letter-spacing:.14em;color:rgba(var(--white-rgb),.42);margin-top:2px}
+    #quote-context:not(:empty)::before{content:"· "}
 
     /* Compass pulse — fires once when a new shard is freshly earned */
     @keyframes compassPulse{
@@ -4501,6 +4502,19 @@ body[data-goal-theme="cut"] .lv-page{
 
   <main class="lv-hero-main" style="margin-top:12px;display:flex;flex-direction:column;gap:12px">
 
+    <!-- COACH SAM — was a hidden JS-only anchor (setCompanionMessage() wrote
+         real streak-stage copy into it, but nothing ever showed it). Same
+         content, same function, now with an actual face on it and a real
+         spot on the page — first thing under the hero, so it reads as
+         someone greeting you, not a stat widget. -->
+    <section class="lv-surface" id="daily-companion" style="padding:14px 16px;display:flex;gap:12px;align-items:center">
+      <img src="images/icons/coach-sam-portrait.png" alt="Coach Sam" style="width:50px;height:50px;border-radius:50%;object-fit:cover;object-position:50% 42%;flex-shrink:0;border:2px solid rgba(227,191,118,.55)">
+      <div style="min-width:0">
+        <div style="font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--lv-gold);margin-bottom:3px">Coach Sam <span id="quote-context" style="color:var(--lv-muted-fg);font-weight:700;text-transform:none;letter-spacing:0"></span></div>
+        <div id="companion-text" style="font-size:12.5px;line-height:1.5;color:var(--lv-fg)"></div>
+      </div>
+    </section>
+
     <!-- volume + trend -->
     <section class="lv-surface" style="padding:20px">
       <div>
@@ -4646,7 +4660,7 @@ body[data-goal-theme="cut"] .lv-page{
   <!-- HIDDEN ANCHORS — JS needs these IDs to exist, nothing renders. -->
   <div style="display:none">
     <div id="rank-badge"></div>
-    <div id="daily-companion"><div id="companion-text"></div><div id="quote-author"></div><div id="quote-context"></div></div>
+    <div id="quote-author"></div>
     <div id="quest-list"></div>
     <div class="statue-figure"><div class="statue-metal-base"></div><div class="statue-metal-fill" id="statue-fill"></div></div>
     <div id="plaque-name"></div><div id="plaque-rank"></div><div id="tier-progress"></div>
@@ -7479,7 +7493,7 @@ body[data-goal-theme="cut"] .lv-page{
        Same real-Notification mechanics and same honesty about needing
        a tab open as Shield above — see toggleCoachNotifs(). -->
   <div class="card lv-surface" style="margin-bottom:14px">
-    <div class="ch"><span class="ct" style="display:flex;align-items:center;gap:8px"><img src="images/icons/coach-sam.png" alt="" style="width:20px;height:20px;border-radius:50%;flex-shrink:0">Coach Sam</span></div>
+    <div class="ch"><span class="ct" style="display:flex;align-items:center;gap:8px"><img src="images/icons/coach-sam-portrait.png" alt="" style="width:22px;height:22px;border-radius:50%;object-fit:cover;object-position:50% 42%;flex-shrink:0">Coach Sam</span></div>
     <div style="display:flex;align-items:center;justify-content:space-between">
       <label class="lbl" style="margin:0">Daily nudges</label>
       <button type="button" id="coach-notif-toggle" class="equip-chip" onclick="toggleCoachNotifs()" style="padding:3px 10px;font-size:10px">🔕 Off</button>
