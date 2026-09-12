@@ -193,7 +193,9 @@ input,input:focus,input:active,
 
 /* PAGES */
 .page{display:none;flex-direction:column;gap:14px;width:100%;max-width:760px;margin:0 auto}
-.page.active{display:flex;opacity:1}
+.page.active{display:flex;opacity:1;animation:pageIn .34s cubic-bezier(.22,1,.36,1)}
+@keyframes pageIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@media (prefers-reduced-motion: reduce){.page.active{animation:none}}
 /* page transition: instant, no animation — avoids cross-element animation-restart bugs */
 
 /* GRIDS — minmax(0,1fr) alone isn't enough to stop a track growing to fit
@@ -5460,7 +5462,7 @@ body[data-goal-theme="cut"] .lv-page{
       </div>
       <p class="lv-label-eyebrow" style="color:var(--lv-primary)">Total volume · <span id="prog-hero-range-label">12W</span></p>
       <h1 class="lv-display-hero" style="margin-top:8px;color:var(--lv-fg)"><span id="prog-hero-num">0</span><span class="lv-serif-accent lv-gold-text" style="font-size:.7em">t</span></h1>
-      <div style="margin-top:10px;display:flex;align-items:center;gap:10px;font-family:var(--lv-mono);font-size:11px;color:var(--lv-muted-fg)" id="prog-hero-trend">Log a session to start tracking volume.</div>
+      <div style="margin-top:10px;display:flex;align-items:center;gap:10px;font-family:var(--lv-mono);font-size:11px;color:var(--lv-muted-fg)" id="prog-hero-trend">Your first set writes the first line here.</div>
       <div class="lv-rail-track" style="margin-top:12px;height:6px"><div class="lv-rail-fill" id="prog-hero-fill" style="width:0%;background:var(--lv-primary)"></div></div>
       <div style="display:flex;gap:8px;margin-top:18px" id="prog-hero-range-pills">
         <div class="prog-range-pill" data-weeks="4" onclick="setProgressRange(4)" style="flex:1;text-align:center;padding:9px;border-radius:.75rem;border:1.5px solid var(--lv-border);font-family:var(--lv-sans);font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--lv-muted-fg);cursor:pointer">4W</div>
@@ -14336,7 +14338,7 @@ function renderProgressHero(){
   if(wmEl)wmEl.textContent=progressRangeWeeks===52?'1':String(progressRangeWeeks);
   if(!tonnageLog.length){
     numEl.textContent='0';
-    if(trendEl)trendEl.textContent='Log a session to start tracking volume.';
+    if(trendEl)trendEl.textContent='Your first set writes the first line here.';
     if(fillEl)fillEl.style.width='0%';
     return;
   }
@@ -14397,7 +14399,7 @@ function renderProgressRecords(){
   const hitItems=PROG_PR_LIFTS.filter(p=>prs[p.k]);
   if(countEl)countEl.textContent=hitItems.length+' tracked';
   if(!hitItems.length){
-    listEl.innerHTML='<div style="padding:16px 0;font-size:12px;color:var(--muted)">Log a session to start setting records.</div>';
+    listEl.innerHTML='<div style="padding:16px 0;font-size:12px;color:var(--muted)">One hard set away from your first record.</div>';
     return;
   }
   listEl.innerHTML=hitItems.map((p,i)=>{
