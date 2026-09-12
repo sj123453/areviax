@@ -17434,6 +17434,13 @@ function buildSession(){
     const sug=suggestNextWeight(e);
     const plateau=detectPlateau(e.name);
     const saved=liveSessionProgress[e.name]&&liveSessionProgress[e.name].date===localDateKey(new Date())?liveSessionProgress[e.name]:null;
+    // Pre-fill weight/reps from last time instead of just showing them as a
+    // greyed-out placeholder — logging a repeat set becomes "check it, hit
+    // log", not "remember your numbers, type them in again from scratch"
+    // (the friction Strong/Hevy avoid by prefilling). Only kicks in when
+    // there's nothing live from THIS session yet; a real number always wins.
+    const prefillWeight=saved?saved.weight:(sug?sug.weight:'');
+    const prefillReps=saved?saved.reps:(lastPerformance[e.name]?lastPerformance[e.name].reps:'');
     // sug.weight is an assist-machine PIN number here, not a real load —
     // a 40/60/80% ramp off that number doesn't mean anything physically,
     // so assist exercises skip the warm-up ramp entirely.
@@ -17453,8 +17460,8 @@ function buildSession(){
       </div>
       <div class="ex-skipped-tag" id="skip-tag-${i}">Skipped — counts toward your compass point</div>
       <div style="display:flex;gap:8px;margin-bottom:7px">
-        <div style="flex:1"><label class="lbl" style="margin-top:0">${weightInputLabel(e)}</label><input type="number" id="sw-${i}" style="padding:7px 9px" placeholder="${sug?sug.weight:'kg'}" value="${saved?saved.weight:''}"></div>
-        <div style="flex:1"><label class="lbl" style="margin-top:0">Reps</label><input type="number" id="sr-${i}" style="padding:7px 9px" placeholder="${e.reps.split('–')[0]}" value="${saved?saved.reps:''}"></div>
+        <div style="flex:1"><label class="lbl" style="margin-top:0">${weightInputLabel(e)}</label><input type="number" id="sw-${i}" style="padding:7px 9px" placeholder="${sug?sug.weight:'kg'}" value="${prefillWeight}"></div>
+        <div style="flex:1"><label class="lbl" style="margin-top:0">Reps</label><input type="number" id="sr-${i}" style="padding:7px 9px" placeholder="${e.reps.split('–')[0]}" value="${prefillReps}"></div>
       </div>
       ${sug?`<div style="font-size:10px;color:rgba(243,103,23,.7);margin:-2px 0 9px;line-height:1.4">📈 ${sug.note}</div>`:''}
       ${plateau?`<div style="font-size:10px;color:#FF6F6F;background:rgba(255,90,90,.08);border:1px solid rgba(255,90,90,.2);border-radius:6px;padding:6px 9px;margin:-2px 0 9px;line-height:1.4">🎯 ${plateau.note}</div>`:''}
