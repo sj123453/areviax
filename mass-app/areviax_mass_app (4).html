@@ -3411,6 +3411,18 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .smartlog-result:last-child{border-bottom:none}
     .smartlog-result span{font-size:10px;color:var(--muted);font-family:'JetBrains Mono',monospace}
     .smartlog-noresult{padding:12px;font-size:11px;color:var(--muted);line-height:1.5}
+    /* RECENTLY LOGGED — the fastest re-log for the food you eat over and
+       over is not having to type it again. Tracked from real logSmartFood()
+       calls (see recentFoodIdxs), shown above the search box when it's
+       empty so re-logging yesterday's breakfast is one tap, not a retype. */
+    .smartlog-recent-label{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+    .smartlog-recent{display:flex;gap:6px;flex-wrap:wrap}
+    .smartlog-recent-chip{
+      background:rgba(232,214,196,.04);border:1.5px solid var(--border2);border-radius:999px;
+      padding:7px 13px;font-family:'Outfit',sans-serif;font-size:11.5px;font-weight:700;
+      color:rgba(var(--white-rgb),.85);cursor:pointer;transition:background .15s,border-color .15s;
+    }
+    .smartlog-recent-chip:active{background:rgba(243,103,23,.15);border-color:rgba(243,103,23,.4)}
     .smartlog-hint{font-size:10px;color:var(--muted);margin-top:6px;line-height:1.5}
     .smartlog-empty{font-size:11.5px;color:var(--muted);text-align:center;padding:14px 0}
     /* A blank "type a portion" field asks someone to do maths before they've
@@ -5259,6 +5271,10 @@ body[data-goal-theme="cut"] .lv-page{
 
     <div id="nt-panel-smart">
       <div style="font-size:11.5px;color:rgba(var(--white-rgb),.5);margin-bottom:12px;line-height:1.55">Describe what you ate — we'll estimate the macros.</div>
+      <div id="smartlog-recent-wrap" style="display:none;margin-bottom:12px">
+        <div class="smartlog-recent-label">Recently logged</div>
+        <div class="smartlog-recent" id="smartlog-recent"></div>
+      </div>
       <div style="position:relative">
         <input type="text" id="smartlog-search" placeholder="e.g. chicken breast, rice, peanut butter..." oninput="renderSmartLogSearch(this.value)" autocomplete="off">
         <div id="smartlog-results" class="smartlog-results" style="display:none"></div>
@@ -15367,6 +15383,7 @@ function initApp(){
   }
   const dcb=document.getElementById('d-cals-brief');if(dcb)dcb.textContent=formatCompactK(dayMacros.cals||0);
   const dct=document.getElementById('d-cals-target');if(dct)dct.textContent='/'+formatCompactK(profile.cals||0);
+  try{renderSmartLogRecent();}catch(e){}
   const dcfill=document.getElementById('d-cals-fill');if(dcfill){const p=Math.min(1,profile.cals?(dayMacros.cals||0)/profile.cals:0);dcfill.style.width=(p*100).toFixed(1)+'%';}
   const dpb=document.getElementById('d-protein-brief');if(dpb)dpb.textContent=Math.round((dayMacros.prot||0)*10)/10;
   renderDashNutritionPulse();
@@ -16194,6 +16211,7 @@ function switchNutTab(tab,el){
     btn.style.background=t===tab?'rgba(142,142,147,.12)':'transparent';
     btn.style.color=t===tab?'rgba(142,142,147,.95)':'rgba(var(--white-rgb),.4)';
   });
+  if(tab==='smart')renderSmartLogRecent();
 }
 
 // ── MEAL PLAN GENERATOR ──
@@ -19497,16 +19515,35 @@ function claimFeederQuest(date){
 // ── SMART LOG — type the food and roughly how much, no scale needed ──
 let smartLogFood=null;
 let smartLogGrams=0;
+// RECENTLY LOGGED — most-recent-first FOODS_DB indices, deduped, capped
+// at 8. Updated only on a real logSmartFood() confirm (not just picking
+// a food to preview), so this reflects what was actually eaten.
+let recentFoodIdxs=[];
 
 function renderSmartLogSearch(query){
   const results=document.getElementById('smartlog-results');
   if(!results)return;
-  if(!query||query.length<2){results.innerHTML='';results.style.display='none';return;}
+  if(!query||query.length<2){
+    results.innerHTML='';results.style.display='none';
+    renderSmartLogRecent();
+    return;
+  }
+  const recentWrap=document.getElementById('smartlog-recent-wrap');
+  if(recentWrap)recentWrap.style.display='none';
   const q=query.toLowerCase();
   const matches=FOODS_DB.filter(f=>f.name.toLowerCase().includes(q)).slice(0,8);
   if(!matches.length){results.innerHTML='<div class="smartlog-noresult">No match — try a simpler term, or use manual log below.</div>';results.style.display='block';return;}
   results.innerHTML=matches.map((f,i)=>'<div class="smartlog-result" onclick="selectSmartLogFood('+FOODS_DB.indexOf(f)+')">'+f.name+'<span>'+f.cals+' kcal/100'+(f.isLiquid?'ml':'g')+'</span></div>').join('');
   results.style.display='block';
+}
+function renderSmartLogRecent(){
+  const wrap=document.getElementById('smartlog-recent-wrap');
+  const row=document.getElementById('smartlog-recent');
+  if(!wrap||!row)return;
+  const items=recentFoodIdxs.map(i=>FOODS_DB[i]).filter(Boolean);
+  if(!items.length){wrap.style.display='none';return;}
+  wrap.style.display='block';
+  row.innerHTML=items.slice(0,6).map(f=>'<div class="smartlog-recent-chip" onclick="selectSmartLogFood('+FOODS_DB.indexOf(f)+')">'+f.name+'</div>').join('');
 }
 
 function selectSmartLogFood(idx){
@@ -19715,6 +19752,12 @@ function logSmartFood(cals,prot,carbs,fats,alcohol){
   const xp=foodXPForName(smartLogFood.name,5);
   addXP(xp,'Food logged');
   if(xp>=5)toast('✅',smartLogFood.name+' logged (~'+Math.round(smartLogGrams)+'g)');
+  const fIdx=FOODS_DB.indexOf(smartLogFood);
+  if(fIdx>=0){
+    recentFoodIdxs=recentFoodIdxs.filter(i=>i!==fIdx);
+    recentFoodIdxs.unshift(fIdx);
+    if(recentFoodIdxs.length>8)recentFoodIdxs=recentFoodIdxs.slice(0,8);
+  }
   checkProteinQuest();saveToStorage();
   // reset
   smartLogFood=null;smartLogGrams=0;
@@ -19723,6 +19766,7 @@ function logSmartFood(cals,prot,carbs,fats,alcohol){
   const amountSection=document.getElementById('smartlog-amount-wrap');if(amountSection)amountSection.style.display='none';
   const quickAmounts=document.getElementById('smartlog-quick-amounts');if(quickAmounts)quickAmounts.innerHTML='';
   updateSmartLogPreview();
+  renderSmartLogRecent();
 }
 
 
@@ -23610,6 +23654,7 @@ function saveToStorage(){
     localStorage.setItem('arx_nutritionDayLog', JSON.stringify(nutritionDayLog));
     localStorage.setItem('arx_waterDayLog', JSON.stringify(waterDayLog));
     localStorage.setItem('arx_tonnageLog', JSON.stringify(tonnageLog));
+    localStorage.setItem('arx_recentFoodIdxs', JSON.stringify(recentFoodIdxs));
     localStorage.setItem('arx_feederQuestClaimedDate', feederQuestClaimedDate);
     localStorage.setItem('arx_questWeekStart', questWeekStart);
     localStorage.setItem('arx_questProgress', JSON.stringify(questProgress));
@@ -23757,6 +23802,8 @@ function loadFromStorage(){
     if(wdl){try{waterDayLog=JSON.parse(wdl);}catch(e){waterDayLog=[];}}
     const tnl=localStorage.getItem('arx_tonnageLog');
     if(tnl){try{tonnageLog=JSON.parse(tnl);}catch(e){tonnageLog=[];}}
+    const rfi=localStorage.getItem('arx_recentFoodIdxs');
+    if(rfi){try{recentFoodIdxs=JSON.parse(rfi);}catch(e){recentFoodIdxs=[];}}
     feederQuestClaimedDate=localStorage.getItem('arx_feederQuestClaimedDate')||'';
     questWeekStart=localStorage.getItem('arx_questWeekStart')||'';
     const qp=localStorage.getItem('arx_questProgress');
