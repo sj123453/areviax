@@ -7459,6 +7459,22 @@ body[data-goal-theme="cut"] .lv-page{
     <div style="font-size:10.5px;color:var(--muted);margin-top:6px;line-height:1.5">Get a notification if the Caloric Shield is still behind in the evening — one at risk, one if it starts cracking, one if it breaks. Only fires while this device has the app installed or a tab open; won't wake a fully closed app days later.</div>
   </div>
 
+  <!-- COACH SAM — a second, separate reminder persona from Shield's:
+       a nudge to log EARLY in the day (most-missed window, not the
+       evening), plus the evening streak-at-risk nudge upgraded from an
+       in-app-only banner (checkStreakAtRisk() already computed this
+       exact condition, it just never reached outside the tab before).
+       Same real-Notification mechanics and same honesty about needing
+       a tab open as Shield above — see toggleCoachNotifs(). -->
+  <div class="card lv-surface" style="margin-bottom:14px">
+    <div class="ch"><span class="ct" style="display:flex;align-items:center;gap:8px"><img src="images/icons/coach-sam.png" alt="" style="width:20px;height:20px;border-radius:50%;flex-shrink:0">Coach Sam</span></div>
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <label class="lbl" style="margin:0">Daily nudges</label>
+      <button type="button" id="coach-notif-toggle" class="equip-chip" onclick="toggleCoachNotifs()" style="padding:3px 10px;font-size:10px">🔕 Off</button>
+    </div>
+    <div style="font-size:10.5px;color:var(--muted);margin-top:6px;line-height:1.5">A midday nudge to start logging if nothing's in yet, and an evening one if your streak's still on the line. Same as Shield above: real notifications, but only while this device has the app installed or a tab open — not true background push.</div>
+  </div>
+
   <!-- IN-APP ALERTS — per-category on/off for the celebratory toast
        banners. Action-confirmation toasts (saved, deleted, warnings)
        are never listed here since they're direct feedback to something
@@ -12592,6 +12608,7 @@ function renderSettings(){
   if(!nameEl)return;
   nameEl.value=profile.name||'';
   renderShieldNotifToggle();
+  renderCoachNotifToggle();
   renderNotifPrefs();
   document.getElementById('set-weight').value=profile.weight?(weightUnit==='kg'?Math.round(profile.weight*0.453592*10)/10:profile.weight):'';
   if(heightUnit==='ftin'&&profile.height){
@@ -15460,6 +15477,7 @@ function initApp(){
   const dcb=document.getElementById('d-cals-brief');if(dcb)dcb.textContent=formatCompactK(dayMacros.cals||0);
   const dct=document.getElementById('d-cals-target');if(dct)dct.textContent='/'+formatCompactK(profile.cals||0);
   try{renderSmartLogRecent();}catch(e){}
+  try{startCoachReminderTimer();}catch(e){}
   const dcfill=document.getElementById('d-cals-fill');if(dcfill){const p=Math.min(1,profile.cals?(dayMacros.cals||0)/profile.cals:0);dcfill.style.width=(p*100).toFixed(1)+'%';}
   const dpb=document.getElementById('d-protein-brief');if(dpb)dpb.textContent=Math.round((dayMacros.prot||0)*10)/10;
   renderDashNutritionPulse();
@@ -21663,6 +21681,82 @@ function renderShieldNotifToggle(){
   btn.classList.toggle('active',shieldNotifsEnabled);
   btn.disabled=blocked&&!shieldNotifsEnabled;
 }
+
+// ── COACH SAM — a named, real-notification reminder persona (same
+// mechanism Shield above already uses: a real OS-level Notification,
+// not just an in-app banner). Two messages: an early-day nudge to start
+// logging (most-missed window — most people who fall off do it by
+// forgetting the first meal, not by giving up), and an evening
+// streak-at-risk nudge upgraded from checkStreakAtRisk()'s existing
+// in-app-only banner. Guarded to fire at most once per day per message
+// via a stored date, same pattern as the existing missed-food-day
+// notification elsewhere in this file. Runs off a periodic check while
+// the tab is open (see startCoachReminderTimer, called from
+// initApp/finishOnboarding) — there's no server here to push a real
+// background notification while the app is fully closed, same
+// limitation Shield already discloses.
+let coachNotifsEnabled=false;
+let coachMorningNotifiedDate='', coachEveningNotifiedDate='';
+function toggleCoachNotifs(){
+  if(typeof Notification==='undefined'){toast('⚠️','Notifications aren\'t supported in this browser.');return;}
+  if(coachNotifsEnabled){
+    coachNotifsEnabled=false;
+    saveToStorage();
+    renderCoachNotifToggle();
+    return;
+  }
+  if(Notification.permission==='granted'){
+    coachNotifsEnabled=true;
+    saveToStorage();
+    renderCoachNotifToggle();
+    toast('📣','Coach Sam reminders on — expect a nudge if the day\'s logging hasn\'t started, and another if your streak\'s on the line tonight.');
+    return;
+  }
+  Notification.requestPermission().then(perm=>{
+    coachNotifsEnabled=(perm==='granted');
+    saveToStorage();
+    renderCoachNotifToggle();
+    if(perm==='granted')toast('📣','Coach Sam reminders on — expect a nudge if the day\'s logging hasn\'t started, and another if your streak\'s on the line tonight.');
+    else if(perm==='denied')toast('🔕','Notifications blocked — enable them in your browser/device settings to turn this on.');
+  });
+}
+function renderCoachNotifToggle(){
+  const btn=document.getElementById('coach-notif-toggle');
+  if(!btn)return;
+  const blocked=typeof Notification!=='undefined'&&Notification.permission==='denied';
+  btn.textContent=coachNotifsEnabled?'🔔 On':(blocked?'🔕 Blocked':'🔕 Off');
+  btn.classList.toggle('active',coachNotifsEnabled);
+  btn.disabled=blocked&&!coachNotifsEnabled;
+}
+function sendCoachNotification(title,body){
+  if(!coachNotifsEnabled||typeof Notification==='undefined'||Notification.permission!=='granted')return;
+  try{ new Notification(title,{body,icon:'images/icons/coach-sam.png',tag:'coach-sam'}); }catch(e){}
+}
+function checkCoachReminders(){
+  if(!coachNotifsEnabled||typeof Notification==='undefined'||Notification.permission!=='granted')return;
+  const today=localDateKey(new Date());
+  const hour=new Date().getHours();
+  const name=(profile&&profile.name)?profile.name:'there';
+  // Morning/midday: nothing logged yet today.
+  if(coachMorningNotifiedDate!==today&&hour>=10&&hour<15&&!todayLog.length){
+    coachMorningNotifiedDate=today;
+    saveToStorage();
+    sendCoachNotification('Coach Sam','Remember '+name+', logging your calories is the first step to making that difference — start early and log all throughout the day.');
+  }
+  // Evening: streak still on the line, same condition checkStreakAtRisk()
+  // already computes for the in-app banner.
+  if(coachEveningNotifiedDate!==today&&streak>0&&lastActiveDate!==today&&hour>=18){
+    coachEveningNotifiedDate=today;
+    saveToStorage();
+    sendCoachNotification('Coach Sam','Your '+streak+'-day streak is still on the line, '+name+' — log a session, a meal, or your sleep before today\'s gone.');
+  }
+}
+let coachReminderTimer=null;
+function startCoachReminderTimer(){
+  if(coachReminderTimer)return;
+  checkCoachReminders();
+  coachReminderTimer=setInterval(checkCoachReminders,5*60*1000);
+}
 function toggleNotifPref(key){
   notifPrefs[key]=!notifPrefs[key];
   saveToStorage();
@@ -23949,6 +24043,9 @@ function saveToStorage(){
     localStorage.setItem('arx_shieldGreatSaveAwardedToday', shieldGreatSaveAwardedToday?'1':'0');
     localStorage.setItem('arx_shieldNotifStage', String(shieldNotifStage));
     localStorage.setItem('arx_shieldNotifsEnabled', shieldNotifsEnabled?'1':'0');
+    localStorage.setItem('arx_coachNotifsEnabled', coachNotifsEnabled?'1':'0');
+    localStorage.setItem('arx_coachMorningNotifiedDate', coachMorningNotifiedDate);
+    localStorage.setItem('arx_coachEveningNotifiedDate', coachEveningNotifiedDate);
     localStorage.setItem('arx_notifPrefs', JSON.stringify(notifPrefs));
     localStorage.setItem('arx_customRecipes', JSON.stringify(customRecipes));
     localStorage.setItem('arx_sleepLog', JSON.stringify(sleepLog));
@@ -24116,6 +24213,9 @@ function loadFromStorage(){
     shieldGreatSaveAwardedToday=localStorage.getItem('arx_shieldGreatSaveAwardedToday')==='1';
     shieldNotifStage=parseInt(localStorage.getItem('arx_shieldNotifStage'))||0;
     shieldNotifsEnabled=localStorage.getItem('arx_shieldNotifsEnabled')==='1';
+    coachNotifsEnabled=localStorage.getItem('arx_coachNotifsEnabled')==='1';
+    coachMorningNotifiedDate=localStorage.getItem('arx_coachMorningNotifiedDate')||'';
+    coachEveningNotifiedDate=localStorage.getItem('arx_coachEveningNotifiedDate')||'';
     const np=localStorage.getItem('arx_notifPrefs');
     if(np){try{Object.assign(notifPrefs,JSON.parse(np));}catch(e){}}
     const cr=localStorage.getItem('arx_customRecipes');
