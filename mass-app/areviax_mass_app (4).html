@@ -5064,17 +5064,16 @@ body[data-goal-theme="cut"] .lv-page{
   </div>
 
   <!-- ACTIONS — Log Meal (opens the real Smart Log/Manual Entry card
-       below), Vision Scan (honest "Soon" stub — no real vision pipeline),
-       Recipes. -->
+       below), Scan Barcode (real camera scan + Open Food Facts lookup —
+       see openBarcodeScan()), Recipes. -->
   <section style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
     <button onclick="openLogFood()" class="lv-ember lv-grain" style="display:flex;flex-direction:column;align-items:flex-start;gap:8px;border:none;border-radius:1rem;padding:12px;text-align:left;cursor:pointer">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/></svg>
       <span style="font-family:var(--lv-sans);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;line-height:1.2">Log meal</span>
     </button>
-    <button onclick="openAiVisionScan()" style="display:flex;flex-direction:column;align-items:flex-start;gap:8px;border:1px solid rgba(var(--lv-fuel-rgb),.4);border-radius:1rem;padding:12px;text-align:left;color:var(--lv-fuel);background:transparent;cursor:pointer">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
-      <span style="font-family:var(--lv-sans);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;line-height:1.2">Vision scan</span>
-      <span style="font-family:var(--lv-mono);font-size:9px;color:var(--lv-muted-fg)">soon</span>
+    <button onclick="openBarcodeScan()" style="display:flex;flex-direction:column;align-items:flex-start;gap:8px;border:1px solid rgba(var(--lv-fuel-rgb),.4);border-radius:1rem;padding:12px;text-align:left;color:var(--lv-fuel);background:transparent;cursor:pointer">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7V5a2 2 0 012-2h2M17 3h2a2 2 0 012 2v2M21 17v2a2 2 0 01-2 2h-2M7 21H5a2 2 0 01-2-2v-2"/><path d="M7 8v8M11 8v8M14 8v8M17 8v8"/></svg>
+      <span style="font-family:var(--lv-sans);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;line-height:1.2">Scan barcode</span>
     </button>
     <button onclick="showPage('recipes')" style="display:flex;flex-direction:column;align-items:flex-start;gap:8px;border:1px solid var(--lv-border-strong);border-radius:1rem;padding:12px;text-align:left;color:var(--lv-fg);background:transparent;cursor:pointer">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--lv-gold)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
@@ -5536,6 +5535,70 @@ body[data-goal-theme="cut"] .lv-page{
     <div style="display:flex;gap:8px">
       <input type="text" id="ar-import-code" placeholder="Paste code here" style="flex:1">
       <button class="btn btn-out" onclick="importRecipeCode()">Add</button>
+    </div>
+  </div>
+</div>
+
+<!-- SCAN BARCODE — a real camera scan against Open Food Facts' free,
+     public product database (world.openfoodfacts.org), not a stub.
+     Uses the browser's native BarcodeDetector where it exists (Chrome/
+     Android — fast, zero extra weight); Safari/iOS has never
+     implemented that API (still "under consideration" as of this
+     writing), so there's no camera-scan path there yet — shown as an
+     honest unsupported state rather than silently failing, with manual
+     search as the always-available fallback. See openBarcodeScan(). -->
+<div id="barcode-backdrop" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9998" onclick="closeBarcodeScan()"></div>
+<div id="barcode-modal" style="display:none;position:fixed;inset:16px;background:var(--panel);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid var(--border);border-radius:18px;z-index:9999;overflow-y:auto;max-width:480px;margin:0 auto;box-shadow:0 30px 80px -20px rgba(0,0,0,.7)">
+  <div style="padding:22px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div style="font-size:17px;font-weight:900;color:var(--white)">Scan barcode</div>
+      <span onclick="closeBarcodeScan()" style="cursor:pointer;color:var(--muted);font-size:20px;line-height:1">✕</span>
+    </div>
+
+    <!-- Unsupported-browser state (Safari/iOS) -->
+    <div id="bc-unsupported" style="display:none">
+      <div style="font-size:12.5px;color:var(--muted);line-height:1.6;margin-bottom:16px">This browser doesn't support camera barcode scanning yet — that's a Safari/iOS limitation, not something wrong with your phone. Search by name instead and it logs just as fast.</div>
+      <button class="btn btn-g" style="width:100%" onclick="closeBarcodeScan();openLogFood()">Search by name</button>
+    </div>
+
+    <!-- Camera state -->
+    <div id="bc-camera-wrap" style="display:none">
+      <div style="font-size:11.5px;color:var(--muted);line-height:1.5;margin-bottom:14px">Point your camera at the barcode on the pack. Works best in good light, held steady a few inches back.</div>
+      <div style="position:relative;border-radius:14px;overflow:hidden;background:#000;aspect-ratio:4/3">
+        <video id="bc-video" playsinline muted style="width:100%;height:100%;object-fit:cover;display:block"></video>
+        <div style="position:absolute;inset:14%;border:2px solid var(--lv-fuel);border-radius:10px;box-shadow:0 0 0 2000px rgba(0,0,0,.35);pointer-events:none"></div>
+      </div>
+      <div id="bc-camera-status" style="margin-top:10px;font-size:11.5px;color:var(--muted);text-align:center">Looking for a barcode…</div>
+      <button class="btn btn-out" style="width:100%;margin-top:12px" onclick="closeBarcodeScan()">Cancel</button>
+    </div>
+
+    <!-- Camera permission / init error state -->
+    <div id="bc-camera-error" style="display:none">
+      <div style="font-size:12.5px;color:var(--muted);line-height:1.6;margin-bottom:16px" id="bc-camera-error-text">Couldn't access the camera.</div>
+      <button class="btn btn-g" style="width:100%" onclick="closeBarcodeScan();openLogFood()">Search by name instead</button>
+    </div>
+
+    <!-- Looking up the scanned code -->
+    <div id="bc-looking-up" style="display:none;text-align:center;padding:30px 0">
+      <div style="font-size:12.5px;color:var(--muted)">Looking that up…</div>
+    </div>
+
+    <!-- Not found -->
+    <div id="bc-not-found" style="display:none">
+      <div style="font-size:12.5px;color:var(--muted);line-height:1.6;margin-bottom:16px">That barcode isn't in the database (Open Food Facts is community-maintained, so newer or less common products sometimes aren't listed yet). Search by name instead, or log it manually.</div>
+      <button class="btn btn-g" style="width:100%" onclick="closeBarcodeScan();openLogFood()">Search by name</button>
+    </div>
+
+    <!-- Found — confirm portion and log -->
+    <div id="bc-result" style="display:none">
+      <div style="display:flex;gap:12px;align-items:center;margin-bottom:16px" id="bc-result-head"></div>
+      <label class="lbl" style="margin-top:0" id="bc-amount-label">Amount</label>
+      <div class="smartlog-quick-amounts" id="bc-quick-amounts"></div>
+      <input type="text" id="bc-amount" placeholder="e.g. 40g, 100g" oninput="updateBarcodeLogPreview()">
+      <div id="bc-preview" style="margin-top:12px">
+        <div class="smartlog-empty">Pick an amount to see the estimate.</div>
+      </div>
+      <div style="font-size:10.5px;color:var(--lv-muted-fg);text-align:center;margin-top:10px">Nutrition data from Open Food Facts, a free community-maintained database — occasionally a product's listing is wrong or incomplete, same as any barcode scanner.</div>
     </div>
   </div>
 </div>
@@ -22275,8 +22338,183 @@ function openLogFood(){
   const body=document.getElementById('acc-logfood');
   if(body)body.scrollIntoView({behavior:'smooth',block:'nearest',inline:'start'});
 }
-function openAiVisionScan(){
-  toast('📷','AI Vision Scan is coming soon — for now, Smart Log estimates macros from a text description in seconds.');
+// ── SCAN BARCODE — real camera scan (native BarcodeDetector where the
+// browser has it) + a live lookup against Open Food Facts' free public
+// API (world.openfoodfacts.org/api/v2/product/<barcode>.json — no key
+// needed, that's the documented public contract). Safari/iOS has never
+// shipped BarcodeDetector (still "under consideration" upstream), so
+// that path shows an explicit unsupported state — see #barcode-modal's
+// own comment for why this isn't silently broken there instead.
+let bcStream=null, bcDetector=null, bcDetectRAF=null, bcScanning=false, bcProduct=null;
+
+function openBarcodeScan(){
+  document.getElementById('barcode-backdrop').style.display='block';
+  document.getElementById('barcode-modal').style.display='block';
+  ['bc-unsupported','bc-camera-wrap','bc-camera-error','bc-looking-up','bc-not-found','bc-result'].forEach(id=>{
+    const el=document.getElementById(id); if(el)el.style.display='none';
+  });
+  bcProduct=null;
+  if(!('BarcodeDetector' in window)){
+    document.getElementById('bc-unsupported').style.display='block';
+    return;
+  }
+  startBarcodeCamera();
+}
+
+async function startBarcodeCamera(){
+  document.getElementById('bc-camera-wrap').style.display='block';
+  try{
+    bcStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});
+  }catch(e){
+    document.getElementById('bc-camera-wrap').style.display='none';
+    document.getElementById('bc-camera-error').style.display='block';
+    document.getElementById('bc-camera-error-text').textContent=
+      (e&&e.name==='NotAllowedError')
+        ? 'Camera access was blocked — check your browser/site permissions and try again.'
+        : 'Couldn\'t access the camera on this device.';
+    return;
+  }
+  const video=document.getElementById('bc-video');
+  video.srcObject=bcStream;
+  await video.play().catch(()=>{});
+  try{
+    bcDetector=new BarcodeDetector({formats:['ean_13','ean_8','upc_a','upc_e','qr_code']});
+  }catch(e){
+    bcDetector=new BarcodeDetector();
+  }
+  bcScanning=true;
+  (async function loop(){
+    if(!bcScanning)return;
+    try{
+      const codes=await bcDetector.detect(video);
+      if(codes&&codes.length){
+        bcScanning=false;
+        stopBarcodeCamera();
+        handleBarcodeDetected(codes[0].rawValue);
+        return;
+      }
+    }catch(e){ /* transient per-frame detect errors — keep trying */ }
+    bcDetectRAF=requestAnimationFrame(loop);
+  })();
+}
+
+function stopBarcodeCamera(){
+  bcScanning=false;
+  if(bcDetectRAF)cancelAnimationFrame(bcDetectRAF);
+  bcDetectRAF=null;
+  if(bcStream){ bcStream.getTracks().forEach(t=>t.stop()); bcStream=null; }
+  const video=document.getElementById('bc-video');
+  if(video)video.srcObject=null;
+}
+
+function closeBarcodeScan(){
+  stopBarcodeCamera();
+  document.getElementById('barcode-backdrop').style.display='none';
+  document.getElementById('barcode-modal').style.display='none';
+}
+
+async function handleBarcodeDetected(code){
+  ['bc-camera-wrap','bc-unsupported','bc-camera-error','bc-not-found','bc-result'].forEach(id=>{
+    const el=document.getElementById(id); if(el)el.style.display='none';
+  });
+  document.getElementById('bc-looking-up').style.display='block';
+  try{
+    const res=await fetch('https://world.openfoodfacts.org/api/v2/product/'+encodeURIComponent(code)+'.json');
+    if(!res.ok)throw new Error('bad response');
+    const data=await res.json();
+    if(!data||data.status!==1||!data.product){
+      document.getElementById('bc-looking-up').style.display='none';
+      document.getElementById('bc-not-found').style.display='block';
+      return;
+    }
+    const p=data.product, n=p.nutriments||{};
+    const cals100=n['energy-kcal_100g']??(n['energy_100g']?n['energy_100g']/4.184:null);
+    const prot100=n['proteins_100g'], carbs100=n['carbohydrates_100g'], fats100=n['fat_100g'];
+    if(cals100==null||prot100==null||carbs100==null||fats100==null){
+      document.getElementById('bc-looking-up').style.display='none';
+      document.getElementById('bc-not-found').style.display='block';
+      return;
+    }
+    let servingG=null;
+    if(typeof p.serving_size==='string'){
+      const m=p.serving_size.match(/([\d.]+)\s*g/i);
+      if(m)servingG=parseFloat(m[1]);
+    }
+    bcProduct={
+      name:p.product_name||p.generic_name||'Unknown product',
+      brand:p.brands||'',
+      cals100:cals100, prot100:prot100, carbs100:carbs100, fats100:fats100,
+      servingG:servingG,
+    };
+    renderBarcodeResult();
+  }catch(e){
+    document.getElementById('bc-looking-up').style.display='none';
+    document.getElementById('bc-camera-error').style.display='block';
+    document.getElementById('bc-camera-error-text').textContent='Couldn\'t reach the product database — check your connection and try again.';
+  }
+}
+
+function bcEscapeHtml(s){
+  return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function renderBarcodeResult(){
+  if(!bcProduct)return;
+  document.getElementById('bc-looking-up').style.display='none';
+  document.getElementById('bc-result').style.display='block';
+  document.getElementById('bc-result-head').innerHTML=
+    '<div style="width:44px;height:44px;border-radius:10px;background:rgba(var(--lv-fuel-rgb),.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px">🏷️</div>'+
+    '<div style="min-width:0">'+
+      '<div style="font-size:14.5px;font-weight:800;color:var(--white);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+bcEscapeHtml(bcProduct.name)+'</div>'+
+      '<div style="font-size:11px;color:var(--muted)">'+(bcProduct.brand?bcEscapeHtml(bcProduct.brand)+' · ':'')+Math.round(bcProduct.cals100)+' kcal/100g</div>'+
+    '</div>';
+  const chips=[{label:'100g',val:'100g'}];
+  if(bcProduct.servingG)chips.unshift({label:'1 serving ('+Math.round(bcProduct.servingG)+'g)',val:bcProduct.servingG+'g'});
+  document.getElementById('bc-quick-amounts').innerHTML=chips.map(c=>
+    '<div class="smartlog-quick-chip" onclick="document.getElementById(\'bc-amount\').value=\''+c.val+'\';updateBarcodeLogPreview()">'+c.label+'</div>'
+  ).join('');
+  document.getElementById('bc-amount').value=bcProduct.servingG?bcProduct.servingG+'g':'';
+  updateBarcodeLogPreview();
+}
+
+function updateBarcodeLogPreview(){
+  const preview=document.getElementById('bc-preview');
+  if(!bcProduct||!preview)return;
+  const raw=(document.getElementById('bc-amount').value||'').trim();
+  if(!raw){
+    preview.innerHTML='<div class="smartlog-empty">Type a weight in grams to see the estimate.</div>';
+    return;
+  }
+  const m=raw.match(/([\d.]+)/);
+  const grams=m?parseFloat(m[1]):null;
+  if(!grams||grams<=0){
+    preview.innerHTML='<div class="smartlog-empty">Didn\'t catch that — try a number of grams, e.g. \'40g\'.</div>';
+    return;
+  }
+  const ratio=grams/100;
+  const cals=Math.round(bcProduct.cals100*ratio);
+  const prot=Math.round(bcProduct.prot100*ratio*10)/10;
+  const carbs=Math.round(bcProduct.carbs100*ratio*10)/10;
+  const fats=Math.round(bcProduct.fats100*ratio*10)/10;
+  preview.innerHTML=
+    '<div class="smartlog-est">~'+Math.round(grams)+'g estimated</div>'+
+    '<div class="smartlog-macros">'+
+      '<div><span>'+cals+'</span>kcal</div>'+
+      '<div><span>'+prot+'g</span>protein</div>'+
+      '<div><span>'+carbs+'g</span>carbs</div>'+
+      '<div><span>'+fats+'g</span>fat</div>'+
+    '</div>'+
+    '<button class="btn btn-g btn-sm" style="width:100%;justify-content:center;margin-top:10px" onclick="logBarcodeFood('+cals+','+prot+','+carbs+','+fats+','+Math.round(grams)+')">Log it +5 Arete</button>';
+}
+
+function logBarcodeFood(cals,prot,carbs,fats,grams){
+  if(!bcProduct)return;
+  logItem(bcProduct.name+' (~'+grams+'g)',cals,prot,carbs,fats);
+  const xp=foodXPForName(bcProduct.name,5);
+  addXP(xp,'Food logged');
+  if(xp>=5)toast('✅',bcProduct.name+' logged (~'+grams+'g)');
+  checkProteinQuest();saveToStorage();
+  closeBarcodeScan();
 }
 function lockedFeatureToast(name){
   toast('🔒',name+' needs real wearable/sensor data we don\'t have yet — coming once that\'s possible to do honestly.');
