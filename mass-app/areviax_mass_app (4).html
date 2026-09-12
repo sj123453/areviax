@@ -3924,6 +3924,55 @@ body[data-goal-theme="cut"] .lv-page{
   <div class="intro-tagline" id="intro-tag">Making Success Real</div>
   <button class="intro-skip" id="intro-skip">Skip →</button>
 </div>
+<script>
+// ── INTRO REVEAL — runs immediately, not on DOMContentLoaded. This file
+// is a single ~16MB bundle with almost everything after this point
+// living inside one giant inline <script> (all the app logic + every
+// embedded image), and DOMContentLoaded can't fire until the ENTIRE
+// document has been parsed — meaning on a real connection (measured:
+// ~14s to first CONTENTFUL paint on a throttled 4Mbps line) the old
+// DOMContentLoaded-gated version of this same logic left #intro's own
+// dark background (which paints instantly, see #intro's CSS) sitting
+// on screen for that whole time with the logo/wordmark still at their
+// default opacity:0 — a blank dark rectangle, not a loading screen.
+// Worse for a RETURNING user: the "already seen today, skip it"
+// branch below couldn't run either, so they'd stare at the same blank
+// rectangle the whole load, with no animation at all to show the app
+// was doing anything. This copy is self-contained (inlines
+// localDateKey's exact logic rather than calling the real one, which
+// isn't defined until deep in the giant script below) specifically so
+// it can run the moment the parser reaches this point — around 1.2MB
+// into the file, a couple of seconds even on a slow connection,
+// instead of after the full ~16MB. The original copy of this logic
+// further down (inside the DOMContentLoaded handler) has been removed
+// to avoid running twice.
+(function(){
+  const introEl = document.getElementById('intro');
+  const introEmblem = document.getElementById('intro-emblem');
+  const introWord = document.getElementById('intro-word');
+  const introTag  = document.getElementById('intro-tag');
+  const introSkip = document.getElementById('intro-skip');
+  if(!introEl) return;
+  function closeIntro(){ introEl.classList.add('done'); }
+  function localDateKeyEarly(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+  const introKey='arx_introSeenDate', introToday=localDateKeyEarly(new Date());
+  let seenToday=false;
+  try{ seenToday = localStorage.getItem(introKey)===introToday; }catch(e){}
+  if(seenToday){
+    introEl.style.transition='none';
+    introEl.classList.add('done');
+  }else{
+    try{ localStorage.setItem(introKey,introToday); }catch(e){}
+    requestAnimationFrame(()=>{ if(introEmblem)introEmblem.classList.add('show'); });
+    setTimeout(()=>{
+      if(introWord)introWord.classList.add('show');
+      if(introTag)introTag.classList.add('show');
+    },420);
+    setTimeout(closeIntro,1500);
+  }
+  if(introSkip) introSkip.addEventListener('click', closeIntro);
+})();
+</script>
 
 <!-- DAILY PERSPECTIVE — see the CSS comment on #daily-perspective for why
      this sits directly behind #intro. Hidden by default; JS adds "show"
@@ -7662,45 +7711,9 @@ body[data-goal-theme="cut"] .lv-page{
 <script>
 window.onerror=function(msg,src,line,col,err){console.error('UNCAUGHT:',msg,src,line,col,err&&err.message);return true;};
 window.addEventListener('unhandledrejection',function(e){console.error('PROMISE:',e.reason&&e.reason.message||e.reason);});
-// ── LOADING SCREEN — runs after DOM ready ──
-// ── INTRO ANIMATION ──
-document.addEventListener('DOMContentLoaded', function(){
-  const introEl = document.getElementById('intro');
-  const introEmblem = document.getElementById('intro-emblem');
-  const introWord = document.getElementById('intro-word');
-  const introTag  = document.getElementById('intro-tag');
-  const introSkip = document.getElementById('intro-skip');
-  if(!introEl) return;
-
-  function closeIntro(){
-    introEl.classList.add('done');
-  }
-
-  // Skip the whole thing outright for anyone who's already seen it today
-  // — this used to replay in full on every single app launch, making it
-  // the single most frequently paid "wait" in the whole app, more so than
-  // any crate open. transition:none avoids even the 0.7s fade-out CSS
-  // normally runs on dismiss, since there's nothing drawn underneath it
-  // to fade from on a skip.
-  const introKey='arx_introSeenDate', introToday=localDateKey(new Date());
-  if(localStorage.getItem(introKey)===introToday){
-    introEl.style.transition='none';
-    introEl.classList.add('done');
-  }else{
-    localStorage.setItem(introKey,introToday);
-    // Emblem grows in immediately; wordmark/tagline follow a beat later
-    // once it's had a moment to actually arrive — same overall shape as
-    // the old canvas version's grow-in-then-text timing, just driven by
-    // CSS transitions on a real image instead of a per-frame redraw.
-    requestAnimationFrame(()=>{ if(introEmblem)introEmblem.classList.add('show'); });
-    setTimeout(()=>{
-      if(introWord)introWord.classList.add('show');
-      if(introTag)introTag.classList.add('show');
-    },420);
-    setTimeout(closeIntro,1500);
-  }
-  if(introSkip) introSkip.addEventListener('click', closeIntro);
-});
+// ── INTRO ANIMATION — moved to a small self-contained inline <script>
+// right after #intro's own markup (see the comment there for why), so
+// it isn't duplicated here anymore.
 
 
 // ── MOBILE "MORE" SHEET ──
