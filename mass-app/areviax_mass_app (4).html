@@ -17142,6 +17142,30 @@ function warmupSets(targetWeight){
   const steps=ramp.map(r=>({pct:Math.round(r.pct*100),reps:r.reps,weight:Math.round(targetWeight*r.pct/2.5)*2.5}));
   return steps.filter((s,i)=>s.weight>=10&&(i===0||s.weight>steps[i-1].weight));
 }
+// ── PLATE MATH — "what do I actually put on the bar" for a target
+// barbell weight. Assumes a standard 20kg Olympic bar and a standard
+// commercial plate set (25/20/15/10/5/2.5/1.25kg per side) — the one
+// simplifying assumption here, called out plainly in the label rather
+// than silently guessed, since a home rack or a lighter bar would need
+// different numbers. Greedy largest-first fill; if the target can't be
+// hit exactly at 1.25kg resolution it shows the closest real loadout
+// and says so, instead of pretending the requested number was hit.
+const PLATE_SIZES_KG=[25,20,15,10,5,2.5,1.25];
+const STANDARD_BARBELL_KG=20;
+function plateBreakdown(targetKg){
+  if(!targetKg||targetKg<=STANDARD_BARBELL_KG)return null;
+  let perSide=(targetKg-STANDARD_BARBELL_KG)/2;
+  const used=[];
+  for(const p of PLATE_SIZES_KG){
+    while(perSide>=p-0.001){used.push(p);perSide-=p;}
+  }
+  if(!used.length)return null;
+  const counts={};
+  used.forEach(p=>counts[p]=(counts[p]||0)+1);
+  const parts=Object.keys(counts).map(Number).sort((a,b)=>b-a).map(p=>counts[p]+'×'+p);
+  const achievedTotal=Math.round((STANDARD_BARBELL_KG+used.reduce((s,p)=>s+p,0)*2)*100)/100;
+  return {parts,achievedTotal,exact:Math.abs(achievedTotal-targetKg)<0.01};
+}
 // Estimated 1-rep max from the heaviest set ever logged for this lift,
 // across liftHistory rather than just today's PR weight — reps matter
 // too (5×100kg estimates higher than 1×100kg would suggest).
@@ -17445,6 +17469,7 @@ function buildSession(){
     // a 40/60/80% ramp off that number doesn't mean anything physically,
     // so assist exercises skip the warm-up ramp entirely.
     const warmup=isAssistedEquip(e.equip)?[]:warmupSets(sug?sug.weight:null);
+    const plates=e.equip.includes('barbell')?plateBreakdown(parseFloat(prefillWeight)||null):null;
     const e1rm=estimate1RM(e.name);
     const isSkipped=skippedExercises.has(i);
     return `
@@ -17463,6 +17488,7 @@ function buildSession(){
         <div style="flex:1"><label class="lbl" style="margin-top:0">${weightInputLabel(e)}</label><input type="number" id="sw-${i}" style="padding:7px 9px" placeholder="${sug?sug.weight:'kg'}" value="${prefillWeight}"></div>
         <div style="flex:1"><label class="lbl" style="margin-top:0">Reps</label><input type="number" id="sr-${i}" style="padding:7px 9px" placeholder="${e.reps.split('–')[0]}" value="${prefillReps}"></div>
       </div>
+      ${plates?`<div style="font-size:10px;color:var(--muted);margin:-2px 0 9px;line-height:1.4">🏋️ Per side: ${plates.parts.join(', ')} <span style="opacity:.7">(20kg bar)</span>${plates.exact?'':' — closest at 1.25kg plates: '+plates.achievedTotal+'kg'}</div>`:''}
       ${sug?`<div style="font-size:10px;color:rgba(243,103,23,.7);margin:-2px 0 9px;line-height:1.4">📈 ${sug.note}</div>`:''}
       ${plateau?`<div style="font-size:10px;color:#FF6F6F;background:rgba(255,90,90,.08);border:1px solid rgba(255,90,90,.2);border-radius:6px;padding:6px 9px;margin:-2px 0 9px;line-height:1.4">🎯 ${plateau.note}</div>`:''}
       ${warmup.length?`<div style="margin-bottom:9px">
