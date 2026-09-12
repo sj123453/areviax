@@ -2994,6 +2994,14 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        used elsewhere — a clinical, calm glow fits what this page is,
        distinct from Arete/Trophy's louder colors. */
     .glow-title.recovery{color:#C7C7CE;text-shadow:0 0 10px rgba(180,180,190,.5),0 0 22px rgba(150,150,160,.25)}
+    /* These four are light pastel glows tuned to sit on a near-black page —
+       on the light theme's cream background they wash out to near-
+       illegible. Darken the base color for light mode only; the glow
+       itself (a soft halo, not load-bearing for contrast) is left as-is. */
+    [data-theme="light"] .glow-title.xp{color:#C2570B}
+    [data-theme="light"] .glow-title.trophy{color:#A9790E}
+    [data-theme="light"] .glow-title.weight{color:#1E7DAE}
+    [data-theme="light"] .glow-title.recovery{color:#5B5B63}
     @keyframes titleGlowPulse{0%,100%{filter:brightness(1)}50%{filter:brightness(1.25)}}
     @media(prefers-reduced-motion:reduce){.glow-title.trophy{animation:none!important}}
 
@@ -3703,6 +3711,38 @@ body[data-goal-theme="cut"] .lv-page{
   --lv-ember1:#8BC34A;--lv-ember1-rgb:139,195,74;--lv-ember2:#33691E;
   --lv-cardg1:#1C2716;--lv-cardg2:#10160C;
 }
+/* LIGHT THEME for the .lv-page system — the top-level :root[data-theme
+   ="light"] block above only ever covered the OLDER --bg/--white/--muted
+   variable set. Dashboard, Progress, Trophy Cabinet, Workout, Nutrition
+   etc. are all built on this separate --lv-* system (see "LOVABLE PORT"
+   above), which the light toggle never touched — those pages stayed
+   fully dark no matter what Settings said. Same override pattern as the
+   cut-goal theme just above, scoped to data-theme="light" instead. */
+[data-theme="light"] .lv-page{
+  --lv-bg:#F5F5F2;--lv-fg:#1C1712;--lv-card:#FFFFFF;--lv-elevated:#EFEAE2;
+  --lv-muted:#E6E1D8;--lv-muted-fg:#6B6259;
+  --lv-fuel:#1E93AD;--lv-fuel-rgb:30,147,173;
+  --lv-xp:#A67C00;--lv-xp-rgb:166,124,0;
+  --lv-border:#DED8CC;--lv-border-rgb:222,216,204;--lv-border-strong:#C7BFAF;--lv-border-strong-rgb:199,191,175;
+  --lv-gold:#9C7A2E;--lv-gold-rgb:156,122,46;--lv-gold-soft:#F3E4C0;
+  --lv-cardg1:#FFFFFF;--lv-cardg2:#F0EBE2;
+}
+/* LIGHT + CUT combined — the two overrides above compete for the same
+   custom properties (--lv-bg, --lv-card, --lv-muted, --lv-border, etc.),
+   and body[data-goal-theme="cut"] .lv-page has higher specificity than
+   [data-theme="light"] .lv-page (an extra attribute selector), so a cut
+   user in light mode got the WORSE of both: cut's dark background winning
+   over light's, while light's dark text still won for --lv-fg (nothing in
+   the cut block touches it) — dark text on a dark background. This block
+   only needs to be at least as specific as the cut rule for the surface
+   properties it actually contests; --lv-primary/--lv-ember/--lv-fuel/
+   --lv-xp/--lv-gold are left alone since neither rule conflicts on those. */
+[data-theme="light"] body[data-goal-theme="cut"] .lv-page{
+  --lv-bg:#F3F5EC;--lv-fg:#182111;--lv-card:#FFFFFF;--lv-elevated:#E8EEDC;
+  --lv-muted:#E3E9D5;--lv-muted-fg:#5C6650;
+  --lv-border:#D2DAC0;--lv-border-rgb:210,218,192;--lv-border-strong:#B9C3A2;--lv-border-strong-rgb:185,195,162;
+  --lv-cardg1:#FFFFFF;--lv-cardg2:#EEF2E4;
+}
 .lv-page h1,.lv-page h2,.lv-page h3{font-family:var(--lv-display);letter-spacing:.02em}
 .lv-marble{background-color:var(--lv-bg);background-image:linear-gradient(100deg,transparent 0 46%,rgba(232,232,222,.035) 46% 47%,transparent 47% 100%),linear-gradient(72deg,transparent 0 22%,rgba(232,232,222,.025) 22% 23%,transparent 23% 100%),radial-gradient(140% 60% at 50% 0%,rgba(var(--lv-ember1-rgb),.1),transparent 70%);background-size:340px 100%,220px 100%,100% 100vh;background-repeat:repeat,repeat,no-repeat}
 /* Every card used to sit inside its own filled/bordered/shadowed panel —
@@ -3724,6 +3764,7 @@ body[data-goal-theme="cut"] .lv-page{
 .lv-display-hero{font-family:var(--lv-display);font-weight:400;font-size:clamp(3.75rem,22vw,6rem);line-height:.82;letter-spacing:.01em;text-transform:uppercase}
 .lv-stat-huge{font-family:var(--lv-display);font-weight:400;font-size:2.5rem;line-height:.85;font-variant-numeric:tabular-nums}
 .lv-hairline-grid{border:1px solid var(--lv-border);border-radius:1.75rem;overflow:hidden;display:grid;grid-template-columns:repeat(3,1fr);background:rgba(30,22,19,.6)}
+[data-theme="light"] .lv-hairline-grid{background:rgba(0,0,0,.035)}
 .lv-hairline-grid>*{border-right:1px solid var(--lv-border)}
 .lv-hairline-grid>*:last-child{border-right:0}
 /* Cinzel, not var(--lv-display)/Bebas Neue — Bebas Neue is Latin-only
