@@ -1622,6 +1622,24 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       font-size:12px;font-weight:700;cursor:pointer;
     }
 
+    /* ── SESSION COMPLETE — full-screen win screen for a genuine first
+       session of the day (completeSession()), built on the same
+       .achievement-overlay/.achievement-modal shell as trophy reveals
+       so it gets the same fade/scale-in and overlay-open body class for
+       free. Three real stat cards (Arete/volume/time), no fabricated
+       numbers — same honesty standard as the rest of the app. */
+    .session-complete-modal{max-width:340px;position:relative}
+    .session-complete-share-icon{
+      position:absolute;top:14px;right:14px;width:30px;height:30px;border-radius:50%;
+      background:rgba(var(--white-rgb),.06);border:1px solid rgba(var(--white-rgb),.1);
+      color:rgba(var(--white-rgb),.7);font-size:14px;display:flex;align-items:center;justify-content:center;cursor:pointer;
+    }
+    .session-complete-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:20px}
+    .sc-stat{background:rgba(var(--white-rgb),.04);border:1px solid rgba(var(--white-rgb),.08);border-radius:10px;padding:10px 4px}
+    .sc-stat-icon{display:block;width:20px;height:20px;margin:0 auto 6px;object-fit:contain}
+    .sc-stat-val{font-size:15px;font-weight:900;color:#fff;letter-spacing:-.01em}
+    .sc-stat-lbl{font-size:8px;font-weight:800;letter-spacing:.14em;color:rgba(var(--white-rgb),.42);margin-top:2px}
+
     /* Compass pulse — fires once when a new shard is freshly earned */
     @keyframes compassPulse{
       0%{transform:scale(1);filter:drop-shadow(0 0 0 rgba(243,103,23,0))}
@@ -4618,12 +4636,6 @@ body[data-goal-theme="cut"] .lv-page{
   </div>
 
   <!-- CONDITIONALS — only shown when triggered, never visible on first load -->
-  <div id="session-share-prompt" style="display:none;width:100%;box-sizing:border-box;align-items:center;gap:10px;background:rgba(243,103,23,.06);border:1.5px solid rgba(243,103,23,.2);border-radius:10px;padding:11px 14px;margin-top:12px">
-    <span style="font-size:18px">🎉</span>
-    <span style="flex:1;font-size:11.5px;color:rgba(var(--white-rgb),.85)">Session logged. Worth sharing?</span>
-    <button onclick="shareSession()" style="background:linear-gradient(to top,rgba(243,103,23,.4),rgba(243,103,23,.85));color:#0D0806;border:none;border-radius:6px;padding:6px 11px;font-size:11px;font-weight:800;white-space:nowrap">Share</button>
-    <button onclick="document.getElementById('session-share-prompt').style.display='none'" style="background:none;border:none;color:rgba(var(--white-rgb),.4);font-size:16px;padding:0 2px;line-height:1">×</button>
-  </div>
   <div id="backup-reminder" style="display:none;width:100%;box-sizing:border-box;align-items:center;gap:10px;background:rgba(255,122,46,.08);border:1.5px solid rgba(255,122,46,.25);border-radius:10px;padding:11px 14px;margin-top:10px">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F36717" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
     <span id="backup-reminder-msg" style="flex:1;font-size:11.5px;color:rgba(var(--white-rgb),.85)"></span>
@@ -8122,6 +8134,7 @@ let timerOn=false,timerSecs=0,timerInt=null,timerStartedAt=0;
 // markTrainedToday()'s crate/streak credit so tapping "log set" once, the
 // instant the page opens, can't fake a whole day of training — see there.
 let sessionEnteredAt=0;
+let sessionStartXP=0,sessionStartVolume=0; // snapshot the instant sessionEnteredAt is stamped, so completeSession() can show what THIS session earned, not lifetime totals
 const MIN_SESSION_MS_FOR_CREDIT=90000; // 90s — shorter than any real set (setup+work+breathe), long enough that instant-tap farming gains nothing
 let restSecs=0,restInt=null,restEndsAt=0;
 let totalVolume=0;
@@ -12743,7 +12756,6 @@ function shareSession(){
     toast('📋','Copied to clipboard \u2014 paste it anywhere!');
   }
   addXP(10,'Shared a session');
-  document.getElementById('session-share-prompt').style.display='none';
 }
 
 function checkBackupReminder(){
@@ -14134,11 +14146,11 @@ function showPage(id){
     // never fires mid-session.
     if(startingScheduledSession){
       startingScheduledSession=false;
-      skippedExercises=new Set();sessionEnteredAt=Date.now();saveToStorage();
+      skippedExercises=new Set();sessionEnteredAt=Date.now();sessionStartXP=xp;sessionStartVolume=totalVolume;saveToStorage();
     }else if(sessionInProgress()){
       // resuming — plannedSessionExs/skippedExercises/sessionEnteredAt stay untouched
     }else if(!sessionEnteredAt){
-      sessionEnteredAt=Date.now();
+      sessionEnteredAt=Date.now();sessionStartXP=xp;sessionStartVolume=totalVolume;
     }
     safeRender(buildSession,'session');
   }
@@ -16997,7 +17009,7 @@ function commitAndStartSession(){
   }
   plannedSessionExs=exs;plannedSessionType=type;plannedSessionName=name;
   skippedExercises=new Set();
-  sessionEnteredAt=Date.now();
+  sessionEnteredAt=Date.now();sessionStartXP=xp;sessionStartVolume=totalVolume;
   saveToStorage();
   renderTodaySessionName(plannedSessionName);
   renderDashPlanList();
@@ -18242,6 +18254,7 @@ function completeSession(nameOverride){
   // — only call it "earned" here if they'd already claimed it before
   // hitting Complete.
   const compassAlreadyClaimed=!alreadyTrainedToday&&compassPointDate===today;
+  const genuineWin=!alreadyTrainedToday&&!nameOverride;
   toast(alreadyTrainedToday?'💪':(compassAlreadyClaimed?'🧭':'💪'), alreadyTrainedToday?'Extra session logged!':(compassAlreadyClaimed?'Session done! Compass point earned.':'Session done!'));
   celebrateBurst(['💪','🔥','⚡'],alreadyTrainedToday?10:14);
   saveToStorage();
@@ -18249,11 +18262,32 @@ function completeSession(nameOverride){
   setCompanionMessage();
   checkAchievements();
   checkBackupReminder();
-  // Share prompt only for a genuine first session of the day, not the
-  // emergency rescue routine and not a same-day duplicate extra session —
-  // those aren't really "wins" worth prompting someone to post about.
-  const sharePrompt=document.getElementById('session-share-prompt');
-  if(sharePrompt)sharePrompt.style.display=(!alreadyTrainedToday&&!nameOverride)?'flex':'none';
+  // Full-screen win screen only for a genuine first session of the day,
+  // not the emergency rescue routine and not a same-day duplicate extra
+  // session — those aren't really "wins" worth the ceremony.
+  if(genuineWin)showSessionCompleteModal(sessionDurationSec);
+}
+function showSessionCompleteModal(durationSec){
+  const areteEarned=Math.max(0,Math.round(xp-sessionStartXP));
+  const kgLifted=Math.max(0,Math.round(totalVolume-sessionStartVolume));
+  const mins=Math.floor(durationSec/60),secs=Math.floor(durationSec%60);
+  const timeStr=mins+':'+String(secs).padStart(2,'0');
+  const overlay=document.createElement('div');
+  overlay.className='achievement-overlay';
+  overlay.innerHTML=`<div class="achievement-modal session-complete-modal">
+    <button class="session-complete-share-icon" onclick="shareSession()" aria-label="Share">↗</button>
+    <div class="achievement-icon">🔥</div>
+    <div class="achievement-title">Session complete!</div>
+    <div class="achievement-desc">Making Success Real.</div>
+    <div class="session-complete-stats">
+      <div class="sc-stat"><img class="sc-stat-icon" src="images/icons/arete.png" alt=""><div class="sc-stat-val">+${areteEarned}</div><div class="sc-stat-lbl">ARETE</div></div>
+      <div class="sc-stat"><div class="sc-stat-icon" style="font-size:18px;line-height:20px">💪</div><div class="sc-stat-val">${kgLifted.toLocaleString()}</div><div class="sc-stat-lbl">KG LIFTED</div></div>
+      <div class="sc-stat"><div class="sc-stat-icon" style="font-size:18px;line-height:20px">⏱</div><div class="sc-stat-val">${timeStr}</div><div class="sc-stat-lbl">TRAINED</div></div>
+    </div>
+    <button class="achievement-share-btn" onclick="this.closest('.achievement-overlay').remove()">Continue</button>
+  </div>`;
+  document.body.appendChild(overlay);
+  requestAnimationFrame(()=>overlay.classList.add('show'));
 }
 
 const FOODS_DB=[
@@ -23775,17 +23809,28 @@ function getWeeklyLeaguePointsForWeek(mondayKey){
 }
 function getWeeklyLeaguePoints(){return getWeeklyLeaguePointsForWeek(getMonday(new Date()));}
 function leagueUserName(){return profile.lbName||profile.name||'You';}
-// 20 bots spread across 8 tiers averages ~2-3 per tier — too sparse to
-// feel like a real group. Widens to ±1 then ±2 neighbouring tiers,
+// Pulls from the same 105-bot BOT_ROSTER_FULL the Leaderboard already
+// uses, not just the 20 hand-authored names — those alone spread across
+// 8 league tiers average ~2-3 per tier, too sparse for a real group, and
+// left whole tiers (bronze especially) matched against only a couple of
+// the weakest bots — a free, uncontested "lead" with no real competition,
+// not anything actually earned. Widens to ±1 then ±2 neighbouring tiers,
 // stopping as soon as there's a reasonable-sized group, rather than
 // showing "you vs one other person" most weeks.
 function computeLeagueGroupForWeek(weekKey,tierIndex,userPoints){
-  const botsAt=(idx)=>BOT_ROSTER.filter(b=>leagueIndexForBot(b,weekKey)===idx);
+  const botsAt=(idx)=>BOT_ROSTER_FULL.filter(b=>leagueIndexForBot(b,weekKey)===idx);
   let pool=botsAt(tierIndex);
   for(const spread of[1,2]){
     if(pool.length>=6)break;
-    const wider=BOT_ROSTER.filter(b=>Math.abs(leagueIndexForBot(b,weekKey)-tierIndex)<=spread);
+    const wider=BOT_ROSTER_FULL.filter(b=>Math.abs(leagueIndexForBot(b,weekKey)-tierIndex)<=spread);
     pool=wider;
+  }
+  // Cap at a real-league-sized group rather than dumping in everyone the
+  // widened filter matched (could be 30+ once drawing from the full
+  // roster) — which 9 make the cut is itself reshuffled weekly via a
+  // separate hash, so the trimming doesn't make the group feel static.
+  if(pool.length>9){
+    pool=[...pool].sort((a,b)=>weekHash(a.name+weekKey+'pick')-weekHash(b.name+weekKey+'pick')).slice(0,9);
   }
   const members=pool.map(b=>({name:b.name,points:botWeeklyPoints(b,weekKey),isBot:true,tier:b.tier}));
   members.push({name:leagueUserName(),points:userPoints,isYou:true});
@@ -23983,6 +24028,8 @@ function saveToStorage(){
     localStorage.setItem('arx_plannedSessionName', plannedSessionName||'');
     localStorage.setItem('arx_skippedExercises', JSON.stringify([...skippedExercises]));
     localStorage.setItem('arx_sessionEnteredAt', String(sessionEnteredAt||0));
+    localStorage.setItem('arx_sessionStartXP', String(sessionStartXP||0));
+    localStorage.setItem('arx_sessionStartVolume', String(sessionStartVolume||0));
     localStorage.setItem('arx_sessionHistory', JSON.stringify(sessionHistory));
     localStorage.setItem('arx_cardioLog', JSON.stringify(cardioLog));
     localStorage.setItem('arx_cardioDistanceUnit', cardioDistanceUnit);
@@ -24126,6 +24173,8 @@ function loadFromStorage(){
     const skx=localStorage.getItem('arx_skippedExercises');
     if(skx){try{skippedExercises=new Set(JSON.parse(skx));}catch(e){skippedExercises=new Set();}}
     sessionEnteredAt=parseInt(localStorage.getItem('arx_sessionEnteredAt'))||0;
+    sessionStartXP=parseInt(localStorage.getItem('arx_sessionStartXP'))||0;
+    sessionStartVolume=parseFloat(localStorage.getItem('arx_sessionStartVolume'))||0;
     const sh=localStorage.getItem('arx_sessionHistory');
     if(sh){try{sessionHistory=JSON.parse(sh);}catch(e){sessionHistory=[];}}
     const cl=localStorage.getItem('arx_cardioLog');
