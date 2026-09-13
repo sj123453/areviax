@@ -313,6 +313,13 @@ input,input:focus,input:active,
 .ex-order-btn:disabled{opacity:.25;cursor:default}
 .ex-order-btn:disabled:active{background:var(--border2);color:rgba(var(--white-rgb),.6)}
 .ex-card:hover{border-color:var(--border)}
+.ex-fav-btn{width:22px;height:22px;display:flex;align-items:center;justify-content:center;background:transparent;border:none;cursor:pointer;padding:0;font-size:16px;line-height:1;color:rgba(var(--white-rgb),.3);flex-shrink:0}
+.ex-fav-btn.active{color:#FFC107}
+.ex-fav-btn:active{transform:scale(.9)}
+/* EXERCISE PREFERENCE CHIPS — compound / mix / isolation, Workout Builder */
+.ex-pref-row{display:flex;gap:8px;margin:10px 0}
+.ex-pref-chip{flex:1;text-align:center;padding:9px 6px;border-radius:9px;border:1.5px solid var(--border);background:rgba(var(--bg-rgb),.4);color:rgba(var(--white-rgb),.65);font-size:11px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .2s}
+.ex-pref-chip.active{border-color:var(--green);background:rgba(243,103,23,.14);color:var(--green)}
 /* LIFT RANK corner badge — same Wood→Olympian material language as the
    Trophy Cabinet's Lift Ranks row, shrunk to a small pill so it reads
    as a quick reference next to PR/Est 1RM, not a competing feature.
@@ -4393,7 +4400,7 @@ body[data-goal-theme="cut"] .lv-page{
       <div class="sb-more-item" onclick="showPage('leaderboard');toggleSidebarMore()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg><span>Leaderboard</span></div>
       <div class="sb-more-item" onclick="showPage('leagues');toggleSidebarMore()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 01-10 0V4z"/><path d="M7 5H3v2a4 4 0 004 4M17 5h4v2a4 4 0 01-4 4"/></svg><span>Leagues</span></div>
       <div class="sb-more-item" onclick="showPage('learn');toggleSidebarMore()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg><span>The Science</span></div>
-      <div class="sb-more-item" onclick="showPage('aicoach');toggleSidebarMore()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="12" cy="3.3" r="1" fill="currentColor" stroke="none"/><line x1="12" y1="4.3" x2="12" y2="6.6" stroke-linecap="round"/><circle cx="12" cy="13.2" r="6.3"/><circle cx="9.6" cy="13.2" r="1" fill="currentColor" stroke="none"/><circle cx="14.4" cy="13.2" r="1" fill="currentColor" stroke="none"/><path d="M9.3 16c1.1.8 3.3.8 4.4 0" stroke-linecap="round"/></svg><span>Ask Areviax</span></div>
+      <div class="sb-more-item" onclick="showPage('aicoach');toggleSidebarMore()"><img src="images/icons/coach-sam-portrait.png" alt="" style="width:14px;height:14px;border-radius:50%;object-fit:cover;object-position:50% 42%;flex-shrink:0"><span>Coach Sam</span></div>
       <div class="sb-more-item" onclick="showPage('subscription');toggleSidebarMore()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3 7h7l-5.5 4.5L18.5 21 12 16.5 5.5 21l2-7.5L2 9h7z"/></svg><span>Go Premium</span></div>
       <div class="sb-more-item" onclick="showPage('settings');toggleSidebarMore()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 110 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg><span>Settings</span></div>
       <div class="sb-more-item" style="color:rgba(255,140,71,.85)" onclick="window.open('https://areviaxos.netlify.app/','_blank');toggleSidebarMore()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg><span>Areviax OS</span></div>
@@ -4878,6 +4885,15 @@ body[data-goal-theme="cut"] .lv-page{
             <option value="90">1.5 hours</option>
             <option value="full">2+ hours</option>
           </select>
+        </div>
+      </div>
+
+      <div style="margin-bottom:14px">
+        <div class="lbl" style="margin-bottom:5px">Exercise style — favourites and required muscle coverage always come first; this steers the rest</div>
+        <div class="ex-pref-row">
+          <div class="ex-pref-chip" data-pref="isolation" onclick="setExercisePreference('isolation')">More isolation</div>
+          <div class="ex-pref-chip" data-pref="mix" onclick="setExercisePreference('mix')">Mix</div>
+          <div class="ex-pref-chip" data-pref="compound" onclick="setExercisePreference('compound')">More compound</div>
         </div>
       </div>
 
@@ -7686,7 +7702,7 @@ body[data-goal-theme="cut"] .lv-page{
   <div class="lv-topbar" style="margin:0 -20px 16px">
     <span style="display:flex;align-items:center;gap:8px">
       <svg width="18" height="18" viewBox="0 0 48 48" fill="none" stroke="var(--lv-gold)" aria-hidden="true"><path d="M24 5 26.6 21.4 43 24 26.6 26.6 24 43 21.4 26.6 5 24 21.4 21.4Z" fill="var(--lv-gold)" stroke="none" opacity=".95"/><path d="M24 12v24M12 24h24" stroke-width=".6" opacity=".5"/><circle cx="24" cy="24" r="11" stroke-width=".7" opacity=".45"/></svg>
-      <span class="lv-wordmark" style="font-size:11px">Areviax</span><span style="font-size:10px;color:var(--lv-muted-fg);margin-left:7px;padding-left:7px;border-left:1px solid var(--lv-border-strong)">The Oracle</span>
+      <span class="lv-wordmark" style="font-size:11px">Areviax</span><span style="font-size:10px;color:var(--lv-muted-fg);margin-left:7px;padding-left:7px;border-left:1px solid var(--lv-border-strong)">Coach Sam</span>
     </span>
     <div style="display:flex;align-items:center;gap:6px">
       <span class="lv-pill" style="padding:4px 8px;background:var(--lv-primary);color:var(--lv-primary-fg);font-size:10px"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="lv-streak-flame"><path d="M12 22c4.4 0 7-2.9 7-6.8 0-3-1.7-5-3-7-.2 1.7-1 2.8-2 3.4.3-2.7-.7-5.6-3-7.6-.3 2.5-1.2 3.9-2.7 5.4C6.8 10.8 6 12.6 6 15c0 4 2.7 7 6 7z"/></svg> <span class="lv-streak-badge">0</span></span>
@@ -8072,6 +8088,40 @@ let sessionEquip=null;  // null = use profile.equip
 let sessionFocus='hypertrophy'; // default focus chip — was 'strength' (150s rest), which meant everyone got the longest rest by default unless they explicitly changed it
 const sessionPriority={balance:2,goal:2,fatigue:1,safety:3}; // 1=Low 2=Med 3=High
 let selectedMuscles=new Set(); // target-muscle picker — empty = use the Type template above
+// Favourite exercises — a plain name-keyed Set, toggled from the ★ on any
+// exercise card (session, workout builder, exercise library). Read by
+// buildBalancedSession() below to prioritise a favourite into the session
+// whenever it's a real candidate, same as everyone else's own picks —
+// never bypasses muscle coverage, just wins ties for the remaining slots.
+let favoriteExercises=new Set();
+function toggleFavoriteExercise(name){
+  if(favoriteExercises.has(name))favoriteExercises.delete(name);
+  else favoriteExercises.add(name);
+  saveToStorage();
+  toast('⭐',favoriteExercises.has(name)?'Favourited '+name:'Removed '+name+' from favourites');
+  try{renderExercises();}catch(e){}
+  try{buildSession();}catch(e){}
+}
+// Shared star-button markup for any exercise card — used by every builder
+// render path (renderExercises, rerollWorkout, custom mode) so the toggle
+// behaves identically everywhere instead of three near-copies drifting.
+function favBtnHTML(name){
+  const on=favoriteExercises.has(name);
+  return `<button class="ex-fav-btn${on?' active':''}" onclick="event.stopPropagation();toggleFavoriteExercise('${name.replace(/'/g,"\\'")}')" title="${on?'Remove favourite':'Favourite this exercise'}">${on?'★':'☆'}</button>`;
+}
+// Compound-vs-isolation weighting for the auto-built session, chosen in
+// the Workout Builder. Default 'compound' — a limited slot count should
+// reach for movements that train multiple muscles at once first; this
+// only steers the FILLER slots once every required muscle already has
+// real coverage (see buildBalancedSession), so 'isolation' never means
+// skipping a muscle group, only leaning isolation for the extra slots.
+let exercisePreference='compound'; // 'compound' | 'isolation' | 'mix'
+function setExercisePreference(pref){
+  exercisePreference=pref;
+  saveToStorage();
+  document.querySelectorAll('.ex-pref-chip').forEach(b=>b.classList.toggle('active',b.dataset.pref===pref));
+  try{renderExercises();}catch(e){}
+}
 const MUSCLE_GROUPS={
   chest:['chest','upper chest'],back:['back','lats'],shoulders:['shoulders','side delts','rear delts'],
   biceps:['biceps'],triceps:['triceps'],quads:['quads'],hamstrings:['hamstrings','full posterior chain'],
@@ -8168,15 +8218,13 @@ const SESSION_TYPE_MAJORS={
   'full':['chest','back','shoulders','biceps','triceps','quads','hamstrings','glutes','calves'],
   'arms':['biceps','triceps']
 };
-// Every split above except 'lower' (which has its own bespoke quad
-// guarantee — see the comment where it's applied) touches more than one
-// major muscle, so a short session's plain slice-off-the-top can just as
-// easily drop an entire muscle from Push (shoulders/triceps losing out to
-// chest) or Pull (biceps losing out to back) as it always could from
-// Upper Full — topUpMissingMuscles never assumed full-body scope, it was
-// just never wired up for these types. Direct report: "Push Upper 15
-// only includes chest."
-const MUSCLE_BALANCED_TYPES=['upper-push','upper-pull','upper-full','full','arms'];
+// Every split touches more than one major muscle, so a short session's
+// plain slice-off-the-top can just as easily drop an entire muscle from
+// Push (shoulders/triceps losing out to chest), Pull (biceps losing out
+// to back), or Lower (quads losing out to hamstrings/glutes) as it always
+// could from Upper Full. Direct report: "Push Upper 15 only includes
+// chest" / "Full body isn't including chest, isn't doing back."
+const MUSCLE_BALANCED_TYPES=['upper-push','upper-pull','upper-full','lower','full','arms'];
 function getUnrecoveredMajorsForSlot(slot,readinessData){
   if(!slot||slot.type==='rest')return[];
   const MAJOR=['chest','back','shoulders','biceps','triceps','quads','hamstrings','glutes','calves'];
@@ -14347,7 +14395,7 @@ function showPage(id){
   if(pg)pg.classList.add('active');
   document.querySelectorAll('.sb-item').forEach(i=>{if(i.getAttribute('onclick')?.includes(id))i.classList.add('active')});
   try{
-    const titles={dashboard:'Home',workout:'The Forge',session:'Session',nutrition:'Nutrition',recipes:'Recipes',progress:'Progress',shop:'Shop',trophycabinet:'Trophy Cabinet',labors:'The 12 Labors',xproad:'Arete Road',trophyroad:'Road to Olympus',weightroad:'Weight Road',recovery:'Recovery',schedule:'Schedule',leaderboard:'Leaderboard',leagues:'Leagues',learn:'Science',profile:'Profile',legal:'Legal',settings:'Settings',aicoach:'Ask Areviax',subscription:'Go Premium'};
+    const titles={dashboard:'Home',workout:'The Forge',session:'Session',nutrition:'Nutrition',recipes:'Recipes',progress:'Progress',shop:'Shop',trophycabinet:'Trophy Cabinet',labors:'The 12 Labors',xproad:'Arete Road',trophyroad:'Road to Olympus',weightroad:'Weight Road',recovery:'Recovery',schedule:'Schedule',leaderboard:'Leaderboard',leagues:'Leagues',learn:'Science',profile:'Profile',legal:'Legal',settings:'Settings',aicoach:'Coach Sam',subscription:'Go Premium'};
     const t=titles[id]||id;
     const tte=document.getElementById('tb-title');
     if(tte){tte.textContent=t;tte.classList.toggle('tb-title-sm',id==='trophycabinet');}
@@ -16209,7 +16257,7 @@ function moveExercise(index,direction){
   const filtered=allEx.filter(e=>equipOk(e));
   const timeVal=wbTime.value;
   const maxEx=maxExForTime(timeVal,filtered.length);
-  let exs=selectedMuscles.size>0 ? spreadBySelectedMuscle(filtered,maxEx) : MUSCLE_BALANCED_TYPES.includes(type) ? topUpMissingMuscles(spreadByMuscle(filtered,maxEx),filtered) : filtered.slice(0,maxEx);
+  let exs=selectedMuscles.size>0 ? spreadBySelectedMuscle(filtered,maxEx) : MUSCLE_BALANCED_TYPES.includes(type) ? buildBalancedSession(filtered,maxEx,type) : filtered.slice(0,maxEx);
   exs=applyBeginnerSubs(exs);
   exs=applyCustomOrder(exs,type);
   const newIndex=index+direction;
@@ -16290,59 +16338,90 @@ function spreadBySelectedMuscle(exList,count){
   }
   return result.slice(0,count);
 }
-function spreadByMuscle(exList,count){
-  if(exList.length<=count) return exList.slice(0,count);
-  const groups={};
-  const order=[];
-  // Highest-effectiveness first within each muscle-tag group, so when a
-  // group only gets one guaranteed slot, it's filled by the best exercise
-  // for that muscle (e.g. Barbell Bench Press, eff 98) rather than
-  // whichever happened to sit first in the source array — an isolation
-  // move like Cable Chest Fly (eff 78, tagged plain 'chest' with no
-  // triceps involvement) would otherwise satisfy the same "chest is
-  // covered" bookkeeping without delivering nearly the same stimulus.
-  [...exList].sort((a,b)=>(b.eff||0)-(a.eff||0)).forEach(e=>{
-    if(!groups[e.muscle]){groups[e.muscle]=[];order.push(e.muscle)}
-    groups[e.muscle].push(e);
-  });
-  const orderedGroups=[...order].sort((a,b)=>groups[a].length-groups[b].length);
-  const result=[];
-  // Pass 1: every distinct muscle group gets exactly one pick first — this is
-  // the part that matters. A naive round-robin sorted purely by group size
-  // exhausts every small group's first pick before a larger group gets
-  // touched at all, which can mean a real muscle (like shoulders, with only
-  // 2 exercises) never appears even in a 10-exercise session if there
-  // happen to be 10+ smaller groups. Guaranteeing one pick per group first
-  // avoids that regardless of how many groups exist.
-  for(const m of orderedGroups){
-    if(result.length>=count)break;
-    if(groups[m][0])result.push(groups[m][0]);
-  }
-  // Pass 2: fill remaining slots, still scarcity-ordered — but cap how much
-  // any single group can contribute. Without this, a long session (2hr full
-  // body needing ~14+ exercises) exhausts every small group (chest, quads,
-  // etc.) after 1-2 rounds while a much deeper group (plain 'core' had 18 of
-  // 51 exercises in the full-body pool, vs 6 for the next-largest) keeps
-  // supplying picks round after round purely because it's deeper, not
-  // because the session actually needs that much of it — that's the real
-  // cause of the "muscle balance" complaint on long full-body sessions.
-  const perGroupCap=Math.max(2,Math.ceil(count*0.3));
-  const takenFromGroup={};
-  orderedGroups.forEach(m=>takenFromGroup[m]=1); // pass 1 already took one from each
-  let round=1;
-  while(result.length<count){
-    let addedThisRound=false;
-    for(const m of orderedGroups){
-      if(result.length>=count)break;
-      if(takenFromGroup[m]>=perGroupCap)continue;
-      if(groups[m][round]){result.push(groups[m][round]);takenFromGroup[m]++;addedThisRound=true}
-    }
-    if(!addedThisRound)break;
-    round++;
-  }
-  return result;
-}
+// Which physical muscle groups a session type must genuinely cover, no
+// matter how the pool happens to be shaped. Keys match MUSCLE_GROUPS.
+// Core deliberately included for 'full' — the old topUpMissingMuscles()
+// left it out of its own MAJOR list entirely, so a full-body session
+// could hit every other muscle and still never touch core.
+const SESSION_REQUIRED_MUSCLES={
+  'upper-push':['chest','shoulders','triceps'],
+  'upper-pull':['back','biceps'],
+  'upper-full':['chest','back','shoulders','biceps','triceps'],
+  // No core here — the real 'lower' exercise pool has zero core-tagged
+  // movements (verified directly against EX['lower']), so requiring it
+  // just wastes a coverage-pass slot chasing something that can never be
+  // satisfied. Core belongs to 'full', where the pool actually has it.
+  'lower':['quads','hamstrings','glutes','calves'],
+  'full':['chest','back','shoulders','biceps','triceps','quads','hamstrings','glutes','calves','core'],
+  'arms':['biceps','triceps'],
+};
+function exerciseMuscleGroups(e){ return musclesPresentInTag(e.muscle||''); }
+function isCompoundExercise(e){ return exerciseMuscleGroups(e).length>=2; }
+// Replaces the old spreadByMuscle()+topUpMissingMuscles() pipeline for
+// every MUSCLE_BALANCED_TYPES session. That pipeline grouped by the raw
+// e.muscle STRING — so 'chest + triceps' and plain 'triceps' were two
+// entirely separate "groups", each guaranteed one slot — instead of by
+// actual physical muscle. A full-body pool easily has 20+ distinct tag
+// strings, so the guaranteed-one-per-group pass alone could exhaust the
+// whole session on whichever isolation tags happened to be smallest,
+// before ever reaching the chest/back compound tags. That's the exact
+// bug behind full-body sessions skipping chest/back entirely while
+// stacking bicep/tricep/hamstring/glute isolation, and Pull day landing
+// 3 bicep isolation moves next to one row and one pulldown.
+//
+// New approach: figure out which real muscles this session type must
+// cover (SESSION_REQUIRED_MUSCLES), then for each one — hardest-to-cover
+// (fewest compound options) first, so it isn't starved by the fill pass —
+// spend one slot on its single best COMPOUND option, falling back to
+// isolation only when no compound in the pool touches that muscle at
+// all. Once every required muscle has real coverage, fill remaining
+// slots: favourites first, then compound-vs-isolation per
+// exercisePreference, still capped per muscle so no single group can
+// dominate the filler slots the way core/isolation groups used to.
+function buildBalancedSession(pool,count,type){
+  if(!pool.length)return [];
+  if(pool.length<=count)return [...pool];
+  const required=SESSION_REQUIRED_MUSCLES[type]||[];
+  const pref=exercisePreference||'compound';
+  const picked=[];
+  const pickedNames=new Set();
+  const scoreOf=e=>(e.eff||0)+(favoriteExercises.has(e.name)?1000:0); // favourites win ties for a slot
+  const pick=e=>{picked.push(e);pickedNames.add(e.name);};
 
+  const compoundOptionsFor=m=>pool.filter(e=>!pickedNames.has(e.name)&&isCompoundExercise(e)&&exerciseMuscleGroups(e).includes(m));
+  const isoOptionsFor=m=>pool.filter(e=>!pickedNames.has(e.name)&&exerciseMuscleGroups(e).includes(m));
+  const orderedRequired=[...required].sort((a,b)=>compoundOptionsFor(a).length-compoundOptionsFor(b).length);
+  for(const m of orderedRequired){
+    if(picked.length>=count)break;
+    if(picked.some(e=>exerciseMuscleGroups(e).includes(m)))continue; // an earlier compound pick can legitimately already cover this muscle too
+    const compounds=compoundOptionsFor(m).sort((a,b)=>scoreOf(b)-scoreOf(a));
+    const choice=compounds[0]||isoOptionsFor(m).sort((a,b)=>scoreOf(b)-scoreOf(a))[0];
+    if(choice)pick(choice);
+  }
+
+  const perMuscleCap=Math.max(2,Math.ceil(count*0.35));
+  const muscleCount=m=>picked.filter(e=>exerciseMuscleGroups(e).includes(m)).length;
+  const remaining=()=>pool.filter(e=>!pickedNames.has(e.name));
+  const withinCap=e=>exerciseMuscleGroups(e).every(m=>muscleCount(m)<perMuscleCap);
+  const rankFiller=list=>[...list].sort((a,b)=>{
+    const favA=favoriteExercises.has(a.name)?1:0,favB=favoriteExercises.has(b.name)?1:0;
+    if(favA!==favB)return favB-favA;
+    const cA=isCompoundExercise(a)?1:0,cB=isCompoundExercise(b)?1:0;
+    // required-muscle coverage already secured real compound picks above, so
+    // the filler pass is where the user's stated preference actually shows up
+    if(pref==='isolation'){ if(cA!==cB)return cA-cB; }
+    else if(pref==='compound'){ if(cA!==cB)return cB-cA; }
+    // 'mix': no compound/isolation bias in the filler pass — pure effectiveness
+    return (b.eff||0)-(a.eff||0);
+  });
+  while(picked.length<count){
+    const candidates=remaining().filter(withinCap);
+    const src=candidates.length?candidates:remaining(); // cap exhausted everywhere — slightly over-filling one muscle beats leaving a slot empty
+    if(!src.length)break;
+    pick(rankFiller(src)[0]);
+  }
+  return picked;
+}
 function toggleMuscleTarget(m,el){
   // Multi-select: a session legitimately targets several muscles at once
   // (e.g. Chest + Back + Shoulders for a full-body day), so this stays a
@@ -16425,6 +16504,7 @@ function renderMuscleTargetReadiness(){
 function renderExercises(){
   renderInjuryReminder();
   renderMuscleTargetReadiness();
+  document.querySelectorAll('.ex-pref-chip').forEach(b=>b.classList.toggle('active',b.dataset.pref===exercisePreference));
   const wbType=document.getElementById('wb-type');
   const wbTime=document.getElementById('wb-time');
   if(!wbType||!wbTime)return;
@@ -16478,35 +16558,13 @@ function renderExercises(){
     checkEl.style.borderColor=reducedSetsMode?'var(--cyan)':'rgba(232,214,196,.2)';
     checkEl.innerHTML=reducedSetsMode?'<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#F36717" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>':'';
   }
-  // For combined "full upper" sessions, a flat truncation defeats the point of the
+  // For combined multi-muscle sessions, a flat truncation defeats the point of the
   // session — it would only ever cover the first 2-4 muscle groups, never reaching
-  // triceps/biceps/rear delts. Spread the pick across muscle groups instead, so even
-  // a short version still touches push AND pull, not just whichever came first.
-  // spreadByMuscle alone still isn't enough at a short length: it guarantees one
-  // pick per DISTINCT muscle tag, prioritizing the smallest groups first so no
-  // group is ever permanently starved — but that inverts badly once the slot
-  // count is small, since it means a real major muscle (e.g. 'back', with 4
-  // exercises in the upper-full pool — one of the two biggest groups there)
-  // consistently loses out to tiny 1-2-exercise accessory groups like 'biceps'
-  // for the few guaranteed picks going. topUpMissingMuscles (already proven in
-  // the auto-week generator) swaps back in whichever MAJOR muscle came up
-  // empty, so a 30-min Upper Full still touches every major group at least
-  // once instead of silently dropping back work.
-  let exs=(selectedMuscles.size>0&&!searchTerm) ? spreadBySelectedMuscle(filtered,maxEx) : (MUSCLE_BALANCED_TYPES.includes(type)&&!searchTerm) ? topUpMissingMuscles(spreadByMuscle(filtered,maxEx),filtered) : filtered.slice(0,maxEx);
-  // 'lower' sessions don't get the full spread treatment above (deadlift/RDL variants
-  // score too well on safety+synergy for a naive spread to actually rebalance them —
-  // it ends up swapping "two hinge movements" for "glutes + calves", still no quad
-  // work). Guarantee a real quad compound gets a seat instead: only step in when the
-  // list genuinely has none, so a session that already earned a squat/lunge/Leg Press
-  // on its own merits is left alone.
-  if(type==='lower'&&!searchTerm&&exs.length){
-    const hasQuadWork=exs.some(e=>/quad/i.test(e.muscle));
-    if(!hasQuadWork){
-      const legPress=filtered.find(e=>e.name==='Leg Press'&&!exs.includes(e));
-      const quadPick=legPress||filtered.find(e=>/quad/i.test(e.muscle)&&!exs.includes(e));
-      if(quadPick){exs=exs.slice(0,Math.max(0,exs.length-1));exs.push(quadPick);}
-    }
-  }
+  // triceps/biceps/rear delts, or quads on a Lower day. buildBalancedSession spends
+  // one slot on the single best COMPOUND option for every muscle the session type
+  // must cover before it ever fills remaining slots, so a 30-min Upper Full or Lower
+  // still touches every major group at least once instead of silently dropping it.
+  let exs=(selectedMuscles.size>0&&!searchTerm) ? spreadBySelectedMuscle(filtered,maxEx) : (MUSCLE_BALANCED_TYPES.includes(type)&&!searchTerm) ? buildBalancedSession(filtered,maxEx,type) : filtered.slice(0,maxEx);
   // Skip during an active search — swapping a beginner's own explicit search
   // hit for something else would just read as broken, not helpful.
   if(!searchTerm)exs=applyBeginnerSubs(exs);
@@ -16523,6 +16581,7 @@ function renderExercises(){
           <div class="ex-meta">${e.muscle} · ${effectiveSets(e)}×${e.reps}</div>
         </div>
         <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0;align-items:flex-end">
+          ${favBtnHTML(e.name)}
           <button class="ex-order-btn" onclick="event.stopPropagation();moveExercise(${i},-1)" ${i===0?'disabled':''}>↑</button>
           <button class="ex-order-btn" onclick="event.stopPropagation();moveExercise(${i},1)" ${i===exs.length-1?'disabled':''}>↓</button>
         </div>
@@ -17014,6 +17073,7 @@ function pickBuilderSwap(i,name){
           <div class="ex-meta">${e.muscle} · ${effectiveSets(e)}×${e.reps}</div>
         </div>
         <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0;align-items:flex-end">
+          ${favBtnHTML(e.name)}
           <button class="ex-order-btn" onclick="event.stopPropagation();moveExercise(${idx},-1)" ${idx===0?'disabled':''}>↑</button>
           <button class="ex-order-btn" onclick="event.stopPropagation();moveExercise(${idx},1)" ${idx===exs.length-1?'disabled':''}>↓</button>
         </div>
@@ -17058,12 +17118,12 @@ function rerollWorkout(){
   const timeVal=wbTime?wbTime.value:'full';
   const maxEx=maxExForTime(timeVal,pool.length);
   // A plain shuffle+slice here had zero muscle-group balancing at all —
-  // unlike renderExercises()'s own upper-full/full path, this could (and
-  // did) drop an entire muscle like back purely by chance on any given
-  // reroll, independent of the fix already applied there. Same guarantee,
-  // same reason: spreadByMuscle's smallest-group-first bias still needs
-  // topUpMissingMuscles backing it up once the slot count gets small.
-  const exs=applyBeginnerSubs(MUSCLE_BALANCED_TYPES.includes(type)?topUpMissingMuscles(spreadByMuscle(pool,maxEx),pool):pool.slice(0,maxEx));
+  // unlike renderExercises()'s own path, this could (and did) drop an
+  // entire muscle like back purely by chance on any given reroll. Same
+  // buildBalancedSession guarantee applies here so a reroll still covers
+  // every required muscle for this session type, not just whatever the
+  // shuffle happened to land on.
+  const exs=applyBeginnerSubs(MUSCLE_BALANCED_TYPES.includes(type)?buildBalancedSession(pool,maxEx,type):pool.slice(0,maxEx));
   const cont=document.getElementById('ex-list');
   if(!cont)return;
   cont.innerHTML=exs.map((e,i)=>`
@@ -17075,6 +17135,7 @@ function rerollWorkout(){
           <div class="ex-meta">${e.muscle} · ${effectiveSets(e)}×${e.reps}</div>
         </div>
         <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0;align-items:flex-end">
+          ${favBtnHTML(e.name)}
           <button class="ex-order-btn" onclick="event.stopPropagation();moveExercise(${i},-1)" ${i===0?'disabled':''}>↑</button>
           <button class="ex-order-btn" onclick="event.stopPropagation();moveExercise(${i},1)" ${i===exs.length-1?'disabled':''}>↓</button>
         </div>
@@ -17701,7 +17762,7 @@ function buildSession(){
   let exs=plannedSessionExs;
   if(!exs||!exs.length){
     const pool=(EX['upper-push']||[]).filter(e=>equipOk(e));
-    exs=applyBeginnerSubs(topUpMissingMuscles(spreadByMuscle(pool,maxExForTime(weekSessionLength,pool.length)),pool));
+    exs=applyBeginnerSubs(buildBalancedSession(pool,maxExForTime(weekSessionLength,pool.length),'upper-push'));
     plannedSessionExs=exs;plannedSessionType='upper-push';plannedSessionName=getSessionTypeLabel('upper-push');
     skippedExercises=new Set(); // genuinely new fallback plan just got created above
   }
@@ -17737,7 +17798,7 @@ function buildSession(){
     <div class="ex-card${isSkipped?' ex-skipped':''}" id="sex-${i}">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:9px">
         <div class="ex-fig">${getCardThumb(e)}</div>
-        <div style="flex:1;min-width:0"><div class="ex-name">${e.name}</div><div class="ex-meta">${e.muscle} · ${effectiveSets(e)}×${e.reps}</div></div>
+        <div style="flex:1;min-width:0"><div class="ex-name">${e.name} ${favBtnHTML(e.name)}</div><div class="ex-meta">${e.muscle} · ${effectiveSets(e)}×${e.reps}</div></div>
         <div style="text-align:right;flex-shrink:0">
           ${liftRankBadgeHTML(e.name)}
           <div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--yellow)" id="pr-d-${i}">PR: ${prs[e.name]||'—'}kg</div>
@@ -19677,7 +19738,7 @@ function matchAiCoach(query){
 // (circle head, dot eyes, spark antenna) rather than a generic emoji.
 const AI_COACH_ICON_SVG='<svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="3" r="1.3" fill="#fff"/><line x1="12" y1="4.3" x2="12" y2="7" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/><circle cx="12" cy="14" r="7" stroke="#fff" stroke-width="1.6"/><circle cx="9.3" cy="14" r="1.15" fill="#fff"/><circle cx="14.7" cy="14" r="1.15" fill="#fff"/><path d="M9 17.2c1.2.9 3.8.9 5 0" stroke="#fff" stroke-width="1.4" stroke-linecap="round"/></svg>';
 function aiCoachAvatarHTML(){
-  return `<div style="flex-shrink:0;width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,#FF8342,#F36717);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px -2px rgba(243,103,23,.6)">${AI_COACH_ICON_SVG}</div>`;
+  return `<img src="images/icons/coach-sam-portrait.png" alt="Coach Sam" style="flex-shrink:0;width:24px;height:24px;border-radius:50%;object-fit:cover;object-position:50% 42%;box-shadow:0 2px 6px -2px rgba(243,103,23,.6)">`;
 }
 function aiCoachBubbleHTML(text,fromUser){
   const bubble=`<div style="max-width:85%;background:${fromUser?'rgba(243,103,23,.14)':'rgba(232,214,196,.04)'};border:1.5px solid ${fromUser?'rgba(243,103,23,.3)':'var(--border2)'};border-radius:12px;padding:10px 13px;font-size:12.5px;line-height:1.55;color:rgba(var(--white-rgb),.9)">${text}</div>`;
@@ -19690,7 +19751,7 @@ function renderAiCoach(){
   if(!thread)return;
   try{syncLvBadges();}catch(e){}
   if(!thread.dataset.seeded){
-    thread.innerHTML=aiCoachBubbleHTML("Hey — ask me anything about how the app works, your training, or nutrition. I'm a quick on-device FAQ for now, not a full AI yet, so if I can't help I'll point you to real Areviax Support.",false);
+    thread.innerHTML=aiCoachBubbleHTML("Coach Sam here — ask me anything about how the app works, your training, or nutrition. I'm a quick on-device FAQ for now, not a full AI yet, so if I can't help I'll point you to real Areviax Support.",false);
     thread.dataset.seeded='1';
   }
   if(samples)samples.innerHTML=AI_COACH_KB.slice(0,8).map((e,i)=>`<button type="button" class="ai-sample-chip" onclick="askAiCoachSample(${i})">${e.q}</button>`).join('');
@@ -23296,72 +23357,6 @@ const WEEK_SPLIT_PATTERNS={
   6:['upper-push','lower','upper-pull','upper-push','lower','upper-pull','rest'],
   7:['upper-push','lower','upper-pull','upper-full','lower','full','upper-pull']
 };
-// spreadByMuscle guarantees one pick per distinct exact-muscle-tag group
-// before any group gets a second, sorted smallest group first — but when a
-// pool has more distinct groups than the session has room for (e.g. the
-// full-body pool has 16 distinct muscle tags but a 60min session only fits
-// 7 exercises), the groups past that cutoff are left out entirely, every
-// single time, since the sort order never changes. Standalone 'hamstrings'
-// and 'calves' — never bundled into a compound tag with anything smaller —
-// are the ones that consistently lose that cutoff in the full-body pool.
-// This tops up any major muscle with zero representation by swapping out a
-// slot from whichever muscle currently has the most picks (so it never
-// removes a muscle's ONLY exercise to add another's).
-//
-// Two bugs fixed here after 'back' kept vanishing from Upper Full at short
-// lengths even with this function wired in:
-// 1. The old safety check scored a slot's WORST tag across ALL of its tags,
-//    not just MAJOR ones — an exercise tagged only 'core' (not a MAJOR
-//    muscle at all) was still treated as "unsafe to remove" just because
-//    core itself had no backup, blocking a swap that was actually free.
-// 2. It walked MAJOR in a fixed order and greedily spent the first safe
-//    swap it found — so when e.g. both chest AND back were missing but only
-//    one spare slot existed (two different exact-tag groups — "Biceps" and
-//    "Biceps + Forearms" — both landing a guaranteed pick for the same
-//    underlying muscle), chest (earlier in the MAJOR array) won that slot
-//    100% of the time and back was starved out on every single call, not
-//    just unlucky ones. Same-major duplicates are now collapsed up front
-//    into a shared pool of free slots, and which missing muscle claims a
-//    scarce one is shuffled rather than fixed, so genuine slot scarcity
-//    (more distinct majors than exercises fit) gets spread fairly instead
-//    of always sacrificing the same muscle.
-function topUpMissingMuscles(exs,pool){
-  const MAJOR=['chest','back','shoulders','biceps','triceps','quads','hamstrings','glutes','calves'];
-  const tags=e=>(e.muscle||'').split('+').map(s=>s.trim());
-  const countOf=tag=>exs.filter(e=>tags(e).includes(tag)).length;
-  const pickedNames=new Set(exs.map(e=>e.name));
-  const freeIdx=[];
-  const spent={}; // majorTag -> how many of its slots we've already marked free
-  exs.forEach((e,i)=>{
-    const majorTags=tags(e).filter(t=>MAJOR.includes(t));
-    // No MAJOR tag at all (e.g. plain 'core') — nothing is protecting this
-    // slot, always safe to give up.
-    if(!majorTags.length){freeIdx.push(i);return;}
-    const safe=majorTags.every(t=>countOf(t)-(spent[t]||0)>1);
-    if(safe){
-      majorTags.forEach(t=>spent[t]=(spent[t]||0)+1);
-      freeIdx.push(i);
-    }
-  });
-  const missing=MAJOR.filter(tag=>countOf(tag)===0);
-  for(let i=missing.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[missing[i],missing[j]]=[missing[j],missing[i]];}
-  let fi=0;
-  missing.forEach(tag=>{
-    if(fi>=freeIdx.length)return; // genuinely out of safe slots — more distinct majors than this session has room for
-    // Best (highest-eff) match, not just the first one found in pool order —
-    // same reasoning as spreadByMuscle's own sort: the exercise topping up a
-    // missing muscle should be the best option for it, not whichever
-    // happened to be first in the array/shuffle.
-    const candidates=pool.filter(e=>!pickedNames.has(e.name)&&tags(e).includes(tag));
-    const candidate=candidates.sort((a,b)=>(b.eff||0)-(a.eff||0))[0];
-    if(!candidate)return; // pool has nothing for this muscle at all — nothing we can do
-    const idx=freeIdx[fi++];
-    pickedNames.delete(exs[idx].name);
-    pickedNames.add(candidate.name);
-    exs[idx]=candidate;
-  });
-  return exs;
-}
 // Builds one day's real exercise list for a given session type at a given
 // length — pulled out of generateFullWeek so the exact same pool/shuffle/
 // cap/top-up logic can also regenerate a single day at its own per-day
@@ -23374,12 +23369,12 @@ function buildDayExercises(type,lenVal){
   // picked within each muscle group varies week to week.
   for(let i=pool.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]];}
   const cap=Math.min(maxExForTime(lenVal,pool.length),pool.length);
-  // spreadByMuscle guarantees every muscle group in the pool gets at least
-  // one pick before any group gets a second — a plain shuffle+slice here
-  // let a deep group (e.g. 'core' at 21 of 52 full-body exercises) crowd
-  // out entire other groups by chance. Same balancing the manual Workout
-  // Builder already uses for these session types (see renderExercises).
-  return applyBeginnerSubs(topUpMissingMuscles(spreadByMuscle(pool,cap),pool));
+  // buildBalancedSession guarantees every muscle this session type must
+  // cover gets a real (preferably compound) pick — a plain shuffle+slice
+  // here let a deep group (e.g. 'core' at 21 of 52 full-body exercises)
+  // crowd out entire other groups by chance. Same balancing the manual
+  // Workout Builder uses for these session types (see renderExercises).
+  return applyBeginnerSubs(MUSCLE_BALANCED_TYPES.includes(type)?buildBalancedSession(pool,cap,type):pool.slice(0,cap));
 }
 // Generates a real 7-day plan — not just text labels — sized to
 // profile.days. silent=true skips the toast, used for the automatic
@@ -24347,6 +24342,8 @@ function saveToStorage(){
     localStorage.setItem('arx_diamondDropBank', diamondDropBank);
     localStorage.setItem('arx_keyBank', keyBank);
     localStorage.setItem('arx_drachma', drachma);
+    localStorage.setItem('arx_favoriteExercises', JSON.stringify([...favoriteExercises]));
+    localStorage.setItem('arx_exercisePreference', exercisePreference);
     localStorage.setItem('arx_dailySpinDate', dailySpinDate);
     localStorage.setItem('arx_bronzeDropProgress', bronzeDropProgress);
     localStorage.setItem('arx_streakRepairDismissedDate', streakRepairDismissedDate);
@@ -24493,6 +24490,8 @@ function loadFromStorage(){
     diamondDropBank=parseInt(localStorage.getItem('arx_diamondDropBank')||'0');
     keyBank=parseInt(localStorage.getItem('arx_keyBank')||'0');
     drachma=parseInt(localStorage.getItem('arx_drachma')||'0');
+    { const fe=localStorage.getItem('arx_favoriteExercises'); if(fe){try{favoriteExercises=new Set(JSON.parse(fe));}catch(e){favoriteExercises=new Set();}} }
+    exercisePreference=localStorage.getItem('arx_exercisePreference')||'compound';
     dailySpinDate=localStorage.getItem('arx_dailySpinDate')||'';
     bronzeDropProgress=parseInt(localStorage.getItem('arx_bronzeDropProgress')||'0');
     streakRepairDismissedDate=localStorage.getItem('arx_streakRepairDismissedDate')||'';
@@ -24755,8 +24754,8 @@ document.addEventListener('DOMContentLoaded', function(){
       <span>The Science</span>
     </div>
     <div class="more-sheet-item" onclick="showPage('aicoach');toggleMoreSheet()">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="12" cy="3.3" r="1" fill="currentColor" stroke="none"/><line x1="12" y1="4.3" x2="12" y2="6.6" stroke-linecap="round"/><circle cx="12" cy="13.2" r="6.3"/><circle cx="9.6" cy="13.2" r="1" fill="currentColor" stroke="none"/><circle cx="14.4" cy="13.2" r="1" fill="currentColor" stroke="none"/><path d="M9.3 16c1.1.8 3.3.8 4.4 0" stroke-linecap="round"/></svg>
-      <span>Ask Areviax</span>
+      <img src="images/icons/coach-sam-portrait.png" alt="" style="width:18px;height:18px;border-radius:50%;object-fit:cover;object-position:50% 42%">
+      <span>Coach Sam</span>
     </div>
     <div class="more-sheet-item" onclick="showPage('subscription');toggleMoreSheet()">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3 7h7l-5.5 4.5L18.5 21 12 16.5 5.5 21l2-7.5L2 9h7z"/></svg>
