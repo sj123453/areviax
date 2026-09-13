@@ -10682,7 +10682,7 @@ function xpRoadNodes(){
     const isNext=!claimed&&node===next;
     const prevXp=i===0?0:ascending[i-1].xp;
     const pct=isNext?Math.max(0,Math.min(100,Math.round((xp-prevXp)/(node.xp-prevXp)*100))):null;
-    return {claimed,isNext,icon:xpRoadRewardIcon(node),valueLabel:formatCompactNum(node.xp)+' Arete',descLabel:xpRoadRewardLabel(node),progressPct:pct,weight:xpRoadNodeWeight(node)};
+    return {claimed,isNext,icon:xpRoadRewardIcon(node),valueLabel:formatCompactNum(node.xp)+' Arete',descLabel:xpRoadRewardLabel(node),progressPct:pct,weight:xpRoadNodeWeight(node),roadPos:i/(ascending.length-1||1)};
   });
 }
 function getXpRoadSummary(){
@@ -10976,10 +10976,10 @@ function trophyRoadNodeWeight(a){
 function trophyRoadNodes(){
   const ascending=[...ACHIEVEMENTS].sort((a,b)=>a.order-b.order);
   const next=ascending.find(a=>!unlockedAchievements.includes(a.key));
-  return ascending.map(a=>{
+  return ascending.map((a,i)=>{
     const claimed=unlockedAchievements.includes(a.key);
     const isNext=!claimed&&a===next;
-    return {claimed,isNext,icon:a.icon,valueLabel:a.label,descLabel:a.desc,progressPct:null,onclick:"viewAchievementBadge('"+a.key+"')",weight:trophyRoadNodeWeight(a)};
+    return {claimed,isNext,icon:a.icon,valueLabel:a.label,descLabel:a.desc,progressPct:null,onclick:"viewAchievementBadge('"+a.key+"')",weight:trophyRoadNodeWeight(a),roadPos:i/(ascending.length-1||1)};
   });
 }
 function getTrophyRoadSummary(){
@@ -11044,7 +11044,7 @@ function weightRoadNodes(){
     const isNext=!claimed&&m===next;
     const prevKg=i===0?0:ascending[i-1].kg;
     const pct=isNext?Math.max(0,Math.min(100,Math.round((vol-prevKg)/(m.kg-prevKg)*100))):null;
-    return {claimed,isNext,icon:milestoneIconHTML(m),valueLabel:m.kg.toLocaleString()+'kg',descLabel:m.name,progressPct:pct,weight:weightRoadNodeWeight(m)};
+    return {claimed,isNext,icon:milestoneIconHTML(m),valueLabel:m.kg.toLocaleString()+'kg',descLabel:m.name,progressPct:pct,weight:weightRoadNodeWeight(m),roadPos:i/(ascending.length-1||1)};
   });
 }
 function getWeightRoadSummary(){
@@ -11069,20 +11069,32 @@ function renderWeightRoad(){
 // Arete Road, (the old) Trophy Road, and Weight Road each already produce an
 // identical view-model shape from xpRoadNodes()/trophyRoadNodes()/
 // weightRoadNodes() — {claimed,isNext,icon,valueLabel,descLabel,
-// progressPct,weight} — because renderRoadPath()/renderRewardRow() were
-// always generic over "a list of nodes", never tied to one road's own
+// progressPct,weight,roadPos} — because renderRoadPath()/renderRewardRow()
+// were always generic over "a list of nodes", never tied to one road's own
 // data. That means the three CAN merge into a single path with zero
 // changes to how Arete is earned, how achievements unlock, or how weight
 // milestones are tracked — this only combines the three finished view-
 // models into one list and sorts it, it never touches the underlying
-// claim logic. Sorted by each node's own already-computed `weight`
-// (0..1 prestige score, unrelated to bodyweight) rather than by source,
-// so the road reads as one graduated climb — small Arete/achievement/
-// weight wins interleaved early, the biggest of all three at the very
-// end — not three blocks stitched together.
+// claim logic.
+//
+// Sorts by `roadPos` — each node's own percentile position within its OWN
+// road (0 at that road's first checkpoint, 1 at its last) — not `weight`.
+// `weight` (a per-node "how big a deal is this reward" score, used for hex
+// sizing below) was being reused as the merge key too, and that's a
+// category error: it's calibrated for relative size WITHIN one road, not
+// for comparing across three unrelated roads with no shared unit — an
+// achievement's design `order`, an Arete amount, and a log-scaled kg
+// milestone were landing in the same 0..1 band by coincidence, not because
+// they represented comparable progress. That's exactly what read as
+// "trophies all over the place": a big-weight node from one road could
+// sort ahead of a much-further-along node from another. Percentile
+// position fixes that the honest way — it says "you're X% through this
+// particular road", which IS comparable across roads, so the merged list
+// actually climbs in order: everyone's early wins interleave near the
+// start, everyone's final checkpoint interleaves near the end.
 function olympusRoadNodes(){
   const combined=[...xpRoadNodes(),...trophyRoadNodes(),...weightRoadNodes()];
-  combined.sort((a,b)=>(a.weight||0)-(b.weight||0));
+  combined.sort((a,b)=>(a.roadPos||0)-(b.roadPos||0));
   return combined;
 }
 function getOlympusRoadSummary(){
