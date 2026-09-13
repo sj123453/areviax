@@ -2121,6 +2121,38 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        dashboard banners), so this only bumps it up inside a shop card. */
     .crate-slot .compass-crate{width:72px;height:72px}
     .crate-slot .compass-crate .crate-icon svg{width:34px;height:34px}
+
+    /* SPECIAL OFFERS — direct Drachma purchases. Same "enticing shop card"
+       psychology as the mobile-game reference (bold saturated colour,
+       chunky rounded shape, a punchy price pill instead of plain text) but
+       in Areviax's own ember/gold instead of blue — the colour still does
+       the same job (this card = a thing you can buy right now), it's just
+       on-brand. Each tier borrows the same base hue crate cards use so a
+       Silver offer and a Silver crate read as the same material. */
+    .offer-row{display:flex;gap:10px;margin-top:4px;overflow-x:auto;padding:4px 2px 8px;scrollbar-width:thin}
+    .offer-card{
+      flex:0 0 136px;display:flex;flex-direction:column;align-items:center;gap:4px;
+      border-radius:18px;padding:14px 10px 12px;text-align:center;
+      background:linear-gradient(165deg,rgba(243,103,23,.4),rgba(30,14,5,.7));
+      border:1.5px solid rgba(243,103,23,.5);
+      box-shadow:0 6px 16px rgba(0,0,0,.35);
+    }
+    .offer-card.bronze{background:linear-gradient(165deg,rgba(212,120,50,.4),rgba(30,16,8,.7));border-color:rgba(212,120,50,.5)}
+    .offer-card.silver{background:linear-gradient(165deg,rgba(180,195,210,.32),rgba(20,22,26,.7));border-color:rgba(180,195,210,.45)}
+    .offer-card.gold{background:linear-gradient(165deg,rgba(255,215,0,.32),rgba(35,26,4,.7));border-color:rgba(255,215,0,.45)}
+    .offer-card.diamond{background:linear-gradient(165deg,rgba(95,208,242,.32),rgba(8,22,28,.7));border-color:rgba(95,208,242,.45)}
+    .offer-card.areviax{background:linear-gradient(165deg,rgba(255,140,40,.42),rgba(30,12,4,.72));border-color:rgba(255,140,40,.55)}
+    .offer-card-art{font-size:36px;line-height:1;height:52px;display:flex;align-items:center;justify-content:center}
+    .offer-card-art img,.offer-card-art svg{width:52px;height:52px;object-fit:contain}
+    .offer-card-label{font-size:11.5px;font-weight:800;color:var(--white);line-height:1.3;min-height:28px;display:flex;align-items:center}
+    .offer-card-sub{font-size:8.5px;color:rgba(var(--white-rgb),.6);margin-bottom:4px}
+    .offer-card-buy{
+      width:100%;padding:7px 4px;border:none;border-radius:8px;cursor:pointer;
+      background:linear-gradient(135deg,#FFD24A,#F36717);color:#1A0800;
+      font-family:'Outfit',sans-serif;font-size:12px;font-weight:900;letter-spacing:.02em;
+      box-shadow:0 2px 6px rgba(0,0,0,.3);
+    }
+    .offer-card-buy:disabled{background:rgba(232,214,196,.1);color:var(--muted);box-shadow:none;cursor:default}
     .crate-info-btn{
       position:absolute;top:4px;right:5px;width:23px;height:23px;border-radius:50%;
       display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;
@@ -5961,10 +5993,22 @@ body[data-goal-theme="cut"] .lv-page{
        that flow) — every one of these is earned, never bought. -->
   <div style="display:flex;gap:8px;padding:10px 20px 4px;overflow-x:auto">
     <span class="lv-pill" style="border:1px solid var(--lv-border-strong);color:var(--lv-xp);flex-shrink:0"><img src="images/icons/arete.png" alt="" style="width:13px;height:13px;border-radius:50%;flex-shrink:0"> <span id="shop-xp-badge">0</span> Arete</span>
+    <span class="lv-pill" style="border:1px solid rgba(255,178,74,.5);color:#FFB24A;flex-shrink:0">🪙 <span id="shop-drachma-badge">0</span> Drachma</span>
     <span class="lv-pill" style="border:1px solid rgba(95,208,242,.4);color:#5FD0F2;flex-shrink:0">🔷 <span id="shop-shard-badge">0</span> Shards</span>
     <span class="lv-pill" style="border:1px solid rgba(227,191,118,.4);color:var(--lv-gold);flex-shrink:0">🗝️ <span id="shop-key-badge">0</span> Keys</span>
   </div>
   <div style="padding:10px 20px 24px">
+    <!-- SPECIAL OFFERS — direct Drachma purchases (crate bundles, a
+         Compass Shard bundle, and a guaranteed Title/Theme buy instead of
+         only ever hoping for one from a crate). Leftmost/first section on
+         the page, same "offers up front" layout the mobile-game shop
+         reference uses. See DRACHMA_OFFERS/renderShopOffers(). -->
+    <div style="display:flex;align-items:baseline;justify-content:space-between;margin:0 0 10px">
+      <span style="font-family:var(--lv-display);font-weight:400;font-size:1.4rem;color:var(--lv-fg);text-transform:uppercase;letter-spacing:.01em">Special Offers</span>
+      <span style="font-size:9px;color:var(--lv-muted-fg)">Earned from real sessions</span>
+    </div>
+    <div class="offer-row" id="shop-offers-row"></div>
+
     <!-- FEATURED — Gift from the Gods gets the "special offer" treatment:
          full-width, its own ribbon, the boldest card on the page, same
          way a live-ops shop always leads with its featured free/daily
@@ -7938,6 +7982,16 @@ let dailySpinDate='';
 // stack of them to upgrade one already-banked crate to the next tier
 // up, whenever you want. See KEY_UPGRADE_COST / upgradeCrateWithKeys.
 let keyBank=0;
+// Drachma — the real ancient-Greek currency, so it reads as "spendable
+// money" on sight instead of needing a made-up name explained. Distinct
+// job from Arete (a growth/rank score, never directly spent) and Compass
+// Shards (fuel for one specific thing, Gold crates/streak repair): Drachma
+// is the general-purpose currency for the Shop's direct-buy offers —
+// crate bundles, and a guaranteed way to buy a specific Title or Accent
+// Theme instead of only ever hoping for one from a crate. Earned in small
+// amounts from genuine session completions (see completeSession()) —
+// same "real actions only" rule every other currency in this app follows.
+let drachma=0;
 // Every addXP() call already carries a human label ('Session complete',
 // 'Sleep logged', etc) — logging each award here (capped, oldest first
 // out) is what lets a breakdown view answer "what's actually been
@@ -11019,6 +11073,55 @@ function renderAchievements(){
   const sxb=document.getElementById('shop-xp-badge');if(sxb)sxb.textContent=xp;
   const ssb=document.getElementById('shop-shard-badge');if(ssb)ssb.textContent=shardBank;
   const skb=document.getElementById('shop-key-badge');if(skb)skb.textContent=keyBank;
+  const sdb=document.getElementById('shop-drachma-badge');if(sdb)sdb.textContent=drachma;
+  try{renderShopOffers();}catch(e){}
+}
+// ── SPECIAL OFFERS — direct Drachma purchases. Crate/shard bundles are
+// always listed; Titles and Accent Themes drop off the list once owned
+// (nothing to sell twice). grant() runs the exact same bank-increment or
+// unlock*() call the free earn paths already use, so a bought crate/title/
+// theme is indistinguishable from an earned one everywhere else in the app.
+const DRACHMA_OFFERS=[
+  {id:'bronze3',label:'3 Bronze Crates',sub:'Instant',cost:15,tier:'bronze',render:()=>crateIconHTML('bronze'),grant:()=>{bronzeDropBank+=3;}},
+  {id:'silver3',label:'3 Silver Crates',sub:'Instant',cost:30,tier:'silver',render:()=>crateIconHTML('silver'),grant:()=>{silverDropBank+=3;}},
+  {id:'shard3',label:'3 Compass Shards',sub:'Opens Gold Crates',cost:40,tier:'gold',render:()=>'🔷',grant:()=>{shardBank+=3;}},
+  {id:'diamond1',label:'1 Diamond Crate',sub:'Instant',cost:60,tier:'diamond',render:()=>crateIconHTML('diamond'),grant:()=>{diamondDropBank+=1;}},
+  {id:'title_unbowed',label:'Title: The Unbowed',sub:'Equip on Profile',cost:120,tier:'areviax',type:'title',key:'unbowed',render:()=>'🏅'},
+  {id:'title_disciplined',label:'Title: The Disciplined',sub:'Equip on Profile',cost:120,tier:'areviax',type:'title',key:'disciplined',render:()=>'🏅'},
+  {id:'title_ascendant',label:'Title: The Ascendant',sub:'Equip on Profile',cost:120,tier:'areviax',type:'title',key:'ascendant',render:()=>'🏅'},
+  {id:'theme_silver',label:'Silver Theme',sub:'Settings → Appearance',cost:80,tier:'silver',type:'theme',key:'silver',render:()=>'🎨'},
+  {id:'theme_gold',label:'Gold Theme',sub:'Settings → Appearance',cost:150,tier:'gold',type:'theme',key:'gold',render:()=>'🎨'},
+];
+function renderShopOffers(){
+  const row=document.getElementById('shop-offers-row');
+  if(!row)return;
+  const visible=DRACHMA_OFFERS.filter(o=>{
+    if(o.type==='title')return !unlockedTitles.includes(o.key);
+    if(o.type==='theme')return !unlockedThemes.includes(o.key);
+    return true;
+  });
+  row.innerHTML=visible.map(o=>{
+    const afford=drachma>=o.cost;
+    return `<div class="offer-card ${o.tier}">
+      <div class="offer-card-art">${o.render()}</div>
+      <div class="offer-card-label">${o.label}</div>
+      <div class="offer-card-sub">${o.sub}</div>
+      <button class="offer-card-buy" ${afford?'':'disabled'} onclick="buyDrachmaOffer('${o.id}')">🪙 ${o.cost}</button>
+    </div>`;
+  }).join('');
+}
+function buyDrachmaOffer(id){
+  const offer=DRACHMA_OFFERS.find(o=>o.id===id);
+  if(!offer||drachma<offer.cost)return;
+  if(offer.type==='title'&&unlockedTitles.includes(offer.key))return;
+  if(offer.type==='theme'&&unlockedThemes.includes(offer.key))return;
+  drachma-=offer.cost;
+  if(offer.type==='title')unlockTitle(offer.key,true);
+  else if(offer.type==='theme')unlockAccentTheme(offer.key,true);
+  else if(offer.grant)offer.grant();
+  toast('🛍️','Purchased — '+offer.label);
+  saveToStorage();
+  renderAchievements();
 }
 // Trophy Road \u2014 Achievements as the same horizontal path as Arete/Weight.
 // Achievements have no single numeric threshold to bar-fill against
@@ -18408,6 +18511,11 @@ function completeSession(nameOverride){
   // hitting Complete.
   const compassAlreadyClaimed=!alreadyTrainedToday&&compassPointDate===today;
   const genuineWin=!alreadyTrainedToday&&!nameOverride;
+  // Drachma — only for a genuine first session of the day, same gate as
+  // the streak/compass-point/celebration-modal rewards just below. A
+  // same-day extra session or the emergency rescue routine still earns
+  // Arete above, but doesn't pad the Shop currency too.
+  if(genuineWin){drachma+=5;toast('🪙','+5 Drachma');}
   toast(alreadyTrainedToday?'💪':(compassAlreadyClaimed?'🧭':'💪'), alreadyTrainedToday?'Extra session logged!':(compassAlreadyClaimed?'Session done! Compass point earned.':'Session done!'));
   celebrateBurst(['💪','🔥','⚡'],alreadyTrainedToday?10:14);
   saveToStorage();
@@ -24172,6 +24280,7 @@ function saveToStorage(){
     localStorage.setItem('arx_silverDropBank', silverDropBank);
     localStorage.setItem('arx_diamondDropBank', diamondDropBank);
     localStorage.setItem('arx_keyBank', keyBank);
+    localStorage.setItem('arx_drachma', drachma);
     localStorage.setItem('arx_dailySpinDate', dailySpinDate);
     localStorage.setItem('arx_bronzeDropProgress', bronzeDropProgress);
     localStorage.setItem('arx_streakRepairDismissedDate', streakRepairDismissedDate);
@@ -24315,6 +24424,7 @@ function loadFromStorage(){
     silverDropBank=parseInt(localStorage.getItem('arx_silverDropBank')||'0');
     diamondDropBank=parseInt(localStorage.getItem('arx_diamondDropBank')||'0');
     keyBank=parseInt(localStorage.getItem('arx_keyBank')||'0');
+    drachma=parseInt(localStorage.getItem('arx_drachma')||'0');
     dailySpinDate=localStorage.getItem('arx_dailySpinDate')||'';
     bronzeDropProgress=parseInt(localStorage.getItem('arx_bronzeDropProgress')||'0');
     streakRepairDismissedDate=localStorage.getItem('arx_streakRepairDismissedDate')||'';
