@@ -5993,7 +5993,7 @@ body[data-goal-theme="cut"] .lv-page{
        that flow) — every one of these is earned, never bought. -->
   <div style="display:flex;gap:8px;padding:10px 20px 4px;overflow-x:auto">
     <span class="lv-pill" style="border:1px solid var(--lv-border-strong);color:var(--lv-xp);flex-shrink:0"><img src="images/icons/arete.png" alt="" style="width:13px;height:13px;border-radius:50%;flex-shrink:0"> <span id="shop-xp-badge">0</span> Arete</span>
-    <span class="lv-pill" style="border:1px solid rgba(255,178,74,.5);color:#FFB24A;flex-shrink:0">🪙 <span id="shop-drachma-badge">0</span> Drachma</span>
+    <span class="lv-pill" style="border:1px solid rgba(255,178,74,.5);color:#FFB24A;flex-shrink:0"><img src="images/icons/tetradrachm.png" alt="" style="width:14px;height:14px;border-radius:50%;flex-shrink:0"> <span id="shop-drachma-badge">0</span> Tetradrachm</span>
     <span class="lv-pill" style="border:1px solid rgba(95,208,242,.4);color:#5FD0F2;flex-shrink:0">🔷 <span id="shop-shard-badge">0</span> Shards</span>
     <span class="lv-pill" style="border:1px solid rgba(227,191,118,.4);color:var(--lv-gold);flex-shrink:0">🗝️ <span id="shop-key-badge">0</span> Keys</span>
   </div>
@@ -7982,14 +7982,17 @@ let dailySpinDate='';
 // stack of them to upgrade one already-banked crate to the next tier
 // up, whenever you want. See KEY_UPGRADE_COST / upgradeCrateWithKeys.
 let keyBank=0;
-// Drachma — the real ancient-Greek currency, so it reads as "spendable
-// money" on sight instead of needing a made-up name explained. Distinct
-// job from Arete (a growth/rank score, never directly spent) and Compass
-// Shards (fuel for one specific thing, Gold crates/streak repair): Drachma
-// is the general-purpose currency for the Shop's direct-buy offers —
-// crate bundles, and a guaranteed way to buy a specific Title or Accent
-// Theme instead of only ever hoping for one from a crate. Earned in small
-// amounts from genuine session completions (see completeSession()) —
+// Drachma (var name kept short; shown to the user as "Tetradrachm" — the
+// Classical Athenian Silver Tetradrachm, the real "owl of Athena" coin —
+// see images/icons/tetradrachm.png) — a real ancient-Greek coin, so it
+// reads as "spendable money" on sight instead of needing a made-up name
+// explained. Distinct job from Arete (a growth/rank score, never
+// directly spent) and Compass Shards (fuel for one specific thing, Gold
+// crates/streak repair): this is the general-purpose currency for the
+// Shop's direct-buy offers — crate bundles, and a guaranteed way to buy
+// a specific Title or Accent Theme instead of only ever hoping for one
+// from a crate. Earned in small amounts from genuine session completions
+// (see completeSession()) —
 // same "real actions only" rule every other currency in this app follows.
 let drachma=0;
 // Every addXP() call already carries a human label ('Session complete',
@@ -8533,6 +8536,21 @@ let cloudBackupConsent=null; // null=not asked yet, true=opted in, false=decline
 let lastMissedFoodDate=''; // calendar date (yyyy-mm-dd) of the most recent fully-unlogged day, set at day-rollover in checkNutritionDay()
 let missedFoodDayDismissedDate=''; // date the banner was last dismissed for
 let missedFoodDayNotifiedDate=''; // date a real push notification was already sent for (separate from the banner dismiss, so re-showing the banner doesn't re-fire the notification)
+// The in-app banner used to only stop reappearing once explicitly
+// dismissed — its 6s auto-hide (dashNotif's own timeout) is purely
+// visual, not persistent, so simply reopening the app (or navigating
+// back to the dashboard) later the same day re-triggered checkMissedFoodDay()
+// and showed it again even though nobody dismissed anything. This tracks
+// "already shown once today" separately from "explicitly dismissed" so
+// the banner really is a one-time-per-day thing either way — the push
+// notification below is untouched and keeps firing on its own schedule.
+let missedFoodDayShownDate='';
+// Separate from the above (which only ever looks at a fully-unlogged
+// PAST day): an evening check on TODAY's own logging, zero or
+// concerningly low, push-only (no in-app banner) so it reliably reaches
+// someone even if they never reopen the app today. Own once-per-day
+// gate, same pattern as Coach Sam's — see checkLowFoodEvening().
+let lowFoodEveningNotifiedDate='';
 
 // ── EXERCISES with equipment tags ──
 const EX={
@@ -11106,7 +11124,7 @@ function renderShopOffers(){
       <div class="offer-card-art">${o.render()}</div>
       <div class="offer-card-label">${o.label}</div>
       <div class="offer-card-sub">${o.sub}</div>
-      <button class="offer-card-buy" ${afford?'':'disabled'} onclick="buyDrachmaOffer('${o.id}')">🪙 ${o.cost}</button>
+      <button class="offer-card-buy" ${afford?'':'disabled'} onclick="buyDrachmaOffer('${o.id}')"><img src="images/icons/tetradrachm.png" alt="" style="width:14px;height:14px;vertical-align:-3px;border-radius:50%;margin-right:2px">${o.cost}</button>
     </div>`;
   }).join('');
 }
@@ -14195,9 +14213,14 @@ function checkMissedFoodDay(){
   const banner=document.getElementById('missed-food-banner');
   if(!banner)return;
   checkNutritionDay(); // ensures lastMissedFoodDate is current even if this runs before renderNutrition() does on a fresh day
-  const shouldShow=lastMissedFoodDate&&missedFoodDayDismissedDate!==lastMissedFoodDate;
+  const shouldShow=lastMissedFoodDate&&missedFoodDayDismissedDate!==lastMissedFoodDate&&missedFoodDayShownDate!==lastMissedFoodDate;
   if(!shouldShow){banner.style.display='none';return;}
   banner.style.display='flex';
+  // Shown once — any later call this same bad day now fails shouldShow
+  // above and hides it for good, instead of relying on the 6s auto-hide
+  // (purely visual, not persistent) to keep it from reappearing.
+  missedFoodDayShownDate=lastMissedFoodDate;
+  saveToStorage();
   if(missedFoodDayNotifiedDate!==lastMissedFoodDate&&typeof Notification!=='undefined'&&Notification.permission==='granted'){
     missedFoodDayNotifiedDate=lastMissedFoodDate;
     saveToStorage();
@@ -14208,6 +14231,35 @@ function dismissMissedFoodDay(){
   missedFoodDayDismissedDate=lastMissedFoodDate;
   saveToStorage();
   checkMissedFoodDay();
+}
+// Evening check on TODAY's own logging (not yesterday) — zero or
+// concerningly low (under a quarter of target) by evening. Push-only, no
+// in-app banner, and no coachNotifsEnabled gate — this fires for anyone
+// who's granted notification permission at all, the same simple gate
+// checkMissedFoodDay() above already uses, since "log your food today"
+// is core to the app, not an optional Coach Sam extra. Own once-per-day
+// tracking (lowFoodEveningNotifiedDate) so it reliably fires every
+// qualifying evening rather than just once ever.
+function checkLowFoodEvening(){
+  if(typeof Notification==='undefined'||Notification.permission!=='granted')return;
+  const today=localDateKey(new Date());
+  if(lowFoodEveningNotifiedDate===today)return;
+  const hour=new Date().getHours();
+  if(hour<19)return; // give the day a real chance before calling it "low"
+  const target=profile.cals||0;
+  const logged=dayMacros.cals||0;
+  const concerninglyLow=target>0&&logged<target*0.25;
+  if(logged>0&&!concerninglyLow)return;
+  lowFoodEveningNotifiedDate=today;
+  saveToStorage();
+  try{
+    new Notification('🍽️ Log your food today',{
+      body: logged===0
+        ? "Nothing logged yet today — a few minutes now keeps your Shield, Arete, and progress tracking meaning something."
+        : "Only "+Math.round(logged)+' of '+target+" kcal logged so far today — worth catching up before the day's over.",
+      icon:'images/icons/favicon.png',tag:'low-food-today'
+    });
+  }catch(e){}
 }
 // ── Sitting-job walk / joint-health tip — same problem: the "mostly sitting"
 // activity answer only ever adjusted calorie targets, never actually told
@@ -18515,7 +18567,7 @@ function completeSession(nameOverride){
   // the streak/compass-point/celebration-modal rewards just below. A
   // same-day extra session or the emergency rescue routine still earns
   // Arete above, but doesn't pad the Shop currency too.
-  if(genuineWin){drachma+=5;toast('🪙','+5 Drachma');}
+  if(genuineWin){drachma+=5;toast('🪙','+5 Tetradrachms');}
   toast(alreadyTrainedToday?'💪':(compassAlreadyClaimed?'🧭':'💪'), alreadyTrainedToday?'Extra session logged!':(compassAlreadyClaimed?'Session done! Compass point earned.':'Session done!'));
   celebrateBurst(['💪','🔥','⚡'],alreadyTrainedToday?10:14);
   saveToStorage();
@@ -22050,7 +22102,8 @@ let coachReminderTimer=null;
 function startCoachReminderTimer(){
   if(coachReminderTimer)return;
   checkCoachReminders();
-  coachReminderTimer=setInterval(checkCoachReminders,5*60*1000);
+  checkLowFoodEvening();
+  coachReminderTimer=setInterval(()=>{checkCoachReminders();checkLowFoodEvening();},5*60*1000);
 }
 function toggleNotifPref(key){
   notifPrefs[key]=!notifPrefs[key];
@@ -24375,6 +24428,8 @@ function saveToStorage(){
     localStorage.setItem('arx_lastMissedFoodDate', lastMissedFoodDate);
     localStorage.setItem('arx_missedFoodDayDismissedDate', missedFoodDayDismissedDate);
     localStorage.setItem('arx_missedFoodDayNotifiedDate', missedFoodDayNotifiedDate);
+    localStorage.setItem('arx_missedFoodDayShownDate', missedFoodDayShownDate);
+    localStorage.setItem('arx_lowFoodEveningNotifiedDate', lowFoodEveningNotifiedDate);
     localStorage.setItem('arx_cloudBackupConsent', JSON.stringify(cloudBackupConsent));
   }catch(e){}
   if(cloudBackupConsent===true)autoCloudBackup(); // only ever runs with explicit opt-in
@@ -24556,6 +24611,8 @@ function loadFromStorage(){
     lastMissedFoodDate=localStorage.getItem('arx_lastMissedFoodDate')||'';
     missedFoodDayDismissedDate=localStorage.getItem('arx_missedFoodDayDismissedDate')||'';
     missedFoodDayNotifiedDate=localStorage.getItem('arx_missedFoodDayNotifiedDate')||'';
+    missedFoodDayShownDate=localStorage.getItem('arx_missedFoodDayShownDate')||'';
+    lowFoodEveningNotifiedDate=localStorage.getItem('arx_lowFoodEveningNotifiedDate')||'';
     const cbc=localStorage.getItem('arx_cloudBackupConsent');
     cloudBackupConsent=cbc!==null?JSON.parse(cbc):null;
   }catch(e){}
