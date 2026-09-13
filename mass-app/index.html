@@ -18579,6 +18579,19 @@ function completeSession(nameOverride){
   // not the emergency rescue routine and not a same-day duplicate extra
   // session — those aren't really "wins" worth the ceremony.
   if(genuineWin)showSessionCompleteModal(sessionDurationSec);
+  // Clear the just-finished plan so the NEXT visit to the Session page
+  // builds a fresh one instead of re-showing the same completed session.
+  // Without this, sessionEnteredAt stays truthy (the old start time) and
+  // plannedSessionExs stays the old exercise list, so showPage('session')'s
+  // own new-vs-resume check (sessionInProgress() is now false since
+  // liveSessionProgress was just cleared above, but !sessionEnteredAt is
+  // ALSO false since it's still set) falls through both branches and does
+  // nothing — tapping Start again just silently re-displayed the session
+  // you already completed. Reset happens last, after everything above that
+  // still needed the old plan (sessionHistory, reconcileScheduleOnComplete).
+  plannedSessionExs=[];
+  skippedExercises=new Set();
+  sessionEnteredAt=0;
 }
 function showSessionCompleteModal(durationSec){
   const areteEarned=Math.max(0,Math.round(xp-sessionStartXP));
