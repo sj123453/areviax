@@ -2073,10 +2073,21 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        openCompassDrop()'s odds tables. Not-ready state shows progress
        instead of the capsule glowing, so it reads as "still filling",
        not "broken". */
-    .crate-row{display:flex;gap:8px;margin-top:4px;min-width:0}
+    /* Shop card row — was a tight neutral-background strip of 5 equal
+       columns; now each tier carries its own colour (same hues as
+       .crate-icon-wrap's glow, just as a real card background instead of
+       a thin ring) and gets real room, closer to how a mobile game's shop
+       treats each offer as its own distinct card rather than a uniform
+       list row. Horizontal scroll instead of squeezing 5 into one
+       viewport — Areviax is on brand ember/black rather than the reel of
+       different-colour tiles a live-ops shop juggles, so the differentiation
+       here comes from each tier's own material colour, not five unrelated
+       brand palettes. */
+    .crate-row{display:flex;gap:10px;margin-top:4px;min-width:0;overflow-x:auto;padding:2px 2px 6px;scrollbar-width:thin}
     .crate-slot{
-      position:relative;flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:6px;
-      background:rgba(232,214,196,.02);border:1.5px solid var(--border2);border-radius:12px;
+      position:relative;flex:0 0 128px;min-width:0;display:flex;flex-direction:column;align-items:center;gap:6px;
+      border:1.5px solid var(--border2);border-radius:16px;
+      background:linear-gradient(160deg,rgba(70,40,15,.35),rgba(20,12,6,.55));
       touch-action:manipulation;
       /* padding-top was 14px against a 46px-wide icon in a ~55px slot —
          the icon is nearly full-bleed there, so the 23px info button
@@ -2095,11 +2106,21 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
          tap it 20 times" rather than a clean miss. 40px leaves a real
          margin even at the float's peak instead of one only large enough
          for a static frame. */
-      padding:40px 6px 10px;cursor:pointer;-webkit-tap-highlight-color:transparent;
+      padding:44px 8px 12px;cursor:pointer;-webkit-tap-highlight-color:transparent;
       transition:border-color .2s,background .2s;
     }
     .crate-slot:active{transform:scale(.97)}
     .crate-slot.not-ready{cursor:default}
+    .crate-slot.bronze{background:linear-gradient(160deg,rgba(212,120,50,.32),rgba(30,16,8,.6));border-color:rgba(212,120,50,.4)}
+    .crate-slot.silver{background:linear-gradient(160deg,rgba(180,195,210,.28),rgba(20,22,26,.6));border-color:rgba(180,195,210,.4)}
+    .crate-slot.gold{background:linear-gradient(160deg,rgba(255,215,0,.28),rgba(35,26,4,.6));border-color:rgba(255,215,0,.4)}
+    .crate-slot.diamond{background:linear-gradient(160deg,rgba(95,208,242,.28),rgba(8,22,28,.6));border-color:rgba(95,208,242,.4)}
+    .crate-slot.areviax{background:linear-gradient(160deg,rgba(255,140,40,.34),rgba(30,12,4,.65));border-color:rgba(255,140,40,.5)}
+    /* Bigger stage for the chest art now that each card has real width —
+       compass-crate defaults to 56px everywhere else (drop-info modal,
+       dashboard banners), so this only bumps it up inside a shop card. */
+    .crate-slot .compass-crate{width:72px;height:72px}
+    .crate-slot .compass-crate .crate-icon svg{width:34px;height:34px}
     .crate-info-btn{
       position:absolute;top:4px;right:5px;width:23px;height:23px;border-radius:50%;
       display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;
@@ -2411,7 +2432,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        for every tile regardless of whether that tile's own label
        actually needs it, so every Open button lands at the same height. */
     .crate-slot-label{
-      font-size:10px;font-weight:800;color:var(--white);letter-spacing:.02em;
+      font-size:12px;font-weight:800;color:var(--white);letter-spacing:.02em;
       min-height:26px;display:flex;align-items:center;justify-content:center;line-height:1.3;
     }
     .crate-slot-sub{font-size:8.5px;color:var(--muted);text-align:center;line-height:1.35}
@@ -5934,24 +5955,31 @@ body[data-goal-theme="cut"] .lv-page{
     <span class="ct glow-title trophy" style="font-size:17px">🛍️ Shop</span>
     <span></span>
   </div>
-  <div style="padding:4px 20px 24px">
-    <div class="card" style="margin-bottom:14px">
-      <div class="ch"><span class="ct">Rewards</span></div>
-      <!-- The gift itself sits on the actual Olympus scene (the same
-           temple-in-the-clouds art the Road to Olympus realm strip uses)
-           instead of a plain dark card — "a gift FROM the gods" reads
-           very differently with the gods' own temple visible behind it. -->
-      <div style="position:relative;border-radius:14px;overflow:hidden;margin-bottom:2px;background-image:linear-gradient(180deg,rgba(10,7,4,.35) 0%,rgba(10,7,4,.55) 55%,rgba(10,7,4,.88) 100%),url('images/roads/realm-olympus.jpg');background-size:cover;background-position:center 35%;padding:14px 14px 16px">
-        <div style="font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:rgba(var(--white-rgb),.75)" id="daily-spin-card">Gift from the Gods</div>
-        <div style="font-size:10.5px;color:rgba(var(--white-rgb),.6);margin-bottom:2px">One free gift a day — a key to Bronze, Silver, Gold, Diamond, even the Areviax Crate.</div>
-        <div id="daily-spin-wheel" class="spin-wheel-card"></div>
-      </div>
-      <div style="display:flex;align-items:center;justify-content:space-between;margin:14px 0 4px">
-        <span style="font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)">Areviax Crates</span>
-        <span class="key-bank-badge" title="Spend Keys to upgrade a banked crate to the next tier">🗝️ <span id="key-bank-count">0</span></span>
-      </div>
-      <div class="crate-row" id="crate-row"></div>
+  <!-- CURRENCY STRIP — every balance the shop below actually spends or
+       pays out, together at the top the way a live-ops shop always leads
+       with its currency bar. No real-money tiles (Areviax doesn't have
+       that flow) — every one of these is earned, never bought. -->
+  <div style="display:flex;gap:8px;padding:10px 20px 4px;overflow-x:auto">
+    <span class="lv-pill" style="border:1px solid var(--lv-border-strong);color:var(--lv-xp);flex-shrink:0"><img src="images/icons/arete.png" alt="" style="width:13px;height:13px;border-radius:50%;flex-shrink:0"> <span id="shop-xp-badge">0</span> Arete</span>
+    <span class="lv-pill" style="border:1px solid rgba(95,208,242,.4);color:#5FD0F2;flex-shrink:0">🔷 <span id="shop-shard-badge">0</span> Shards</span>
+    <span class="lv-pill" style="border:1px solid rgba(227,191,118,.4);color:var(--lv-gold);flex-shrink:0">🗝️ <span id="shop-key-badge">0</span> Keys</span>
+  </div>
+  <div style="padding:10px 20px 24px">
+    <!-- FEATURED — Gift from the Gods gets the "special offer" treatment:
+         full-width, its own ribbon, the boldest card on the page, same
+         way a live-ops shop always leads with its featured free/daily
+         offer before the regular item grid. -->
+    <div style="position:relative;border-radius:18px;overflow:hidden;margin-bottom:20px;background-image:linear-gradient(180deg,rgba(10,7,4,.3) 0%,rgba(10,7,4,.55) 55%,rgba(10,7,4,.9) 100%),url('images/roads/realm-olympus.jpg');background-size:cover;background-position:center 35%;padding:16px 16px 18px;border:1.5px solid rgba(227,191,118,.35)">
+      <span style="position:absolute;top:12px;right:-30px;transform:rotate(40deg);background:linear-gradient(135deg,#7BAE7F,#5A8A5E);color:#0D0806;font-size:9px;font-weight:900;letter-spacing:.08em;padding:3px 34px;box-shadow:0 2px 6px rgba(0,0,0,.4)">FREE</span>
+      <div style="font-size:10px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:rgba(var(--white-rgb),.75)" id="daily-spin-card">Gift from the Gods</div>
+      <div style="font-size:11px;color:rgba(var(--white-rgb),.6);margin-bottom:2px;max-width:80%">One free gift a day — a key to Bronze, Silver, Gold, Diamond, even the Areviax Crate.</div>
+      <div id="daily-spin-wheel" class="spin-wheel-card"></div>
     </div>
+    <div style="display:flex;align-items:baseline;justify-content:space-between;margin:0 0 10px">
+      <span style="font-family:var(--lv-display);font-weight:400;font-size:1.4rem;color:var(--lv-fg);text-transform:uppercase;letter-spacing:.01em">Areviax Crates</span>
+      <span class="key-bank-badge" title="Spend Keys to upgrade a banked crate to the next tier">🗝️ <span id="key-bank-count">0</span></span>
+    </div>
+    <div class="crate-row" id="crate-row"></div>
   </div>
 </div>
 
@@ -6214,6 +6242,21 @@ body[data-goal-theme="cut"] .lv-page{
     </div>
     <div class="cabinet-tier-sub" id="cabinet-weight-sub">Earned by lifetime volume, not a crate</div>
     <div class="cabinet-row" id="cabinet-weight-row"></div>
+  </div>
+  </div>
+
+  <!-- Achievements used to be folded into Road to Olympus (see the comment
+       above olympusRoadNodes()) — now that the road is Arete-only again,
+       they get their own real shelf here instead, same treatment as
+       Weight Milestones just above. -->
+  <div id="cabinet-achievements-section" style="padding:0 20px">
+  <div class="cabinet-tier">
+    <div class="cabinet-tier-plaque">
+      <span class="cabinet-tier-name">Achievements</span>
+      <span class="cabinet-tier-count" id="cabinet-achievements-count"></span>
+    </div>
+    <div class="cabinet-tier-sub" id="cabinet-achievements-sub">One-off milestones, not a crate</div>
+    <div class="cabinet-row" id="cabinet-achievements-row"></div>
   </div>
   </div>
 </div>
@@ -10197,42 +10240,51 @@ function laborsTodayMuscleGroupCount(){
   });
   return groups.size;
 }
+// Every labor used to pay a flat 50 Arete (200 for Cerberus) regardless of
+// how hard it actually is \u2014 pulling your first Legend Card (mostly just
+// opening a crate) paid the same as a 14-day streak or a Legendary+ pull.
+// Each one is already genuinely hard in its OWN way (a speed ask, a
+// consistency ask, a luck ask, a strength-standard ask \u2014 not the same
+// axis repeated 12 times), so the reward should track that instead of
+// flattening it out. difficulty picks the payout from LABOR_XP below and
+// drives the badge shown on each card.
+const LABOR_XP={easy:30,medium:50,hard:75,legendary:100};
 const LABORS=[
   {key:'nemean_lion', name:'The Nemean Lion', greek:'\u0391', icon:'\ud83e\udd81',
-    desc:'Set a new single-session tonnage record.',
+    desc:'Set a new single-session tonnage record.', difficulty:'medium',
     check:()=>laborsTodayTonnage()>0&&laborsTodayTonnage()>laborsDailyTonnageMax(true)},
   {key:'hydra', name:'The Lernaean Hydra', greek:'\u0392', icon:'\ud83d\udc0d',
-    desc:'Log 20 or more sets in a single session.',
+    desc:'Log 20 or more sets in a single session.', difficulty:'hard',
     check:()=>laborsTodaySetCount()>=20},
   {key:'hind', name:'The Ceryneian Hind', greek:'\u0393', icon:'\ud83e\udd8c',
-    desc:'Finish a full session in under 35 minutes.',
+    desc:'Finish a full session in under 35 minutes.', difficulty:'medium',
     check:()=>sessionHistory.some(s=>s.durationSec>0&&s.durationSec<2100&&s.exs&&s.exs.length>0)},
   {key:'boar', name:'The Erymanthian Boar', greek:'\u0394', icon:'\ud83d\udc17',
-    desc:'Set a new PR on any lift.',
+    desc:'Set a new PR on any lift.', difficulty:'easy',
     check:()=>prHistory.length>0},
   {key:'stables', name:'The Augean Stables', greek:'\u0395', icon:'\ud83c\udfdb\ufe0f',
-    desc:'Hit your full weekly session target.',
+    desc:'Hit your full weekly session target.', difficulty:'medium',
     check:()=>profile.days>0&&sessThisWeek>=profile.days},
   {key:'birds', name:'The Stymphalian Birds', greek:'\u03a3', icon:'\ud83d\udc26',
-    desc:'Hit your protein target 7 days running.',
+    desc:'Hit your protein target 7 days running.', difficulty:'hard',
     check:()=>laborsProteinStreak()>=7},
   {key:'bull', name:'The Cretan Bull', greek:'\u0396', icon:'\ud83d\udc02',
-    desc:'Reach at least Bronze rank on a Big 4 lift.',
+    desc:'Reach at least Bronze rank on a Big 4 lift.', difficulty:'medium',
     check:()=>LIFT_RANK_LIFTS.some(l=>{const r=getLiftRank(l);return r&&r.tierIdx>=2;})},
   {key:'mares', name:'The Mares of Diomedes', greek:'\u0397', icon:'\ud83d\udc0e',
-    desc:'Train 3+ muscle groups (push/pull/legs/core) in one session.',
+    desc:'Train 3+ muscle groups (push/pull/legs/core) in one session.', difficulty:'easy',
     check:()=>laborsTodayMuscleGroupCount()>=3},
   {key:'girdle', name:'The Girdle of Hippolyta', greek:'\u0398', icon:'\ud83c\udff5\ufe0f',
-    desc:'Pull your first Legend Card.',
+    desc:'Pull your first Legend Card.', difficulty:'easy',
     check:()=>unlockedLegends.length>=1},
   {key:'geryon', name:'The Cattle of Geryon', greek:'\u0399', icon:'\ud83d\udc02',
-    desc:'Reach a 14-day training streak.',
+    desc:'Reach a 14-day training streak.', difficulty:'hard',
     check:()=>streak>=14||bestStreak>=14},
   {key:'hesperides', name:'The Apples of the Hesperides', greek:'\u039a', icon:'\ud83c\udf4e',
-    desc:'Unlock a Legendary-rarity (or rarer) card.',
+    desc:'Unlock a Legendary-rarity (or rarer) card.', difficulty:'legendary',
     check:()=>unlockedLegends.some(k=>{const l=LEGEND_CARDS.find(x=>x.key===k);return l&&(l.rarity==='legendary'||l.rarity==='ultralegendary');})},
   {key:'cerberus', name:'Cerberus', greek:'\u039b', icon:'\ud83d\udc15',
-    desc:'Complete all 11 other Labors.',
+    desc:'Complete all 11 other Labors.', difficulty:'legendary',
     check:()=>LABORS.filter(l=>l.key!=='cerberus').every(l=>laborsCompleted[l.key])},
 ];
 function checkLabors(){
@@ -10245,7 +10297,8 @@ function checkLabors(){
     if(done){
       laborsCompleted[l.key]=today;
       anyNew=true;
-      addXP(l.key==='cerberus'?200:50,'Labor complete: '+l.name);
+      const xpAward=l.key==='cerberus'?200:(LABOR_XP[l.difficulty]||50);
+      addXP(xpAward,'Labor complete: '+l.name);
       toast(l.icon,'Labor complete \u2014 '+l.name+'!');
     }
   });
@@ -10939,7 +10992,7 @@ function renderAchievements(){
       // genuinely ready one; only a real locked tile (not yet earned)
       // should look inert.
       const animClass=(s.ready||s.always)?' ready':' locked';
-      return `<div class="crate-slot${s.ready?'':' not-ready'}"${tileOnclick?` onclick="${tileOnclick}" style="cursor:pointer"`:''}>
+      return `<div class="crate-slot ${tier}${s.ready?'':' not-ready'}"${tileOnclick?` onclick="${tileOnclick}" style="cursor:pointer"`:''}>
         <span class="crate-info-btn" onclick="viewDropInfo('${tier}',event)">i</span>
         <div class="crate-icon-wrap ${tier}${animClass}">
           <div class="crate-icon-glow"></div><div class="crate-icon-burst"></div>
@@ -10960,6 +11013,12 @@ function renderAchievements(){
   }
   const keyCountEl=document.getElementById('key-bank-count');
   if(keyCountEl)keyCountEl.textContent=keyBank;
+  // Shop page's own currency strip \u2014 same three balances the cards below
+  // actually spend/pay out, kept in sync wherever renderAchievements()
+  // already runs (crate opens, XP gains, page opens).
+  const sxb=document.getElementById('shop-xp-badge');if(sxb)sxb.textContent=xp;
+  const ssb=document.getElementById('shop-shard-badge');if(ssb)ssb.textContent=shardBank;
+  const skb=document.getElementById('shop-key-badge');if(skb)skb.textContent=keyBank;
 }
 // Trophy Road \u2014 Achievements as the same horizontal path as Arete/Weight.
 // Achievements have no single numeric threshold to bar-fill against
@@ -11077,42 +11136,21 @@ function renderWeightRoad(){
 // weightRoadNodes() — {claimed,isNext,icon,valueLabel,descLabel,
 // progressPct,weight,roadPos} — because renderRoadPath()/renderRewardRow()
 // were always generic over "a list of nodes", never tied to one road's own
-// data. That means the three CAN merge into a single path with zero
-// changes to how Arete is earned, how achievements unlock, or how weight
-// milestones are tracked — this only combines the three finished view-
-// models into one list and sorts it, it never touches the underlying
-// claim logic.
-//
-// Sorts by `roadPos` — each node's own percentile position within its OWN
-// road (0 at that road's first checkpoint, 1 at its last) — not `weight`.
-// `weight` (a per-node "how big a deal is this reward" score, used for hex
-// sizing below) was being reused as the merge key too, and that's a
-// category error: it's calibrated for relative size WITHIN one road, not
-// for comparing across three unrelated roads with no shared unit — an
-// achievement's design `order`, an Arete amount, and a log-scaled kg
-// milestone were landing in the same 0..1 band by coincidence, not because
-// they represented comparable progress. That's exactly what read as
-// "trophies all over the place": a big-weight node from one road could
-// sort ahead of a much-further-along node from another. Percentile
-// position fixes that the honest way — it says "you're X% through this
-// particular road", which IS comparable across roads, so the merged list
-// actually climbs in order: everyone's early wins interleave near the
-// start, everyone's final checkpoint interleaves near the end.
+// data. This briefly merged Arete/Achievement/Weight checkpoints into one
+// path (interleaved by each node's percentile position within its own
+// road, a real fix for the "all over the place" ordering that came from
+// an earlier, worse merge — see git history if that math is ever needed
+// again), but achievements and weight milestones both have their own real
+// home now (the Trophy Cabinet's Achievements/Weight Milestones shelves —
+// see renderCabinetAchievements/renderCabinetWeightMilestones), so Road to
+// Olympus is back to being exactly what its name always implied: lifetime
+// Arete, nothing else. One metric, so "always ascending" is true by
+// construction — no cross-road normalization needed at all.
 function olympusRoadNodes(){
-  const combined=[...xpRoadNodes(),...trophyRoadNodes(),...weightRoadNodes()];
-  combined.sort((a,b)=>(a.roadPos||0)-(b.roadPos||0));
-  return combined;
+  return xpRoadNodes();
 }
 function getOlympusRoadSummary(){
-  const nodes=olympusRoadNodes();
-  const total=nodes.length;
-  const unlocked=nodes.filter(n=>n.claimed).length;
-  const next=nodes.find(n=>n.isNext)||nodes.find(n=>!n.claimed);
-  return {
-    icon:next?next.icon:'🏆',
-    text:next?(unlocked+' / '+total+' unlocked — next: '+next.descLabel):'Every checkpoint claimed — the full road, walked.',
-    pct:Math.round(unlocked/total*100),
-  };
+  return getXpRoadSummary();
 }
 function renderOlympusRoadGallery(nodes){
   const countEl=document.getElementById('trophy-road-trophy-count');
@@ -11180,6 +11218,25 @@ function renderCabinetWeightMilestones(){
     return `<div class="legend-card cabinet-slot iron${claimed?' unlocked':''}" onclick="viewWeightMilestone(${m.kg})">
       <div class="legend-card-icon">${claimed?milestoneIconHTML(m):'\ud83d\udd12'}</div>
       <div class="legend-card-name">${claimed?m.name:'???'}</div>
+    </div>`;
+  }).join('');
+}
+// Achievements — same shelf treatment as Weight Milestones just above,
+// now that they're no longer folded into Road to Olympus.
+function renderCabinetAchievements(){
+  const cont=document.getElementById('cabinet-achievements-row');
+  const sub=document.getElementById('cabinet-achievements-sub');
+  const countEl=document.getElementById('cabinet-achievements-count');
+  if(!cont)return;
+  const ascending=[...ACHIEVEMENTS].sort((a,b)=>a.order-b.order);
+  const next=ascending.find(a=>!unlockedAchievements.includes(a.key));
+  if(countEl)countEl.textContent=unlockedAchievements.length+'/'+ascending.length;
+  if(sub)sub.textContent=next?'Next: '+next.label:'Every achievement earned.';
+  cont.innerHTML=ascending.map(a=>{
+    const claimed=unlockedAchievements.includes(a.key);
+    return `<div class="legend-card cabinet-slot${claimed?' unlocked':''}" onclick="viewAchievementBadge('${a.key}')">
+      <div class="legend-card-icon">${claimed?a.icon:'🔒'}</div>
+      <div class="legend-card-name">${claimed?a.label:'???'}</div>
     </div>`;
   }).join('');
 }
@@ -11465,6 +11522,7 @@ function renderTrophyCabinet(){
   const cont=document.getElementById('cabinet-tiers');
   if(!cont)return;
   renderCabinetWeightMilestones();
+  renderCabinetAchievements();
   cont.innerHTML=TROPHY_LAYERS.map(layer=>{
     const slots=layer.items?layer.items.map(l=>{
       const unlocked=unlockedLegends.includes(l.key);
@@ -14734,16 +14792,23 @@ function renderLaborsPage(){
   const doneCount=LABORS.filter(l=>laborsCompleted[l.key]).length;
   if(doneEl)doneEl.textContent=doneCount;
   if(fillEl)fillEl.style.width=(doneCount/LABORS.length*100)+'%';
+  const diffColor={easy:'#7BAE7F',medium:'#E3BF76',hard:'#F36717',legendary:'#E23532'};
+  const diffLabel={easy:'EASY',medium:'MEDIUM',hard:'HARD',legendary:l=>l==='cerberus'?'MYTHIC':'LEGENDARY'};
   grid.innerHTML=LABORS.map(l=>{
     const done=!!laborsCompleted[l.key];
+    const xpAward=l.key==='cerberus'?200:(LABOR_XP[l.difficulty]||50);
+    const dc=diffColor[l.difficulty]||diffColor.medium;
+    const dl=l.difficulty==='legendary'?diffLabel.legendary(l.key):(diffLabel[l.difficulty]||'MEDIUM');
     return `<div class="lv-surface" style="padding:16px 18px;display:flex;align-items:center;gap:14px;${done?'':'opacity:.6'}">
       <div style="width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px;background:${done?'rgba(var(--lv-primary-rgb),.18)':'var(--lv-muted)'};border:1.5px solid ${done?'var(--lv-primary)':'var(--lv-border)'}">${done?l.icon:'🔒'}</div>
       <div style="flex:1;min-width:0">
-        <div style="display:flex;align-items:baseline;gap:8px">
+        <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap">
           <span class="lv-greek-numeral">${l.greek}</span>
           <span style="font-family:var(--lv-sans);font-weight:700;font-size:13.5px;color:var(--lv-fg)">${l.name}</span>
+          <span style="font-size:8px;font-weight:800;letter-spacing:.1em;color:${dc};border:1px solid ${dc};border-radius:20px;padding:1px 6px">${dl}</span>
         </div>
         <div style="font-size:11px;color:var(--lv-muted-fg);margin-top:3px">${l.desc}</div>
+        <div style="font-size:9.5px;color:var(--lv-gold);margin-top:3px;font-weight:700">+${xpAward} Arete</div>
       </div>
       ${done?`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--lv-primary)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><polyline points="20 6 9 17 4 12"/></svg>`:''}
     </div>`;
