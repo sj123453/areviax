@@ -622,6 +622,30 @@ input,input:focus,input:active,
 .sub-feat{font-size:12px;color:rgba(var(--white-rgb),.8);line-height:1.9}
 .sub-feat.premium{color:rgba(var(--white-rgb),.92);font-weight:600}
 
+/* ── ROADMAP / TIMELINE — a real vertical timeline rail (not another card
+   grid) since the content itself IS a sequence: shipped, then in progress,
+   then planned. The rail is the signature element here; everything else
+   stays quiet so it reads clearly at a glance. */
+.roadmap-rail{position:relative;padding-left:28px;margin:18px 0 4px}
+.roadmap-rail::before{content:'';position:absolute;left:8px;top:6px;bottom:6px;width:2px;background:linear-gradient(to bottom,rgba(255,178,74,.55),rgba(232,214,196,.12))}
+.roadmap-item{position:relative;margin-bottom:22px}
+.roadmap-item:last-child{margin-bottom:0}
+.roadmap-dot{position:absolute;left:-28px;top:3px;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;border:1.5px solid var(--border2);background:var(--panel)}
+.roadmap-item.shipped .roadmap-dot{background:rgba(51,209,122,.16);border-color:#33D17A;color:#33D17A}
+.roadmap-item.progress .roadmap-dot{background:rgba(255,178,74,.16);border-color:#FFB24A;color:#FFB24A;box-shadow:0 0 10px rgba(255,178,74,.35)}
+.roadmap-item.planned .roadmap-dot{background:rgba(232,214,196,.06);border-color:rgba(232,214,196,.25);color:rgba(var(--white-rgb),.5)}
+.roadmap-card{background:var(--panel);border:1.5px solid var(--border2);border-radius:14px;padding:14px 16px}
+.roadmap-item.progress .roadmap-card{border-color:rgba(255,178,74,.35)}
+.roadmap-status{display:inline-flex;align-items:center;gap:5px;font-size:9px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:3px 9px;border-radius:999px;margin-bottom:8px}
+.roadmap-item.shipped .roadmap-status{background:rgba(51,209,122,.14);color:#33D17A}
+.roadmap-item.progress .roadmap-status{background:rgba(255,178,74,.16);color:#FFB24A}
+.roadmap-item.planned .roadmap-status{background:rgba(232,214,196,.08);color:rgba(var(--white-rgb),.55)}
+.roadmap-title{font-size:14px;font-weight:800;color:var(--white);margin-bottom:4px}
+.roadmap-desc{font-size:11.5px;color:var(--muted);line-height:1.6}
+.roadmap-eta{margin-top:9px;font-family:'JetBrains Mono',monospace;font-size:10px;color:rgba(var(--white-rgb),.4)}
+.roadmap-section-label{font-size:10px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:rgba(var(--white-rgb),.35);margin:26px 0 2px 4px}
+.roadmap-section-label:first-child{margin-top:0}
+
 /* NUTRITION CARD CAROUSEL — Shield/Feeder Quest/Emergency Shake/Recipes/
    Meal Plan as horizontally swipeable cards instead of a tall vertical
    stack, so the "at a glance" summary above (calories/macro wheels/
@@ -4402,6 +4426,7 @@ body[data-goal-theme="cut"] .lv-page{
       <div class="sb-more-item" onclick="showPage('learn');toggleSidebarMore()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg><span>The Science</span></div>
       <div class="sb-more-item" onclick="showPage('aicoach');toggleSidebarMore()"><img src="images/icons/coach-sam-portrait.png" alt="" style="width:14px;height:14px;border-radius:50%;object-fit:cover;object-position:50% 42%;flex-shrink:0"><span>Coach Sam</span></div>
       <div class="sb-more-item" onclick="showPage('subscription');toggleSidebarMore()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3 7h7l-5.5 4.5L18.5 21 12 16.5 5.5 21l2-7.5L2 9h7z"/></svg><span>Go Premium</span></div>
+      <div class="sb-more-item" onclick="showPage('roadmap');toggleSidebarMore()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="19" r="2.2"/><circle cx="18" cy="5" r="2.2"/><path d="M8 19h5a5 5 0 005-5V9"/></svg><span>Roadmap</span></div>
       <div class="sb-more-item" onclick="showPage('settings');toggleSidebarMore()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 110 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg><span>Settings</span></div>
       <div class="sb-more-item" style="color:rgba(255,140,71,.85)" onclick="window.open('https://areviaxos.netlify.app/','_blank');toggleSidebarMore()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg><span>Areviax OS</span></div>
     </div>
@@ -5168,16 +5193,18 @@ body[data-goal-theme="cut"] .lv-page{
   </div>
 
   <!-- ACTIONS — Log Meal (opens the real Smart Log/Manual Entry card
-       below), Scan Barcode (real camera scan + Open Food Facts lookup —
-       see openBarcodeScan()), Recipes. -->
+       below), Scan (opens a chooser between Scan Food — a planned Premium
+       feature, honestly flagged as in development, see openScanChooser()
+       — and the real, working Scan Barcode against Open Food Facts, see
+       openBarcodeScan()), Recipes. -->
   <section style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
     <button onclick="openLogFood()" class="lv-ember lv-grain" style="display:flex;flex-direction:column;align-items:flex-start;gap:8px;border:none;border-radius:1rem;padding:12px;text-align:left;cursor:pointer">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/></svg>
       <span style="font-family:var(--lv-sans);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;line-height:1.2">Log meal</span>
     </button>
-    <button onclick="openBarcodeScan()" style="display:flex;flex-direction:column;align-items:flex-start;gap:8px;border:1px solid rgba(var(--lv-fuel-rgb),.4);border-radius:1rem;padding:12px;text-align:left;color:var(--lv-fuel);background:transparent;cursor:pointer">
+    <button onclick="openScanChooser()" style="display:flex;flex-direction:column;align-items:flex-start;gap:8px;border:1px solid rgba(var(--lv-fuel-rgb),.4);border-radius:1rem;padding:12px;text-align:left;color:var(--lv-fuel);background:transparent;cursor:pointer">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7V5a2 2 0 012-2h2M17 3h2a2 2 0 012 2v2M21 17v2a2 2 0 01-2 2h-2M7 21H5a2 2 0 01-2-2v-2"/><path d="M7 8v8M11 8v8M14 8v8M17 8v8"/></svg>
-      <span style="font-family:var(--lv-sans);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;line-height:1.2">Scan barcode</span>
+      <span style="font-family:var(--lv-sans);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;line-height:1.2">Scan</span>
     </button>
     <button onclick="showPage('recipes')" style="display:flex;flex-direction:column;align-items:flex-start;gap:8px;border:1px solid var(--lv-border-strong);border-radius:1rem;padding:12px;text-align:left;color:var(--lv-fg);background:transparent;cursor:pointer">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--lv-gold)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
@@ -5640,6 +5667,53 @@ body[data-goal-theme="cut"] .lv-page{
       <input type="text" id="ar-import-code" placeholder="Paste code here" style="flex:1">
       <button class="btn btn-out" onclick="importRecipeCode()">Add</button>
     </div>
+  </div>
+</div>
+
+<!-- SCAN CHOOSER — the Nutrition page's "Scan" quick action opens this
+     instead of jumping straight to the barcode camera, so Scan Food (a
+     real, planned feature — see the Roadmap page — not wired up yet) has
+     a visible home next to the barcode scan that already works, rather
+     than only existing as an FAQ answer nobody finds. See
+     openScanChooser()/closeScanChooser(). -->
+<div id="scan-chooser-backdrop" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9998" onclick="closeScanChooser()"></div>
+<div id="scan-chooser-modal" style="display:none;position:fixed;bottom:0;left:0;right:0;background:var(--panel);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-top:1px solid var(--border);border-radius:16px 16px 0 0;padding:22px;z-index:9999;max-width:480px;margin:0 auto;box-shadow:0 -20px 50px -20px rgba(0,0,0,.6)">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+    <div style="font-weight:800;font-size:15px;color:var(--white)">Scan</div>
+    <span onclick="closeScanChooser()" style="cursor:pointer;color:var(--muted);font-size:20px;line-height:1">✕</span>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:10px">
+    <button onclick="closeScanChooser();openFoodScanInfo()" style="display:flex;align-items:center;gap:14px;text-align:left;background:rgba(232,214,196,.04);border:1.5px solid var(--border2);border-radius:12px;padding:14px;cursor:pointer;color:var(--white)">
+      <div style="width:40px;height:40px;flex-shrink:0;border-radius:10px;background:rgba(255,178,74,.14);display:flex;align-items:center;justify-content:center;font-size:19px">📷</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:800;font-size:13px">Scan food</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">Photo of a meal → macros. In development — see the Roadmap.</div>
+      </div>
+      <div style="font-size:8.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#FFB24A;background:rgba(255,178,74,.14);padding:3px 8px;border-radius:999px;flex-shrink:0">Soon</div>
+    </button>
+    <button onclick="closeScanChooser();openBarcodeScan()" style="display:flex;align-items:center;gap:14px;text-align:left;background:rgba(232,214,196,.04);border:1.5px solid var(--border2);border-radius:12px;padding:14px;cursor:pointer;color:var(--white)">
+      <div style="width:40px;height:40px;flex-shrink:0;border-radius:10px;background:rgba(74,222,128,.14);display:flex;align-items:center;justify-content:center;font-size:19px">🔢</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:800;font-size:13px">Scan barcode</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">Real camera scan against Open Food Facts — works now.</div>
+      </div>
+    </button>
+  </div>
+</div>
+
+<!-- SCAN FOOD INFO — honest "not built yet" state, opened from the Scan
+     chooser above. No fake camera, no pretend AI result — says plainly
+     what it'll do once it ships and points at the real barcode scan as
+     today's working alternative. -->
+<div id="foodscan-info-backdrop" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9998" onclick="closeFoodScanInfo()"></div>
+<div id="foodscan-info-modal" style="display:none;position:fixed;bottom:0;left:0;right:0;background:var(--panel);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-top:1px solid var(--border);border-radius:16px 16px 0 0;padding:22px;z-index:9999;max-width:480px;margin:0 auto;box-shadow:0 -20px 50px -20px rgba(0,0,0,.6)">
+  <div style="font-size:28px;margin-bottom:10px">📷</div>
+  <div style="font-weight:800;font-size:15px;color:var(--white);margin-bottom:6px">Scan food is on the way</div>
+  <div style="font-size:12.5px;color:var(--muted);line-height:1.6;margin-bottom:16px">Snap a photo of a meal and get calories + macros back automatically — no barcode needed. It's a planned Premium feature and genuinely in development, but the AI layer isn't wired up in this build yet, so there's nothing to show you right now rather than a fake result.</div>
+  <div style="display:flex;flex-direction:column;gap:8px">
+    <button class="btn btn-g" style="width:100%" onclick="closeFoodScanInfo();openBarcodeScan()">🔢 Scan a barcode instead</button>
+    <button class="btn btn-out" style="width:100%" onclick="closeFoodScanInfo();showPage('roadmap')">🗺️ See it on the Roadmap</button>
+    <button class="btn btn-ghost" style="width:100%" onclick="closeFoodScanInfo()">Close</button>
   </div>
 </div>
 
@@ -7770,6 +7844,25 @@ body[data-goal-theme="cut"] .lv-page{
   </div>
 
   <div style="text-align:center;margin-top:14px;font-size:10.5px;color:var(--muted);line-height:1.6">Payments aren't switched on yet — this screen shows what Premium will unlock once billing is connected.</div>
+</div>
+
+<!-- ROADMAP / TIMELINE — a genuine, honest status page for the features
+     already referenced elsewhere as "coming soon" (AI Food Scan on the
+     Nutrition page, the FAQ matcher's "not a real LLM yet" disclosure,
+     local-only push notifications, Premium billing). Content lives in
+     ROADMAP_ITEMS/renderRoadmap() below; ETAs are our own soft internal
+     targets, not guarantees — worded that way deliberately. -->
+<div class="page lv-page" id="page-roadmap">
+  <div style="height:calc(10px + max(var(--safe-top,0px),env(safe-area-inset-top,0px)));background:var(--lv-bg);margin:0 -20px"></div>
+  <div class="lv-topbar" style="margin:0 -20px 16px">
+    <span style="display:flex;align-items:center;gap:8px">
+      <svg width="18" height="18" viewBox="0 0 48 48" fill="none" stroke="var(--lv-gold)" aria-hidden="true"><path d="M24 5 26.6 21.4 43 24 26.6 26.6 24 43 21.4 26.6 5 24 21.4 21.4Z" fill="var(--lv-gold)" stroke="none" opacity=".95"/><path d="M24 12v24M12 24h24" stroke-width=".6" opacity=".5"/><circle cx="24" cy="24" r="11" stroke-width=".7" opacity=".45"/></svg>
+      <span class="lv-wordmark" style="font-size:11px">Areviax</span><span style="font-size:10px;color:var(--lv-muted-fg);margin-left:7px;padding-left:7px;border-left:1px solid var(--lv-border-strong)">Roadmap</span>
+    </span>
+  </div>
+  <div class="companion" style="margin-bottom:6px"><div class="companion-msg">Built in the open — exactly what's shipped, what's in progress, and what's next. No vague promises, no fake dates.</div></div>
+  <div id="roadmap-list"></div>
+  <div style="text-align:center;margin:22px 0 4px;font-size:10.5px;color:var(--muted);line-height:1.6">ETAs are our own internal targets, not guarantees — things can move. <a href="mailto:areviaxsupport@gmail.com" style="color:rgba(255,122,46,.85);text-decoration:underline">Tell us what to prioritise</a></div>
 </div>
 
   </div><!-- /content -->
@@ -12954,6 +13047,20 @@ function saveSettings(){
   profile.age=newAge||profile.age;
   profile.goal=document.getElementById('set-goal').value;
   profile.equip=document.getElementById('set-equip').value;
+  // Keep the in-session equipment override in sync with what was just saved.
+  // sessionEquip used to only resync from profile.equip when Settings
+  // RENDERED (see renderSettings()), never when it SAVED — so changing gear
+  // here and hitting Save silently did nothing to the Workout Builder or any
+  // swap panel until you happened to revisit Settings again (which would
+  // finally pull the new value in) or manually re-picked a builder chip.
+  // That's the "switching to gym still gives me bodyweight, have to spam
+  // save and rebuild the whole session" bug — equipOk() always preferred
+  // sessionEquip over profile.equip, and nothing was updating it here.
+  sessionEquip=profile.equip;
+  document.querySelectorAll('#equip-chips .equip-chip').forEach(c=>{
+    c.classList.toggle('active',c.dataset.equip===sessionEquip);
+  });
+  try{renderExercises();}catch(e){} // refresh an already-open builder immediately, not just on next visit
   profile.days=parseInt(document.getElementById('set-days').value);
   profile.injuries=document.getElementById('set-injuries').value.trim();
 
@@ -14380,7 +14487,7 @@ function updateStreakFromActivity(){
 // only fixing itself once the user navigated away and back.
 function syncPageChrome(id){
   const sharedTopbar=document.querySelector('.topbar');
-  if(sharedTopbar)sharedTopbar.style.display=(id==='dashboard'||id==='progress'||id==='shop'||id==='trophycabinet'||id==='labors'||id==='nutrition'||id==='workout'||id==='schedule'||id==='leaderboard'||id==='xproad'||id==='trophyroad'||id==='weightroad'||id==='aicoach'||id==='session'||id==='recipes'||id==='legal'||id==='settings'||id==='profile'||id==='subscription'||id==='leagues'||id==='recovery'||id==='learn')?'none':'';
+  if(sharedTopbar)sharedTopbar.style.display=(id==='dashboard'||id==='progress'||id==='shop'||id==='trophycabinet'||id==='labors'||id==='nutrition'||id==='workout'||id==='schedule'||id==='leaderboard'||id==='xproad'||id==='trophyroad'||id==='weightroad'||id==='aicoach'||id==='session'||id==='recipes'||id==='legal'||id==='settings'||id==='profile'||id==='subscription'||id==='leagues'||id==='recovery'||id==='learn'||id==='roadmap')?'none':'';
   const lvTopbars=document.querySelectorAll('.lv-page-topbar');
   lvTopbars.forEach(el=>{el.style.display=(el.dataset.page===id)?'flex':'none';});
   try{syncLvBadges();}catch(e){}
@@ -14395,7 +14502,7 @@ function showPage(id){
   if(pg)pg.classList.add('active');
   document.querySelectorAll('.sb-item').forEach(i=>{if(i.getAttribute('onclick')?.includes(id))i.classList.add('active')});
   try{
-    const titles={dashboard:'Home',workout:'The Forge',session:'Session',nutrition:'Nutrition',recipes:'Recipes',progress:'Progress',shop:'Shop',trophycabinet:'Trophy Cabinet',labors:'The 12 Labors',xproad:'Arete Road',trophyroad:'Road to Olympus',weightroad:'Weight Road',recovery:'Recovery',schedule:'Schedule',leaderboard:'Leaderboard',leagues:'Leagues',learn:'Science',profile:'Profile',legal:'Legal',settings:'Settings',aicoach:'Coach Sam',subscription:'Go Premium'};
+    const titles={dashboard:'Home',workout:'The Forge',session:'Session',nutrition:'Nutrition',recipes:'Recipes',progress:'Progress',shop:'Shop',trophycabinet:'Trophy Cabinet',labors:'The 12 Labors',xproad:'Arete Road',trophyroad:'Road to Olympus',weightroad:'Weight Road',recovery:'Recovery',schedule:'Schedule',leaderboard:'Leaderboard',leagues:'Leagues',learn:'Science',profile:'Profile',legal:'Legal',settings:'Settings',aicoach:'Coach Sam',subscription:'Go Premium',roadmap:'Roadmap'};
     const t=titles[id]||id;
     const tte=document.getElementById('tb-title');
     if(tte){tte.textContent=t;tte.classList.toggle('tb-title-sm',id==='trophycabinet');}
@@ -14468,6 +14575,7 @@ function showPage(id){
   if(id==='profile')safeRender(renderProfile,'profile');
   if(id==='aicoach')safeRender(renderAiCoach,'aicoach');
   if(id==='subscription')safeRender(renderSubscriptionPage,'subscription');
+  if(id==='roadmap')safeRender(renderRoadmap,'roadmap');
   if(id==='settings')safeRender(renderSettings,'settings');
 }
 
@@ -16128,6 +16236,7 @@ function toggleCustomEquipItem(key,checked){
   if(!profile.customEquip)profile.customEquip={};
   profile.customEquip[key]=checked;
   profile.equip='custom';
+  sessionEquip='custom'; // same desync class as saveSettings() — equipOk() always prefers sessionEquip, so it has to move with profile.equip here too
   renderExercises(); // live-update the exercise list so unlocking/locking an item shows its effect immediately
 }
 function onSetEquipChange(val){
@@ -17407,6 +17516,29 @@ function isAssistedEquip(equip){ return !!(equip&&equip.includes('assisted')); }
 function bodyweightKg(){
   return profile.weight?Math.round(profile.weight*0.453592*10)/10:0;
 }
+// True bodyweight moves (Push-ups, Pull-ups, Bodyweight Squat, Plank, etc.)
+// were logging whatever raw number sat in the "Weight (kg)" field — almost
+// always 0, since most people don't strap on a weighted vest — so PRs,
+// tonnage, and Est 1RM never registered at all for an entire category of
+// training. The real load in a bodyweight movement IS your bodyweight, plus
+// whatever you've added, same logic already used for assist-machine PIN
+// numbers just running the other direction.
+//
+// 'bodyweight' being present at all is the strongest, most specific signal
+// in this database — it means the movement's actual, primary base form
+// needs no equipment. A LOT of exercises whose real identity is bodyweight
+// (Push-ups, Walking Lunges, Glute Bridge, Curtsy Lunge...) also carry a
+// 'dumbbells' tag purely because a dumbbell CAN be added as a progression —
+// that used to steal the dumbbell "per dumbbell" label away from a move
+// nobody's actually holding a dumbbell for. So 'bodyweight' wins over
+// 'dumbbells' here; a real dumbbell-only exercise (no 'bodyweight' tag at
+// all, e.g. Dumbbell Bench Press) is unaffected and keeps its own label.
+function isPureBodyweightExercise(equip){
+  if(!equip||!equip.includes('bodyweight'))return false;
+  if(isAssistedEquip(equip))return false;
+  if(equip.some(x=>MACHINE_CABLE_EQUIP.has(x)))return false;
+  return true;
+}
 function weightInputLabel(e){
   const equip=e.equip||[];
   // Assist machines (Assisted Dips/Pull-ups) read a PIN weight, not a
@@ -17415,9 +17547,26 @@ function weightInputLabel(e){
   // to type rather than leaving "Weight (kg)" ambiguous about which
   // direction more assist goes.
   if(isAssistedEquip(equip))return 'Assist weight (kg) — subtracted from bodyweight';
+  if(isPureBodyweightExercise(equip))return 'Added weight (kg) — leave blank for bodyweight only';
   if(equip.includes('dumbbells'))return 'Weight per dumbbell (kg)';
   if(equip.some(x=>MACHINE_CABLE_EQUIP.has(x)))return 'Weight (kg) — total stack';
   return 'Weight (kg)';
+}
+// Live readout under a pure-bodyweight exercise's weight input — says
+// outright how much of the person's bodyweight they're actually moving,
+// updating as they type any added weight (vest, plate, dip belt).
+function bodyweightNoteText(addedKg){
+  const bwKg=bodyweightKg();
+  if(!bwKg)return '⚖️ Add your bodyweight in Settings to see this as a % of bodyweight.';
+  const total=Math.round((bwKg+(addedKg||0))*10)/10;
+  const pct=Math.round(total/bwKg*100);
+  return addedKg>0?`⚖️ Lifting ≈${total}kg — ${pct}% of your bodyweight (bodyweight ${bwKg}kg + ${addedKg}kg added)`:`⚖️ Lifting ≈${total}kg — 100% of your bodyweight`;
+}
+function updateBodyweightNote(i){
+  const input=document.getElementById('sw-'+i);
+  const note=document.getElementById('bw-note-'+i);
+  if(!input||!note)return;
+  note.textContent=bodyweightNoteText(parseFloat(input.value)||0);
 }
 // The one rule the whole progressive-overload predictor runs on: hit the
 // top of an exercise's target rep range at your current weight, and that's
@@ -17447,6 +17596,22 @@ function suggestNextWeight(e){
         return {weight:nextAssist,note:`Last: ${lastAssist}kg assist × ${last.reps} (≈${last.weight}kg lifted) — hit the top of your range. Try ${nextAssist}kg assist.`};
       }
       return {weight:lastAssist,note:`Last: ${lastAssist}kg assist × ${last.reps} (≈${last.weight}kg lifted). Same assist — aim for one more rep before reducing it.`};
+    }
+  }
+  // Pure bodyweight moves: last.weight is bodyweight + added weight (see
+  // logSet) — the input only takes the ADDED part, so convert back and show
+  // what fraction of bodyweight that actually is, which is the whole point
+  // for a movement with no external number to anchor to.
+  if(isPureBodyweightExercise(e.equip)){
+    const bwKg=bodyweightKg();
+    if(bwKg>0){
+      const lastAdded=Math.max(0,Math.round((last.weight-bwKg)*10)/10);
+      const pct=Math.round(last.weight/bwKg*100);
+      if(last.reps>=upper){
+        const nextAdded=Math.round((lastAdded+2.5)*10)/10;
+        return {weight:nextAdded,note:`Last: ${lastAdded>0?'+'+lastAdded+'kg added, ':''}≈${last.weight}kg total (${pct}% bodyweight) × ${last.reps} — hit the top of your range. Try +${nextAdded}kg added.`};
+      }
+      return {weight:lastAdded,note:`Last: ${lastAdded>0?'+'+lastAdded+'kg added, ':''}≈${last.weight}kg total (${pct}% bodyweight) × ${last.reps}. Same weight — aim for one more rep before adding more.`};
     }
   }
   if(last.reps>=upper){
@@ -17794,6 +17959,7 @@ function buildSession(){
     const plates=e.equip.includes('barbell')?plateBreakdown(parseFloat(prefillWeight)||null):null;
     const e1rm=estimate1RM(e.name);
     const isSkipped=skippedExercises.has(i);
+    const isPureBW=isPureBodyweightExercise(e.equip);
     return `
     <div class="ex-card${isSkipped?' ex-skipped':''}" id="sex-${i}">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:9px">
@@ -17807,9 +17973,10 @@ function buildSession(){
       </div>
       <div class="ex-skipped-tag" id="skip-tag-${i}">Skipped — counts toward your compass point</div>
       <div style="display:flex;gap:8px;margin-bottom:7px">
-        <div style="flex:1"><label class="lbl" style="margin-top:0">${weightInputLabel(e)}</label><input type="number" id="sw-${i}" style="padding:7px 9px" placeholder="${sug?sug.weight:'kg'}" value="${prefillWeight}"></div>
+        <div style="flex:1"><label class="lbl" style="margin-top:0">${weightInputLabel(e)}</label><input type="number" id="sw-${i}" style="padding:7px 9px" placeholder="${sug?sug.weight:'kg'}" value="${prefillWeight}" ${isPureBW?`oninput="updateBodyweightNote(${i})"`:''}></div>
         <div style="flex:1"><label class="lbl" style="margin-top:0">Reps</label><input type="number" id="sr-${i}" style="padding:7px 9px" placeholder="${e.reps.split('–')[0]}" value="${prefillReps}"></div>
       </div>
+      ${isPureBW?`<div id="bw-note-${i}" style="font-size:10px;color:var(--cyan);margin:-2px 0 9px;line-height:1.4">${bodyweightNoteText(parseFloat(prefillWeight)||0)}</div>`:''}
       ${plates?`<div style="font-size:10px;color:var(--muted);margin:-2px 0 9px;line-height:1.4">🏋️ Per side: ${plates.parts.join(', ')} <span style="opacity:.7">(20kg bar)</span>${plates.exact?'':' — closest at 1.25kg plates: '+plates.achievedTotal+'kg'}</div>`:''}
       ${sug?`<div style="font-size:10px;color:rgba(243,103,23,.7);margin:-2px 0 9px;line-height:1.4">📈 ${sug.note}</div>`:''}
       ${plateau?`<div style="font-size:10px;color:#FF6F6F;background:rgba(255,90,90,.08);border:1px solid rgba(255,90,90,.2);border-radius:6px;padding:6px 9px;margin:-2px 0 9px;line-height:1.4">🎯 ${plateau.note}</div>`:''}
@@ -18177,8 +18344,16 @@ function logSet(ei,si,name,muscle){
   // — wRaw (the raw pin number typed in) is kept separately just for
   // liveSessionProgress, so the input still echoes back what was typed
   // rather than a computed kg figure if they log a second set.
-  const bwKg=isAssistedEquip(EX_BY_NAME[name]&&EX_BY_NAME[name].equip)?bodyweightKg():0;
-  const w=bwKg>0?Math.max(0,Math.round((bwKg-wRaw)*10)/10):wRaw;
+  const exEquip=EX_BY_NAME[name]&&EX_BY_NAME[name].equip;
+  const isAssisted=isAssistedEquip(exEquip);
+  const isPureBW=isPureBodyweightExercise(exEquip);
+  const bwKg=isAssisted?bodyweightKg():0;
+  // Pure bodyweight moves: the real load is bodyweight + whatever was added
+  // (a weighted vest, a plate, a dip belt) — wRaw defaults to 0, so someone
+  // who never adds weight still logs their actual bodyweight as the load
+  // instead of a 0 that made every push-up/pull-up session invisible to
+  // PRs, tonnage, and Est 1RM.
+  const w=bwKg>0?Math.max(0,Math.round((bwKg-wRaw)*10)/10):(isPureBW?Math.round((bodyweightKg()+wRaw)*10)/10:wRaw);
   const effW=DOUBLE_DUMBBELL_EXERCISES.has(name)?w*2:w;
   const chip=document.getElementById('sc-'+ei+'-'+si);
   if(chip.classList.contains('done'))return;
@@ -19707,7 +19882,7 @@ const AI_COACH_KB=[
   {q:'How does bodyweight tracking work?',kw:['weight log','log my weight','track bodyweight','log bodyweight','track my weight'],
    a:"Log your bodyweight from the Weight Log tab in the Progress page's Data Terminal, or right from Settings when you update your stats. It feeds both your Weight Road progress and the trend line on your Weight Log history."},
   {q:'Is AI Food Scan available yet?',kw:['ai food scan','food scan','scan a meal','photo of my meal','scan my food'],
-   a:"Not yet — it's a planned Premium feature (snap a photo of a meal, get macros back), but that AI layer isn't wired up in this build, so nothing happens if you look for it right now. Smart Log's plain-English portion matching is the closest thing that actually works today."},
+   a:"Not yet — it's a planned Premium feature (snap a photo of a meal, get macros back), but that AI layer isn't wired up in this build, so nothing happens if you look for it right now. Smart Log's plain-English portion matching is the closest thing that actually works today, and real barcode scanning already works from the Nutrition page's Scan button. Check the Roadmap page for where this actually stands."},
   {q:'Is this AI Coach actually AI?',kw:['is this real ai','real ai coach','chatgpt','is ai coach real','actual ai'],
    a:"Right now this is a fast on-device FAQ matcher — it searches a fixed list of real answers about how the app works, it's not a general conversational AI yet. A full conversational AI Coach that can reason about your actual numbers is one of the things Premium is building toward. If it can't answer something, use the support email below rather than trusting a guess."},
   {q:'How do weekly Quests work?',kw:['quest','quests','weekly quest','claim quest'],
@@ -19815,6 +19990,46 @@ function renderSubscriptionPage(){
 }
 function tapUpgrade(){
   toast('🔒','Payments aren\'t connected yet — Premium billing is coming soon.');
+}
+// ── ROADMAP — every entry here matches something already honestly
+// disclosed elsewhere in the app rather than a brand-new promise invented
+// just for this page (AI Food Scan: Nutrition's Scan chooser + the AI
+// Coach FAQ; the AI Coach itself: same FAQ, "not a real LLM yet"; true
+// push: the local-notification comment about needing a real backend;
+// Premium billing: the Go Premium page's own disclosure). ETAs are soft,
+// internal targets — status is what actually matters and what we can
+// stand behind, not a date nobody can promise from a two-person roadmap.
+const ROADMAP_ITEMS=[
+  {status:'shipped',title:'Real barcode food scanning',desc:'Point your camera at a pack and Open Food Facts fills in the macros — no typing.',eta:'Shipped'},
+  {status:'shipped',title:'Smarter auto-built sessions',desc:'Every session type now guarantees real coverage of every muscle it should train — no more Full Body skipping chest, or Pull day turning into three bicep curls.',eta:'Shipped'},
+  {status:'shipped',title:'The Areviax Shop & Tetradrachm',desc:'A real free-currency shop — crates, titles, and themes earned through training, nothing paywalled.',eta:'Shipped'},
+  {status:'progress',title:'AI Food Scan',desc:'Snap a photo of a meal and get calories + macros back automatically, no barcode needed.',eta:'In development — targeting late 2026'},
+  {status:'progress',title:'True background notifications',desc:'Reminders that can reach you even when the app is fully closed, not just backgrounded — needs a real server behind it, which is what\'s being built now.',eta:'In development — targeting late 2026'},
+  {status:'planned',title:'A real conversational AI Coach',desc:'Right now Coach Sam is a fast on-device FAQ matcher. Next: a genuine AI that can reason about your actual numbers and answer anything, not just a fixed list of questions.',eta:'Planned — targeting early 2027'},
+  {status:'planned',title:'Premium billing',desc:'In-app subscriptions through the App Store/Play Store, so upgrading is one tap instead of a screen that explains it isn\'t connected yet.',eta:'Planned — targeting early 2027'},
+];
+const ROADMAP_STATUS_LABEL={shipped:'✓ Shipped',progress:'⚙ In progress',planned:'○ Planned'};
+function renderRoadmap(){
+  const list=document.getElementById('roadmap-list');
+  if(!list)return;
+  const order={shipped:0,progress:1,planned:2};
+  const sections=[['shipped','Shipped'],['progress','In progress'],['planned','Planned']];
+  list.innerHTML=sections.map(([key,label])=>{
+    const items=ROADMAP_ITEMS.filter(i=>i.status===key);
+    if(!items.length)return '';
+    return `<div class="roadmap-section-label">${label}</div><div class="roadmap-rail">`+
+      items.map(i=>`
+      <div class="roadmap-item ${i.status}">
+        <div class="roadmap-dot">${i.status==='shipped'?'✓':i.status==='progress'?'⚙':'○'}</div>
+        <div class="roadmap-card">
+          <div class="roadmap-status">${ROADMAP_STATUS_LABEL[i.status]}</div>
+          <div class="roadmap-title">${i.title}</div>
+          <div class="roadmap-desc">${i.desc}</div>
+          <div class="roadmap-eta">${i.eta}</div>
+        </div>
+      </div>`).join('')+
+    `</div>`;
+  }).join('');
 }
 const RECIPE_TYPE_ICON={breakfast:'🍳',lunch:'🥗',dinner:'🍽',snack:'🍎'};
 // CUSTOM RECIPES — your own food/meal entries, shaped identically to a
@@ -22854,6 +23069,24 @@ function openLogFood(){
   const body=document.getElementById('acc-logfood');
   if(body)body.scrollIntoView({behavior:'smooth',block:'nearest',inline:'start'});
 }
+// ── SCAN CHOOSER — Scan Food (planned, honestly not built yet — see
+// openFoodScanInfo()) vs Scan Barcode (real, working — openBarcodeScan()).
+function openScanChooser(){
+  document.getElementById('scan-chooser-backdrop').style.display='block';
+  document.getElementById('scan-chooser-modal').style.display='block';
+}
+function closeScanChooser(){
+  document.getElementById('scan-chooser-backdrop').style.display='none';
+  document.getElementById('scan-chooser-modal').style.display='none';
+}
+function openFoodScanInfo(){
+  document.getElementById('foodscan-info-backdrop').style.display='block';
+  document.getElementById('foodscan-info-modal').style.display='block';
+}
+function closeFoodScanInfo(){
+  document.getElementById('foodscan-info-backdrop').style.display='none';
+  document.getElementById('foodscan-info-modal').style.display='none';
+}
 // ── SCAN BARCODE — real camera scan (native BarcodeDetector where the
 // browser has it) + a live lookup against Open Food Facts' free public
 // API (world.openfoodfacts.org/api/v2/product/<barcode>.json — no key
@@ -24760,6 +24993,10 @@ document.addEventListener('DOMContentLoaded', function(){
     <div class="more-sheet-item" onclick="showPage('subscription');toggleMoreSheet()">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3 7h7l-5.5 4.5L18.5 21 12 16.5 5.5 21l2-7.5L2 9h7z"/></svg>
       <span>Go Premium</span>
+    </div>
+    <div class="more-sheet-item" onclick="showPage('roadmap');toggleMoreSheet()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="19" r="2.2"/><circle cx="18" cy="5" r="2.2"/><path d="M8 19h5a5 5 0 005-5V9"/></svg>
+      <span>Roadmap</span>
     </div>
     <div class="more-sheet-item" onclick="showPage('settings');toggleMoreSheet()">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 110 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
