@@ -5114,7 +5114,18 @@ body[data-goal-theme="cut"] .lv-page{
       <div class="lv-meander-bold" style="margin-top:18px"></div>
     </div>
   </header>
-  <div class="companion"><div class="companion-msg" id="session-companion">Ready when you are. Tap Start when you walk in.</div></div>
+  <!-- COACH SAM — DAILY TIP — real technique advice for mid-workout, not
+       the tenure-staged motivational line the Dashboard's Coach Sam card
+       shows (see COMPANIONS/COACH_TIPS' own comment for the distinction).
+       Same portrait+label pattern as that Dashboard card so the two read
+       as the same character rather than two different UI languages. -->
+  <div class="card lv-surface" style="padding:14px 16px;display:flex;gap:12px;align-items:center;margin-bottom:14px">
+    <img src="images/icons/coach-sam-portrait.png" alt="Coach Sam" style="width:44px;height:44px;border-radius:50%;object-fit:cover;object-position:50% 42%;flex-shrink:0;border:2px solid rgba(227,191,118,.55)">
+    <div style="min-width:0">
+      <div style="font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--gold,#E3BF76);margin-bottom:3px">Coach Sam · Tip of the day</div>
+      <div class="companion-msg" id="session-companion" style="font-size:12.5px;line-height:1.5">Ready when you are. Tap Start when you walk in.</div>
+    </div>
+  </div>
   <div class="g2">
     <div class="card lv-surface" style="text-align:center">
       <div style="font-size:9px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px">Session Timer</div>
@@ -15462,6 +15473,37 @@ function renderDashQuote(){
   renderQuoteInto('dash-quote-text','dash-quote-attrib',0,'',true);
 }
 
+// ── COACH SAM — DAILY TRAINING TIP — a different thing from COMPANIONS
+// above: those are tenure-staged motivation ("you're in week 2, keep
+// going"), these are real technique/training advice that applies
+// regardless of how long someone's been at it. One per day, same
+// day-index rotation QUOTES already uses, shown on the Session page
+// where it's actually relevant — mid-workout, not on the Dashboard.
+const COACH_TIPS=[
+  {text:"Can't get that last full rep in? Don't just fail it — squeeze out a couple of partial reps through whatever range of motion you've still got. A few inches of real tension under load is still real work for the muscle, not wasted effort."},
+  {text:"Slow the lowering half of the rep down, not just the lifting half. Most people rush the eccentric — that's often where the actual growth stimulus is happening."},
+  {text:"A warm-up set isn't about breaking a sweat — it's about grooving the movement pattern with light weight before you load it heavy, so the first working rep isn't also the first rep your body's ever tried that day."},
+  {text:"Progress doesn't have to mean more weight on the bar. One more rep at the same weight, a slower tempo, or one extra set all count as real progressive overload."},
+  {text:"If your last couple reps stop looking anything like your first ones — bouncing, half range, using momentum — that set's effectively already over. One more ugly rep isn't extra stimulus, it's just extra risk."},
+  {text:"Brace before the hard part of a lift — a real breath in, a tight core, then push or pull. Holding your breath for the entire set is how people get light-headed halfway through."},
+  {text:"If you're not writing down what you lifted last time, you're guessing whether you actually progressed today. The whole point of tracking is not having to remember."},
+  {text:"On isolation work, actively squeeze the target muscle at the top of the rep instead of just moving the weight from A to B. The mind-muscle connection is a real, trainable thing, not a myth."},
+  {text:"A bad night's sleep often shows up in the gym as a weak, heavy-feeling session before it ever shows up on the scale. If today feels off, that might be why — not a real regression."},
+  {text:"Do your best, highest-priority compound lift first in the session, while you're actually fresh — not whatever you feel like starting with. Fatigue hits your weakest link hardest, so protect the lift that matters most."},
+  {text:"Muscle soreness the next day and real joint pain are not the same signal. Soreness means you trained something. Sharp or lingering joint pain means that exercise needs a swap, not more toughness."},
+  {text:"Rest periods should match the goal, not habit — 2–3 minutes for a heavy compound set, 60–90 seconds is often plenty for an isolation finisher. Resting like a powerlifter on every set just makes your session longer for no extra benefit."},
+];
+function pickCoachTip(offset){
+  const dayNum=Math.floor(Date.now()/86400000);
+  return COACH_TIPS[(dayNum+(offset||0)+COACH_TIPS.length)%COACH_TIPS.length];
+}
+function renderSessionCoachTip(){
+  const el=document.getElementById('session-companion');
+  if(!el)return;
+  const tip=pickCoachTip(3); // offset from QUOTES/COMPANIONS so this doesn't always echo the same day-index pick
+  el.textContent=tip.text;
+}
+
 // DAILY PERSPECTIVE — a once-per-day post-load briefing screen (streak,
 // sessions this week, today's quote — same QUOTES day-index formula
 // as renderDashQuote(), so it's never a different quote than the
@@ -18053,6 +18095,7 @@ function buildSession(){
   // now the single place that decides when a fresh skip slate is warranted.
   const cont=document.getElementById('sess-exercises');if(!cont)return;
   try{syncLvBadges();}catch(e){}
+  try{renderSessionCoachTip();}catch(e){}
   const sessHeroName=document.getElementById('sess-hero-name');
   if(sessHeroName&&plannedSessionName)sessHeroName.innerHTML=plannedSessionName.split(' ')[0]+'<br><span class="lv-serif-accent lv-gold-text" style="font-size:.8em">'+plannedSessionName.split(' ').slice(1).join(' ')+'</span>';
   const sessHeroStat=document.getElementById('sess-hero-stat');
@@ -18120,7 +18163,12 @@ function buildSession(){
     </div>`;
   }).join('');
   exs.forEach((e,i)=>{
-    mountScrollPicker(document.getElementById('sw-'+i),{min:0,max:400,step:1,decimals:2,unit:'kg'});
+    // Assist machines step in 0.25kg (a real pin often moves in quarter-
+    // plate increments) — everything else stays whole-kg. This used to be
+    // 0.25 across the board and regressed to a flat step:1 for every
+    // exercise type; direct report: "assisted is going up in whole
+    // numbers now."
+    mountScrollPicker(document.getElementById('sw-'+i),{min:0,max:400,step:isAssistedEquip(e.equip)?0.25:1,decimals:2,unit:'kg'});
     mountScrollPicker(document.getElementById('sr-'+i),{min:0,max:40,step:1,decimals:0,unit:'reps'});
   });
   renderCompassClaimStatus();
