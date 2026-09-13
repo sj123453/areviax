@@ -4127,9 +4127,33 @@ body[data-goal-theme="cut"] .lv-page{
   const introKey='arx_introSeenDate', introToday=localDateKeyEarly(new Date());
   let seenToday=false;
   try{ seenToday = localStorage.getItem(introKey)===introToday; }catch(e){}
+  // Used to close on a fixed timer (1500ms, or near-instantly on a same-day
+  // repeat view) no matter what — the actual bug this caused: #onboarding
+  // has no default-hidden state of its own (it's meant to be hidden by the
+  // returning-vs-new-user check deep in the DOMContentLoaded handler, once
+  // this whole ~16MB single-script file has finished parsing, which the
+  // comment above measured at ~14s on a throttled connection). Closing
+  // intro before that decision has actually run exposed #onboarding's raw
+  // visible-by-default state underneath — a real glimpse of the
+  // questionnaire for a returning user who should never see it, and the
+  // Daily Perspective quote/stat screen behind THAT never got a chance to
+  // populate either. Now this only actually closes once BOTH the entrance
+  // animation's own minimum time has played AND the app has signalled it's
+  // actually ready (window.__introAppReady, called from that handler right
+  // after it decides onboarding vs main-app) — whichever finishes last. A
+  // hard fallback timeout still guarantees this can never block forever if
+  // something upstream throws before reaching that signal.
+  let minTimeElapsed=false, appReady=false, closed=false;
+  function tryClose(){
+    if(closed||!minTimeElapsed||!appReady)return;
+    closed=true;
+    closeIntro();
+  }
+  window.__introAppReady=function(){ appReady=true; tryClose(); };
+  setTimeout(function(){ appReady=true; tryClose(); },8000);
   if(seenToday){
     introEl.style.transition='none';
-    introEl.classList.add('done');
+    minTimeElapsed=true; // no entrance animation to wait out on a same-day repeat view
   }else{
     try{ localStorage.setItem(introKey,introToday); }catch(e){}
     requestAnimationFrame(()=>{ if(introEmblem)introEmblem.classList.add('show'); });
@@ -4137,9 +4161,11 @@ body[data-goal-theme="cut"] .lv-page{
       if(introWord)introWord.classList.add('show');
       if(introTag)introTag.classList.add('show');
     },420);
-    setTimeout(closeIntro,1500);
+    setTimeout(()=>{ minTimeElapsed=true; tryClose(); },1500);
   }
-  if(introSkip) introSkip.addEventListener('click', closeIntro);
+  // A manual Skip tap is a direct request to stop waiting — always honours
+  // it immediately regardless of readiness, unlike the automatic path above.
+  if(introSkip) introSkip.addEventListener('click', function(){ closed=true; closeIntro(); });
 })();
 </script>
 
@@ -4458,7 +4484,12 @@ body[data-goal-theme="cut"] .lv-page{
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
     </button>
     <div class="sb-brand">
-      <svg width="20" height="20" viewBox="0 0 100 100" fill="none"><circle cx="50" cy="50" r="48" fill="#3D1F0A" stroke="#8A3010" stroke-width="1"/><path d="M50 14C50 14 45 42 18 50C45 58 50 86 50 86C50 86 55 58 82 50C55 42 50 14 50 14Z" fill="#F36717" opacity=".8"/><circle cx="50" cy="50" r="4" fill="#A59D95"/></svg>
+      <!-- Same 8-point compass-star emblem every other header in the app
+           uses (dashboard, session, subscription, the intro loading
+           screen…) — this was still the old flat orange sparkle icon that
+           predates that unification, a different-looking logo from the
+           rest of the brand. -->
+      <svg width="20" height="20" viewBox="0 0 48 48" fill="none" stroke="var(--lv-gold,#E6BE6D)" aria-hidden="true"><path d="M24 5 26.6 21.4 43 24 26.6 26.6 24 43 21.4 26.6 5 24 21.4 21.4Z" fill="var(--lv-gold,#E6BE6D)" stroke="none" opacity=".95"/><path d="M24 12v24M12 24h24" stroke-width=".6" opacity=".5"/><circle cx="24" cy="24" r="11" stroke-width=".7" opacity=".45"/></svg>
       <span class="sb-brand-text">AREVIAX MASS</span>
     </div>
     <div class="sb-item active" onclick="showPage('dashboard')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><span class="sb-label">Dashboard</span></div>
@@ -15492,6 +15523,7 @@ const COACH_TIPS=[
   {text:"Do your best, highest-priority compound lift first in the session, while you're actually fresh — not whatever you feel like starting with. Fatigue hits your weakest link hardest, so protect the lift that matters most."},
   {text:"Muscle soreness the next day and real joint pain are not the same signal. Soreness means you trained something. Sharp or lingering joint pain means that exercise needs a swap, not more toughness."},
   {text:"Rest periods should match the goal, not habit — 2–3 minutes for a heavy compound set, 60–90 seconds is often plenty for an isolation finisher. Resting like a powerlifter on every set just makes your session longer for no extra benefit."},
+  {text:"Music genuinely changes how hard you can push — the right track works like a legal stimulant for effort. High-energy stuff is what actually moves the needle on intensity: phonk, hard rock or guitar-driven music, and dedicated focus/instrumental playlists all work well for this. Save anything low-energy, pop included, for a lighter recovery day rather than the session where you need to hit a new PR."},
 ];
 function pickCoachTip(offset){
   const dayNum=Math.floor(Date.now()/86400000);
@@ -25081,6 +25113,12 @@ document.addEventListener('DOMContentLoaded', function(){
     try{maybeShowDailyPerspective();}catch(e){console.error('maybeShowDailyPerspective:',e.message);}
   }
   }catch(e){console.error("Init error:",e)}
+  // Tells #intro's own early script (see its comment near the top of the
+  // body) that the real onboarding-vs-main-app decision has actually been
+  // made — placed outside the try/catch above so it still fires even if
+  // something in there threw, rather than leaving the loading screen
+  // stuck up forever waiting for a signal that would never come.
+  try{window.__introAppReady&&window.__introAppReady();}catch(e){}
 });
 </script>
 
