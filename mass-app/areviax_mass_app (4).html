@@ -10722,27 +10722,33 @@ function checkLabors(){
 // Trophy), so handing it out for free on a deterministic checkpoint
 // would flatten it into "just log enough Arete" instead of the real,
 // chance-driven pull it's meant to be everywhere else it can drop.
+// Each checkpoint is a real stop on Odysseus's own journey home from Troy,
+// in the Odyssey's actual order — the road already IS a long, obstacle-
+// filled journey with real setbacks and a real destination, same shape as
+// a training journey, so it earns a real narrative instead of unnamed
+// checkpoints. Mechanics/rewards/thresholds untouched — this only adds a
+// `name` (and a one-line `myth` note for the road-path body) per node.
 const XP_ROAD=[
-  {xp:50,    type:'bronze', amount:1},
-  {xp:150,   type:'shard',  amount:1},
-  {xp:300,   type:'bronze', amount:1},
-  {xp:500,   type:'shard',  amount:1},
-  {xp:750,   type:'bronze', amount:2},
-  {xp:1000,  type:'legend', rarity:'rare'},
-  {xp:1500,  type:'shard',  amount:2},
-  {xp:2200,  type:'bronze', amount:3},
-  {xp:3000,  type:'shard',  amount:1, extra:{type:'bronze',amount:1}},
-  {xp:4000,  type:'legend', rarity:'legendary'},
-  {xp:5000,  type:'silver', amount:1},
-  {xp:6500,  type:'shard',  amount:3},
-  {xp:8000,  type:'legend', rarity:'mythic'},
-  {xp:10000, type:'silver', amount:2},
-  {xp:12500, type:'diamond',amount:1},
-  {xp:15000, type:'legend', rarity:'legendary'},
-  {xp:18000, type:'diamond',amount:2},
-  {xp:22000, type:'shard',  amount:5, extra:{type:'silver',amount:1}},
-  {xp:27000, type:'legend', rarity:'mythic'},
-  {xp:35000, type:'diamond',amount:3},
+  {xp:50,    type:'bronze', amount:1, name:"Leaving Troy",        myth:"Ten years of war are over. The real journey — the hard part — is only just beginning."},
+  {xp:150,   type:'shard',  amount:1, name:"The Cicones",         myth:"A raid that should've ended clean turns costly the moment the crew lingers too long."},
+  {xp:300,   type:'bronze', amount:1, name:"Land of the Lotus-Eaters",myth:"A fruit that makes you forget why you ever wanted to go home."},
+  {xp:500,   type:'shard',  amount:1, name:"The Cyclops's Cave",  myth:"Trapped with Polyphemus. Cleverness, not strength, is what gets the crew out alive."},
+  {xp:750,   type:'bronze', amount:2, name:"Aeolia, Isle of Winds",myth:"Given every favorable wind sealed in a bag — and the crew opens it anyway."},
+  {xp:1000,  type:'legend', rarity:'rare', name:"The Laestrygonians", myth:"A harbor that looks safe until it very suddenly isn't."},
+  {xp:1500,  type:'shard',  amount:2, name:"Circe's Island",      myth:"A year spent under a sorceress's spell before anyone remembers there's still a voyage to finish."},
+  {xp:2200,  type:'bronze', amount:3, name:"Descent to the Underworld",myth:"Going all the way down to ask the dead how to keep going."},
+  {xp:3000,  type:'shard',  amount:1, extra:{type:'bronze',amount:1}, name:"The Sirens' Song", myth:"Lashed to the mast on purpose, because some temptations you only survive by planning ahead."},
+  {xp:4000,  type:'legend', rarity:'legendary', name:"Scylla and Charybdis", myth:"Two disasters, one narrow strait. There was never a version of this with no cost at all."},
+  {xp:5000,  type:'silver', amount:1, name:"The Cattle of the Sun",myth:"One rule, impossible to keep: leave Helios's herd alone. Discipline is the whole test."},
+  {xp:6500,  type:'shard',  amount:3, name:"The Wrath of Poseidon",myth:"The sea god never forgets. The storm that follows isn't punishment — it's just what's owed."},
+  {xp:8000,  type:'legend', rarity:'mythic', name:"Calypso's Ogygia", myth:"Seven years on an island paradise, wanting nothing more than to leave it."},
+  {xp:10000, type:'silver', amount:2, name:"Built the Raft",       myth:"Finally moving again, alone, on a raft built with his own hands."},
+  {xp:12500, type:'diamond',amount:1, name:"Shipwrecked at Scheria",myth:"Washed up with nothing left but the will to keep going."},
+  {xp:15000, type:'legend', rarity:'legendary', name:"The Phaeacians' Court",myth:"Telling the whole story out loud, for the first time, to people who actually listen."},
+  {xp:18000, type:'diamond',amount:2, name:"Home Shores of Ithaca",myth:"Land, finally — but the hardest part of coming home was never the sea."},
+  {xp:22000, type:'shard',  amount:5, extra:{type:'silver',amount:1}, name:"The Beggar at the Door", myth:"Unrecognized in his own home, watching, before making a single move."},
+  {xp:27000, type:'legend', rarity:'mythic', name:"The Trial of the Bow", myth:"One shot only he could make. Proof, not just a claim."},
+  {xp:35000, type:'diamond',amount:3, name:"Reunited",            myth:"Twenty years. The whole point of the journey was never the journey — it was this."},
 ];
 let claimedXpRoad=[]; // persistent \u2014 xp thresholds already paid out, so crossing one twice (or loading old data) can't double-grant
 function xpRoadRewardExtraLabel(extra){
@@ -11046,13 +11052,20 @@ function renderRoadPath(containerId,nodes){
     const w=n.weight!=null?n.weight:0.5;
     const size=Math.round(40+w*80+(n.isNext?16:0));
     const font=Math.round(size*0.42);
-    return '<div class="xp-node'+state+'" style="--stagger:'+Math.min(i*45,450)+'ms;--wind:'+wind+'px;--hexsize:'+size+'px;--hexfont:'+font+'px"'+(n.onclick?' onclick="'+n.onclick+'"':'')+'>'+
+    // Odyssey name (n.name) takes the visible slot a plain reward label
+    // used to occupy \u2014 same length class ("Cyclops's Cave" vs "1 Bronze
+    // Crate"), so the tight per-node width this path already budgeted
+    // still fits. The reward itself never disappears, it's the title
+    // tooltip now, alongside the one-line myth beat \u2014 real narrative on
+    // every checkpoint, not just the ones with room to spare.
+    const tip=(n.myth?n.myth+' \u2014 ':'')+n.descLabel;
+    return '<div class="xp-node'+state+'" title="'+tip.replace(/"/g,'&quot;')+'" style="--stagger:'+Math.min(i*45,450)+'ms;--wind:'+wind+'px;--hexsize:'+size+'px;--hexfont:'+font+'px"'+(n.onclick?' onclick="'+n.onclick+'"':'')+'>'+
       '<div class="xp-node-hexwrap"><div class="xp-node-hex-glow"></div><div class="xp-node-hex">'+(n.claimed||n.isNext?n.icon:'\ud83d\udd12')+'</div>'+
         (n.claimed?'<span class="xp-node-check"><svg viewBox="0 0 24 24" fill="none" stroke="#0D0806" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>':'')+
         '<span class="xp-node-xp">'+n.valueLabel+'</span>'+
       '</div>'+
       '<div class="xp-node-body">'+
-        '<div class="xp-node-desc">'+n.descLabel+'</div>'+
+        '<div class="xp-node-desc">'+(n.name||n.descLabel)+'</div>'+
         (n.isNext&&n.progressPct!=null?'<div class="xp-node-bar"><div class="xp-node-bar-fill" style="width:'+n.progressPct+'%"></div></div>':'')+
       '</div>'+
     '</div>';
@@ -11143,7 +11156,7 @@ function xpRoadNodes(){
     const isNext=!claimed&&node===next;
     const prevXp=i===0?0:ascending[i-1].xp;
     const pct=isNext?Math.max(0,Math.min(100,Math.round((xp-prevXp)/(node.xp-prevXp)*100))):null;
-    return {claimed,isNext,icon:xpRoadRewardIcon(node),valueLabel:formatCompactNum(node.xp)+' Arete',descLabel:xpRoadRewardLabel(node),progressPct:pct,weight:xpRoadNodeWeight(node),roadPos:i/(ascending.length-1||1)};
+    return {claimed,isNext,icon:xpRoadRewardIcon(node),valueLabel:formatCompactNum(node.xp)+' Arete',descLabel:xpRoadRewardLabel(node),progressPct:pct,weight:xpRoadNodeWeight(node),roadPos:i/(ascending.length-1||1),name:node.name,myth:node.myth};
   });
 }
 function getXpRoadSummary(){
@@ -11173,9 +11186,10 @@ function renderXpRoadGallery(){
   if(countEl)countEl.textContent=claimedXpRoad.length+'/'+ascending.length;
   galleryEl.innerHTML=ascending.map(node=>{
     const earned=claimedXpRoad.includes(node.xp);
-    return `<div class="road-trophy-item${earned?' earned':''}" title="${node.xp.toLocaleString()} Arete — ${xpRoadRewardLabel(node)}">
+    const tip=(node.myth?node.myth+' — ':'')+node.xp.toLocaleString()+' Arete — '+xpRoadRewardLabel(node);
+    return `<div class="road-trophy-item${earned?' earned':''}" title="${tip.replace(/"/g,'&quot;')}">
       <div class="road-trophy-item-icon">${xpRoadRewardIcon(node)}</div>
-      <div class="road-trophy-item-name">${node.xp.toLocaleString()} Arete</div>
+      <div class="road-trophy-item-name">${node.name||(node.xp.toLocaleString()+' Arete')}</div>
     </div>`;
   }).join('');
 }
@@ -11665,9 +11679,10 @@ function renderOlympusRoadGallery(nodes){
   if(!galleryEl)return;
   if(countEl)countEl.textContent=nodes.filter(n=>n.claimed).length+'/'+nodes.length;
   galleryEl.innerHTML=nodes.map(n=>{
-    return `<div class="road-trophy-item${n.claimed?' earned':''}" title="${n.valueLabel} — ${n.descLabel}">
+    const tip=(n.myth?n.myth+' — ':'')+n.valueLabel+' — '+n.descLabel;
+    return `<div class="road-trophy-item${n.claimed?' earned':''}" title="${tip.replace(/"/g,'&quot;')}">
       <div class="road-trophy-item-icon">${n.claimed?n.icon:'🔒'}</div>
-      <div class="road-trophy-item-name">${n.claimed?n.valueLabel:'???'}</div>
+      <div class="road-trophy-item-name">${n.claimed?(n.name||n.valueLabel):'???'}</div>
     </div>`;
   }).join('');
 }
