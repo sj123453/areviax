@@ -2207,16 +2207,41 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       box-shadow:inset 0 1.5px 0 rgba(255,255,255,.4),0 -1.5px 0 rgba(0,0,0,.2);
     }
     .offer-card-buy:disabled{background:rgba(232,214,196,.1);color:var(--muted);box-shadow:none;cursor:default}
-    /* RIBBON — diagonal corner banner (NEW / FREE / BEST VALUE), same
-       technique as the Gift-from-the-Gods FREE tag, pulled out into a
-       reusable class so any tile can carry one. */
-    .shop-ribbon{
-      position:absolute;top:10px;right:-28px;transform:rotate(40deg);z-index:2;
-      font-size:8px;font-weight:900;letter-spacing:.06em;color:#0D0806;
-      padding:3px 32px;box-shadow:0 2px 6px rgba(0,0,0,.4);
+    /* CORNER BADGE — a small rounded-rect tag pinned to the card's top-right
+       corner (NEW / FREE / BEST VALUE). Re-checked directly against a
+       clearer Brawl Stars shop screenshot: their badges sit flush in the
+       corner as a small tag, not a wide diagonal banner cutting across the
+       card — swapped from the earlier rotated-ribbon version to match. */
+    .shop-badge{
+      position:absolute;top:-6px;right:10px;z-index:2;border-radius:6px;
+      font-size:8.5px;font-weight:900;letter-spacing:.04em;color:#0D0806;
+      padding:3px 8px;box-shadow:0 2px 5px rgba(0,0,0,.45);
     }
-    .shop-ribbon.new{background:linear-gradient(135deg,#FF6B7A,#E8314A)}
-    .shop-ribbon.value{background:linear-gradient(135deg,#7BE896,#33D17A)}
+    .shop-badge.new{background:linear-gradient(135deg,#FF6B7A,#E8314A);color:#fff}
+    .shop-badge.free{background:linear-gradient(135deg,#7BE896,#33D17A)}
+    .shop-badge.value{background:linear-gradient(135deg,#FFD24A,#F3A712)}
+    /* COUNTDOWN PILL — small dark rounded pill top-left, same spot/shape
+       the reference uses for "3d 23h" / "1d 8h" style offer timers. */
+    .shop-timer-pill{
+      position:absolute;top:10px;left:10px;z-index:2;
+      background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.15);
+      border-radius:6px;padding:2px 7px;font-family:'JetBrains Mono',monospace;
+      font-size:9px;font-weight:700;color:rgba(255,255,255,.85);
+    }
+    /* HERO ROW — the tall, narrow "one big offer per card" scroll row that
+       sits above the Daily Deals grid in the reference (Connect-ID promo,
+       Level 5 Pack, Special Offer all live here before the grid starts). */
+    .shop-hero-row{display:flex;gap:12px;overflow-x:auto;padding:6px 2px 14px;scrollbar-width:thin;margin-bottom:6px}
+    .shop-hero-card{
+      position:relative;flex:0 0 172px;border-radius:16px;overflow:hidden;
+      border:2.5px solid rgba(227,191,118,.5);
+      box-shadow:0 3px 0 rgba(0,0,0,.4),0 6px 14px -3px rgba(0,0,0,.55);
+      display:flex;flex-direction:column;background-size:cover;background-position:center;
+    }
+    .shop-hero-card-body{flex:1;padding:14px 12px 10px;display:flex;flex-direction:column}
+    .shop-hero-card-label{font-size:8.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#FFD24A;margin-bottom:2px}
+    .shop-hero-card-title{font-size:11px;font-weight:800;letter-spacing:.02em;text-transform:uppercase;color:#fff;line-height:1.25;-webkit-text-stroke:.4px rgba(0,0,0,.4);paint-order:stroke fill}
+    .shop-hero-card-sub{font-size:10px;color:rgba(255,255,255,.65);margin-top:3px;line-height:1.4}
     /* TAB BAR — Offers / Crates, bold uppercase with a gold underline on
        the active tab, same mechanism the mobile-game reference uses to
        split its shop into sections instead of one long scroll. */
@@ -6245,12 +6270,23 @@ body[data-goal-theme="cut"] .lv-page{
          grid instead of a horizontal scroll row. See
          DRACHMA_OFFERS/renderShopOffers(). -->
     <div class="shop-tab-panel active" id="shop-tab-offers">
-      <div style="position:relative;border-radius:18px;overflow:hidden;margin-bottom:20px;background-image:linear-gradient(180deg,rgba(10,7,4,.3) 0%,rgba(10,7,4,.55) 55%,rgba(10,7,4,.9) 100%),url('images/roads/realm-olympus.jpg');background-size:cover;background-position:center 35%;padding:16px 16px 18px;border:2.5px solid rgba(227,191,118,.5);box-shadow:0 3px 0 rgba(0,0,0,.4),0 6px 14px -3px rgba(0,0,0,.55)">
-        <span class="shop-ribbon" style="top:12px;background:linear-gradient(135deg,#7BAE7F,#5A8A5E)">FREE</span>
-        <div style="font-size:9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#FFD24A;margin-bottom:2px">Special Offer</div>
-        <div style="font-size:10px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:rgba(var(--white-rgb),.75)" id="daily-spin-card">Gift from the Gods</div>
-        <div style="font-size:11px;color:rgba(var(--white-rgb),.6);margin-bottom:2px;max-width:80%">One free gift a day — a key to Bronze, Silver, Gold, Diamond, even the Areviax Crate.</div>
-        <div id="daily-spin-wheel" class="spin-wheel-card"></div>
+      <!-- HERO ROW — the tall "one big offer per card" scroll row that
+         leads the reference shop, above its Daily Deals grid. Gift from
+         the Gods keeps its real daily-reset countdown; the second card is
+         a genuinely dynamic pick from DRACHMA_OFFERS (see
+         renderShopHeroOffer()), not a hardcoded item that could already
+         be owned. -->
+      <div class="shop-hero-row">
+        <div class="shop-hero-card" style="background-image:linear-gradient(180deg,rgba(10,7,4,.35) 0%,rgba(10,7,4,.6) 55%,rgba(10,7,4,.92) 100%),url('images/roads/realm-olympus.jpg');background-position:center 35%">
+          <span class="shop-badge free">FREE</span>
+          <span class="shop-timer-pill" id="shop-gift-timer">—</span>
+          <div class="shop-hero-card-body" style="padding-top:26px">
+            <div class="shop-hero-card-label">Special Offer</div>
+            <div class="shop-hero-card-title" id="daily-spin-card">Gift from the Gods</div>
+            <div id="daily-spin-wheel" class="spin-wheel-card" style="margin-top:8px"></div>
+          </div>
+        </div>
+        <div id="shop-hero-offer"></div>
       </div>
       <div style="display:flex;align-items:baseline;justify-content:space-between;margin:0 0 10px">
         <span style="font-family:var(--lv-display);font-weight:400;font-size:1.4rem;color:var(--lv-fg);text-transform:uppercase;letter-spacing:.01em">Daily Deals</span>
@@ -11412,6 +11448,51 @@ const DRACHMA_OFFERS=[
   {id:'theme_silver',label:'Silver Theme',sub:'Settings → Appearance',cost:80,tier:'silver',type:'theme',key:'silver',render:()=>'🎨'},
   {id:'theme_gold',label:'Gold Theme',sub:'Settings → Appearance',cost:150,tier:'gold',type:'theme',key:'gold',render:()=>'🎨'},
 ];
+// Featured hero-row pick — the priciest still-visible offer reads as the
+// genuinely "special" one, same idea as the reference shop's Special
+// Offer slot always showing something worth featuring rather than a
+// random pick. Excluded from the Daily Deals grid below so it isn't
+// shown twice.
+function pickShopHeroOffer(visible){
+  if(!visible.length)return null;
+  return [...visible].sort((a,b)=>b.cost-a.cost)[0];
+}
+function renderShopHeroOffer(visible){
+  const el=document.getElementById('shop-hero-offer');
+  if(!el)return null;
+  const o=pickShopHeroOffer(visible);
+  if(!o){el.innerHTML='';return null;}
+  const afford=drachma>=o.cost;
+  el.innerHTML=`<div class="shop-hero-card">
+    <span class="shop-badge value">BEST VALUE</span>
+    <div class="shop-hero-card-body" style="align-items:center;text-align:center;background:linear-gradient(165deg,rgba(243,103,23,.32),rgba(30,14,5,.5))">
+      <div class="shop-hero-card-label" style="align-self:flex-start">Special Offer</div>
+      <div style="flex:1;display:flex;align-items:center;justify-content:center;width:100%;font-size:44px">${o.render()}</div>
+      <div class="shop-hero-card-title">${o.label}</div>
+      <div class="shop-hero-card-sub">${o.sub}</div>
+    </div>
+    <button class="offer-card-buy" style="width:100%;margin:0" ${afford?'':'disabled'} onclick="buyDrachmaOffer('${o.id}')"><img src="images/icons/tetradrachm.png" alt="" style="width:14px;height:14px;vertical-align:-3px;border-radius:50%;margin-right:2px">${o.cost}</button>
+  </div>`;
+  return o.id;
+}
+// Time until the daily Gift from the Gods resets — the reference shows a
+// live countdown pill on its time-limited cards, this is the one genuinely
+// time-gated thing in the Areviax shop. Refreshes whenever the shop
+// re-renders rather than ticking live — a flavour readout, not something
+// anything is timed against to the second.
+function formatResetCountdown(){
+  const now=new Date();
+  const midnight=new Date(now.getFullYear(),now.getMonth(),now.getDate()+1,0,0,0,0);
+  const ms=Math.max(0,midnight-now);
+  const h=Math.floor(ms/3600000);
+  const m=Math.floor((ms%3600000)/60000);
+  return h+'h '+m+'m';
+}
+function renderShopGiftTimer(){
+  const el=document.getElementById('shop-gift-timer');
+  if(!el)return;
+  el.textContent=isDailySpinReady()?'Ready now':formatResetCountdown();
+}
 function renderShopOffers(){
   const row=document.getElementById('shop-offers-row');
   if(!row)return;
@@ -11420,7 +11501,10 @@ function renderShopOffers(){
     if(o.type==='theme')return !unlockedThemes.includes(o.key);
     return true;
   });
-  row.innerHTML=visible.map(o=>{
+  const heroId=renderShopHeroOffer(visible);
+  renderShopGiftTimer();
+  const gridItems=visible.filter(o=>o.id!==heroId);
+  row.innerHTML=gridItems.map(o=>{
     const afford=drachma>=o.cost;
     return `<div class="offer-card ${o.tier}">
       <div class="offer-card-art">${o.render()}</div>
