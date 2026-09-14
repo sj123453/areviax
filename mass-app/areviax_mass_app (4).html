@@ -4025,14 +4025,15 @@ body[data-goal-theme="cut"] .lv-page{
    Road checkpoint, together in one compact pill instead of a bare number
    next to a separate unrelated icon button. */
 .lv-road-pill{
-  display:flex;flex-direction:column;align-items:flex-start;gap:3px;
+  display:flex;flex-direction:column;align-items:flex-start;gap:4px;
   background:rgba(0,0,0,.25);border:1px solid var(--lv-border-strong);
-  border-radius:10px;padding:5px 8px 6px;cursor:pointer;flex-shrink:0;
+  border-radius:12px;padding:7px 11px 8px;cursor:pointer;flex-shrink:0;
   -webkit-tap-highlight-color:transparent;
 }
-.lv-road-pill-top{display:flex;align-items:center;gap:4px;font-size:11px;font-weight:800;color:var(--lv-xp);white-space:nowrap;font-family:'JetBrains Mono',monospace}
-.lv-road-pill-track{width:100%;min-width:34px;height:4px;border-radius:2px;background:rgba(255,255,255,.14);overflow:hidden}
-.lv-road-pill-fill{display:block;height:100%;border-radius:2px;background:linear-gradient(90deg,#3DBE6F,#1F9D57);transition:width .5s cubic-bezier(.16,1,.3,1)}
+.lv-road-pill-top{display:flex;align-items:center;gap:5px;font-size:13px;font-weight:800;color:var(--lv-xp);white-space:nowrap;font-family:'JetBrains Mono',monospace}
+.lv-road-pill-icon{width:16px;height:16px;border-radius:50%;flex-shrink:0}
+.lv-road-pill-track{width:100%;min-width:46px;height:5px;border-radius:2.5px;background:rgba(255,255,255,.14);overflow:hidden}
+.lv-road-pill-fill{display:block;height:100%;border-radius:2.5px;background:linear-gradient(90deg,#3DBE6F,#1F9D57);transition:width .5s cubic-bezier(.16,1,.3,1)}
 .lv-profile-badge{
   position:absolute;top:-4px;right:-4px;min-width:16px;height:16px;padding:0 3px;
   border-radius:999px;background:#E23532;color:#fff;font-size:9.5px;font-weight:900;
@@ -4705,9 +4706,9 @@ body[data-goal-theme="cut"] .lv-page{
                next checkpoint, same "trophy count with a progress bar
                built in" treatment a real mobile game uses at the top of
                its home screen rather than a bare number. -->
-          <button type="button" class="lv-road-pill" id="dash-road-pill" onclick="showPage('trophyroad')" aria-label="Road to Olympus — Arete progress">
-            <span class="lv-road-pill-top"><img src="images/icons/arete.png" alt="" style="width:12px;height:12px;border-radius:50%;flex-shrink:0"> <span id="dash-road-arete">0</span></span>
-            <span class="lv-road-pill-track"><span class="lv-road-pill-fill" id="dash-road-fill" style="width:0%"></span></span>
+          <button type="button" class="lv-road-pill" onclick="showPage('trophyroad')" aria-label="Road to Olympus — Arete progress">
+            <span class="lv-road-pill-top"><img src="images/icons/arete.png" alt="" class="lv-road-pill-icon"> <span class="lv-road-arete-num">0</span></span>
+            <span class="lv-road-pill-track"><span class="lv-road-pill-fill" style="width:0%"></span></span>
           </button>
           <button type="button" class="lv-profile-btn" onclick="showPage('shop')" aria-label="Shop"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--lv-fg)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2 3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 01-8 0"/></svg></button>
           <button type="button" class="lv-profile-btn" onclick="showPage('profile')" aria-label="Profile"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--lv-fg)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="lv-profile-badge"></span></button>
@@ -4939,7 +4940,10 @@ body[data-goal-theme="cut"] .lv-page{
         </span>
         <div style="display:flex;align-items:center;gap:9px">
           <span class="lv-pill" style="background:var(--lv-primary);color:var(--lv-primary-fg)"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="lv-streak-flame"><path d="M12 22c4.4 0 7-2.9 7-6.8 0-3-1.7-5-3-7-.2 1.7-1 2.8-2 3.4.3-2.7-.7-5.6-3-7.6-.3 2.5-1.2 3.9-2.7 5.4C6.8 10.8 6 12.6 6 15c0 4 2.7 7 6 7z"/></svg> <span class="lv-streak-badge">0</span></span>
-          <span class="lv-pill" style="border:1px solid var(--lv-border-strong);color:var(--lv-xp)"><img src="images/icons/arete.png" alt="" style="width:13px;height:13px;border-radius:50%;flex-shrink:0"> <span class="lv-xp-badge">0</span></span>
+          <button type="button" class="lv-road-pill" onclick="showPage('trophyroad')" aria-label="Road to Olympus — Arete progress">
+            <span class="lv-road-pill-top"><img src="images/icons/arete.png" alt="" class="lv-road-pill-icon"> <span class="lv-road-arete-num">0</span></span>
+            <span class="lv-road-pill-track"><span class="lv-road-pill-fill" style="width:0%"></span></span>
+          </button>
           <button type="button" class="lv-profile-btn" onclick="showPage('profile')" aria-label="Profile"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--lv-fg)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="lv-profile-badge"></span></button>
         </div>
       </div>
@@ -5318,7 +5322,10 @@ body[data-goal-theme="cut"] .lv-page{
         </span>
         <div style="display:flex;align-items:center;gap:9px">
           <span class="lv-pill" style="background:var(--lv-primary);color:var(--lv-primary-fg)"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="lv-streak-flame"><path d="M12 22c4.4 0 7-2.9 7-6.8 0-3-1.7-5-3-7-.2 1.7-1 2.8-2 3.4.3-2.7-.7-5.6-3-7.6-.3 2.5-1.2 3.9-2.7 5.4C6.8 10.8 6 12.6 6 15c0 4 2.7 7 6 7z"/></svg> <span class="lv-streak-badge">0</span></span>
-          <span class="lv-pill" style="border:1px solid var(--lv-border-strong);color:var(--lv-xp)"><img src="images/icons/arete.png" alt="" style="width:13px;height:13px;border-radius:50%;flex-shrink:0"> <span class="lv-xp-badge">0</span></span>
+          <button type="button" class="lv-road-pill" onclick="showPage('trophyroad')" aria-label="Road to Olympus — Arete progress">
+            <span class="lv-road-pill-top"><img src="images/icons/arete.png" alt="" class="lv-road-pill-icon"> <span class="lv-road-arete-num">0</span></span>
+            <span class="lv-road-pill-track"><span class="lv-road-pill-fill" style="width:0%"></span></span>
+          </button>
           <button type="button" class="lv-profile-btn" onclick="showPage('profile')" aria-label="Profile"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--lv-fg)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="lv-profile-badge"></span></button>
         </div>
       </div>
@@ -5962,7 +5969,10 @@ body[data-goal-theme="cut"] .lv-page{
         </span>
         <div style="display:flex;align-items:center;gap:9px">
           <span class="lv-pill" style="background:var(--lv-primary);color:var(--lv-primary-fg)"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="lv-streak-flame"><path d="M12 22c4.4 0 7-2.9 7-6.8 0-3-1.7-5-3-7-.2 1.7-1 2.8-2 3.4.3-2.7-.7-5.6-3-7.6-.3 2.5-1.2 3.9-2.7 5.4C6.8 10.8 6 12.6 6 15c0 4 2.7 7 6 7z"/></svg> <span class="lv-streak-badge">0</span></span>
-          <span class="lv-pill" style="border:1px solid var(--lv-border-strong);color:var(--lv-xp)"><img src="images/icons/arete.png" alt="" style="width:13px;height:13px;border-radius:50%;flex-shrink:0"> <span class="lv-xp-badge">0</span></span>
+          <button type="button" class="lv-road-pill" onclick="showPage('trophyroad')" aria-label="Road to Olympus — Arete progress">
+            <span class="lv-road-pill-top"><img src="images/icons/arete.png" alt="" class="lv-road-pill-icon"> <span class="lv-road-arete-num">0</span></span>
+            <span class="lv-road-pill-track"><span class="lv-road-pill-fill" style="width:0%"></span></span>
+          </button>
           <button type="button" class="lv-profile-btn" onclick="showPage('profile')" aria-label="Profile"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--lv-fg)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="lv-profile-badge"></span></button>
         </div>
       </div>
@@ -7969,7 +7979,10 @@ body[data-goal-theme="cut"] .lv-page{
     </span>
     <div style="display:flex;align-items:center;gap:9px">
       <span class="lv-pill" style="padding:4px 8px;background:var(--lv-primary);color:var(--lv-primary-fg);font-size:10px"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="lv-streak-flame"><path d="M12 22c4.4 0 7-2.9 7-6.8 0-3-1.7-5-3-7-.2 1.7-1 2.8-2 3.4.3-2.7-.7-5.6-3-7.6-.3 2.5-1.2 3.9-2.7 5.4C6.8 10.8 6 12.6 6 15c0 4 2.7 7 6 7z"/></svg> <span class="lv-streak-badge">0</span></span>
-      <span class="lv-pill" style="padding:4px 8px;border:1px solid var(--lv-border-strong);color:var(--lv-xp);font-size:10px"><img src="images/icons/arete.png" alt="" style="width:11px;height:11px;border-radius:50%;flex-shrink:0"> <span class="lv-xp-badge">0</span></span>
+      <button type="button" class="lv-road-pill" onclick="showPage('trophyroad')" aria-label="Road to Olympus — Arete progress">
+        <span class="lv-road-pill-top"><img src="images/icons/arete.png" alt="" class="lv-road-pill-icon"> <span class="lv-road-arete-num">0</span></span>
+        <span class="lv-road-pill-track"><span class="lv-road-pill-fill" style="width:0%"></span></span>
+      </button>
     </div>
   </div>
   <div class="companion" style="margin-bottom:14px"><div class="companion-msg">Quick answers pulled straight from how the app actually works. Can't find it? Message support and a real person will get back to you.</div></div>
@@ -15987,20 +16000,20 @@ function syncLvBadges(){
     el.classList.toggle('lv-flame-t2',streak>=7&&streak<30);
     el.classList.toggle('lv-flame-t3',streak>=30);
   });
+  // Road to Olympus pill — real progress toward the next Arete checkpoint,
+  // same numbers getXpRoadSummary() already feeds the actual Road page.
+  // Class-based (not ID-based) since the pill now lives in every page
+  // header, not just the Dashboard's — every instance stays in sync here.
+  if(document.querySelector('.lv-road-pill')){
+    const sum=getXpRoadSummary();
+    document.querySelectorAll('.lv-road-arete-num').forEach(el=>el.textContent=formatCompactNum(xp));
+    document.querySelectorAll('.lv-road-pill .lv-road-pill-fill').forEach(el=>el.style.width=sum.pct+'%');
+  }
   syncProfileBadge();
 }
 function renderDashHeroLovable(){
   syncLvBadges();
   renderDashTitleBadge();
-  // Road to Olympus pill — real progress toward the next Arete checkpoint,
-  // same numbers getXpRoadSummary() already feeds the actual Road page.
-  {
-    const sum=getXpRoadSummary();
-    const areteEl=document.getElementById('dash-road-arete');
-    if(areteEl)areteEl.textContent=formatCompactNum(xp);
-    const fillEl=document.getElementById('dash-road-fill');
-    if(fillEl)fillEl.style.width=sum.pct+'%';
-  }
   const greetW1=document.getElementById('dash-greeting-word1');
   const greetW2=document.getElementById('dash-greeting-word2');
   if(greetW1&&greetW2){
