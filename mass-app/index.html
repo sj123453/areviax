@@ -3738,6 +3738,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .today-log-name{font-size:12px;font-weight:600;color:var(--white)}
     .today-log-macros{font-size:10px;color:var(--muted);margin-top:1px}
     .today-log-delete{width:22px;height:22px;border-radius:50%;background:rgba(232,49,74,.1);border:1.5px solid rgba(232,49,74,.25);color:#E8314A;font-size:13px;line-height:1;cursor:pointer;flex-shrink:0}
+    .today-log-save{width:22px;height:22px;border-radius:50%;background:rgba(255,193,7,.1);border:1.5px solid rgba(255,193,7,.3);color:#FFC107;font-size:12px;line-height:1;cursor:pointer;flex-shrink:0}
 
     /* ── QUOTE CARD ── */
     .quote-card{background:rgba(232,214,196,.03);border:1.5px solid rgba(243,103,23,.2);border-radius:6px;padding:28px 32px;position:relative;overflow:hidden}
@@ -19649,6 +19650,42 @@ const FOODS_DB=[
   // — More branded soft drinks/juices —
   {name:'Innocent Smoothie',cals:48,prot:0.6,carbs:11,fats:0.1,isLiquid:true,unitGrams:250,unitName:'bottle'},
   {name:'Ribena',cals:27,prot:0,carbs:6.6,fats:0,isLiquid:true,unitGrams:500,unitName:'bottle'},
+
+  // — Branded spreads —
+  {name:'Nutella',cals:539,prot:6.3,carbs:57.5,fats:30.9},
+  {name:'Jif Peanut Butter',cals:600,prot:25,carbs:19,fats:52},
+  {name:'Philadelphia Cream Cheese (Original)',cals:242,prot:5.3,carbs:4.1,fats:23},
+
+  // — More branded fast food —
+  {name:"Chick-fil-A Chicken Sandwich",cals:240,prot:15.3,carbs:22.4,fats:10.4,unitGrams:183,unitName:'sandwich'},
+  {name:"Popeyes Chicken Sandwich",cals:302,prot:12.1,carbs:23.7,fats:18.1,unitGrams:232,unitName:'sandwich'},
+  {name:'Panda Express Orange Chicken',cals:236,prot:9.3,carbs:21.7,fats:12.4,unitGrams:161,unitName:'entrée'},
+  {name:"Shake Shack ShackBurger",cals:262,prot:14.5,carbs:19.2,fats:15.1,unitGrams:172,unitName:'burger'},
+
+  // — More branded protein bars —
+  {name:'Built Bar',cals:265,prot:34.7,carbs:40.8,fats:8.2,unitGrams:49,unitName:'bar'},
+  {name:'ONE Bar',cals:367,prot:33.3,carbs:38.3,fats:13.3,unitGrams:60,unitName:'bar'},
+  {name:'Perfect Bar',cals:431,prot:29.3,carbs:34.5,fats:25.9,unitGrams:58,unitName:'bar'},
+  {name:'Trek Protein Flapjack',cals:400,prot:20,carbs:54,fats:12,unitGrams:50,unitName:'bar'},
+  {name:'Nakd Bar',cals:386,prot:8.6,carbs:62.9,fats:12.9,unitGrams:35,unitName:'bar'},
+
+  // — Branded energy shots/hydration/pre-workout —
+  {name:'5-Hour Energy',cals:7,prot:0,carbs:1.75,fats:0,isLiquid:true,unitGrams:57,unitName:'bottle'},
+  {name:'G Fuel (mixed)',cals:357,prot:0,carbs:14,fats:0,unitGrams:7,unitName:'scoop'},
+  {name:'Liquid I.V.',cals:281,prot:0,carbs:68.8,fats:0,unitGrams:16,unitName:'packet'},
+
+  // — More branded protein powders —
+  {name:'Dymatize ISO100',cals:373,prot:83,carbs:3,fats:1,unitGrams:32,unitName:'scoop'},
+  {name:'BSN Syntha-6',cals:400,prot:44,carbs:32,fats:8,unitGrams:47,unitName:'scoop'},
+
+  // — More branded cereal —
+  {name:'Lucky Charms',cals:379,prot:6.7,carbs:84,fats:3.3},
+  {name:'Frosted Flakes',cals:375,prot:3.3,carbs:91,fats:0.4},
+  {name:"Cap'n Crunch",cals:401,prot:3.5,carbs:88,fats:2.4},
+
+  // — More branded ice cream —
+  {name:'Cornetto Classico',cals:255,prot:3.5,carbs:29,fats:13,unitGrams:62,unitName:'cone'},
+  {name:'Solero Exotic',cals:130,prot:1,carbs:24,fats:3,unitGrams:62,unitName:'lolly'},
 ];
 
 // ── RECIPE DATABASE — for the meal plan generator ──
@@ -20542,6 +20579,19 @@ function deleteCustomFood(i){
   customFoods.splice(i,1);
   saveToStorage();
   renderCustomFoodsQuickAdd();
+}
+// Retroactive save — for anything already logged today (Smart Log, barcode
+// scan, quick add…) without having checked a "save as reusable food" box
+// up front. Same customFoods shape, just filled from an existing log entry
+// instead of the manual form.
+function saveLoggedItemAsCustomFood(i){
+  const item=todayLog[i];
+  if(!item)return;
+  if(customFoods.some(f=>f.name===item.name)){toast('⭐',item.name+' is already saved');return;}
+  customFoods.push({name:item.name,cals:item.cals,prot:item.prot,carbs:item.carbs||0,fats:item.fats||0});
+  renderCustomFoodsQuickAdd();
+  saveToStorage();
+  toast('⭐',item.name+' saved to Your Foods');
 }
 let recipeTypeFilter='all';
 let currentRecipeDetailIdx=null;
@@ -23534,6 +23584,8 @@ function deleteLoggedItem(idx){
   if(!item)return;
   dayMacros.cals=Math.max(0,dayMacros.cals-item.cals);
   dayMacros.prot=Math.max(0,dayMacros.prot-item.prot);
+  dayMacros.carbs=Math.max(0,(dayMacros.carbs||0)-(item.carbs||0));
+  dayMacros.fats=Math.max(0,(dayMacros.fats||0)-(item.fats||0));
   if(item.alcohol) dayMacros.alcohol=Math.max(0,(dayMacros.alcohol||0)-item.alcohol);
   todayLog.splice(idx,1);
   renderNutrition();
@@ -23552,6 +23604,7 @@ function renderTodayLog(){
     '<div class="today-log-row">'+
       '<div class="today-log-time">'+item.time+'</div>'+
       '<div class="today-log-info"><div class="today-log-name">'+item.name+'</div><div class="today-log-macros">'+item.cals+' kcal \u00b7 '+item.prot+'g protein'+(item.alcohol?' \u00b7 '+item.alcohol+'g alcohol':'')+'</div></div>'+
+      '<button class="today-log-save" onclick="saveLoggedItemAsCustomFood('+i+')" title="Save as a reusable food">\u2605</button>'+
       '<button class="today-log-delete" onclick="deleteLoggedItem('+i+')" title="Remove">\u00d7</button>'+
     '</div>'
   ).join('');
@@ -23783,12 +23836,19 @@ function updateBarcodeLogPreview(){
       '<div><span>'+carbs+'g</span>carbs</div>'+
       '<div><span>'+fats+'g</span>fat</div>'+
     '</div>'+
-    '<button class="btn btn-g btn-sm" style="width:100%;justify-content:center;margin-top:10px" onclick="logBarcodeFood('+cals+','+prot+','+carbs+','+fats+','+Math.round(grams)+')">Log it +5 Arete</button>';
+    '<label style="display:flex;align-items:center;gap:7px;font-size:11px;color:var(--muted);margin-top:10px;cursor:pointer;user-select:none"><input type="checkbox" id="bc-save-custom" style="width:14px;height:14px;flex-shrink:0"> Save this scan as a reusable food</label>'+
+    '<button class="btn btn-g btn-sm" style="width:100%;justify-content:center;margin-top:8px" onclick="logBarcodeFood('+cals+','+prot+','+carbs+','+fats+','+Math.round(grams)+')">Log it +5 Arete</button>';
 }
 
 function logBarcodeFood(cals,prot,carbs,fats,grams){
   if(!bcProduct)return;
-  logItem(bcProduct.name+' (~'+grams+'g)',cals,prot,carbs,fats);
+  const name=bcProduct.name+' (~'+grams+'g)';
+  logItem(name,cals,prot,carbs,fats);
+  const saveBox=document.getElementById('bc-save-custom');
+  if(saveBox&&saveBox.checked){
+    customFoods.push({name,cals,prot,carbs,fats});
+    renderCustomFoodsQuickAdd();
+  }
   const xp=foodXPForName(bcProduct.name,5);
   addXP(xp,'Food logged');
   if(xp>=5)toast('✅',bcProduct.name+' logged (~'+grams+'g)');
