@@ -5628,6 +5628,10 @@ body[data-goal-theme="cut"] .lv-page{
 
     <div id="nt-panel-smart">
       <div style="font-size:11.5px;color:rgba(var(--white-rgb),.5);margin-bottom:12px;line-height:1.55">Describe what you ate — we'll estimate the macros.</div>
+      <div id="smartlog-fav-wrap" style="display:none;margin-bottom:12px">
+        <div class="smartlog-recent-label">Favourites</div>
+        <div class="smartlog-recent" id="smartlog-fav"></div>
+      </div>
       <div id="smartlog-recent-wrap" style="display:none;margin-bottom:12px">
         <div class="smartlog-recent-label">Recently logged</div>
         <div class="smartlog-recent" id="smartlog-recent"></div>
@@ -19603,6 +19607,48 @@ const FOODS_DB=[
   // — Branded meal-replacement drinks —
   {name:'Soylent (ready-to-drink)',cals:75,prot:3.3,carbs:8.3,fats:3,isLiquid:true,unitGrams:414,unitName:'bottle'},
   {name:"Ka'Chava",cals:390,prot:24,carbs:47,fats:9,unitGrams:70,unitName:'scoop'},
+
+  // — Branded coffee shop drinks —
+  {name:"Starbucks Caffè Latte (grande, whole milk)",cals:40,prot:2.5,carbs:3.8,fats:1.5,isLiquid:true,unitGrams:473,unitName:'grande cup'},
+  {name:'Starbucks Caramel Frappuccino (grande)',cals:80,prot:1.1,carbs:14,fats:2.1,isLiquid:true,unitGrams:473,unitName:'grande cup'},
+  {name:'Costa Coffee Latte (medium, whole milk)',cals:41,prot:2.3,carbs:3.7,fats:2,isLiquid:true,unitGrams:350,unitName:'medium cup'},
+
+  // — Branded beer —
+  {name:'Guinness',cals:41,prot:0.5,carbs:3.3,fats:0,alcohol:4.2,isLiquid:true,unitGrams:568,unitName:'pint'},
+  {name:'Corona',cals:42,prot:0.3,carbs:3.6,fats:0,alcohol:4.5,isLiquid:true,unitGrams:355,unitName:'bottle'},
+  {name:'Budweiser',cals:43,prot:0.3,carbs:3.6,fats:0,alcohol:5,isLiquid:true,unitGrams:355,unitName:'bottle'},
+  {name:'Heineken',cals:42,prot:0.4,carbs:3.2,fats:0,alcohol:5,isLiquid:true,unitGrams:330,unitName:'bottle'},
+
+  // — More branded fast food —
+  {name:'Burger King Whopper',cals:243,prot:10.4,carbs:18.1,fats:14.8,unitGrams:270,unitName:'burger'},
+  {name:'Taco Bell Crunchy Taco',cals:218,prot:10.3,carbs:16.7,fats:12.8,unitGrams:78,unitName:'taco'},
+  {name:"Wendy's Baconator",cals:333,prot:20.4,carbs:13.3,fats:22.1,unitGrams:285,unitName:'burger'},
+  {name:'Five Guys Cheeseburger',cals:247,prot:13.8,carbs:11.5,fats:15.9,unitGrams:340,unitName:'burger'},
+  {name:'Greggs Sausage Roll',cals:333,prot:7.3,carbs:22,fats:24,unitGrams:98,unitName:'roll'},
+
+  // — Branded protein drinks —
+  {name:'Muscle Milk (ready-to-drink)',cals:39,prot:6,carbs:3,fats:1,isLiquid:true,unitGrams:414,unitName:'bottle'},
+  {name:'Premier Protein Shake',cals:49,prot:9.2,carbs:1.5,fats:0.9,isLiquid:true,unitGrams:325,unitName:'bottle'},
+  {name:'Core Power',cals:41,prot:6.3,carbs:3.6,fats:1,isLiquid:true,unitGrams:414,unitName:'bottle'},
+  {name:'Fairlife Milk (ultra-filtered)',cals:52,prot:5.2,carbs:2.4,fats:1.9,isLiquid:true},
+
+  // — More branded chocolate & snacks —
+  {name:'Twirl',cals:534,prot:6.7,carbs:57,fats:31,unitGrams:43,unitName:'bar'},
+  {name:'Wispa',cals:545,prot:7.6,carbs:56,fats:32,unitGrams:36,unitName:'bar'},
+  {name:'Aero',cals:534,prot:5.9,carbs:58,fats:31,unitGrams:36,unitName:'bar'},
+  {name:'Galaxy',cals:545,prot:6.6,carbs:57,fats:32,unitGrams:42,unitName:'bar'},
+  {name:'Toblerone',cals:534,prot:5.4,carbs:58,fats:29,unitGrams:7,unitName:'triangle'},
+  {name:'Lays',cals:536,prot:6.6,carbs:53,fats:34},
+  {name:'Cheetos',cals:547,prot:7,carbs:56,fats:34},
+
+  // — Branded ice cream —
+  {name:"Ben & Jerry's (per 100g)",cals:280,prot:4,carbs:30,fats:16},
+  {name:'Häagen-Dazs Vanilla',cals:244,prot:4,carbs:21,fats:16},
+  {name:'Magnum Classic',cals:305,prot:4.5,carbs:26,fats:20,unitGrams:90,unitName:'bar'},
+
+  // — More branded soft drinks/juices —
+  {name:'Innocent Smoothie',cals:48,prot:0.6,carbs:11,fats:0.1,isLiquid:true,unitGrams:250,unitName:'bottle'},
+  {name:'Ribena',cals:27,prot:0,carbs:6.6,fats:0,isLiquid:true,unitGrams:500,unitName:'bottle'},
 ];
 
 // ── RECIPE DATABASE — for the meal plan generator ──
@@ -20702,6 +20748,23 @@ let smartLogGrams=0;
 // at 8. Updated only on a real logSmartFood() confirm (not just picking
 // a food to preview), so this reflects what was actually eaten.
 let recentFoodIdxs=[];
+// FAVOURITE FOODS — same star pattern as favoriteExercises: a Set of
+// FOODS_DB names, toggled from a star on each search result, surfaced as
+// their own quick-pick row so a food someone eats constantly (their go-to
+// protein source, say) doesn't need retyping or waiting to reappear under
+// Recently Logged.
+let favoriteFoods=new Set();
+function toggleFavoriteFood(name){
+  if(favoriteFoods.has(name))favoriteFoods.delete(name);
+  else favoriteFoods.add(name);
+  saveToStorage();
+  toast('⭐',favoriteFoods.has(name)?'Favourited '+name:'Removed '+name+' from favourites');
+  renderSmartLogSearch(document.getElementById('smartlog-search')?document.getElementById('smartlog-search').value:'');
+}
+function foodFavBtnHTML(name){
+  const on=favoriteFoods.has(name);
+  return `<button class="ex-fav-btn${on?' active':''}" onclick="event.stopPropagation();toggleFavoriteFood('${name.replace(/'/g,"\\'")}')" title="${on?'Remove favourite':'Favourite this food'}">${on?'★':'☆'}</button>`;
+}
 
 function renderSmartLogSearch(query){
   const results=document.getElementById('smartlog-results');
@@ -20713,15 +20776,28 @@ function renderSmartLogSearch(query){
   }
   const recentWrap=document.getElementById('smartlog-recent-wrap');
   if(recentWrap)recentWrap.style.display='none';
+  const favWrap=document.getElementById('smartlog-fav-wrap');
+  if(favWrap)favWrap.style.display='none';
   const q=query.toLowerCase();
   const matches=FOODS_DB.filter(f=>f.name.toLowerCase().includes(q)).slice(0,8);
   if(!matches.length){results.innerHTML='<div class="smartlog-noresult">No match — try a simpler term, or use manual log below.</div>';results.style.display='block';return;}
-  results.innerHTML=matches.map((f,i)=>'<div class="smartlog-result" onclick="selectSmartLogFood('+FOODS_DB.indexOf(f)+')">'+f.name+'<span>'+f.cals+' kcal/100'+(f.isLiquid?'ml':'g')+'</span></div>').join('');
+  results.innerHTML=matches.map((f,i)=>'<div class="smartlog-result" onclick="selectSmartLogFood('+FOODS_DB.indexOf(f)+')" style="display:flex;align-items:center;justify-content:space-between;gap:6px">'+foodFavBtnHTML(f.name)+'<span style="flex:1;min-width:0">'+f.name+'</span><span>'+f.cals+' kcal/100'+(f.isLiquid?'ml':'g')+'</span></div>').join('');
   results.style.display='block';
 }
 function renderSmartLogRecent(){
   const wrap=document.getElementById('smartlog-recent-wrap');
   const row=document.getElementById('smartlog-recent');
+  const favWrap=document.getElementById('smartlog-fav-wrap');
+  const favRow=document.getElementById('smartlog-fav');
+  if(favWrap&&favRow){
+    const favItems=[...favoriteFoods].map(n=>FOODS_DB.find(f=>f.name===n)).filter(Boolean);
+    if(favItems.length){
+      favWrap.style.display='block';
+      favRow.innerHTML=favItems.map(f=>'<div class="smartlog-recent-chip" onclick="selectSmartLogFood('+FOODS_DB.indexOf(f)+')">★ '+f.name+'</div>').join('');
+    } else {
+      favWrap.style.display='none';
+    }
+  }
   if(!wrap||!row)return;
   const items=recentFoodIdxs.map(i=>FOODS_DB[i]).filter(Boolean);
   if(!items.length){wrap.style.display='none';return;}
@@ -25109,6 +25185,7 @@ function saveToStorage(){
     localStorage.setItem('arx_notifPrefs', JSON.stringify(notifPrefs));
     localStorage.setItem('arx_customRecipes', JSON.stringify(customRecipes));
     localStorage.setItem('arx_customFoods', JSON.stringify(customFoods));
+    localStorage.setItem('arx_favoriteFoods', JSON.stringify([...favoriteFoods]));
     localStorage.setItem('arx_sleepLog', JSON.stringify(sleepLog));
     localStorage.setItem('arx_cnsTapLog', JSON.stringify(cnsTapLog));
     localStorage.setItem('arx_trainingCompletedDates', JSON.stringify(trainingCompletedDates));
@@ -25290,6 +25367,7 @@ function loadFromStorage(){
     if(cr){try{customRecipes=JSON.parse(cr);}catch(e){customRecipes=[];}}
     const cf=localStorage.getItem('arx_customFoods');
     if(cf){try{customFoods=JSON.parse(cf);}catch(e){customFoods=[];}}
+    { const ff=localStorage.getItem('arx_favoriteFoods'); if(ff){try{favoriteFoods=new Set(JSON.parse(ff));}catch(e){favoriteFoods=new Set();}} }
     const sl=localStorage.getItem('arx_sleepLog');
     if(sl){try{sleepLog=JSON.parse(sl);}catch(e){sleepLog=[];}}
     const ctl=localStorage.getItem('arx_cnsTapLog');
