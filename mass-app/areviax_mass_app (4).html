@@ -5600,6 +5600,18 @@ body[data-goal-theme="cut"] .lv-page{
       <button onclick="logQuickAdd('chicken-150')" style="display:flex;flex-direction:column;align-items:flex-start;gap:4px;border:1px solid var(--lv-border-strong);border-radius:1rem;padding:12px;text-align:left;background:transparent;cursor:pointer"><span style="display:flex;width:100%;justify-content:space-between;gap:4px;font-family:var(--lv-sans);font-size:12px;font-weight:700;color:var(--lv-fg);line-height:1.2">Chicken · 150g<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--lv-muted-fg)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span><span style="font-family:var(--lv-mono);font-size:10px;color:var(--lv-muted-fg)">245 kcal · 46g P</span></button>
       <button onclick="logQuickAdd('rice-200')" style="display:flex;flex-direction:column;align-items:flex-start;gap:4px;border:1px solid var(--lv-border-strong);border-radius:1rem;padding:12px;text-align:left;background:transparent;cursor:pointer"><span style="display:flex;width:100%;justify-content:space-between;gap:4px;font-family:var(--lv-sans);font-size:12px;font-weight:700;color:var(--lv-fg);line-height:1.2">Rice · 200g cooked<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--lv-muted-fg)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span><span style="font-family:var(--lv-mono);font-size:10px;color:var(--lv-muted-fg)">260 kcal · 5g P</span></button>
     </div>
+    <!-- YOUR FOODS — reusable custom foods saved from the manual log form
+         (see logFood()'s "save as a reusable food" checkbox). Same one-tap
+         logItem() flow as the built-in Quick Add grid above, just backed by
+         customFoods instead of the fixed QUICK_ADD_FOODS list. Hidden until
+         the person has actually saved one. -->
+    <div id="custom-foods-wrap" style="display:none;margin-top:18px">
+      <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:10px">
+        <h3 style="font-family:var(--lv-sans);font-size:12px;font-weight:800;color:var(--lv-fg);text-transform:uppercase;letter-spacing:.06em">Your foods</h3>
+        <span style="font-family:var(--lv-mono);font-size:10px;color:var(--lv-muted-fg)">tap ✕ to remove</span>
+      </div>
+      <div id="custom-foods-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px"></div>
+    </div>
   </div>
   </div>
 
@@ -5646,6 +5658,7 @@ body[data-goal-theme="cut"] .lv-page{
           <div><label class="lbl" style="margin-top:0">Carbs (g) · optional</label><input type="number" id="food-carbs" placeholder="30"></div>
           <div><label class="lbl" style="margin-top:0">Fat (g) · optional</label><input type="number" id="food-fats" placeholder="10"></div>
         </div>
+        <label style="display:flex;align-items:center;gap:8px;font-size:11.5px;color:rgba(var(--white-rgb),.6);cursor:pointer;user-select:none"><input type="checkbox" id="food-save-custom" style="width:15px;height:15px;flex-shrink:0"> Save as a reusable food, so it's one tap next time</label>
         <button onclick="logFood()" style="width:100%;background:rgba(243,103,23,.1);border:1.5px solid rgba(243,103,23,.35);border-radius:8px;padding:11px;color:rgba(243,103,23,.9);font-family:'Outfit',sans-serif;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:all .2s">Log +5 Arete</button>
       </div>
     </div>
@@ -19533,6 +19546,63 @@ const FOODS_DB=[
   {name:'Coconut milk (canned)',cals:230,prot:2.3,carbs:6,fats:24},
   {name:'Coconut yoghurt',cals:92,prot:1,carbs:7,fats:6.5},
   {name:'Coconut, desiccated',cals:660,prot:6.9,carbs:24,fats:65},
+
+  // — Branded sports/energy drinks —
+  {name:'Red Bull',cals:45,prot:0,carbs:11,fats:0,isLiquid:true,unitGrams:250,unitName:'can'},
+  {name:'Monster Energy',cals:47,prot:0,carbs:11.5,fats:0,isLiquid:true,unitGrams:500,unitName:'can'},
+  {name:'Monster Ultra',cals:10,prot:0,carbs:3,fats:0,isLiquid:true,unitGrams:500,unitName:'can'},
+  {name:'Powerade',cals:25,prot:0,carbs:6.2,fats:0,isLiquid:true,unitGrams:500,unitName:'bottle'},
+  {name:'Lucozade Energy',cals:73,prot:0,carbs:18,fats:0,isLiquid:true,unitGrams:380,unitName:'bottle'},
+  {name:'Lucozade Sport',cals:30,prot:0,carbs:7.5,fats:0,isLiquid:true,unitGrams:500,unitName:'bottle'},
+  {name:'BodyArmor',cals:26,prot:0,carbs:6.5,fats:0,isLiquid:true,unitGrams:500,unitName:'bottle'},
+  {name:'Vitamin Water',cals:23,prot:0,carbs:5.7,fats:0,isLiquid:true,unitGrams:500,unitName:'bottle'},
+  {name:'Prime Hydration',cals:20,prot:0,carbs:5,fats:0,isLiquid:true,unitGrams:500,unitName:'bottle'},
+  {name:'Pepsi',cals:41,prot:0,carbs:10.9,fats:0,isLiquid:true,unitGrams:330,unitName:'can'},
+  {name:'Sprite',cals:39,prot:0,carbs:9.7,fats:0,isLiquid:true,unitGrams:330,unitName:'can'},
+  {name:'Dr Pepper',cals:43,prot:0,carbs:10.6,fats:0,isLiquid:true,unitGrams:330,unitName:'can'},
+
+  // — Branded protein bars —
+  {name:'Quest Bar',cals:333,prot:35,carbs:36.7,fats:13.3,unitGrams:60,unitName:'bar'},
+  {name:'Grenade Carb Killa',cals:333,prot:33.3,carbs:28.3,fats:12.5,unitGrams:60,unitName:'bar'},
+  {name:'Barebells',cals:364,prot:36.4,carbs:30.9,fats:14.5,unitGrams:55,unitName:'bar'},
+  {name:'Clif Bar',cals:368,prot:13.2,carbs:66.2,fats:7.4,unitGrams:68,unitName:'bar'},
+  {name:'KIND Bar',cals:475,prot:15,carbs:40,fats:37.5,unitGrams:40,unitName:'bar'},
+  {name:'RXBAR',cals:404,prot:23.1,carbs:46.2,fats:13.5,unitGrams:52,unitName:'bar'},
+  {name:'MyProtein Protein Bar',cals:354,prot:30.8,carbs:30.8,fats:13.8,unitGrams:65,unitName:'bar'},
+
+  // — Branded protein powders (values per 100g of powder) —
+  {name:'Optimum Nutrition Gold Standard Whey',cals:375,prot:75,carbs:9,fats:5,unitGrams:31,unitName:'scoop'},
+  {name:'MyProtein Impact Whey',cals:386,prot:80,carbs:5,fats:5,unitGrams:25,unitName:'scoop'},
+
+  // — Branded snacks & candy —
+  {name:'Oreo',cals:480,prot:5,carbs:71,fats:20,unitGrams:11,unitName:'cookie'},
+  {name:'KitKat',cals:518,prot:6.3,carbs:59,fats:27,unitGrams:41.5,unitName:'bar'},
+  {name:'Snickers',cals:488,prot:8.4,carbs:56,fats:24.4,unitGrams:50,unitName:'bar'},
+  {name:'Mars Bar',cals:449,prot:4.1,carbs:67,fats:17,unitGrams:51,unitName:'bar'},
+  {name:'Twix',cals:493,prot:4.6,carbs:64,fats:24,unitGrams:50,unitName:'bar'},
+  {name:'Doritos',cals:498,prot:6.8,carbs:60,fats:26},
+  {name:'Pringles',cals:536,prot:4,carbs:53,fats:34},
+  {name:'Walkers Crisps',cals:532,prot:6.6,carbs:50,fats:34},
+  {name:'Nature Valley Oats & Honey Bar',cals:459,prot:8,carbs:65,fats:18,unitGrams:21,unitName:'bar'},
+
+  // — Branded fast food —
+  {name:"McDonald's Big Mac",cals:232,prot:11.4,carbs:19.2,fats:11.4,unitGrams:219,unitName:'burger'},
+  {name:"McDonald's Fries (medium)",cals:298,prot:3.5,carbs:38.6,fats:14,unitGrams:114,unitName:'portion'},
+  {name:'Chicken McNuggets (6-piece)',cals:270,prot:14.6,carbs:15.6,fats:16.7,unitGrams:96,unitName:'6-piece'},
+  {name:'Subway 6" Turkey Breast',cals:126,prot:8.1,carbs:20.7,fats:1.6,unitGrams:222,unitName:'sub'},
+  {name:'KFC Original Recipe Chicken Breast',cals:242,prot:24.2,carbs:6.8,fats:13,unitGrams:161,unitName:'piece'},
+  {name:"Domino's Pepperoni Pizza (slice)",cals:290,prot:12,carbs:29,fats:14,unitGrams:107,unitName:'slice'},
+  {name:'Chipotle Chicken Burrito Bowl',cals:140,prot:9,carbs:13,fats:6,unitGrams:500,unitName:'bowl'},
+  {name:"Nando's 1/4 Chicken (no skin)",cals:147,prot:26.5,carbs:0,fats:4.1,unitGrams:170,unitName:'quarter chicken'},
+
+  // — Branded yoghurt/dairy —
+  {name:'Chobani Greek Yoghurt (plain)',cals:71,prot:11,carbs:4,fats:1.5,unitGrams:150,unitName:'cup'},
+  {name:'Müller Corner',cals:118,prot:4.2,carbs:17,fats:3.5,unitGrams:135,unitName:'pot'},
+  {name:'Activia (plain)',cals:65,prot:3.8,carbs:7.5,fats:2.5,unitGrams:125,unitName:'pot'},
+
+  // — Branded meal-replacement drinks —
+  {name:'Soylent (ready-to-drink)',cals:75,prot:3.3,carbs:8.3,fats:3,isLiquid:true,unitGrams:414,unitName:'bottle'},
+  {name:"Ka'Chava",cals:390,prot:24,carbs:47,fats:9,unitGrams:70,unitName:'scoop'},
 ];
 
 // ── RECIPE DATABASE — for the meal plan generator ──
@@ -20393,6 +20463,40 @@ const RECIPE_TYPE_ICON={breakfast:'🍳',lunch:'🥗',dinner:'🍽',snack:'🍎'
 // back into a full entry on the OTHER person's own device.
 let customRecipes=[];
 function allRecipes(){return [...RECIPES_DB,...customRecipes];}
+// ── CUSTOM FOODS — user-saved reusable foods (fixed macros per serving,
+// same shape as QUICK_ADD_FOODS/DASH_QUICK_FOODS), created from the manual
+// log form's "save as a reusable food" checkbox — see logFood(). Distinct
+// from customRecipes (a whole logged meal/dish): this is for a single food
+// item the person eats often that isn't in FOODS_DB, one tap to re-log.
+let customFoods=[];
+function renderCustomFoodsQuickAdd(){
+  const wrap=document.getElementById('custom-foods-wrap');
+  const grid=document.getElementById('custom-foods-grid');
+  if(!wrap||!grid)return;
+  if(!customFoods.length){wrap.style.display='none';return;}
+  wrap.style.display='block';
+  grid.innerHTML=customFoods.map((f,i)=>`<div style="position:relative">
+      <button onclick="logCustomFood(${i})" style="display:flex;flex-direction:column;align-items:flex-start;gap:4px;border:1px solid var(--lv-border-strong);border-radius:1rem;padding:12px;text-align:left;background:transparent;cursor:pointer;width:100%;box-sizing:border-box">
+        <span style="display:flex;width:100%;justify-content:space-between;gap:4px;font-family:var(--lv-sans);font-size:12px;font-weight:700;color:var(--lv-fg);line-height:1.2">${f.name}<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--lv-muted-fg)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span>
+        <span style="font-family:var(--lv-mono);font-size:10px;color:var(--lv-muted-fg)">${f.cals} kcal · ${f.prot}g P</span>
+      </button>
+      <span onclick="event.stopPropagation();deleteCustomFood(${i})" role="button" aria-label="Remove ${f.name}" style="position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:rgba(232,49,74,.85);color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center;cursor:pointer;line-height:1">✕</span>
+    </div>`).join('');
+}
+function logCustomFood(i){
+  const f=customFoods[i];
+  if(!f)return;
+  logItem(f.name,f.cals,f.prot,f.carbs,f.fats,0);
+  const xp=foodXPForName(f.name,2);
+  addXP(xp,'Custom food logged');saveToStorage();
+  if(xp>=2)toast('✅',f.name+' logged');
+}
+function deleteCustomFood(i){
+  if(!customFoods[i])return;
+  customFoods.splice(i,1);
+  saveToStorage();
+  renderCustomFoodsQuickAdd();
+}
 let recipeTypeFilter='all';
 let currentRecipeDetailIdx=null;
 function switchRecipeType(type,btn){
@@ -20892,6 +20996,7 @@ function renderNutrition(){
   if(!document.getElementById('nutr-cals-cur'))return;
   checkNutritionDay();
   try{syncLvBadges();}catch(e){}
+  renderCustomFoodsQuickAdd();
   // HERO — eyebrow (day/week, same joinDate math the Dashboard hero
   // uses), remaining-today kcal, and the thin progress rail underneath.
   const nEyebrow=document.getElementById('nutr-eyebrow-text');
@@ -23377,7 +23482,7 @@ function renderTodayLog(){
 }
 
 function addMeal(cals,prot,name,carbs,fats){logItem(name,cals,prot,carbs,fats);const xp=foodXPForName(name,5);addXP(xp,'Meal logged');if(xp>=5)toast('🍽',name+' logged');checkProteinQuest();saveToStorage();}
-function logFood(){const n=document.getElementById('food-name').value||'Food';const c=parseInt(document.getElementById('food-cals').value)||0;const p=parseInt(document.getElementById('food-prot').value)||0;const cb=parseInt(document.getElementById('food-carbs').value)||0;const ft=parseInt(document.getElementById('food-fats').value)||0;if(!c){toast('⚠️','Enter calories');return}logItem(n,c,p,cb,ft);document.getElementById('food-name').value='';document.getElementById('food-cals').value='';document.getElementById('food-prot').value='';document.getElementById('food-carbs').value='';document.getElementById('food-fats').value='';spSyncInput('food-cals');spSyncInput('food-prot');spSyncInput('food-carbs');spSyncInput('food-fats');const xp=foodXPForName(n,5);addXP(xp,'Food logged');if(xp>=5)toast('✅','Logged');checkProteinQuest();saveToStorage();}
+function logFood(){const n=document.getElementById('food-name').value||'Food';const c=parseInt(document.getElementById('food-cals').value)||0;const p=parseInt(document.getElementById('food-prot').value)||0;const cb=parseInt(document.getElementById('food-carbs').value)||0;const ft=parseInt(document.getElementById('food-fats').value)||0;if(!c){toast('⚠️','Enter calories');return}logItem(n,c,p,cb,ft);const saveBox=document.getElementById('food-save-custom');if(saveBox&&saveBox.checked){customFoods.push({name:n,cals:c,prot:p,carbs:cb,fats:ft});renderCustomFoodsQuickAdd();saveBox.checked=false;}document.getElementById('food-name').value='';document.getElementById('food-cals').value='';document.getElementById('food-prot').value='';document.getElementById('food-carbs').value='';document.getElementById('food-fats').value='';spSyncInput('food-cals');spSyncInput('food-prot');spSyncInput('food-carbs');spSyncInput('food-fats');const xp=foodXPForName(n,5);addXP(xp,'Food logged');if(xp>=5)toast('✅','Logged');checkProteinQuest();saveToStorage();}
 // Water is a separate hydration habit from food logging — "Reset" clearing
 // a mis-logged meal shouldn't also wipe glasses already drunk today.
 function resetDay(){if(!confirm('Clear everything logged today?'))return;dayMacros={cals:0,prot:0,carbs:0,fats:0,water:dayMacros.water||0};todayLog=[];renderNutrition();saveToStorage();toast('🔄','Day reset')}
@@ -25003,6 +25108,7 @@ function saveToStorage(){
     localStorage.setItem('arx_coachEveningNotifiedDate', coachEveningNotifiedDate);
     localStorage.setItem('arx_notifPrefs', JSON.stringify(notifPrefs));
     localStorage.setItem('arx_customRecipes', JSON.stringify(customRecipes));
+    localStorage.setItem('arx_customFoods', JSON.stringify(customFoods));
     localStorage.setItem('arx_sleepLog', JSON.stringify(sleepLog));
     localStorage.setItem('arx_cnsTapLog', JSON.stringify(cnsTapLog));
     localStorage.setItem('arx_trainingCompletedDates', JSON.stringify(trainingCompletedDates));
@@ -25182,6 +25288,8 @@ function loadFromStorage(){
     if(np){try{Object.assign(notifPrefs,JSON.parse(np));}catch(e){}}
     const cr=localStorage.getItem('arx_customRecipes');
     if(cr){try{customRecipes=JSON.parse(cr);}catch(e){customRecipes=[];}}
+    const cf=localStorage.getItem('arx_customFoods');
+    if(cf){try{customFoods=JSON.parse(cf);}catch(e){customFoods=[];}}
     const sl=localStorage.getItem('arx_sleepLog');
     if(sl){try{sleepLog=JSON.parse(sl);}catch(e){sleepLog=[];}}
     const ctl=localStorage.getItem('arx_cnsTapLog');
