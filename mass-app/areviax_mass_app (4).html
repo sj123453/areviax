@@ -2242,20 +2242,6 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .shop-hero-card-label{font-size:8.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#FFD24A;margin-bottom:2px}
     .shop-hero-card-title{font-size:11px;font-weight:800;letter-spacing:.02em;text-transform:uppercase;color:#fff;line-height:1.25;-webkit-text-stroke:.4px rgba(0,0,0,.4);paint-order:stroke fill}
     .shop-hero-card-sub{font-size:10px;color:rgba(255,255,255,.65);margin-top:3px;line-height:1.4}
-    /* TAB BAR — Offers / Crates, bold uppercase with a gold underline on
-       the active tab, same mechanism the mobile-game reference uses to
-       split its shop into sections instead of one long scroll. */
-    .shop-tab-bar{display:flex;gap:24px;padding:0 2px 12px;border-bottom:1.5px solid var(--border2);margin:2px 0 16px}
-    .shop-tab{
-      background:none;border:none;padding:2px 0 10px;cursor:pointer;
-      font-family:'Outfit',sans-serif;font-size:12.5px;font-weight:800;
-      letter-spacing:.04em;text-transform:uppercase;color:var(--muted);
-      position:relative;-webkit-tap-highlight-color:transparent;
-    }
-    .shop-tab.active{color:#FFD24A}
-    .shop-tab.active::after{content:'';position:absolute;left:0;right:0;bottom:-1.5px;height:3px;border-radius:3px 3px 0 0;background:linear-gradient(90deg,#FFD24A,#F36717)}
-    .shop-tab-panel{display:none}
-    .shop-tab-panel.active{display:block}
     /* Currency strip chips — solid colour badge per currency, analysed
        directly against the reference's gem/coin/token row where each
        balance reads as its own distinct coloured pill at a glance. */
@@ -4602,7 +4588,7 @@ body[data-goal-theme="cut"] .lv-page{
 
   <div id="streak-repair-banner" class="dash-notif-fixed" style="display:none">
     <div class="dnf-head">
-      <span class="dnf-icon" style="background:linear-gradient(160deg,#7FE3FF,#2AA9D6)">🔷</span>
+      <span class="dnf-icon" style="background:linear-gradient(160deg,#FFD24A,#F3A712)">⚡</span>
       <div class="dnf-body">
         <div class="dnf-toprow"><span class="dnf-app">Areviax</span><span class="dnf-time">now</span></div>
         <div class="dnf-msg" id="streak-repair-text"></div>
@@ -6287,54 +6273,41 @@ body[data-goal-theme="cut"] .lv-page{
     <span class="shop-currency-chip" style="background:linear-gradient(160deg,#FFDE7A,#C9971E)">🗝️ <span id="shop-key-badge">0</span></span>
   </div>
 
-  <!-- TAB BAR — Offers / Crates, same section-splitting mechanism the
-       reference shop uses instead of one long undifferentiated scroll. -->
-  <div class="shop-tab-bar" style="margin-left:20px;margin-right:20px">
-    <button type="button" class="shop-tab active" data-tab="offers" onclick="switchShopTab('offers',this)">Offers</button>
-    <button type="button" class="shop-tab" data-tab="crates" onclick="switchShopTab('crates',this)">Crates</button>
-  </div>
-
+  <!-- ONE LONG PAGE — re-checked directly against a clearer Brawl Stars
+       shop reference: Special Offer, Daily Deals and the crate shelf all
+       sit on the same scroll, not split behind an Offers/Crates tab
+       switch. Long boxes (the hero row) and short boxes (the Daily Deals
+       and crate grids) alternate as their own sections instead. -->
   <div style="padding:0 20px 24px">
-    <!-- OFFERS TAB — Gift from the Gods leads as the single featured
-         "special offer" card (full-width, its own ribbon — the boldest
-         tile on the page, same as the reference's left-hand featured
-         slot), then every direct Drachma purchase as a Daily-Deals-style
-         grid instead of a horizontal scroll row. See
-         DRACHMA_OFFERS/renderShopOffers(). -->
-    <div class="shop-tab-panel active" id="shop-tab-offers">
-      <!-- HERO ROW — the tall "one big offer per card" scroll row that
+    <!-- HERO ROW — the tall "one big offer per card" scroll row that
          leads the reference shop, above its Daily Deals grid. Gift from
          the Gods keeps its real daily-reset countdown; the second card is
          a genuinely dynamic pick from DRACHMA_OFFERS (see
          renderShopHeroOffer()), not a hardcoded item that could already
          be owned. -->
-      <div class="shop-hero-row">
-        <div class="shop-hero-card" style="background-image:linear-gradient(180deg,rgba(10,7,4,.35) 0%,rgba(10,7,4,.6) 55%,rgba(10,7,4,.92) 100%),url('images/roads/realm-olympus.jpg');background-position:center 35%">
-          <span class="shop-badge free">FREE</span>
-          <span class="shop-timer-pill" id="shop-gift-timer">—</span>
-          <div class="shop-hero-card-body" style="padding-top:26px">
-            <div class="shop-hero-card-label">Special Offer</div>
-            <div class="shop-hero-card-title" id="daily-spin-card">Gift from the Gods</div>
-            <div id="daily-spin-wheel" class="spin-wheel-card" style="margin-top:8px"></div>
-          </div>
+    <div class="shop-hero-row">
+      <div class="shop-hero-card" style="background-image:linear-gradient(180deg,rgba(10,7,4,.35) 0%,rgba(10,7,4,.6) 55%,rgba(10,7,4,.92) 100%),url('images/roads/realm-olympus.jpg');background-position:center 35%">
+        <span class="shop-badge free">FREE</span>
+        <span class="shop-timer-pill" id="shop-gift-timer">—</span>
+        <div class="shop-hero-card-body" style="padding-top:26px">
+          <div class="shop-hero-card-label">Special Offer</div>
+          <div class="shop-hero-card-title" id="daily-spin-card">Gift from the Gods</div>
+          <div id="daily-spin-wheel" class="spin-wheel-card" style="margin-top:8px"></div>
         </div>
-        <div id="shop-hero-offer"></div>
       </div>
-      <div style="display:flex;align-items:baseline;justify-content:space-between;margin:0 0 10px">
-        <span style="font-family:var(--lv-display);font-weight:400;font-size:1.4rem;color:var(--lv-fg);text-transform:uppercase;letter-spacing:.01em">Daily Deals</span>
-        <span style="font-size:9px;color:var(--lv-muted-fg)">Earned from real sessions</span>
-      </div>
-      <div class="shop-deal-grid" id="shop-offers-row"></div>
+      <div id="shop-hero-offer"></div>
     </div>
+    <div style="display:flex;align-items:baseline;justify-content:space-between;margin:0 0 10px">
+      <span style="font-family:var(--lv-display);font-weight:400;font-size:1.4rem;color:var(--lv-fg);text-transform:uppercase;letter-spacing:.01em">Daily Deals</span>
+      <span style="font-size:9px;color:var(--lv-muted-fg)">Earned from real sessions</span>
+    </div>
+    <div class="shop-deal-grid" id="shop-offers-row"></div>
 
-    <!-- CRATES TAB -->
-    <div class="shop-tab-panel" id="shop-tab-crates">
-      <div style="display:flex;align-items:baseline;justify-content:space-between;margin:0 0 10px">
-        <span style="font-family:var(--lv-display);font-weight:400;font-size:1.4rem;color:var(--lv-fg);text-transform:uppercase;letter-spacing:.01em">Areviax Crates</span>
-        <span class="key-bank-badge" title="Spend Keys to upgrade a banked crate to the next tier">🗝️ <span id="key-bank-count">0</span></span>
-      </div>
-      <div class="crate-row" id="crate-row"></div>
+    <div style="display:flex;align-items:baseline;justify-content:space-between;margin:26px 0 10px">
+      <span style="font-family:var(--lv-display);font-weight:400;font-size:1.4rem;color:var(--lv-fg);text-transform:uppercase;letter-spacing:.01em">Areviax Crates</span>
+      <span class="key-bank-badge" title="Spend Keys to upgrade a banked crate to the next tier">🗝️ <span id="key-bank-count">0</span></span>
     </div>
+    <div class="crate-row" id="crate-row"></div>
   </div>
 </div>
 
@@ -8288,9 +8261,21 @@ let xp=0,streak=0,compassPts=0,totalSess=0,sessThisWeek=0;
 // Compass shards — a real banked/spendable currency, unlike compassPts
 // (an ephemeral within-week counter that resets to 0 every Monday and was
 // never actually spendable on anything). Earned one per perfect
-// 7-day week, spendable on repairing a broken streak.
+// 7-day week, spendable on opening Gold Crates — streak protection used to
+// spend shards too, but that's now its own pair of dedicated Shop items
+// (see streakFreezes/streakSavers below) so a shard always means "closer
+// to a Gold Crate," never a coin flip against losing a streak.
 let shardBank=0;
 let streakRepairDismissedDate='';
+// STREAK FREEZE — bought in the Shop, auto-consumed the moment a missed
+// day would otherwise break the streak, before the person ever sees a
+// broken-streak state (see tryAutoConsumeStreakFreeze()). Proactive and
+// silent, unlike a Streak Saver below.
+let streakFreezes=0;
+// STREAK SAVER — bought in the Shop, spent on purpose from the Repair
+// banner to fix a streak that's already broken (see repairStreak()). The
+// fallback once no Streak Freeze was banked to catch the miss silently.
+let streakSavers=0;
 // The Bronze Crate — a second, free-and-frequent track alongside the
 // shard-funded Gold Crate, so the Legend Card collection keeps moving for
 // everyone training regularly, not just people who complete a full
@@ -11405,15 +11390,6 @@ function crackOutIconHTML(tier){
     '<span class="crate-icon crate-lid-layer clip-fallback" aria-hidden="true">'+crateIconHTML(tier)+'</span>';
 }
 
-// Shop's Offers/Crates split — both panels' render calls already run
-// unconditionally from renderAchievements() regardless of which tab is
-// visible, so switching tabs is pure display toggling with no re-render
-// timing to get wrong (e.g. switching to Crates before it's ever rendered
-// once can't show an empty grid).
-function switchShopTab(tab,el){
-  document.querySelectorAll('.shop-tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
-  document.querySelectorAll('.shop-tab-panel').forEach(p=>p.classList.toggle('active',p.id==='shop-tab-'+tab));
-}
 function renderAchievements(){
   renderTrophyRoad();
   renderDailySpin();
@@ -11481,16 +11457,29 @@ function renderAchievements(){
   const sdb=document.getElementById('shop-drachma-badge');if(sdb)sdb.textContent=drachma;
   try{renderShopOffers();}catch(e){}
 }
+// STREAK SAVER / STREAK FREEZE icons — a lightning bolt (a god's sign,
+// Zeus's, not a random glyph) for the Saver, since spending one is a
+// deliberate one-time intervention; a plain triple-line snowflake for the
+// Freeze, since it's the passive, automatic one. Inline SVG with explicit
+// fill/stroke colours rather than currentColor, so they render correctly
+// regardless of what's inherited from the card around them.
+const STREAK_SAVER_ICON='<svg viewBox="0 0 24 24" fill="#FFD24A"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8z"/></svg>';
+const STREAK_FREEZE_ICON='<svg viewBox="0 0 24 24" fill="none" stroke="#7EE0FF" stroke-width="2.2" stroke-linecap="round"><path d="M12 2v20M4.2 6.5l15.6 11M4.2 17.5l15.6-11"/></svg>';
 // ── SPECIAL OFFERS — direct Drachma purchases. Crate/shard bundles are
 // always listed; Titles and Accent Themes drop off the list once owned
 // (nothing to sell twice). grant() runs the exact same bank-increment or
 // unlock*() call the free earn paths already use, so a bought crate/title/
 // theme is indistinguishable from an earned one everywhere else in the app.
+// badge:'new' surfaces the small NEW corner tag from the reference shop on
+// whichever items just shipped, same shop-badge markup the hero card's
+// FREE/BEST VALUE tags already use — see renderShopOffers().
 const DRACHMA_OFFERS=[
   {id:'bronze3',label:'3 Bronze Crates',sub:'Instant',cost:15,tier:'bronze',render:()=>crateIconHTML('bronze'),grant:()=>{bronzeDropBank+=3;}},
   {id:'silver3',label:'3 Silver Crates',sub:'Instant',cost:30,tier:'silver',render:()=>crateIconHTML('silver'),grant:()=>{silverDropBank+=3;}},
   {id:'shard3',label:'3 Compass Shards',sub:'Opens Gold Crates',cost:40,tier:'gold',render:()=>'🔷',grant:()=>{shardBank+=3;}},
   {id:'diamond1',label:'1 Diamond Crate',sub:'Instant',cost:60,tier:'diamond',render:()=>crateIconHTML('diamond'),grant:()=>{diamondDropBank+=1;}},
+  {id:'streak_freeze1',label:'Streak Freeze',sub:'Auto-protects your next missed day',cost:35,tier:'diamond',badge:'new',render:()=>STREAK_FREEZE_ICON,grant:()=>{streakFreezes+=1;}},
+  {id:'streak_saver1',label:'Streak Saver',sub:'Repairs a streak that already broke',cost:50,tier:'areviax',badge:'new',render:()=>STREAK_SAVER_ICON,grant:()=>{streakSavers+=1;}},
   {id:'title_unbowed',label:'Title: The Unbowed',sub:'Equip on Profile',cost:120,tier:'areviax',type:'title',key:'unbowed',render:()=>'🏅'},
   {id:'title_disciplined',label:'Title: The Disciplined',sub:'Equip on Profile',cost:120,tier:'areviax',type:'title',key:'disciplined',render:()=>'🏅'},
   {id:'title_ascendant',label:'Title: The Ascendant',sub:'Equip on Profile',cost:120,tier:'areviax',type:'title',key:'ascendant',render:()=>'🏅'},
@@ -11556,6 +11545,7 @@ function renderShopOffers(){
   row.innerHTML=gridItems.map(o=>{
     const afford=drachma>=o.cost;
     return `<div class="offer-card ${o.tier}">
+      ${o.badge==='new'?'<span class="shop-badge new">NEW</span>':''}
       <div class="offer-card-art">${o.render()}</div>
       <div class="offer-card-label">${o.label}</div>
       <div class="offer-card-sub">${o.sub}</div>
@@ -14752,7 +14742,7 @@ function updateStreakFromActivity(){
   // nothing left to restore. Leave streak/lastActiveDate untouched here —
   // repairStreak() and dismissStreakRepair() are the only things allowed
   // to resolve a broken streak once one's in this state.
-  const repairStillLive=lastActiveDate&&lastActiveDate!==yStr&&streak>1&&shardBank>0&&streakRepairDismissedDate!==today;
+  const repairStillLive=lastActiveDate&&lastActiveDate!==yStr&&streak>1&&streakSavers>0&&streakRepairDismissedDate!==today;
   if(repairStillLive)return;
   streak=(lastActiveDate===yStr)?streak+1:1;
   lastActiveDate=today;
@@ -18972,7 +18962,8 @@ function applyStreakBreak(){
   const yesterday=new Date();yesterday.setDate(yesterday.getDate()-1);
   const yStr=localDateKey(yesterday);
   if(lastActiveDate===yStr)return; // still inside today's grace window, not broken yet
-  const repairStillLive=shardBank>0&&streakRepairDismissedDate!==today;
+  if(tryAutoConsumeStreakFreeze())return; // a banked freeze absorbs the miss silently, no break at all
+  const repairStillLive=streakSavers>0&&streakRepairDismissedDate!==today;
   if(repairStillLive)return; // give them the chance to see/use the repair banner first
   streak=0;
   const sv=document.getElementById('streak-val');if(sv)sv.textContent=streak;
@@ -18983,22 +18974,45 @@ function applyStreakBreak(){
   const dsn=document.getElementById('dash-streak-num');if(dsn)dsn.textContent=streak;
   saveToStorage();
 }
-// ── SHARD-FUNDED STREAK REPAIR — a broken streak was only ever visible
+// ── STREAK FREEZE — the proactive half of streak protection. Checked
+// before either applyStreakBreak() (silent, on load) or checkStreakBroken()
+// (the Repair banner) get to react to a missed day, so a banked freeze
+// resolves the miss on its own, with no banner and no decision to make.
+// Idempotent: once lastActiveDate reads as a valid continuation, the
+// "actually broken" check below is false and this is a no-op, so calling
+// it from both places every render is safe.
+function tryAutoConsumeStreakFreeze(){
+  if(streakFreezes<=0||!lastActiveDate||streak<=1)return false;
+  const today=localDateKey(new Date());
+  if(lastActiveDate===today)return false;
+  const yesterday=new Date();yesterday.setDate(yesterday.getDate()-1);
+  const yStr=localDateKey(yesterday);
+  if(lastActiveDate===yStr)return false; // not actually broken yet
+  streakFreezes--;
+  lastActiveDate=yStr;
+  toast('❄️','Streak Freeze used — your '+streak+' day streak is safe','streak');
+  saveToStorage();
+  return true;
+}
+// ── SAVER-FUNDED STREAK REPAIR — a broken streak was only ever visible
 // after the fact (streak silently drops to 1 the next time any Arete is
 // earned, inside updateStreakFromActivity). This checks for the gap
 // BEFORE that silent reset happens, so there's a real window to spend a
-// banked shard and keep the streak alive instead of losing it outright.
+// banked Streak Saver and keep the streak alive instead of losing it
+// outright. Only reached once tryAutoConsumeStreakFreeze() above has
+// already had its chance to absorb the miss for free.
 function checkStreakBroken(){
   const banner=document.getElementById('streak-repair-banner');
   if(!banner)return;
+  if(tryAutoConsumeStreakFreeze()){banner.style.display='none';return;}
   const today=localDateKey(new Date());
   if(streakRepairDismissedDate===today||!lastActiveDate||lastActiveDate===today){banner.style.display='none';return;}
   const yesterday=new Date();yesterday.setDate(yesterday.getDate()-1);
   const yStr=localDateKey(yesterday);
   const brokenAlready=lastActiveDate!==yStr; // a full day was missed — next activity will reset streak to 1
-  if(brokenAlready&&streak>1&&shardBank>0){
+  if(brokenAlready&&streak>1&&streakSavers>0){
     const textEl=document.getElementById('streak-repair-text');
-    if(textEl)textEl.innerHTML='Your <strong style="color:#44CFFF">'+streak+' day streak</strong> broke — spend a Compass Shard ('+shardBank+' banked) to keep it alive?';
+    if(textEl)textEl.innerHTML='Your <strong style="color:#44CFFF">'+streak+' day streak</strong> broke — spend a Streak Saver ('+streakSavers+' banked) to keep it alive?';
     banner.style.display='flex';
   }else{
     banner.style.display='none';
@@ -19011,13 +19025,13 @@ function dismissStreakRepair(){
   applyStreakBreak(); // dismissed without repairing — the streak is actually gone now, not just at risk
 }
 function repairStreak(){
-  if(shardBank<=0)return;
-  shardBank--;
+  if(streakSavers<=0)return;
+  streakSavers--;
   const yesterday=new Date();yesterday.setDate(yesterday.getDate()-1);
   lastActiveDate=localDateKey(yesterday); // makes today read as a valid continuation, not a fresh restart
   const banner=document.getElementById('streak-repair-banner');
   if(banner)banner.style.display='none';
-  toast('🔷','Streak repaired — '+streak+' days saved','streak');
+  toast('⚡','Streak repaired — '+streak+' days saved','streak');
   saveToStorage();
 }
 function checkScheduleWeek(){
@@ -20364,11 +20378,11 @@ const AI_COACH_KB=[
   {q:'How do I contact support?',kw:['contact support','email support','real person','human support','talk to someone'],
    a:'Email areviaxsupport@gmail.com any time — that goes to a real person, not this FAQ matcher.'},
   {q:'What are Compass Shards and how do I get them?',kw:['compass shard','shard','shards','what are shards'],
-   a:"Compass Shards are the app's spendable currency — earn one from a perfect training week or a lucky Daily Spin, then spend it to open a Gold Crate, or to repair a broken streak if you've got one banked when a Repair prompt shows up. Check your current balance on the Progress page."},
+   a:"Compass Shards are the app's spendable currency for crates — earn one from a perfect training week or a lucky Daily Spin, then spend it to open a Gold Crate. Check your current balance on the Progress page. Streak protection is separate now — see Streak Freeze and Streak Saver in the Shop."},
   {q:'How do I earn Silver, Gold, Diamond or the Areviax Crate?',kw:['silver drop','gold drop','diamond drop','earn crates','more crates','where do crates come from'],
    a:"Bronze fills automatically after 5 training days. Everything above it — Silver, Diamond, and the Areviax Crate — comes from winning it on the Daily Spin; Gold is the one exception, costing 1 Compass Shard to open. Tap the ⓘ on any crate on the Progress page for its exact odds and source."},
-  {q:'Can I repair a broken streak?',kw:['repair streak','broken streak','streak repair','fix my streak','save my streak'],
-   a:"If your streak breaks and you've got a Compass Shard banked, a Repair banner shows up the next time you open the app — tap Repair to spend the shard and keep the streak alive. It only appears the day after the miss; dismiss it (or don't have a shard) and the streak resets to 1 like normal."},
+  {q:'Can I repair a broken streak?',kw:['repair streak','broken streak','streak repair','fix my streak','save my streak','streak freeze','streak saver'],
+   a:"Two ways, both bought in the Shop. A Streak Freeze protects you automatically — the moment a missed day would otherwise break your streak, one gets spent silently and the streak just continues, no banner, no decision. A Streak Saver is the after-the-fact fix: if your streak already broke and you've got one banked, a Repair banner shows up the next time you open the app — tap Repair to spend it and keep the streak alive. It only appears the day after the miss; dismiss it (or don't have a Saver) and the streak resets to 1 like normal."},
   {q:'How do progress photos work?',kw:['progress photo','photo comparison','day 1 photo','before after photo','progress photos'],
    a:"Add a photo any time from the Progress Photos card, and once you've got at least two, the app builds a Day 1 vs Now comparison slider automatically. Photos are compressed and stored locally on your device only — nothing uploads anywhere outside your normal backup/export flow."},
   {q:'How do I log cardio or sport?',kw:['cardio','log cardio','log a run','track cardio','sport session'],
@@ -25160,6 +25174,8 @@ function saveToStorage(){
     localStorage.setItem('arx_streak', streak);
     localStorage.setItem('arx_xpLog', JSON.stringify(xpLog));
     localStorage.setItem('arx_shardBank', shardBank);
+    localStorage.setItem('arx_streakFreezes', streakFreezes);
+    localStorage.setItem('arx_streakSavers', streakSavers);
     localStorage.setItem('arx_bronzeDropBank', bronzeDropBank);
     localStorage.setItem('arx_silverDropBank', silverDropBank);
     localStorage.setItem('arx_diamondDropBank', diamondDropBank);
@@ -25310,6 +25326,8 @@ function loadFromStorage(){
     streak=parseInt(localStorage.getItem('arx_streak')||'0');
     { const xl=localStorage.getItem('arx_xpLog'); if(xl){try{xpLog=JSON.parse(xl);}catch(e){xpLog=[];}} }
     shardBank=parseInt(localStorage.getItem('arx_shardBank')||'0');
+    streakFreezes=parseInt(localStorage.getItem('arx_streakFreezes')||'0');
+    streakSavers=parseInt(localStorage.getItem('arx_streakSavers')||'0');
     bronzeDropBank=parseInt(localStorage.getItem('arx_bronzeDropBank')||'0');
     silverDropBank=parseInt(localStorage.getItem('arx_silverDropBank')||'0');
     diamondDropBank=parseInt(localStorage.getItem('arx_diamondDropBank')||'0');
