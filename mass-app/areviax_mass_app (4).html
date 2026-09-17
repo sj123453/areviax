@@ -2117,12 +2117,13 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     /* Grid instead of a horizontal scroll row — every tier visible at once
        on load, same "Daily Deals" grid the mobile-game reference uses
        rather than making someone swipe to discover the rest of the shop. */
-    /* Horizontal-scroll carousel instead of a vertical grid — matches
-       Brawl Stars' actual shop shelf (one swipeable row, not a stacked
-       grid you scroll the whole page to see past) the way .shop-hero-row
-       above already does for the hero offers. */
-    .crate-row{display:flex;gap:9px;overflow-x:auto;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;scrollbar-width:thin;margin-top:4px;min-width:0;padding:2px 2px 10px}
-    .crate-row>*{flex:0 0 132px;scroll-snap-align:start}
+    /* A 2-column grid now, not its own horizontal scroller — .crate-row
+       lives INSIDE a .shop-grid-card, which is itself one card in the
+       single outer .shop-scroll-row. Matches the real reference's Daily
+       Deals card: one section of the horizontal shelf holds a small
+       internal grid, rather than every section being its own full-width
+       swipeable row. */
+    .crate-row{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;min-width:0}
     .crate-slot{
       position:relative;min-width:0;display:flex;flex-direction:column;align-items:center;gap:6px;
       border:2.5px solid var(--border2);border-radius:14px;
@@ -2177,8 +2178,9 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        real mobile game. Each tier still borrows the same base hue crate
        cards use so a Silver offer and a Silver crate read as one material.*/
     .offer-row{display:flex;gap:10px;margin-top:4px;overflow-x:auto;padding:4px 2px 10px;scrollbar-width:thin}
-    .shop-deal-grid{display:flex;gap:9px;overflow-x:auto;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;scrollbar-width:thin;margin-top:4px;padding:4px 2px 10px}
-    .shop-deal-grid>*{flex:0 0 132px;scroll-snap-align:start}
+    /* A 2-column grid, not its own horizontal scroller — see the matching
+       comment on .crate-row for why. */
+    .shop-deal-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
     .offer-card{
       position:relative;flex:0 0 128px;display:flex;flex-direction:column;align-items:center;
       border-radius:14px;padding:12px 8px 0;text-align:center;overflow:hidden;
@@ -2231,10 +2233,14 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       border-radius:6px;padding:2px 7px;font-family:'JetBrains Mono',monospace;
       font-size:9px;font-weight:700;color:rgba(255,255,255,.85);
     }
-    /* HERO ROW — the tall, narrow "one big offer per card" scroll row that
-       sits above the Daily Deals grid in the reference (Connect-ID promo,
-       Level 5 Pack, Special Offer all live here before the grid starts). */
-    .shop-hero-row{display:flex;gap:12px;overflow-x:auto;padding:6px 2px 14px;scrollbar-width:thin;margin-bottom:6px}
+    /* THE SHOP SHELF — the entire shop is ONE swipeable horizontal row,
+       exactly like the reference: Special Offer, the dynamic hero offer,
+       Daily Deals and the crate shelf are all siblings here, not their
+       own separately-headed sections stacked down the page. Every direct
+       child is the same fixed height so they all read as one continuous
+       shelf regardless of what's inside each one. */
+    .shop-scroll-row{display:flex;align-items:flex-start;gap:12px;overflow-x:auto;padding:6px 2px 14px;scrollbar-width:thin;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity}
+    .shop-scroll-row>*{scroll-snap-align:start}
     .shop-hero-card{
       position:relative;flex:0 0 172px;border-radius:16px;overflow:hidden;
       border:2.5px solid rgba(227,191,118,.5);
@@ -2245,6 +2251,38 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .shop-hero-card-label{font-size:8.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#FFD24A;margin-bottom:2px}
     .shop-hero-card-title{font-size:11px;font-weight:800;letter-spacing:.02em;text-transform:uppercase;color:#fff;line-height:1.25;-webkit-text-stroke:.4px rgba(0,0,0,.4);paint-order:stroke fill}
     .shop-hero-card-sub{font-size:10px;color:rgba(255,255,255,.65);margin-top:3px;line-height:1.4}
+    /* THE GRID-CARD — a section that holds several small items as its own
+       2-column grid instead of one big offer, e.g. Daily Deals or the
+       crate shelf. Same framed-card treatment as .shop-hero-card (so it
+       reads as a sibling of equal visual weight on the shelf), just sized
+       to its grid content instead of a fixed narrow width. */
+    .shop-grid-card{
+      flex:0 0 auto;width:315px;max-height:291px;border-radius:16px;padding:10px;
+      border:2.5px solid rgba(227,191,118,.5);
+      background:linear-gradient(165deg,rgba(60,42,20,.55),rgba(18,12,6,.82));
+      box-shadow:0 3px 0 rgba(0,0,0,.4),0 6px 14px -3px rgba(0,0,0,.55);
+      display:flex;flex-direction:column;overflow:hidden;
+    }
+    .shop-grid-card-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:8px;flex-shrink:0}
+    .shop-grid-card-title{font-family:var(--lv-display);font-weight:400;font-size:1.05rem;color:var(--lv-fg);text-transform:uppercase;letter-spacing:.01em;white-space:nowrap}
+    .shop-grid-card-sub{font-size:8px;color:var(--lv-muted-fg);white-space:nowrap}
+    /* Card height is fixed to roughly match the hero card next to it on
+       the shelf (matches the reference's "every section is the same
+       height" shelf), but a dynamic offers/crate list can run longer than
+       one card's-worth of rows — the grid itself scrolls internally
+       inside that fixed height rather than the card growing to fit
+       everything, so the shelf stays a consistent height regardless of
+       how many items happen to be unlocked. */
+    /* max-height (not flex:1) is the load-bearing part here — giving this
+       grid a flex-stretched DEFINITE height instead made Chromium's grid
+       algorithm compress every "auto" row proportionally to fit that
+       definite height rather than let genuine overflow happen (rows all
+       coming out ~41px tall, art clipped to a sliver, confirmed via
+       direct row-track measurement). A max-height keeps the grid's rows
+       at their real natural size and only turns on scrolling once actual
+       content exceeds it — the correct pattern for this "fixed-height
+       card, natural-size scrollable rows" shape. */
+    .shop-deal-grid,.crate-row{overflow-y:auto;-webkit-overflow-scrolling:touch;padding-right:2px;max-height:243px;align-content:start;flex-shrink:0}
     /* Currency strip chips — solid colour badge per currency, analysed
        directly against the reference's gem/coin/token row where each
        balance reads as its own distinct coloured pill at a glance. */
@@ -2670,8 +2708,12 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        clip-path for usable space. */
     .crate-reveal-stage .reveal-badge-wrap{width:clamp(190px,36vw,300px);margin-bottom:20px}
     .crate-reveal-stage .legend-mystery-icon{width:clamp(150px,28vw,240px);height:clamp(150px,28vw,240px)}
-    .crate-reveal-stage .legend-reveal-icon{width:clamp(190px,36vw,300px);height:clamp(190px,36vw,300px)}
-    .crate-reveal-stage .legend-reveal-icon img{width:clamp(150px,28vw,240px);height:clamp(150px,28vw,240px)}
+    /* No forced height here on purpose — each trophy's own PNG has its own
+       natural aspect ratio (a tall shield vs. a wide lyre), so only width
+       is capped and height follows the image via img{height:auto} below,
+       instead of squashing/cropping every trophy into the same square. */
+    .crate-reveal-stage .legend-reveal-icon{width:clamp(190px,36vw,300px)}
+    .crate-reveal-stage .legend-reveal-icon img{width:clamp(150px,28vw,240px);height:auto}
     .crate-reveal-stage .legend-mystery-icon .mystery-q{font-size:clamp(68px,12vw,100px)}
     /* Fixed to the viewport instead of absolute (still inherits --ray-c
        normally — custom properties cascade through the DOM regardless of
@@ -2840,7 +2882,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        icons this was originally built against) looked like a broken
        transparent background sweeping across the photo, not a shine. */
     .legend-reveal-icon.shine::after{
-      content:'';position:absolute;inset:0;z-index:2;border-radius:50%;
+      content:'';position:absolute;inset:0;z-index:2;
       background:linear-gradient(115deg,transparent 35%,rgba(232,214,196,.85) 48%,transparent 60%);
       background-size:260% 260%;background-position:-140% -140%;
       mix-blend-mode:overlay;
@@ -2948,24 +2990,26 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        icon, its sheen overlay above, and the ray-burst mask below all cut
        the identical silhouette without repeating the polygon 3 times. */
     :root{--star-clip:polygon(50.00% 0.00%,59.11% 31.08%,89.09% 18.83%,70.47% 45.33%,98.75% 61.13%,66.42% 63.09%,71.69% 95.05%,50.00% 71.00%,28.31% 95.05%,33.58% 63.09%,1.25% 61.13%,29.53% 45.33%,10.91% 18.83%,40.89% 31.08%)}
-    /* Circle instead of the jagged star clip-path — the star wasted most of
-       its own bounding box on empty spiky points, so the actual reward art
-       inside it read as small and cramped rather than the focal moment of
-       the whole screen. Still visually distinct from the plain grey
-       .legend-mystery-icon disc via its rarity-coloured gradient/glow, so
-       the "this IS the prize" signal the star used to carry now comes from
-       colour instead of shape. */
+    /* No circle, no star, no badge frame at all — a direct report on the
+       earlier circular version was "take it outside of the circle,
+       base png for each trophy." The trophy's own art (see LEGEND_CARDS'
+       img field, a real per-trophy PNG) now renders unclipped at its own
+       natural aspect ratio, full size, the way the reference's Mega Box
+       reveal shows the box itself with nothing framing it — a soft
+       rarity-coloured glow sits behind it on ::before (blurred, so it
+       still reads as "this rarity" even with no ring/fill to colour)
+       instead of a hard-edged coloured disc. */
     .legend-reveal-icon{
-      width:96px;height:96px;position:relative;border-radius:50%;
-      display:flex;align-items:center;justify-content:center;font-size:40px;
-      box-shadow:inset 0 0 0 3px rgba(232,214,196,.32),inset 0 -10px 16px rgba(0,0,0,.4),inset 0 7px 11px rgba(232,214,196,.22);
+      position:relative;display:flex;align-items:center;justify-content:center;font-size:40px;
     }
-    .legend-reveal-icon::after{
-      content:'';position:absolute;inset:0;border-radius:50%;
-      background:linear-gradient(160deg,rgba(232,214,196,.28),transparent 55%);
-      pointer-events:none;
+    .legend-reveal-icon::before{
+      content:'';position:absolute;inset:6%;z-index:0;border-radius:50%;
+      filter:blur(22px);opacity:.85;pointer-events:none;
     }
-    .legend-reveal-icon img{width:78px;height:78px;object-fit:contain;position:relative;z-index:1}
+    .legend-reveal-icon img{
+      width:100%;height:auto;object-fit:contain;position:relative;z-index:1;
+      filter:drop-shadow(0 12px 20px rgba(0,0,0,.55));
+    }
     /* RAY BURST — the glow-behind-a-clipped-shape rule (see design-dna)
        means this can never live on .legend-reveal-icon itself; it's a
        plain unclipped sibling, painted before the icon in DOM order,
@@ -3002,13 +3046,13 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       -webkit-mask:radial-gradient(circle,transparent 15%,#000 26%,#000 46%,transparent 62%);
     }
     @keyframes rayspin{to{transform:translate(-50%,-50%) rotate(360deg)}}
-    .legend-reveal-icon.rarity-common{background:linear-gradient(160deg,#C7CBD1,#5B5F66)}
-    .legend-reveal-icon.rarity-rare{background:linear-gradient(160deg,#8FF0B8,#16803D)}
-    .legend-reveal-icon.rarity-superrare{background:linear-gradient(160deg,#B8D9FF,#1D4ED8);animation:rarityPulseSoft 2.6s ease-in-out infinite}
-    .legend-reveal-icon.rarity-epic{background:linear-gradient(115deg,#F1DCFF,#D8A6FF,#F1DCFF,#B266FF);background-size:260% 100%;animation:rarityShimmerSweep 3s linear infinite}
-    .legend-reveal-icon.rarity-mythic{background:linear-gradient(160deg,#FFB3B9,#C81E3A);animation:rarityPulseStrong 2s ease-in-out infinite}
-    .legend-reveal-icon.rarity-legendary{background:linear-gradient(160deg,#FFEA9E,#E8B400);animation:rarityPulseStrong 1.6s ease-in-out infinite}
-    .legend-reveal-icon.rarity-ultralegendary{
+    .legend-reveal-icon.rarity-common::before{background:linear-gradient(160deg,#C7CBD1,#5B5F66)}
+    .legend-reveal-icon.rarity-rare::before{background:linear-gradient(160deg,#8FF0B8,#16803D)}
+    .legend-reveal-icon.rarity-superrare::before{background:linear-gradient(160deg,#B8D9FF,#1D4ED8);animation:rarityPulseSoft 2.6s ease-in-out infinite}
+    .legend-reveal-icon.rarity-epic::before{background:linear-gradient(115deg,#F1DCFF,#D8A6FF,#F1DCFF,#B266FF);background-size:260% 100%;animation:rarityShimmerSweep 3s linear infinite}
+    .legend-reveal-icon.rarity-mythic::before{background:linear-gradient(160deg,#FFB3B9,#C81E3A);animation:rarityPulseStrong 2s ease-in-out infinite}
+    .legend-reveal-icon.rarity-legendary::before{background:linear-gradient(160deg,#FFEA9E,#E8B400);animation:rarityPulseStrong 1.6s ease-in-out infinite}
+    .legend-reveal-icon.rarity-ultralegendary::before{
       background:linear-gradient(115deg,#00E676,#00B368,#004D26,#00B368,#00E676);
       background-size:300% 100%;
       animation:holoShift 3.6s linear infinite,rarityPulseStrong 1.4s ease-in-out infinite;
@@ -6312,19 +6356,17 @@ body[data-goal-theme="cut"] .lv-page{
     <span class="shop-currency-chip" style="background:linear-gradient(160deg,#FFDE7A,#C9971E)">🗝️ <span id="shop-key-badge">0</span></span>
   </div>
 
-  <!-- ONE LONG PAGE — re-checked directly against a clearer Brawl Stars
-       shop reference: Special Offer, Daily Deals and the crate shelf all
-       sit on the same scroll, not split behind an Offers/Crates tab
-       switch. Long boxes (the hero row) and short boxes (the Daily Deals
-       and crate grids) alternate as their own sections instead. -->
+  <!-- ONE HORIZONTAL SCROLL — re-checked directly against a real Brawl
+       Stars shop screenshot: every section (Special Offer, Daily Deals,
+       the crate shelf) is a sibling TALL CARD in a single swipeable row,
+       not stacked vertically as its own heading + its own separate
+       scroller. Daily Deals and the crate shelf are each ONE card in that
+       row that internally lays its items out as a 2-column grid instead
+       of being a whole extra horizontal scroller of their own — same
+       nested "row of sections, grid inside a section" shape the
+       reference's own Daily Deals card uses. -->
   <div style="padding:0 20px 24px">
-    <!-- HERO ROW — the tall "one big offer per card" scroll row that
-         leads the reference shop, above its Daily Deals grid. Gift from
-         the Gods keeps its real daily-reset countdown; the second card is
-         a genuinely dynamic pick from DRACHMA_OFFERS (see
-         renderShopHeroOffer()), not a hardcoded item that could already
-         be owned. -->
-    <div class="shop-hero-row">
+    <div class="shop-scroll-row">
       <div class="shop-hero-card" style="background-image:linear-gradient(180deg,rgba(10,7,4,.35) 0%,rgba(10,7,4,.6) 55%,rgba(10,7,4,.92) 100%),url('images/roads/realm-olympus.jpg');background-position:center 35%">
         <span class="shop-badge free">FREE</span>
         <span class="shop-timer-pill" id="shop-gift-timer">—</span>
@@ -6335,18 +6377,21 @@ body[data-goal-theme="cut"] .lv-page{
         </div>
       </div>
       <div id="shop-hero-offer"></div>
+      <div class="shop-grid-card">
+        <div class="shop-grid-card-head">
+          <span class="shop-grid-card-title">Daily Deals</span>
+          <span class="shop-grid-card-sub">From sessions</span>
+        </div>
+        <div class="shop-deal-grid" id="shop-offers-row"></div>
+      </div>
+      <div class="shop-grid-card">
+        <div class="shop-grid-card-head">
+          <span class="shop-grid-card-title">Areviax Crates</span>
+          <span class="key-bank-badge" title="Spend Keys to upgrade a banked crate to the next tier">🗝️ <span id="key-bank-count">0</span></span>
+        </div>
+        <div class="crate-row" id="crate-row"></div>
+      </div>
     </div>
-    <div style="display:flex;align-items:baseline;justify-content:space-between;margin:0 0 10px">
-      <span style="font-family:var(--lv-display);font-weight:400;font-size:1.4rem;color:var(--lv-fg);text-transform:uppercase;letter-spacing:.01em">Daily Deals</span>
-      <span style="font-size:9px;color:var(--lv-muted-fg)">Earned from real sessions</span>
-    </div>
-    <div class="shop-deal-grid" id="shop-offers-row"></div>
-
-    <div style="display:flex;align-items:baseline;justify-content:space-between;margin:26px 0 10px">
-      <span style="font-family:var(--lv-display);font-weight:400;font-size:1.4rem;color:var(--lv-fg);text-transform:uppercase;letter-spacing:.01em">Areviax Crates</span>
-      <span class="key-bank-badge" title="Spend Keys to upgrade a banked crate to the next tier">🗝️ <span id="key-bank-count">0</span></span>
-    </div>
-    <div class="crate-row" id="crate-row"></div>
   </div>
 </div>
 
