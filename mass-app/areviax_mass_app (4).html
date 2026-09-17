@@ -2313,15 +2313,14 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .crate-row .crate-crown{width:22px;height:11px;top:-8px}
     /* The locked-state desaturation is routed through a custom property
        into this filter so a later .locked{filter:...} dims the tier's
-       gradient without wiping it out — same composition trick as the
-       glow used to use, before the glow moved out (see .crate-icon-glow
-       below): a clip-path on the same element silently deletes any
-       filter/box-shadow output that extends past its own edges — a
-       drop-shadow or box-shadow glow on a clipped hex is completely
-       invisible no matter how far you push blur/opacity, confirmed via
-       a standalone Chromium test — same bug class already found and
-       fixed once for the Trophy Cabinet hexagons, missed here because
-       this is a separate component that happens to share the silhouette. */
+       gradient without wiping it out — a clip-path on the same element
+       silently deletes any filter/box-shadow output that extends past
+       its own edges — a drop-shadow or box-shadow glow on a clipped hex
+       is completely invisible no matter how far you push blur/opacity,
+       confirmed via a standalone Chromium test — same bug class already
+       found and fixed once for the Trophy Cabinet hexagons, missed here
+       because this is a separate component that happens to share the
+       silhouette. */
     .compass-crate{
       width:56px;height:56px;position:relative;z-index:1;
       display:flex;align-items:center;justify-content:center;
@@ -2333,65 +2332,39 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
          into a hexagon just cropped the art (visibly cutting off the
          lid/base on every tier). No background fill either now — the
          image stands on its own, same as it does everywhere else in the
-         app; .crate-icon-glow (the ancestor's radial glow, unclipped and
-         separate from this element) still gives every tier its color. */
+         app. */
     }
-    /* Unclipped glow, sized to whatever .compass-crate is (56px in most
-       places, 46px in the crate row, 44px in the drop-info modal) —
-       .crate-icon-wrap has no explicit size of its own, so it just
-       shrink-wraps to its one in-flow child and the absolutely
-       positioned glow inherits that box via inset:0, no per-context
-       pixel math needed the way the Trophy Cabinet fix required. */
+    /* .crate-icon-wrap has no explicit size of its own — it just
+       shrink-wraps to its one in-flow child (.compass-crate), which is
+       what .crate-icon-burst's inset:0/top:50%,left:50% positioning
+       anchors to. */
     .crate-icon-wrap{position:relative;display:inline-flex}
-    .crate-icon-glow{
-      position:absolute;inset:0;z-index:0;pointer-events:none;border-radius:50%;
-      background:radial-gradient(circle,var(--crate-glow-color,transparent) 0%,transparent 70%);
-      filter:blur(var(--crate-glow-blur,11px));
-      opacity:.85;transition:filter .2s;
-    }
-    .crate-icon-wrap.bronze{--crate-glow-color:rgba(212,120,50,.65);--crate-glow-blur:11px}
-    .crate-icon-wrap.silver{--crate-glow-color:rgba(180,195,210,.7);--crate-glow-blur:11px}
-    .crate-icon-wrap.gold{--crate-glow-color:rgba(255,215,0,.65);--crate-glow-blur:12px}
-    .crate-icon-wrap.diamond{--crate-glow-color:rgba(95,208,242,.7);--crate-glow-blur:13px}
-    .crate-icon-wrap.areviax{--crate-glow-color:rgba(255,140,40,.75);--crate-glow-blur:15px}
-    .crate-icon-wrap.locked{--crate-glow-color:transparent}
-    .crate-icon-wrap.bronze.ready{--crate-glow-blur:19px}
-    .crate-icon-wrap.silver.ready{--crate-glow-blur:19px}
-    .crate-icon-wrap.gold.ready{--crate-glow-blur:23px}
-    .crate-icon-wrap.diamond.ready{--crate-glow-blur:27px}
-    .crate-icon-wrap.ready .crate-icon-glow{animation:crateGlowPulse 2.2s ease-in-out infinite}
-    .crate-icon-wrap.areviax.ready{--crate-glow-blur:34px}
-    .crate-icon-wrap.areviax.ready .crate-icon-glow{animation:crateGlowPulse 1.8s ease-in-out infinite}
-    @keyframes crateGlowPulse{0%,100%{opacity:.7}50%{opacity:1}}
     /* Anticipation beat before a crate's reel/reveal actually appears —
        see openCompassDrop(). The crate itself now renders as a real
        hinged chest (or crystal for diamond) instead of a flat icon, so
-       it can actually sell "about to open" with a shake + glow build,
-       the same anticipation->release->reveal shape validated in the
-       standalone crate prototype earlier tonight, applied here via pure
-       CSS on the existing static image rather than embedding a live
-       WebGL scene into the reveal modal (real integration risk for a
-       feature this size — this gets the felt improvement safely). */
+       it can actually sell "about to open" with a shake, the same
+       anticipation->release->reveal shape validated in the standalone
+       crate prototype earlier tonight, applied here via pure CSS on the
+       existing static image rather than embedding a live WebGL scene
+       into the reveal modal (real integration risk for a feature this
+       size — this gets the felt improvement safely). */
     .crate-icon-wrap.opening{animation:crateShakeOpen .5s cubic-bezier(.36,.07,.19,.97)}
-    .crate-icon-wrap.opening .crate-icon-glow{animation:crateGlowBuild .5s ease-in forwards}
     @keyframes crateShakeOpen{
       10%,90%{transform:translateX(-1px) rotate(-1deg)}
       20%,80%{transform:translateX(2px) rotate(1.5deg)}
       30%,50%,70%{transform:translateX(-3px) rotate(-2deg)}
       40%,60%{transform:translateX(3px) rotate(2deg)}
     }
-    @keyframes crateGlowBuild{0%{opacity:.7;filter:brightness(1)}100%{opacity:1;filter:brightness(1.6)}}
-    /* Every "ready" crate keeps its glow+burst animating continuously in
-       the background even while a reveal/achievement overlay is showing
-       on top of it — on a page with several crates ready at once, that's
-       several already-running filtered/masked layers still repainting
-       right as the reveal's own ray-burst, rarity pulse and confetti all
-       start up together. Pausing them for as long as any overlay is open
-       (see the overlay-open MutationObserver near celebrateBurst) cuts
-       that concurrent load without changing how a crate looks the rest
-       of the time — see the theorised phone-glitch report this was
+    /* Every "ready" crate keeps its burst animating continuously in the
+       background even while a reveal/achievement overlay is showing on
+       top of it — on a page with several crates ready at once, that's
+       several already-running masked layers still repainting right as
+       the reveal's own ray-burst, rarity pulse and confetti all start up
+       together. Pausing it for as long as any overlay is open (see the
+       overlay-open MutationObserver near celebrateBurst) cuts that
+       concurrent load without changing how a crate looks the rest of
+       the time — see the theorised phone-glitch report this was
        written for. */
-    body.overlay-open .crate-icon-wrap.ready .crate-icon-glow,
     body.overlay-open .crate-icon-wrap.ready .crate-icon-burst{animation-play-state:paused}
     /* A soft ring of small laurel/compass marks (the app's own emblem)
        behind a ready-to-open crate, instead of the spinning light-ray
@@ -6310,10 +6283,10 @@ body[data-goal-theme="cut"] .lv-page{
      Areviax Crates carousels further down stay on plain, fully legible background. -->
 <div class="page lv-page" id="page-shop" style="background-image:linear-gradient(180deg,rgba(10,7,4,.5) 0%,rgba(10,7,4,.88) 55%,var(--lv-bg) 78%),url('images/roads/realm-olympus.jpg');background-repeat:no-repeat;background-size:100% 640px;background-position:top center;background-color:var(--lv-bg)">
   <div style="height:calc(10px + max(var(--safe-top,0px),env(safe-area-inset-top,0px)));background:var(--lv-bg);margin:0 -20px"></div>
-  <div class="road-page-head">
-    <button class="btn btn-out btn-sm" onclick="showPage('dashboard')">← Home</button>
-    <span class="ct glow-title trophy" style="font-size:17px;flex:1;text-align:center">MARKETPLACE</span>
-    <button type="button" class="lv-profile-btn" onclick="showPage('profile')" aria-label="Profile"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--lv-fg)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="lv-profile-badge"></span></button>
+  <div class="road-page-head" style="display:grid;grid-template-columns:1fr auto 1fr">
+    <button class="btn btn-out btn-sm" style="justify-self:start" onclick="showPage('dashboard')">← Home</button>
+    <span class="ct glow-title trophy" style="font-size:17px;text-align:center">MARKETPLACE</span>
+    <button type="button" class="lv-profile-btn" style="justify-self:end" onclick="showPage('profile')" aria-label="Profile"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--lv-fg)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="lv-profile-badge"></span></button>
   </div>
   <!-- CURRENCY STRIP — every balance the shop below actually spends or
        pays out, together at the top the way a live-ops shop always leads
@@ -11553,7 +11526,7 @@ function renderAchievements(){
       return `<div class="crate-slot ${tier}${s.ready?'':' not-ready'}"${tileOnclick?` onclick="${tileOnclick}" style="cursor:pointer"`:''}>
         <span class="crate-info-btn" onclick="viewDropInfo('${tier}',event)">i</span>
         <div class="crate-icon-wrap ${tier}${animClass}">
-          <div class="crate-icon-glow"></div><div class="crate-icon-burst"></div>
+          <div class="crate-icon-burst"></div>
           <div class="compass-crate ${tier}${animClass}"><span class="crate-icon">${crateIconHTML(tier)}</span></div>
         </div>
         <div class="crate-slot-label">${s.label}</div>
@@ -13048,7 +13021,7 @@ function showLegendReveal(l,isNew,tier,count,keyWon,titleWon){
   overlay.innerHTML=
     '<div class="achievement-modal crate-reveal-stage">'+
       '<div class="crate-icon-wrap '+tier+' ready" id="reveal-crate-wrap" style="cursor:pointer">'+
-        '<div class="crate-icon-glow"></div><div class="crate-icon-burst" id="reveal-crate-burst"></div>'+
+        '<div class="crate-icon-burst" id="reveal-crate-burst"></div>'+
         '<div class="compass-crate '+tier+'" id="reveal-crate-icon">'+crackOutIconHTML(tier)+'</div>'+
         (multiSlot?counterBadgeHTML(slots.length):'')+
       '</div>'+
@@ -13321,7 +13294,7 @@ function viewDropInfo(tier,event){
     '<div class="achievement-modal" style="max-width:300px;text-align:left">'+
       '<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">'+
         '<div class="crate-icon-wrap '+tier+'">'+
-          '<div class="crate-icon-glow"></div><div class="crate-icon-burst"></div>'+
+          '<div class="crate-icon-burst"></div>'+
           '<div class="compass-crate '+tier+'" style="width:44px;height:44px"><span class="crate-icon">'+crateIconHTML(tier)+'</span></div>'+
         '</div>'+
         '<div style="font-size:15px;font-weight:900;color:var(--white)">'+cfg.label+'</div>'+
