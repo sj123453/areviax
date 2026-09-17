@@ -2691,16 +2691,23 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .crate-reveal-stage .crate-xp-slot-sub{font-size:13px;letter-spacing:.16em}
     .crate-reveal-stage .legend-reveal-rarity{font-size:24px}
     .crate-reveal-stage .legend-reveal-rarity.rarity-ultralegendary{font-size:21px}
-    <!-- The reward badge now reads as the actual focal point of the reveal
-         screen — bigger than the mystery-phase disc that precedes it, not
-         just recolored the same size, now that it's not fighting a star
-         clip-path for usable space. -->
+    /* The reward badge now reads as the actual focal point of the reveal
+       screen — bigger than the mystery-phase disc that precedes it, not
+       just recolored the same size, now that it's not fighting a star
+       clip-path for usable space. */
     .crate-reveal-stage .reveal-badge-wrap{width:clamp(190px,36vw,300px);margin-bottom:20px}
     .crate-reveal-stage .legend-mystery-icon{width:clamp(150px,28vw,240px);height:clamp(150px,28vw,240px)}
     .crate-reveal-stage .legend-reveal-icon{width:clamp(190px,36vw,300px);height:clamp(190px,36vw,300px)}
     .crate-reveal-stage .legend-reveal-icon img{width:clamp(150px,28vw,240px);height:clamp(150px,28vw,240px)}
     .crate-reveal-stage .legend-mystery-icon .mystery-q{font-size:clamp(68px,12vw,100px)}
-    .crate-reveal-stage .reveal-ray-burst{width:clamp(420px,60vw,620px);height:clamp(420px,60vw,620px)}
+    /* Fixed to the viewport instead of absolute (still inherits --ray-c
+       normally — custom properties cascade through the DOM regardless of
+       position), and sized in vmax so it always reaches every corner of
+       the screen regardless of aspect ratio — the previous fixed-px cap
+       kept it a contained ring floating in the middle of a mostly-plain
+       dark screen, which read as "a shine in a box" rather than actual
+       light filling the frame. */
+    .crate-reveal-stage .reveal-ray-burst{position:fixed;width:160vmax;height:160vmax;opacity:.4}
     .crate-reveal-stage .achievement-title{font-size:28px}
     .crate-reveal-stage .achievement-desc{font-size:15px;max-width:320px;margin-left:auto;margin-right:auto}
     .crate-reveal-stage .achievement-close-btn{max-width:280px;margin:0 auto;padding:14px;font-size:14px}
@@ -2880,6 +2887,13 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     }
     .legend-reveal-icon.spin-in{animation:revealSpinIn .5s cubic-bezier(.22,1.4,.36,1) both}
     .reveal-badge-wrap{position:relative;width:96px;margin:0 auto 14px;perspective:420px}
+    /* Left (art) / right (text) split — the badge is the biggest single
+       thing on screen and text reads beside it, left-aligned, instead of
+       squeezed into a centred column underneath. */
+    .reveal-split{display:flex;align-items:center;gap:16px;width:100%}
+    .reveal-split .reveal-badge-wrap{margin:0;flex:0 0 auto}
+    .reveal-text-col{flex:1;min-width:0;text-align:left}
+    .reveal-text-col .achievement-desc{max-width:none;margin-left:0;margin-right:0}
 
     /* ── MYSTERY SPIN — Brawl-Stars-box-open style "?" badge that plays
        before the real trophy icon: spins toward the viewer on entry, then
@@ -12955,15 +12969,26 @@ function showLegendReveal(l,isNew,tier,count,keyWon,titleWon){
     // player-draggable idle spin, and the lock-in that swaps this markup
     // for the rarity-coloured .legend-reveal-icon. Name/rarity text stays
     // .mystery-hide (opacity 0) until that lock so nothing spoils early.
-    return '<div class="legend-reveal-rarity rarity-'+l.rarity+' mystery-hide" id="reveal-rarity-label">'+(l.rarity==='ultralegendary'?'ULTRA LEGENDARY':l.rarity.toUpperCase())+'</div>'+
+    // Split left (art)/right (text) instead of one centred column — the
+    // badge stays the biggest single thing on screen, text reads next to
+    // it instead of squeezed underneath. reveal-ray-burst is still nested
+    // inside reveal-badge-wrap (so it keeps inheriting --ray-c the normal
+    // way), but is positioned fixed to the viewport in CSS, so it paints
+    // behind the whole screen instead of being confined to the badge's own
+    // small box.
+    return '<div class="reveal-split">'+
       '<div class="reveal-badge-wrap" id="reveal-badge-wrap" style="--ray-c:#9AA0A8">'+
         '<div class="reveal-ray-burst" id="reveal-ray-burst"></div>'+
         '<div class="legend-mystery-icon" id="reveal-mystery-icon"><span class="mystery-q">?</span></div>'+
       '</div>'+
-      '<div style="font-size:10.5px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:'+(isNew?'#8FE8FF':'rgba(var(--white-rgb),.4)')+';margin:2px 0 12px" class="mystery-hide">'+(isNew?'NEW':'DUPLICATE'+(count>1?' ×'+count:''))+'</div>'+
-      '<div class="achievement-title reveal-name-serif mystery-hide">'+l.name+'</div>'+
-      '<div class="achievement-desc mystery-hide">'+l.title+'</div>'+
-      (tier==='areviax'?'<div style="font-size:11px;font-weight:700;color:#FFB347;margin-top:8px" class="mystery-hide">🔥 The Areviax Crate — +2 bonus Compass Shards</div>':'');
+      '<div class="reveal-text-col">'+
+        '<div class="legend-reveal-rarity rarity-'+l.rarity+' mystery-hide" id="reveal-rarity-label">'+(l.rarity==='ultralegendary'?'ULTRA LEGENDARY':l.rarity.toUpperCase())+'</div>'+
+        '<div style="font-size:10.5px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:'+(isNew?'#8FE8FF':'rgba(var(--white-rgb),.4)')+';margin:4px 0 10px" class="mystery-hide">'+(isNew?'NEW':'DUPLICATE'+(count>1?' ×'+count:''))+'</div>'+
+        '<div class="achievement-title reveal-name-serif mystery-hide">'+l.name+'</div>'+
+        '<div class="achievement-desc mystery-hide">'+l.title+'</div>'+
+        (tier==='areviax'?'<div style="font-size:11px;font-weight:700;color:#FFB347;margin-top:8px" class="mystery-hide">🔥 The Areviax Crate — +2 bonus Compass Shards</div>':'')+
+      '</div>'+
+    '</div>';
   }
   function xpSlotHTML(){
     return '<div class="crate-xp-slot crate-slot-pop">'+
