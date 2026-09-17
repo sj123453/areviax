@@ -2100,7 +2100,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        (hexagonal gem, tier-tinted gradient + glow, gentle float when
        ready to open) rather than a plain "Open" button. Two tiers side
        by side: Bronze fills for free from regular training days, Gold
-       spends a banked Compass Shard for meaningfully better odds — see
+       spends a banked Key for meaningfully better odds — see
        openCompassDrop()'s odds tables. Not-ready state shows progress
        instead of the capsule glowing, so it reads as "still filling",
        not "broken". */
@@ -2862,8 +2862,14 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .reveal-badge-wrap{position:relative;width:96px;margin:0 auto 14px;perspective:420px}
     /* Left (art) / right (text) split — the badge is the biggest single
        thing on screen and text reads beside it, left-aligned, instead of
-       squeezed into a centred column underneath. */
-    .reveal-split{display:flex;align-items:center;gap:16px;width:100%}
+       squeezed into a centred column underneath. width:100% capped by
+       max-width keeps this row itself centered as a GROUP on a wide
+       viewport (the reveal stage is a real position:fixed;inset:0 full
+       screen, not a boxed phone-width modal) — without the cap, a wide
+       window just stretches the row edge-to-edge, which pins the badge
+       flush to the left edge and leaves the eye with nothing on the
+       right half of the screen to look at. */
+    .reveal-split{display:flex;align-items:center;gap:16px;width:100%;max-width:680px;margin:0 auto}
     .reveal-split .reveal-badge-wrap{margin:0;flex:0 0 auto}
     .reveal-text-col{flex:1;min-width:0;text-align:left}
     .reveal-text-col .achievement-desc{max-width:none;margin-left:0;margin-right:0}
@@ -4862,7 +4868,7 @@ body[data-goal-theme="cut"] .lv-page{
     <div id="vol-daily-card"><div id="vol-daily-total"></div><svg><g id="wp-gridlines"></g><polyline id="wp-avg-line" points=""/><polyline id="wp-vol-line" points=""/><g id="wp-dots"></g></svg><div id="wp-day-labels"></div></div>
     <div id="vol-daily-empty"></div>
     <div id="dn-carbs-fill"></div><div id="dn-fats-fill"></div>
-    <canvas id="compass-main" width="88" height="88"></canvas><div id="compass-label"></div><div id="shard-bank-indicator"></div><div id="streak-card"></div><div id="flame-val">0</div><div id="best-streak-sub"></div>
+    <canvas id="compass-main" width="88" height="88"></canvas><div id="compass-label"></div><div id="key-bank-indicator"></div><div id="streak-card"></div><div id="flame-val">0</div><div id="best-streak-sub"></div>
   </div>
 
   </div>
@@ -6303,7 +6309,6 @@ body[data-goal-theme="cut"] .lv-page{
        floating as a bare number wherever a currency strip happened to be. -->
   <div style="display:flex;gap:7px;padding:10px 20px 4px;overflow-x:auto">
     <span class="shop-currency-chip" style="background:linear-gradient(160deg,#FFB24A,#E0801F)"><img src="images/icons/tetradrachm.png" alt="" style="width:15px;height:15px;border-radius:50%;flex-shrink:0"> <span id="shop-drachma-badge">0</span></span>
-    <span class="shop-currency-chip" style="background:linear-gradient(160deg,#5FD0F2,#1F8FB8)">🔷 <span id="shop-shard-badge">0</span></span>
     <span class="shop-currency-chip" style="background:linear-gradient(160deg,#FFDE7A,#C9971E)">🗝️ <span id="shop-key-badge">0</span></span>
   </div>
 
@@ -8353,14 +8358,6 @@ function updateMobileNav(page){
 
 // ── STATE ──
 let xp=0,streak=0,compassPts=0,totalSess=0,sessThisWeek=0;
-// Compass shards — a real banked/spendable currency, unlike compassPts
-// (an ephemeral within-week counter that resets to 0 every Monday and was
-// never actually spendable on anything). Earned one per perfect
-// 7-day week, spendable on opening Gold Crates — streak protection used to
-// spend shards too, but that's now its own pair of dedicated Shop items
-// (see streakFreezes/streakSavers below) so a shard always means "closer
-// to a Gold Crate," never a coin flip against losing a streak.
-let shardBank=0;
 let streakRepairDismissedDate='';
 // STREAK FREEZE — bought in the Shop, auto-consumed the moment a missed
 // day would otherwise break the streak, before the person ever sees a
@@ -8389,19 +8386,20 @@ const BRONZE_DROP_DAYS=5;
 let silverDropBank=0;
 let diamondDropBank=0;
 let dailySpinDate='';
-// Keys — a small, purely-additive currency. Never gates opening a crate
-// you already have (the old Clash-Royale key-timer problem this
-// deliberately avoids); the only thing keys do is let you spend a
-// stack of them to upgrade one already-banked crate to the next tier
-// up, whenever you want. See KEY_UPGRADE_COST / upgradeCrateWithKeys.
+// Keys — a small, purely-additive currency. Spends a stack of them to
+// upgrade one already-banked crate to the next tier up (see
+// KEY_UPGRADE_COST / upgradeCrateWithKeys), and also directly opens a
+// Gold Crate (1 key) — Gold used to be gated behind its own separate
+// Compass Shard currency; folded into Keys so there's a single
+// crate-tier currency instead of two.
 let keyBank=0;
 // Drachma (var name kept short; shown to the user as "Tetradrachm" — the
 // Classical Athenian Silver Tetradrachm, the real "owl of Athena" coin —
 // see images/icons/tetradrachm.png) — a real ancient-Greek coin, so it
 // reads as "spendable money" on sight instead of needing a made-up name
 // explained. Distinct job from Arete (a growth/rank score, never
-// directly spent) and Compass Shards (fuel for one specific thing, Gold
-// crates/streak repair): this is the general-purpose currency for the
+// directly spent) and Keys (fuel for crate-tier stuff — opening Gold,
+// upgrading a banked crate): this is the general-purpose currency for the
 // Shop's direct-buy offers — crate bundles, and a guaranteed way to buy
 // a specific Title or Accent Theme instead of only ever hoping for one
 // from a crate. Earned in small amounts from genuine session completions
@@ -10845,23 +10843,23 @@ function checkLabors(){
 // `name` (and a one-line `myth` note for the road-path body) per node.
 const XP_ROAD=[
   {xp:50,    type:'bronze', amount:1, name:"Leaving Troy",        myth:"Ten years of war are over. The real journey — the hard part — is only just beginning."},
-  {xp:150,   type:'shard',  amount:1, name:"The Cicones",         myth:"A raid that should've ended clean turns costly the moment the crew lingers too long."},
+  {xp:150,   type:'key',    amount:1, name:"The Cicones",         myth:"A raid that should've ended clean turns costly the moment the crew lingers too long."},
   {xp:300,   type:'bronze', amount:1, name:"Land of the Lotus-Eaters",myth:"A fruit that makes you forget why you ever wanted to go home."},
-  {xp:500,   type:'shard',  amount:1, name:"The Cyclops's Cave",  myth:"Trapped with Polyphemus. Cleverness, not strength, is what gets the crew out alive."},
+  {xp:500,   type:'key',    amount:1, name:"The Cyclops's Cave",  myth:"Trapped with Polyphemus. Cleverness, not strength, is what gets the crew out alive."},
   {xp:750,   type:'bronze', amount:2, name:"Aeolia, Isle of Winds",myth:"Given every favorable wind sealed in a bag — and the crew opens it anyway."},
   {xp:1000,  type:'legend', rarity:'rare', name:"The Laestrygonians", myth:"A harbor that looks safe until it very suddenly isn't."},
-  {xp:1500,  type:'shard',  amount:2, name:"Circe's Island",      myth:"A year spent under a sorceress's spell before anyone remembers there's still a voyage to finish."},
+  {xp:1500,  type:'key',    amount:2, name:"Circe's Island",      myth:"A year spent under a sorceress's spell before anyone remembers there's still a voyage to finish."},
   {xp:2200,  type:'bronze', amount:3, name:"Descent to the Underworld",myth:"Going all the way down to ask the dead how to keep going."},
-  {xp:3000,  type:'shard',  amount:1, extra:{type:'bronze',amount:1}, name:"The Sirens' Song", myth:"Lashed to the mast on purpose, because some temptations you only survive by planning ahead."},
+  {xp:3000,  type:'key',    amount:1, extra:{type:'bronze',amount:1}, name:"The Sirens' Song", myth:"Lashed to the mast on purpose, because some temptations you only survive by planning ahead."},
   {xp:4000,  type:'legend', rarity:'legendary', name:"Scylla and Charybdis", myth:"Two disasters, one narrow strait. There was never a version of this with no cost at all."},
   {xp:5000,  type:'silver', amount:1, name:"The Cattle of the Sun",myth:"One rule, impossible to keep: leave Helios's herd alone. Discipline is the whole test."},
-  {xp:6500,  type:'shard',  amount:3, name:"The Wrath of Poseidon",myth:"The sea god never forgets. The storm that follows isn't punishment — it's just what's owed."},
+  {xp:6500,  type:'key',    amount:3, name:"The Wrath of Poseidon",myth:"The sea god never forgets. The storm that follows isn't punishment — it's just what's owed."},
   {xp:8000,  type:'legend', rarity:'mythic', name:"Calypso's Ogygia", myth:"Seven years on an island paradise, wanting nothing more than to leave it."},
   {xp:10000, type:'silver', amount:2, name:"Built the Raft",       myth:"Finally moving again, alone, on a raft built with his own hands."},
   {xp:12500, type:'diamond',amount:1, name:"Shipwrecked at Scheria",myth:"Washed up with nothing left but the will to keep going."},
   {xp:15000, type:'legend', rarity:'legendary', name:"The Phaeacians' Court",myth:"Telling the whole story out loud, for the first time, to people who actually listen."},
   {xp:18000, type:'diamond',amount:2, name:"Home Shores of Ithaca",myth:"Land, finally — but the hardest part of coming home was never the sea."},
-  {xp:22000, type:'shard',  amount:5, extra:{type:'silver',amount:1}, name:"The Beggar at the Door", myth:"Unrecognized in his own home, watching, before making a single move."},
+  {xp:22000, type:'key',    amount:5, extra:{type:'silver',amount:1}, name:"The Beggar at the Door", myth:"Unrecognized in his own home, watching, before making a single move."},
   {xp:27000, type:'legend', rarity:'mythic', name:"The Trial of the Bow", myth:"One shot only he could make. Proof, not just a claim."},
   {xp:35000, type:'diamond',amount:3, name:"Reunited",            myth:"Twenty years. The whole point of the journey was never the journey — it was this."},
 ];
@@ -10876,21 +10874,19 @@ function xpRoadRewardLabel(node){
   if(node.type==='bronze')return node.amount+' Bronze Crate'+(node.amount>1?'s':'');
   if(node.type==='silver')return node.amount+' Silver Crate'+(node.amount>1?'s':'');
   if(node.type==='diamond')return node.amount+' Diamond Crate'+(node.amount>1?'s':'');
-  if(node.type==='shard')return node.amount+' Compass Shard'+(node.amount>1?'s':'')+xpRoadRewardExtraLabel(node.extra);
+  if(node.type==='key')return node.amount+' Key'+(node.amount>1?'s':'')+xpRoadRewardExtraLabel(node.extra);
   if(node.type==='legend')return 'Guaranteed '+node.rarity[0].toUpperCase()+node.rarity.slice(1)+' Trophy';
   return '';
 }
 // Distinct per reward type instead of the same compass glyph for
 // everything \u2014 Bronze Crate nodes reuse the actual crate icon (same
-// glyph you'll see when you open it), Compass Shard gets its own
-// crystal mark (so it doesn't get confused with the Diamond Crate's
-// gem icon), Legend Card nodes keep their crown/trophy split by rarity.
-const SHARD_ICON_SVG='<svg viewBox="-12 -12 24 24" fill="none" stroke="#44CFFF" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M0-9l7.8 4.5v9L0 9l-7.8-4.5v-9L0-9z"/><path d="M0-9v18M-7.8-4.5L7.8 4.5M7.8-4.5L-7.8 4.5"/></svg>';
-const SHARD_ICON_IMG='<img src="images/icons/shard.png" alt="Compass Shard" style="width:100%;height:100%;object-fit:contain">';
+// glyph you'll see when you open it), Legend Card nodes keep their
+// crown/trophy split by rarity, Key nodes use the same key emoji the
+// currency chip/crate-upgrade UI already uses everywhere else.
 function xpRoadRewardIcon(node){
   if(node.type==='legend')return node.rarity==='ultralegendary'?'\ud83e\udded':node.rarity==='legendary'?'\ud83d\udc51':node.rarity==='mythic'?'\ud83c\udf11':'\ud83c\udfc6';
   if(node.type==='bronze'||node.type==='silver'||node.type==='diamond')return crateIconHTML(node.type);
-  if(node.type==='shard')return SHARD_ICON_IMG;
+  if(node.type==='key')return '\ud83d\udddd\ufe0f';
   return '\ud83e\udded';
 }
 // toast()'s icon is set via textContent, not innerHTML \u2014 it can't render
@@ -10898,14 +10894,14 @@ function xpRoadRewardIcon(node){
 // toast call site needs its own plain-emoji version.
 function xpRoadRewardToastEmoji(node){
   if(node.type==='legend')return node.rarity==='ultralegendary'?'\ud83e\udded':node.rarity==='legendary'?'\ud83d\udc51':node.rarity==='mythic'?'\ud83c\udf11':'\ud83c\udfc6';
-  if(node.type==='shard')return '\ud83d\udd37';
+  if(node.type==='key')return '\ud83d\udddd\ufe0f';
   return '\ud83e\udded';
 }
 function grantXpRoadReward(node){
   if(node.type==='bronze'){bronzeDropBank+=node.amount;}
   else if(node.type==='silver'){silverDropBank+=node.amount;}
   else if(node.type==='diamond'){diamondDropBank+=node.amount;}
-  else if(node.type==='shard'){shardBank+=node.amount;}
+  else if(node.type==='key'){keyBank+=node.amount;}
   else if(node.type==='legend'){
     // Mythic/epic/superrare have no real cards assigned yet (see
     // RARITY_ORDER's own comment) — filtering straight to node.rarity
@@ -10939,7 +10935,7 @@ function grantXpRoadReward(node){
   if(node.extra){
     if(node.extra.type==='bronze')bronzeDropBank+=node.extra.amount;
     else if(node.extra.type==='silver')silverDropBank+=node.extra.amount;
-    else if(node.extra.type==='shard')shardBank+=node.extra.amount;
+    else if(node.extra.type==='key')keyBank+=node.extra.amount;
   }
 }
 // A bright ascending two-note "ding" — reuses the same shared Web Audio
@@ -11157,7 +11153,7 @@ function renderRoadPath(containerId,nodes){
     // so a low-value next node stays modest and a high-value one reads as
     // both "you are here" and genuinely big.
     // Wider, steeper range than the first pass \u2014 adjacent reward tiers
-    // (e.g. a Bronze Crate at weight .32 vs a Compass Shard at .18) need
+    // (e.g. a Bronze Crate at weight .32 vs a Key at .18) need
     // to read as visibly different sizes at a glance, not just a few
     // px apart. Deliberately allowed to exceed its 104px flex slot at
     // the top end (the reference's own Mega Box does the same) \u2014 the
@@ -11256,7 +11252,7 @@ function renderRewardRow(prefix,nodes){
 // a shard or single Bronze Crate is a small, frequent trickle; a guaranteed
 // Legend Card is the showpiece prize on this whole road, so it should read
 // visibly bigger regardless of whether it's the very next checkpoint.
-const XP_NODE_TYPE_WEIGHT={shard:0.18,bronze:0.32,silver:0.55,diamond:0.8,legend:0.85};
+const XP_NODE_TYPE_WEIGHT={key:0.18,bronze:0.32,silver:0.55,diamond:0.8,legend:0.85};
 const XP_LEGEND_RARITY_BOOST={rare:0,superrare:0.03,epic:0.06,mythic:0.08,legendary:0.12,ultralegendary:0.15};
 function xpRoadNodeWeight(node){
   let w=XP_NODE_TYPE_WEIGHT[node.type]!=null?XP_NODE_TYPE_WEIGHT[node.type]:0.3;
@@ -11312,9 +11308,9 @@ function renderXpRoadGallery(){
 // Two crate tiers, mirroring Brawl Stars' frequent Star Drop vs rarer
 // Mega Box split — Bronze is free and fills from ordinary training
 // (bronzeDropProgress/Bank, see markTrainedToday), Gold spends a
-// banked Compass Shard for meaningfully better odds. Same currency
-// tension as streak repair already spending shards — a shard is worth
-// choosing what to do with, not just a formality.
+// banked Key for meaningfully better odds — a Key is worth choosing
+// what to do with (open Gold outright, or save toward an upgrade),
+// not just a formality.
 // Rebalanced so the top end (mythic/legendary/ultralegendary) actually
 // feels rare — Gold's old 4% mythic rate in particular was pulling
 // "great stuff" almost as often as the low-tier crates pull commons.
@@ -11355,15 +11351,19 @@ const CRATE_TIERS={
 // KEYS — spend a stack to instantly turn one already-banked crate into
 // the next tier up. Never a requirement to open anything you already
 // have (that's the old key-timer problem, deliberately not this) —
-// purely an optional accelerant. diamond has no upgrade path (nothing
-// above it to upgrade TO other than areviax, which isn't earnable this
-// way on purpose — see openCompassDrop's areviax branch).
-const KEY_UPGRADE_PATH={bronze:'silver',silver:'gold',gold:'diamond'};
-const KEY_UPGRADE_COST={bronze:3,silver:5,gold:8};
+// purely an optional accelerant. gold has no FROM upgrade path: Gold
+// crates don't sit in their own bank anymore (see crateBankRef below —
+// keyBank itself doubles as the Gold bank), so there's no separate
+// banked-Gold unit left to spend keys to convert into a Diamond one.
+// diamond has no upgrade path either (nothing above it to upgrade TO
+// other than areviax, which isn't earnable this way on purpose — see
+// openCompassDrop's areviax branch).
+const KEY_UPGRADE_PATH={bronze:'silver',silver:'gold'};
+const KEY_UPGRADE_COST={bronze:3,silver:5};
 function crateBankRef(tier){
   if(tier==='bronze')return {get v(){return bronzeDropBank;},set v(n){bronzeDropBank=n;}};
   if(tier==='silver')return {get v(){return silverDropBank;},set v(n){silverDropBank=n;}};
-  if(tier==='gold')return {get v(){return shardBank;},set v(n){shardBank=n;}};
+  if(tier==='gold')return {get v(){return keyBank;},set v(n){keyBank=n;}};
   if(tier==='diamond')return {get v(){return diamondDropBank;},set v(n){diamondDropBank=n;}};
   return null;
 }
@@ -11493,7 +11493,7 @@ function renderAchievements(){
     const states={
       bronze:{ready:bronzeDropBank>0,label:'Bronze'+(bronzeDropBank>1?' \u00d7'+bronzeDropBank:''),sub:bronzeDropBank>0?'Tap to open':bronzeDropProgress+'/'+BRONZE_DROP_DAYS+' training days'},
       silver:{ready:silverDropBank>0,label:'Silver'+(silverDropBank>1?' \u00d7'+silverDropBank:''),sub:silverDropBank>0?'Tap to open':'Win one from the Daily Spin'},
-      gold:{ready:shardBank>0,label:'Gold'+(shardBank>1?' \u00d7'+shardBank:''),sub:shardBank>0?'Tap to open':'Earn a shard with a perfect week'},
+      gold:{ready:keyBank>0,label:'Gold'+(keyBank>1?' \u00d7'+keyBank:''),sub:keyBank>0?'Tap to open':'Earn a key with a perfect week'},
       diamond:{ready:diamondDropBank>0,label:'Diamond'+(diamondDropBank>1?' \u00d7'+diamondDropBank:''),sub:diamondDropBank>0?'Tap to open':'Win one from the Daily Spin'},
       // Never banked/tap-to-open (see openCompassDrop's areviax branch \u2014
       // it has no bank guard at all, so wiring the tile to it the normal
@@ -11544,10 +11544,9 @@ function renderAchievements(){
   }
   const keyCountEl=document.getElementById('key-bank-count');
   if(keyCountEl)keyCountEl.textContent=keyBank;
-  // Shop page's own currency strip \u2014 same three balances the cards below
+  // Shop page's own currency strip \u2014 same two balances the cards below
   // actually spend/pay out, kept in sync wherever renderAchievements()
   // already runs (crate opens, XP gains, page opens).
-  const ssb=document.getElementById('shop-shard-badge');if(ssb)ssb.textContent=shardBank;
   const skb=document.getElementById('shop-key-badge');if(skb)skb.textContent=keyBank;
   const sdb=document.getElementById('shop-drachma-badge');if(sdb)sdb.textContent=drachma;
   try{renderShopOffers();}catch(e){}
@@ -11571,7 +11570,7 @@ const STREAK_FREEZE_ICON='<svg viewBox="0 0 24 24" fill="none" stroke="#7EE0FF" 
 const DRACHMA_OFFERS=[
   {id:'bronze3',label:'3 Bronze Crates',sub:'Instant',cost:15,tier:'bronze',render:()=>crateIconHTML('bronze'),grant:()=>{bronzeDropBank+=3;}},
   {id:'silver3',label:'3 Silver Crates',sub:'Instant',cost:30,tier:'silver',render:()=>crateIconHTML('silver'),grant:()=>{silverDropBank+=3;}},
-  {id:'shard3',label:'3 Compass Shards',sub:'Opens Gold Crates',cost:40,tier:'gold',render:()=>'🔷',grant:()=>{shardBank+=3;}},
+  {id:'key3',label:'3 Keys',sub:'Opens Gold Crates',cost:40,tier:'gold',render:()=>'🗝️',grant:()=>{keyBank+=3;}},
   {id:'diamond1',label:'1 Diamond Crate',sub:'Instant',cost:60,tier:'diamond',render:()=>crateIconHTML('diamond'),grant:()=>{diamondDropBank+=1;}},
   {id:'streak_freeze1',label:'Streak Freeze',sub:'Auto-protects your next missed day',cost:35,tier:'diamond',badge:'new',render:()=>STREAK_FREEZE_ICON,grant:()=>{streakFreezes+=1;}},
   {id:'streak_saver1',label:'Streak Saver',sub:'Repairs a streak that already broke',cost:50,tier:'areviax',badge:'new',render:()=>STREAK_SAVER_ICON,grant:()=>{streakSavers+=1;}},
@@ -12252,7 +12251,7 @@ function rollRarity(odds){
 // client-side state a technical user could edit directly, so this
 // doesn't change what's actually enforceable, just makes testing easier.
 function grantTestCrates(){
-  bronzeDropBank++;silverDropBank++;shardBank++;diamondDropBank++;
+  bronzeDropBank++;silverDropBank++;keyBank++;diamondDropBank++;
   saveToStorage();
   renderAchievements();
   toast('🎁','Test crates granted — check Areviax Crates','drops');
@@ -12277,7 +12276,7 @@ function openCompassDrop(tier){
   getCrateAudioCtx();
   if(tier==='bronze'){ if(bronzeDropBank<=0)return; bronzeDropBank--; }
   else if(tier==='silver'){ if(silverDropBank<=0)return; silverDropBank--; }
-  else if(tier==='gold'){ if(shardBank<=0)return; shardBank--; }
+  else if(tier==='gold'){ if(keyBank<=0)return; keyBank--; }
   else if(tier==='diamond'){ if(diamondDropBank<=0)return; diamondDropBank--; }
   // areviax: free — only ever granted by the Daily Spin, no bank to spend.
   const rarity=rollRarity(cfg.odds);
@@ -12296,7 +12295,7 @@ function openCompassDrop(tier){
   const isNew=!unlockedLegends.includes(pick.key);
   if(isNew){unlockedLegends.push(pick.key);bumpUnseenReward();}
   legendCounts[pick.key]=(legendCounts[pick.key]||0)+1;
-  if(tier==='areviax')shardBank+=2; // the best drop in the app pays a bonus on top of the guaranteed card
+  if(tier==='areviax')keyBank+=2; // the best drop in the app pays a bonus on top of the guaranteed card
   if(tier==='diamond')unlockAccentTheme('silver',true);
   if(tier==='areviax')unlockAccentTheme('gold',true);
   // A real bank crate has a modest chance to also drop a Key — the
@@ -12965,7 +12964,7 @@ function showLegendReveal(l,isNew,tier,count,keyWon,titleWon){
         '<div style="font-size:10.5px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:'+(isNew?'#8FE8FF':'rgba(var(--white-rgb),.4)')+';margin:4px 0 10px" class="mystery-hide">'+(isNew?'NEW':'DUPLICATE'+(count>1?' ×'+count:''))+'</div>'+
         '<div class="achievement-title reveal-name-serif mystery-hide">'+l.name+'</div>'+
         '<div class="achievement-desc mystery-hide">'+l.title+'</div>'+
-        (tier==='areviax'?'<div style="font-size:11px;font-weight:700;color:#FFB347;margin-top:8px" class="mystery-hide">🔥 The Areviax Crate — +2 bonus Compass Shards</div>':'')+
+        (tier==='areviax'?'<div style="font-size:11px;font-weight:700;color:#FFB347;margin-top:8px" class="mystery-hide">🔥 The Areviax Crate — +2 bonus Keys</div>':'')+
       '</div>'+
     '</div>';
   }
@@ -13257,11 +13256,11 @@ function spinDailyWheel(){
     }else{
       if(tier==='bronze')bronzeDropBank++;
       else if(tier==='silver')silverDropBank++;
-      else if(tier==='gold')shardBank++;
+      else if(tier==='gold')keyBank++;
       else if(tier==='diamond')diamondDropBank++;
       saveToStorage();
       renderAchievements();
-      toast(tier==='gold'?'🔷':'🗝️',(tier==='gold'?'+1 Compass Shard':'Found the '+CRATE_TIERS[tier].label.replace(' Crate','')+' Key')+' — unlocked a '+CRATE_TIERS[tier].label+', tap it below to open');
+      toast('🗝️','Found the '+CRATE_TIERS[tier].label.replace(' Crate','')+' Key — unlocked a '+CRATE_TIERS[tier].label+', tap it below to open');
     }
     const sub=document.getElementById('gift-result-sub');
     if(sub)sub.textContent='';
@@ -13284,9 +13283,9 @@ function viewDropInfo(tier,event){
   const earnText={
     bronze:'Free — fills automatically after '+BRONZE_DROP_DAYS+' training days, or win one from the Daily Spin ('+DAILY_SPIN_WEIGHTS.bronze+'% chance).',
     silver:'Win one from the Daily Spin ('+DAILY_SPIN_WEIGHTS.silver+'% chance) — its only source for now.',
-    gold:'Costs 1 Compass Shard, earned with a perfect training week — or win a free shard from the Daily Spin ('+DAILY_SPIN_WEIGHTS.gold+'% chance).',
+    gold:'Costs 1 Key, earned with a perfect training week — or win a free key from the Daily Spin ('+DAILY_SPIN_WEIGHTS.gold+'% chance).',
     diamond:'Win one from the Daily Spin ('+DAILY_SPIN_WEIGHTS.diamond+'% chance) — the rarest crate you can bank.',
-    areviax:'The best drop in the app — only from the Daily Spin, a '+DAILY_SPIN_WEIGHTS.areviax+'% chance. Guarantees a Legendary-or-better trophy plus 2 bonus Compass Shards, opens immediately, free.',
+    areviax:'The best drop in the app — only from the Daily Spin, a '+DAILY_SPIN_WEIGHTS.areviax+'% chance. Guarantees a Legendary-or-better trophy plus 2 bonus Keys, opens immediately, free.',
   };
   const overlay=document.createElement('div');
   overlay.className='achievement-overlay';
@@ -16464,10 +16463,10 @@ function setCompanionMessage(){
 function renderCompass(){
   // Legacy #cp-row/#compass-sub no longer exist in the current dashboard —
   // this used to bail out early and silently skip drawCompass() entirely,
-  // which is why the shard canvas never refreshed when a new shard was earned.
+  // which is why the canvas never refreshed when a new key was earned.
   drawCompass();
-  const sbi=document.getElementById('shard-bank-indicator');
-  if(sbi)sbi.textContent=shardBank>0?'🔷 '+shardBank+' shard'+(shardBank===1?'':'s'):'';
+  const sbi=document.getElementById('key-bank-indicator');
+  if(sbi)sbi.textContent=keyBank>0?'🗝️ '+keyBank+' key'+(keyBank===1?'':'s'):'';
 }
 
 // Sweep-ring gauge + 8-point compass-rose needle -- the design that came out
@@ -18547,15 +18546,15 @@ function claimCompassPoint(){
   const justPerfected=compassPts>=7&&!perfectWeekShardBanked;
   if(justPerfected){
     perfectWeekShardBanked=true;
-    shardBank++;
+    keyBank++;
   }
   saveToStorage();
   const btn=document.getElementById('compass-claim-btn');
   playShardFlyAnimation(btn);
   renderCompassClaimStatus();
   if(justPerfected){
-    toast('🔷','Compass point earned — perfect week! +1 Compass Shard','drops');
-    celebrateBurst(['🔷','✨'],16);
+    toast('🗝️','Compass point earned — perfect week! +1 Key','drops');
+    celebrateBurst(['🗝️','✨'],16);
   }else{
     toast('🧭','Compass point earned — '+compassPts+'/7 this week','drops');
   }
@@ -18563,7 +18562,7 @@ function claimCompassPoint(){
 // Clean one-shot reward flourish — a hexagon "shard" pops from the claim
 // button, rises with a little rotation, and fades. No persistent visible
 // shard counter exists to fly it "into" (the topbar indicator is legacy/
-// hidden — see #shard-bank-indicator), so this reads as the reward
+// hidden — see #key-bank-indicator), so this reads as the reward
 // itself rather than a literal delivery animation into a specific balance.
 function playShardFlyAnimation(originEl){
   const rect=originEl?originEl.getBoundingClientRect():{left:window.innerWidth/2,top:window.innerHeight/2,width:0,height:0};
@@ -19042,15 +19041,15 @@ document.addEventListener('visibilitychange',()=>{
 function checkCompassWeek(){
   const thisMonday=getMonday(new Date());
   if(compassWeekStart!==thisMonday){
-    // A perfect week (7 fully-completed sessions) banks a spendable shard
+    // A perfect week (7 fully-completed sessions) banks a spendable key
     // before compassPts resets. Usually this already happened live —
     // claimCompassPoint() pays it out the moment the 7th point lands and
     // sets perfectWeekShardBanked so it isn't paid twice here — this is
     // just the safety net for whoever hit 7 without the app being open
     // to fire that moment.
     if(compassPts>=7&&!perfectWeekShardBanked){
-      shardBank++;
-      toast('🔷','Perfect week — banked a Compass Shard!','drops');
+      keyBank++;
+      toast('🗝️','Perfect week — banked a Key!','drops');
     }
     compassWeekStart=thisMonday;
     compassPts=0;
@@ -20490,10 +20489,10 @@ const AI_COACH_KB=[
    a:'Your BMR (base metabolic rate) is calculated from your stats, scaled up to TDEE (maintenance calories) by your activity level, then your goal adds a surplus (Bulk) or subtracts a deficit (Lean) from that number. The full breakdown of your own numbers is shown after onboarding and any time you update your stats in Settings.'},
   {q:'How do I contact support?',kw:['contact support','email support','real person','human support','talk to someone'],
    a:'Email areviaxsupport@gmail.com any time — that goes to a real person, not this FAQ matcher.'},
-  {q:'What are Compass Shards and how do I get them?',kw:['compass shard','shard','shards','what are shards'],
-   a:"Compass Shards are the app's spendable currency for crates — earn one from a perfect training week or a lucky Daily Spin, then spend it to open a Gold Crate. Check your current balance on the Progress page. Streak protection is separate now — see Streak Freeze and Streak Saver in the Shop."},
+  {q:'What are Keys and how do I get them?',kw:['key','keys','what are keys','compass shard','shard','shards','what are shards'],
+   a:"Keys are the app's spendable currency for crates — earn one from a perfect training week or a lucky Daily Spin, then spend it to open a Gold Crate. A stack of Keys can also upgrade an already-banked Bronze or Silver crate to the next tier up (see the Marketplace). Check your current balance on the Progress page. Streak protection is separate — see Streak Freeze and Streak Saver in the Shop."},
   {q:'How do I earn Silver, Gold, Diamond or the Areviax Crate?',kw:['silver drop','gold drop','diamond drop','earn crates','more crates','where do crates come from'],
-   a:"Bronze fills automatically after 5 training days. Everything above it — Silver, Diamond, and the Areviax Crate — comes from winning it on the Daily Spin; Gold is the one exception, costing 1 Compass Shard to open. Tap the ⓘ on any crate on the Progress page for its exact odds and source."},
+   a:"Bronze fills automatically after 5 training days. Everything above it — Silver, Diamond, and the Areviax Crate — comes from winning it on the Daily Spin; Gold is the one exception, costing 1 Key to open. Tap the ⓘ on any crate on the Progress page for its exact odds and source."},
   {q:'Can I repair a broken streak?',kw:['repair streak','broken streak','streak repair','fix my streak','save my streak','streak freeze','streak saver'],
    a:"Two ways, both bought in the Shop. A Streak Freeze protects you automatically — the moment a missed day would otherwise break your streak, one gets spent silently and the streak just continues, no banner, no decision. A Streak Saver is the after-the-fact fix: if your streak already broke and you've got one banked, a Repair banner shows up the next time you open the app — tap Repair to spend it and keep the streak alive. It only appears the day after the miss; dismiss it (or don't have a Saver) and the streak resets to 1 like normal."},
   {q:'How do progress photos work?',kw:['progress photo','photo comparison','day 1 photo','before after photo','progress photos'],
@@ -25141,7 +25140,7 @@ function computeLeagueGroupForWeek(weekKey,tierIndex,userPoints){
 // Promotion reward — the crate tier scales with the league you've just
 // reached rather than always paying the same thing, so climbing higher
 // keeps feeling worth it. Reuses the exact bank/currency each crate
-// tier already uses elsewhere (bronzeDropBank, shardBank, etc.) —
+// tier already uses elsewhere (bronzeDropBank, keyBank, etc.) —
 // Areviax is the one exception, opened immediately for free instead of
 // banked, same as its only other source (the daily spin's rarest slot).
 const LEAGUE_PROMOTION_CRATE={
@@ -25151,7 +25150,7 @@ const LEAGUE_PROMOTION_CRATE={
 function grantLeaguePromotionCrate(tier){
   if(tier==='bronze')bronzeDropBank++;
   else if(tier==='silver')silverDropBank++;
-  else if(tier==='gold')shardBank++;
+  else if(tier==='gold')keyBank++;
   else if(tier==='diamond')diamondDropBank++;
   // areviax: not banked — showLeagueResultReveal's Continue button opens it directly.
 }
@@ -25310,7 +25309,6 @@ function saveToStorage(){
     localStorage.setItem('arx_lastPerformance', JSON.stringify(lastPerformance));
     localStorage.setItem('arx_streak', streak);
     localStorage.setItem('arx_xpLog', JSON.stringify(xpLog));
-    localStorage.setItem('arx_shardBank', shardBank);
     localStorage.setItem('arx_streakFreezes', streakFreezes);
     localStorage.setItem('arx_streakSavers', streakSavers);
     localStorage.setItem('arx_bronzeDropBank', bronzeDropBank);
@@ -25462,13 +25460,20 @@ function loadFromStorage(){
     if(lp){lastPerformance=JSON.parse(lp)}
     streak=parseInt(localStorage.getItem('arx_streak')||'0');
     { const xl=localStorage.getItem('arx_xpLog'); if(xl){try{xpLog=JSON.parse(xl);}catch(e){xpLog=[];}} }
-    shardBank=parseInt(localStorage.getItem('arx_shardBank')||'0');
     streakFreezes=parseInt(localStorage.getItem('arx_streakFreezes')||'0');
     streakSavers=parseInt(localStorage.getItem('arx_streakSavers')||'0');
     bronzeDropBank=parseInt(localStorage.getItem('arx_bronzeDropBank')||'0');
     silverDropBank=parseInt(localStorage.getItem('arx_silverDropBank')||'0');
     diamondDropBank=parseInt(localStorage.getItem('arx_diamondDropBank')||'0');
     keyBank=parseInt(localStorage.getItem('arx_keyBank')||'0');
+    // One-time migration: Compass Shards used to be their own currency,
+    // folded into Keys (see the keyBank declaration above) — anyone with
+    // a banked shard balance from before that merge gets it added to
+    // their Keys once, rather than it silently vanishing. arx_shardBank
+    // itself is never read or written again after this.
+    { const legacyShard=parseInt(localStorage.getItem('arx_shardBank')||'0');
+      if(legacyShard>0){keyBank+=legacyShard;}
+      localStorage.removeItem('arx_shardBank'); }
     drachma=parseInt(localStorage.getItem('arx_drachma')||'0');
     { const fe=localStorage.getItem('arx_favoriteExercises'); if(fe){try{favoriteExercises=new Set(JSON.parse(fe));}catch(e){favoriteExercises=new Set();}} }
     exercisePreference=localStorage.getItem('arx_exercisePreference')||'compound';
@@ -25645,7 +25650,7 @@ document.addEventListener('DOMContentLoaded', function(){
       if(k.toLowerCase()==='granttestcrates'&&v.trim()==='1'){_grantHit=true;break;}
     }
     if(_grantHit){
-      bronzeDropBank++;silverDropBank++;shardBank++;diamondDropBank++;
+      bronzeDropBank++;silverDropBank++;keyBank++;diamondDropBank++;
       saveToStorage();
       history.replaceState(null,'',location.pathname+location.hash);
       setTimeout(()=>{try{toast('🎁','Test crates granted — check Areviax Crates','drops');}catch(e){}},800);
