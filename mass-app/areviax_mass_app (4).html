@@ -4673,12 +4673,23 @@ body[data-goal-theme="cut"] .lv-page{
   </div>
 
   <div id="missed-food-banner" class="dash-notif-fixed" style="display:none">
-    <div class="dnf-head">
+    <div class="dnf-head" onclick="showPage('nutrition')" style="cursor:pointer">
       <span class="dnf-icon" style="background:linear-gradient(160deg,#FF9A3D,#F36717)">🍽️</span>
       <div class="dnf-body">
         <div class="dnf-toprow"><span class="dnf-app">Areviax</span><span class="dnf-time">now</span></div>
-        <div class="dnf-msg" id="missed-food-text">You didn't log any food yesterday — consistent logging is what makes your Shield, Arete, and progress tracking actually mean something over months, not just today.</div>
-        <div class="dnf-actions"><span onclick="dismissMissedFoodDay()" style="cursor:pointer;color:var(--muted);font-size:12.5px">Dismiss</span></div>
+        <div class="dnf-msg" id="missed-food-text">Yesterday went unlogged.</div>
+        <div class="dnf-actions"><span onclick="event.stopPropagation();dismissMissedFoodDay()" style="cursor:pointer;color:var(--muted);font-size:12.5px">Dismiss</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="coach-nutrition-banner" class="dash-notif-fixed" style="display:none">
+    <div class="dnf-head" onclick="openCoachNutritionCheckin()" style="cursor:pointer">
+      <img class="dnf-icon" src="images/icons/coach-sam-portrait.png" alt="" style="object-fit:cover;object-position:50% 42%">
+      <div class="dnf-body">
+        <div class="dnf-toprow"><span class="dnf-app">Coach Sam</span><span class="dnf-time">now</span></div>
+        <div class="dnf-msg">Let's talk nutrition.</div>
+        <div class="dnf-actions"><span onclick="event.stopPropagation();dismissCoachNutritionCheckin()" style="cursor:pointer;color:var(--muted);font-size:12.5px">Dismiss</span></div>
       </div>
     </div>
   </div>
@@ -9039,6 +9050,22 @@ let missedFoodDayShownDate='';
 // someone even if they never reopen the app today. Own once-per-day
 // gate, same pattern as Coach Sam's — see checkLowFoodEvening().
 let lowFoodEveningNotifiedDate='';
+// COACH SAM NUTRITION CHECK-IN — a real pattern (3+ no-log or low-log
+// days out of the last 5, see checkCoachNutritionCheckin()), not a single
+// bad day. Deliberately a SHORT teaser banner ("Let's talk nutrition —
+// Coach Sam") rather than the full explanation up front — direct
+// feedback was that notifications run too long; the full message
+// (why logging matters + the actual question) only shows once someone
+// taps in, at the place it leads to, same as every other notification
+// here now. coachNutritionCheckinDismissedAt gates re-showing for 10
+// real days after the LAST time it was shown/dismissed (not per-day like
+// missedFoodDayDismissedDate above) — this is meant to feel like an
+// occasional real check-in, not a daily nag.
+let coachNutritionCheckinDismissedAt=null;
+// Free-text answers to "what's been making it harder to log?" — kept
+// verbatim, newest last, for a person to read back later. Not shown
+// anywhere in-app; this is a private log, not a leaderboard.
+let nutritionFeedbackResponses=[]; // [{date, reason}]
 
 // ── EXERCISES with equipment tags ──
 const EX={
@@ -14830,7 +14857,7 @@ function checkMissedFoodDay(){
   if(missedFoodDayNotifiedDate!==lastMissedFoodDate&&typeof Notification!=='undefined'&&Notification.permission==='granted'){
     missedFoodDayNotifiedDate=lastMissedFoodDate;
     saveToStorage();
-    try{ new Notification('🍽️ Yesterday went unlogged',{body:"Consistent daily logging is what actually makes your Shield, Arete, and progress tracking mean something — it's the pattern over months that moves the needle, not any single day.",icon:'images/icons/favicon.png',tag:'missed-food-day'}); }catch(e){}
+    try{ new Notification('🍽️ Yesterday went unlogged',{body:"Tap to log today and keep your Shield streak alive.",icon:'images/icons/favicon.png',tag:'missed-food-day'}); }catch(e){}
   }
 }
 function dismissMissedFoodDay(){
@@ -16051,7 +16078,7 @@ function renderTodaySessionName(name){
 // last); now only the front of dashNotifQueue is ever shown, and the
 // next one slides in a beat after the current one clears, matching how a
 // real phone surfaces one notification at a time instead of piling them.
-const DASH_NOTIF_IDS=['muscle-balance-banner','streak-risk-banner','streak-repair-banner','sleep-reminder-banner','walk-tip-card','daily-spin-banner','missed-food-banner','weekly-assessment-banner'];
+const DASH_NOTIF_IDS=['muscle-balance-banner','streak-risk-banner','streak-repair-banner','sleep-reminder-banner','walk-tip-card','daily-spin-banner','missed-food-banner','weekly-assessment-banner','coach-nutrition-banner'];
 let _dashNotifArmed=false;
 let dashNotifQueue=[];
 let dashNotifShowing=null;
@@ -16452,6 +16479,7 @@ function initApp(){
   try{checkDailySpinBanner();}catch(e){console.error('checkDailySpinBanner:',e.message);}
   try{checkMuscleBalanceNudge();}catch(e){console.error('checkMuscleBalanceNudge:',e.message);}
   try{checkMissedFoodDay();}catch(e){console.error('checkMissedFoodDay:',e.message);}
+  try{checkCoachNutritionCheckin();}catch(e){console.error('checkCoachNutritionCheckin:',e.message);}
   try{buildTodayPreview();}catch(e){console.error('buildTodayPreview:',e.message);}
   try{renderNutrition();}catch(e){console.error('renderNutrition:',e.message);}
   try{renderRank();}catch(e){console.error('renderRank:',e.message);}
@@ -23383,6 +23411,77 @@ function dismissConsequenceBanner(){
   if(el)el.style.display='none';
 }
 
+// ── COACH SAM NUTRITION CHECK-IN — a real conversation about a real
+// pattern (3+ of the last 5 real days with no food logged at all, or
+// logged under 40% of target), not the streak-and-numbers framing
+// checkNutritionConsequenceWarning() above already covers. Fires from
+// the same day-rollover spot as that function. Gate is 10 real days
+// since it last showed/was dismissed — an occasional check-in, not a
+// daily nag — separate from nutritionWarningShownDate's own daily gate.
+function checkCoachNutritionCheckin(){
+  const banner=document.getElementById('coach-nutrition-banner');
+  if(!banner)return;
+  const today=localDateKey(new Date());
+  if(coachNutritionCheckinDismissedAt){
+    const daysSince=Math.floor((parseLocalDate(today)-parseLocalDate(coachNutritionCheckinDismissedAt))/86400000);
+    if(daysSince<10)return;
+  }
+  const recent=nutritionDayLog.slice(-5);
+  if(recent.length<5)return; // not enough real history yet to call it a pattern
+  const target=profile.cals||0;
+  const badDays=recent.filter(e=>e.cals===0||(target>0&&e.cals<target*0.4)).length;
+  if(badDays<3)return;
+  banner.style.display='';
+}
+function dismissCoachNutritionCheckin(){
+  coachNutritionCheckinDismissedAt=localDateKey(new Date());
+  saveToStorage();
+  const banner=document.getElementById('coach-nutrition-banner');
+  if(banner)banner.style.display='none';
+}
+// The full conversation only exists here, behind the tap — the banner
+// itself just says "Let's talk nutrition." (see the direct ask to keep
+// notifications short and put the real content at wherever they lead).
+function openCoachNutritionCheckin(){
+  dismissCoachNutritionCheckin(); // same "don't re-show for a while" gate whether they engage or just dismiss
+  const overlay=document.createElement('div');
+  overlay.className='achievement-overlay';
+  overlay.innerHTML=
+    '<div class="achievement-modal" style="max-width:360px;text-align:left;max-height:85vh;overflow-y:auto">'+
+      '<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">'+
+        '<img src="images/icons/coach-sam-portrait.png" alt="" style="width:40px;height:40px;border-radius:50%;object-fit:cover;object-position:50% 42%;flex-shrink:0;border:2px solid rgba(227,191,118,.55)">'+
+        '<div style="font-family:var(--lv-display);font-size:1.2rem;color:var(--lv-fg,#F7F5F2)">Coach Sam</div>'+
+      '</div>'+
+      '<div style="font-size:13.5px;line-height:1.6;color:rgba(var(--white-rgb),.88);margin-bottom:12px">You haven\'t been logging much food the last few days. I\'m not here to guilt you about it — just to actually ask why, and see if there\'s something the app should be doing better.</div>'+
+      '<div style="font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--lv-gold,#E3BF76);margin-bottom:6px">Why logging actually matters</div>'+
+      '<ul style="margin:0 0 14px;padding-left:18px;font-size:12.5px;line-height:1.7;color:rgba(var(--white-rgb),.75)">'+
+        '<li>Your calorie/protein targets are only ever as accurate as what you tell them — an unlogged day is a blind day for your whole plan.</li>'+
+        '<li>Your Caloric Shield, Arete, and progress trends all read real logged history, not guesses.</li>'+
+        '<li>Adaptive TDEE re-tunes your targets from real intake — gaps mean it\'s working off less real data.</li>'+
+      '</ul>'+
+      '<div style="font-size:13px;font-weight:700;color:var(--lv-fg,#F7F5F2);margin-bottom:8px">What\'s been making it harder for you to log?</div>'+
+      '<textarea id="coach-nutrition-feedback-text" rows="3" placeholder="Be honest — this just helps me understand, no wrong answer." style="width:100%;box-sizing:border-box;background:rgba(var(--white-rgb),.06);border:1.5px solid var(--border2,rgba(232,214,196,.18));border-radius:10px;padding:10px;font-family:inherit;font-size:13px;color:var(--lv-fg,#F7F5F2);resize:vertical;margin-bottom:14px"></textarea>'+
+      '<button class="achievement-close-btn" onclick="submitCoachNutritionFeedback()" style="margin-bottom:8px">Send</button>'+
+      '<button class="achievement-close-btn" onclick="this.closest(\'.achievement-overlay\').remove()" style="background:transparent;border:1.5px solid var(--border2,rgba(232,214,196,.18));color:var(--muted)">Skip</button>'+
+    '</div>';
+  overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.remove();});
+  document.body.appendChild(overlay);
+  requestAnimationFrame(()=>overlay.classList.add('show'));
+  setTimeout(()=>{const t=document.getElementById('coach-nutrition-feedback-text');if(t)t.focus();},200);
+}
+function submitCoachNutritionFeedback(){
+  const textEl=document.getElementById('coach-nutrition-feedback-text');
+  const reason=(textEl&&textEl.value||'').trim();
+  if(reason){
+    nutritionFeedbackResponses.push({date:localDateKey(new Date()),reason});
+    if(nutritionFeedbackResponses.length>200)nutritionFeedbackResponses=nutritionFeedbackResponses.slice(-200);
+    saveToStorage();
+  }
+  const overlay=textEl&&textEl.closest('.achievement-overlay');
+  if(overlay)overlay.remove();
+  toast('💬',reason?'Thanks — got it.':'No worries, thanks anyway.');
+}
+
 
 function checkNutritionDay(){
   const today=localDateKey(new Date());
@@ -23415,6 +23514,7 @@ function checkNutritionDay(){
     shieldGreatSaveAwardedToday=false;
     shieldNotifStage=0;
     try{checkNutritionConsequenceWarning();}catch(e){console.error('checkNutritionConsequenceWarning:',e.message);}
+    try{checkCoachNutritionCheckin();}catch(e){console.error('checkCoachNutritionCheckin:',e.message);}
   }
 }
 
@@ -25461,6 +25561,8 @@ function saveToStorage(){
     localStorage.setItem('arx_missedFoodDayNotifiedDate', missedFoodDayNotifiedDate);
     localStorage.setItem('arx_missedFoodDayShownDate', missedFoodDayShownDate);
     localStorage.setItem('arx_lowFoodEveningNotifiedDate', lowFoodEveningNotifiedDate);
+    localStorage.setItem('arx_coachNutritionCheckinDismissedAt', coachNutritionCheckinDismissedAt||'');
+    localStorage.setItem('arx_nutritionFeedbackResponses', JSON.stringify(nutritionFeedbackResponses));
     localStorage.setItem('arx_cloudBackupConsent', JSON.stringify(cloudBackupConsent));
   }catch(e){}
   if(cloudBackupConsent===true)autoCloudBackup(); // only ever runs with explicit opt-in
@@ -25658,6 +25760,8 @@ function loadFromStorage(){
     missedFoodDayNotifiedDate=localStorage.getItem('arx_missedFoodDayNotifiedDate')||'';
     missedFoodDayShownDate=localStorage.getItem('arx_missedFoodDayShownDate')||'';
     lowFoodEveningNotifiedDate=localStorage.getItem('arx_lowFoodEveningNotifiedDate')||'';
+    coachNutritionCheckinDismissedAt=localStorage.getItem('arx_coachNutritionCheckinDismissedAt')||null;
+    { const nfr=localStorage.getItem('arx_nutritionFeedbackResponses'); if(nfr){try{nutritionFeedbackResponses=JSON.parse(nfr);}catch(e){nutritionFeedbackResponses=[];}} }
     const cbc=localStorage.getItem('arx_cloudBackupConsent');
     cloudBackupConsent=cbc!==null?JSON.parse(cbc):null;
   }catch(e){}
