@@ -6685,6 +6685,31 @@ body[data-goal-theme="cut"] .lv-page{
   </header>
   <div class="companion"><div class="companion-msg">Training breaks you down. This is where you actually grow.</div></div>
 
+  <!-- READINESS STAT ROW — the page's quick-glance summary, real data only
+       (sleepLog/computeMuscleReadiness/cnsTapLog, same sources the tile
+       previews below already read from — see renderRecoveryPage()). Reuses
+       the exact .lv-hairline-grid pattern Dashboard/Progress already use
+       for their own 3-stat rows rather than inventing a new one. Each cell
+       shows an honest "—" until there's real data to show, same as the
+       rest of this page's empty states. -->
+  <section class="lv-hairline-grid" style="margin-bottom:16px">
+    <div style="display:flex;flex-direction:column;gap:10px;padding:14px 12px">
+      <span class="lv-label-eyebrow">Sleep</span>
+      <div style="display:flex;align-items:baseline;gap:2px"><span class="lv-stat-huge" id="rec-stat-sleep">—</span><span style="font-family:var(--lv-mono);font-size:11px;color:var(--lv-fuel)" id="rec-stat-sleep-suffix"></span></div>
+      <div class="lv-rail-track" style="height:3px"><div class="lv-rail-fill" id="rec-stat-sleep-fill" style="height:100%;background:var(--lv-fuel);width:0%"></div></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;padding:14px 12px">
+      <span class="lv-label-eyebrow">Readiness</span>
+      <div style="display:flex;align-items:baseline;gap:2px"><span class="lv-stat-huge" id="rec-stat-ready">—</span><span style="font-family:var(--lv-mono);font-size:11px;color:var(--lv-primary)" id="rec-stat-ready-suffix"></span></div>
+      <div class="lv-rail-track" style="height:3px"><div class="lv-rail-fill" id="rec-stat-ready-fill" style="background:var(--lv-primary);width:0%"></div></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;padding:14px 12px">
+      <span class="lv-label-eyebrow">CNS Score</span>
+      <div style="display:flex;align-items:baseline;gap:2px"><span class="lv-stat-huge" id="rec-stat-cns">—</span><span style="font-family:var(--lv-mono);font-size:11px;color:var(--lv-xp)" id="rec-stat-cns-suffix"></span></div>
+      <div class="lv-rail-track" style="height:3px"><div class="lv-rail-fill" id="rec-stat-cns-fill" style="background:var(--lv-xp);width:0%"></div></div>
+    </div>
+  </section>
+
   <!-- QUICK CHECK-IN — honesty over guilt. Once per day (guarded in JS) so
        it's a real check-in, not a way to farm Arete by tapping repeatedly.
        Lives here rather than the dashboard, since recovery/self-compassion
@@ -22398,14 +22423,38 @@ function renderWeeklyRecap(){
 }
 function renderRecoveryPage(){
   try{syncLvBadges();}catch(e){}
+  let readyCount=null,readyTotal=null;
   try{
     const heroStat=document.getElementById('recovery-hero-stat');
     if(heroStat){
       const readiness=computeMuscleReadiness().filter(m=>!m.neverTrained);
       if(readiness.length){
-        const readyCount=readiness.filter(m=>m.ready).length;
-        heroStat.textContent=readyCount+' of '+readiness.length+' muscle groups ready to train';
+        readyCount=readiness.filter(m=>m.ready).length;
+        readyTotal=readiness.length;
+        heroStat.textContent=readyCount+' of '+readyTotal+' muscle groups ready to train';
       }
+    }
+  }catch(e){}
+  try{
+    const sleepNum=document.getElementById('rec-stat-sleep'),sleepSuf=document.getElementById('rec-stat-sleep-suffix'),sleepFill=document.getElementById('rec-stat-sleep-fill');
+    if(sleepLog.length){
+      const hrs=sleepLog[sleepLog.length-1].hours;
+      if(sleepNum)sleepNum.textContent=hrs;
+      if(sleepSuf)sleepSuf.textContent='h';
+      if(sleepFill)sleepFill.style.width=Math.min(100,hrs/8*100)+'%';
+    }
+    const readyNum=document.getElementById('rec-stat-ready'),readySuf=document.getElementById('rec-stat-ready-suffix'),readyFill=document.getElementById('rec-stat-ready-fill');
+    if(readyCount!==null){
+      if(readyNum)readyNum.textContent=readyCount;
+      if(readySuf)readySuf.textContent='/'+readyTotal;
+      if(readyFill)readyFill.style.width=(readyCount/readyTotal*100)+'%';
+    }
+    const cnsNum=document.getElementById('rec-stat-cns'),cnsSuf=document.getElementById('rec-stat-cns-suffix'),cnsFill=document.getElementById('rec-stat-cns-fill');
+    if(typeof cnsTapLog!=='undefined'&&cnsTapLog.length){
+      const score=cnsTapLog[cnsTapLog.length-1].score;
+      if(cnsNum)cnsNum.textContent=score;
+      if(cnsSuf)cnsSuf.textContent='%';
+      if(cnsFill)cnsFill.style.width=Math.min(100,score)+'%';
     }
   }catch(e){}
   renderSleepLog();
