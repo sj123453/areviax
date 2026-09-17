@@ -2691,10 +2691,14 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .crate-reveal-stage .crate-xp-slot-sub{font-size:13px;letter-spacing:.16em}
     .crate-reveal-stage .legend-reveal-rarity{font-size:24px}
     .crate-reveal-stage .legend-reveal-rarity.rarity-ultralegendary{font-size:21px}
-    .crate-reveal-stage .reveal-badge-wrap{width:clamp(150px,28vw,240px);margin-bottom:20px}
-    .crate-reveal-stage .legend-reveal-icon,
+    <!-- The reward badge now reads as the actual focal point of the reveal
+         screen — bigger than the mystery-phase disc that precedes it, not
+         just recolored the same size, now that it's not fighting a star
+         clip-path for usable space. -->
+    .crate-reveal-stage .reveal-badge-wrap{width:clamp(190px,36vw,300px);margin-bottom:20px}
     .crate-reveal-stage .legend-mystery-icon{width:clamp(150px,28vw,240px);height:clamp(150px,28vw,240px)}
-    .crate-reveal-stage .legend-reveal-icon img{width:clamp(76px,14vw,120px);height:clamp(76px,14vw,120px)}
+    .crate-reveal-stage .legend-reveal-icon{width:clamp(190px,36vw,300px);height:clamp(190px,36vw,300px)}
+    .crate-reveal-stage .legend-reveal-icon img{width:clamp(150px,28vw,240px);height:clamp(150px,28vw,240px)}
     .crate-reveal-stage .legend-mystery-icon .mystery-q{font-size:clamp(68px,12vw,100px)}
     .crate-reveal-stage .reveal-ray-burst{width:clamp(420px,60vw,620px);height:clamp(420px,60vw,620px)}
     .crate-reveal-stage .achievement-title{font-size:28px}
@@ -2856,8 +2860,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        icons this was originally built against) looked like a broken
        transparent background sweeping across the photo, not a shine. */
     .legend-reveal-icon.shine::after{
-      content:'';position:absolute;inset:0;z-index:2;
-      clip-path:var(--star-clip);
+      content:'';position:absolute;inset:0;z-index:2;border-radius:50%;
       background:linear-gradient(115deg,transparent 35%,rgba(232,214,196,.85) 48%,transparent 60%);
       background-size:260% 260%;background-position:-140% -140%;
       mix-blend-mode:overlay;
@@ -2952,19 +2955,24 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        icon, its sheen overlay above, and the ray-burst mask below all cut
        the identical silhouette without repeating the polygon 3 times. */
     :root{--star-clip:polygon(50.00% 0.00%,59.11% 31.08%,89.09% 18.83%,70.47% 45.33%,98.75% 61.13%,66.42% 63.09%,71.69% 95.05%,50.00% 71.00%,28.31% 95.05%,33.58% 63.09%,1.25% 61.13%,29.53% 45.33%,10.91% 18.83%,40.89% 31.08%)}
+    /* Circle instead of the jagged star clip-path — the star wasted most of
+       its own bounding box on empty spiky points, so the actual reward art
+       inside it read as small and cramped rather than the focal moment of
+       the whole screen. Still visually distinct from the plain grey
+       .legend-mystery-icon disc via its rarity-coloured gradient/glow, so
+       the "this IS the prize" signal the star used to carry now comes from
+       colour instead of shape. */
     .legend-reveal-icon{
-      width:96px;height:96px;position:relative;
-      clip-path:var(--star-clip);
+      width:96px;height:96px;position:relative;border-radius:50%;
       display:flex;align-items:center;justify-content:center;font-size:40px;
       box-shadow:inset 0 0 0 3px rgba(232,214,196,.32),inset 0 -10px 16px rgba(0,0,0,.4),inset 0 7px 11px rgba(232,214,196,.22);
     }
     .legend-reveal-icon::after{
-      content:'';position:absolute;inset:0;
-      clip-path:var(--star-clip);
+      content:'';position:absolute;inset:0;border-radius:50%;
       background:linear-gradient(160deg,rgba(232,214,196,.28),transparent 55%);
       pointer-events:none;
     }
-    .legend-reveal-icon img{width:50px;height:50px;object-fit:contain;position:relative;z-index:1}
+    .legend-reveal-icon img{width:78px;height:78px;object-fit:contain;position:relative;z-index:1}
     /* RAY BURST — the glow-behind-a-clipped-shape rule (see design-dna)
        means this can never live on .legend-reveal-icon itself; it's a
        plain unclipped sibling, painted before the icon in DOM order,
