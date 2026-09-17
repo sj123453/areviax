@@ -5210,41 +5210,50 @@ body[data-goal-theme="cut"] .lv-page{
       <div class="companion-msg" id="session-companion" style="font-size:12.5px;line-height:1.5">Ready when you are. Tap Start when you walk in.</div>
     </div>
   </div>
-  <div class="g2">
-    <div class="card lv-surface" style="text-align:center">
-      <div style="font-size:9px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px">Session Timer</div>
-      <div style="position:relative;width:120px;height:120px;margin:0 auto">
-        <svg width="120" height="120" viewBox="0 0 120 120" style="position:absolute;top:0;left:0;transform:rotate(-90deg)">
-          <circle cx="60" cy="60" r="52" fill="none" stroke="var(--border2)" stroke-width="6"/>
-          <circle cx="60" cy="60" r="52" fill="none" stroke="#F36717" stroke-width="6" stroke-linecap="round" stroke-dasharray="326.7" stroke-dashoffset="326.7" id="burn-meter-ring" style="transition:stroke-dashoffset 1s linear, stroke .4s"/>
-        </svg>
-        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">
-          <div style="font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:500" id="sess-timer">00:00</div>
-        </div>
-      </div>
-      <div style="font-size:10px;color:var(--muted);margin-top:6px" id="burn-meter-label">Optimal hypertrophy window</div>
-      <div style="display:flex;gap:7px;justify-content:center;margin-top:8px">
-        <button class="btn btn-g btn-sm" id="timer-btn" onclick="toggleTimer()">Start</button>
-        <button class="btn btn-ghost btn-sm" onclick="resetTimer()">Reset</button>
-      </div>
-      <div style="margin-top:11px;font-size:10px;color:var(--muted);cursor:pointer;text-decoration:underline;text-underline-offset:2px" onclick="toggleBackfillTimePanel()">Forgot to tap it? Add some time!</div>
-      <div id="backfill-time-panel" style="display:none;gap:5px;justify-content:center;margin-top:8px;flex-wrap:wrap">
-        <button class="btn btn-ghost btn-sm" onclick="addBackfillTime(5)">+5 min</button>
-        <button class="btn btn-ghost btn-sm" onclick="addBackfillTime(10)">+10 min</button>
-        <button class="btn btn-ghost btn-sm" onclick="addBackfillTime(15)">+15 min</button>
-        <button class="btn btn-ghost btn-sm" onclick="addBackfillTime(20)">+20 min</button>
+  <!-- SESSION TIMER — enlarged to be the page's actual hero (matches the reference's
+       "Start Workout/Timer" panel: a big centered ring is the focal element, not a small
+       gauge sharing a 2-col grid with Rest Timer). Ring radius went 52→90 — CIRC in
+       updateBurnMeter() (2*PI*90≈565.5) was updated to match, or the fill animation
+       would read the wrong percentage against the old 326.7 circumference. -->
+  <div class="card lv-surface" style="text-align:center;margin-bottom:14px;padding-top:18px;padding-bottom:16px">
+    <div style="font-size:9px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px">Session Timer</div>
+    <div style="position:relative;width:190px;height:190px;margin:0 auto">
+      <svg width="190" height="190" viewBox="0 0 200 200" style="position:absolute;top:0;left:0;transform:rotate(-90deg)">
+        <defs>
+          <linearGradient id="burn-meter-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="var(--lv-gold,#E6BE6D)"/>
+            <stop offset="100%" stop-color="#F36717"/>
+          </linearGradient>
+        </defs>
+        <circle cx="100" cy="100" r="90" fill="none" stroke="rgba(232,214,196,.15)" stroke-width="9"/>
+        <circle cx="100" cy="100" r="90" fill="none" stroke="url(#burn-meter-gradient)" stroke-width="9" stroke-linecap="round" stroke-dasharray="565.5" stroke-dashoffset="565.5" id="burn-meter-ring" style="transition:stroke-dashoffset 1s linear"/>
+      </svg>
+      <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">
+        <div style="font-family:'JetBrains Mono',monospace;font-size:42px;font-weight:600" id="sess-timer">00:00</div>
       </div>
     </div>
-    <div class="card lv-surface">
-      <div style="font-size:9px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px">Rest Timer</div>
-      <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:6px">
-        <button class="btn btn-ghost btn-sm" onclick="startRest(60)">60s</button>
-        <button class="btn btn-ghost btn-sm" onclick="startRest(90)">90s</button>
-        <button class="btn btn-ghost btn-sm" onclick="startRest(120)">2 min</button>
-        <button class="btn btn-ghost btn-sm" onclick="startRest(180)">3 min</button>
-      </div>
-      <div style="font-size:11px;color:var(--muted);line-height:1.55">Tap after each set. A timer pops up so you can rest properly between sets.</div>
+    <div style="font-size:10px;color:var(--muted);margin-top:8px" id="burn-meter-label">Optimal hypertrophy window</div>
+    <div style="display:flex;gap:7px;justify-content:center;margin-top:10px">
+      <button class="btn btn-g btn-sm" id="timer-btn" onclick="toggleTimer()">Start</button>
+      <button class="btn btn-ghost btn-sm" onclick="resetTimer()">Reset</button>
     </div>
+    <div style="margin-top:9px;font-size:10px;color:var(--muted);cursor:pointer;text-decoration:underline;text-underline-offset:2px" onclick="toggleBackfillTimePanel()">Forgot to tap it? Add some time!</div>
+    <div id="backfill-time-panel" style="display:none;gap:5px;justify-content:center;margin-top:8px;flex-wrap:wrap">
+      <button class="btn btn-ghost btn-sm" onclick="addBackfillTime(5)">+5 min</button>
+      <button class="btn btn-ghost btn-sm" onclick="addBackfillTime(10)">+10 min</button>
+      <button class="btn btn-ghost btn-sm" onclick="addBackfillTime(15)">+15 min</button>
+      <button class="btn btn-ghost btn-sm" onclick="addBackfillTime(20)">+20 min</button>
+    </div>
+  </div>
+  <div class="card lv-surface" style="margin-bottom:14px">
+    <div style="font-size:9px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px">Rest Timer</div>
+    <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:6px">
+      <button class="btn btn-ghost btn-sm" onclick="startRest(60)">60s</button>
+      <button class="btn btn-ghost btn-sm" onclick="startRest(90)">90s</button>
+      <button class="btn btn-ghost btn-sm" onclick="startRest(120)">2 min</button>
+      <button class="btn btn-ghost btn-sm" onclick="startRest(180)">3 min</button>
+    </div>
+    <div style="font-size:11px;color:var(--muted);line-height:1.55">Tap after each set. A timer pops up so you can rest properly between sets.</div>
   </div>
   <div class="card lv-surface" style="margin-bottom:16px">
     <div class="ch"><span class="ct" style="display:flex;align-items:center;gap:7px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0118 0v6"/><path d="M21 19a2 2 0 01-2 2h-1v-8h3zM3 19a2 2 0 002 2h1v-8H3z"/></svg>Focus sounds</span></div>
@@ -18884,7 +18893,7 @@ function updateBurnMeter(secs){
   const ring=document.getElementById('burn-meter-ring');
   const label=document.getElementById('burn-meter-label');
   if(!ring)return;
-  const CIRC=326.7;
+  const CIRC=565.5; // 2*PI*90 — matches the enlarged ring's r=90 in the Session page markup
   const mins=secs/60;
   const pct=Math.min(1,mins/60); // fills over the first 60 minutes, then stays full/red
   ring.style.strokeDashoffset=CIRC-CIRC*pct;
