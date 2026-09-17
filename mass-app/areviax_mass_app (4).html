@@ -2393,37 +2393,29 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        written for. */
     body.overlay-open .crate-icon-wrap.ready .crate-icon-glow,
     body.overlay-open .crate-icon-wrap.ready .crate-icon-burst{animation-play-state:paused}
-    /* Same Clash-Royale-chest rarity burst as .legend-card-icon-burst,
-       adapted to crates: rays reuse the crate's own --crate-glow-color
-       (already an rgba value, valid straight in a conic-gradient), and
-       centering follows .crate-wreath's top:50%/translateY(-50%) trick
-       since .crate-icon-wrap shrink-wraps to .compass-crate alone —
-       reliable across all three sizes crates render at (row/default/
-       info-modal) without per-context offsets. Only shown once a crate
-       is actually ready to open, matching the existing glow-pulse gate,
-       so a locked/cooling-down crate stays comparatively quiet. */
+    /* A soft ring of small laurel/compass marks (the app's own emblem)
+       behind a ready-to-open crate, instead of the spinning light-ray
+       burst this used to be — the rays read as a generic "shine" effect
+       stuck flat inside its own circular mask rather than actual light,
+       which looked cheap in a static screenshot. A tiled icon pattern
+       reads as ornament, not a lighting glitch, and doesn't need to spin
+       to feel alive. Centering: same top:50%/left:50% + static translate
+       trick as .crate-wreath — this is 96px, wider than every context it
+       renders in (row/default/info-modal/reveal-stage), so a plain
+       left:50% alone would pin it flush-left instead of centered. */
     .crate-icon-burst{
-      /* Same left:0;right:0;margin:0 auto centering bug as .crate-wreath
-         above (see its comment) — this is 96px, wider than every context
-         it renders in, so it was pinned flush-left rather than centered.
-         left:50% here isn't enough on its own, either — like
-         .legend-card-icon-burst, the translate that centers it has to
-         live inside crateBurstSpin's own keyframes below. A CSS animation
-         targeting `transform` replaces the property's value outright for
-         as long as it runs; it does not compose with a separate static
-         transform declaration on the same rule, so a rotate-only keyframe
-         silently drops any translate written here instead. */
       position:absolute;top:50%;left:50%;
       width:96px;height:96px;pointer-events:none;opacity:0;z-index:0;
-      background:repeating-conic-gradient(from 0deg,var(--crate-glow-color,transparent) 0deg 3deg,transparent 3deg 30deg);
+      transform:translate(-50%,-50%);
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'%3E%3Cpath d='M24 5 26.6 21.4 43 24 26.6 26.6 24 43 21.4 26.6 5 24 21.4 21.4Z' fill='white'/%3E%3C/svg%3E");
+      background-repeat:repeat;background-size:34px 34px;
       -webkit-mask-image:radial-gradient(circle,transparent 30%,#000 48%,#000 74%,transparent 100%);
       mask-image:radial-gradient(circle,transparent 30%,#000 48%,#000 74%,transparent 100%);
-      animation:crateBurstSpin 13s linear infinite;
       transition:opacity .25s;
     }
     .crate-icon-wrap.gold.ready .crate-icon-burst{opacity:.3}
     .crate-icon-wrap.diamond.ready .crate-icon-burst{opacity:.38}
-    .crate-icon-wrap.areviax.ready .crate-icon-burst{opacity:.5;animation-duration:9s}
+    .crate-icon-wrap.areviax.ready .crate-icon-burst{opacity:.5}
     @keyframes crateBurstSpin{from{transform:translate(-50%,-50%) rotate(0deg)}to{transform:translate(-50%,-50%) rotate(360deg)}}
     /* Same crown/wreath ornament language as the Trophy Cabinet's rarity
        ladder (see .legend-card-crown/.legend-card-wreath) — the crates
