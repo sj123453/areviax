@@ -1433,6 +1433,18 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       }
       .hamburger,.sb-toggle{display:none!important}
       #main-app{flex-direction:column!important}
+      /* BOTTOM-SHEET / CENTERED MODALS vs. the bottom nav — both are
+         position:fixed with a high z-index, but #mobile-nav still ends
+         up painting on top of them in practice (they don't share its
+         stacking context, confirmed by direct measurement — a sheet at
+         bottom:0 and an inset:16px modal's lower content both landed
+         visually underneath the real device's nav bar despite the
+         modal's higher z-index on paper). Rather than chase the actual
+         stacking context, just keep these out of the nav bar's own
+         60px + safe-area band entirely on mobile widths — same measure
+         .content already pads by above. */
+      .bottom-sheet-modal{bottom:calc(60px + env(safe-area-inset-bottom,0px))!important}
+      .inset-modal{bottom:calc(16px + 60px + env(safe-area-inset-bottom,0px))!important}
     }
     /* ── INTRO SCREEN ── */
     #intro{
@@ -6053,7 +6065,7 @@ body[data-goal-theme="cut"] .lv-page{
      exercise How-To modal, reusing that visual language rather than
      inventing a third modal style. -->
 <div id="recipe-detail-backdrop" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9998" onclick="closeRecipeDetail()"></div>
-<div id="recipe-detail-modal" style="display:none;position:fixed;inset:16px;background:var(--panel);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid var(--border);border-radius:18px;z-index:9999;overflow-y:auto;max-width:480px;margin:0 auto;box-shadow:0 30px 80px -20px rgba(0,0,0,.7)">
+<div id="recipe-detail-modal" class="inset-modal" style="display:none;position:fixed;inset:16px;background:var(--panel);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid var(--border);border-radius:18px;z-index:9999;overflow-y:auto;max-width:480px;margin:0 auto;box-shadow:0 30px 80px -20px rgba(0,0,0,.7)">
   <div style="padding:22px">
     <div style="display:flex;justify-content:flex-end"><span onclick="closeRecipeDetail()" style="cursor:pointer;color:var(--muted);font-size:20px;line-height:1">✕</span></div>
     <div id="recipe-detail-placeholder" class="recipe-card-visual" style="height:140px;border-radius:12px;margin-bottom:16px"></div>
@@ -6080,7 +6092,7 @@ body[data-goal-theme="cut"] .lv-page{
      backend to upload to), reuses the exact RECIPES_DB shape so it
      renders/logs through every existing recipe code path unchanged. -->
 <div id="add-recipe-backdrop" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9998" onclick="closeAddRecipeForm()"></div>
-<div id="add-recipe-modal" style="display:none;position:fixed;inset:16px;background:var(--panel);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid var(--border);border-radius:18px;z-index:9999;overflow-y:auto;max-width:480px;margin:0 auto;box-shadow:0 30px 80px -20px rgba(0,0,0,.7)">
+<div id="add-recipe-modal" class="inset-modal" style="display:none;position:fixed;inset:16px;background:var(--panel);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid var(--border);border-radius:18px;z-index:9999;overflow-y:auto;max-width:480px;margin:0 auto;box-shadow:0 30px 80px -20px rgba(0,0,0,.7)">
   <div style="padding:22px">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
       <div style="font-size:17px;font-weight:900;color:var(--white)">Add Your Own</div>
@@ -6122,7 +6134,7 @@ body[data-goal-theme="cut"] .lv-page{
      than only existing as an FAQ answer nobody finds. See
      openScanChooser()/closeScanChooser(). -->
 <div id="scan-chooser-backdrop" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9998" onclick="closeScanChooser()"></div>
-<div id="scan-chooser-modal" style="display:none;position:fixed;bottom:0;left:0;right:0;background:var(--panel);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-top:1px solid var(--border);border-radius:16px 16px 0 0;padding:22px 22px calc(22px + env(safe-area-inset-bottom,0px));z-index:9999;max-width:480px;margin:0 auto;box-shadow:0 -20px 50px -20px rgba(0,0,0,.6);max-height:80vh;overflow-y:auto">
+<div id="scan-chooser-modal" class="bottom-sheet-modal" style="display:none;position:fixed;bottom:0;left:0;right:0;background:var(--panel);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-top:1px solid var(--border);border-radius:16px 16px 0 0;padding:22px 22px calc(22px + env(safe-area-inset-bottom,0px));z-index:9999;max-width:480px;margin:0 auto;box-shadow:0 -20px 50px -20px rgba(0,0,0,.6);max-height:80vh;overflow-y:auto">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
     <div style="font-weight:800;font-size:15px;color:var(--white)">Scan</div>
     <span onclick="closeScanChooser()" style="cursor:pointer;color:var(--muted);font-size:20px;line-height:1">✕</span>
@@ -6151,7 +6163,7 @@ body[data-goal-theme="cut"] .lv-page{
      what it'll do once it ships and points at the real barcode scan as
      today's working alternative. -->
 <div id="foodscan-info-backdrop" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9998" onclick="closeFoodScanInfo()"></div>
-<div id="foodscan-info-modal" style="display:none;position:fixed;bottom:0;left:0;right:0;background:var(--panel);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-top:1px solid var(--border);border-radius:16px 16px 0 0;padding:22px 22px calc(22px + env(safe-area-inset-bottom,0px));z-index:9999;max-width:480px;margin:0 auto;box-shadow:0 -20px 50px -20px rgba(0,0,0,.6);max-height:80vh;overflow-y:auto">
+<div id="foodscan-info-modal" class="bottom-sheet-modal" style="display:none;position:fixed;bottom:0;left:0;right:0;background:var(--panel);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-top:1px solid var(--border);border-radius:16px 16px 0 0;padding:22px 22px calc(22px + env(safe-area-inset-bottom,0px));z-index:9999;max-width:480px;margin:0 auto;box-shadow:0 -20px 50px -20px rgba(0,0,0,.6);max-height:80vh;overflow-y:auto">
   <div style="font-size:28px;margin-bottom:10px">📷</div>
   <div style="font-weight:800;font-size:15px;color:var(--white);margin-bottom:6px">Scan food is on the way</div>
   <div style="font-size:12.5px;color:var(--muted);line-height:1.6;margin-bottom:16px">Snap a photo of a meal and get calories + macros back automatically — no barcode needed. It's a planned Premium feature and genuinely in development, but the AI layer isn't wired up in this build yet, so there's nothing to show you right now rather than a fake result.</div>
@@ -6171,7 +6183,7 @@ body[data-goal-theme="cut"] .lv-page{
      honest unsupported state rather than silently failing, with manual
      search as the always-available fallback. See openBarcodeScan(). -->
 <div id="barcode-backdrop" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:9998" onclick="closeBarcodeScan()"></div>
-<div id="barcode-modal" style="display:none;position:fixed;inset:16px;background:var(--panel);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid var(--border);border-radius:18px;z-index:9999;overflow-y:auto;max-width:480px;margin:0 auto;box-shadow:0 30px 80px -20px rgba(0,0,0,.7)">
+<div id="barcode-modal" class="inset-modal" style="display:none;position:fixed;inset:16px;background:var(--panel);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid var(--border);border-radius:18px;z-index:9999;overflow-y:auto;max-width:480px;margin:0 auto;box-shadow:0 30px 80px -20px rgba(0,0,0,.7)">
   <div style="padding:22px">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
       <div style="font-size:17px;font-weight:900;color:var(--white)">Scan barcode</div>
@@ -8437,7 +8449,7 @@ body[data-goal-theme="cut"] .lv-page{
      interfere with position:fixed. -->
 <!-- CUSTOM EQUIPMENT CHECKLIST MODAL -->
 <div id="custom-equip-modal-backdrop" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9998" onclick="closeCustomEquipChecklist()"></div>
-<div id="custom-equip-modal" style="display:none;position:fixed;bottom:0;left:0;right:0;background:var(--panel);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-top:1px solid var(--border);border-radius:16px 16px 0 0;padding:22px;z-index:9999;max-width:480px;margin:0 auto;box-shadow:0 -20px 50px -20px rgba(0,0,0,.6);max-height:80vh;overflow-y:auto">
+<div id="custom-equip-modal" class="bottom-sheet-modal" style="display:none;position:fixed;bottom:0;left:0;right:0;background:var(--panel);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-top:1px solid var(--border);border-radius:16px 16px 0 0;padding:22px;z-index:9999;max-width:480px;margin:0 auto;box-shadow:0 -20px 50px -20px rgba(0,0,0,.6);max-height:80vh;overflow-y:auto">
   <div style="font-weight:800;font-size:14px;margin-bottom:4px">What do you actually have?</div>
   <div style="font-size:12px;color:var(--muted);margin-bottom:6px">Tick everything available to you — most gyms and home setups have some of this but not all of it.</div>
   <div id="custom-equip-list"></div>
@@ -8447,7 +8459,7 @@ body[data-goal-theme="cut"] .lv-page{
 
 <!-- RESCHEDULE MODAL -->
 <div id="reschedule-modal-backdrop" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9998" onclick="closeReschedule()"></div>
-<div id="reschedule-modal" style="display:none;position:fixed;bottom:0;left:0;right:0;background:var(--panel);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-top:1px solid var(--border);border-radius:16px 16px 0 0;padding:22px;z-index:9999;max-width:480px;margin:0 auto;box-shadow:0 -20px 50px -20px rgba(0,0,0,.6)">
+<div id="reschedule-modal" class="bottom-sheet-modal" style="display:none;position:fixed;bottom:0;left:0;right:0;background:var(--panel);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-top:1px solid var(--border);border-radius:16px 16px 0 0;padding:22px;z-index:9999;max-width:480px;margin:0 auto;box-shadow:0 -20px 50px -20px rgba(0,0,0,.6)">
   <div style="font-weight:800;font-size:14px;margin-bottom:4px" id="resched-title">Missed a day</div>
   <div style="font-size:12px;color:var(--muted);margin-bottom:14px" id="resched-sub"></div>
   <div id="resched-options" style="display:flex;flex-direction:column;gap:8px"></div>
@@ -8460,7 +8472,7 @@ body[data-goal-theme="cut"] .lv-page{
      same maxExForTime option set as Workout Builder and the week-level
      picker, just scoped to one day's exercise list instead of all of them. -->
 <div id="daylen-modal-backdrop" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9998" onclick="closeDayLength()"></div>
-<div id="daylen-modal" style="display:none;position:fixed;bottom:0;left:0;right:0;background:var(--panel);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-top:1px solid var(--border);border-radius:16px 16px 0 0;padding:22px;z-index:9999;max-width:480px;margin:0 auto;box-shadow:0 -20px 50px -20px rgba(0,0,0,.6)">
+<div id="daylen-modal" class="bottom-sheet-modal" style="display:none;position:fixed;bottom:0;left:0;right:0;background:var(--panel);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-top:1px solid var(--border);border-radius:16px 16px 0 0;padding:22px;z-index:9999;max-width:480px;margin:0 auto;box-shadow:0 -20px 50px -20px rgba(0,0,0,.6)">
   <div style="font-weight:800;font-size:14px;margin-bottom:4px" id="daylen-title">How long today?</div>
   <div style="font-size:12px;color:var(--muted);margin-bottom:14px">Just for this day — your other days keep their own length.</div>
   <div id="daylen-options" style="display:flex;flex-direction:column;gap:8px"></div>
@@ -8469,7 +8481,7 @@ body[data-goal-theme="cut"] .lv-page{
 
 <!-- INJURY CONFLICT MODAL -->
 <div id="injury-confirm-backdrop" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9998" onclick="closeInjuryConfirm()"></div>
-<div id="injury-confirm-modal" style="display:none;position:fixed;bottom:0;left:0;right:0;background:var(--panel);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-top:1px solid rgba(255,122,46,.3);border-radius:16px 16px 0 0;padding:22px;z-index:9999;max-width:480px;margin:0 auto;box-shadow:0 -20px 50px -20px rgba(0,0,0,.6)">
+<div id="injury-confirm-modal" class="bottom-sheet-modal" style="display:none;position:fixed;bottom:0;left:0;right:0;background:var(--panel);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-top:1px solid rgba(255,122,46,.3);border-radius:16px 16px 0 0;padding:22px;z-index:9999;max-width:480px;margin:0 auto;box-shadow:0 -20px 50px -20px rgba(0,0,0,.6)">
   <div style="font-weight:800;font-size:14px;margin-bottom:6px;color:#FF8342">⚠ Might aggravate an injury</div>
   <div style="font-size:12px;color:var(--muted);margin-bottom:16px;line-height:1.6" id="injury-confirm-text"></div>
   <div style="display:flex;flex-direction:column;gap:8px">
@@ -8481,7 +8493,7 @@ body[data-goal-theme="cut"] .lv-page{
 
 <!-- WEIGHT ANOMALY CONFIRM MODAL -->
 <div id="weight-confirm-backdrop" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9998" onclick="cancelWeightLog()"></div>
-<div id="weight-confirm-modal" style="display:none;position:fixed;bottom:0;left:0;right:0;background:var(--panel);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-top:1px solid rgba(255,122,46,.3);border-radius:16px 16px 0 0;padding:22px;z-index:9999;max-width:480px;margin:0 auto;box-shadow:0 -20px 50px -20px rgba(0,0,0,.6)">
+<div id="weight-confirm-modal" class="bottom-sheet-modal" style="display:none;position:fixed;bottom:0;left:0;right:0;background:var(--panel);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-top:1px solid rgba(255,122,46,.3);border-radius:16px 16px 0 0;padding:22px;z-index:9999;max-width:480px;margin:0 auto;box-shadow:0 -20px 50px -20px rgba(0,0,0,.6)">
   <div style="font-weight:800;font-size:14px;margin-bottom:6px;color:#FF8342">⚠ That's a big jump</div>
   <div style="font-size:12px;color:var(--muted);margin-bottom:16px;line-height:1.6" id="weight-confirm-text"></div>
   <div style="display:flex;flex-direction:column;gap:8px">
@@ -8492,13 +8504,13 @@ body[data-goal-theme="cut"] .lv-page{
 
 <!-- HOW-TO-DO-IT MODAL — step-by-step tap-through (setup / motion / feel) -->
 <div id="howto-backdrop" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9998" onclick="closeHowTo()"></div>
-<div id="howto-modal" style="display:none;position:fixed;bottom:0;left:0;right:0;background:var(--panel);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-top:1px solid var(--border);border-radius:16px 16px 0 0;padding:22px;z-index:9999;max-width:480px;margin:0 auto;box-shadow:0 -20px 50px -20px rgba(0,0,0,.6);max-height:82vh;overflow-y:auto">
+<div id="howto-modal" class="bottom-sheet-modal" style="display:none;position:fixed;bottom:0;left:0;right:0;background:var(--panel);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-top:1px solid var(--border);border-radius:16px 16px 0 0;padding:22px;z-index:9999;max-width:480px;margin:0 auto;box-shadow:0 -20px 50px -20px rgba(0,0,0,.6);max-height:82vh;overflow-y:auto">
   <div id="howto-body"></div>
 </div>
 
 <!-- WATCH MODAL — full-size animated exercise walkthrough -->
 <div id="watch-backdrop" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9998" onclick="closeWatch()"></div>
-<div id="watch-modal" style="display:none;position:fixed;inset:16px;z-index:9999;max-width:480px;margin:0 auto;background:var(--panel);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1.5px solid var(--border);border-radius:16px;box-shadow:0 20px 60px -20px rgba(0,0,0,.7);flex-direction:column;overflow:hidden">
+<div id="watch-modal" class="inset-modal" style="display:none;position:fixed;inset:16px;z-index:9999;max-width:480px;margin:0 auto;background:var(--panel);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1.5px solid var(--border);border-radius:16px;box-shadow:0 20px 60px -20px rgba(0,0,0,.7);flex-direction:column;overflow:hidden">
   <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1.5px solid var(--border2);flex-shrink:0">
     <div id="watch-title" style="font-weight:800;font-size:14px"></div>
     <button onclick="closeWatch()" style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;line-height:1;padding:4px 8px">✕</button>
@@ -8512,7 +8524,7 @@ body[data-goal-theme="cut"] .lv-page{
      the exact same data the small dashboard tile already shows, just with
      room to actually see the pattern instead of a single number. ── -->
 <div id="streak-detail-backdrop" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9998" onclick="closeStreakDetail()"></div>
-<div id="streak-detail-modal" style="display:none;position:fixed;inset:16px;z-index:9999;max-width:480px;margin:0 auto;background:var(--panel);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1.5px solid var(--border);border-radius:16px;box-shadow:0 20px 60px -20px rgba(0,0,0,.7);flex-direction:column;overflow:hidden">
+<div id="streak-detail-modal" class="inset-modal" style="display:none;position:fixed;inset:16px;z-index:9999;max-width:480px;margin:0 auto;background:var(--panel);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1.5px solid var(--border);border-radius:16px;box-shadow:0 20px 60px -20px rgba(0,0,0,.7);flex-direction:column;overflow:hidden">
   <div style="display:flex;align-items:center;justify-content:flex-end;padding:12px 12px 0;flex-shrink:0">
     <button onclick="closeStreakDetail()" style="background:var(--border2);border:none;color:var(--muted);font-size:16px;cursor:pointer;line-height:1;padding:6px 10px;border-radius:50%">✕</button>
   </div>
@@ -8549,7 +8561,7 @@ body[data-goal-theme="cut"] .lv-page{
      equivalents, with a progress bar toward the next one and a scrollable
      list of everything already cleared. ── -->
 <div id="milestones-backdrop" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9998" onclick="closeMilestones()"></div>
-<div id="milestones-modal" style="display:none;position:fixed;inset:16px;z-index:9999;max-width:480px;margin:0 auto;background:var(--panel);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1.5px solid var(--border);border-radius:16px;box-shadow:0 20px 60px -20px rgba(0,0,0,.7);flex-direction:column;overflow:hidden">
+<div id="milestones-modal" class="inset-modal" style="display:none;position:fixed;inset:16px;z-index:9999;max-width:480px;margin:0 auto;background:var(--panel);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1.5px solid var(--border);border-radius:16px;box-shadow:0 20px 60px -20px rgba(0,0,0,.7);flex-direction:column;overflow:hidden">
   <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1.5px solid var(--border2);flex-shrink:0">
     <div style="font-weight:800;font-size:14px">Lifting Milestones</div>
     <button onclick="closeMilestones()" style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;line-height:1;padding:4px 8px">✕</button>
@@ -8567,7 +8579,7 @@ body[data-goal-theme="cut"] .lv-page{
      a bare percentile, so a rank badge means something the moment
      someone taps it, not just "you're in the top X%". -->
 <div id="rank-tiers-backdrop" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9998" onclick="closeRankTiers()"></div>
-<div id="rank-tiers-modal" style="display:none;position:fixed;inset:16px;z-index:9999;max-width:480px;margin:0 auto;background:var(--panel);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1.5px solid var(--border);border-radius:16px;box-shadow:0 20px 60px -20px rgba(0,0,0,.7);flex-direction:column;overflow:hidden">
+<div id="rank-tiers-modal" class="inset-modal" style="display:none;position:fixed;inset:16px;z-index:9999;max-width:480px;margin:0 auto;background:var(--panel);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1.5px solid var(--border);border-radius:16px;box-shadow:0 20px 60px -20px rgba(0,0,0,.7);flex-direction:column;overflow:hidden">
   <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1.5px solid var(--border2);flex-shrink:0">
     <div style="font-weight:800;font-size:14px">Rank Tiers</div>
     <button onclick="closeRankTiers()" style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;line-height:1;padding:4px 8px">✕</button>
