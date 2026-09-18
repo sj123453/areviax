@@ -21612,8 +21612,11 @@ function renderAssessmentBanner(){
   if(!banner)return;
   const hasNewAssessment=assessmentText&&!assessmentViewed&&assessmentBannerDismissedWeek!==assessmentWeekStart;
   if(hasNewAssessment){
+    // Short teaser only — the real multi-sentence assessment shows in full
+    // where this leads (viewAssessment()'s modal), same pattern as the
+    // missed-food and Coach Sam banners.
     const textEl=document.getElementById('weekly-assessment-text');
-    if(textEl)textEl.textContent=assessmentText;
+    if(textEl)textEl.textContent='Your week, reviewed — tap to read it.';
     banner.style.display='flex';
   }else{
     banner.style.display='none';
