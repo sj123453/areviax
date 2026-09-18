@@ -3420,6 +3420,27 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .xp-node.next .xp-node-hex-glow{opacity:1;animation:xpNextGlowPulse 2.2s ease-in-out infinite}
     @keyframes xpNextGlowPulse{0%,100%{opacity:.4;transform:scale(.9)}50%{opacity:.9;transform:scale(1.1)}}
     @media(prefers-reduced-motion:reduce){.xp-node.next .xp-node-hex-glow{animation:none!important;opacity:.65}}
+    /* READY — xp threshold already crossed but not yet manually claimed
+       (see claimXpRoadReward). Distinct gold pulse + a "!" badge instead
+       of next's orange glow/checkmark, and genuinely tappable — this is
+       the reward waiting to be opened, not just the upcoming one. */
+    .xp-node.ready{cursor:pointer}
+    .xp-node.ready .xp-node-hex{
+      filter:none;font-size:34px;background:linear-gradient(160deg,#FFE9A8,#FFB020);
+      --road-ring:rgba(255,193,7,.75);--road-ring-light:rgba(255,235,180,.95);
+    }
+    .xp-node.ready .xp-node-hex-glow{opacity:1;background:radial-gradient(circle,rgba(255,193,7,.6),transparent 70%);animation:xpReadyGlowPulse 1.1s ease-in-out infinite}
+    @keyframes xpReadyGlowPulse{0%,100%{opacity:.55;transform:scale(.92)}50%{opacity:1;transform:scale(1.14)}}
+    @media(prefers-reduced-motion:reduce){.xp-node.ready .xp-node-hex-glow{animation:none!important;opacity:.75}}
+    .xp-node-claim-badge{
+      position:absolute;top:-6px;right:-6px;min-width:24px;height:24px;padding:0 6px;border-radius:12px;
+      background:#FFB020;border:2.5px solid #0D0806;z-index:3;
+      display:flex;align-items:center;justify-content:center;
+      font-size:10px;font-weight:800;color:#1A1204;letter-spacing:.02em;
+      box-shadow:0 2px 6px rgba(0,0,0,.45);
+    }
+    .xp-node.ready .xp-node-xp{color:#1A1204;border-color:rgba(255,193,7,.5);background:#FFE9A8}
+    .xp-node.ready .xp-node-desc{color:rgba(255,225,150,.95);font-weight:700}
     .road-scenery.theme-trophy .xp-node-hex-glow{background:radial-gradient(circle,rgba(255,200,90,.55),transparent 70%)}
     .road-scenery.theme-iron .xp-node-hex-glow{background:radial-gradient(circle,rgba(90,170,255,.55),transparent 70%)}
     .xp-node-check{
@@ -10982,28 +11003,33 @@ function checkLabors(){
 // checkpoints. Mechanics/rewards/thresholds untouched — this only adds a
 // `name` (and a one-line `myth` note for the road-path body) per node.
 const XP_ROAD=[
-  {xp:50,    type:'bronze', amount:1, name:"Leaving Troy",        myth:"Ten years of war are over. The real journey — the hard part — is only just beginning."},
-  {xp:150,   type:'key',    amount:1, name:"The Cicones",         myth:"A raid that should've ended clean turns costly the moment the crew lingers too long."},
-  {xp:300,   type:'bronze', amount:1, name:"Land of the Lotus-Eaters",myth:"A fruit that makes you forget why you ever wanted to go home."},
-  {xp:500,   type:'key',    amount:1, name:"The Cyclops's Cave",  myth:"Trapped with Polyphemus. Cleverness, not strength, is what gets the crew out alive."},
-  {xp:750,   type:'bronze', amount:2, name:"Aeolia, Isle of Winds",myth:"Given every favorable wind sealed in a bag — and the crew opens it anyway."},
-  {xp:1000,  type:'legend', rarity:'rare', name:"The Laestrygonians", myth:"A harbor that looks safe until it very suddenly isn't."},
-  {xp:1500,  type:'key',    amount:2, name:"Circe's Island",      myth:"A year spent under a sorceress's spell before anyone remembers there's still a voyage to finish."},
-  {xp:2200,  type:'bronze', amount:3, name:"Descent to the Underworld",myth:"Going all the way down to ask the dead how to keep going."},
-  {xp:3000,  type:'key',    amount:1, extra:{type:'bronze',amount:1}, name:"The Sirens' Song", myth:"Lashed to the mast on purpose, because some temptations you only survive by planning ahead."},
-  {xp:4000,  type:'legend', rarity:'legendary', name:"Scylla and Charybdis", myth:"Two disasters, one narrow strait. There was never a version of this with no cost at all."},
-  {xp:5000,  type:'silver', amount:1, name:"The Cattle of the Sun",myth:"One rule, impossible to keep: leave Helios's herd alone. Discipline is the whole test."},
-  {xp:6500,  type:'key',    amount:3, name:"The Wrath of Poseidon",myth:"The sea god never forgets. The storm that follows isn't punishment — it's just what's owed."},
-  {xp:8000,  type:'legend', rarity:'mythic', name:"Calypso's Ogygia", myth:"Seven years on an island paradise, wanting nothing more than to leave it."},
-  {xp:10000, type:'silver', amount:2, name:"Built the Raft",       myth:"Finally moving again, alone, on a raft built with his own hands."},
-  {xp:12500, type:'diamond',amount:1, name:"Shipwrecked at Scheria",myth:"Washed up with nothing left but the will to keep going."},
-  {xp:15000, type:'legend', rarity:'legendary', name:"The Phaeacians' Court",myth:"Telling the whole story out loud, for the first time, to people who actually listen."},
-  {xp:18000, type:'diamond',amount:2, name:"Home Shores of Ithaca",myth:"Land, finally — but the hardest part of coming home was never the sea."},
-  {xp:22000, type:'key',    amount:5, extra:{type:'silver',amount:1}, name:"The Beggar at the Door", myth:"Unrecognized in his own home, watching, before making a single move."},
-  {xp:27000, type:'legend', rarity:'mythic', name:"The Trial of the Bow", myth:"One shot only he could make. Proof, not just a claim."},
-  {xp:35000, type:'diamond',amount:3, name:"Reunited",            myth:"Twenty years. The whole point of the journey was never the journey — it was this."},
+  {xp:50,    type:'bronze', amount:1, name:"Leaving Troy",        myth:"Ten years of war are over. The real journey — the hard part — is only just beginning.", subtitle:"the beginning of your journey"},
+  {xp:150,   type:'key',    amount:1, name:"The Cicones",         myth:"A raid that should've ended clean turns costly the moment the crew lingers too long.", subtitle:"when overconfidence costs you something"},
+  {xp:300,   type:'bronze', amount:1, name:"Land of the Lotus-Eaters",myth:"A fruit that makes you forget why you ever wanted to go home.", subtitle:"when it's easy to forget why you started"},
+  {xp:500,   type:'key',    amount:1, name:"The Cyclops's Cave",  myth:"Trapped with Polyphemus. Cleverness, not strength, is what gets the crew out alive.", subtitle:"getting through the hardest moment so far with your head, not just effort"},
+  {xp:750,   type:'silver', amount:1, name:"Aeolia, Isle of Winds",myth:"Given every favorable wind sealed in a bag — and the crew opens it anyway.", subtitle:"the setback that was almost avoidable"},
+  {xp:1000,  type:'legend', rarity:'rare', name:"The Laestrygonians", myth:"A harbor that looks safe until it very suddenly isn't.", subtitle:"the day that looked fine until it wasn't"},
+  {xp:1500,  type:'key',    amount:2, name:"Circe's Island",      myth:"A year spent under a sorceress's spell before anyone remembers there's still a voyage to finish.", subtitle:"the plateau you didn't notice you were stuck in"},
+  {xp:2200,  type:'silver', amount:1, name:"Descent to the Underworld",myth:"Going all the way down to ask the dead how to keep going.", subtitle:"asking for real help instead of guessing alone"},
+  {xp:3000,  type:'key',    amount:1, extra:{type:'bronze',amount:1}, name:"The Sirens' Song", myth:"Lashed to the mast on purpose, because some temptations you only survive by planning ahead.", subtitle:"planning ahead for the moment you'd otherwise give in"},
+  {xp:4000,  type:'legend', rarity:'legendary', name:"Scylla and Charybdis", myth:"Two disasters, one narrow strait. There was never a version of this with no cost at all.", subtitle:"choosing the lesser cost, because there was no free option"},
+  {xp:5000,  type:'silver', amount:1, name:"The Cattle of the Sun",myth:"One rule, impossible to keep: leave Helios's herd alone. Discipline is the whole test.", subtitle:"the discipline test — one rule, no exceptions"},
+  {xp:6500,  type:'key',    amount:3, name:"The Wrath of Poseidon",myth:"The sea god never forgets. The storm that follows isn't punishment — it's just what's owed.", subtitle:"paying for a mistake you thought you'd gotten away with"},
+  {xp:8000,  type:'legend', rarity:'mythic', name:"Calypso's Ogygia", myth:"Seven years on an island paradise, wanting nothing more than to leave it.", subtitle:"comfortable, but not where you're trying to go"},
+  {xp:10000, type:'silver', amount:2, name:"Built the Raft",       myth:"Finally moving again, alone, on a raft built with his own hands.", subtitle:"starting to move again, on your own"},
+  {xp:12500, type:'diamond',amount:1, name:"Shipwrecked at Scheria",myth:"Washed up with nothing left but the will to keep going.", subtitle:"starting over with nothing but the will to keep going"},
+  {xp:15000, type:'legend', rarity:'legendary', name:"The Phaeacians' Court",myth:"Telling the whole story out loud, for the first time, to people who actually listen.", subtitle:"finally being able to tell the whole story"},
+  {xp:18000, type:'diamond',amount:2, name:"Home Shores of Ithaca",myth:"Land, finally — but the hardest part of coming home was never the sea.", subtitle:"closer than ever, but the hardest part isn't over"},
+  {xp:22000, type:'key',    amount:5, extra:{type:'silver',amount:1}, name:"The Beggar at the Door", myth:"Unrecognized in his own home, watching, before making a single move.", subtitle:"unrecognizable from where you started"},
+  {xp:27000, type:'legend', rarity:'mythic', name:"The Trial of the Bow", myth:"One shot only he could make. Proof, not just a claim.", subtitle:"proving it, not just claiming it"},
+  {xp:35000, type:'diamond',amount:3, name:"Reunited",            myth:"Twenty years. The whole point of the journey was never the journey — it was this.", subtitle:"the whole point was never the destination — it was this"},
 ];
 let claimedXpRoad=[]; // persistent \u2014 xp thresholds already paid out, so crossing one twice (or loading old data) can't double-grant
+// Thresholds crossed but not yet manually opened \u2014 see claimXpRoadReward().
+// Reaching a checkpoint no longer auto-grants it; it just makes the node
+// tappable, per direct ask ("make them so you collect them not they are
+// collected automatically").
+let xpRoadReady=[];
 function xpRoadRewardExtraLabel(extra){
   if(!extra)return '';
   if(extra.type==='bronze')return ' + '+extra.amount+' Bronze Crate'+(extra.amount>1?'s':'');
@@ -11100,21 +11126,33 @@ function playXpCheckpointChime(){
     osc.start(start);osc.stop(start+0.42);
   });
 }
+// Crossing a threshold only makes it READY now — it doesn't grant the
+// reward. That happens in claimXpRoadReward(), on an actual tap.
 function checkXpRoad(){
-  let claimedAny=false;
+  let newlyReady=false;
   XP_ROAD.forEach(node=>{
-    if(xp>=node.xp&&!claimedXpRoad.includes(node.xp)){
-      claimedXpRoad.push(node.xp);
-      grantXpRoadReward(node);
-      claimedAny=true;
-      if(node.type!=='legend')toast(xpRoadRewardToastEmoji(node),'Arete Road: '+xpRoadRewardLabel(node));
+    if(xp>=node.xp&&!claimedXpRoad.includes(node.xp)&&!xpRoadReady.includes(node.xp)){
+      xpRoadReady.push(node.xp);
+      newlyReady=true;
+      toast(xpRoadRewardToastEmoji(node),'Reward waiting on your Road — tap to open');
     }
   });
-  if(claimedAny){
+  if(newlyReady){
     playXpCheckpointChime();
-    celebrateBurst(['✨','⭐'],10);
     saveToStorage();renderAchievements();renderXpRoad();
   }
+}
+// The actual manual "open it" moment — called from tapping a ready node.
+function claimXpRoadReward(nodeXp){
+  const node=XP_ROAD.find(n=>n.xp===nodeXp);
+  if(!node||!xpRoadReady.includes(nodeXp)||claimedXpRoad.includes(nodeXp))return;
+  xpRoadReady=xpRoadReady.filter(x=>x!==nodeXp);
+  claimedXpRoad.push(nodeXp);
+  grantXpRoadReward(node);
+  if(node.type!=='legend')toast(xpRoadRewardToastEmoji(node),'Arete Road: '+xpRoadRewardLabel(node));
+  playXpCheckpointChime();
+  celebrateBurst(['✨','⭐'],10);
+  saveToStorage();renderAchievements();renderXpRoad();
 }
 // Shared by Arete/Weight Road's node pill ("1,500 Arete" / "8,000kg") — the
 // pill is a fixed-width badge that ellipsizes rather than overflows, but
@@ -11283,7 +11321,7 @@ function renderRoadPath(containerId,nodes){
   const anyClaimed=nodes.some(n=>n.claimed);
   cont.className='xp-road-track horizontal'+(anyClaimed?' has-progress':'');
   cont.innerHTML=nodes.map((n,i)=>{
-    const state=n.claimed?' claimed':n.isNext?' next':'';
+    const state=n.claimed?' claimed':n.ready?' ready':n.isNext?' next':'';
     const wind=Math.round(Math.sin(i*0.85)*22);
     // Hex size scales with how big a deal the reward actually is (n.weight,
     // 0..1 \u2014 see xpRoadNodeWeight/trophyRoadNodeWeight/weightRoadNodeWeight),
@@ -11301,23 +11339,25 @@ function renderRoadPath(containerId,nodes){
     // oversized hex just visually spills into the gap, it never
     // reflows a neighbor.
     const w=n.weight!=null?n.weight:0.5;
-    const size=Math.round(40+w*80+(n.isNext?16:0));
+    const size=Math.round(40+w*80+(n.isNext||n.ready?16:0));
     const font=Math.round(size*0.42);
     // Odyssey name (n.name) takes the visible slot a plain reward label
     // used to occupy \u2014 same length class ("Cyclops's Cave" vs "1 Bronze
     // Crate"), so the tight per-node width this path already budgeted
     // still fits. The reward itself never disappears, it's the title
     // tooltip now, alongside the one-line myth beat \u2014 real narrative on
-    // every checkpoint, not just the ones with room to spare.
-    const tip=(n.myth?n.myth+' \u2014 ':'')+n.descLabel;
+    // every checkpoint, not just the ones with room to spare. n.subtitle
+    // (when present) is the real-life-journey parallel \u2014 "Leaving Troy"
+    // reads as "(the beginning of your journey)" alongside the myth.
+    const tip=(n.myth?n.myth+(n.subtitle?' ('+n.subtitle+')':'')+' \u2014 ':'')+(n.ready?'Ready to open! ':'')+n.descLabel;
     return '<div class="xp-node'+state+'" title="'+tip.replace(/"/g,'&quot;')+'" style="--stagger:'+Math.min(i*45,450)+'ms;--wind:'+wind+'px;--hexsize:'+size+'px;--hexfont:'+font+'px"'+(n.onclick?' onclick="'+n.onclick+'"':'')+'>'+
-      '<div class="xp-node-hexwrap"><div class="xp-node-hex-glow"></div><div class="xp-node-hex">'+(n.claimed||n.isNext?n.icon:'\ud83d\udd12')+'</div>'+
-        (n.claimed?'<span class="xp-node-check"><svg viewBox="0 0 24 24" fill="none" stroke="#0D0806" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>':'')+
+      '<div class="xp-node-hexwrap"><div class="xp-node-hex-glow"></div><div class="xp-node-hex">'+(n.claimed||n.isNext||n.ready?n.icon:'\ud83d\udd12')+'</div>'+
+        (n.claimed?'<span class="xp-node-check"><svg viewBox="0 0 24 24" fill="none" stroke="#0D0806" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>':n.ready?'<span class="xp-node-claim-badge">OPEN</span>':'')+
         '<span class="xp-node-xp">'+n.valueLabel+'</span>'+
       '</div>'+
       '<div class="xp-node-body">'+
         '<div class="xp-node-desc">'+(n.name||n.descLabel)+'</div>'+
-        (n.isNext&&n.progressPct!=null?'<div class="xp-node-bar"><div class="xp-node-bar-fill" style="width:'+n.progressPct+'%"></div></div>':'')+
+        (n.progressPct!=null?'<div class="xp-node-bar"><div class="xp-node-bar-fill" style="width:'+n.progressPct+'%"></div></div>':'')+
       '</div>'+
     '</div>';
   }).join('');
@@ -11345,7 +11385,10 @@ function renderRoadPath(containerId,nodes){
 // renderRoadPath (see its own comment) so a reward reads the same "how
 // big a deal is this" size whether it's on the path or up here.
 function renderRewardRow(prefix,nodes){
-  const nextIdx=nodes.findIndex(n=>n.isNext);
+  // A ready-to-claim node takes priority over the "next" (not-yet-reached)
+  // one — it's more urgent and more real than a still-in-progress node.
+  const readyIdx=nodes.findIndex(n=>n.ready);
+  const nextIdx=readyIdx>=0?readyIdx:nodes.findIndex(n=>n.isNext);
   let prev,next,then;
   if(nextIdx>=0){
     prev=nextIdx>0?nodes[nextIdx-1]:null;
@@ -11374,7 +11417,7 @@ function renderRewardRow(prefix,nodes){
     }
     if(boxEl)boxEl.style.opacity='';
     if(iconEl){
-      iconEl.innerHTML=(node.claimed||node.isNext)?node.icon:'🔒';
+      iconEl.innerHTML=(node.claimed||node.isNext||node.ready)?node.icon:'🔒';
       const w=node.weight!=null?node.weight:0.5;
       const size=Math.round(46+w*36+(isNextBox?10:0));
       iconEl.style.setProperty('--hexsize',size+'px');
@@ -11401,18 +11444,23 @@ function xpRoadNodeWeight(node){
 }
 function xpRoadNodes(){
   const ascending=[...XP_ROAD].sort((a,b)=>a.xp-b.xp);
-  const next=ascending.find(n=>!claimedXpRoad.includes(n.xp));
+  const next=ascending.find(n=>!claimedXpRoad.includes(n.xp)&&!xpRoadReady.includes(n.xp));
   return ascending.map((node,i)=>{
     const claimed=claimedXpRoad.includes(node.xp);
-    const isNext=!claimed&&node===next;
+    const ready=!claimed&&xpRoadReady.includes(node.xp);
+    const isNext=!claimed&&!ready&&node===next;
     const prevXp=i===0?0:ascending[i-1].xp;
-    const pct=isNext?Math.max(0,Math.min(100,Math.round((xp-prevXp)/(node.xp-prevXp)*100))):null;
-    return {claimed,isNext,icon:xpRoadRewardIcon(node),valueLabel:formatCompactNum(node.xp)+' Arete',descLabel:xpRoadRewardLabel(node),progressPct:pct,weight:xpRoadNodeWeight(node),roadPos:i/(ascending.length-1||1),name:node.name,myth:node.myth};
+    const pct=ready?100:isNext?Math.max(0,Math.min(100,Math.round((xp-prevXp)/(node.xp-prevXp)*100))):null;
+    return {claimed,ready,isNext,onclick:ready?'claimXpRoadReward('+node.xp+')':null,icon:xpRoadRewardIcon(node),valueLabel:formatCompactNum(node.xp)+' Arete',descLabel:xpRoadRewardLabel(node),progressPct:pct,weight:xpRoadNodeWeight(node),roadPos:i/(ascending.length-1||1),name:node.name,myth:node.myth,subtitle:node.subtitle};
   });
 }
 function getXpRoadSummary(){
   const ascending=[...XP_ROAD].sort((a,b)=>a.xp-b.xp);
-  const next=ascending.find(n=>!claimedXpRoad.includes(n.xp));
+  const readyNode=ascending.find(n=>xpRoadReady.includes(n.xp));
+  if(readyNode){
+    return {icon:xpRoadRewardIcon(readyNode),text:'A reward is waiting on your Road \u2014 tap to open it',pct:100};
+  }
+  const next=ascending.find(n=>!claimedXpRoad.includes(n.xp)&&!xpRoadReady.includes(n.xp));
   const pct=next?Math.max(0,Math.min(100,Math.round(xp/next.xp*100))):100;
   return {
     icon:next?xpRoadRewardIcon(next):'\ud83d\udee4\ufe0f',
@@ -25898,6 +25946,7 @@ function saveToStorage(){
     localStorage.setItem('arx_unlockedLegends', JSON.stringify(unlockedLegends));
     localStorage.setItem('arx_legendCounts', JSON.stringify(legendCounts));
     localStorage.setItem('arx_claimedXpRoad', JSON.stringify(claimedXpRoad));
+    localStorage.setItem('arx_xpRoadReady', JSON.stringify(xpRoadReady));
     localStorage.setItem('arx_lastSessionWorkoutName', lastSessionWorkoutName);
     localStorage.setItem('arx_lastBackupDate', lastBackupDate);
     localStorage.setItem('arx_photoLog', JSON.stringify(photoLog));
@@ -26091,6 +26140,8 @@ function loadFromStorage(){
     if(lc){try{legendCounts=JSON.parse(lc);}catch(e){legendCounts={};}}
     const cxr=localStorage.getItem('arx_claimedXpRoad');
     if(cxr){try{claimedXpRoad=JSON.parse(cxr);}catch(e){claimedXpRoad=[];}}
+    const xrr=localStorage.getItem('arx_xpRoadReady');
+    if(xrr){try{xpRoadReady=JSON.parse(xrr);}catch(e){xpRoadReady=[];}}
     lastSessionWorkoutName=localStorage.getItem('arx_lastSessionWorkoutName')||'';
     lastBackupDate=localStorage.getItem('arx_lastBackupDate')||'';
     const pl=localStorage.getItem('arx_photoLog');
