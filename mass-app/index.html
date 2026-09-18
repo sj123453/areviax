@@ -703,9 +703,39 @@ input,input:focus,input:active,
    a swipe always moves the same visual distance regardless of which
    card used to need more room for its own content (it now scrolls
    internally instead). */
-.nutr-carousel-card{flex:0 0 82%;scroll-snap-align:start;min-width:0}
+.nutr-carousel-card{flex:0 0 82%;scroll-snap-align:start;min-width:0;position:relative}
 @media(min-width:560px){.nutr-carousel-card{flex-basis:340px}}
 .nutr-carousel-card .card,.nutr-carousel-card .nutr-shield-card{margin-bottom:0;box-sizing:border-box;height:360px;overflow-y:auto}
+/* FULL-SCREEN BUTTON — every carousel card is capped at 360px with its
+   own internal scroll (see above), genuinely cramped for anything with
+   real content (Meal Plan, Data Terminal). Injected once per card by
+   initCarouselFullscreenButtons() rather than hand-added to each card's
+   markup — a corner button, sibling of the card so tapping it can never
+   trigger a card's own onclick (Shake Hero, the Recovery cross-promo). */
+.carousel-fs-btn{
+  position:absolute;top:8px;right:8px;z-index:4;width:28px;height:28px;border-radius:50%;
+  background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.18);color:rgba(255,255,255,.9);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;
+  -webkit-tap-highlight-color:transparent;touch-action:manipulation;transition:background .15s;
+}
+.carousel-fs-btn:active{transform:scale(.9)}
+/* The card itself is MOVED here (not cloned) on open, so every id/
+   onclick/live-render binding keeps working untouched, and moved back
+   to its original spot on close — see openCardFullscreen(). Out from
+   under .nutr-carousel-card, so the 360px cap above no longer applies. */
+.carousel-fs-overlay{
+  position:fixed;inset:0;z-index:4500;background:var(--lv-bg,#0B0805);
+  display:flex;flex-direction:column;overflow-y:auto;
+  padding:calc(14px + env(safe-area-inset-top,0px)) 16px calc(20px + env(safe-area-inset-bottom,0px));
+  opacity:0;transform:scale(.97);transition:opacity .22s ease,transform .22s ease;
+}
+.carousel-fs-overlay.show{opacity:1;transform:scale(1)}
+.carousel-fs-overlay .card,.carousel-fs-overlay .nutr-shield-card{height:auto!important;max-height:none!important;overflow-y:visible!important;margin-bottom:0}
+.carousel-fs-close{
+  position:sticky;top:0;align-self:flex-end;width:34px;height:34px;border-radius:50%;flex-shrink:0;
+  background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18);color:var(--white,#fff);
+  font-size:15px;display:flex;align-items:center;justify-content:center;cursor:pointer;margin-bottom:12px;z-index:2;
+}
 .nutr-shield-card{display:flex;align-items:center;gap:16px;text-align:left;padding:20px}
 .nutr-shield-graphic{flex-shrink:0;position:relative;width:112px;height:112px}
 .nutr-shield-graphic .shield-ring-svg{position:absolute;inset:0;transform:rotate(-90deg)}
@@ -14661,6 +14691,59 @@ function mountCardioDistancePicker(){
     mountScrollPicker(document.getElementById(p+'cardio-distance'),{min:0,max:cardioDistanceUnit==='mi'?40:60,step:0.1,decimals:1,unit:cardioDistanceUnit||'km'});
   });
 }
+// ── CAROUSEL FULL-SCREEN — every .nutr-carousel-card wraps exactly one
+// .card child, capped at 360px with its own internal scroll (see the
+// CSS comment on .carousel-fs-btn). One-time DOM injection over the
+// static carousel markup (Nutrition + Progress pages), not tied to any
+// one card's render function, so it needs no changes when a card's own
+// content changes.
+function initCarouselFullscreenButtons(){
+  document.querySelectorAll('.nutr-carousel-card').forEach(wrap=>{
+    if(wrap.dataset.fsInit)return;
+    wrap.dataset.fsInit='1';
+    const btn=document.createElement('button');
+    btn.type='button';
+    btn.className='carousel-fs-btn';
+    btn.setAttribute('aria-label','View full screen');
+    btn.innerHTML='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 00-2 2v3M16 3h3a2 2 0 012 2v3M8 21H5a2 2 0 01-2-2v-3M16 21h3a2 2 0 002-2v-3"/></svg>';
+    btn.onclick=function(e){e.stopPropagation();openCardFullscreen(wrap);};
+    wrap.appendChild(btn);
+  });
+}
+let fsCardEl=null,fsCardParent=null,fsCardNextSibling=null;
+// MOVES the card's real DOM node into the overlay (not a clone) so every
+// id lookup and live re-render already targeting it keeps working
+// exactly as before, then moves it back on close — see closeCardFullscreen.
+function openCardFullscreen(wrap){
+  const content=wrap.querySelector(':scope > .card, :scope > .nutr-shield-card');
+  if(!content)return;
+  fsCardEl=content;
+  fsCardParent=wrap;
+  fsCardNextSibling=content.nextElementSibling;
+  const overlay=document.createElement('div');
+  overlay.className='carousel-fs-overlay';
+  overlay.id='carousel-fs-overlay';
+  const closeBtn=document.createElement('button');
+  closeBtn.type='button';
+  closeBtn.className='carousel-fs-close';
+  closeBtn.setAttribute('aria-label','Exit full screen');
+  closeBtn.textContent='✕';
+  closeBtn.onclick=closeCardFullscreen;
+  overlay.appendChild(closeBtn);
+  overlay.appendChild(content);
+  document.body.appendChild(overlay);
+  document.body.style.overflow='hidden';
+  requestAnimationFrame(()=>overlay.classList.add('show'));
+}
+function closeCardFullscreen(){
+  const overlay=document.getElementById('carousel-fs-overlay');
+  if(!overlay||!fsCardEl)return;
+  if(fsCardNextSibling)fsCardParent.insertBefore(fsCardEl,fsCardNextSibling);
+  else fsCardParent.appendChild(fsCardEl);
+  overlay.remove();
+  document.body.style.overflow='';
+  fsCardEl=null;fsCardParent=null;fsCardNextSibling=null;
+}
 function mountStaticScrollPickers(){
   mountWeightPickers();
   mountHeightPickers(false);
@@ -26435,6 +26518,7 @@ document.addEventListener('DOMContentLoaded', function(){
   try {
   loadFromStorage();
   try{mountStaticScrollPickers();}catch(e){console.error('mountStaticScrollPickers:',e.message);}
+  try{initCarouselFullscreenButtons();}catch(e){console.error('initCarouselFullscreenButtons:',e.message);}
   // Dev/testing convenience — visiting the app with ?grantTestCrates=1
   // in the URL banks one Bronze/Silver/Gold/Diamond crate (Areviax has
   // no bank; call openCompassDrop('areviax') from the console for that
