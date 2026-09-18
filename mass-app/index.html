@@ -193,7 +193,13 @@ input,input:focus,input:active,
 
 /* PAGES */
 .page{display:none;flex-direction:column;gap:14px;width:100%;max-width:760px;margin:0 auto}
-.page.active{display:flex;opacity:1;animation:pageIn .34s cubic-bezier(.22,1,.36,1)}
+/* min-height keeps every page's own background filling at least the full
+   viewport, even a short one like the Shop shelf — without it, a page
+   shorter than the screen just ends and whatever's underneath (the
+   plain app-shell background, none of this page's own gradient/photo)
+   shows through for the rest of the screen, reading as the page being
+   cut off partway down rather than a deliberately short page. */
+.page.active{display:flex;opacity:1;min-height:100dvh;animation:pageIn .34s cubic-bezier(.22,1,.36,1)}
 @keyframes pageIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 @media (prefers-reduced-motion: reduce){.page.active{animation:none}}
 /* page transition: instant, no animation — avoids cross-element animation-restart bugs */
