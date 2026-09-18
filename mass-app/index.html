@@ -7716,6 +7716,10 @@ body[data-goal-theme="cut"] .lv-page{
       <div class="hero-link-fill" style="height:100%;border-radius:3px;width:0%;background:var(--green);transition:width .5s ease"></div>
     </div>
     <div style="font-size:10.5px;color:var(--muted);line-height:1.4">One Level, earned everywhere — this rises with Arete here <em>and</em> XP in Areviax OS. Level up and a Key is waiting in your crates.</div>
+    <div style="margin-top:12px;padding-top:12px;border-top:1.5px solid var(--border2,rgba(232,214,196,.1));display:flex;align-items:center;justify-content:space-between;gap:10px">
+      <div style="font-size:10.5px;color:var(--muted);line-height:1.4">Areviax OS is <strong style="color:rgba(255,140,71,.9)">75% off</strong>, always, for Mass members</div>
+      <button type="button" onclick="window.open('https://areviaxos.netlify.app/','_blank')" style="flex-shrink:0;background:rgba(255,140,71,.1);border:1.5px solid rgba(255,140,71,.3);border-radius:8px;padding:8px 12px;color:rgba(255,140,71,.9);font-family:'Outfit',sans-serif;font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;white-space:nowrap">See it</button>
+    </div>
   </div>
 
   <!-- CONSISTENCY HEATMAP -->
@@ -9116,6 +9120,7 @@ let coachNutritionCheckinDismissedAt=null;
 // verbatim, newest last, for a person to read back later. Not shown
 // anywhere in-app; this is a private log, not a leaderboard.
 let nutritionFeedbackResponses=[]; // [{date, reason}]
+let osBusyOfferShown=false; // one-time gate on the Areviax OS "time is the blocker" offer
 
 // ── EXERCISES with equipment tags ──
 const EX={
@@ -23612,6 +23617,11 @@ function openCoachNutritionCheckin(){
   requestAnimationFrame(()=>overlay.classList.add('show'));
   setTimeout(()=>{const t=document.getElementById('coach-nutrition-feedback-text');if(t)t.focus();},200);
 }
+// Loose "time is the real blocker" signal in a free-text check-in reply —
+// deliberately not shown as part of Coach Sam's own response (see
+// showOSBusyOffer): Coach Sam's reply is always just the supportive
+// "thanks, got it", full stop, so the two never blur together.
+const OS_BUSY_KEYWORDS=['busy','no time','not enough time','swamped','hectic','overwhelmed','slammed','crazy schedule','so much going on'];
 function submitCoachNutritionFeedback(){
   const textEl=document.getElementById('coach-nutrition-feedback-text');
   const reason=(textEl&&textEl.value||'').trim();
@@ -23623,6 +23633,29 @@ function submitCoachNutritionFeedback(){
   const overlay=textEl&&textEl.closest('.achievement-overlay');
   if(overlay)overlay.remove();
   toast('💬',reason?'Thanks — got it.':'No worries, thanks anyway.');
+  const lower=reason.toLowerCase();
+  if(reason&&!osBusyOfferShown&&OS_BUSY_KEYWORDS.some(k=>lower.includes(k))){
+    setTimeout(showOSBusyOffer,1400);
+  }
+}
+// A separate, clearly-labeled offer — never inside Coach Sam's own voice
+// or message. Shown at most once, so it reads as a one-time, relevant
+// suggestion rather than a recurring pitch every time "busy" comes up.
+function showOSBusyOffer(){
+  osBusyOfferShown=true;
+  saveToStorage();
+  const overlay=document.createElement('div');
+  overlay.className='achievement-overlay';
+  overlay.innerHTML=
+    '<div class="achievement-modal" style="border-color:rgba(255,140,71,.35);max-width:340px;text-align:left">'+
+      '<div style="font-size:10.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,140,71,.85);margin-bottom:10px">A tool that might actually help</div>'+
+      '<div style="font-size:13.5px;line-height:1.65;color:rgba(var(--white-rgb),.9);margin-bottom:16px">Sounds like time, not motivation, is the real blocker. Areviax OS is built for exactly that — organizing your day so the important things (like logging) actually fit. Since you\'re already training with Areviax Mass, it\'s 45% off — just for this.</div>'+
+      '<button class="achievement-close-btn" onclick="window.open(\'https://areviaxos.netlify.app/\',\'_blank\');this.closest(\'.achievement-overlay\').remove()">See Areviax OS</button>'+
+      '<button class="achievement-close-btn" onclick="this.closest(\'.achievement-overlay\').remove()" style="background:transparent;border:1.5px solid var(--border2,rgba(232,214,196,.18));color:var(--muted)">No thanks</button>'+
+    '</div>';
+  overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.remove();});
+  document.body.appendChild(overlay);
+  requestAnimationFrame(()=>overlay.classList.add('show'));
 }
 
 
@@ -25804,6 +25837,7 @@ function saveToStorage(){
     localStorage.setItem('arx_lowFoodEveningNotifiedDate', lowFoodEveningNotifiedDate);
     localStorage.setItem('arx_coachNutritionCheckinDismissedAt', coachNutritionCheckinDismissedAt||'');
     localStorage.setItem('arx_nutritionFeedbackResponses', JSON.stringify(nutritionFeedbackResponses));
+    localStorage.setItem('arx_osBusyOfferShown', osBusyOfferShown?'1':'0');
     localStorage.setItem('arx_cloudBackupConsent', JSON.stringify(cloudBackupConsent));
   }catch(e){}
   if(cloudBackupConsent===true)autoCloudBackup(); // only ever runs with explicit opt-in
@@ -26005,6 +26039,7 @@ function loadFromStorage(){
     lowFoodEveningNotifiedDate=localStorage.getItem('arx_lowFoodEveningNotifiedDate')||'';
     coachNutritionCheckinDismissedAt=localStorage.getItem('arx_coachNutritionCheckinDismissedAt')||null;
     { const nfr=localStorage.getItem('arx_nutritionFeedbackResponses'); if(nfr){try{nutritionFeedbackResponses=JSON.parse(nfr);}catch(e){nutritionFeedbackResponses=[];}} }
+    osBusyOfferShown=localStorage.getItem('arx_osBusyOfferShown')==='1';
     const cbc=localStorage.getItem('arx_cloudBackupConsent');
     cloudBackupConsent=cbc!==null?JSON.parse(cbc):null;
   }catch(e){}
