@@ -6073,10 +6073,12 @@ body[data-goal-theme="cut"] .lv-page{
     <div style="font-size:19px;font-weight:900;color:var(--white);margin-bottom:10px" id="recipe-detail-name"></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px" id="recipe-detail-macros"></div>
     <div style="font-size:12px;color:rgba(var(--white-rgb),.7);line-height:1.6;margin-bottom:18px;padding:12px 14px;background:rgba(232,214,196,.03);border:1.5px solid var(--border2);border-radius:8px" id="recipe-detail-why"></div>
+    <div id="recipe-detail-swaps" style="display:none;margin-bottom:18px"></div>
     <div class="ex-cue-label" style="margin-bottom:8px">Ingredients</div>
     <div id="recipe-detail-ingredients" style="margin-bottom:18px"></div>
     <div class="ex-cue-label" style="margin-bottom:8px">Method</div>
     <div id="recipe-detail-steps"></div>
+    <div id="recipe-detail-variations" style="display:none;margin-top:18px"></div>
     <div id="recipe-detail-custom-actions" style="display:none;gap:8px;margin-top:20px">
       <button class="btn btn-out" style="flex:1" onclick="shareCustomRecipe(currentRecipeDetailIdx)">🔗 Share code</button>
       <button class="btn btn-out" style="flex:1;color:#E8314A;border-color:rgba(232,49,74,.35)" onclick="deleteCustomRecipe(currentRecipeDetailIdx)">🗑 Delete</button>
@@ -20297,7 +20299,11 @@ const RECIPES_DB=[
   {name:'Greek Yogurt Power Bowl',type:'breakfast',cals:420,prot:38,carbs:45,fats:10,effort:'no-cook',
     ingredients:['300g Greek yogurt (0% or full-fat)','40g granola','1 banana, sliced','1 tbsp honey','15g mixed nuts'],
     steps:['Spoon the yogurt into a bowl.','Slice the banana and layer on top.','Sprinkle over the granola and nuts.','Drizzle with honey and eat straight away.'],
-    why:'Greek yogurt is one of the highest-protein foods you can eat for its calories, and it needs zero cooking — good for a fast, consistent breakfast.'},
+    why:'Greek yogurt is one of the highest-protein foods you can eat for its calories, and it needs zero cooking — good for a fast, consistent breakfast.',
+    swaps:[{label:'Yogurt',ingredientIndex:0,options:[
+      {label:'0% fat (leaner)',text:'300g 0% Greek yogurt',delta:{cals:0,prot:0,carbs:0,fats:0}},
+      {label:'Full-fat (creamier)',text:'300g full-fat Greek yogurt',delta:{cals:230,prot:-13,carbs:3,fats:29}},
+    ]}]},
   {name:'Protein Pancakes',type:'breakfast',cals:480,prot:36,carbs:52,fats:12,effort:'quick',
     ingredients:['2 whole eggs','40g oats (blended to flour)','1 scoop whey protein','1 banana','1 tsp cinnamon','maple syrup to taste'],
     steps:['Blend the oats into a rough flour in a blender or food processor.','Mash the banana in a bowl, then whisk in the eggs, protein powder, oat flour, and cinnamon until smooth.','Heat a non-stick pan on medium, add a small knob of butter or oil.','Pour small pancakes (roughly 8cm across) and cook 2 minutes per side until golden.','Stack and top with maple syrup.'],
@@ -20353,7 +20359,21 @@ const RECIPES_DB=[
   {name:'Beef Stir Fry',type:'dinner',cals:600,prot:44,carbs:56,fats:18,effort:'quick',
     ingredients:['180g lean beef strips','mixed stir-fry veg','150g rice or noodles','soy sauce','garlic and ginger'],
     steps:['Cook the rice or noodles according to the packet.','Heat a wok or large pan until very hot, add a little oil.','Stir-fry the beef strips for 2-3 minutes until browned, then remove and set aside.','Add the garlic, ginger, and veg to the pan, stir-fry for 3-4 minutes.','Return the beef to the pan, add soy sauce, toss together for 1 minute, and serve over the rice or noodles.'],
-    why:'Quick to cook, and the high-heat stir-fry method keeps this leaner than a lot of ways to cook beef.'},
+    why:'Quick to cook, and the high-heat stir-fry method keeps this leaner than a lot of ways to cook beef.',
+    swaps:[
+      {label:'Protein',ingredientIndex:0,options:[
+        {label:'Beef',text:'180g lean beef strips',delta:{cals:0,prot:0,carbs:0,fats:0}},
+        {label:'Chicken',text:'180g chicken breast strips',delta:{cals:-75,prot:4,carbs:0,fats:-10}},
+      ]},
+      {label:'Base',ingredientIndex:2,options:[
+        {label:'Rice',text:'150g rice',delta:{cals:0,prot:0,carbs:0,fats:0}},
+        {label:'Noodles',text:'150g noodles',delta:{cals:30,prot:4,carbs:-1,fats:3}},
+      ]},
+    ],
+    variations:[
+      {label:'Add heat',note:'Stir in ½–1 tsp chilli flakes or a sliced fresh chilli with the garlic and ginger.'},
+      {label:'No wok',note:'A large non-stick frying pan on the highest heat works just as well as a wok.'},
+    ]},
   {name:'Chicken Pasta Bake',type:'dinner',cals:640,prot:46,carbs:62,fats:18,effort:'some-effort',
     ingredients:['180g chicken breast','100g pasta','150g passata','30g mozzarella','mixed herbs'],
     steps:['Preheat the oven to 190°C (170°C fan).','Cook the pasta according to the packet, slightly under the recommended time, then drain.','Dice and season the chicken, then pan-fry for 6-7 minutes until cooked through.','Mix the pasta, chicken, and passata together in an oven dish, season with mixed herbs.','Top with mozzarella and bake for 15-20 minutes until bubbling and golden. Makes enough to cover a couple of dinners.'],
@@ -20395,6 +20415,11 @@ const RECIPES_DB=[
   {name:'Mega Peanut Butter Oats',type:'breakfast',cals:780,prot:42,carbs:84,fats:31,effort:'some-effort',
     ingredients:['100g oats','2 tbsp peanut butter','1 scoop whey','300ml whole milk','1 banana'],
     steps:['Boil oats in milk.','Stir in whey and peanut butter.','Top with sliced banana.'],
+    swaps:[{label:'Milk',ingredientIndex:3,options:[
+      {label:'Whole',text:'300ml whole milk',delta:{cals:0,prot:0,carbs:0,fats:0}},
+      {label:'Semi-skimmed',text:'300ml semi-skimmed milk',delta:{cals:-57,prot:0,carbs:0,fats:-6}},
+      {label:'Skimmed',text:'300ml skimmed milk',delta:{cals:-93,prot:0,carbs:1,fats:-10.5}},
+    ]}],
     why:'A 42g-protein breakfast that\'s simple enough to make on a rushed morning.'},
   {name:'Steak and Avocado Eggs',type:'breakfast',cals:690,prot:52,carbs:66,fats:24,effort:'quick',
     ingredients:['150g lean steak','3 whole eggs','1/2 avocado','spinach'],
@@ -21239,6 +21264,13 @@ function saveLoggedItemAsCustomFood(i){
 }
 let recipeTypeFilter='all';
 let currentRecipeDetailIdx=null;
+// Which option is picked per swap group on the currently open recipe —
+// keyed by the swap's own index in r.swaps, value is the chosen option's
+// index. Reset on every openRecipeDetail() so a swap made on one recipe
+// never leaks into the next one opened. Not persisted — a swap is a
+// per-viewing choice, not a saved preference (the recipe's own base
+// ingredients/macros are never mutated).
+let recipeSwapChoices={};
 function switchRecipeType(type,btn){
   recipeTypeFilter=type;
   document.querySelectorAll('#recipe-type-tabs .data-terminal-tab').forEach(b=>b.classList.remove('active'));
@@ -21271,22 +21303,83 @@ function renderRecipesPage(){
     </div>`;
   }).join('');
 }
+// Applies every currently-picked swap's delta on top of the recipe's own
+// base macros — the base itself is never mutated, so switching swaps
+// back and forth (or closing without picking anything) always has a
+// real, unchanged fallback to return to.
+function computeRecipeAdjustedMacros(r){
+  let cals=r.cals,prot=r.prot,carbs=r.carbs,fats=r.fats;
+  (r.swaps||[]).forEach((sw,i)=>{
+    const opt=sw.options[recipeSwapChoices[i]||0];
+    if(opt&&opt.delta){cals+=opt.delta.cals||0;prot+=opt.delta.prot||0;carbs+=opt.delta.carbs||0;fats+=opt.delta.fats||0;}
+  });
+  return {cals:Math.max(0,Math.round(cals)),prot:Math.max(0,Math.round(prot*10)/10),carbs:Math.max(0,Math.round(carbs*10)/10),fats:Math.max(0,Math.round(fats*10)/10)};
+}
+function renderRecipeDetailMacros(r){
+  const macrosEl=document.getElementById('recipe-detail-macros');
+  if(!macrosEl)return;
+  const m=computeRecipeAdjustedMacros(r);
+  const chips=[['🔥',m.cals+' kcal'],['🥩',m.prot+'g protein'],['🌾',m.carbs+'g carbs'],['🫒',m.fats+'g fat']];
+  macrosEl.innerHTML=chips.map(([ic,t])=>`<span style="background:rgba(232,214,196,.05);border:1.5px solid var(--border2);border-radius:8px;padding:5px 10px;font-size:10.5px;font-weight:700;color:rgba(var(--white-rgb),.8)">${ic} ${t}</span>`).join('');
+}
+function renderRecipeDetailIngredients(r){
+  const ingEl=document.getElementById('recipe-detail-ingredients');
+  if(!ingEl)return;
+  const lines=[...r.ingredients];
+  (r.swaps||[]).forEach((sw,i)=>{
+    const opt=sw.options[recipeSwapChoices[i]||0];
+    if(opt&&opt.text!=null&&sw.ingredientIndex!=null)lines[sw.ingredientIndex]=opt.text;
+  });
+  ingEl.innerHTML=lines.map(i=>`<div style="display:flex;gap:8px;align-items:flex-start;font-size:12px;color:rgba(var(--white-rgb),.75);line-height:1.6;margin-bottom:4px"><span style="color:rgba(255,122,46,.7)">•</span>${i}</div>`).join('');
+}
+// SWAP PICKER — "switch in ingredients" (e.g. 0% vs full-fat yogurt):
+// a pill row per swap group, tapping one re-renders the ingredient list
+// and the macro chips together so they can never disagree about what's
+// actually in the bowl right now.
+function renderRecipeSwaps(r){
+  const wrap=document.getElementById('recipe-detail-swaps');
+  if(!wrap)return;
+  if(!r.swaps||!r.swaps.length){wrap.style.display='none';wrap.innerHTML='';return;}
+  wrap.style.display='block';
+  wrap.innerHTML=r.swaps.map((sw,i)=>{
+    const chosen=recipeSwapChoices[i]||0;
+    const pills=sw.options.map((o,j)=>`<button type="button" onclick="selectRecipeSwap(${i},${j})" style="padding:6px 12px;border-radius:999px;font-size:11px;font-weight:700;cursor:pointer;border:1.5px solid ${j===chosen?'rgba(243,103,23,.6)':'var(--border2)'};background:${j===chosen?'rgba(243,103,23,.14)':'rgba(232,214,196,.03)'};color:${j===chosen?'rgba(255,150,80,.95)':'rgba(var(--white-rgb),.7)'}">${o.label}</button>`).join('');
+    return `<div style="margin-bottom:10px"><div style="font-size:10.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">${sw.label||'Swap'}</div><div style="display:flex;gap:6px;flex-wrap:wrap">${pills}</div></div>`;
+  }).join('');
+}
+function selectRecipeSwap(swapIdx,optIdx){
+  recipeSwapChoices[swapIdx]=optIdx;
+  const r=allRecipes()[currentRecipeDetailIdx];
+  if(!r)return;
+  renderRecipeSwaps(r);
+  renderRecipeDetailIngredients(r);
+  renderRecipeDetailMacros(r);
+}
+// VARIATIONS — flavor add-ins and alternate cooking methods, informational
+// only (no macro claim either way, unlike a swap) so they're shown
+// separately, after the method rather than mixed into the ingredient list.
+function renderRecipeVariations(r){
+  const wrap=document.getElementById('recipe-detail-variations');
+  if(!wrap)return;
+  if(!r.variations||!r.variations.length){wrap.style.display='none';wrap.innerHTML='';return;}
+  wrap.style.display='block';
+  wrap.innerHTML='<div class="ex-cue-label" style="margin-bottom:8px">Variations</div>'+
+    r.variations.map(v=>`<div style="margin-bottom:10px;padding:10px 12px;background:rgba(232,214,196,.03);border:1.5px solid var(--border2);border-radius:8px"><div style="font-size:11.5px;font-weight:800;color:rgba(255,150,80,.95);margin-bottom:3px">${v.label}</div><div style="font-size:11.5px;color:rgba(var(--white-rgb),.75);line-height:1.5">${v.note}</div></div>`).join('');
+}
 function openRecipeDetail(idx){
   const r=allRecipes()[idx];if(!r)return;
   currentRecipeDetailIdx=idx;
+  recipeSwapChoices={};
   const visEl=document.getElementById('recipe-detail-placeholder');if(visEl)visEl.textContent=RECIPE_TYPE_ICON[r.type]||'🍴';
   const typeEl=document.getElementById('recipe-detail-type');if(typeEl)typeEl.textContent=r.type;
   const nameEl=document.getElementById('recipe-detail-name');if(nameEl)nameEl.textContent=r.name;
-  const macrosEl=document.getElementById('recipe-detail-macros');
-  if(macrosEl){
-    const chips=[['🔥',r.cals+' kcal'],['🥩',r.prot+'g protein'],['🌾',r.carbs+'g carbs'],['🫒',r.fats+'g fat']];
-    macrosEl.innerHTML=chips.map(([ic,t])=>`<span style="background:rgba(232,214,196,.05);border:1.5px solid var(--border2);border-radius:8px;padding:5px 10px;font-size:10.5px;font-weight:700;color:rgba(var(--white-rgb),.8)">${ic} ${t}</span>`).join('');
-  }
+  renderRecipeDetailMacros(r);
   const whyEl=document.getElementById('recipe-detail-why');if(whyEl)whyEl.textContent=r.why;
-  const ingEl=document.getElementById('recipe-detail-ingredients');
-  if(ingEl)ingEl.innerHTML=r.ingredients.map(i=>`<div style="display:flex;gap:8px;align-items:flex-start;font-size:12px;color:rgba(var(--white-rgb),.75);line-height:1.6;margin-bottom:4px"><span style="color:rgba(255,122,46,.7)">•</span>${i}</div>`).join('');
+  renderRecipeSwaps(r);
+  renderRecipeDetailIngredients(r);
   const stepsEl=document.getElementById('recipe-detail-steps');
   if(stepsEl)stepsEl.innerHTML=r.steps.map((s,i)=>`<div style="display:flex;gap:10px;margin-bottom:12px"><div style="flex-shrink:0;width:20px;height:20px;border-radius:50%;background:rgba(243,103,23,.15);color:#FF9A5C;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center">${i+1}</div><div style="font-size:12.5px;color:rgba(var(--white-rgb),.8);line-height:1.55">${s}</div></div>`).join('');
+  renderRecipeVariations(r);
   const customActions=document.getElementById('recipe-detail-custom-actions');
   if(customActions)customActions.style.display=r.custom?'flex':'none';
   document.getElementById('recipe-detail-backdrop').style.display='block';
@@ -21381,7 +21474,13 @@ function importRecipeCode(){
 // else, not a separate one-off number.
 function logRecipeMacros(idx){
   const r=allRecipes()[idx];if(!r)return;
-  logItem(r.name,r.cals,r.prot,r.carbs,r.fats,0);
+  // Logs whatever's actually shown right now — the base recipe, or the
+  // base adjusted by whichever swaps were picked (computeRecipeAdjustedMacros
+  // returns the base unchanged if idx isn't the currently-open recipe/no
+  // swaps were touched, so this is always correct whether or not the
+  // swap picker was used).
+  const m=idx===currentRecipeDetailIdx?computeRecipeAdjustedMacros(r):{cals:r.cals,prot:r.prot,carbs:r.carbs,fats:r.fats};
+  logItem(r.name,m.cals,m.prot,m.carbs,m.fats,0);
   const xp=foodXPForName(r.name,5);
   addXP(xp,'Meal logged');
   checkProteinQuest();
