@@ -5960,6 +5960,23 @@ body[data-goal-theme="cut"] .lv-page{
     </div>
     <div id="catchup-body" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid var(--border2)" onclick="event.stopPropagation()"></div>
   </div>
+
+  <!-- SUPPLEMENTS — dose-based (a multivitamin isn't 250 kcal / 40g
+       protein), so a tap-to-log checklist rather than the Manual Entry
+       form. Short starter list + an open-ended custom add for anything
+       not listed, direct ask: "vitamins and stuff like that and krill
+       oil and stuff". -->
+  <div class="card lv-surface" id="acc-supplements">
+    <div style="display:flex;align-items:baseline;justify-content:space-between">
+      <h2 class="lv-section-title" style="display:flex;align-items:baseline;gap:8px;font-size:1.4rem"><span class="lv-greek-numeral">Η</span>Supplements</h2>
+      <span style="font-family:var(--lv-mono);font-size:11px;color:var(--lv-fuel)" id="supplements-count-badge">0 today</span>
+    </div>
+    <div id="supplements-row" style="margin-top:14px;display:flex;flex-wrap:wrap;gap:8px"></div>
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <input type="text" id="supplement-custom-name" placeholder="Add another (e.g. Krill Oil)" onkeydown="if(event.key==='Enter')addCustomSupplement()">
+      <button class="btn btn-g" style="flex-shrink:0;padding:9px 16px" onclick="addCustomSupplement()">Add</button>
+    </div>
+  </div>
   </main>
 </div>
 
@@ -9159,6 +9176,13 @@ let foodLogByDate={};
 // means today. Reset back to null right after each log so a backdated
 // entry never silently continues past the one day it was meant for.
 let pendingLogDate=null;
+// SUPPLEMENTS — dose-based logging (a checklist, not macros). Resets
+// daily alongside todayLog in checkNutritionDay(). customSupplements
+// persists across days so anything typed into "Add another" stays in
+// the pool from then on, same idea as customFoods.
+const SUPPLEMENT_DEFAULTS=['Multivitamin','Fish Oil / Omega-3','Krill Oil','Vitamin D','Magnesium','Zinc','Creatine','Probiotic'];
+let customSupplements=[];
+let todaySupplementsLog=[];
 let nutritionLogDate='';
 let shieldAtRiskToday=false; // true once the Caloric Shield has hit red/cracked/broken at any point today — resets on day rollover
 let shieldGreatSaveAwardedToday=false; // one-time-per-day guard so "Great Save" doesn't refire every render after it's earned
@@ -21604,6 +21628,7 @@ function renderNutrition(){
   renderCustomFoodsQuickAdd();
   renderLogDatePicker();
   renderPastDayLog();
+  renderSupplementsRow();
   // HERO — eyebrow (day/week, same joinDate math the Dashboard hero
   // uses), remaining-today kcal, and the thin progress rail underneath.
   const nEyebrow=document.getElementById('nutr-eyebrow-text');
@@ -23912,6 +23937,7 @@ function checkNutritionDay(){
     nutritionLogDate=today;
     dayMacros={cals:0,prot:0,carbs:0,fats:0,water:0};
     todayLog=[];
+    todaySupplementsLog=[];
     // New day, new data point — re-blend the TDEE estimate against whatever
     // real weight/intake history has accumulated so far.
     try{refreshAdaptiveTDEE();}catch(e){console.error('refreshAdaptiveTDEE:',e.message);}
@@ -24403,7 +24429,7 @@ function logFood(){
 }
 // Water is a separate hydration habit from food logging — "Reset" clearing
 // a mis-logged meal shouldn't also wipe glasses already drunk today.
-function resetDay(){if(!confirm('Clear everything logged today?'))return;dayMacros={cals:0,prot:0,carbs:0,fats:0,water:dayMacros.water||0};todayLog=[];renderNutrition();saveToStorage();toast('🔄','Day reset')}
+function resetDay(){if(!confirm('Clear everything logged today?'))return;dayMacros={cals:0,prot:0,carbs:0,fats:0,water:dayMacros.water||0};todayLog=[];todaySupplementsLog=[];renderNutrition();saveToStorage();toast('🔄','Day reset')}
 // ── WATER INTAKE — a row of tappable glasses rather than a number input,
 // so logging a glass is one tap like everything else in the nutrition
 // card. Rides dayMacros' existing daily-reset machinery (checkNutritionDay
@@ -24435,6 +24461,42 @@ function renderWaterRow(){
     </div>
     <div style="margin-top:16px;display:flex;gap:6px">${glasses}</div>
     ${over>0?`<div style="margin-top:8px;font-family:var(--lv-mono);font-size:10px;color:var(--lv-fuel)">+${over} extra</div>`:''}`;
+}
+// ── SUPPLEMENTS — one tap logs/unlogs a dose for today, same low-friction
+// idea as the water glasses. First one logged each day pays a small
+// flat Arete, same as addWater's own "first glass" reward, not per item
+// (so logging 5 supplements isn't 5x the reward for one daily habit).
+function toggleSupplement(name){
+  checkNutritionDay();
+  const i=todaySupplementsLog.indexOf(name);
+  if(i>=0)todaySupplementsLog.splice(i,1);
+  else{
+    todaySupplementsLog.push(name);
+    if(todaySupplementsLog.length===1)addXP(2,'Supplements logged');
+  }
+  renderSupplementsRow();
+  saveToStorage();
+}
+function addCustomSupplement(){
+  const input=document.getElementById('supplement-custom-name');
+  const name=(input.value||'').trim();
+  if(!name)return;
+  const pool=SUPPLEMENT_DEFAULTS.concat(customSupplements);
+  if(!pool.some(n=>n.toLowerCase()===name.toLowerCase()))customSupplements.push(name);
+  input.value='';
+  if(!todaySupplementsLog.includes(name))toggleSupplement(name);
+  else{renderSupplementsRow();saveToStorage();}
+}
+function renderSupplementsRow(){
+  const wrap=document.getElementById('supplements-row');
+  if(!wrap)return;
+  const pool=SUPPLEMENT_DEFAULTS.concat(customSupplements);
+  wrap.innerHTML=pool.map(name=>{
+    const logged=todaySupplementsLog.includes(name);
+    return `<button type="button" onclick="toggleSupplement('${name.replace(/'/g,"\\'")}')" style="display:flex;align-items:center;gap:6px;padding:8px 13px;border-radius:999px;font-size:11.5px;font-weight:700;cursor:pointer;border:1.5px solid ${logged?'var(--lv-fuel)':'var(--border2)'};background:${logged?'rgba(var(--lv-fuel-rgb),.15)':'rgba(232,214,196,.03)'};color:${logged?'var(--lv-fuel)':'rgba(var(--white-rgb),.75)'}">${logged?'✓':''} ${name}</button>`;
+  }).join('');
+  const badge=document.getElementById('supplements-count-badge');
+  if(badge)badge.textContent=todaySupplementsLog.length+' today';
 }
 function logNutrition(){showPage('nutrition')}
 function openLogFood(){
@@ -26026,6 +26088,8 @@ function saveToStorage(){
     localStorage.setItem('arx_lastBackupDate', lastBackupDate);
     localStorage.setItem('arx_photoLog', JSON.stringify(photoLog));
     localStorage.setItem('arx_todayLog', JSON.stringify(todayLog));
+    localStorage.setItem('arx_customSupplements', JSON.stringify(customSupplements));
+    localStorage.setItem('arx_todaySupplementsLog', JSON.stringify(todaySupplementsLog));
     localStorage.setItem('arx_nutritionLogDate', nutritionLogDate);
     localStorage.setItem('arx_shieldAtRiskToday', shieldAtRiskToday?'1':'0');
     localStorage.setItem('arx_shieldGreatSaveAwardedToday', shieldGreatSaveAwardedToday?'1':'0');
@@ -26223,6 +26287,10 @@ function loadFromStorage(){
     if(pl){try{photoLog=JSON.parse(pl);}catch(e){photoLog=[];}}
     const tl=localStorage.getItem('arx_todayLog');
     if(tl){try{todayLog=JSON.parse(tl);}catch(e){todayLog=[];}}
+    const cs=localStorage.getItem('arx_customSupplements');
+    if(cs){try{customSupplements=JSON.parse(cs);}catch(e){customSupplements=[];}}
+    const tsl=localStorage.getItem('arx_todaySupplementsLog');
+    if(tsl){try{todaySupplementsLog=JSON.parse(tsl);}catch(e){todaySupplementsLog=[];}}
     nutritionLogDate=localStorage.getItem('arx_nutritionLogDate')||'';
     shieldAtRiskToday=localStorage.getItem('arx_shieldAtRiskToday')==='1';
     shieldGreatSaveAwardedToday=localStorage.getItem('arx_shieldGreatSaveAwardedToday')==='1';
