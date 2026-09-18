@@ -4709,7 +4709,7 @@ body[data-goal-theme="cut"] .lv-page{
     </div>
   </div>
 
-  <div id="weekly-assessment-banner" class="dash-notif-fixed" style="display:none;cursor:pointer" onclick="viewAssessment()">
+  <div id="weekly-assessment-banner" class="dash-notif-fixed" style="display:none;cursor:pointer" onclick="viewAssessmentInChat()">
     <div class="dnf-head">
       <span class="dnf-icon" style="background:linear-gradient(160deg,#7FE3FF,#2AA9D6)">📊</span>
       <div class="dnf-body">
@@ -21634,6 +21634,21 @@ function dismissWeeklyAssessmentBanner(event){
   renderAssessmentBanner();
 }
 
+// Tapping the weekly-assessment banner now lands in the real Coach Sam
+// chat (the FAQ page) instead of a one-off modal — the assessment shows
+// up as a message from Sam, and anything typed back goes through the
+// normal matchAiCoach() flow (emails Areviax Support on a genuine miss).
+function viewAssessmentInChat(){
+  assessmentViewed=true;
+  renderAssessmentBanner();
+  saveToStorage();
+  showPage('aicoach');
+  const thread=document.getElementById('aicoach-thread');
+  if(thread){
+    thread.insertAdjacentHTML('beforeend',aiCoachBubbleHTML(assessmentText||'Check back Monday for your next assessment.',false));
+    thread.scrollTop=thread.scrollHeight;
+  }
+}
 function viewAssessment(){
   assessmentViewed=true;
   renderAssessmentBanner();
