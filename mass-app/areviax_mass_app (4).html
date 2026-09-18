@@ -609,8 +609,38 @@ input,input:focus,input:active,
 .recipe-card-add .recipe-card-name{color:rgba(255,122,46,.9)}
 .recipe-custom-tag{position:absolute;top:6px;right:6px;font-size:7.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#0D0806;background:#FFB347;border-radius:999px;padding:2px 6px}
 
-/* ASK AREVIAX */
-#aicoach-thread{max-height:440px;overflow-y:auto}
+/* ASK AREVIAX — Coach Sam's chat, styled like a real messaging app
+   (contact bar, wallpaper, tailed bubbles, pill composer) rather than a
+   plain FAQ list, per direct ask ("kinda like a WhatsApp page"). */
+.aicoach-contact-bar{display:flex;align-items:center;gap:10px;padding:10px 4px;margin-bottom:2px}
+.aicoach-contact-avatar{width:38px;height:38px;border-radius:50%;object-fit:cover;object-position:50% 42%;flex-shrink:0;border:1.5px solid rgba(243,103,23,.4)}
+.aicoach-contact-name{font-size:13.5px;font-weight:800;color:var(--lv-fg,var(--white))}
+.aicoach-contact-status{font-size:10.5px;color:var(--lv-muted-fg,var(--muted));margin-top:1px}
+.aicoach-thread-wrap{
+  border-radius:14px;overflow:hidden;margin-bottom:12px;
+  background-color:#0F0B08;
+  background-image:
+    radial-gradient(rgba(243,103,23,.05) 1.4px,transparent 1.4px),
+    radial-gradient(rgba(232,214,196,.035) 1.4px,transparent 1.4px);
+  background-size:38px 38px,38px 38px;
+  background-position:0 0,19px 19px;
+}
+#aicoach-thread{max-height:min(58vh,480px);overflow-y:auto;padding:14px 10px;display:flex;flex-direction:column;gap:3px}
+.aicoach-day-chip{align-self:center;background:rgba(232,214,196,.08);color:rgba(var(--white-rgb),.55);font-size:9.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;border-radius:999px;padding:4px 12px;margin:4px 0 10px}
+.aicoach-row{display:flex;margin:3px 0}
+.aicoach-row.sent{justify-content:flex-end}
+.aicoach-row.received{justify-content:flex-start}
+.aicoach-bubble{max-width:78%;padding:8px 11px;font-size:12.5px;line-height:1.5;position:relative}
+.aicoach-bubble a{color:inherit;text-decoration:underline}
+.aicoach-row.received .aicoach-bubble{background:#241A15;color:rgba(var(--white-rgb),.92);border-radius:4px 14px 14px 14px;box-shadow:0 1px 3px rgba(0,0,0,.35)}
+.aicoach-row.sent .aicoach-bubble{background:linear-gradient(160deg,#FF8A3D,#F36717);color:#170C09;border-radius:14px 4px 14px 14px;box-shadow:0 1px 3px rgba(0,0,0,.35)}
+.aicoach-bubble-time{display:block;text-align:right;font-size:9px;margin-top:3px;font-weight:600}
+.aicoach-row.received .aicoach-bubble-time{color:rgba(var(--white-rgb),.35)}
+.aicoach-row.sent .aicoach-bubble-time{color:rgba(23,12,9,.55)}
+.aicoach-composer{display:flex;align-items:center;gap:8px}
+.aicoach-composer input[type=text]{flex:1;border-radius:24px;background:rgba(232,214,196,.05);border:1.5px solid var(--border2)}
+.aicoach-send-btn{flex-shrink:0;width:38px;height:38px;border-radius:50%;background:var(--orange,#F36717);border:none;color:#170C09;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:transform .1s}
+.aicoach-send-btn:active{transform:scale(.9)}
 .ai-sample-chip{background:rgba(232,214,196,.04);border:1.5px solid var(--border2);border-radius:999px;padding:8px 13px;font-size:11px;font-weight:700;color:rgba(var(--white-rgb),.8);cursor:pointer;transition:border-color .15s,background .15s;text-align:left}
 .ai-sample-chip:hover{border-color:rgba(243,103,23,.4);background:rgba(243,103,23,.06)}
 
@@ -7749,7 +7779,7 @@ body[data-goal-theme="cut"] .lv-page{
     </div>
     <div style="font-size:10.5px;color:var(--muted);line-height:1.4">One Level, earned everywhere — this rises with Arete here <em>and</em> XP in Areviax OS. Level up and a Key is waiting in your crates.</div>
     <div style="margin-top:12px;padding-top:12px;border-top:1.5px solid var(--border2,rgba(232,214,196,.1));display:flex;align-items:center;justify-content:space-between;gap:10px">
-      <div style="font-size:10.5px;color:var(--muted);line-height:1.4">Areviax OS is <strong style="color:rgba(255,140,71,.9)">75% off</strong>, always, for Mass members</div>
+      <div style="font-size:10.5px;color:var(--muted);line-height:1.4">Areviax OS is <strong style="color:rgba(255,140,71,.9)">25% off</strong>, always, for Mass members</div>
       <button type="button" onclick="window.open('https://areviaxos.netlify.app/','_blank')" style="flex-shrink:0;background:rgba(255,140,71,.1);border:1.5px solid rgba(255,140,71,.3);border-radius:8px;padding:8px 12px;color:rgba(255,140,71,.9);font-family:'Outfit',sans-serif;font-size:10px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;white-space:nowrap">See it</button>
     </div>
   </div>
@@ -8211,14 +8241,22 @@ body[data-goal-theme="cut"] .lv-page{
       <button type="button" class="lv-profile-btn" onclick="showPage('profile')" aria-label="Profile"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--lv-fg)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="lv-profile-badge"></span></button>
     </div>
   </div>
-  <div class="companion" style="margin-bottom:14px"><div class="companion-msg">Quick answers pulled straight from how the app actually works. Can't find it? Message support and a real person will get back to you.</div></div>
-
-  <div class="card lv-surface" style="margin-bottom:14px">
-    <div id="aicoach-thread" style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px"></div>
-    <div style="display:flex;gap:8px">
-      <input type="text" id="aicoach-input" placeholder="Ask something…" onkeydown="if(event.key==='Enter')askAiCoach()">
-      <button class="btn btn-g" style="flex-shrink:0;padding:9px 16px" onclick="askAiCoach()">Ask</button>
+  <div class="aicoach-contact-bar">
+    <img class="aicoach-contact-avatar" src="images/icons/coach-sam-portrait.png" alt="">
+    <div>
+      <div class="aicoach-contact-name">Coach Sam</div>
+      <div class="aicoach-contact-status">Quick FAQ assistant · not a full AI yet</div>
     </div>
+  </div>
+
+  <div class="aicoach-thread-wrap">
+    <div id="aicoach-thread"></div>
+  </div>
+  <div class="aicoach-composer" style="margin-bottom:14px">
+    <input type="text" id="aicoach-input" placeholder="Message Coach Sam…" onkeydown="if(event.key==='Enter')askAiCoach()">
+    <button type="button" class="aicoach-send-btn" onclick="askAiCoach()" aria-label="Send">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M2 21l21-9L2 3l0 7 15 2-15 2z"/></svg>
+    </button>
   </div>
 
   <div class="card lv-surface">
@@ -20814,17 +20852,12 @@ function matchAiCoach(query){
   });
   return bestScore>0?best:null;
 }
-// Small avatar so the coach's messages read as coming from someone,
-// not just floating text — reuses the app's stroke-icon nav language
-// (circle head, dot eyes, spark antenna) rather than a generic emoji.
-const AI_COACH_ICON_SVG='<svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="3" r="1.3" fill="#fff"/><line x1="12" y1="4.3" x2="12" y2="7" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/><circle cx="12" cy="14" r="7" stroke="#fff" stroke-width="1.6"/><circle cx="9.3" cy="14" r="1.15" fill="#fff"/><circle cx="14.7" cy="14" r="1.15" fill="#fff"/><path d="M9 17.2c1.2.9 3.8.9 5 0" stroke="#fff" stroke-width="1.4" stroke-linecap="round"/></svg>';
-function aiCoachAvatarHTML(){
-  return `<img src="images/icons/coach-sam-portrait.png" alt="Coach Sam" style="flex-shrink:0;width:24px;height:24px;border-radius:50%;object-fit:cover;object-position:50% 42%;box-shadow:0 2px 6px -2px rgba(243,103,23,.6)">`;
-}
+// WhatsApp-style bubble — no per-message avatar (a real 1:1 chat only
+// shows that once, in the contact bar above), just a tailed bubble with
+// an inline timestamp like a real messaging app.
 function aiCoachBubbleHTML(text,fromUser){
-  const bubble=`<div style="max-width:85%;background:${fromUser?'rgba(243,103,23,.14)':'rgba(232,214,196,.04)'};border:1.5px solid ${fromUser?'rgba(243,103,23,.3)':'var(--border2)'};border-radius:12px;padding:10px 13px;font-size:12.5px;line-height:1.55;color:rgba(var(--white-rgb),.9)">${text}</div>`;
-  if(fromUser)return `<div style="align-self:flex-end">${bubble}</div>`;
-  return `<div style="align-self:flex-start;display:flex;align-items:flex-end;gap:7px;max-width:100%">${aiCoachAvatarHTML()}${bubble}</div>`;
+  const time=new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+  return '<div class="aicoach-row '+(fromUser?'sent':'received')+'"><div class="aicoach-bubble">'+text+'<span class="aicoach-bubble-time">'+time+'</span></div></div>';
 }
 function renderAiCoach(){
   const thread=document.getElementById('aicoach-thread');
@@ -20832,7 +20865,8 @@ function renderAiCoach(){
   if(!thread)return;
   try{syncLvBadges();}catch(e){}
   if(!thread.dataset.seeded){
-    thread.innerHTML=aiCoachBubbleHTML("Coach Sam here — ask me anything about how the app works, your training, or nutrition. I'm a quick on-device FAQ for now, not a full AI yet, so if I can't help I'll point you to real Areviax Support.",false);
+    thread.innerHTML='<div class="aicoach-day-chip">Today</div>'+
+      aiCoachBubbleHTML("Coach Sam here — ask me anything about how the app works, your training, or nutrition. I'm a quick on-device FAQ for now, not a full AI yet, so if I can't help I'll point you to real Areviax Support.",false);
     thread.dataset.seeded='1';
   }
   if(samples)samples.innerHTML=AI_COACH_KB.slice(0,8).map((e,i)=>`<button type="button" class="ai-sample-chip" onclick="askAiCoachSample(${i})">${e.q}</button>`).join('');
@@ -23726,7 +23760,7 @@ function showOSBusyOffer(){
   overlay.innerHTML=
     '<div class="achievement-modal" style="border-color:rgba(255,140,71,.35);max-width:340px;text-align:left">'+
       '<div style="font-size:10.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,140,71,.85);margin-bottom:10px">A tool that might actually help</div>'+
-      '<div style="font-size:13.5px;line-height:1.65;color:rgba(var(--white-rgb),.9);margin-bottom:16px">Sounds like time, not motivation, is the real blocker. Areviax OS is built for exactly that — organizing your day so the important things (like logging) actually fit. Since you\'re already training with Areviax Mass, it\'s 45% off — just for this.</div>'+
+      '<div style="font-size:13.5px;line-height:1.65;color:rgba(var(--white-rgb),.9);margin-bottom:16px">Sounds like time, not motivation, is the real blocker. Areviax OS is built for exactly that — organizing your day so the important things (like logging) actually fit. Since you\'re already training with Areviax Mass, it\'s 50% off — the special bundle, just for this.</div>'+
       '<button class="achievement-close-btn" onclick="window.open(\'https://areviaxos.netlify.app/\',\'_blank\');this.closest(\'.achievement-overlay\').remove()">See Areviax OS</button>'+
       '<button class="achievement-close-btn" onclick="this.closest(\'.achievement-overlay\').remove()" style="background:transparent;border:1.5px solid var(--border2,rgba(232,214,196,.18));color:var(--muted)">No thanks</button>'+
     '</div>';
