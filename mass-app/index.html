@@ -3773,6 +3773,11 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .today-log-delete{width:22px;height:22px;border-radius:50%;background:rgba(232,49,74,.1);border:1.5px solid rgba(232,49,74,.25);color:#E8314A;font-size:13px;line-height:1;cursor:pointer;flex-shrink:0}
     .today-log-save{width:22px;height:22px;border-radius:50%;background:rgba(255,193,7,.1);border:1.5px solid rgba(255,193,7,.3);color:#FFC107;font-size:12px;line-height:1;cursor:pointer;flex-shrink:0}
     .today-log-relog{display:flex;align-items:center;gap:3px;padding:4px 9px;border-radius:20px;background:rgba(var(--accent-rgb,248,97,17),.1);border:1.5px solid rgba(var(--accent-rgb,248,97,17),.3);color:var(--accent,#F86111);font-size:10.5px;font-weight:700;line-height:1;cursor:pointer;flex-shrink:0;white-space:nowrap}
+    .log-date-pill{padding:7px 12px;border-radius:20px;background:rgba(232,214,196,.04);border:1.5px solid var(--border2);color:rgba(var(--white-rgb),.6);font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;transition:all .15s}
+    .log-date-pill.active{background:rgba(243,103,23,.14);border-color:rgba(243,103,23,.5);color:rgba(243,103,23,.95)}
+    .past-day-log-card{background:rgba(232,214,196,.03);border:1.5px solid var(--border2);border-radius:10px;padding:10px 12px;font-size:11.5px}
+    .past-day-log-card .pdl-title{font-weight:700;color:rgba(var(--white-rgb),.75);margin-bottom:6px}
+    .past-day-log-card .pdl-item{display:flex;justify-content:space-between;color:var(--muted);padding:2px 0}
 
     /* ── QUOTE CARD ── */
     .quote-card{background:rgba(232,214,196,.03);border:1.5px solid rgba(243,103,23,.2);border-radius:6px;padding:28px 32px;position:relative;overflow:hidden}
@@ -5752,6 +5757,11 @@ body[data-goal-theme="cut"] .lv-page{
 
     <div id="nt-panel-manual" style="display:none">
       <div style="display:flex;flex-direction:column;gap:10px">
+        <div>
+          <label class="lbl" style="margin-top:0">Log for</label>
+          <div id="log-date-picker" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+        </div>
+        <div id="past-day-log-list" style="display:none"></div>
         <div><label class="lbl" style="margin-top:0">What did you eat?</label><input type="text" id="food-name" placeholder="e.g. Chicken breast 200g"></div>
         <div class="g2" style="gap:10px">
           <div><label class="lbl" style="margin-top:0">Calories</label><input type="number" id="food-cals" placeholder="250"></div>
@@ -5762,7 +5772,7 @@ body[data-goal-theme="cut"] .lv-page{
           <div><label class="lbl" style="margin-top:0">Fat (g) · optional</label><input type="number" id="food-fats" placeholder="10"></div>
         </div>
         <label style="display:flex;align-items:center;gap:8px;font-size:11.5px;color:rgba(var(--white-rgb),.6);cursor:pointer;user-select:none"><input type="checkbox" id="food-save-custom" style="width:15px;height:15px;flex-shrink:0"> Save as a reusable food, so it's one tap next time</label>
-        <button onclick="logFood()" style="width:100%;background:rgba(243,103,23,.1);border:1.5px solid rgba(243,103,23,.35);border-radius:8px;padding:11px;color:rgba(243,103,23,.9);font-family:'Outfit',sans-serif;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:all .2s">Log +5 Arete</button>
+        <button id="food-log-btn" onclick="logFood()" style="width:100%;background:rgba(243,103,23,.1);border:1.5px solid rgba(243,103,23,.35);border-radius:8px;padding:11px;color:rgba(243,103,23,.9);font-family:'Outfit',sans-serif;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:all .2s">Log +5 Arete</button>
       </div>
     </div>
   </div>
@@ -9025,6 +9035,15 @@ let lastSessionWorkoutName='';
 let lastBackupDate='';
 let photoLog=[];
 let todayLog=[];
+// Itemized food logs for PAST days only (today's items live in todayLog,
+// same as always) — {'YYYY-MM-DD':[{name,cals,prot,carbs,fats,alcohol,time}]}.
+// Lets someone catch up a missed day or add a forgotten item to a recent
+// one without touching today's own live macros/XP.
+let foodLogByDate={};
+// Which day the Manual Entry form is currently targeting — null/unset
+// means today. Reset back to null right after each log so a backdated
+// entry never silently continues past the one day it was meant for.
+let pendingLogDate=null;
 let nutritionLogDate='';
 let shieldAtRiskToday=false; // true once the Caloric Shield has hit red/cracked/broken at any point today — resets on day rollover
 let shieldGreatSaveAwardedToday=false; // one-time-per-day guard so "Great Save" doesn't refire every render after it's earned
@@ -15658,6 +15677,15 @@ function parseLocalDate(str){
   const [y,m,d]=str.split('-').map(Number);
   return new Date(y,m-1,d);
 }
+// 'Today' / 'Yesterday' / '3 days ago' for a 'YYYY-MM-DD' key, used by the
+// backdated food-logging date picker.
+function relativeDayLabel(dateStr){
+  const diffDays=Math.round((parseLocalDate(localDateKey(new Date()))-parseLocalDate(dateStr))/86400000);
+  if(diffDays===0)return 'Today';
+  if(diffDays===1)return 'Yesterday';
+  if(diffDays>1)return diffDays+' days ago';
+  return dateStr;
+}
 
 // Per-day breakdown of the current Monday-start week — same tonnageLog as
 // renderVolumeTrend below, just bucketed by day instead of by week so you
@@ -21432,6 +21460,8 @@ function renderNutrition(){
   checkNutritionDay();
   try{syncLvBadges();}catch(e){}
   renderCustomFoodsQuickAdd();
+  renderLogDatePicker();
+  renderPastDayLog();
   // HERO — eyebrow (day/week, same joinDate math the Dashboard hero
   // uses), remaining-today kcal, and the thin progress rail underneath.
   const nEyebrow=document.getElementById('nutr-eyebrow-text');
@@ -23607,6 +23637,14 @@ function checkNutritionDay(){
       if(nutritionDayLog.length>60)nutritionDayLog=nutritionDayLog.slice(-60);
       if(dayMacros.cals===0&&!todayLog.length)lastMissedFoodDate=nutritionLogDate;
     }
+    // Carry the day's real itemized log into foodLogByDate before todayLog
+    // gets wiped below, so "go back and add a missed item" still shows what
+    // was actually logged that day instead of a false-empty list.
+    if(nutritionLogDate&&todayLog.length){
+      foodLogByDate[nutritionLogDate]=todayLog.slice();
+      const keptDates=Object.keys(foodLogByDate).sort();
+      while(keptDates.length>60)delete foodLogByDate[keptDates.shift()];
+    }
     // Same snapshot idea for water — dayMacros.water only ever holds
     // TODAY's count, so without this there's no history to chart or to
     // check for a real pattern (see checkNutritionConsequenceWarning).
@@ -23628,6 +23666,22 @@ function checkNutritionDay(){
   }
 }
 
+// Logs an item against a PAST date (today goes through logItem/todayLog as
+// always) — writes into foodLogByDate and keeps that day's nutritionDayLog
+// summary (the Caloric Shield streak's own source of truth) in sync,
+// without touching today's live dayMacros/todayLog at all.
+function logItemForDate(date,name,cals,prot,carbs,fats,alcohol){
+  if(!foodLogByDate[date])foodLogByDate[date]=[];
+  foodLogByDate[date].push({name,cals,prot,carbs,fats,alcohol,time:new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})});
+  let entry=nutritionDayLog.find(d=>d.date===date);
+  if(!entry){entry={date,hitTarget:false,cals:0};nutritionDayLog.push(entry);nutritionDayLog.sort((a,b)=>a.date<b.date?-1:1);}
+  entry.cals=(entry.cals||0)+cals;
+  const dayProt=foodLogByDate[date].reduce((s,it)=>s+(it.prot||0),0);
+  if(profile.cals&&profile.protein)entry.hitTarget=entry.cals>=profile.cals*0.9&&dayProt>=profile.protein*0.9;
+  if(nutritionDayLog.length>60)nutritionDayLog=nutritionDayLog.slice(-60);
+  const keptDates=Object.keys(foodLogByDate).sort();
+  while(keptDates.length>60)delete foodLogByDate[keptDates.shift()];
+}
 function logItem(name,cals,prot,carbs,fats,alcohol){
   checkNutritionDay();
   dayMacros.cals+=cals;dayMacros.prot+=prot;
@@ -24027,7 +24081,69 @@ function renderTodayLog(){
 }
 
 function addMeal(cals,prot,name,carbs,fats){logItem(name,cals,prot,carbs,fats);const xp=foodXPForName(name,5);addXP(xp,'Meal logged');if(xp>=5)toast('🍽',name+' logged');checkProteinQuest();saveToStorage();}
-function logFood(){const n=document.getElementById('food-name').value||'Food';const c=parseFloat(document.getElementById('food-cals').value)||0;const p=parseFloat(document.getElementById('food-prot').value)||0;const cb=parseFloat(document.getElementById('food-carbs').value)||0;const ft=parseFloat(document.getElementById('food-fats').value)||0;if(!c){toast('⚠️','Enter calories');return}logItem(n,c,p,cb,ft);const saveBox=document.getElementById('food-save-custom');if(saveBox&&saveBox.checked){customFoods.push({name:n,cals:c,prot:p,carbs:cb,fats:ft});renderCustomFoodsQuickAdd();saveBox.checked=false;}document.getElementById('food-name').value='';document.getElementById('food-cals').value='';document.getElementById('food-prot').value='';document.getElementById('food-carbs').value='';document.getElementById('food-fats').value='';spSyncInput('food-cals');spSyncInput('food-prot');spSyncInput('food-carbs');spSyncInput('food-fats');const xp=foodXPForName(n,5);addXP(xp,'Food logged');if(xp>=5)toast('✅','Logged');checkProteinQuest();saveToStorage();}
+// Backdated-logging date picker — "Today" plus the last 6 days, so a
+// missed day (or a forgotten item on a recent one) can be logged without
+// waiting for tomorrow, per direct ask.
+function renderLogDatePicker(){
+  const wrap=document.getElementById('log-date-picker');
+  if(!wrap)return;
+  const today=localDateKey(new Date());
+  const active=pendingLogDate||today;
+  const days=[];
+  for(let i=0;i<7;i++){const d=new Date();d.setDate(d.getDate()-i);days.push(localDateKey(d));}
+  wrap.innerHTML=days.map(d=>`<button type="button" class="log-date-pill${d===active?' active':''}" onclick="setPendingLogDate('${d}')">${relativeDayLabel(d)}</button>`).join('');
+  const btn=document.getElementById('food-log-btn');
+  if(btn)btn.textContent=active===today?'Log +5 Arete':'Log to '+relativeDayLabel(active);
+}
+function setPendingLogDate(dateStr){
+  const today=localDateKey(new Date());
+  pendingLogDate=dateStr===today?null:dateStr;
+  renderLogDatePicker();
+  renderPastDayLog();
+}
+// Shows what's already logged on the selected past day, so "go back and
+// add a missed item" starts from what's really there, not a blank slate.
+function renderPastDayLog(){
+  const box=document.getElementById('past-day-log-list');
+  if(!box)return;
+  if(!pendingLogDate){box.style.display='none';return;}
+  const items=foodLogByDate[pendingLogDate]||[];
+  box.style.display='block';
+  box.innerHTML='<div class="past-day-log-card"><div class="pdl-title">Already logged for '+relativeDayLabel(pendingLogDate)+'</div>'+
+    (items.length?items.map(it=>`<div class="pdl-item"><span>${it.name}</span><span>${it.cals} kcal</span></div>`).join(''):'<div class="pdl-item"><span>Nothing yet</span></div>')+
+    '</div>';
+}
+function logFood(){
+  const n=document.getElementById('food-name').value||'Food';
+  const c=parseFloat(document.getElementById('food-cals').value)||0;
+  const p=parseFloat(document.getElementById('food-prot').value)||0;
+  const cb=parseFloat(document.getElementById('food-carbs').value)||0;
+  const ft=parseFloat(document.getElementById('food-fats').value)||0;
+  if(!c){toast('⚠️','Enter calories');return}
+  const today=localDateKey(new Date());
+  const targetDate=pendingLogDate||today;
+  const isToday=targetDate===today;
+  if(isToday)logItem(n,c,p,cb,ft);
+  else logItemForDate(targetDate,n,c,p,cb,ft);
+  const saveBox=document.getElementById('food-save-custom');
+  if(saveBox&&saveBox.checked){customFoods.push({name:n,cals:c,prot:p,carbs:cb,fats:ft});renderCustomFoodsQuickAdd();saveBox.checked=false;}
+  document.getElementById('food-name').value='';
+  document.getElementById('food-cals').value='';
+  document.getElementById('food-prot').value='';
+  document.getElementById('food-carbs').value='';
+  document.getElementById('food-fats').value='';
+  spSyncInput('food-cals');spSyncInput('food-prot');spSyncInput('food-carbs');spSyncInput('food-fats');
+  if(isToday){
+    const xp=foodXPForName(n,5);addXP(xp,'Food logged');if(xp>=5)toast('✅','Logged');checkProteinQuest();
+  }else{
+    addXP(3,'Backdated log');
+    toast('✅',n+' logged to '+relativeDayLabel(targetDate).toLowerCase());
+    pendingLogDate=null;
+    renderLogDatePicker();
+    renderPastDayLog();
+  }
+  saveToStorage();
+}
 // Water is a separate hydration habit from food logging — "Reset" clearing
 // a mis-logged meal shouldn't also wipe glasses already drunk today.
 function resetDay(){if(!confirm('Clear everything logged today?'))return;dayMacros={cals:0,prot:0,carbs:0,fats:0,water:dayMacros.water||0};todayLog=[];renderNutrition();saveToStorage();toast('🔄','Day reset')}
@@ -25610,6 +25726,7 @@ function saveToStorage(){
     localStorage.setItem('arx_dayMacros', JSON.stringify(dayMacros));
     localStorage.setItem('arx_totalVolume', totalVolume);
     localStorage.setItem('arx_nutritionDayLog', JSON.stringify(nutritionDayLog));
+    localStorage.setItem('arx_foodLogByDate', JSON.stringify(foodLogByDate));
     localStorage.setItem('arx_waterDayLog', JSON.stringify(waterDayLog));
     localStorage.setItem('arx_tonnageLog', JSON.stringify(tonnageLog));
     localStorage.setItem('arx_recentFoodIdxs', JSON.stringify(recentFoodIdxs));
@@ -25779,6 +25896,8 @@ function loadFromStorage(){
     totalVolume=parseFloat(localStorage.getItem('arx_totalVolume')||'0');
     const ndl=localStorage.getItem('arx_nutritionDayLog');
     if(ndl){try{nutritionDayLog=JSON.parse(ndl);}catch(e){nutritionDayLog=[];}}
+    const fld=localStorage.getItem('arx_foodLogByDate');
+    if(fld){try{foodLogByDate=JSON.parse(fld);}catch(e){foodLogByDate={};}}
     const wdl=localStorage.getItem('arx_waterDayLog');
     if(wdl){try{waterDayLog=JSON.parse(wdl);}catch(e){waterDayLog=[];}}
     const tnl=localStorage.getItem('arx_tonnageLog');
