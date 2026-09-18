@@ -4757,6 +4757,7 @@ body[data-goal-theme="cut"] .lv-page{
             <span class="lv-road-pill-top"><img src="images/icons/arete.png" alt="" class="lv-road-pill-icon"> <span class="lv-road-arete-num">0</span></span>
             <span class="lv-road-pill-track"><span class="lv-road-pill-fill" style="width:0%"></span></span>
           </button>
+          <button type="button" class="lv-profile-btn" id="dash-rank-badge-btn" onclick="showPage('profile');setTimeout(()=>{const el=document.getElementById('hall-of-statues');if(el)el.scrollIntoView({behavior:'smooth',block:'center'});},350)" aria-label="Your rank"><span id="dash-rank-badge-icon" style="display:flex;align-items:center;justify-content:center;width:100%;height:100%"></span></button>
           <button type="button" class="lv-profile-btn" onclick="showPage('shop')" aria-label="Marketplace"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--lv-fg)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2 3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 01-8 0"/></svg></button>
           <button type="button" class="lv-profile-btn" onclick="showPage('profile')" aria-label="Profile"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--lv-fg)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="lv-profile-badge"></span></button>
         </div>
@@ -16211,6 +16212,15 @@ function syncLvBadges(){
     const sum=getXpRoadSummary();
     document.querySelectorAll('.lv-road-arete-num').forEach(el=>el.textContent=formatCompactNum(xp));
     document.querySelectorAll('.lv-road-pill .lv-road-pill-fill').forEach(el=>el.style.width=sum.pct+'%');
+  }
+  // Rank badge — the Hall of Statues' current tier, given a real visible
+  // home up here instead of only existing on a section near the bottom of
+  // Profile. Same medalSVG() draw already used for the rank medal
+  // elsewhere, so it's the exact same tier art, not a redrawn icon.
+  const rankIcon=document.getElementById('dash-rank-badge-icon');
+  if(rankIcon){
+    const idx=getRankIndex();
+    rankIcon.innerHTML=medalSVG(idx>=0?TIERS[idx]:UNRANKED,20);
   }
   syncProfileBadge();
 }
