@@ -4709,6 +4709,17 @@ body[data-goal-theme="cut"] .lv-page{
     </div>
   </div>
 
+  <div id="coach-workout-banner" class="dash-notif-fixed" style="display:none">
+    <div class="dnf-head" onclick="openCoachWorkoutCheckin()" style="cursor:pointer">
+      <img class="dnf-icon" src="images/icons/coach-sam-portrait.png" alt="" style="object-fit:cover;object-position:50% 42%">
+      <div class="dnf-body">
+        <div class="dnf-toprow"><span class="dnf-app">Coach Sam</span><span class="dnf-time">now</span></div>
+        <div class="dnf-msg">Let's talk training.</div>
+        <div class="dnf-actions"><span onclick="event.stopPropagation();dismissCoachWorkoutCheckin()" style="cursor:pointer;color:var(--muted);font-size:12.5px">Dismiss</span></div>
+      </div>
+    </div>
+  </div>
+
   <div id="weekly-assessment-banner" class="dash-notif-fixed" style="display:none;cursor:pointer" onclick="viewAssessmentInChat()">
     <div class="dnf-head">
       <span class="dnf-icon" style="background:linear-gradient(160deg,#7FE3FF,#2AA9D6)">📊</span>
@@ -9121,6 +9132,8 @@ let coachNutritionCheckinDismissedAt=null;
 // anywhere in-app; this is a private log, not a leaderboard.
 let nutritionFeedbackResponses=[]; // [{date, reason}]
 let osBusyOfferShown=false; // one-time gate on the Areviax OS "time is the blocker" offer
+let coachWorkoutCheckinDismissedAt='';
+let workoutFeedbackResponses=[]; // [{date, reason}]
 
 // ── EXERCISES with equipment tags ──
 const EX={
@@ -16142,7 +16155,7 @@ function renderTodaySessionName(name){
 // last); now only the front of dashNotifQueue is ever shown, and the
 // next one slides in a beat after the current one clears, matching how a
 // real phone surfaces one notification at a time instead of piling them.
-const DASH_NOTIF_IDS=['muscle-balance-banner','streak-risk-banner','streak-repair-banner','sleep-reminder-banner','walk-tip-card','daily-spin-banner','missed-food-banner','weekly-assessment-banner','coach-nutrition-banner'];
+const DASH_NOTIF_IDS=['muscle-balance-banner','streak-risk-banner','streak-repair-banner','sleep-reminder-banner','walk-tip-card','daily-spin-banner','missed-food-banner','weekly-assessment-banner','coach-nutrition-banner','coach-workout-banner'];
 let _dashNotifArmed=false;
 let dashNotifQueue=[];
 let dashNotifShowing=null;
@@ -16584,6 +16597,7 @@ function initApp(){
   try{checkMuscleBalanceNudge();}catch(e){console.error('checkMuscleBalanceNudge:',e.message);}
   try{checkMissedFoodDay();}catch(e){console.error('checkMissedFoodDay:',e.message);}
   try{checkCoachNutritionCheckin();}catch(e){console.error('checkCoachNutritionCheckin:',e.message);}
+  try{checkCoachWorkoutCheckin();}catch(e){console.error('checkCoachWorkoutCheckin:',e.message);}
   try{buildTodayPreview();}catch(e){console.error('buildTodayPreview:',e.message);}
   try{renderNutrition();}catch(e){console.error('renderNutrition:',e.message);}
   try{renderRank();}catch(e){console.error('renderRank:',e.message);}
@@ -23673,6 +23687,75 @@ function showOSBusyOffer(){
   requestAnimationFrame(()=>overlay.classList.add('show'));
 }
 
+// ── COACH SAM WORKOUT CHECK-IN — mirrors the nutrition check-in above,
+// same pattern: short banner, real conversation behind the tap, response
+// stored, same one-time "busy" offer gate (shared with the nutrition
+// version so it can only ever fire once total, from whichever check-in
+// hits it first). Trigger is a real week-plus gap with no session at
+// all, gated on having real training history so a brand-new user never
+// sees this on day one.
+function checkCoachWorkoutCheckin(){
+  const banner=document.getElementById('coach-workout-banner');
+  if(!banner)return;
+  const today=localDateKey(new Date());
+  if(coachWorkoutCheckinDismissedAt){
+    const daysSince=Math.floor((parseLocalDate(today)-parseLocalDate(coachWorkoutCheckinDismissedAt))/86400000);
+    if(daysSince<10)return;
+  }
+  if(!lastSessionDate||trainingCompletedDates.length<3)return; // not enough real history yet to call it a pattern
+  const daysSinceLastSession=Math.floor((parseLocalDate(today)-parseLocalDate(lastSessionDate))/86400000);
+  if(daysSinceLastSession<7)return;
+  banner.style.display='';
+}
+function dismissCoachWorkoutCheckin(){
+  coachWorkoutCheckinDismissedAt=localDateKey(new Date());
+  saveToStorage();
+  const banner=document.getElementById('coach-workout-banner');
+  if(banner)banner.style.display='none';
+}
+function openCoachWorkoutCheckin(){
+  dismissCoachWorkoutCheckin();
+  const overlay=document.createElement('div');
+  overlay.className='achievement-overlay';
+  overlay.innerHTML=
+    '<div class="achievement-modal" style="max-width:360px;text-align:left;max-height:85vh;overflow-y:auto">'+
+      '<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">'+
+        '<img src="images/icons/coach-sam-portrait.png" alt="" style="width:40px;height:40px;border-radius:50%;object-fit:cover;object-position:50% 42%;flex-shrink:0;border:2px solid rgba(227,191,118,.55)">'+
+        '<div style="font-family:var(--lv-display);font-size:1.2rem;color:var(--lv-fg,#F7F5F2)">Coach Sam</div>'+
+      '</div>'+
+      '<div style="font-size:13.5px;line-height:1.6;color:rgba(var(--white-rgb),.88);margin-bottom:12px">It\'s been over a week since your last session. I\'m not here to guilt you about it — just to actually ask why, and see if there\'s something the app should be doing better.</div>'+
+      '<div style="font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--lv-gold,#E3BF76);margin-bottom:6px">Why showing up actually matters</div>'+
+      '<ul style="margin:0 0 14px;padding-left:18px;font-size:12.5px;line-height:1.7;color:rgba(var(--white-rgb),.75)">'+
+        '<li>Your Rank needs real sessions, not just volume — a long gap resets that clock, even if the weight was there before.</li>'+
+        '<li>Your streak and Weekly Volume trend both read real completed sessions, not intentions.</li>'+
+        '<li>A long gap doesn\'t just pause progress — recovery and growth only happen from training that actually happened.</li>'+
+      '</ul>'+
+      '<div style="font-size:13px;font-weight:700;color:var(--lv-fg,#F7F5F2);margin-bottom:8px">What\'s been making it harder to train?</div>'+
+      '<textarea id="coach-workout-feedback-text" rows="3" placeholder="Be honest — this just helps me understand, no wrong answer." style="width:100%;box-sizing:border-box;background:rgba(var(--white-rgb),.06);border:1.5px solid var(--border2,rgba(232,214,196,.18));border-radius:10px;padding:10px;font-family:inherit;font-size:13px;color:var(--lv-fg,#F7F5F2);resize:vertical;margin-bottom:14px"></textarea>'+
+      '<button class="achievement-close-btn" onclick="submitCoachWorkoutFeedback()" style="margin-bottom:8px">Send</button>'+
+      '<button class="achievement-close-btn" onclick="this.closest(\'.achievement-overlay\').remove()" style="background:transparent;border:1.5px solid var(--border2,rgba(232,214,196,.18));color:var(--muted)">Skip</button>'+
+    '</div>';
+  overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.remove();});
+  document.body.appendChild(overlay);
+  requestAnimationFrame(()=>overlay.classList.add('show'));
+  setTimeout(()=>{const t=document.getElementById('coach-workout-feedback-text');if(t)t.focus();},200);
+}
+function submitCoachWorkoutFeedback(){
+  const textEl=document.getElementById('coach-workout-feedback-text');
+  const reason=(textEl&&textEl.value||'').trim();
+  if(reason){
+    workoutFeedbackResponses.push({date:localDateKey(new Date()),reason});
+    if(workoutFeedbackResponses.length>200)workoutFeedbackResponses=workoutFeedbackResponses.slice(-200);
+    saveToStorage();
+  }
+  const overlay=textEl&&textEl.closest('.achievement-overlay');
+  if(overlay)overlay.remove();
+  toast('💬',reason?'Thanks — got it.':'No worries, thanks anyway.');
+  const lower=reason.toLowerCase();
+  if(reason&&!osBusyOfferShown&&OS_BUSY_KEYWORDS.some(k=>lower.includes(k))){
+    setTimeout(showOSBusyOffer,1400);
+  }
+}
 
 function checkNutritionDay(){
   const today=localDateKey(new Date());
@@ -25851,6 +25934,8 @@ function saveToStorage(){
     localStorage.setItem('arx_missedFoodDayShownDate', missedFoodDayShownDate);
     localStorage.setItem('arx_lowFoodEveningNotifiedDate', lowFoodEveningNotifiedDate);
     localStorage.setItem('arx_coachNutritionCheckinDismissedAt', coachNutritionCheckinDismissedAt||'');
+    localStorage.setItem('arx_coachWorkoutCheckinDismissedAt', coachWorkoutCheckinDismissedAt||'');
+    localStorage.setItem('arx_workoutFeedbackResponses', JSON.stringify(workoutFeedbackResponses));
     localStorage.setItem('arx_nutritionFeedbackResponses', JSON.stringify(nutritionFeedbackResponses));
     localStorage.setItem('arx_osBusyOfferShown', osBusyOfferShown?'1':'0');
     localStorage.setItem('arx_cloudBackupConsent', JSON.stringify(cloudBackupConsent));
@@ -26053,6 +26138,8 @@ function loadFromStorage(){
     missedFoodDayShownDate=localStorage.getItem('arx_missedFoodDayShownDate')||'';
     lowFoodEveningNotifiedDate=localStorage.getItem('arx_lowFoodEveningNotifiedDate')||'';
     coachNutritionCheckinDismissedAt=localStorage.getItem('arx_coachNutritionCheckinDismissedAt')||null;
+    coachWorkoutCheckinDismissedAt=localStorage.getItem('arx_coachWorkoutCheckinDismissedAt')||'';
+    { const wfr=localStorage.getItem('arx_workoutFeedbackResponses'); if(wfr){try{workoutFeedbackResponses=JSON.parse(wfr);}catch(e){workoutFeedbackResponses=[];}} }
     { const nfr=localStorage.getItem('arx_nutritionFeedbackResponses'); if(nfr){try{nutritionFeedbackResponses=JSON.parse(nfr);}catch(e){nutritionFeedbackResponses=[];}} }
     osBusyOfferShown=localStorage.getItem('arx_osBusyOfferShown')==='1';
     const cbc=localStorage.getItem('arx_cloudBackupConsent');
