@@ -3771,6 +3771,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .today-log-macros{font-size:10px;color:var(--muted);margin-top:1px}
     .today-log-delete{width:22px;height:22px;border-radius:50%;background:rgba(232,49,74,.1);border:1.5px solid rgba(232,49,74,.25);color:#E8314A;font-size:13px;line-height:1;cursor:pointer;flex-shrink:0}
     .today-log-save{width:22px;height:22px;border-radius:50%;background:rgba(255,193,7,.1);border:1.5px solid rgba(255,193,7,.3);color:#FFC107;font-size:12px;line-height:1;cursor:pointer;flex-shrink:0}
+    .today-log-relog{display:flex;align-items:center;gap:3px;padding:4px 9px;border-radius:20px;background:rgba(var(--accent-rgb,248,97,17),.1);border:1.5px solid rgba(var(--accent-rgb,248,97,17),.3);color:var(--accent,#F86111);font-size:10.5px;font-weight:700;line-height:1;cursor:pointer;flex-shrink:0;white-space:nowrap}
 
     /* ── QUOTE CARD ── */
     .quote-card{background:rgba(232,214,196,.03);border:1.5px solid rgba(243,103,23,.2);border-radius:6px;padding:28px 32px;position:relative;overflow:hidden}
@@ -14484,9 +14485,9 @@ function mountStaticScrollPickers(){
   mountScrollPicker(document.getElementById('sess-cardio-duration'),{min:0,max:240,step:1,decimals:0,unit:'min'});
   mountCardioDistancePicker();
   mountScrollPicker(document.getElementById('food-cals'),{min:0,max:2000,step:5,decimals:0,unit:'cal'});
-  mountScrollPicker(document.getElementById('food-prot'),{min:0,max:300,step:1,decimals:0,unit:'g'});
-  mountScrollPicker(document.getElementById('food-carbs'),{min:0,max:300,step:1,decimals:0,unit:'g'});
-  mountScrollPicker(document.getElementById('food-fats'),{min:0,max:150,step:1,decimals:0,unit:'g'});
+  mountScrollPicker(document.getElementById('food-prot'),{min:0,max:300,step:1,decimals:1,unit:'g'});
+  mountScrollPicker(document.getElementById('food-carbs'),{min:0,max:300,step:1,decimals:1,unit:'g'});
+  mountScrollPicker(document.getElementById('food-fats'),{min:0,max:150,step:1,decimals:1,unit:'g'});
   mountScrollPicker(document.getElementById('log-w'),{min:55,max:500,step:1,decimals:0,unit:'lbs'});
   ['m-chest','m-waist','m-hips','m-arms','m-thighs'].forEach(id=>{
     mountScrollPicker(document.getElementById(id),{min:0,max:200,step:0.1,decimals:1,unit:'cm'});
@@ -23996,6 +23997,16 @@ function deleteLoggedItem(idx){
   toast('🗑',item.name+' removed');
 }
 
+function relogLoggedItem(idx){
+  const item=todayLog[idx];
+  if(!item)return;
+  logItem(item.name,item.cals,item.prot,item.carbs,item.fats,item.alcohol);
+  const xp=foodXPForName(item.name,5);
+  addXP(xp,'Food logged');
+  toast('↻',item.name+' logged again');
+  checkProteinQuest();
+  saveToStorage();
+}
 function renderTodayLog(){
   const list=document.getElementById('today-log-list');
   if(!list)return;
@@ -24007,6 +24018,7 @@ function renderTodayLog(){
     '<div class="today-log-row">'+
       '<div class="today-log-time">'+item.time+'</div>'+
       '<div class="today-log-info"><div class="today-log-name">'+item.name+'</div><div class="today-log-macros">'+item.cals+' kcal \u00b7 '+item.prot+'g protein'+(item.alcohol?' \u00b7 '+item.alcohol+'g alcohol':'')+'</div></div>'+
+      '<button class="today-log-relog" onclick="relogLoggedItem('+i+')" title="Log this again">\u21bb Log again</button>'+
       '<button class="today-log-save" onclick="saveLoggedItemAsCustomFood('+i+')" title="Save as a reusable food">\u2605</button>'+
       '<button class="today-log-delete" onclick="deleteLoggedItem('+i+')" title="Remove">\u00d7</button>'+
     '</div>'
@@ -24014,7 +24026,7 @@ function renderTodayLog(){
 }
 
 function addMeal(cals,prot,name,carbs,fats){logItem(name,cals,prot,carbs,fats);const xp=foodXPForName(name,5);addXP(xp,'Meal logged');if(xp>=5)toast('🍽',name+' logged');checkProteinQuest();saveToStorage();}
-function logFood(){const n=document.getElementById('food-name').value||'Food';const c=parseInt(document.getElementById('food-cals').value)||0;const p=parseInt(document.getElementById('food-prot').value)||0;const cb=parseInt(document.getElementById('food-carbs').value)||0;const ft=parseInt(document.getElementById('food-fats').value)||0;if(!c){toast('⚠️','Enter calories');return}logItem(n,c,p,cb,ft);const saveBox=document.getElementById('food-save-custom');if(saveBox&&saveBox.checked){customFoods.push({name:n,cals:c,prot:p,carbs:cb,fats:ft});renderCustomFoodsQuickAdd();saveBox.checked=false;}document.getElementById('food-name').value='';document.getElementById('food-cals').value='';document.getElementById('food-prot').value='';document.getElementById('food-carbs').value='';document.getElementById('food-fats').value='';spSyncInput('food-cals');spSyncInput('food-prot');spSyncInput('food-carbs');spSyncInput('food-fats');const xp=foodXPForName(n,5);addXP(xp,'Food logged');if(xp>=5)toast('✅','Logged');checkProteinQuest();saveToStorage();}
+function logFood(){const n=document.getElementById('food-name').value||'Food';const c=parseFloat(document.getElementById('food-cals').value)||0;const p=parseFloat(document.getElementById('food-prot').value)||0;const cb=parseFloat(document.getElementById('food-carbs').value)||0;const ft=parseFloat(document.getElementById('food-fats').value)||0;if(!c){toast('⚠️','Enter calories');return}logItem(n,c,p,cb,ft);const saveBox=document.getElementById('food-save-custom');if(saveBox&&saveBox.checked){customFoods.push({name:n,cals:c,prot:p,carbs:cb,fats:ft});renderCustomFoodsQuickAdd();saveBox.checked=false;}document.getElementById('food-name').value='';document.getElementById('food-cals').value='';document.getElementById('food-prot').value='';document.getElementById('food-carbs').value='';document.getElementById('food-fats').value='';spSyncInput('food-cals');spSyncInput('food-prot');spSyncInput('food-carbs');spSyncInput('food-fats');const xp=foodXPForName(n,5);addXP(xp,'Food logged');if(xp>=5)toast('✅','Logged');checkProteinQuest();saveToStorage();}
 // Water is a separate hydration habit from food logging — "Reset" clearing
 // a mis-logged meal shouldn't also wipe glasses already drunk today.
 function resetDay(){if(!confirm('Clear everything logged today?'))return;dayMacros={cals:0,prot:0,carbs:0,fats:0,water:dayMacros.water||0};todayLog=[];renderNutrition();saveToStorage();toast('🔄','Day reset')}
