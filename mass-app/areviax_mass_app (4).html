@@ -4965,27 +4965,46 @@ body[data-goal-theme="cut"] .lv-page{
            that size. This is the actual fix for "my name isn't appearing
            in the greeting": a small line at normal size right underneath,
            which can never force the headline to wrap. -->
-      <div id="dash-greeting-name" style="margin-top:2px;font-family:var(--lv-sans);font-size:13px;font-weight:700;color:var(--lv-muted-fg)"></div>
-      <div id="dash-title-badge" style="display:none;margin-top:4px;font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--lv-gold)"></div>
-      <div style="margin-top:6px;font-family:var(--lv-sans);font-size:15px;font-weight:800;color:var(--lv-fg)">
-        <span id="d-next-word1">Push</span> <span class="lv-serif-accent lv-gold-text" id="d-next-word2">upper</span>
+      <!-- Name + equipped title collapsed onto one row (was two stacked
+           lines) — renderDashTitleBadge() now prefixes the title text with
+           "· " itself so the separator only appears when a title is
+           actually equipped. -->
+      <div style="margin-top:2px;display:flex;align-items:baseline;gap:5px;font-family:var(--lv-sans);font-size:13px;font-weight:700;color:var(--lv-muted-fg)">
+        <span id="dash-greeting-name"></span>
+        <span id="dash-title-badge" style="display:none;font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--lv-gold)"></span>
+      </div>
+
+      <!-- Next-session name + its lifts/time/last meta collapsed onto one
+           row (was two stacked lines) — same single-row shape as every
+           other page's hero stat line (Workout/Nutrition's stat + summary
+           pair), instead of the dashboard hero alone stacking extra rows. -->
+      <div style="margin-top:10px;display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap">
+        <div style="font-family:var(--lv-sans);font-size:15px;font-weight:800;color:var(--lv-fg)">
+          <span id="d-next-word1">Push</span> <span class="lv-serif-accent lv-gold-text" id="d-next-word2">upper</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;font-family:var(--lv-mono);font-size:10.5px;color:var(--lv-muted-fg);white-space:nowrap">
+          <span style="display:flex;align-items:center;gap:5px"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="4" cy="12" r="3"/><circle cx="20" cy="12" r="3"/><rect x="7" y="11" width="10" height="2" rx="1"/></svg> <span id="d-next-lifts">0 lifts</span></span>
+          <span style="display:flex;align-items:center;gap:5px"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg> <span id="d-next-time">~0 min</span></span>
+          <span id="d-next-last">last · —</span>
+        </div>
       </div>
       <div id="d-next-full" style="display:none">Push Upper</div>
       <div id="d-next-sub" style="display:none"></div>
 
-      <div style="margin-top:14px;display:flex;align-items:center;gap:16px;font-family:var(--lv-mono);font-size:11px;color:var(--lv-muted-fg)">
-        <span style="display:flex;align-items:center;gap:5px"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="4" cy="12" r="3"/><circle cx="20" cy="12" r="3"/><rect x="7" y="11" width="10" height="2" rx="1"/></svg> <span id="d-next-lifts">0 lifts</span></span>
-        <span style="display:flex;align-items:center;gap:5px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg> <span id="d-next-time">~0 min</span></span>
-        <span id="d-next-last">last · —</span>
-      </div>
-
-      <!-- week strip — real trainingCompletedDates via renderWeeklyRecap() -->
-      <div id="d-next-daypicker" style="margin-top:20px;display:grid;grid-template-columns:repeat(7,1fr);gap:6px"></div>
-      <div class="lv-meander-bold" style="margin-top:20px"></div>
+      <div class="lv-meander-bold" style="margin-top:18px"></div>
     </div>
   </header>
 
   <main class="lv-hero-main" style="margin-top:12px;display:flex;flex-direction:column;gap:12px">
+
+    <!-- WEEK STRIP — moved out of the hero (was crammed in above the
+         meander, making the header the busiest on the app) and given its
+         own light-weight, unboxed row instead — same #d-next-daypicker id
+         and renderWeeklyRecap() data, just relocated. -->
+    <div>
+      <p class="lv-label-eyebrow" style="margin-bottom:8px">This week</p>
+      <div id="d-next-daypicker" style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px"></div>
+    </div>
 
     <!-- START — moved up from the bottom of the page to right under the
          hero, so the next action is visible without scrolling instead of
@@ -6602,37 +6621,47 @@ body[data-goal-theme="cut"] .lv-page{
      where this markup lives changed, not how it's populated. -->
 <div class="page lv-page" id="page-shop">
   <div style="height:calc(10px + max(var(--safe-top,0px),env(safe-area-inset-top,0px)));background:var(--lv-bg);margin:0 -20px"></div>
-  <!-- Photo header — same lv-grain lv-pediment pattern every other page
-       uses (Recovery/Progress/Workout/etc: a rounded photo banner with
-       the dark-mode tokens pinned so light mode doesn't wash out the
-       photo), now using the real marketplace photo. The Gift from the
-       Gods card below keeps its own original realm-olympus.jpg look —
-       that treatment was reverted back rather than reused here, since
-       the marketplace photo belongs to the PAGE, not to that one card. -->
-  <header class="lv-grain lv-pediment" style="position:relative;overflow:hidden;margin:0 -20px 16px;padding:20px 20px 26px;border-radius:0 0 28px 28px;background-image:linear-gradient(180deg,rgba(10,7,4,.5) 0%,rgba(10,7,4,.72) 45%,rgba(10,7,4,.95) 100%),url('images/shop/greek-marketplace-real.jpg');background-size:cover;background-position:center 30%;--lv-fg:#F7F5F2;--lv-muted-fg:#9E9791;--lv-border:#342C28;--lv-border-strong:#56433A;--lv-gold:#E6BE6D;--white:#F8F5EF;--muted:#A59D95;--border:rgba(232,214,196,.1)">
-    <div class="road-page-head" style="display:grid;grid-template-columns:1fr auto 1fr;position:relative;z-index:1">
-      <button class="btn btn-out btn-sm" style="justify-self:start" onclick="showPage('dashboard')">← Home</button>
-      <span class="ct glow-title trophy" style="font-size:17px;text-align:center;color:#FFDE94">MARKETPLACE</span>
-      <button type="button" class="lv-profile-btn" style="justify-self:end" onclick="showPage('profile')" aria-label="Profile"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--lv-fg)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="lv-profile-badge"></span></button>
+  <!-- Photo header — now the SAME full hero shape every other page uses
+       (Dashboard/Workout/Nutrition: icon row, eyebrow, huge headline, one
+       stat row, meander), not the old road-page-head bar this carried
+       before. The currency strip that used to sit below as its own row
+       is now that hero's stat row — same #shop-drachma-badge/#shop-key-
+       badge ids, nothing downstream changed. Arete stays off this row —
+       it's not a shop currency, it lives on the Road to Olympus pill in
+       the icon row instead. The Gift from the Gods card below keeps its
+       own original realm-olympus.jpg look, independent of this header. -->
+  <header class="lv-grain lv-pediment" style="position:relative;overflow:hidden;margin:0 -20px 16px;padding:20px 20px 26px;border-radius:0 0 28px 28px;background-image:linear-gradient(180deg,rgba(10,7,4,.5) 0%,rgba(10,7,4,.72) 45%,rgba(10,7,4,.95) 100%),url('images/shop/greek-marketplace-real.jpg');background-size:cover;background-position:center 30%;--lv-fg:#F7F5F2;--lv-muted-fg:#9E9791;--lv-border:#342C28;--lv-border-strong:#56433A;--lv-gold:#E6BE6D">
+    <span class="lv-ghost-numeral" style="right:-14px;top:38px">Π</span>
+    <div style="position:relative;z-index:1">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <span style="display:flex;align-items:center;gap:8px">
+          <svg width="22" height="22" viewBox="0 0 48 48" fill="none" stroke="var(--lv-gold)" aria-hidden="true"><path d="M24 5 26.6 21.4 43 24 26.6 26.6 24 43 21.4 26.6 5 24 21.4 21.4Z" fill="var(--lv-gold)" stroke="none" opacity=".95"/><path d="M24 12v24M12 24h24" stroke-width=".6" opacity=".5"/><circle cx="24" cy="24" r="11" stroke-width=".7" opacity=".45"/><path d="M15 9c-7 5-9 14-5 22 2.5 5 6.5 8.5 11 10" stroke-width="1.4" opacity=".8"/><path d="M33 9c7 5 9 14 5 22-2.5 5-6.5 8.5-11 10" stroke-width="1.4" opacity=".8"/><g opacity=".7"><ellipse cx="10.5" cy="13" rx="2.6" ry="1.2" transform="rotate(-35 10.5 13)" stroke-width=".9"/><ellipse cx="37.5" cy="13" rx="2.6" ry="1.2" transform="rotate(35 37.5 13)" stroke-width=".9"/></g><g opacity=".7"><ellipse cx="11.3" cy="19" rx="2.6" ry="1.2" transform="rotate(-35 11.3 19)" stroke-width=".9"/><ellipse cx="36.7" cy="19" rx="2.6" ry="1.2" transform="rotate(35 36.7 19)" stroke-width=".9"/></g><g opacity=".7"><ellipse cx="12.1" cy="25" rx="2.6" ry="1.2" transform="rotate(-35 12.1 25)" stroke-width=".9"/><ellipse cx="35.9" cy="25" rx="2.6" ry="1.2" transform="rotate(35 35.9 25)" stroke-width=".9"/></g><g opacity=".7"><ellipse cx="12.9" cy="31" rx="2.6" ry="1.2" transform="rotate(-35 12.9 31)" stroke-width=".9"/><ellipse cx="35.1" cy="31" rx="2.6" ry="1.2" transform="rotate(35 35.1 31)" stroke-width=".9"/></g></svg>
+          <span class="lv-wordmark">Areviax</span>
+        </span>
+        <div style="display:flex;align-items:center;gap:9px">
+          <span class="lv-pill" style="background:var(--lv-primary);color:var(--lv-primary-fg)"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="lv-streak-flame"><path d="M12 22c4.4 0 7-2.9 7-6.8 0-3-1.7-5-3-7-.2 1.7-1 2.8-2 3.4.3-2.7-.7-5.6-3-7.6-.3 2.5-1.2 3.9-2.7 5.4C6.8 10.8 6 12.6 6 15c0 4 2.7 7 6 7z"/></svg> <span class="lv-streak-badge">0</span></span>
+          <button type="button" class="lv-road-pill" onclick="showPage('trophyroad')" aria-label="The Way Home — Arete progress">
+            <span class="lv-road-pill-top"><img src="images/icons/arete.png" alt="" class="lv-road-pill-icon"> <span class="lv-road-arete-num">0</span></span>
+            <span class="lv-road-pill-track"><span class="lv-road-pill-fill" style="width:0%"></span></span>
+          </button>
+          <button type="button" class="lv-profile-btn" onclick="showPage('profile')" aria-label="Profile"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--lv-fg)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="lv-profile-badge"></span></button>
+        </div>
+      </div>
+
+      <p class="lv-label-eyebrow lv-pulse-dot" style="margin-top:22px;color:var(--lv-fg);opacity:.7">The Agora</p>
+      <h1 style="margin-top:6px;color:var(--lv-fg);font-family:'Bebas Neue',sans-serif;font-weight:400;font-size:clamp(3.75rem,22vw,6rem);line-height:.82;letter-spacing:.01em;text-transform:uppercase">Open<br><span class="lv-serif-accent lv-gold-text" style="font-size:.8em">the agora</span></h1>
+
+      <div style="margin-top:18px;display:flex;align-items:flex-end;justify-content:space-between;gap:12px">
+        <div>
+          <p class="lv-label-eyebrow">Treasury</p>
+          <p class="lv-stat-huge" style="margin-top:8px;display:flex;align-items:baseline;gap:7px"><img src="images/icons/tetradrachm.png" alt="" style="width:26px;height:26px;border-radius:50%"> <span id="shop-drachma-badge">0</span></p>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;font-family:var(--lv-mono);font-size:13px;color:var(--lv-fg)">🗝️ <span id="shop-key-badge">0</span></div>
+      </div>
+
+      <div class="lv-meander-bold" style="margin-top:18px"></div>
     </div>
   </header>
-  <!-- CURRENCY STRIP — every balance the shop below actually spends or
-       pays out, together at the top the way a live-ops shop always leads
-       with its currency bar. Each pill now carries its own solid colour
-       chip (not just a coloured outline) — analysed directly against a
-       Brawl Stars shop reference, where every currency reads as its own
-       distinct coloured icon-badge at a glance rather than same-shaped
-       outlined pills that only differ by icon. No real-money tiles
-       (Areviax doesn't have that flow) — every one of these is earned,
-       never bought. -->
-  <!-- Arete deliberately left out here — it's not a shop currency (nothing
-       below spends it), it's your Road to Olympus progress, which now
-       lives on the Road to Olympus pill in the Dashboard header instead of
-       floating as a bare number wherever a currency strip happened to be. -->
-  <div style="display:flex;gap:7px;padding:10px 20px 4px;overflow-x:auto">
-    <span class="shop-currency-chip" style="background:linear-gradient(160deg,#FFB24A,#E0801F)"><img src="images/icons/tetradrachm.png" alt="" style="width:15px;height:15px;border-radius:50%;flex-shrink:0"> <span id="shop-drachma-badge">0</span></span>
-    <span class="shop-currency-chip" style="background:linear-gradient(160deg,#FFDE7A,#C9971E)">🗝️ <span id="shop-key-badge">0</span></span>
-  </div>
 
   <!-- ASYMMETRIC GRID — re-checked against a second, closer Brawl Stars
        reference + a full breakdown of its actual layout mechanism: a
@@ -9217,8 +9246,8 @@ function renderDashTitleBadge(){
   const el=document.getElementById('dash-title-badge');
   if(!el)return;
   if(equippedTitle&&TITLES[equippedTitle]){
-    el.textContent=TITLES[equippedTitle].name;
-    el.style.display='block';
+    el.textContent='· '+TITLES[equippedTitle].name;
+    el.style.display='inline';
   }else{
     el.style.display='none';
   }
