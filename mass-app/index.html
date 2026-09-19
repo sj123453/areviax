@@ -5925,6 +5925,18 @@ body[data-goal-theme="cut"] .lv-page{
       <button id="nt-manual" onclick="switchNutTab('manual',this)" style="flex:1;background:transparent;border:none;border-radius:8px;color:rgba(var(--white-rgb),.4);font-family:'Outfit',sans-serif;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:9px 0;cursor:pointer;transition:all .2s">Manual Entry</button>
     </div>
 
+    <!-- LOG FOR — shared between Smart Log and Manual Entry (both read/
+         write the same pendingLogDate), so picking a past day works no
+         matter which logging method someone reaches for. Used to live
+         inside Manual Entry only, which meant Smart Log — the actual
+         "auto log" flow most people reach for first — had no way to
+         backdate at all. -->
+    <div style="margin-bottom:10px">
+      <label class="lbl" style="margin-top:0">Log for</label>
+      <div id="log-date-picker" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+    </div>
+    <div id="past-day-log-list" style="display:none;margin-bottom:10px"></div>
+
     <div id="nt-panel-smart">
       <div style="font-size:11.5px;color:rgba(var(--white-rgb),.5);margin-bottom:12px;line-height:1.55">Describe what you ate — we'll estimate the macros.</div>
       <div id="smartlog-fav-wrap" style="display:none;margin-bottom:12px">
@@ -5952,11 +5964,6 @@ body[data-goal-theme="cut"] .lv-page{
 
     <div id="nt-panel-manual" style="display:none">
       <div style="display:flex;flex-direction:column;gap:10px">
-        <div>
-          <label class="lbl" style="margin-top:0">Log for</label>
-          <div id="log-date-picker" style="display:flex;gap:6px;flex-wrap:wrap"></div>
-        </div>
-        <div id="past-day-log-list" style="display:none"></div>
         <div><label class="lbl" style="margin-top:0">What did you eat?</label><input type="text" id="food-name" placeholder="e.g. Chicken breast 200g"></div>
         <div class="g2" style="gap:10px">
           <div><label class="lbl" style="margin-top:0">Calories</label><input type="number" id="food-cals" placeholder="250"></div>
@@ -17791,7 +17798,8 @@ function switchNutTab(tab,el){
     btn.style.color=t===tab?'rgba(142,142,147,.95)':'rgba(var(--white-rgb),.4)';
   });
   if(tab==='smart')renderSmartLogRecent();
-  else renderLogDatePicker();
+  renderLogDatePicker();
+  renderPastDayLog();
 }
 
 // ── MEAL PLAN GENERATOR ──
@@ -22046,22 +22054,37 @@ function updateSmartLogPreview(){
       '<div><span>'+fats+'g</span>fat</div>'+
       (alcohol?'<div><span>'+alcohol+'g</span>alcohol</div>':'')+
     '</div>'+
-    '<button class="btn btn-g btn-sm" style="width:100%;justify-content:center;margin-top:10px" onclick="logSmartFood('+cals+','+prot+','+carbs+','+fats+','+alcohol+')">Log it +5 Arete</button>';
+    '<button class="btn btn-g btn-sm" style="width:100%;justify-content:center;margin-top:10px" onclick="logSmartFood('+cals+','+prot+','+carbs+','+fats+','+alcohol+')">'+smartLogButtonLabel()+'</button>';
 }
 
 function logSmartFood(cals,prot,carbs,fats,alcohol){
   if(!smartLogFood)return;
-  logItem(smartLogFood.name+' (~'+Math.round(smartLogGrams)+'g)',cals,prot,carbs,fats,alcohol);
-  const xp=foodXPForName(smartLogFood.name,5);
-  addXP(xp,'Food logged');
-  if(xp>=5)toast('✅',smartLogFood.name+' logged (~'+Math.round(smartLogGrams)+'g)');
-  const fIdx=FOODS_DB.indexOf(smartLogFood);
-  if(fIdx>=0){
-    recentFoodIdxs=recentFoodIdxs.filter(i=>i!==fIdx);
-    recentFoodIdxs.unshift(fIdx);
-    if(recentFoodIdxs.length>8)recentFoodIdxs=recentFoodIdxs.slice(0,8);
+  const name=smartLogFood.name+' (~'+Math.round(smartLogGrams)+'g)';
+  const today=localDateKey(new Date());
+  const targetDate=pendingLogDate||today;
+  const isToday=targetDate===today;
+  if(isToday){
+    logItem(name,cals,prot,carbs,fats,alcohol);
+    const xp=foodXPForName(smartLogFood.name,5);
+    addXP(xp,'Food logged');
+    if(xp>=5)toast('✅',smartLogFood.name+' logged (~'+Math.round(smartLogGrams)+'g)');
+    const fIdx=FOODS_DB.indexOf(smartLogFood);
+    if(fIdx>=0){
+      recentFoodIdxs=recentFoodIdxs.filter(i=>i!==fIdx);
+      recentFoodIdxs.unshift(fIdx);
+      if(recentFoodIdxs.length>8)recentFoodIdxs=recentFoodIdxs.slice(0,8);
+    }
+    checkProteinQuest();
+    renderLogDatePicker();
+  }else{
+    logItemForDate(targetDate,name,cals,prot,carbs,fats,alcohol);
+    addXP(3,'Backdated log');
+    toast('✅',name+' logged to '+relativeDayLabel(targetDate).toLowerCase());
+    pendingLogDate=null;
+    renderLogDatePicker();
+    renderPastDayLog();
   }
-  checkProteinQuest();saveToStorage();
+  saveToStorage();
   // reset
   smartLogFood=null;smartLogGrams=0;
   const input=document.getElementById('smartlog-search');if(input)input.value='';
@@ -24966,11 +24989,21 @@ function renderLogDatePicker(){
   const btn=document.getElementById('food-log-btn');
   if(btn)btn.textContent=active===today?'Log +5 Arete':'Log to '+relativeDayLabel(active);
 }
+// Smart Log's own "Log it" button text — mirrors #food-log-btn's
+// today-vs-backdated wording above, kept as its own function since the
+// button itself is rebuilt fresh on every updateSmartLogPreview() call
+// rather than existing as a fixed element with a textContent to update.
+function smartLogButtonLabel(){
+  const today=localDateKey(new Date());
+  const active=pendingLogDate||today;
+  return active===today?'Log it +5 Arete':'Log it to '+relativeDayLabel(active);
+}
 function setPendingLogDate(dateStr){
   const today=localDateKey(new Date());
   pendingLogDate=dateStr===today?null:dateStr;
   renderLogDatePicker();
   renderPastDayLog();
+  updateSmartLogPreview();
 }
 // Shows what's already logged on the selected past day, so "go back and
 // add a missed item" starts from what's really there, not a blank slate.
