@@ -3922,8 +3922,14 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .today-log-delete{width:22px;height:22px;border-radius:50%;background:rgba(232,49,74,.1);border:1.5px solid rgba(232,49,74,.25);color:#E8314A;font-size:13px;line-height:1;cursor:pointer;flex-shrink:0}
     .today-log-save{width:22px;height:22px;border-radius:50%;background:rgba(255,193,7,.1);border:1.5px solid rgba(255,193,7,.3);color:#FFC107;font-size:12px;line-height:1;cursor:pointer;flex-shrink:0}
     .today-log-relog{display:flex;align-items:center;gap:3px;padding:4px 9px;border-radius:20px;background:rgba(var(--accent-rgb,248,97,17),.1);border:1.5px solid rgba(var(--accent-rgb,248,97,17),.3);color:var(--accent,#F86111);font-size:10.5px;font-weight:700;line-height:1;cursor:pointer;flex-shrink:0;white-space:nowrap}
-    .log-date-pill{padding:7px 12px;border-radius:20px;background:rgba(232,214,196,.04);border:1.5px solid var(--border2);color:rgba(var(--white-rgb),.6);font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;transition:all .15s}
+    .log-date-pill{padding:7px 12px;border-radius:20px;background:rgba(232,214,196,.04);border:1.5px solid var(--border2);color:rgba(var(--white-rgb),.6);font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;transition:all .15s;display:inline-flex;align-items:center;gap:5px}
     .log-date-pill.active{background:rgba(243,103,23,.14);border-color:rgba(243,103,23,.5);color:rgba(243,103,23,.95)}
+    /* Hit/miss dot — whether that day's calories AND protein both landed
+       within 90% of target, same threshold the Caloric Shield itself uses
+       (nutritionDayLog.hitTarget), so this never disagrees with the Shield. */
+    .log-date-pill-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+    .log-date-pill-dot.hit{background:var(--green,#3ECF6B)}
+    .log-date-pill-dot.miss{background:rgba(232,214,196,.3)}
     .past-day-log-card{background:rgba(232,214,196,.03);border:1.5px solid var(--border2);border-radius:10px;padding:10px 12px;font-size:11.5px}
     .past-day-log-card .pdl-title{font-weight:700;color:rgba(var(--white-rgb),.75);margin-bottom:6px}
     .past-day-log-card .pdl-item{display:flex;justify-content:space-between;color:var(--muted);padding:2px 0}
@@ -17731,6 +17737,7 @@ function switchNutTab(tab,el){
     btn.style.color=t===tab?'rgba(142,142,147,.95)':'rgba(var(--white-rgb),.4)';
   });
   if(tab==='smart')renderSmartLogRecent();
+  else renderLogDatePicker();
 }
 
 // ── MEAL PLAN GENERATOR ──
@@ -24875,6 +24882,21 @@ function addMeal(cals,prot,name,carbs,fats){logItem(name,cals,prot,carbs,fats);c
 // Backdated-logging date picker — "Today" plus the last 6 days, so a
 // missed day (or a forgotten item on a recent one) can be logged without
 // waiting for tomorrow, per direct ask.
+// Hit/miss dot per day — null means "no data to judge" (nothing logged
+// that day at all), so the pill stays plain rather than falsely reading
+// as a missed day. Today uses the live in-progress totals; past days
+// read the same nutritionDayLog.hitTarget the Caloric Shield itself
+// uses, so the two views can never disagree.
+function logDateHitStatus(dateStr,today){
+  if(!profile.cals||!profile.protein)return null;
+  if(dateStr===today){
+    if(!todayLog.length)return null;
+    return (dayMacros.cals>=profile.cals*0.9&&dayMacros.prot>=profile.protein*0.9)?'hit':'miss';
+  }
+  const entry=nutritionDayLog.find(d=>d.date===dateStr);
+  if(!entry)return null;
+  return entry.hitTarget?'hit':'miss';
+}
 function renderLogDatePicker(){
   const wrap=document.getElementById('log-date-picker');
   if(!wrap)return;
@@ -24882,7 +24904,11 @@ function renderLogDatePicker(){
   const active=pendingLogDate||today;
   const days=[];
   for(let i=0;i<7;i++){const d=new Date();d.setDate(d.getDate()-i);days.push(localDateKey(d));}
-  wrap.innerHTML=days.map(d=>`<button type="button" class="log-date-pill${d===active?' active':''}" onclick="setPendingLogDate('${d}')">${relativeDayLabel(d)}</button>`).join('');
+  wrap.innerHTML=days.map(d=>{
+    const status=logDateHitStatus(d,today);
+    const dot=status?`<span class="log-date-pill-dot ${status}" title="${status==='hit'?'Hit calories and protein that day':'Missed calories or protein that day'}"></span>`:'';
+    return `<button type="button" class="log-date-pill${d===active?' active':''}" onclick="setPendingLogDate('${d}')">${dot}${relativeDayLabel(d)}</button>`;
+  }).join('');
   const btn=document.getElementById('food-log-btn');
   if(btn)btn.textContent=active===today?'Log +5 Arete':'Log to '+relativeDayLabel(active);
 }
@@ -24926,6 +24952,7 @@ function logFood(){
   spSyncInput('food-cals');spSyncInput('food-prot');spSyncInput('food-carbs');spSyncInput('food-fats');
   if(isToday){
     const xp=foodXPForName(n,5);addXP(xp,'Food logged');if(xp>=5)toast('✅','Logged');checkProteinQuest();
+    renderLogDatePicker();
   }else{
     addXP(3,'Backdated log');
     toast('✅',n+' logged to '+relativeDayLabel(targetDate).toLowerCase());
