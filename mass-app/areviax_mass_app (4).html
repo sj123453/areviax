@@ -16,7 +16,7 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --statue-mask:url('images/misc/statue-mask.png');
+  --statue-mask:url('images/misc/statue-classical.svg');
   --bg:#0D0806;--bg2:#150D0A;--panel:rgba(24,15,11,.8);--panel2:rgba(21,13,10,.7);
   --blue:#F36717;--blue-l:#F36717;--cyan:#F36717;
   --orange:#F36717;--orange2:#FF8342;--purple:#A59D95;--purple2:#D5CDC0;--purple-d:rgba(142,142,147,.15);--purple-b:rgba(142,142,147,.25);
@@ -1628,9 +1628,9 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .statue-figure{position:relative;width:230px;height:441px;margin:0 auto;z-index:2}
     .statue-metal-base,.statue-metal-fill{
       position:absolute;inset:0;
-      -webkit-mask-image:url('images/misc/statue-mask.png');
+      -webkit-mask-image:var(--statue-mask);
       -webkit-mask-size:contain;-webkit-mask-repeat:no-repeat;-webkit-mask-position:top center;
-      mask-image:url('images/misc/statue-mask.png');
+      mask-image:var(--statue-mask);
       mask-size:contain;mask-repeat:no-repeat;mask-position:top center;
       /* Ambient gleam — a slow drift of the metal gradient's own highlight
          band across the statue, like light catching bronze/gold/silver as
@@ -2324,26 +2324,28 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        stacked ones, so nothing reads as a flat evenly-sized row. */
     .shop-feature-slot{margin:6px 2px 14px}
     .shop-feature-slot .shop-hero-card{
-      width:100%;min-height:34vh;transform:rotate(-1.3deg);
+      width:100%;min-height:34vh;
     }
-    /* flex-start on mobile — the natural, slightly-shorter left card
-       keeps the whole shop close to one screen's worth of scroll. On
-       wider viewports the two columns have visibly more room to grow
-       apart, so stretch kicks in there instead (media query below) to
-       match the tall card's height to the stack's — its middle art
-       section already flexes to fill available space
-       (shop-hero-card-body's own flex:1), so stretching only ever adds
-       height there, never breaks the card's content. */
-    .shop-dual-track{display:flex;align-items:flex-start;gap:12px}
-    .shop-track-tall{flex:1.05;min-width:0;display:flex}
-    .shop-track-tall .shop-hero-card{width:100%}
-    @media(min-width:700px){
-      .shop-dual-track{align-items:stretch}
-      .shop-track-tall .shop-hero-card{height:100%}
-    }
-    .shop-track-stack{flex:1;min-width:0;display:flex;flex-direction:column;gap:12px}
+    /* Dual track stacks into one full-width column below 700px — the
+       side-by-side split was squeezing Daily Deals/Areviax Crates into
+       roughly half the screen width each, cropping the crate art and
+       clipping "From sessions" down to "Fro…". Full width for both
+       tracks on mobile fixes that outright rather than trying to shrink
+       content to fit; the side-by-side asymmetric layout still kicks in
+       once there's genuinely enough room (media query below). */
+    .shop-dual-track{display:flex;flex-direction:column;gap:12px}
+    .shop-track-tall{min-width:0;display:flex}
+    .shop-track-tall .shop-hero-card{width:100%;min-height:30vh}
+    .shop-track-stack{min-width:0;display:flex;flex-direction:column;gap:12px}
     .shop-track-stack .shop-grid-card{width:100%}
-    .shop-track-stack .shop-deal-grid,.shop-track-stack .crate-row{max-height:150px}
+    .shop-track-stack .shop-deal-grid,.shop-track-stack .crate-row{max-height:210px}
+    @media(min-width:700px){
+      .shop-dual-track{flex-direction:row;align-items:stretch}
+      .shop-track-tall{flex:1.05}
+      .shop-track-stack{flex:1}
+      .shop-track-tall .shop-hero-card{height:100%;min-height:0}
+      .shop-track-stack .shop-deal-grid,.shop-track-stack .crate-row{max-height:150px}
+    }
     .shop-hero-card{
       position:relative;border-radius:16px;overflow:hidden;
       border:3px solid rgba(227,191,118,.55);
@@ -6596,7 +6598,7 @@ body[data-goal-theme="cut"] .lv-page{
        different shape around them. -->
   <div style="padding:0 20px 24px">
     <div class="shop-feature-slot">
-      <div class="shop-hero-card" style="background-image:linear-gradient(180deg,rgba(10,7,4,.35) 0%,rgba(10,7,4,.6) 55%,rgba(10,7,4,.92) 100%),url('images/roads/realm-olympus.jpg');background-position:center 35%">
+      <div class="shop-hero-card" style="background-image:linear-gradient(180deg,rgba(10,7,4,.3) 0%,rgba(10,7,4,.5) 55%,rgba(10,7,4,.9) 100%),url('images/shop/greek-marketplace.svg'),url('images/roads/realm-olympus.jpg');background-position:center,center bottom,center 35%;background-size:cover,cover,cover;background-repeat:no-repeat,no-repeat,no-repeat">
         <span class="shop-badge free">FREE</span>
         <span class="shop-timer-pill" id="shop-gift-timer">—</span>
         <div class="shop-hero-card-body" style="padding-top:26px">
