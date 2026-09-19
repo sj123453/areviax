@@ -1445,6 +1445,11 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
          .content already pads by above. */
       .bottom-sheet-modal{bottom:calc(60px + env(safe-area-inset-bottom,0px))!important}
       .inset-modal{bottom:calc(16px + 60px + env(safe-area-inset-bottom,0px))!important}
+      /* iOS Safari auto-zooms the whole page in on focus whenever a text
+         input's computed font-size is under 16px — the base rule was
+         13px. 16px is the one value that actually disables it; anything
+         under is not "close enough". */
+      input[type=text],input[type=number],input[type=email],input[type=tel],input[type=password],select,textarea{font-size:16px!important}
     }
     /* ── INTRO SCREEN ── */
     #intro{
@@ -5857,6 +5862,15 @@ body[data-goal-theme="cut"] .lv-page{
       </div>
       <div id="custom-foods-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px"></div>
     </div>
+    <!-- RECIPES IN QUICK ADD — a recipe is a real, whole meal, same idea
+         as everything else here: one tap and it's logged, no need to
+         open the full detail modal first. Searches allRecipes() directly
+         rather than duplicating a separate list. -->
+    <div style="margin-top:18px">
+      <h3 style="font-family:var(--lv-sans);font-size:12px;font-weight:800;color:var(--lv-fg);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Log a recipe</h3>
+      <input type="text" id="quick-recipe-search" placeholder="Search recipes…" oninput="renderQuickRecipeSearch(this.value)" autocomplete="off">
+      <div id="quick-recipe-results" style="margin-top:8px"></div>
+    </div>
   </div>
   </div>
 
@@ -6048,6 +6062,8 @@ body[data-goal-theme="cut"] .lv-page{
   </header>
 
   <div class="companion" style="margin-bottom:14px"><div class="companion-msg">Real meals, built for a surplus — tap any card for full ingredients and steps.</div></div>
+
+  <input type="text" id="recipe-search" placeholder="Search recipes or ingredients…" oninput="renderRecipesPage()" autocomplete="off" style="margin-bottom:12px">
 
   <div class="data-terminal-tabs" id="recipe-type-tabs" style="margin-bottom:14px">
     <button class="data-terminal-tab active" data-type="all" onclick="switchRecipeType('all',this)">All</button>
@@ -20142,6 +20158,14 @@ const FOODS_DB=[
   {name:'MyProtein Protein Bar',cals:354,prot:30.8,carbs:30.8,fats:13.8,unitGrams:65,unitName:'bar'},
   {name:'M&S Protein Deluxe Bar (Salted Caramel & Chocolate)',cals:429,prot:44,carbs:24,fats:20,unitGrams:45,unitName:'bar'},
 
+  // — Branded cereal/breakfast bars — lower protein, more sugar/carbs
+  // than the protein bars above; a genuinely different snack category,
+  // not just a smaller version of them.
+  {name:'Nutri-Grain Bar',cals:351,prot:4,carbs:62,fats:9.5,unitGrams:37,unitName:'bar'},
+  {name:'Alpen Light Bar',cals:358,prot:5,carbs:68,fats:5,unitGrams:19,unitName:'bar'},
+  {name:'Special K Bar',cals:409,prot:4.5,carbs:73,fats:9,unitGrams:22,unitName:'bar'},
+  {name:'Rice Krispies Squares',cals:418,prot:3.6,carbs:75,fats:10.7,unitGrams:28,unitName:'bar'},
+
   // — Supermarket own-brand seeds & nuts snack packs — the loose bulk
   // versions above (Almonds/Mixed nuts/Cashews/Walnuts/Sunflower seeds)
   // stay weight/handful-based since that's how a big bag is actually
@@ -20350,6 +20374,22 @@ const RECIPES_DB=[
     ingredients:['150g chicken breast, grilled','1 large wholemeal wrap','cos lettuce','20g parmesan','light caesar dressing'],
     steps:['Season and grill or pan-fry the chicken for 6-7 minutes per side until cooked through, then slice.','Warm the wrap for 20 seconds to make it pliable.','Layer shredded lettuce, sliced chicken, shaved parmesan, and dressing down the middle.','Fold in the sides and roll tightly.'],
     why:'A familiar, easy-to-eat format for anyone who finds bowls of plain chicken and rice boring day after day.'},
+  {name:'BLT',type:'lunch',cals:480,prot:22,carbs:34,fats:26,effort:'quick',
+    ingredients:['2 slices wholemeal bread, toasted','4 rashers bacon','2 leaves cos lettuce','1 tomato, sliced','1 tbsp mayo'],
+    steps:['Grill or pan-fry the bacon until crisp, about 3-4 minutes a side.','Toast the bread.','Spread mayo on both slices.','Layer the lettuce, tomato, and bacon on one slice, then close the sandwich with the other.'],
+    why:'A genuine classic, not something bulking usually has room for — this version keeps it real food, not a diet compromise.',
+    swaps:[{label:'Bacon',ingredientIndex:1,options:[
+      {label:'Bacon',text:'4 rashers bacon',delta:{cals:0,prot:0,carbs:0,fats:0}},
+      {label:'Turkey bacon',text:'4 rashers turkey bacon',delta:{cals:-70,prot:2,carbs:0,fats:-9}},
+    ]}]},
+  {name:'Club Sandwich',type:'lunch',cals:650,prot:42,carbs:58,fats:28,effort:'quick',
+    ingredients:['3 slices wholemeal bread, toasted','120g chicken breast, cooked','3 rashers bacon','2 leaves cos lettuce','1 tomato, sliced','1 tbsp mayo'],
+    steps:['Grill or pan-fry the bacon until crisp.','Toast the bread.','Spread mayo on the bread.','Layer chicken on the bottom slice, add the middle slice, then lettuce, tomato, and bacon, and top with the final slice.','Cut into quarters and secure with cocktail sticks if needed.'],
+    why:'A genuine triple-decker — filling enough to work as a real meal, not just a snack, without needing a plate of rice alongside it.'},
+  {name:'Tuna Melt',type:'lunch',cals:520,prot:38,carbs:40,fats:20,effort:'quick',
+    ingredients:['2 cans tuna in water, drained','2 slices wholemeal bread','40g cheddar, grated','1 tbsp light mayo','black pepper'],
+    steps:['Mix the drained tuna with the mayo and black pepper.','Spread the tuna mix over both slices of bread.','Top with grated cheddar.','Grill (broil) for 3-4 minutes until the cheese is melted and bubbling.'],
+    why:'A hot, comforting take on tuna that still hits real protein numbers — a genuine break from the usual cold tuna-and-pasta routine.'},
 
   // — Dinner —
   {name:'Salmon & Sweet Potato',type:'dinner',cals:610,prot:42,carbs:48,fats:24,effort:'some-effort',
@@ -20891,6 +20931,8 @@ const AI_COACH_KB=[
    a:"The auto-generator spreads exercises across every major muscle group it can fit, prioritizing your rarest muscle groups first — but a very short session length (or Reduced Sets) genuinely can't fit everything every time. Swap any exercise via the Swap button, or add more time/exercises in The Forge if a specific muscle keeps getting squeezed out."},
   {q:'What\'s a good rep range for muscle growth?',kw:['rep range','reps','hypertrophy','how many reps'],
    a:"Roughly 6–15 reps per set, taken close to failure, is the sweet spot for most hypertrophy work — the exact number matters less than training hard and progressively adding weight or reps over time. This app's auto-generated sessions already default into that range per exercise."},
+  {q:'How close to failure should I train?',kw:['intensity','failure','till failure','to failure','easy set','set felt easy','how hard should i train','rir','reps in reserve'],
+   a:"A working set should never feel easy — you're aiming to finish each one within 1-3 reps of failure (the point where good form breaks down), not stopping just because you hit a number on paper. If your last rep of a set still feels comfortable, the weight was too light for that set to count as real work. True failure on every single set isn't required either — it adds up to more fatigue than it's worth over a full session — but every set should genuinely challenge you."},
   {q:'How does the Arete Road work?',kw:['xp road','xp','checkpoint','level up'],
    a:'Arete Road is a checkpoint ladder — every real action (a logged session, hitting your nutrition target, a streak milestone) earns Arete, and crossing each checkpoint unlocks a real reward (a crate, shards, or a guaranteed card at the big ones). See the full path on its own page from the Progress hub.'},
   {q:'Can I change my daily calorie target?',kw:['change calories','calorie target','change target','macros wrong'],
@@ -21271,6 +21313,59 @@ let currentRecipeDetailIdx=null;
 // per-viewing choice, not a saved preference (the recipe's own base
 // ingredients/macros are never mutated).
 let recipeSwapChoices={};
+// GENERIC INGREDIENT SWAPS — rather than hand-authoring a swap for every
+// single recipe, detect common substitutable ingredients (by leading
+// quantity + name) straight from r.ingredients and offer a real,
+// numbers-backed alternative automatically. Deltas are per 100g/100ml,
+// scaled by the quantity actually parsed off the ingredient line.
+// A recipe that already has an explicit swap on a given ingredientIndex
+// (hand-authored, more specific) is never double-covered here.
+const GENERIC_INGREDIENT_SWAPS=[
+  {label:'Rice',test:/^(\d+(?:\.\d+)?)\s*g\s+(?:white |jasmine |basmati )?rice\b/i,
+    exclude:/cake|cracker|pudding|noodle/i,
+    altLabel:'Cauliflower rice',delta100:{cals:-105,prot:-0.7,carbs:-23,fats:0},
+    altText:qty=>qty+'g cauliflower rice'},
+  {label:'Chicken',test:/^(\d+(?:\.\d+)?)\s*g\s+chicken breast\b/i,
+    altLabel:'Turkey breast',delta100:{cals:-30,prot:-1,carbs:0,fats:-2.6},
+    altText:qty=>qty+'g turkey breast'},
+  {label:'Mince',test:/^(\d+(?:\.\d+)?)\s*g\s+(?:\d+%\s*)?(?:lean\s+)?(?:beef mince|minced beef)\b/i,
+    altLabel:'Chicken mince',delta100:{cals:-100,prot:-3,carbs:0,fats:-10},
+    altText:qty=>qty+'g chicken mince'},
+  {label:'Milk',test:/^(\d+(?:\.\d+)?)\s*ml\s+whole milk\b/i,
+    altLabel:'Skimmed',delta100:{cals:-31,prot:0,carbs:0.3,fats:-3.5},
+    altText:qty=>qty+'ml skimmed milk'},
+  {label:'Yogurt',test:/^(\d+(?:\.\d+)?)\s*g\s+0%.*yog(?:h?)urt\b/i,
+    altLabel:'Full-fat',delta100:{cals:77,prot:-4.3,carbs:1,fats:9.7},
+    altText:qty=>qty+'g full-fat Greek yogurt'},
+  {label:'Yogurt',test:/^(\d+(?:\.\d+)?)\s*g\s+full-fat.*yog(?:h?)urt\b/i,
+    altLabel:'0% fat',delta100:{cals:-77,prot:4.3,carbs:-1,fats:-9.7},
+    altText:qty=>qty+'g 0% Greek yogurt'},
+];
+function getRecipeAutoSwaps(r){
+  const explicitIdx=new Set((r.swaps||[]).map(sw=>sw.ingredientIndex));
+  const out=[];
+  r.ingredients.forEach((line,idx)=>{
+    if(explicitIdx.has(idx))return;
+    for(const rule of GENERIC_INGREDIENT_SWAPS){
+      const m=line.match(rule.test);
+      if(!m||(rule.exclude&&rule.exclude.test(line)))continue;
+      const qty=parseFloat(m[1]);
+      if(!qty)continue;
+      const scale=qty/100;
+      out.push({label:rule.label,ingredientIndex:idx,options:[
+        {label:'As written',text:line,delta:{cals:0,prot:0,carbs:0,fats:0}},
+        {label:rule.altLabel,text:rule.altText(qty),delta:{
+          cals:Math.round(rule.delta100.cals*scale),
+          prot:Math.round(rule.delta100.prot*scale*10)/10,
+          carbs:Math.round(rule.delta100.carbs*scale*10)/10,
+          fats:Math.round(rule.delta100.fats*scale*10)/10}}
+      ]});
+      break;
+    }
+  });
+  return out;
+}
+function allRecipeSwaps(r){return [...(r.swaps||[]),...getRecipeAutoSwaps(r)];}
 function switchRecipeType(type,btn){
   recipeTypeFilter=type;
   document.querySelectorAll('#recipe-type-tabs .data-terminal-tab').forEach(b=>b.classList.remove('active'));
@@ -21284,7 +21379,10 @@ function renderRecipesPage(){
   const all=allRecipes();
   const heroStat=document.getElementById('recipes-hero-stat');
   if(heroStat)heroStat.textContent=all.length+(all.length===1?' recipe':' recipes');
-  const list=recipeTypeFilter==='all'?all:all.filter(r=>r.type===recipeTypeFilter);
+  let list=recipeTypeFilter==='all'?all:all.filter(r=>r.type===recipeTypeFilter);
+  const searchEl=document.getElementById('recipe-search');
+  const q=searchEl?searchEl.value.trim().toLowerCase():'';
+  if(q)list=list.filter(r=>r.name.toLowerCase().includes(q)||r.ingredients.some(i=>i.toLowerCase().includes(q)));
   const addCard=`<div class="recipe-card recipe-card-add" onclick="openAddRecipeForm()">
       <div class="recipe-card-visual">➕</div>
       <div class="recipe-card-body">
@@ -21292,6 +21390,10 @@ function renderRecipesPage(){
         <div class="recipe-card-macros"><span>Food or meal</span></div>
       </div>
     </div>`;
+  if(q&&!list.length){
+    grid.innerHTML=addCard+'<div style="grid-column:1/-1;font-size:11.5px;color:var(--muted);padding:8px 0">No recipes match "'+q.replace(/"/g,'&quot;')+'" — try a simpler term, or add your own.</div>';
+    return;
+  }
   grid.innerHTML=addCard+list.map((r)=>{
     const idx=all.indexOf(r);
     return `<div class="recipe-card" onclick="openRecipeDetail(${idx})">
@@ -21309,7 +21411,7 @@ function renderRecipesPage(){
 // real, unchanged fallback to return to.
 function computeRecipeAdjustedMacros(r){
   let cals=r.cals,prot=r.prot,carbs=r.carbs,fats=r.fats;
-  (r.swaps||[]).forEach((sw,i)=>{
+  allRecipeSwaps(r).forEach((sw,i)=>{
     const opt=sw.options[recipeSwapChoices[i]||0];
     if(opt&&opt.delta){cals+=opt.delta.cals||0;prot+=opt.delta.prot||0;carbs+=opt.delta.carbs||0;fats+=opt.delta.fats||0;}
   });
@@ -21326,7 +21428,7 @@ function renderRecipeDetailIngredients(r){
   const ingEl=document.getElementById('recipe-detail-ingredients');
   if(!ingEl)return;
   const lines=[...r.ingredients];
-  (r.swaps||[]).forEach((sw,i)=>{
+  allRecipeSwaps(r).forEach((sw,i)=>{
     const opt=sw.options[recipeSwapChoices[i]||0];
     if(opt&&opt.text!=null&&sw.ingredientIndex!=null)lines[sw.ingredientIndex]=opt.text;
   });
@@ -21339,9 +21441,10 @@ function renderRecipeDetailIngredients(r){
 function renderRecipeSwaps(r){
   const wrap=document.getElementById('recipe-detail-swaps');
   if(!wrap)return;
-  if(!r.swaps||!r.swaps.length){wrap.style.display='none';wrap.innerHTML='';return;}
+  const swaps=allRecipeSwaps(r);
+  if(!swaps.length){wrap.style.display='none';wrap.innerHTML='';return;}
   wrap.style.display='block';
-  wrap.innerHTML=r.swaps.map((sw,i)=>{
+  wrap.innerHTML=swaps.map((sw,i)=>{
     const chosen=recipeSwapChoices[i]||0;
     const pills=sw.options.map((o,j)=>`<button type="button" onclick="selectRecipeSwap(${i},${j})" style="padding:6px 12px;border-radius:999px;font-size:11px;font-weight:700;cursor:pointer;border:1.5px solid ${j===chosen?'rgba(243,103,23,.6)':'var(--border2)'};background:${j===chosen?'rgba(243,103,23,.14)':'rgba(232,214,196,.03)'};color:${j===chosen?'rgba(255,150,80,.95)':'rgba(var(--white-rgb),.7)'}">${o.label}</button>`).join('');
     return `<div style="margin-bottom:10px"><div style="font-size:10.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">${sw.label||'Swap'}</div><div style="display:flex;gap:6px;flex-wrap:wrap">${pills}</div></div>`;
@@ -24319,6 +24422,38 @@ function logQuickAdd(key){
   const xp=foodXPForName(f.name,2);
   addXP(xp,'Quick add');saveToStorage();
   if(xp>=2)toast('✅',f.name+' logged');
+}
+// RECIPES IN QUICK ADD — same idea as QUICK_ADD_FOODS above but backed by
+// allRecipes() directly (built-in + custom), so a whole cooked meal is
+// just as fast to log as a single food once it's been made. Logs the
+// recipe's own base macros — no swap picker here, that's what the full
+// recipe detail view is for.
+function renderQuickRecipeSearch(query){
+  const wrap=document.getElementById('quick-recipe-results');
+  if(!wrap)return;
+  const q=query.trim().toLowerCase();
+  if(!q){wrap.innerHTML='';return;}
+  const all=allRecipes();
+  const matches=all.filter(r=>r.name.toLowerCase().includes(q)).slice(0,6);
+  if(!matches.length){wrap.innerHTML='<div class="smartlog-noresult">No recipes match — try a simpler term.</div>';return;}
+  wrap.innerHTML=matches.map(r=>{
+    const idx=all.indexOf(r);
+    return `<div class="smartlog-result" onclick="logQuickRecipe(${idx})" style="display:flex;align-items:center;justify-content:space-between;gap:6px"><span style="flex:1;min-width:0">${r.name}</span><span>${r.cals} kcal · ${r.prot}g P</span></div>`;
+  }).join('');
+}
+function logQuickRecipe(idx){
+  const r=allRecipes()[idx];
+  if(!r)return;
+  logItem(r.name,r.cals,r.prot,r.carbs,r.fats,0);
+  const xp=foodXPForName(r.name,5);
+  addXP(xp,'Recipe logged');
+  checkProteinQuest();
+  saveToStorage();
+  if(xp>=5)toast('🍽',r.name+' logged');
+  const input=document.getElementById('quick-recipe-search');
+  if(input)input.value='';
+  const wrap=document.getElementById('quick-recipe-results');
+  if(wrap)wrap.innerHTML='';
 }
 
 // ── EMERGENCY PROTEIN SHAKE — one tap, no thinking required, for a day
