@@ -221,7 +221,7 @@ input,input:focus,input:active,
 .g4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
 
 /* CARD */
-.card{background:var(--panel);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1.5px solid var(--border2);border-radius:14px;padding:22px 24px;margin-bottom:12px;transition:border-color .3s,box-shadow .3s}
+.card{background:var(--panel);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1.5px solid var(--border2);border-radius:1.75rem;padding:22px 24px;margin-bottom:14px;transition:border-color .3s,box-shadow .3s}
 
 /* Equipment chips */
 .equip-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
@@ -285,9 +285,10 @@ input,input:focus,input:active,
 .ca{font-size:11px;color:var(--green2);transition:color .2s}
 .ca:hover{color:var(--white)}
 
-/* STAT */
-.stat{background:var(--panel);border:1.5px solid var(--border2);border-radius:6px;padding:13px 15px;position:relative;overflow:hidden}
-.stat::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--c,var(--green))}
+/* STAT — full rule lives further down (search "Glassmorphism for stat
+   cards"); this dupe used to shadow it with an older flat treatment that
+   never actually rendered (later rule always won the cascade), so it's
+   removed rather than kept as dead code. */
 .sv{font-weight:800;font-size:22px;letter-spacing:-.02em;color:var(--c,var(--green))}
 .sl{font-size:9px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-top:2px}
 .ss{font-size:10px;color:var(--muted);margin-top:4px}
@@ -1188,7 +1189,7 @@ select option{background:var(--panel)}
    cascade at this breakpoint, and any page that already sets its own
    inline style for one of these keeps that override untouched. */
 @media(min-width:900px){
-  .card{padding:26px 28px;border-radius:16px}
+  .card{padding:26px 28px;border-radius:1.75rem}
   .ch{margin-bottom:16px}
   .ct{font-size:12px}
   .ca{font-size:12px}
@@ -5141,9 +5142,9 @@ body[data-goal-theme="cut"] .lv-page{
 
   <!-- CONDITIONALS — only shown when triggered, never visible on first load -->
   <div id="backup-reminder" style="display:none;width:100%;box-sizing:border-box;align-items:center;gap:10px;background:rgba(255,122,46,.08);border:1.5px solid rgba(255,122,46,.25);border-radius:10px;padding:11px 14px;margin-top:10px">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F36717" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
     <span id="backup-reminder-msg" style="flex:1;font-size:11.5px;color:rgba(var(--white-rgb),.85)"></span>
-    <button onclick="showPage('profile')" style="background:#F36717;color:#0D0806;border:none;border-radius:6px;padding:6px 11px;font-size:11px;font-weight:800;white-space:nowrap">Back up</button>
+    <button onclick="showPage('profile')" style="background:var(--orange);color:#0D0806;border:none;border-radius:6px;padding:6px 11px;font-size:11px;font-weight:800;white-space:nowrap">Back up</button>
     <button onclick="dismissBackupReminder()" style="background:none;border:none;color:rgba(var(--white-rgb),.4);font-size:16px;padding:0 2px;line-height:1">×</button>
   </div>
 
@@ -5217,7 +5218,7 @@ body[data-goal-theme="cut"] .lv-page{
   </header>
 
   <div id="injury-reminder" style="display:none;background:rgba(255,122,46,.07);border:1.5px solid rgba(255,122,46,.2);border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:11.5px;color:rgba(var(--white-rgb),.8)">
-    <strong style="color:#F36717">Reminder:</strong> you noted <span id="injury-reminder-text"></span> at signup. Swap out anything that aggravates it, and stop if something feels wrong.
+    <strong style="color:var(--orange)">Reminder:</strong> you noted <span id="injury-reminder-text"></span> at signup. Swap out anything that aggravates it, and stop if something feels wrong.
   </div>
 
   <!-- TODAY'S PLAN NUDGE — advises (doesn't block) doing the day's actual
@@ -5251,7 +5252,7 @@ body[data-goal-theme="cut"] .lv-page{
   <!-- CARDIO & SPORT — standalone from the strength-training builder since
        duration/distance/intensity don't fit the sets×reps×weight model at
        all. Real logging, own history, still earns Arete like any session. -->
-  <div class="card" style="margin-bottom:16px">
+  <div class="card" style="margin-bottom:14px">
     <div class="ch" style="margin-bottom:10px"><span class="ct" style="font-size:13px;color:var(--white)">🏃 Cardio & Sport</span></div>
     <div style="font-size:11px;color:var(--muted);margin-bottom:10px">Running, cycling, football, swimming — anything that isn't sets and reps.</div>
     <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px" id="cardio-activity-chips"></div>
@@ -5277,7 +5278,7 @@ body[data-goal-theme="cut"] .lv-page{
   </div>
 
   <!-- LOAD PREVIOUS SESSION -->
-  <div class="card lv-surface" id="session-history-card" style="margin-bottom:16px;display:none">
+  <div class="card lv-surface" id="session-history-card" style="margin-bottom:14px;display:none">
     <div class="ch"><span class="ct" style="font-size:13px;color:var(--white)"><span class="lv-greek-numeral">Δ</span> Past sessions</span></div>
     <div id="session-history-list" style="display:flex;flex-direction:column;gap:6px"></div>
   </div>
@@ -5399,7 +5400,7 @@ body[data-goal-theme="cut"] .lv-page{
       <div id="custom-selected"></div>
       <button class="btn btn-g" onclick="commitAndStartSession()" style="width:100%;margin-top:12px">💾 Save & Start Session →</button>
     </div>
-    <div class="card" style="margin-bottom:12px">
+    <div class="card" style="margin-bottom:14px">
       <div class="ch"><span class="ct">Saved Templates</span></div>
       <div id="template-list"></div>
     </div>
@@ -5508,7 +5509,7 @@ body[data-goal-theme="cut"] .lv-page{
     </div>
     <div style="font-size:11px;color:var(--muted);line-height:1.55">Tap after each set. A timer pops up so you can rest properly between sets.</div>
   </div>
-  <div class="card lv-surface" style="margin-bottom:16px">
+  <div class="card lv-surface" style="margin-bottom:14px">
     <div class="ch"><span class="ct" style="display:flex;align-items:center;gap:7px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0118 0v6"/><path d="M21 19a2 2 0 01-2 2h-1v-8h3zM3 19a2 2 0 002 2h1v-8H3z"/></svg>Focus sounds</span></div>
     <div style="font-size:10.5px;color:var(--muted);margin-bottom:10px">Something to block out the gym noise and lock in — generated live, no earbuds sync issues, works offline.</div>
     <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px" id="focus-sound-chips">
@@ -5538,7 +5539,7 @@ body[data-goal-theme="cut"] .lv-page{
        the Forge page's standalone Cardio & Sport card — see
        CARDIO_WIDGET_PREFIXES — just its own ids so both widgets render
        and log independently while sharing one history. -->
-  <div class="card lv-surface" style="margin-bottom:16px">
+  <div class="card lv-surface" style="margin-bottom:14px">
     <div onclick="toggleSessCardio()" style="cursor:pointer;display:flex;align-items:center;gap:8px">
       <span style="flex:1;font-size:13px;font-weight:800;color:var(--white)">🏊 Add cardio to finish? <span style="font-weight:400;color:var(--muted);font-size:11px">optional</span></span>
       <span id="sess-cardio-chev" style="color:var(--muted);font-size:11px;transition:transform .2s;display:inline-block">▼</span>
@@ -5798,7 +5799,7 @@ body[data-goal-theme="cut"] .lv-page{
           </filter>
         </defs>
       </svg>
-      <div id="shield-badge" style="display:none;position:absolute;top:-4px;right:-4px;background:#E3BF76;color:#1a1300;font-size:9px;font-weight:900;padding:2px 5px;border-radius:8px;box-shadow:0 0 10px rgba(255,215,0,.6)">3🔥</div>
+      <div id="shield-badge" style="display:none;position:absolute;top:-4px;right:-4px;background:var(--gold);color:#1a1300;font-size:9px;font-weight:900;padding:2px 5px;border-radius:8px;box-shadow:0 0 10px rgba(255,215,0,.6)">3🔥</div>
     </div>
     <div class="nutr-shield-info">
       <div class="nutr-shield-label" id="shield-label">Caloric Shield</div>
@@ -8096,8 +8097,8 @@ body[data-goal-theme="cut"] .lv-page{
 
     <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border2)">
       <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#F36717" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 10h-1.26A8 8 0 109 20h9a5 5 0 000-10z"/></svg>
-        <span style="font-size:11px;font-weight:700;color:#F36717">Automatic Cloud Backup</span>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 10h-1.26A8 8 0 109 20h9a5 5 0 000-10z"/></svg>
+        <span style="font-size:11px;font-weight:700;color:var(--orange)">Automatic Cloud Backup</span>
       </div>
       <div id="cloud-backup-section"></div>
     </div>
