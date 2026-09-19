@@ -2081,11 +2081,25 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     #cabinet-peak-slot{width:auto}
     #cabinet-peak-slot .legend-card-icon.peak-bare{
       width:108px;height:108px;margin:0 auto 10px;background:none;clip-path:none;box-shadow:none;
+      position:relative;z-index:1;
     }
     #cabinet-peak-slot .legend-card-icon.peak-bare::before,
     #cabinet-peak-slot .legend-card-icon.peak-bare::after{content:none}
     #cabinet-peak-slot .legend-card-icon.peak-bare img{width:108px;height:108px}
     #cabinet-peak-slot .legend-card-icon.peak-bare svg.lgi-brand-mark{width:108px;height:108px}
+    /* The one true 1-of-1 trophy already has its own tuned green glow
+       (rarity-ultralegendary CSS vars, up above) — this adds a spinning
+       rainbow halo behind it rather than replacing that glow, so the
+       peak slot visibly outranks every solid-colour rarity below it
+       without touching the existing tuned system. z-index keeps the
+       trophy render itself sitting cleanly on top. */
+    .peak-rainbow-halo{
+      position:absolute;top:0;left:50%;transform:translateX(-50%);
+      width:108px;height:108px;border-radius:50%;z-index:0;
+      background:conic-gradient(from 0deg,#FF4040,#FFA83B,#FFEE3B,#4BFF7E,#3BD0FF,#9B5CFF,#FF4FD8,#FF4040);
+      filter:blur(18px);opacity:.6;
+      animation:rarityRainbowSpin 4s linear infinite;
+    }
 
     .cabinet-tier{margin-bottom:20px}
     .cabinet-tier-plaque{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:2px}
@@ -2237,11 +2251,33 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     }
     .crate-slot:active{transform:scale(.97)}
     .crate-slot.not-ready{cursor:default}
-    .crate-slot.bronze{background:linear-gradient(160deg,rgba(212,120,50,.42),rgba(30,16,8,.75));border-color:rgba(224,150,90,.55)}
-    .crate-slot.silver{background:linear-gradient(160deg,rgba(180,195,210,.36),rgba(20,22,26,.75));border-color:rgba(200,212,224,.5)}
-    .crate-slot.gold{background:linear-gradient(160deg,rgba(255,215,0,.36),rgba(35,26,4,.75));border-color:rgba(255,224,80,.55)}
-    .crate-slot.diamond{background:linear-gradient(160deg,rgba(95,208,242,.36),rgba(8,22,28,.75));border-color:rgba(130,220,250,.55)}
-    .crate-slot.areviax{background:linear-gradient(160deg,rgba(255,140,40,.44),rgba(30,12,4,.78));border-color:rgba(255,167,90,.6)}
+    /* Bolder, more saturated per-tier borders + an added glow layer (kept
+       on top of the base rule's own 3-layer "shelf" shadow, not replacing
+       it) so each tier reads as its own colour at a glance instead of
+       near-identical pastel tints. Areviax — the best possible drop —
+       gets the shared rainbow frame instead of a solid tint. */
+    .crate-slot.bronze{background:linear-gradient(160deg,rgba(212,120,50,.5),rgba(30,16,8,.8));border-color:#E0965A;box-shadow:0 0 0 2.5px rgba(15,9,5,.8),0 4px 0 rgba(0,0,0,.4),0 6px 14px -3px rgba(0,0,0,.5),0 0 14px rgba(224,150,90,.4)}
+    .crate-slot.silver{background:linear-gradient(160deg,rgba(180,195,210,.42),rgba(20,22,26,.8));border-color:#C8D4E0;box-shadow:0 0 0 2.5px rgba(15,9,5,.8),0 4px 0 rgba(0,0,0,.4),0 6px 14px -3px rgba(0,0,0,.5),0 0 14px rgba(200,212,224,.4)}
+    .crate-slot.gold{background:linear-gradient(160deg,rgba(255,215,0,.42),rgba(35,26,4,.8));border-color:#FFE050;box-shadow:0 0 0 2.5px rgba(15,9,5,.8),0 4px 0 rgba(0,0,0,.4),0 6px 14px -3px rgba(0,0,0,.5),0 0 16px rgba(255,224,80,.45)}
+    .crate-slot.diamond{background:linear-gradient(160deg,rgba(95,208,242,.42),rgba(8,22,28,.8));border-color:#82DCFA;box-shadow:0 0 0 2.5px rgba(15,9,5,.8),0 4px 0 rgba(0,0,0,.4),0 6px 14px -3px rgba(0,0,0,.5),0 0 16px rgba(130,220,250,.45)}
+    .crate-slot.areviax{
+      border-color:transparent;border-width:3px;
+      background-image:linear-gradient(160deg,rgba(30,12,4,.85),rgba(30,12,4,.85)),linear-gradient(90deg,#FF4040,#FFA83B,#FFEE3B,#4BFF7E,#3BD0FF,#9B5CFF,#FF4FD8,#FF4040);
+      background-origin:border-box;background-clip:padding-box,border-box;
+      background-size:100% 100%,240% 100%;
+      animation:rarityRainbowShift 3.5s linear infinite;
+      box-shadow:0 0 0 2.5px rgba(15,9,5,.8),0 4px 0 rgba(0,0,0,.4),0 6px 14px -3px rgba(0,0,0,.5),0 0 18px rgba(255,255,255,.35);
+    }
+    .crate-slot.bronze .crate-slot-label{color:#FFC98A}
+    .crate-slot.silver .crate-slot-label{color:#E8ECF2}
+    .crate-slot.gold .crate-slot-label{color:#FFEB99}
+    .crate-slot.diamond .crate-slot-label{color:#C5F0FF}
+    .crate-slot.areviax .crate-slot-label{
+      background-image:linear-gradient(90deg,#FF4040,#FFA83B,#FFEE3B,#4BFF7E,#3BD0FF,#9B5CFF,#FF4FD8,#FF4040);
+      background-size:240% 100%;-webkit-background-clip:text;background-clip:text;
+      -webkit-text-fill-color:transparent;color:transparent;
+      animation:rarityRainbowShift 3.5s linear infinite;
+    }
     /* Bigger stage for the chest art now that each card has real width —
        compass-crate defaults to 56px everywhere else (drop-info modal,
        dashboard banners), so this only bumps it up inside a shop card. */
@@ -3843,7 +3879,11 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       background:#0D0806;border:1.5px solid var(--border);
       border-radius:6px;overflow:hidden;margin-bottom:8px;
     }
-    .hall-statue.current .hall-statue-fig{border-color:rgba(243,103,23,.5);box-shadow:0 0 14px rgba(243,103,23,.25)}
+    /* Per-tier border/glow now comes from renderHallOfStatues() itself
+       (inline style using each tier's own t.col), not a fixed rule here —
+       every achieved tier reads as its own colour, current or not,
+       instead of every tile sharing one generic border regardless of
+       rarity. */
     .hall-statue-img{
       position:absolute;inset:0;
       background-size:contain!important;background-position:top center!important;
@@ -3858,6 +3898,31 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .hall-statue-tag{font-size:8.5px;font-weight:700;letter-spacing:.06em;color:var(--green);margin-top:3px}
     .hall-statue-tag-done{color:rgba(232,214,196,.35)}
     .hall-statue-tag-locked{color:var(--muted);font-weight:600;letter-spacing:0}
+
+    /* ── RARITY RAINBOW — shared by the top tier of every rarity ladder
+       in the app (Hall of Statues' God of Gods, Areviax Crates' Areviax
+       tier, Trophy Cabinet's Ultra Legendary peak): an animated hue
+       sweep across a fixed 7-stop gradient, applied either as a border
+       (via the padding-box/border-box double-background trick, so it
+       works on any element that already has a real border-width) or as
+       text fill. One definition, reused everywhere "the very top" needs
+       to visibly outrank every solid-colour tier below it. */
+    @keyframes rarityRainbowShift{0%{background-position:0% 50%}100%{background-position:200% 50%}}
+    @keyframes rarityRainbowSpin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+    .rarity-rainbow-frame{
+      border-color:transparent!important;border-width:2.5px!important;
+      background-image:linear-gradient(#0D0806,#0D0806),linear-gradient(90deg,#FF4040,#FFA83B,#FFEE3B,#4BFF7E,#3BD0FF,#9B5CFF,#FF4FD8,#FF4040);
+      background-origin:border-box;background-clip:padding-box,border-box;
+      background-size:100% 100%,240% 100%;
+      animation:rarityRainbowShift 3.5s linear infinite;
+      box-shadow:0 0 16px rgba(255,255,255,.4);
+    }
+    .rarity-rainbow-text{
+      background-image:linear-gradient(90deg,#FF4040,#FFA83B,#FFEE3B,#4BFF7E,#3BD0FF,#9B5CFF,#FF4FD8,#FF4040);
+      background-size:240% 100%;-webkit-background-clip:text;background-clip:text;
+      -webkit-text-fill-color:transparent;color:transparent;
+      animation:rarityRainbowShift 3.5s linear infinite;
+    }
 
     /* ── WORD OF THE DAY (Socrates / Greek gods quote) ── */
     .daily-quote-card{display:flex;gap:14px;align-items:flex-start}
@@ -9275,7 +9340,14 @@ function renderTitlePicker(){
     const unlocked=c.key===''||unlockedTitles.includes(c.key);
     const cs=TITLE_CHIP_STYLE[c.key];
     const isEquipped=c.key===equippedTitle;
-    const colourStyle=unlocked&&cs?`background:${cs.bg};border-color:${cs.border};color:${cs.text};text-shadow:0 1px 2px rgba(0,0,0,.35);`:'';
+    // Locked chips get a faint preview of their own eventual colour
+    // (same gradient, dimmed via the button's own opacity below) instead
+    // of going fully generic-grey — still clearly "not earned yet", but
+    // the chip row reads as distinct titles even before any are unlocked.
+    const colourStyle=cs?(unlocked
+      ?`background:${cs.bg};border-color:${cs.border};color:${cs.text};text-shadow:0 1px 2px rgba(0,0,0,.35);`
+      :`background:${cs.bg};border-color:${cs.border};color:${cs.text};`
+    ):'';
     const ring=isEquipped?'box-shadow:inset 0 1px 0 rgba(255,255,255,.3),0 0 0 2px rgba(255,255,255,.9),0 0 16px -2px rgba(255,255,255,.6);':'';
     return `<button type="button" class="equip-chip${isEquipped?' active':''}" ${unlocked?`onclick="setEquippedTitle('${c.key}')"`:'disabled'} style="padding:6px 14px;font-size:11px;font-weight:800;opacity:${unlocked?1:.45};${colourStyle}${ring}">${c.label}${unlocked?'':' 🔒'}</button>`;
   }).join('');
@@ -10943,16 +11015,25 @@ function renderHallOfStatues(){
   const hall=document.getElementById('hall-of-statues');
   if(!hall)return;
   const myIdx=getRankIndex();
+  const topIdx=TIERS.length-1;
   hall.innerHTML=TIERS.map((t,i)=>{
     const achieved=i<=myIdx;
     const isCurrent=i===myIdx;
+    // Top tier gets the shared rainbow treatment once actually reached \u2014
+    // every tier below it keeps its own solid rarity colour (t.col),
+    // stronger/bolder now that it lives on the tile's own border+glow,
+    // not just the name text underneath.
+    const rainbow=achieved&&i===topIdx;
     const maskCSS='-webkit-mask-image:url(\''+t.mask+'\');mask-image:url(\''+t.mask+'\')';
+    const figClass='hall-statue-fig'+(rainbow?' rarity-rainbow-frame':'');
+    const figStyle=achieved&&!rainbow?'border-color:'+t.col+';box-shadow:0 0 '+(isCurrent?'18px':'10px')+' '+t.col+(isCurrent?'AA':'66'):'';
+    const nameClass='hall-statue-name'+(rainbow?' rarity-rainbow-text':'');
     return '<div class="hall-statue'+(achieved?' achieved':'')+(isCurrent?' current':'')+'">'+
-      '<div class="hall-statue-fig">'+
+      '<div class="'+figClass+'" style="'+figStyle+'">'+
         '<div class="hall-statue-img" style="'+(achieved?'background:'+t.metal+';'+maskCSS:'background:#2a2a30;'+maskCSS)+'"></div>'+
         (achieved?'':'<div class="hall-lock">\ud83d\udd12</div>')+
       '</div>'+
-      '<div class="hall-statue-name" style="'+(achieved?'color:'+t.col:'')+'">'+t.name+'</div>'+
+      '<div class="'+nameClass+'" style="'+(rainbow?'':achieved?'color:'+t.col:'')+'">'+t.name+'</div>'+
       (isCurrent?'<div class="hall-statue-tag">YOU ARE HERE</div>':achieved?'<div class="hall-statue-tag hall-statue-tag-done">PASSED</div>':'<div class="hall-statue-tag hall-statue-tag-locked">'+t.volume.toLocaleString()+'kg \u00b7 '+t.sessions+' sess</div>')+
     '</div>';
   }).join('');
@@ -12670,7 +12751,7 @@ function renderTrophyCabinet(){
     const countLabel=layer.items?unlockedLegends.filter(k=>layer.items.some(l=>l.key===k)).length+'/'+layer.count:'Coming soon';
     return `<div class="cabinet-tier">
       <div class="cabinet-tier-plaque">
-        <span class="cabinet-tier-name">${layer.label}</span>
+        <span class="cabinet-tier-name" style="color:${RARITY_TEXT[layer.rarity]||''}">${layer.label}</span>
         <span class="cabinet-tier-count">${countLabel}</span>
       </div>
       <div class="cabinet-tier-sub">${layer.sub}</div>
@@ -12697,6 +12778,7 @@ function renderTrophyCabinet(){
     // complete object; the frame built for flat rarity badges just
     // boxed it in. Just the info badge, the plain image, and the label.
     peak.innerHTML=`${legendInfoBadgeHTML('areviax_trophy')}
+      ${unlocked?'<div class="peak-rainbow-halo"></div>':''}
       <div class="legend-card-icon peak-bare">${unlocked?legendIconHTML(trophy):'🔒'}</div>
       <div class="legend-card-name">1-of-1</div>`;
   }
