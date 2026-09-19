@@ -10978,11 +10978,11 @@ const ACHIEVEMENTS=[
   {key:'sessions_50',    label:'50 Sessions',        desc:'Half a hundred. Serious commitment.',                  icon:'\ud83d\udcaa', order:10, test:()=>totalSess>=50},
   {key:'sessions_100',   label:'100 Sessions',       desc:'A century of training. Remarkable.',                   icon:'\ud83d\udcaa', order:13, test:()=>totalSess>=100},
   // Tiers
-  {key:'soldier_tier',   label:'Reached Silver',     desc:'Bronze is behind you now.',                            icon:'\ud83e\udd48', order:6,   test:()=>getRankIndex()>=1},
-  {key:'hero_tier',      label:'Reached Gold',       desc:'Real, celebrated consistency now.',                    icon:'\ud83c\udfc6', order:7.5, test:()=>getRankIndex()>=2},
-  {key:'demigod_tier',   label:'Reached Diamond',    desc:'Genuinely rare volume and consistency.',               icon:'\u2728', order:9,   test:()=>getRankIndex()>=3},
-  {key:'god_tier',       label:'Reached Mythic',     desc:'Top-tier consistency and volume.',                     icon:'\ud83d\udc8e', order:10.5, test:()=>getRankIndex()>=4},
-  {key:'king_tier',      label:'Reached Legendary',  desc:'The highest tier. Elite company.',                     icon:'\ud83d\udc51', order:12,  test:()=>getRankIndex()>=5},
+  {key:'soldier_tier',   label:'Reached Soldier',    desc:'Mortal is behind you now.',                            icon:'\ud83e\udd48', order:6,   test:()=>getRankIndex()>=1},
+  {key:'hero_tier',      label:'Reached Hero',       desc:'Real, celebrated consistency now.',                    icon:'\ud83c\udfc6', order:7.5, test:()=>getRankIndex()>=2},
+  {key:'demigod_tier',   label:'Reached Demigod',    desc:'Genuinely rare volume and consistency.',               icon:'\u2728', order:9,   test:()=>getRankIndex()>=3},
+  {key:'god_tier',       label:'Reached God',        desc:'Top-tier consistency and volume.',                     icon:'\ud83d\udc8e', order:10.5, test:()=>getRankIndex()>=4},
+  {key:'king_tier',      label:'Reached God of Gods',desc:'The highest tier. Elite company.',                     icon:'\ud83d\udc51', order:12,  test:()=>getRankIndex()>=5},
   // Volume
   {key:'volume_5k',      label:'5,000kg Lifted',     desc:'Five tonnes moved. Lifetime total.',                   icon:'\ud83e\uddf2', order:5,  test:()=>totalVolume>=5000},
   {key:'volume_10k',     label:'10,000kg Lifted',    desc:'Ten tonnes moved. Lifetime total.',                    icon:'\ud83e\uddf2', order:8,  test:()=>totalVolume>=10000},
@@ -14534,39 +14534,37 @@ function renderMilestones(){
   }
 }
 
-// ── LIFTER RANK ── six-stage ladder, named Bronze->Legendary to match
-// the rarity convention people already know from games — but each tier
-// keeps its own distinct statue silhouette (see images/misc/statue-*.svg,
-// originally built for a "common folk -> king of the gods" mythic
-// narrative): plain figure -> +helmet/shield -> +wreath/cape -> +radiant
-// aura -> +wings/bolt -> +crown/sceptre/eagle. Higher rarity = more
-// ornate art, same idea either way, just relabelled. Unrelated to
-// LIFT_RANK_TIERS (the separate Wood->Olympian ladder based on
-// 1RM/bodyweight) or CRATE_TIERS (the loot-crate system) — both happen
-// to reuse Bronze/Silver/Gold-style naming for their own unrelated
-// ladders; this one now does too, which is what was actually asked for.
+// ── LIFTER RANK ── six-stage ladder, back to the mythic narrative the
+// statue art was actually built for (see images/misc/statue-*.svg):
+// Mortal -> Soldier -> Hero -> Demigod -> God -> God of Gods, each with
+// its own distinct silhouette — plain figure -> +helmet/shield ->
+// +wreath/cape -> +radiant aura -> +wings/bolt -> +crown/sceptre/eagle.
+// Unrelated to LIFT_RANK_TIERS (the separate Wood->Olympian ladder based
+// on 1RM/bodyweight) or CRATE_TIERS (the loot-crate system, which does
+// use Bronze/Silver/Gold/Diamond naming) — three separate ladders that
+// just happen to live in the same app.
 const TIERS=[
-  {name:'Bronze', col:'#CD7F32', dark:'#5c3a1e', mid:'#8b5a2b', light:'#f4c896',
+  {name:'Mortal', col:'#CD7F32', dark:'#5c3a1e', mid:'#8b5a2b', light:'#f4c896',
    metal:'linear-gradient(105deg,#5c3a1e 0%,#8b5a2b 15%,#cd7f32 35%,#e8a868 48%,#f4c896 52%,#e8a868 56%,#cd7f32 70%,#8b5a2b 85%,#5c3a1e 100%)',
    mask:'images/misc/statue-1-commonfolk.svg',
    volume:0,     sessions:1},
-  {name:'Silver', col:'#C7CCD9', dark:'#5c5f66', mid:'#9a9da5', light:'#ffffff',
+  {name:'Soldier', col:'#C7CCD9', dark:'#5c5f66', mid:'#9a9da5', light:'#ffffff',
    metal:'linear-gradient(105deg,#5c5f66 0%,#9a9da5 15%,#c7ccd9 35%,#e8ebf0 48%,#ffffff 52%,#e8ebf0 56%,#c7ccd9 70%,#9a9da5 85%,#5c5f66 100%)',
    mask:'images/misc/statue-2-soldier.svg',
    volume:2500,  sessions:6},
-  {name:'Gold',   col:'#E3BF76', dark:'#7a5a0e', mid:'#b8860b', light:'#fff3a0',
+  {name:'Hero',   col:'#E3BF76', dark:'#7a5a0e', mid:'#b8860b', light:'#fff3a0',
    metal:'linear-gradient(105deg,#7a5a0e 0%,#b8860b 15%,#ffd700 35%,#fff3a0 48%,#ffffff 52%,#fff3a0 56%,#ffd700 70%,#b8860b 85%,#7a5a0e 100%)',
    mask:'images/misc/statue-3-hero.svg',
    volume:7000,  sessions:14},
-  {name:'Diamond',   col:'#B6E3FF', dark:'#3f5b68', mid:'#7ba8c2', light:'#ffffff',
+  {name:'Demigod',   col:'#B6E3FF', dark:'#3f5b68', mid:'#7ba8c2', light:'#ffffff',
    metal:'linear-gradient(105deg,#3f5b68 0%,#7ba8c2 15%,#b6e3ff 30%,#d4f1ff 42%,#ffffff 50%,#d4f1ff 58%,#b6e3ff 70%,#7ba8c2 85%,#3f5b68 100%)',
    mask:'images/misc/statue-4-demigod.svg',
    volume:15000, sessions:25},
-  {name:'Mythic',     col:'#B586F5', dark:'#3d1f5c', mid:'#6b3fa0', light:'#e8d4ff',
+  {name:'God',     col:'#B586F5', dark:'#3d1f5c', mid:'#6b3fa0', light:'#e8d4ff',
    metal:'linear-gradient(105deg,#3d1f5c 0%,#6b3fa0 15%,#9b5fd9 35%,#c79ef0 48%,#e8d4ff 52%,#c79ef0 56%,#9b5fd9 70%,#6b3fa0 85%,#3d1f5c 100%)',
    mask:'images/misc/statue-5-god.svg',
    volume:28000, sessions:40},
-  {name:'Legendary', col:'#FFB347', dark:'#6b2b00', mid:'#b8500e', light:'#ffe8a3',
+  {name:'God of Gods', col:'#FFB347', dark:'#6b2b00', mid:'#b8500e', light:'#ffe8a3',
    metal:'linear-gradient(105deg,#6b2b00 0%,#b8500e 15%,#ff8c1a 35%,#ffc670 48%,#ffe8a3 52%,#ffc670 56%,#ff8c1a 70%,#b8500e 85%,#6b2b00 100%)',
    mask:'images/misc/statue-6-kingofgods.svg',
    volume:50000, sessions:65},
@@ -14643,7 +14641,7 @@ function renderTierProgress(){
   const box=document.getElementById('tier-progress');
   if(!box)return;
   if(!next){
-    box.innerHTML='<div class="tier-maxed">'+medalSVG(TIERS[5],22)+'<br>You\'ve reached Legendary \u2014 the highest tier. Keep stacking volume to stay there.</div>';
+    box.innerHTML='<div class="tier-maxed">'+medalSVG(TIERS[5],22)+'<br>You\'ve reached God of Gods \u2014 the highest tier. Keep stacking volume to stay there.</div>';
     return;
   }
   const volNeed=Math.max(0,next.volume-totalVolume);
@@ -26304,15 +26302,11 @@ function renderMyLBRank(){
 
 // Podium medals are by RANK (1st always gold, 2nd silver, 3rd bronze),
 // completely separate from each person's own lifter tier (which still
-// colours their avatar circle) — a 1st-place BRONZE-TIER lifter should
-// still see a GOLD medal for being 1st. Genuinely confusing now that
-// TIERS' own names are also Bronze/Silver/Gold/Diamond/Mythic/Legendary
-// (renamed from a common-folk -> king-of-the-gods mythic ladder) — a
-// "Bronze" lifter finishing 1st and getting a gold medal is correct
-// behaviour, not a bug, the two Bronzes just mean unrelated things.
-// Deliberately its OWN fixed gold/silver/bronze objects rather than
-// indexing into TIERS, so podium medal colours can't silently drift if
-// TIERS' own tier order/colours ever change again.
+// colours their avatar circle) — a 1st-place MORTAL-TIER lifter should
+// still see a GOLD medal for being 1st. Deliberately its OWN fixed
+// gold/silver/bronze objects rather than indexing into TIERS, so podium
+// medal colours can't silently drift if TIERS' own tier order/colours
+// ever change again.
 const PODIUM=[
   {name:'PodiumGold',   col:'#E3BF76', dark:'#7a5a0e', mid:'#b8860b', light:'#fff3a0'},
   {name:'PodiumSilver', col:'#C7CCD9', dark:'#5c5f66', mid:'#9a9da5', light:'#ffffff'},
