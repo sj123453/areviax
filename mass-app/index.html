@@ -2245,8 +2245,18 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     /* Bigger stage for the chest art now that each card has real width —
        compass-crate defaults to 56px everywhere else (drop-info modal,
        dashboard banners), so this only bumps it up inside a shop card. */
-    .crate-slot .compass-crate{width:72px;height:72px}
-    .crate-slot .compass-crate .crate-icon svg{width:34px;height:34px}
+    /* Bumped from 72px — at that size the chest art only filled about
+       half the tile's real width, leaving a wide ring of plain tinted
+       background around a small floating icon ("indented, not fill
+       photo" per direct feedback against a screenshot). 100px reads as
+       the art actually filling the card, matching a real mobile-game
+       shop tile instead of an icon-in-a-box. padding-top:44px above
+       (the info-button touch-target clearance) is untouched — the icon
+       growing doesn't move it any closer to that button, it just uses
+       more of the space already below the clearance line. */
+    .crate-slot .compass-crate{width:100px;height:100px}
+    .crate-slot .compass-crate .crate-icon svg{width:48px;height:48px}
+    .crate-slot{padding-left:4px;padding-right:4px}
 
     /* SPECIAL OFFERS / DAILY DEALS — direct Drachma purchases. Restyled to
        match a real mobile-game shop tile (analysed directly against a
@@ -2268,7 +2278,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .shop-deal-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
     .offer-card{
       position:relative;flex:0 0 128px;display:flex;flex-direction:column;align-items:center;
-      border-radius:14px;padding:12px 8px 0;text-align:center;overflow:hidden;
+      border-radius:14px;padding:8px 4px 0;text-align:center;overflow:hidden;
       background:linear-gradient(165deg,rgba(243,103,23,.5),rgba(30,14,5,.8));
       border:3px solid rgba(255,167,64,.55);
       box-shadow:0 0 0 2.5px rgba(15,9,5,.8),0 4px 0 rgba(0,0,0,.4),0 6px 14px -3px rgba(0,0,0,.55);
@@ -2278,8 +2288,12 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .offer-card.gold{background:linear-gradient(165deg,rgba(255,215,0,.42),rgba(35,26,4,.8));border-color:rgba(255,224,80,.55)}
     .offer-card.diamond{background:linear-gradient(165deg,rgba(95,208,242,.42),rgba(8,22,28,.8));border-color:rgba(130,220,250,.55)}
     .offer-card.areviax{background:linear-gradient(165deg,rgba(255,140,40,.52),rgba(30,12,4,.82));border-color:rgba(255,167,90,.6)}
-    .offer-card-art{font-size:36px;line-height:1;height:54px;display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 4px 5px rgba(0,0,0,.4))}
-    .offer-card-art img,.offer-card-art svg{width:54px;height:54px;object-fit:contain}
+    /* Bumped from 54px, same "fill photo, not a small floating icon"
+       fix as .crate-slot's chest art above — 82px actually fills most
+       of the card's real width instead of leaving a wide tinted margin
+       on every side. */
+    .offer-card-art{font-size:52px;line-height:1;height:82px;display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 4px 5px rgba(0,0,0,.4))}
+    .offer-card-art img,.offer-card-art svg{width:82px;height:82px;object-fit:contain}
     .offer-card-label{
       font-size:11px;font-weight:800;color:#fff;line-height:1.25;min-height:26px;
       display:flex;align-items:center;text-transform:uppercase;letter-spacing:.01em;
@@ -4837,7 +4851,7 @@ body[data-goal-theme="cut"] .lv-page{
     </div>
   </div>
 
-  <div id="daily-spin-banner" class="dash-notif-fixed" style="display:none;cursor:pointer" onclick="showPage('progress');setTimeout(()=>{const el=document.getElementById('daily-spin-card');if(el)el.scrollIntoView({behavior:'smooth',block:'center'});},350)">
+  <div id="daily-spin-banner" class="dash-notif-fixed" style="display:none;cursor:pointer" onclick="showPage('shop');setTimeout(()=>{const el=document.getElementById('daily-spin-card');if(el)el.scrollIntoView({behavior:'smooth',block:'center'});},350)">
     <div class="dnf-head">
       <span class="dnf-icon" style="background:linear-gradient(160deg,#FF9A3D,#F36717)">🎁</span>
       <div class="dnf-body">
