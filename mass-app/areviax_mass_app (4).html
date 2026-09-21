@@ -22343,10 +22343,14 @@ function logSmartFood(cals,prot,carbs,fats,alcohol){
     checkProteinQuest();
     renderLogDatePicker();
   }else{
+    // Stays on the selected past day after logging instead of snapping
+    // back to today — someone catching up a whole missed day needs to
+    // add several items in a row, not re-pick the same date after every
+    // single one. "Finish logging" (in renderPastDayLog()) is the
+    // explicit way back to today once they're actually done.
     logItemForDate(targetDate,name,cals,prot,carbs,fats,alcohol);
     addXP(3,'Backdated log');
     toast('✅',name+' logged to '+relativeDayLabel(targetDate).toLowerCase());
-    pendingLogDate=null;
     renderLogDatePicker();
     renderPastDayLog();
   }
@@ -25328,7 +25332,39 @@ function renderPastDayLog(){
   box.style.display='block';
   box.innerHTML='<div class="past-day-log-card"><div class="pdl-title">Already logged for '+relativeDayLabel(pendingLogDate)+'</div>'+
     (items.length?items.map(it=>`<div class="pdl-item"><span>${it.name}</span><span>${it.cals} kcal</span></div>`).join(''):'<div class="pdl-item"><span>Nothing yet</span></div>')+
+    (items.length?'':'<button type="button" class="btn btn-out" style="width:100%;margin-top:10px" onclick="markDayHitOutsideApp()">I hit my targets — tracked outside the app</button>')+
+    '<button type="button" class="btn btn-g" style="width:100%;margin-top:8px" onclick="finishBackdatedLogging()">Finish logging — back to today</button>'+
     '</div>';
+}
+// Explicit way back to today once someone's done catching up a past
+// day — logging itself no longer auto-snaps back (see logFood()/
+// logSmartFood()), so without this there'd be no way to leave a past
+// day except re-tapping "Today" on the date picker.
+function finishBackdatedLogging(){
+  pendingLogDate=null;
+  renderLogDatePicker();
+  renderPastDayLog();
+  updateSmartLogPreview();
+}
+// "I hit my target, I just tracked it outside the app" — for a day that
+// went unlogged here but the person knows they actually hit their
+// numbers elsewhere. Fills that day's totals straight from their own
+// current targets and marks it hit, rather than forcing them to either
+// lie by reconstructing fake meals or leave a real day blank.
+function markDayHitOutsideApp(){
+  const today=localDateKey(new Date());
+  const targetDate=pendingLogDate||today;
+  if(!profile.cals){toast('⚠️','Set your calorie/protein targets first');return;}
+  const name='Tracked outside the app';
+  if(targetDate===today){
+    logItem(name,profile.cals,profile.protein||0,profile.carbs||0,profile.fats||0);
+  }else{
+    logItemForDate(targetDate,name,profile.cals,profile.protein||0,profile.carbs||0,profile.fats||0);
+  }
+  toast('✅','Marked '+relativeDayLabel(targetDate).toLowerCase()+' as hit');
+  renderLogDatePicker();
+  renderPastDayLog();
+  saveToStorage();
 }
 function logFood(){
   const n=document.getElementById('food-name').value||'Food';
@@ -25356,7 +25392,6 @@ function logFood(){
   }else{
     addXP(3,'Backdated log');
     toast('✅',n+' logged to '+relativeDayLabel(targetDate).toLowerCase());
-    pendingLogDate=null;
     renderLogDatePicker();
     renderPastDayLog();
   }
