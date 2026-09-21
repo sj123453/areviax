@@ -5306,6 +5306,39 @@ body[data-goal-theme="cut"] .lv-page{
 
 
 
+<!-- DAILY REFLECTION — three short prompts at the end of the day (what
+     went well, what to change, one thing to try tomorrow), saved per
+     date in reflectionLog. Entry point is the card on Profile. No photo
+     hero — every realm-*.jpg is already claimed by another page, so
+     this uses the same CSS-only colonnade/ember-wash header Session
+     uses instead of reusing someone else's photo. -->
+<div class="page lv-page" id="page-reflection">
+  <div style="height:calc(10px + max(var(--safe-top,0px),env(safe-area-inset-top,0px)));background:var(--lv-bg);margin:0 -20px"></div>
+  <header class="lv-ember-wash lv-grain lv-colonnade lv-temple-glow lv-pediment" style="position:relative;overflow:hidden;margin:0 -20px 16px;padding:20px 20px 26px;border-radius:0 0 28px 28px">
+    <span class="lv-ghost-numeral" style="right:-14px;top:38px">Ζ</span>
+    <div style="position:relative;z-index:1">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <span style="display:flex;align-items:center;gap:8px">
+          <svg width="22" height="22" viewBox="0 0 48 48" fill="none" stroke="var(--lv-gold)" aria-hidden="true"><path d="M24 5 26.6 21.4 43 24 26.6 26.6 24 43 21.4 26.6 5 24 21.4 21.4Z" fill="var(--lv-gold)" stroke="none" opacity=".95"/><path d="M24 12v24M12 24h24" stroke-width=".6" opacity=".5"/><circle cx="24" cy="24" r="11" stroke-width=".7" opacity=".45"/><path d="M15 9c-7 5-9 14-5 22 2.5 5 6.5 8.5 11 10" stroke-width="1.4" opacity=".8"/><path d="M33 9c7 5 9 14 5 22-2.5 5-6.5 8.5-11 10" stroke-width="1.4" opacity=".8"/><g opacity=".7"><ellipse cx="10.5" cy="13" rx="2.6" ry="1.2" transform="rotate(-35 10.5 13)" stroke-width=".9"/><ellipse cx="37.5" cy="13" rx="2.6" ry="1.2" transform="rotate(35 37.5 13)" stroke-width=".9"/></g><g opacity=".7"><ellipse cx="11.3" cy="19" rx="2.6" ry="1.2" transform="rotate(-35 11.3 19)" stroke-width=".9"/><ellipse cx="36.7" cy="19" rx="2.6" ry="1.2" transform="rotate(35 36.7 19)" stroke-width=".9"/></g><g opacity=".7"><ellipse cx="12.1" cy="25" rx="2.6" ry="1.2" transform="rotate(-35 12.1 25)" stroke-width=".9"/><ellipse cx="35.9" cy="25" rx="2.6" ry="1.2" transform="rotate(35 35.9 25)" stroke-width=".9"/></g><g opacity=".7"><ellipse cx="12.9" cy="31" rx="2.6" ry="1.2" transform="rotate(-35 12.9 31)" stroke-width=".9"/><ellipse cx="35.1" cy="31" rx="2.6" ry="1.2" transform="rotate(35 35.1 31)" stroke-width=".9"/></g></svg>
+          <span class="lv-wordmark">Areviax</span>
+        </span>
+        <button type="button" class="lv-profile-btn" onclick="showPage('profile')" aria-label="Profile"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--lv-fg)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="lv-profile-badge"></span></button>
+      </div>
+      <p class="lv-label-eyebrow" style="margin-top:22px;color:var(--lv-fg);opacity:.7">Look back</p>
+      <h1 style="margin-top:6px;color:var(--lv-fg);font-family:'Bebas Neue',sans-serif;font-weight:400;font-size:clamp(2.6rem,14vw,4rem);line-height:.9;letter-spacing:.01em;text-transform:uppercase">Reflect<br><span class="lv-serif-accent lv-gold-text" style="font-size:.8em">on today</span></h1>
+      <div style="margin-top:14px;font-family:var(--lv-mono);font-size:11px;color:var(--lv-muted-fg)" id="reflection-hero-stat">Three minutes, most days, beats a perfect entry every day.</div>
+      <div class="lv-meander-bold" style="margin-top:18px"></div>
+    </div>
+  </header>
+
+  <main class="lv-hero-main" style="margin-top:12px;display:flex;flex-direction:column;gap:12px">
+    <div id="reflection-form-wrap"></div>
+    <div id="reflection-history-wrap"></div>
+  </main>
+
+  <div style="height:calc(64px + env(safe-area-inset-bottom,0px))" aria-hidden="true"></div>
+</div>
+
 <!-- WORKOUT BUILDER -->
 <div class="page lv-page" id="page-workout">
 
@@ -8205,6 +8238,15 @@ body[data-goal-theme="cut"] .lv-page{
     <button class="btn btn-out btn-sm" style="width:100%;margin-top:12px" onclick="event.stopPropagation();showPage('trophycabinet')">Enter Trophy Cabinet →</button>
   </div>
 
+  <!-- DAILY REFLECTION — entry point mirrors Trophy Cabinet's own card
+       anatomy exactly (eyebrow-less title, one-line description, full-
+       width button) rather than inventing a new card shape for it. -->
+  <div class="card lv-surface" style="margin-bottom:14px;cursor:pointer" onclick="showPage('reflection')">
+    <div class="ch"><span class="ct" style="display:flex;align-items:center;gap:7px">📔 Daily Reflection</span><span style="font-size:11px;font-weight:800;color:var(--muted)" id="profile-reflection-streak"></span></div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:12px">Three minutes at the end of the day — what went well, what to change, what to try tomorrow.</div>
+    <button class="btn btn-out btn-sm" style="width:100%" onclick="event.stopPropagation();showPage('reflection')">Reflect on today →</button>
+  </div>
+
   <!-- COMPARE WITH OTHERS -->
   <div class="card lv-surface">
     <div class="ch"><span class="ct">Compare With Others</span></div>
@@ -9398,6 +9440,8 @@ function renderTitlePicker(){
 // than per-type badges — the ask was "something's waiting for you",
 // not a breakdown of what.
 let unseenRewardCount=0;
+let reflectionLog=[]; // [{date, well, improve, tryNext}] — one entry per day, edited in place if you reflect twice
+let reflectionEditingDate=null; // set while the form is open for a day that already has a saved entry
 function bumpUnseenReward(){
   unseenRewardCount++;
   saveToStorage();
@@ -10930,6 +10974,8 @@ function renderProfile(){
   try{renderWeeklyRecap();}catch(e){console.error('renderWeeklyRecap:',e.message);}
   try{renderTrainingPatterns();}catch(e){console.error('renderTrainingPatterns:',e.message);}
   try{renderMyLBRank();}catch(e){console.error('renderMyLBRank:',e.message);}
+  const reflStreakEl=document.getElementById('profile-reflection-streak');
+  if(reflStreakEl)reflStreakEl.textContent=reflectionLog.length?reflectionLog.length+' logged':'';
   const base=fill.parentElement.querySelector('.statue-metal-base');
   const r=getRank();
   const pct=Math.min(100,Math.round(xp/AVATAR_MAX_XP*100));
@@ -15588,7 +15634,7 @@ function updateStreakFromActivity(){
 // only fixing itself once the user navigated away and back.
 function syncPageChrome(id){
   const sharedTopbar=document.querySelector('.topbar');
-  if(sharedTopbar)sharedTopbar.style.display=(id==='dashboard'||id==='progress'||id==='shop'||id==='trophycabinet'||id==='labors'||id==='nutrition'||id==='workout'||id==='schedule'||id==='leaderboard'||id==='xproad'||id==='trophyroad'||id==='weightroad'||id==='aicoach'||id==='session'||id==='recipes'||id==='legal'||id==='settings'||id==='profile'||id==='subscription'||id==='leagues'||id==='recovery'||id==='learn'||id==='roadmap')?'none':'';
+  if(sharedTopbar)sharedTopbar.style.display=(id==='dashboard'||id==='progress'||id==='shop'||id==='trophycabinet'||id==='labors'||id==='nutrition'||id==='workout'||id==='schedule'||id==='leaderboard'||id==='xproad'||id==='trophyroad'||id==='weightroad'||id==='aicoach'||id==='session'||id==='recipes'||id==='legal'||id==='settings'||id==='profile'||id==='subscription'||id==='leagues'||id==='recovery'||id==='learn'||id==='roadmap'||id==='reflection')?'none':'';
   const lvTopbars=document.querySelectorAll('.lv-page-topbar');
   lvTopbars.forEach(el=>{el.style.display=(el.dataset.page===id)?'flex':'none';});
   try{syncLvBadges();}catch(e){}
@@ -15603,7 +15649,7 @@ function showPage(id){
   if(pg)pg.classList.add('active');
   document.querySelectorAll('.sb-item').forEach(i=>{if(i.getAttribute('onclick')?.includes(id))i.classList.add('active')});
   try{
-    const titles={dashboard:'Home',workout:'The Forge',session:'Session',nutrition:'Nutrition',recipes:'Recipes',progress:'Progress',shop:'Shop',trophycabinet:'Trophy Cabinet',labors:'The 12 Labors',xproad:'Arete Road',trophyroad:'The Way Home',weightroad:'Weight Road',recovery:'Recovery',schedule:'Schedule',leaderboard:'Leaderboard',leagues:'Leagues',learn:'Science',profile:'Profile',legal:'Legal',settings:'Settings',aicoach:'Coach Sam',subscription:'Go Premium',roadmap:'Roadmap'};
+    const titles={dashboard:'Home',workout:'The Forge',session:'Session',nutrition:'Nutrition',recipes:'Recipes',progress:'Progress',shop:'Shop',trophycabinet:'Trophy Cabinet',labors:'The 12 Labors',xproad:'Arete Road',trophyroad:'The Way Home',weightroad:'Weight Road',recovery:'Recovery',schedule:'Schedule',leaderboard:'Leaderboard',leagues:'Leagues',learn:'Science',profile:'Profile',legal:'Legal',settings:'Settings',aicoach:'Coach Sam',subscription:'Go Premium',roadmap:'Roadmap',reflection:'Daily Reflection'};
     const t=titles[id]||id;
     const tte=document.getElementById('tb-title');
     if(tte){tte.textContent=t;tte.classList.toggle('tb-title-sm',id==='trophycabinet');}
@@ -15663,6 +15709,7 @@ function showPage(id){
   }
   if(id==='progress')safeRender(renderProgress,'progress');
   if(id==='shop')safeRender(renderAchievements,'shop');
+  if(id==='reflection')safeRender(renderReflectionPage,'reflection');
   if(id==='trophycabinet')safeRender(renderTrophyCabinet,'trophycabinet');
   if(id==='xproad'){roadIntroPending=true;safeRender(renderXpRoad,'xproad');}
   if(id==='trophyroad'){roadIntroPending=true;safeRender(renderTrophyRoad,'trophyroad');}
@@ -24711,6 +24758,109 @@ function openWeeklyCoverageInChat(){
   dismissWeeklyCoverageBanner();
   openBannerTextInChat("You haven't worked your entire body this week — "+untrained+" haven't been trained at all these last few days. To keep making balanced progress (and avoid one area lagging the rest), try to hit every major muscle group at least once a week. Want help fitting it into what's left of this week?");
 }
+// ── DAILY REFLECTION — three short prompts saved per day (reflectionLog).
+// Shows the day's saved entry read-only once written, with an explicit
+// Edit way back in, instead of silently overwriting or blanking real
+// data every time the page is revisited.
+function escHTML(s){
+  return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+// Same bust-icon svg Word of the Day already uses for reflective content
+// (bustSVG(), defined near DAILY_QUOTES) — reused here rather than emoji,
+// so every prompt badge is the app's own single-color gold icon instead
+// of three different multi-colour glyphs competing in the same card.
+function reflectionIconBadgeHTML(size){
+  size=size||34;
+  return '<span style="flex-shrink:0;width:'+size+'px;height:'+size+'px;border-radius:50%;background:radial-gradient(circle at 32% 28%,rgba(227,191,118,.28),rgba(227,191,118,.06) 60%),rgba(232,214,196,.05);border:1.5px solid rgba(227,191,118,.35);display:flex;align-items:center;justify-content:center;color:#E3BF76">'+
+    '<svg width="'+Math.round(size*0.56)+'" height="'+Math.round(size*0.56)+'" viewBox="0 0 40 40" fill="currentColor" aria-hidden="true"><path d="M20 3c-5 0-8 3.5-8 8 0 3 1.3 5.2 3 6.7-4 1.6-7 5-7 9.3v2h24v-2c0-4.3-3-7.7-7-9.3 1.7-1.5 3-3.7 3-6.7 0-4.5-3-8-8-8z"/><rect x="10" y="30" width="20" height="4" rx="1"/></svg>'+
+  '</span>';
+}
+function reflectionPromptRowHTML(label,id,placeholder,value){
+  return '<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">'+
+      reflectionIconBadgeHTML(34)+
+      '<div class="lv-label-eyebrow">'+label+'</div>'+
+    '</div>'+
+    '<textarea id="'+id+'" rows="2" placeholder="'+placeholder+'" style="width:100%;box-sizing:border-box;background:rgba(var(--white-rgb),.06);border:1.5px solid var(--border2,rgba(232,214,196,.18));border-radius:10px;padding:10px;font-family:inherit;font-size:13px;color:var(--white);resize:vertical;margin-bottom:16px">'+escHTML(value)+'</textarea>';
+}
+// Matches Word of the Day's own anatomy for reflective content (icon
+// badge + italic serif text + bold uppercase gold label) instead of
+// flat "label: value" lines — the saved reflection is this feature's
+// actual payload, so it earns the app's real "reflection" treatment,
+// not a form receipt.
+function reflectionAnswerHTML(label,text){
+  if(!text)return '';
+  return '<div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:12px">'+
+    reflectionIconBadgeHTML(30)+
+    '<div style="min-width:0"><div style="font-family:var(--lv-display,inherit);font-weight:400;font-size:.98rem;line-height:1.32;font-style:italic;color:var(--white)">"'+escHTML(text)+'"</div>'+
+    '<div style="margin-top:4px;font-size:9.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#E3BF76">'+label+'</div></div>'+
+  '</div>';
+}
+function reflectionEntryHTML(r){
+  return reflectionAnswerHTML('Went well',r.well)+
+    reflectionAnswerHTML('To improve',r.improve)+
+    reflectionAnswerHTML('Try tomorrow',r.tryNext);
+}
+function renderReflectionPage(){
+  const today=localDateKey(new Date());
+  const existing=reflectionLog.find(r=>r.date===today);
+  const formWrap=document.getElementById('reflection-form-wrap');
+  const showForm=!existing||reflectionEditingDate===today;
+  if(formWrap){
+    if(showForm){
+      const draft=existing||{well:'',improve:'',tryNext:''};
+      formWrap.innerHTML='<div class="card lv-surface" style="padding:16px">'+
+          reflectionPromptRowHTML('What went well','refl-well','One thing that actually went right today...',draft.well)+
+          reflectionPromptRowHTML('What could have been better','refl-improve','No judgement — just what you noticed...',draft.improve)+
+          reflectionPromptRowHTML('One thing to try tomorrow','refl-try','Small and specific beats big and vague...',draft.tryNext)+
+          '<button class="btn btn-g" style="width:100%" onclick="saveReflection()">Save reflection</button>'+
+        '</div>';
+    }else{
+      formWrap.innerHTML='<div class="card lv-surface" style="padding:16px">'+
+          '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">'+
+            '<span class="lv-label-eyebrow">Today’s reflection</span>'+
+            '<span style="font-size:11px;font-weight:800;color:var(--lv-gold,#E3BF76);cursor:pointer" onclick="editTodayReflection()">Edit</span>'+
+          '</div>'+
+          reflectionEntryHTML(existing)+
+        '</div>';
+    }
+  }
+  const historyWrap=document.getElementById('reflection-history-wrap');
+  if(historyWrap){
+    const past=reflectionLog.filter(r=>r.date!==today).sort((a,b)=>b.date.localeCompare(a.date)).slice(0,14);
+    if(!past.length){
+      historyWrap.innerHTML='<div class="card lv-surface" style="padding:16px;text-align:center">'+
+        '<div style="font-size:26px;opacity:.5;margin-bottom:8px">📔</div>'+
+        '<div style="font-size:11px;color:var(--muted)">Your past reflections will build up here — one entry at a time.</div>'+
+      '</div>';
+    }else{
+      historyWrap.innerHTML='<div class="lv-label-eyebrow" style="margin:4px 0 8px">Past entries</div>'+
+        past.map(r=>'<div class="card lv-surface" style="padding:14px;margin-bottom:8px">'+
+          '<div style="font-size:11px;font-weight:800;color:var(--lv-gold,#E3BF76);margin-bottom:6px">'+relativeDayLabel(r.date)+'</div>'+
+          reflectionEntryHTML(r)+
+        '</div>').join('');
+    }
+  }
+  const streakEl=document.getElementById('profile-reflection-streak');
+  if(streakEl)streakEl.textContent=reflectionLog.length?reflectionLog.length+' logged':'';
+}
+function saveReflection(){
+  const today=localDateKey(new Date());
+  const well=(document.getElementById('refl-well')?.value||'').trim();
+  const improve=(document.getElementById('refl-improve')?.value||'').trim();
+  const tryNext=(document.getElementById('refl-try')?.value||'').trim();
+  if(!well&&!improve&&!tryNext){toast('⚠️','Write at least one line first');return;}
+  const idx=reflectionLog.findIndex(r=>r.date===today);
+  const entry={date:today,well,improve,tryNext};
+  if(idx>=0)reflectionLog[idx]=entry;else reflectionLog.push(entry);
+  reflectionEditingDate=null;
+  saveToStorage();
+  toast('📔','Reflection saved');
+  renderReflectionPage();
+}
+function editTodayReflection(){
+  reflectionEditingDate=localDateKey(new Date());
+  renderReflectionPage();
+}
 function dismissWeeklyCoverageBanner(){
   const today=new Date();
   const dow=today.getDay();
@@ -26984,6 +27134,7 @@ function saveToStorage(){
     localStorage.setItem('arx_lowerBodyNudgeDismissedAt', lowerBodyNudgeDismissedAt||'');
     localStorage.setItem('arx_muscleBalanceNudgeDismissedDate', muscleBalanceNudgeDismissedDate||'');
     localStorage.setItem('arx_weeklyCoverageDismissedWeek', weeklyCoverageDismissedWeek||'');
+    localStorage.setItem('arx_reflectionLog', JSON.stringify(reflectionLog));
     localStorage.setItem('arx_liftHistory', JSON.stringify(liftHistory));
     localStorage.setItem('arx_lastPerformance', JSON.stringify(lastPerformance));
     localStorage.setItem('arx_streak', streak);
@@ -27143,6 +27294,8 @@ function loadFromStorage(){
     lowerBodyNudgeDismissedAt=localStorage.getItem('arx_lowerBodyNudgeDismissedAt')||null;
     muscleBalanceNudgeDismissedDate=localStorage.getItem('arx_muscleBalanceNudgeDismissedDate')||'';
     weeklyCoverageDismissedWeek=localStorage.getItem('arx_weeklyCoverageDismissedWeek')||'';
+    const rl=localStorage.getItem('arx_reflectionLog');
+    if(rl){try{reflectionLog=JSON.parse(rl);}catch(e){reflectionLog=[];}}
     const lh=localStorage.getItem('arx_liftHistory');
     if(lh){try{liftHistory=JSON.parse(lh);}catch(e){liftHistory={};}}
     const lp=localStorage.getItem('arx_lastPerformance');
