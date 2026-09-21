@@ -2895,10 +2895,19 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        kept it a contained ring floating in the middle of a mostly-plain
        dark screen, which read as "a shine in a box" rather than actual
        light filling the frame. */
-    .crate-reveal-stage .reveal-ray-burst{position:fixed;width:160vmax;height:160vmax;opacity:var(--ray-opacity,.4)}
+    /* Blurred so the conic-gradient wedges read as soft ambient light
+       radiating outward, not a crisp graphic sunburst pattern pasted
+       behind the item — direct report: "the shiny box that sits around
+       the item, you can clearly see its boxed." Hard-edged rays at this
+       size and opacity were the actual cause; the blur is the fix, not
+       hiding the effect entirely. */
+    .crate-reveal-stage .reveal-ray-burst{position:fixed;width:160vmax;height:160vmax;opacity:var(--ray-opacity,.4);filter:blur(28px)}
     .crate-reveal-stage .achievement-title{font-size:28px}
     .crate-reveal-stage .achievement-desc{font-size:15px;max-width:320px;margin-left:auto;margin-right:auto}
-    .crate-reveal-stage .achievement-close-btn{max-width:280px;margin:0 auto;padding:14px;font-size:14px}
+    /* Real gap above the button now (was margin:0 auto only, so it sat
+       flush against the item card right above it) — direct report: "can
+       we move the continue further down." */
+    .crate-reveal-stage .achievement-close-btn{max-width:280px;margin:40px auto 0;padding:14px;font-size:14px}
     /* Anchored to the centre of the SCREEN, not a corner — on the
        sealed crate the badge lives inside #reveal-crate-wrap (a small
        box sized to the crate icon, position:relative), so a corner
@@ -4896,7 +4905,7 @@ body[data-goal-theme="cut"] .lv-page{
   </div>
 
   <div id="sleep-reminder-banner" class="dash-notif-fixed" style="display:none">
-    <div class="dnf-head">
+    <div class="dnf-head" onclick="openBannerTextInChat(document.getElementById('sleep-reminder-text').textContent)" style="cursor:pointer">
       <span class="dnf-icon" style="background:linear-gradient(160deg,#B98CFF,#6E4FE0)">😴</span>
       <div class="dnf-body">
         <div class="dnf-toprow"><span class="dnf-app">Areviax</span><span class="dnf-time">now</span></div>
@@ -4906,12 +4915,12 @@ body[data-goal-theme="cut"] .lv-page{
   </div>
 
   <div id="walk-tip-card" class="dash-notif-fixed" style="display:none">
-    <div class="dnf-head">
+    <div class="dnf-head" onclick="openBannerTextInChat('Mostly-sitting day today — sneak in a short walk. Keeps joints mobile and circulation up, separate from whatever training you\'re doing.')" style="cursor:pointer">
       <span class="dnf-icon" style="background:linear-gradient(160deg,#8FAE9E,#5A7A6C)">🚶</span>
       <div class="dnf-body">
         <div class="dnf-toprow"><span class="dnf-app">Areviax</span><span class="dnf-time">now</span></div>
         <div class="dnf-msg">Mostly-sitting day today — sneak in a short walk. Keeps joints mobile and circulation up, separate from whatever training you're doing.</div>
-        <div class="dnf-actions"><span onclick="dismissWalkTip()" style="cursor:pointer;color:var(--muted);font-size:12.5px">Dismiss</span></div>
+        <div class="dnf-actions"><span onclick="event.stopPropagation();dismissWalkTip()" style="cursor:pointer;color:var(--muted);font-size:12.5px">Dismiss</span></div>
       </div>
     </div>
   </div>
@@ -4923,6 +4932,17 @@ body[data-goal-theme="cut"] .lv-page{
         <div class="dnf-toprow"><span class="dnf-app">Areviax</span><span class="dnf-time">now</span></div>
         <div class="dnf-msg">A Gift from the Gods awaits — a key to Bronze, Silver, Gold, even Diamond.</div>
         <div class="dnf-actions"><span style="color:var(--orange);font-weight:700;font-size:12.5px">Open →</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="weekly-coverage-banner" class="dash-notif-fixed" style="display:none;cursor:pointer" onclick="openWeeklyCoverageInChat()">
+    <div class="dnf-head">
+      <img class="dnf-icon" src="images/icons/coach-sam-portrait.png" alt="" style="object-fit:cover;object-position:50% 42%">
+      <div class="dnf-body">
+        <div class="dnf-toprow"><span class="dnf-app">Coach Sam</span><span class="dnf-time">now</span></div>
+        <div class="dnf-msg">Let's talk about training.</div>
+        <div class="dnf-actions"><span onclick="event.stopPropagation();dismissWeeklyCoverageBanner()" style="cursor:pointer;color:var(--muted);font-size:12.5px">Dismiss</span></div>
       </div>
     </div>
   </div>
@@ -5192,11 +5212,23 @@ body[data-goal-theme="cut"] .lv-page{
       </div>
     </section>
 
-    <!-- QUOTE — real, individually-attributed QUOTES/day-index rotation, see pickQuote(). -->
-    <section class="lv-ember" style="position:relative;overflow:hidden;border-radius:1.75rem;padding:24px">
-      <span style="position:absolute;right:-4px;top:-30px;font-family:var(--lv-serif);font-size:8rem;line-height:1;opacity:.2;pointer-events:none" aria-hidden="true">&ldquo;</span>
-      <p class="lv-serif-accent" style="position:relative;font-size:1.7rem;line-height:1.15" id="dash-quote-text">—</p>
-      <p style="position:relative;margin-top:12px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.16em;opacity:.7" id="dash-quote-attrib">Areviax</p>
+    <!-- QUOTE — real, individually-attributed QUOTES/day-index rotation
+         (see pickQuote(), now mixed with the Word of the Day mythic pool
+         too), given the same bust-icon "Word of the Day" treatment as
+         the Profile page's card instead of its own separate look. Tapping
+         it opens Coach Sam's chat with the quote as the opener — same
+         "leads to chat" treatment as the other Coach Sam notifications. -->
+    <section class="lv-surface" style="padding:18px 20px;cursor:pointer" onclick="openDashQuoteInChat()">
+      <p class="lv-label-eyebrow" style="margin-bottom:12px">Word of the Day</p>
+      <div style="display:flex;gap:14px;align-items:flex-start">
+        <div style="flex-shrink:0;width:44px;height:44px;border-radius:50%;background:radial-gradient(circle at 32% 28%,rgba(227,191,118,.28),rgba(227,191,118,.06) 60%),rgba(232,214,196,.05);border:1.5px solid rgba(227,191,118,.35);display:flex;align-items:center;justify-content:center;color:#E3BF76">
+          <svg width="24" height="24" viewBox="0 0 40 40" fill="currentColor" aria-hidden="true"><path d="M20 3c-5 0-8 3.5-8 8 0 3 1.3 5.2 3 6.7-4 1.6-7 5-7 9.3v2h24v-2c0-4.3-3-7.7-7-9.3 1.7-1.5 3-3.7 3-6.7 0-4.5-3-8-8-8z"/><rect x="10" y="30" width="20" height="4" rx="1"/></svg>
+        </div>
+        <div style="min-width:0">
+          <p style="font-family:var(--lv-display);font-weight:400;font-size:1.05rem;line-height:1.32;font-style:italic;color:var(--lv-fg)" id="dash-quote-text">—</p>
+          <p style="margin-top:6px;font-size:10.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#E3BF76" id="dash-quote-attrib">Areviax</p>
+        </div>
+      </div>
     </section>
 
     <!-- RECOVERY + SLEEP — real sleepLog / computeMuscleReadiness data,
@@ -6497,10 +6529,15 @@ body[data-goal-theme="cut"] .lv-page{
       <h2 class="lv-section-title" style="display:flex;align-items:baseline;gap:8px;font-size:1.4rem"><span class="lv-greek-numeral">Γ</span>Consistency</h2>
       <span style="font-family:var(--lv-mono);font-size:11px;color:var(--lv-muted-fg)" id="prog-consistency-count"></span>
     </div>
-    <div id="prog-consistency-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:16px;margin-bottom:8px"></div>
-    <div style="display:flex;justify-content:space-between;font-family:var(--lv-mono);font-size:10px;color:var(--lv-muted-fg)">
-      <span>M T W T F S S</span><span>today</span>
+    <!-- Day-letter header sits in its OWN 7-col grid, same column count/
+         gap as the heatmap below, so each letter lines up with its own
+         column of boxes instead of being one flat "M T W T F S S" string
+         that only roughly lined up with the grid underneath it. -->
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:16px;font-family:var(--lv-mono);font-size:10px;color:var(--lv-muted-fg);text-align:center">
+      <span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span>
     </div>
+    <div id="prog-consistency-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:6px;margin-bottom:8px"></div>
+    <div style="text-align:right;font-family:var(--lv-mono);font-size:10px;color:var(--lv-muted-fg)">today</div>
   </div>
 
   <!-- BALANCE — real tonnageLog bucketed by muscle into push/pull/legs/core
@@ -9228,6 +9265,7 @@ let startingScheduledSession=false;
 let deviationLog=[];
 let lowerBodyNudgeDismissedAt=null;
 let muscleBalanceNudgeDismissedDate='';
+let weeklyCoverageDismissedWeek='';
 let appTheme='dark';
 function setTheme(t){
   appTheme=t==='light'?'light':'dark';
@@ -9638,6 +9676,11 @@ const EX={
       troubleshoot:[
         {feel:'Losing balance mid-set', fix:'Hold something sturdy with your free hand and lean less at first — a small, controlled lean still gives most of the benefit over a standard raise.'},
         {feel:'Can\'t feel the difference from a normal lateral raise', fix:'Lean further away from the working side — a shallow lean barely changes the tension curve. You should feel real resistance the moment the weight leaves your side, not just at the top.'},
+      ]},
+    {name:'Lying Lateral Raise',muscle:'side delts',sets:3,reps:'12–15 each',eff:84,syn:87,safe:88,equip:['full','dumbbells','dumbbells_bench'],anim:'lateral',cue:'Lie on your side on a flat bench, working arm on top. Raise the dumbbell straight up toward the ceiling, leading with the elbow, then lower it slowly back down past your body\'s midline. Lying flat removes any momentum from the hips or torso that a standing raise lets you cheat with, so the side delt does all the work through the full range, including the stretched bottom position a standing version loses entirely.',
+      troubleshoot:[
+        {feel:'Front of shoulder taking over', fix:'You\'re probably raising slightly forward instead of straight up off your side. Keep the dumbbell path directly in line with the ceiling, not angled toward your face.'},
+        {feel:'Can\'t get comfortable on the bench', fix:'Bend your bottom knee for balance and brace your bottom hand against the bench or floor — you\'re not trying to lie perfectly still, just stable enough that the working arm does the moving.'},
       ]},
     {name:'Machine Lateral Raise',muscle:'side delts',sets:3,reps:'12–15',eff:82,syn:86,safe:96,equip:['deltFlyMachine'],anim:'lateral',cue:'The machine\'s fixed arc keeps constant tension on your side delt without needing to control balance or swing, making it a good option to push closer to failure safely. Set the pivot point level with your shoulder and raise to just below shoulder height.',
       troubleshoot:[
@@ -16409,7 +16452,13 @@ const QUOTES = [
 // checked the same day don't always show the identical line. massOnly
 // restricts the pool to mass:true entries (Dashboard/Daily Perspective).
 function pickQuote(offset,massOnly){
-  const pool=massOnly?QUOTES.filter(q=>q.mass):QUOTES;
+  // Dashboard pool mixes the plain "Areviax" motivational lines with the
+  // Word of the Day mythic pool (DAILY_QUOTES, Socrates/Greek gods) —
+  // reusing DAILY_QUOTES's own data rather than copying it, so the two
+  // lists can't drift apart. Profile's own Word of the Day card still
+  // reads straight from DAILY_QUOTES, unaffected.
+  const mythic=DAILY_QUOTES.map(q=>({text:q.text,attrib:q.author,mass:true}));
+  const pool=massOnly?QUOTES.filter(q=>q.mass).concat(mythic):QUOTES;
   const dayNum=Math.floor(Date.now()/86400000);
   return pool[(dayNum+(offset||0)+pool.length)%pool.length];
 }
@@ -16423,6 +16472,30 @@ function renderQuoteInto(textId,attribId,offset,attribPrefix,massOnly){
 }
 function renderDashQuote(){
   renderQuoteInto('dash-quote-text','dash-quote-attrib',0,'',true);
+}
+// Same "tap it, land in a real Coach Sam conversation" pattern as
+// viewAssessmentInChat() — the day's quote becomes the opening line
+// instead of just sitting there unclickable on the Dashboard.
+function openDashQuoteInChat(){
+  const q=pickQuote(0,true);
+  showPage('aicoach');
+  const thread=document.getElementById('aicoach-thread');
+  if(thread){
+    thread.insertAdjacentHTML('beforeend',aiCoachBubbleHTML('"'+q.text+'" — '+q.attrib+'. Anything you want to talk through today?',false));
+    thread.scrollTop=thread.scrollHeight;
+  }
+}
+// Shared by the plainer dashboard banners (sleep reminder, walk tip —
+// anything that was just a one-way notice, not its own modal flow) so
+// tapping one drops the same message into an actual Coach Sam
+// conversation instead of just sitting there as a dead-end toast.
+function openBannerTextInChat(text){
+  showPage('aicoach');
+  const thread=document.getElementById('aicoach-thread');
+  if(thread){
+    thread.insertAdjacentHTML('beforeend',aiCoachBubbleHTML(text,false));
+    thread.scrollTop=thread.scrollHeight;
+  }
 }
 
 // ── COACH SAM — DAILY TRAINING TIP — a different thing from COMPANIONS
@@ -16667,7 +16740,7 @@ function renderTodaySessionName(name){
 // last); now only the front of dashNotifQueue is ever shown, and the
 // next one slides in a beat after the current one clears, matching how a
 // real phone surfaces one notification at a time instead of piling them.
-const DASH_NOTIF_IDS=['muscle-balance-banner','streak-risk-banner','streak-repair-banner','sleep-reminder-banner','walk-tip-card','daily-spin-banner','missed-food-banner','weekly-assessment-banner','coach-nutrition-banner','coach-workout-banner'];
+const DASH_NOTIF_IDS=['muscle-balance-banner','weekly-coverage-banner','streak-risk-banner','streak-repair-banner','sleep-reminder-banner','walk-tip-card','daily-spin-banner','missed-food-banner','weekly-assessment-banner','coach-nutrition-banner','coach-workout-banner'];
 let _dashNotifArmed=false;
 let dashNotifQueue=[];
 let dashNotifShowing=null;
@@ -17107,6 +17180,7 @@ function initApp(){
   try{checkSittingJobTip();}catch(e){console.error('checkSittingJobTip:',e.message);}
   try{checkDailySpinBanner();}catch(e){console.error('checkDailySpinBanner:',e.message);}
   try{checkMuscleBalanceNudge();}catch(e){console.error('checkMuscleBalanceNudge:',e.message);}
+  try{checkWeeklyCoverage();}catch(e){console.error('checkWeeklyCoverage:',e.message);}
   try{checkMissedFoodDay();}catch(e){console.error('checkMissedFoodDay:',e.message);}
   try{checkCoachNutritionCheckin();}catch(e){console.error('checkCoachNutritionCheckin:',e.message);}
   try{checkCoachWorkoutCheckin();}catch(e){console.error('checkCoachWorkoutCheckin:',e.message);}
@@ -17395,6 +17469,19 @@ function onSetEquipChange(val){
   const link=document.getElementById('set-equip-custom-link');
   if(link)link.style.display=(val==='custom')?'block':'none';
   if(val==='custom')openCustomEquipChecklist();
+}
+// One-tap fix from the "no exercises match" empty state — clears any
+// per-session override too (equipOk() always prefers sessionEquip over
+// profile.equip, so leaving a stale override in place would silently
+// undo this).
+function resetEquipToFullGym(){
+  profile.equip='full';
+  sessionEquip=null;
+  const sel=document.getElementById('set-equip');
+  if(sel)sel.value='full';
+  saveToStorage();
+  renderExercises();
+  toast('🏋️','Equipment set to Full Gym');
 }
 
 // ── INJURY-CONFLICT DETECTION — matches the free-text injuries field against
@@ -17832,7 +17919,7 @@ function renderExercises(){
   exs=applyCustomOrder(exs,type);
   const cont=document.getElementById('ex-list');
   if(!cont)return;
-  if(exs.length===0){cont.innerHTML=searchTerm?`<div class="ex-no-equip">No exercises match "${searchInput.value}". Try a different name or muscle group.</div>`:selectedMuscles.size>0?'<div class="ex-no-equip">No exercises match that muscle + equipment combo. Try selecting another muscle or changing where you\'re training.</div>':'<div class="ex-no-equip">No exercises match your equipment. Try changing your session type or update your equipment in settings.</div>';updateSynergy([],type);return}
+  if(exs.length===0){cont.innerHTML=searchTerm?`<div class="ex-no-equip">No exercises match "${searchInput.value}". Try a different name or muscle group.</div>`:selectedMuscles.size>0?'<div class="ex-no-equip">No exercises match that muscle + equipment combo. Try selecting another muscle or changing where you\'re training.</div>':'<div class="ex-no-equip">Can\'t see an exercise that fits your current equipment setting. Check Settings → Equipment access, or if you\'re not sure what you have, Full Gym is the safest baseline — it never filters anything out.<br><button class="btn btn-g" style="margin-top:10px" onclick="resetEquipToFullGym()">Set equipment to Full Gym</button></div>';updateSynergy([],type);return}
   cont.innerHTML=exs.map((e,i)=>`
     <div class="ex-card" id="ex-${i}">
       <div class="ex-top" onclick="toggleEx(${i})">
@@ -18732,7 +18819,26 @@ function repRangeTop(repsStr){
   const parts=(repsStr||'').split('–').map(n=>parseInt(n));
   return parts.length>1?parts[1]:parts[0];
 }
+// CNS score now actually feeds back into the plan instead of being a
+// number on the Recovery page nobody acts on — when today's test reads
+// fatigued (<40), the next suggested weight is trimmed ~15%. Wraps the
+// raw suggestion rather than threading a CNS branch into every one of
+// suggestNextWeightRaw's own branches, and explicitly skips assisted
+// equipment: there, a LOWER number means MORE resistance (less assist),
+// so blindly trimming it would make the suggestion harder, not easier —
+// exactly backwards for a fatigue-management feature.
 function suggestNextWeight(e){
+  return applyCNSFatigueToSuggestion(suggestNextWeightRaw(e),e);
+}
+function applyCNSFatigueToSuggestion(s,e){
+  if(!s||!s.weight||isAssistedEquip(e.equip))return s;
+  const todayTest=cnsTapLog.find(t=>t.date===todayISODateCNS());
+  if(!todayTest||todayTest.score>=40)return s;
+  const reduced=Math.max(0,Math.round(s.weight*0.85/2.5)*2.5);
+  if(reduced>=s.weight)return s;
+  return {weight:reduced,note:s.note+` Your CNS test today read fatigued (${todayTest.score}/100) — suggested weight trimmed ~15% to ${reduced}kg. Override any time.`};
+}
+function suggestNextWeightRaw(e){
   const last=lastPerformance[e.name];
   if(!last)return null;
   const upper=repRangeTop(e.reps);
@@ -18989,7 +19095,7 @@ const EXERCISE_RANK_FAMILY={
   'Incline Machine Chest Press':'MACHINE_CHEST_PRESS','Machine Chest Press':'MACHINE_CHEST_PRESS',
   'Machine Row':'MACHINE_ROW','Seated Cable Row':'MACHINE_ROW','Seated Single-Arm Cable Pull':'MACHINE_ROW','Single-Arm Cable Pull':'MACHINE_ROW',
   'Machine Shoulder Press':'MACHINE_SHOULDER_PRESS','Smith Machine Shoulder Press':'MACHINE_SHOULDER_PRESS',
-  'Cable Lateral Raise':'SHOULDER_ISO','Cable Y-Raise':'SHOULDER_ISO','Face Pulls':'SHOULDER_ISO','Lateral Raises':'SHOULDER_ISO','Leaning Lateral Raise':'SHOULDER_ISO','Machine Lateral Raise':'SHOULDER_ISO','Plate Lateral Raise':'SHOULDER_ISO','Prone Rear Delt Raise':'SHOULDER_ISO','Rear Delt Fly':'SHOULDER_ISO','Reverse Pec Deck':'SHOULDER_ISO',
+  'Cable Lateral Raise':'SHOULDER_ISO','Cable Y-Raise':'SHOULDER_ISO','Face Pulls':'SHOULDER_ISO','Lateral Raises':'SHOULDER_ISO','Leaning Lateral Raise':'SHOULDER_ISO','Lying Lateral Raise':'SHOULDER_ISO','Machine Lateral Raise':'SHOULDER_ISO','Plate Lateral Raise':'SHOULDER_ISO','Prone Rear Delt Raise':'SHOULDER_ISO','Rear Delt Fly':'SHOULDER_ISO','Reverse Pec Deck':'SHOULDER_ISO',
   'Bulgarian Split Squat':'SPLIT_SQUAT','Cossack Squat':'SPLIT_SQUAT','Curtsy Lunge':'SPLIT_SQUAT','Dumbbell Step-Up':'SPLIT_SQUAT','Pistol Squat':'SPLIT_SQUAT','Reverse Lunge':'SPLIT_SQUAT','Reverse Lunges':'SPLIT_SQUAT','Sissy Squat':'SPLIT_SQUAT','Step-ups':'SPLIT_SQUAT','Walking Lunges':'SPLIT_SQUAT',
   'Barbell Back Squat':'SQUAT','Bodyweight Squat':'SQUAT','Box Squat':'SQUAT','Cyclist Squat':'SQUAT','Goblet Squat':'SQUAT','Zercher Squat':'SQUAT',
   'Cable Overhead Tricep Extension':'TRICEP_ISO','Dumbbell Skull Crusher':'TRICEP_ISO','EZ-Bar Skull Crusher':'TRICEP_ISO','EZ-Bar Tricep Pushdown':'TRICEP_ISO','Overhead Tricep Extension':'TRICEP_ISO','Reverse-Grip Tricep Pushdown':'TRICEP_ISO','Rope Tricep Pushdown':'TRICEP_ISO','Single-Arm Cable Pushdown':'TRICEP_ISO','Skull Crushers':'TRICEP_ISO','Tate Press':'TRICEP_ISO','Tricep Pushdown':'TRICEP_ISO','V-Bar Tricep Pushdown':'TRICEP_ISO',
@@ -19573,6 +19679,7 @@ function logSet(ei,si,name,muscle){
       lastEntry.weight=w;lastEntry.reps=r;
     }
   }
+  const prevPR=prs[name]; // captured before the overwrite below, for the size-of-jump tiering
   const isWeightPR=w>0&&(!prs[name]||w>prs[name]);
   const isRepPR=w>0&&!isWeightPR&&prs[name]&&w===prs[name]&&r>(prBestReps[name]||0);
   if(isWeightPR||isRepPR){
@@ -19582,7 +19689,21 @@ function logSet(ei,si,name,muscle){
     chip.textContent=`🏆 ${w}×${r}`;
     const pd=document.getElementById('pr-d-'+ei);
     if(pd)pd.textContent='PR: '+w+'kg';
-    toast('🏆',isWeightPR?'New PR on '+name+': '+w+'kg!':'New PR on '+name+': '+w+'kg×'+r+' (more reps)!','pr');
+    // Tiered instead of one flat message every time: a brand-new lift with
+    // no prior PR is just a baseline being set, not a real PR to celebrate
+    // yet (every set on a new exercise would otherwise "PR"); an ordinary
+    // improvement gets the normal callout; a genuinely large jump (20%+)
+    // gets bigger praise PLUS a caution — that's exactly the kind of jump
+    // that invites overreaching on the very next attempt.
+    if(isRepPR){
+      toast('🏆','New PR on '+name+': '+w+'kg×'+r+' (more reps)!','pr');
+    } else if(!prevPR){
+      toast('📋','Logged '+name+': '+w+'kg×'+r+' — your baseline to beat next time.','pr');
+    } else if((w-prevPR)/prevPR>=0.2){
+      toast('🚀','Huge PR on '+name+': '+w+'kg — that\'s a big jump from '+prevPR+'kg! Genuinely well done, but ease back in next session rather than chasing it again immediately — fast jumps like this are exactly when overreaching turns into injury.','pr');
+    } else {
+      toast('🏆','New PR on '+name+': '+w+'kg!','pr');
+    }
     celebrateBurst(['🏆','⭐','💥'],14);
     checkQuestWeek();questProgress.prs=(questProgress.prs||0)+1;renderQuests();checkAchievements();
   }
@@ -20104,7 +20225,20 @@ const FOODS_DB=[
   {name:'Sunflower seeds',cals:584,prot:21,carbs:20,fats:51},
   {name:'Avocado',cals:160,prot:2,carbs:9,fats:15,unitGrams:150,unitName:'avocado'},
   {name:'Olive oil',cals:884,prot:0,carbs:0,fats:100},
+  {name:'Toasted sesame oil',cals:884,prot:0,carbs:0,fats:100},
   {name:'Butter',cals:717,prot:0.9,carbs:0.1,fats:81},
+  {name:'Maple syrup',cals:260,prot:0,carbs:67,fats:0.2},
+  {name:'Golden syrup',cals:295,prot:0.3,carbs:79,fats:0},
+  {name:'Waffles',cals:291,prot:7.9,carbs:43,fats:9.9,unitGrams:35,unitName:'waffle'},
+  {name:'Pancakes (plain)',cals:227,prot:6.4,carbs:28,fats:9.7,unitGrams:38,unitName:'pancake'},
+  {name:'Wholemeal bread',cals:247,prot:13,carbs:41,fats:3.4,unitGrams:38,unitName:'slice'},
+  {name:'White bread',cals:265,prot:9,carbs:49,fats:3.2,unitGrams:38,unitName:'slice'},
+  {name:'Whole milk',cals:61,prot:3.2,carbs:4.8,fats:3.3,isLiquid:true},
+  {name:'Semi-skimmed milk',cals:46,prot:3.4,carbs:4.8,fats:1.7,isLiquid:true},
+  {name:'Apple',cals:52,prot:0.3,carbs:14,fats:0.2,unitGrams:182,unitName:'apple'},
+  {name:'Orange',cals:47,prot:0.9,carbs:12,fats:0.1,unitGrams:131,unitName:'orange'},
+  {name:'Quinoa (cooked)',cals:120,prot:4.4,carbs:21,fats:1.9},
+  {name:'Baked beans',cals:75,prot:4.6,carbs:13,fats:0.4},
   {name:'Hummus',cals:166,prot:8,carbs:14,fats:10},
   {name:'Mustard',cals:66,prot:4,carbs:8,fats:3},
   {name:'BBQ sauce',cals:172,prot:1,carbs:40,fats:0.5},
@@ -21165,7 +21299,9 @@ const RECIPES_DB=[
 // moment nothing scores well enough rather than guessing.
 const AI_COACH_KB=[
   {q:'How much protein do I need?',kw:['protein','how much protein','grams'],
-   a:"Your target is set from your goal and bodyweight in Settings — check Nutrition → Today's Overview for the exact gram number. As a rule of thumb, most people building muscle do well around 1.6–2.2g of protein per kg of bodyweight per day, spread across meals rather than in one sitting."},
+   a:"Your target is set from your goal and bodyweight in Settings — check Nutrition → Today's Overview for the exact gram number. Research on muscle protein synthesis suggests most of the real benefit lands between roughly 1.6–2.2g per kg of bodyweight per day — and if you're not a competitive/pro athlete, you're likely covering the muscle-building benefit within that range already, some studies put the meaningful floor closer to 0.6–1.6g/kg for natural lifters. Going well beyond ~2.2g/kg doesn't build muscle any faster; it just displaces other food and adds cost, so treat that range as a ceiling worth reaching, not a floor to blow past."},
+  {q:'How do I hit my calorie target?',kw:['hit my calories','hit calories','under my calories','not eating enough','cant hit my calories'],
+   a:"The two usual reasons are running out of appetite before you run out of calories, or the day just gets away from you. Dashboard → Fuel has one-tap quick-adds (shake, chicken, yogurt, eggs) for exactly the gap-closing situation, and Smart Log's free-text parsing means you don't need to look anything up — just describe what you ate. If it's consistently hard to eat enough, lean on calorie-dense options (nut butters, oils, dried fruit, whole milk) rather than trying to eat more volume of the same low-calorie foods."},
   {q:'How does the Caloric Shield work?',kw:['shield','caloric shield','shield break','shield crack'],
    a:'The Shield fills as you hit today\'s calorie AND protein targets — it only reaches 100% when both are met, not just one. If it\'s still low in the evening it goes red (at risk), then cracks, then breaks if the day genuinely runs out — each stage is just a visual nudge, nothing is lost. Turn on Shield Reminders in Settings to get a real notification as it escalates.'},
   {q:'What does my Lift Rank mean?',kw:['lift rank','rank','wood','bronze','silver','gold rank','olympian'],
@@ -22069,6 +22205,21 @@ const COUNT_WORDS={one:1,two:2,three:3,four:4,five:5,six:6};
 function parseAmount(text,food){
   if(!text)return null;
   text=text.trim().toLowerCase();
+  // Numeric slash fractions ("3/4 cup", "1/2 chicken breast") — normalized
+  // to a plain decimal up front so every branch below (the food-unit
+  // fraction-word matcher, the AMOUNT_WORDS portion matcher) just sees an
+  // ordinary decimal count and needs no separate fraction-aware path of
+  // its own. Word fractions ("three quarters", "half") already had their
+  // own matcher below; this covers the "3/4" numeral notation instead.
+  const slashFrac=text.match(/^(\d+)\s*\/\s*(\d+)\b(.*)$/);
+  if(slashFrac&&parseInt(slashFrac[2],10)>0){
+    // Strip "of a"/"of the"-style filler right here too, not just in the
+    // food-unit branch below — "3/4 of a cup" needs to land on plain
+    // "0.75 cup" so the ordinary AMOUNT_WORDS lookup further down (which
+    // only knows single bare words like "cup") still matches it.
+    const rest=slashFrac[3].replace(/\b(a|an|of|the)\b/g,'').replace(/\s+/g,' ').trim();
+    text=(parseInt(slashFrac[1],10)/parseInt(slashFrac[2],10))+(rest?' '+rest:'');
+  }
   // A bare number ("2") for a food with a known per-item weight (like a
   // Weetabix biscuit) means "2 of them", not "2 grams" — most people
   // counting Weetabix have no idea what they weigh, and 2g vs 2 biscuits
@@ -24519,6 +24670,53 @@ function submitCoachNutritionFeedback(){
 // hits it first). Trigger is a real week-plus gap with no session at
 // all, gated on having real training history so a brand-new user never
 // sees this on day one.
+// ── WEEKLY MUSCLE COVERAGE — near the end of the training week (Sat/Sun),
+// checks whether at least 2 of the major compound groups (chest, back,
+// shoulders, quads, hamstrings, glutes) never got trained at all this
+// week. Deliberately excludes the smaller accessory groups (biceps,
+// triceps, calves, core) from the trigger — those legitimately don't
+// get their own dedicated day on a lot of real splits, and nagging over
+// a missed calves day every week would just be noise. Threshold is 2+
+// major groups, not 1, so one deviation (a lower-body day swapped for
+// upper, say) doesn't trip it on its own.
+const WEEKLY_COVERAGE_GROUPS=['chest','back','shoulders','quads','hamstrings','glutes'];
+function checkWeeklyCoverage(){
+  const banner=document.getElementById('weekly-coverage-banner');
+  if(!banner)return;
+  const today=new Date();
+  const dow=today.getDay(); // 0=Sun, 6=Sat
+  if(dow!==6&&dow!==0){banner.style.display='none';return;}
+  if(trainingCompletedDates.length<4){banner.style.display='none';return;} // not enough real history to judge a "whole week" pattern yet
+  const mondayOffset=dow===0?6:dow-1;
+  const monday=new Date(today);monday.setDate(today.getDate()-mondayOffset);
+  const weekStart=localDateKey(monday);
+  if(weeklyCoverageDismissedWeek===weekStart){banner.style.display='none';return;}
+  const weekDates=[];
+  for(let i=0;i<7;i++){const d=new Date(monday);d.setDate(monday.getDate()+i);weekDates.push(localDateKey(d));}
+  const untrained=WEEKLY_COVERAGE_GROUPS.filter(group=>{
+    const synonyms=MUSCLE_GROUPS[group];
+    return !tonnageLog.some(e=>weekDates.includes(e.date)&&synonyms.includes(e.muscle));
+  });
+  if(untrained.length<2){banner.style.display='none';return;}
+  banner.dataset.untrained=untrained.map(g=>MUSCLE_GROUP_LABEL[g]).join(', ');
+  banner.style.display='';
+}
+function openWeeklyCoverageInChat(){
+  const banner=document.getElementById('weekly-coverage-banner');
+  const untrained=banner?.dataset.untrained||'some muscle groups';
+  dismissWeeklyCoverageBanner();
+  openBannerTextInChat("You haven't worked your entire body this week — "+untrained+" haven't been trained at all these last few days. To keep making balanced progress (and avoid one area lagging the rest), try to hit every major muscle group at least once a week. Want help fitting it into what's left of this week?");
+}
+function dismissWeeklyCoverageBanner(){
+  const today=new Date();
+  const dow=today.getDay();
+  const mondayOffset=dow===0?6:dow-1;
+  const monday=new Date(today);monday.setDate(today.getDate()-mondayOffset);
+  weeklyCoverageDismissedWeek=localDateKey(monday);
+  saveToStorage();
+  const banner=document.getElementById('weekly-coverage-banner');
+  if(banner)banner.style.display='none';
+}
 function checkCoachWorkoutCheckin(){
   const banner=document.getElementById('coach-workout-banner');
   if(!banner)return;
@@ -26750,6 +26948,7 @@ function saveToStorage(){
     localStorage.setItem('arx_deviationLog', JSON.stringify(deviationLog));
     localStorage.setItem('arx_lowerBodyNudgeDismissedAt', lowerBodyNudgeDismissedAt||'');
     localStorage.setItem('arx_muscleBalanceNudgeDismissedDate', muscleBalanceNudgeDismissedDate||'');
+    localStorage.setItem('arx_weeklyCoverageDismissedWeek', weeklyCoverageDismissedWeek||'');
     localStorage.setItem('arx_liftHistory', JSON.stringify(liftHistory));
     localStorage.setItem('arx_lastPerformance', JSON.stringify(lastPerformance));
     localStorage.setItem('arx_streak', streak);
@@ -26908,6 +27107,7 @@ function loadFromStorage(){
     if(dl){try{deviationLog=JSON.parse(dl);}catch(e){deviationLog=[];}}
     lowerBodyNudgeDismissedAt=localStorage.getItem('arx_lowerBodyNudgeDismissedAt')||null;
     muscleBalanceNudgeDismissedDate=localStorage.getItem('arx_muscleBalanceNudgeDismissedDate')||'';
+    weeklyCoverageDismissedWeek=localStorage.getItem('arx_weeklyCoverageDismissedWeek')||'';
     const lh=localStorage.getItem('arx_liftHistory');
     if(lh){try{liftHistory=JSON.parse(lh);}catch(e){liftHistory={};}}
     const lp=localStorage.getItem('arx_lastPerformance');
