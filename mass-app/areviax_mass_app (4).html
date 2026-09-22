@@ -2193,11 +2193,11 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        ladder, distinct from a cleared one (checkmark, no ring) and a
        future one (locked, desaturated). */
     .legend-card.cabinet-slot.trials-current{
-      border:1.5px solid rgba(255,122,46,.6);
-      box-shadow:0 0 14px -3px rgba(255,122,46,.5);
+      border:1.5px solid rgba(224,170,255,.6);
+      box-shadow:0 0 14px -3px rgba(139,47,199,.55);
     }
     .legend-card.cabinet-slot.trials-current .legend-card-icon{
-      font-weight:800;color:#FF8342;
+      font-weight:800;color:#C084FC;
     }
 
     /* ── COMPASS DROP CRATES — a Brawl-Stars-Star-Drop-style capsule
@@ -5106,6 +5106,24 @@ body[data-goal-theme="cut"] .lv-page{
          stats on real devices). -->
     <button class="lv-ember lv-grain" onclick="showPage('workout')" style="width:100%;display:flex;align-items:center;justify-content:space-between;border:none;border-radius:1.25rem;padding:16px 20px;font-family:var(--lv-sans);font-size:16px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;cursor:pointer">Start session <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></button>
 
+    <!-- THE AREVIAX TRIALS — a live limited-time event deserves the same
+         real estate as the primary CTA, not a buried menu item, so it
+         sits right under Start Session where it can't be missed. Deep
+         violet/imperial-purple on purpose — the app's every other accent
+         (orange/ember, gold, cyan) is already claimed by something else,
+         and a genuinely different colour is what makes this read as its
+         own special thing rather than one more orange card in the feed. -->
+    <button type="button" onclick="showPage('trials')" style="width:100%;display:flex;align-items:center;gap:12px;border:1.5px solid rgba(224,170,255,.35);border-radius:1.25rem;padding:16px 18px;cursor:pointer;text-align:left;font-family:inherit;color:#F3E8FF;background:linear-gradient(135deg,#7B2FF7,#3D1670);box-shadow:0 12px 30px -12px rgba(139,47,199,.65)">
+      <span style="flex-shrink:0;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#F3E8FF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 14.5a2.5 2.5 0 002.5 2.5 2.5 2.5 0 002.5-2.5c0-1.38-.5-2-1-3-1.07-2.14-.22-4.05 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7.5 7.5 0 11-15 0c0-1.15.43-2.29 1-3a2.5 2.5 0 002.5 2.5z"/></svg>
+      </span>
+      <div style="flex:1;min-width:0">
+        <div style="font-family:var(--lv-sans);font-weight:800;font-size:14px;text-transform:uppercase;letter-spacing:.08em">The Areviax Trials</div>
+        <div style="font-size:11px;color:#E0AAFF;margin-top:2px;font-family:var(--lv-mono)" id="dash-trials-sub">Limited-time event</div>
+      </div>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E0AAFF" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+    </button>
+
     <!-- YOUR RANK — the Hall of Statues' current tier, given a real home
          on the Dashboard with room to actually show progress, instead of
          squeezed into the header's small icon row (tried that first —
@@ -6606,17 +6624,6 @@ body[data-goal-theme="cut"] .lv-page{
       <div style="font-family:var(--lv-mono);font-size:11px;color:var(--lv-muted-fg);margin-top:4px" id="prog-labors-sub">— of 12 complete</div>
     </div>
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--lv-gold)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
-  </div>
-
-  <!-- THE AREVIAX TRIALS — CTA into the fortnightly event, unlike the two
-       above this one is time-boxed, so its subtitle leads with the
-       countdown rather than a plain progress count. -->
-  <div onclick="showPage('trials')" class="lv-ember lv-grain" style="cursor:pointer;border-radius:1.75rem;padding:18px 20px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between">
-    <div>
-      <div style="font-family:var(--lv-sans);font-weight:800;font-size:17px;text-transform:uppercase;letter-spacing:.1em">The Areviax Trials</div>
-      <div style="font-family:var(--lv-mono);font-size:11px;opacity:.8;margin-top:4px" id="prog-trials-sub">Limited-time event</div>
-    </div>
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
   </div>
 
   </div><!-- /.prog-top-grid -->
@@ -16148,14 +16155,6 @@ function renderProgressTrophyBanner(){
   el.textContent=unlockedLegends.filter(k=>LEGEND_CARDS.some(l=>l.key===k)).length+' of '+LEGEND_CARDS.length+' unlocked';
   const labEl=document.getElementById('prog-labors-sub');
   if(labEl)labEl.textContent=Object.keys(laborsCompleted).length+' of '+LABORS.length+' complete';
-  const trialsEl=document.getElementById('prog-trials-sub');
-  if(trialsEl){
-    try{
-      ensureTrialsEventFresh();
-      const t=trialsTimeLeft();
-      trialsEl.textContent=(trialsChallengeOver?'Over — ':trialsStageIdx>=TRIALS_STAGES.length?'All cleared — ':trialsStageIdx+' of '+TRIALS_STAGES.length+' cleared — ')+t.days+'d '+t.hours+'h left';
-    }catch(e){}
-  }
 }
 function renderLaborsPage(){
   const doneEl=document.getElementById('labors-done-num');
@@ -16869,7 +16868,22 @@ function syncLvBadges(){
     document.querySelectorAll('.lv-road-pill .lv-road-pill-fill').forEach(el=>el.style.width=sum.pct+'%');
   }
   renderDashRankPill();
+  renderDashTrialsBanner();
   syncProfileBadge();
+}
+// Keeps the Dashboard's Trials banner subtitle current wherever else
+// syncLvBadges() already fires — same idea as renderDashRankPill() just
+// above, one small text update rather than a full renderTrials() pass
+// (the ladder/current-trial card only need to exist once you're actually
+// on the Trials page itself).
+function renderDashTrialsBanner(){
+  const el=document.getElementById('dash-trials-sub');
+  if(!el)return;
+  try{
+    ensureTrialsEventFresh();
+    const t=trialsTimeLeft();
+    el.textContent=(trialsChallengeOver?'Challenge over — ':trialsStageIdx>=TRIALS_STAGES.length?'All cleared — ':trialsStageIdx+' of '+TRIALS_STAGES.length+' cleared — ')+t.days+'d '+t.hours+'h left';
+  }catch(e){}
 }
 function renderDashHeroLovable(){
   syncLvBadges();
@@ -26962,8 +26976,8 @@ function renderTrials(){
     const rewardText=stage.reward.type==='drachma'?('+'+stage.reward.amount+' Tetradrachms')
       :stage.reward.type==='crate'?(stage.reward.tier[0].toUpperCase()+stage.reward.tier.slice(1)+' Crate')
       :('Title: "'+TITLES[stage.reward.key].name+'"'+(stage.reward.crateTier?' + Diamond Crate':''));
-    statusHTML='<div class="card lv-surface" style="padding:20px 18px">'+
-      '<div style="font-size:9px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,122,46,.75)">Trial '+(trialsStageIdx+1)+' of '+TRIALS_STAGES.length+'</div>'+
+    statusHTML='<div class="card lv-surface" style="padding:20px 18px;border-color:rgba(224,170,255,.3)">'+
+      '<div style="font-size:9px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#C084FC">Trial '+(trialsStageIdx+1)+' of '+TRIALS_STAGES.length+'</div>'+
       '<div style="font-size:17px;font-weight:800;color:var(--white);margin-top:4px">'+stage.name+'</div>'+
       '<div style="font-size:12.5px;color:var(--muted);margin-top:6px;line-height:1.5">'+stage.desc+'</div>'+
       '<div style="font-size:11px;font-weight:700;color:#FFB347;margin-top:10px">🎁 Reward: '+rewardText+'</div>'+
@@ -26987,10 +27001,10 @@ function renderTrials(){
   }).join('');
 
   cont.innerHTML=
-    '<div class="card lv-surface" style="text-align:center;padding:22px 18px;margin-bottom:12px">'+
-      '<div style="font-size:10px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)">Limited-Time Event</div>'+
-      '<div style="font-size:22px;font-weight:800;color:var(--white);margin-top:4px;letter-spacing:.02em">THE AREVIAX TRIALS</div>'+
-      '<div style="font-size:12px;color:rgba(255,122,46,.85);font-weight:700;margin-top:6px">⏳ '+timeLeftText+' left this cycle</div>'+
+    '<div style="text-align:center;padding:22px 18px;margin-bottom:12px;border-radius:1.75rem;color:#F3E8FF;background:linear-gradient(135deg,#7B2FF7,#3D1670);box-shadow:0 12px 30px -12px rgba(139,47,199,.65)">'+
+      '<div style="font-size:10px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;opacity:.85">Limited-Time Event</div>'+
+      '<div style="font-size:22px;font-weight:800;margin-top:4px;letter-spacing:.02em">THE AREVIAX TRIALS</div>'+
+      '<div style="font-size:12px;color:#E0AAFF;font-weight:700;margin-top:6px">⏳ '+timeLeftText+' left this cycle</div>'+
     '</div>'+
     '<div class="card lv-surface" style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;margin-bottom:12px">'+
       '<span style="font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">Losses</span>'+
