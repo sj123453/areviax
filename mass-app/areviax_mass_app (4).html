@@ -1987,11 +1987,6 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .legend-card.rarity-legendary.unlocked .legend-card-icon{animation:rarityPulseStrong 1.6s ease-in-out infinite}
     .legend-card.rarity-legendary.unlocked .legend-card-icon-glow{animation:glowPulseStrong 1.6s ease-in-out infinite}
     .legend-card.rarity-legendary.unlocked .legend-card-icon-burst{opacity:.4}
-    /* Weight Milestones aren't gacha-pull rarities — no rarity field,
-       so they get their own flat "iron" material instead of a
-       rarity-X class, matching the steel palette Weight Road used
-       before it moved into the Cabinet. */
-    .legend-card.iron.unlocked{--lgi-glow-blur:14px;--lgi-glow-color:rgba(90,170,255,.55);--lgi-ring:#4A9FD8;--lgi-ring-light:#B8E4FF}
     .legend-card.rarity-ultralegendary.unlocked{
       --lgi-glow-blur:54px;--lgi-glow-color:rgba(0,230,118,.85);--lgi-ring:#00B368;--lgi-ring-light:#6FFFB0;--lgi-aura-spread:7px;--lgi-aura-color:rgba(0,230,118,.6);
     }
@@ -3461,7 +3456,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       transition:color .2s,border-color .2s;user-select:none;
     }
     .road-expand-btn:hover,.road-expand-btn:active{color:var(--white);border-color:rgba(232,214,196,.3)}
-    /* Arete/Trophy/Weight Road each live on their own dedicated page now
+    /* Arete/Trophy Road each live on their own dedicated page now
        (see .xp-road-track.horizontal below) instead of an embedded card
        that needed a fullscreen escape hatch — the old clone-into-overlay
        viewer this comment used to describe is gone with it. */
@@ -3469,9 +3464,9 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        read as sitting IN a lane, not floating loose on the card
        background, plus a ticked (not just dashed-border) spine that
        actually glows once progress exists instead of only recolouring
-       a 2px line. Shared by both roads that use this component (Arete
-       Road and the Weight Road) — reusing one system is what makes
-       either read as "designed", not two thin one-off tracks. */
+       a 2px line. Shared by every road that uses this component —
+       reusing one system is what makes it read as "designed", not a
+       thin one-off track. */
     .xp-road-track{
       position:relative;padding:10px 0 6px;border-radius:14px;overflow-x:hidden;
       background:linear-gradient(180deg,rgba(232,214,196,.018),transparent 45%);
@@ -3644,7 +3639,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .xp-node-bar{height:3px;border-radius:2px;background:rgba(232,214,196,.08);margin-top:6px;overflow:hidden}
     .xp-node-bar-fill{height:100%;background:linear-gradient(90deg,var(--orange2),var(--green));border-radius:2px}
 
-    /* ── HORIZONTAL ROAD PAGES — Arete/Trophy/Weight Road each get their
+    /* ── HORIZONTAL ROAD PAGES — Arete/Trophy Road each get their
        own dedicated page now instead of living embedded on Progress
        (Brawl Stars' Trophy Road screen: a horizontal path you scroll
        through, with a "progress to next" bar up top), reached via a hub
@@ -3786,7 +3781,6 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .road-trophy-item-icon{width:56px;height:56px;margin:0 auto 6px;display:flex;align-items:center;justify-content:center;border-radius:14px;background:rgba(232,214,196,.03);border:1.5px solid var(--border2);overflow:hidden}
     .road-trophy-item.earned .road-trophy-item-icon{border-color:rgba(255,180,90,.4);box-shadow:0 0 14px -4px rgba(255,150,50,.5)}
     .road-trophy-item-icon img{width:100%;height:100%;object-fit:contain}
-    .ms-milestone-icon img{width:100%;height:100%;object-fit:contain}
     .road-trophy-item-icon svg,.road-trophy-item-icon span{font-size:26px}
     .road-trophy-item-name{font-size:8.5px;color:var(--muted);line-height:1.3}
     .road-trophy-item.earned .road-trophy-item-name{color:rgba(var(--white-rgb),.75);font-weight:700}
@@ -6941,61 +6935,6 @@ body[data-goal-theme="cut"] .lv-page{
   </div>
 </div>
 
-<!-- WEIGHT ROAD PAGE — lifetime tonnage milestones (real-object
-     comparisons, same list Trophy Cabinet's collection shelf reads from)
-     as their own horizontal path, cool steel/foundry palette
-     (theme-iron) so it reads as a distinct "iron" identity next to Arete
-     Road's warm ember-dusk trail. Reached from the Weight Road hub card
-     on Progress. -->
-<div class="page" id="page-weightroad">
-  <div style="height:calc(10px + max(var(--safe-top,0px),env(safe-area-inset-top,0px)));background:var(--lv-bg);margin:0 -20px"></div>
-  <div class="road-page-head">
-    <button class="btn btn-out btn-sm" onclick="showPage('progress')">← Progress</button>
-    <span class="ct glow-title weight" style="font-size:17px"><img src="images/roads/weight-compass.png" alt="" class="road-title-icon" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'"><span class="road-title-icon-fallback">🏋️</span> Weight Road</span>
-    <span class="road-trophy-count" id="weight-road-trophy-count">0/6</span>
-    <button type="button" onclick="showPage('profile')" aria-label="Profile" style="width:30px;height:30px;border-radius:50%;flex-shrink:0;background:rgba(0,0,0,.25);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--white)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></button>
-  </div>
-  <div class="road-reward-row theme-iron" id="weight-road-banner">
-    <div class="road-reward-box" id="weight-reward-prev">
-      <span class="road-reward-check" id="weight-reward-prev-check" style="display:none"><svg viewBox="0 0 24 24" fill="none" stroke="#0D0806" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
-      <div class="road-reward-label">Crossed</div>
-      <div class="road-reward-icon-slot" id="weight-reward-prev-icon"></div>
-      <div class="road-reward-qty" id="weight-reward-prev-qty">—</div>
-    </div>
-    <div class="road-reward-box next" id="weight-reward-next">
-      <div class="road-reward-label">Next Up</div>
-      <div class="road-reward-icon-slot" id="weight-reward-next-icon"></div>
-      <div class="road-reward-qty" id="weight-reward-next-qty">—</div>
-      <div class="road-reward-fill-track"><div class="road-reward-fill" id="weight-reward-next-fill" style="width:0%"></div></div>
-    </div>
-    <div class="road-reward-box" id="weight-reward-then">
-      <div class="road-reward-label">Then</div>
-      <div class="road-reward-icon-slot" id="weight-reward-then-icon"></div>
-      <div class="road-reward-qty" id="weight-reward-then-qty">—</div>
-    </div>
-  </div>
-  <div class="road-scenery theme-iron">
-    <div class="road-ember" style="left:6%;animation-delay:0s;animation-duration:7.2s"></div>
-    <div class="road-ember" style="left:20%;animation-delay:1.6s;animation-duration:6.4s"></div>
-    <div class="road-ember" style="left:38%;animation-delay:3.1s;animation-duration:8s"></div>
-    <div class="road-ember" style="left:58%;animation-delay:.8s;animation-duration:6.8s"></div>
-    <div class="road-ember" style="left:75%;animation-delay:4.2s;animation-duration:7.6s"></div>
-    <div class="road-ember" style="left:90%;animation-delay:2.4s;animation-duration:6.9s"></div>
-    <div class="road-ridge back"></div>
-    <div class="road-ridge front"></div>
-    <div id="weight-road-h" class="xp-road-track horizontal"></div>
-  </div>
-  <!-- TROPHIES EARNED — the road itself already shows each milestone in
-       place along the path, but there's nowhere on this page you can
-       see the whole earned collection at a glance without scrolling the
-       full track. A compact gallery of just the claimed ones, gold-lit
-       against a locked/dimmed placeholder for what's still ahead. -->
-  <div class="road-trophy-gallery-wrap">
-    <div class="road-trophy-gallery-label">Trophies Earned</div>
-    <div class="road-trophy-gallery" id="weight-road-trophy-gallery"></div>
-  </div>
-</div>
-
 <!-- TROPHY CABINET — dedicated collection room. The peak trophy (the
      1-of-1 Areviax Trophy) sits alone at the top, then each of the 7
      layers stacks below as its own labelled shelf in descending
@@ -7006,7 +6945,7 @@ body[data-goal-theme="cut"] .lv-page{
 <div class="page lv-page" id="page-trophycabinet">
 
   <!-- HERO — literal port of website-refresh's TrophyScreen <header>. Real
-       unlockedLegends/WEIGHT_MILESTONES/xp data, see renderTrophyHeroLovable().
+       unlockedLegends/xp data, see renderTrophyHeroLovable().
        Back button lives here now (was a separate stacked topbar bar above
        the hero, which every other ported page doesn't have — moved inline
        for a single consistent header instead of two stacked ones).
@@ -7035,19 +6974,6 @@ body[data-goal-theme="cut"] .lv-page{
     </div>
   </header>
 
-  <!-- CLOSEST UNLOCK — real nearest weight milestone by % progress (the
-       one collectible tier here with a genuine "distance to go" instead
-       of a pure-luck pull). -->
-  <div id="troph-closest-card" class="lv-surface" style="display:none;padding:20px;margin:0 20px 12px">
-    <div style="display:flex;align-items:center;justify-content:space-between">
-      <span class="lv-label-eyebrow" style="color:var(--lv-primary)">Closest unlock</span>
-      <span style="font-family:var(--lv-mono);font-size:11px;color:var(--lv-muted-fg)" id="troph-closest-pct"></span>
-    </div>
-    <h2 class="lv-section-title" style="margin-top:8px;font-size:1.7rem" id="troph-closest-name"></h2>
-    <p style="margin-top:8px;font-size:11px;line-height:1.5;color:var(--lv-muted-fg)" id="troph-closest-detail"></p>
-    <div class="lv-rail-track" style="margin-top:16px;height:8px"><div class="lv-rail-fill" id="troph-closest-fill" style="width:0%;background:var(--lv-primary)"></div></div>
-  </div>
-
   <!-- PEAK SLOT — The Areviax Trophy (ultralegendary, 1-of-1). Sits
        outside the 7 numbered layers and above the filter tabs so it's
        always visible regardless of which tab is active — a single
@@ -7072,7 +6998,6 @@ body[data-goal-theme="cut"] .lv-page{
     <button class="troph-filter-btn active" data-target="cabinet-liftranks-section" onclick="setTrophyFilter('cabinet-liftranks-section',this)" style="border-radius:999px;padding:9px 16px;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;font-family:var(--lv-sans);border:1.5px solid var(--lv-primary);background:rgba(var(--lv-primary-rgb),.2);color:var(--lv-primary);cursor:pointer">All</button>
     <button class="troph-filter-btn" data-target="cabinet-liftranks-section" onclick="setTrophyFilter('cabinet-liftranks-section',this)" style="border-radius:999px;padding:9px 16px;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;font-family:var(--lv-sans);border:1.5px solid var(--lv-border-strong);color:var(--lv-muted-fg);cursor:pointer">Lift Ranks</button>
     <button class="troph-filter-btn" data-target="cabinet-tiers" onclick="setTrophyFilter('cabinet-tiers',this)" style="border-radius:999px;padding:9px 16px;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;font-family:var(--lv-sans);border:1.5px solid var(--lv-border-strong);color:var(--lv-muted-fg);cursor:pointer">Legends</button>
-    <button class="troph-filter-btn" data-target="cabinet-weight-section" onclick="setTrophyFilter('cabinet-weight-section',this)" style="border-radius:999px;padding:9px 16px;font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;font-family:var(--lv-sans);border:1.5px solid var(--lv-border-strong);color:var(--lv-muted-fg);cursor:pointer">Milestones</button>
   </div>
 
   <!-- The Icons section (the Main Four + Diamond Six legendary cards
@@ -7102,17 +7027,6 @@ body[data-goal-theme="cut"] .lv-page{
   </div>
 
   <div id="cabinet-tiers" style="padding:0 20px"></div>
-
-  <div id="cabinet-weight-section" style="padding:0 20px">
-  <div class="cabinet-tier">
-    <div class="cabinet-tier-plaque">
-      <span class="cabinet-tier-name">Weight Milestones</span>
-      <span class="cabinet-tier-count" id="cabinet-weight-count"></span>
-    </div>
-    <div class="cabinet-tier-sub" id="cabinet-weight-sub">Earned by lifetime volume, not a crate</div>
-    <div class="cabinet-row" id="cabinet-weight-row"></div>
-  </div>
-  </div>
 
   <!-- Achievements used to be folded into Road to Olympus (see the comment
        above olympusRoadNodes()) — now that the road is Arete-only again,
@@ -8157,10 +8071,9 @@ body[data-goal-theme="cut"] .lv-page{
   <div class="card lv-surface" style="margin-bottom:14px">
     <div class="ch"><span class="ct">Lifetime Record</span></div>
     <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px">
-      <div onclick="openMilestones()" style="cursor:pointer;background:rgba(232,214,196,.025);border:1.5px solid rgba(232,214,196,.07);border-radius:8px;padding:14px">
+      <div style="background:rgba(232,214,196,.025);border:1.5px solid rgba(232,214,196,.07);border-radius:8px;padding:14px">
         <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">Total Volume</div>
         <div style="font-size:22px;font-weight:800;color:var(--white)" id="profile-volume">0 kg</div>
-        <div style="font-size:9.5px;color:rgba(255,122,46,.75);margin-top:3px;font-weight:700">View milestones →</div>
       </div>
       <div style="background:rgba(232,214,196,.025);border:1.5px solid rgba(232,214,196,.07);border-radius:8px;padding:14px">
         <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">Sessions Completed</div>
@@ -8805,23 +8718,6 @@ body[data-goal-theme="cut"] .lv-page{
       <div style="font-size:10.5px;color:var(--muted);margin-bottom:10px">Tap to change — same setting as Days per week in Settings.</div>
       <div id="sd-goal-pills" style="display:flex;gap:8px"></div>
     </div>
-  </div>
-</div>
-
-<!-- ── LIFTING MILESTONES — total lifetime volume as real-world weight
-     equivalents, with a progress bar toward the next one and a scrollable
-     list of everything already cleared. ── -->
-<div id="milestones-backdrop" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9998" onclick="closeMilestones()"></div>
-<div id="milestones-modal" class="inset-modal" style="display:none;position:fixed;inset:16px;z-index:9999;max-width:480px;margin:0 auto;background:var(--panel);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1.5px solid var(--border);border-radius:16px;box-shadow:0 20px 60px -20px rgba(0,0,0,.7);flex-direction:column;overflow:hidden">
-  <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1.5px solid var(--border2);flex-shrink:0">
-    <div style="font-weight:800;font-size:14px">Lifting Milestones</div>
-    <button onclick="closeMilestones()" style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;line-height:1;padding:4px 8px">✕</button>
-  </div>
-  <div style="flex:1;min-height:0;overflow-y:auto;padding:16px">
-    <div id="ms-total" style="text-align:center;font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:14px">0 kg lifted</div>
-    <div id="ms-next-card" style="text-align:center;background:var(--panel2);border:1.5px solid var(--border2);border-radius:12px;padding:18px;margin-bottom:18px"></div>
-    <div style="font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:8px">All milestones</div>
-    <div id="ms-list"></div>
   </div>
 </div>
 
@@ -11248,41 +11144,6 @@ function tenureText(){
   return 'Member for '+years+' year'+(years===1?'':'s')+(months>0?', '+months+' month'+(months===1?'':'s'):'');
 }
 
-// \u2500\u2500 WEIGHT MILESTONES \u2014 cumulative lifetime tonnage across every lift
-// you've ever logged (totalVolume, already tracked for the tonnage
-// achievements below), compared against real objects instead of a
-// growing kg number alone. One shared ladder for all your training,
-// not one per exercise \u2014 add more tiers here any time.
-// Each milestone now needs real session consistency too, not just raw
-// volume \u2014 the same "was meant to be volume AND sessions" bottleneck
-// philosophy Hall of Statues' TIERS already uses (see TIERS' own
-// comment), applied here since a huge one-off volume dump used to be
-// able to unlock a milestone on its own with zero real training
-// history behind it.
-const WEIGHT_MILESTONES=[
-  {kg:1000,   sessions:5,   icon:'\ud83c\udfb9', img:'images/trophies/piano.png',    name:'Grand Piano'},
-  {kg:3000,   sessions:12,  icon:'\ud83d\ude97', img:'images/trophies/car.png',      name:'Small Car'},
-  {kg:8000,   sessions:25,  icon:'\ud83d\udc18', img:'images/trophies/elephant.png', name:'Elephant'},
-  {kg:20000,  sessions:50,  icon:'\ud83d\udc0b', img:'images/trophies/orca.png',     name:'Orca'},
-  {kg:60000,  sessions:120, icon:'\ud83d\udc33', img:'images/trophies/whale.png',    name:'Blue Whale'},
-  {kg:150000, sessions:250, icon:'\ud83d\uddfd', img:'images/trophies/statue.png',   name:'Statue of Liberty'},
-];
-function milestoneIconHTML(m){
-  return m.img?'<img src="'+m.img+'" alt="'+m.name+'">':m.icon;
-}
-// Bottleneck progress, same idea as Hall of Statues' own rank pill:
-// whichever of volume/sessions you're furthest behind on drives the
-// percent, not an average \u2014 a huge one-off session with no real
-// consistency shouldn't read the same as steady real training.
-function milestoneUnlocked(m){
-  return (totalVolume||0)>=m.kg&&(totalSess||0)>=m.sessions;
-}
-function milestonePct(m){
-  const volPct=m.kg?(totalVolume||0)/m.kg*100:100;
-  const sessPct=m.sessions?(totalSess||0)/m.sessions*100:100;
-  return Math.max(0,Math.min(100,Math.round(Math.min(volPct,sessPct))));
-}
-
 // \u2500\u2500 LEGEND CARDS \u2014 Areviax Crate collectibles. Real bodybuilding
 // greats, factual titles only (no invented quotes attributed to real
 // people) \u2014 this is a nostalgic trivia-card collectible inside a
@@ -11642,7 +11503,7 @@ function claimXpRoadReward(nodeXp){
   celebrateBurst(['✨','⭐'],10);
   saveToStorage();renderAchievements();renderXpRoad();
 }
-// Shared by Arete/Weight Road's node pill ("1,500 Arete" / "8,000kg") — the
+// Shared by Arete Road's node pill ("1,500 Arete") — the
 // pill is a fixed-width badge that ellipsizes rather than overflows, but
 // a 5-6 digit comma-formatted number just gets chopped to "20,..." which
 // reads worse than a compact "20K" ever would, so large values switch
@@ -11781,7 +11642,7 @@ function drawRoadTrail(cont){
     (passedD?'<path d="'+passedD+'" fill="none" stroke="'+passedColor+'" stroke-width="13" stroke-linecap="round" style="filter:drop-shadow(0 0 7px '+passedGlow+')"/>':'')+
     (tickD?'<path d="'+tickD+'" stroke="rgba(232,214,196,.9)" stroke-width="2.5" stroke-linecap="round"/>':'');
 }
-// \u2500\u2500 ROAD PATH RENDERER \u2014 shared by the Arete/Trophy/Weight Road pages.
+// \u2500\u2500 ROAD PATH RENDERER \u2014 shared by the Arete/Trophy Road pages.
 // Each road's own function below only computes WHAT the nodes are
 // (claimed/next/icon/labels); this owns HOW they're laid out: left to
 // right in earn order (earliest/lowest at the left, same reading
@@ -11812,7 +11673,7 @@ function renderRoadPath(containerId,nodes){
     const state=n.claimed?' claimed':n.ready?' ready':n.isNext?' next':'';
     const wind=Math.round(Math.sin(i*0.85)*22);
     // Hex size scales with how big a deal the reward actually is (n.weight,
-    // 0..1 \u2014 see xpRoadNodeWeight/trophyRoadNodeWeight/weightRoadNodeWeight),
+    // 0..1 \u2014 see xpRoadNodeWeight/trophyRoadNodeWeight),
     // not just claimed-vs-next: a locked Mega-Box-tier reward should still
     // read as visibly bigger than a claimed 25-coin one. "Next" adds a
     // smaller boost on top of that same scale rather than its own fixed size,
@@ -11962,9 +11823,9 @@ function renderXpRoad(){
   renderRewardRow('xp',nodes);
   renderXpRoadGallery();
 }
-// Same "show what's earned so far" gallery as Weight Road, adapted to Arete
-// Road's checkpoints — fills the dead space below the path with something
-// real instead of empty scenery, and keeps all 3 roads visually consistent.
+// A "show what's earned so far" gallery for Arete Road's checkpoints —
+// fills the dead space below the path with something real instead of
+// empty scenery, and keeps the roads visually consistent.
 function renderXpRoadGallery(){
   const countEl=document.getElementById('xp-road-trophy-count');
   const galleryEl=document.getElementById('xp-road-trophy-gallery');
@@ -12375,19 +12236,19 @@ function getTrophyRoadSummary(){
   };
 }
 function renderTrophyRoad(){
-  // The single Road to Olympus now — Arete Road and Weight Road's own pages
-  // (renderXpRoad/renderWeightRoad below) are unreachable dead code, kept
-  // only so their still-real underlying data (claimedXpRoad, totalVolume)
-  // needs no changes; this is the one path a user can actually navigate to.
+  // The single Road to Olympus now — Arete Road's own page (renderXpRoad
+  // below) is unreachable dead code, kept only so its still-real
+  // underlying data (claimedXpRoad) needs no changes; this is the one
+  // path a user can actually navigate to.
   const nodes=olympusRoadNodes();
   renderRoadPath('trophy-road-h',nodes);
   renderRewardRow('trophy',nodes);
   renderOlympusRoadGallery(nodes);
 }
-// Same "show what's earned so far" gallery as Weight Road, adapted to
-// Trophy Road's achievements — fills the dead space below the path with
-// something real instead of empty scenery, and keeps all 3 roads visually
-// consistent (see renderXpRoadGallery for the Arete Road equivalent).
+// A "show what's earned so far" gallery for Trophy Road's achievements —
+// fills the dead space below the path with something real instead of
+// empty scenery, and keeps the roads visually consistent (see
+// renderXpRoadGallery for the Arete Road equivalent).
 function renderTrophyRoadGallery(){
   const countEl=document.getElementById('trophy-road-trophy-count');
   const galleryEl=document.getElementById('trophy-road-trophy-gallery');
@@ -12402,65 +12263,17 @@ function renderTrophyRoadGallery(){
     </div>`;
   }).join('');
 }
-// Weight Road \u2014 lifetime tonnage milestones (real-object comparisons)
-// as the same horizontal path, driven by totalVolume against
-// WEIGHT_MILESTONES \u2014 the exact same source list the Trophy Cabinet's
-// weight-milestone shelf reads from, so the two views can never
-// disagree about which milestone is next.
-// kg spans 1,000-150,000 across the ladder — a linear scale would make the
-// first four milestones look nearly identical and only the Statue of
-// Liberty read as big, so this scales off log(kg) instead for a spread
-// that actually looks graduated the whole way up.
-function weightRoadNodeWeight(m){
-  const kgs=WEIGHT_MILESTONES.map(x=>x.kg);
-  const minLog=Math.log(Math.min(...kgs)),maxLog=Math.log(Math.max(...kgs));
-  return 0.3+0.7*((Math.log(m.kg)-minLog)/(maxLog-minLog));
-}
-function weightRoadNodes(){
-  const ascending=[...WEIGHT_MILESTONES].sort((a,b)=>a.kg-b.kg);
-  const vol=totalVolume||0;
-  const next=ascending.find(m=>!milestoneUnlocked(m));
-  return ascending.map((m,i)=>{
-    const claimed=milestoneUnlocked(m);
-    const isNext=!claimed&&m===next;
-    const pct=isNext?milestonePct(m):null;
-    return {claimed,isNext,icon:milestoneIconHTML(m),valueLabel:m.kg.toLocaleString()+'kg',descLabel:m.name,progressPct:pct,weight:weightRoadNodeWeight(m),roadPos:i/(ascending.length-1||1)};
-  });
-}
-function getWeightRoadSummary(){
-  const ascending=[...WEIGHT_MILESTONES].sort((a,b)=>a.kg-b.kg);
-  const vol=totalVolume||0;
-  const next=ascending.find(m=>!milestoneUnlocked(m));
-  const pct=next?milestonePct(next):100;
-  return {
-    icon:next?milestoneIconHTML(next):'\ud83c\udfcb\ufe0f',
-    text:next?(Math.round(vol).toLocaleString()+'kg, '+(totalSess||0)+' sessions \u2014 needs '+next.kg.toLocaleString()+'kg / '+next.sessions+' sessions for '+next.name):'All milestones hit \u2014 '+Math.round(vol).toLocaleString()+'kg lifetime.',
-    pct,
-  };
-}
-function renderWeightRoad(){
-  const nodes=weightRoadNodes();
-  renderRoadPath('weight-road-h',nodes);
-  renderRewardRow('weight',nodes);
-  renderWeightRoadTrophies();
-}
-
 // ═══════════ ROAD TO OLYMPUS — the one road, everything else is trophies ═══════════
-// Arete Road, (the old) Trophy Road, and Weight Road each already produce an
-// identical view-model shape from xpRoadNodes()/trophyRoadNodes()/
-// weightRoadNodes() — {claimed,isNext,icon,valueLabel,descLabel,
-// progressPct,weight,roadPos} — because renderRoadPath()/renderRewardRow()
-// were always generic over "a list of nodes", never tied to one road's own
-// data. This briefly merged Arete/Achievement/Weight checkpoints into one
-// path (interleaved by each node's percentile position within its own
-// road, a real fix for the "all over the place" ordering that came from
-// an earlier, worse merge — see git history if that math is ever needed
-// again), but achievements and weight milestones both have their own real
-// home now (the Trophy Cabinet's Achievements/Weight Milestones shelves —
-// see renderCabinetAchievements/renderCabinetWeightMilestones), so Road to
-// Olympus is back to being exactly what its name always implied: lifetime
-// Arete, nothing else. One metric, so "always ascending" is true by
-// construction — no cross-road normalization needed at all.
+// Arete Road and (the old) Trophy Road already produce an identical
+// view-model shape from xpRoadNodes()/trophyRoadNodes() — {claimed,isNext,
+// icon,valueLabel,descLabel,progressPct,weight,roadPos} — because
+// renderRoadPath()/renderRewardRow() were always generic over "a list of
+// nodes", never tied to one road's own data. Achievements have their own
+// real home now (the Trophy Cabinet's Achievements shelf — see
+// renderCabinetAchievements), so Road to Olympus is exactly what its name
+// always implied: lifetime Arete, nothing else. One metric, so "always
+// ascending" is true by construction — no cross-road normalization needed
+// at all.
 function olympusRoadNodes(){
   return xpRoadNodes();
 }
@@ -12480,25 +12293,6 @@ function renderOlympusRoadGallery(nodes){
     </div>`;
   }).join('');
 }
-// TROPHIES EARNED — every WEIGHT_MILESTONES entry shown at both the top
-// (count badge, "3/6") and bottom (full gallery) of the page. Reads the
-// exact same claimed/vol math as weightRoadNodes() so this can never
-// disagree with what the path itself shows as crossed.
-function renderWeightRoadTrophies(){
-  const countEl=document.getElementById('weight-road-trophy-count');
-  const galleryEl=document.getElementById('weight-road-trophy-gallery');
-  if(!galleryEl)return;
-  const ascending=[...WEIGHT_MILESTONES].sort((a,b)=>a.kg-b.kg);
-  const earnedCount=ascending.filter(milestoneUnlocked).length;
-  if(countEl)countEl.textContent=earnedCount+'/'+ascending.length;
-  galleryEl.innerHTML=ascending.map(m=>{
-    const earned=milestoneUnlocked(m);
-    return `<div class="road-trophy-item${earned?' earned':''}" title="${m.name} — ${m.kg.toLocaleString()}kg, ${m.sessions} sessions">
-      <div class="road-trophy-item-icon">${milestoneIconHTML(m)}</div>
-      <div class="road-trophy-item-name">${earned?m.name:'???'}</div>
-    </div>`;
-  }).join('');
-}
 // Populates the single Road to Olympus hub card with the same {icon,text,
 // pct} summary the full road page's banner uses \u2014 the hub is a shrunk
 // preview of the same numbers, never a separate calculation that could
@@ -12512,32 +12306,9 @@ function renderRoadHubCards(){
   if(sub)sub.textContent=s.text;
   if(fill)fill.style.width=s.pct+'%';
 }
-// Weight Milestones \u2014 lives in the Trophy Cabinet now (it's a trophy
-// collection like everything else there), rendered as the same
-// cabinet-slot grid the numbered layers use rather than its own
-// vertical road, so it reads as one more shelf in the room instead of
-// a different kind of component bolted on.
-function renderCabinetWeightMilestones(){
-  const cont=document.getElementById('cabinet-weight-row');
-  const sub=document.getElementById('cabinet-weight-sub');
-  const countEl=document.getElementById('cabinet-weight-count');
-  if(!cont)return;
-  const vol=totalVolume||0;
-  const sorted=[...WEIGHT_MILESTONES].sort((a,b)=>a.kg-b.kg);
-  const next=sorted.find(m=>!milestoneUnlocked(m));
-  const unlockedCount=sorted.filter(milestoneUnlocked).length;
-  if(countEl)countEl.textContent=unlockedCount+'/'+sorted.length;
-  if(sub)sub.textContent=next?vol.toLocaleString()+'kg / '+(totalSess||0)+' sessions \u2014 needs '+next.kg.toLocaleString()+'kg / '+next.sessions+' sessions for '+next.name:'All milestones hit \u2014 '+vol.toLocaleString()+'kg lifetime';
-  cont.innerHTML=sorted.map(m=>{
-    const claimed=milestoneUnlocked(m);
-    return `<div class="legend-card cabinet-slot iron${claimed?' unlocked':''}" onclick="viewWeightMilestone(${m.kg})">
-      <div class="legend-card-icon">${claimed?milestoneIconHTML(m):'\ud83d\udd12'}</div>
-      <div class="legend-card-name">${claimed?m.name:'???'}</div>
-    </div>`;
-  }).join('');
-}
-// Achievements — same shelf treatment as Weight Milestones just above,
-// now that they're no longer folded into Road to Olympus.
+// Achievements — its own shelf in the Trophy Cabinet, rendered as the
+// same cabinet-slot grid the numbered layers use, now that they're no
+// longer folded into Road to Olympus.
 function renderCabinetAchievements(){
   const cont=document.getElementById('cabinet-achievements-row');
   const sub=document.getElementById('cabinet-achievements-sub');
@@ -12554,12 +12325,6 @@ function renderCabinetAchievements(){
       <div class="legend-card-name">${claimed?a.label:'???'}</div>
     </div>`;
   }).join('');
-}
-function viewWeightMilestone(kg){
-  const m=WEIGHT_MILESTONES.find(x=>x.kg===kg);
-  if(!m)return;
-  const unlocked=milestoneUnlocked(m);
-  toast(unlocked?'\ud83c\udfcb\ufe0f':'\ud83d\udd12',unlocked?m.name+' \u2014 '+m.kg.toLocaleString()+'kg lifetime, '+(totalSess||0)+' sessions':m.name+' \u2014 needs '+m.kg.toLocaleString()+'kg lifetime and '+m.sessions+' sessions');
 }
 function viewAchievementBadge(key){
   const a=ACHIEVEMENTS.find(x=>x.key===key);
@@ -12784,11 +12549,8 @@ function renderLiftRanks(){
     </div>`;
   }).join('');
 }
-// LOVABLE-PORT TROPHY HERO — earned/total across the two real collectible
-// sources (LEGEND_CARDS pulls + WEIGHT_MILESTONES), gold-locked count, Arete
-// banked, and a "closest unlock" card computed from the one tier with a
-// genuine measurable distance to go (weight milestones — LEGEND_CARDS are
-// pure-luck Areviax Crate pulls with no "progress" to show honestly).
+// LOVABLE-PORT TROPHY HERO — earned/total across the one real collectible
+// source (LEGEND_CARDS pulls), gold-locked count, and Arete banked.
 function setTrophyFilter(targetId,btnEl){
   document.querySelectorAll('.troph-filter-btn').forEach(b=>{
     const active=b===btnEl;
@@ -12797,53 +12559,26 @@ function setTrophyFilter(targetId,btnEl){
     b.style.color=active?'var(--lv-primary)':'var(--lv-muted-fg)';
   });
   const isAll=btnEl.textContent.trim()==='All';
-  ['cabinet-liftranks-section','cabinet-tiers','cabinet-weight-section'].forEach(id=>{
+  ['cabinet-liftranks-section','cabinet-tiers'].forEach(id=>{
     const el=document.getElementById(id);
     if(el)el.style.display=(isAll||id===targetId)?'':'none';
   });
 }
 function renderTrophyHeroLovable(){
   const legendTotal=LEGEND_CARDS.length,legendEarned=unlockedLegends.filter(k=>LEGEND_CARDS.some(l=>l.key===k)).length;
-  const vol=totalVolume||0;
-  const msTotal=WEIGHT_MILESTONES.length,msEarned=WEIGHT_MILESTONES.filter(milestoneUnlocked).length;
-  const total=legendTotal+msTotal,earned=legendEarned+msEarned;
+  const total=legendTotal,earned=legendEarned;
   const en=document.getElementById('troph-earned-num');if(en)en.textContent=earned;
   const tn=document.getElementById('troph-total-num');if(tn)tn.textContent=total;
   const goldLocked=LEGEND_CARDS.filter(l=>(l.rarity==='legendary'||l.rarity==='ultralegendary')&&!unlockedLegends.includes(l.key)).length;
   const gl=document.getElementById('troph-gold-locked');if(gl)gl.textContent=goldLocked;
   const xb=document.getElementById('troph-xp-banked');if(xb)xb.textContent=xp;
   const fillEl=document.getElementById('troph-hero-fill');if(fillEl)fillEl.style.width=(total?earned/total*100:0)+'%';
-
-  const card=document.getElementById('troph-closest-card');
-  const sorted=[...WEIGHT_MILESTONES].sort((a,b)=>a.kg-b.kg);
-  const next=sorted.find(m=>!milestoneUnlocked(m));
-  if(card){
-    if(next){
-      card.style.display='block';
-      const pct=milestonePct(next);
-      const pctEl=document.getElementById('troph-closest-pct');if(pctEl)pctEl.textContent=pct+'%';
-      const nameEl=document.getElementById('troph-closest-name');if(nameEl)nameEl.textContent=next.name;
-      const detailEl=document.getElementById('troph-closest-detail');
-      if(detailEl){
-        // Whichever of volume/sessions is the actual bottleneck gets named —
-        // "150kg of volume left" reads as false progress if sessions are
-        // really what's holding the milestone back, and vice versa.
-        const kgLeft=Math.max(0,Math.round(next.kg-vol));
-        const sessLeft=Math.max(0,next.sessions-(totalSess||0));
-        detailEl.textContent=(kgLeft>0?kgLeft.toLocaleString()+'kg':'')+(kgLeft>0&&sessLeft>0?' and ':'')+(sessLeft>0?sessLeft+' session'+(sessLeft===1?'':'s'):'')+' left.';
-      }
-      const fillEl2=document.getElementById('troph-closest-fill');if(fillEl2)fillEl2.style.width=Math.min(100,pct)+'%';
-    }else{
-      card.style.display='none';
-    }
-  }
 }
 function renderTrophyCabinet(){
   renderTrophyHeroLovable();
   renderLiftRanks();
   const cont=document.getElementById('cabinet-tiers');
   if(!cont)return;
-  renderCabinetWeightMilestones();
   renderCabinetAchievements();
   cont.innerHTML=TROPHY_LAYERS.map(layer=>{
     const slots=layer.items?layer.items.map(l=>{
@@ -14640,28 +14375,6 @@ function renderTemplateList(){
   }).join(''):'<span style="color:var(--muted);font-size:11px">No saved templates yet — build a session and save it.</span>';
 }
 
-// ── LIFTING MILESTONES — total lifetime volume translated into real-world
-// weight equivalents, so "48,200kg" means something more tangible than a
-// bare number. Weights are approximate, picked for a fun/memorable
-// progression rather than scientific precision. ──
-// This modal used to read its own separate MILESTONES list (12 entries,
-// different kg thresholds, emoji-only icons, no session requirement) —
-// a second, drifting-apart copy of the exact same "lifetime volume as
-// real-world weight" idea the Trophy Cabinet's Weight Milestones shelf
-// already does properly (real trophy art, volume+sessions gated). Now
-// reads WEIGHT_MILESTONES directly so there's one milestone list in the
-// whole app, not two that can quietly disagree.
-function openMilestones(){
-  renderMilestones();
-  document.getElementById('milestones-backdrop').style.display='block';
-  document.getElementById('milestones-modal').style.display='flex';
-  document.body.style.overflow='hidden';
-}
-function closeMilestones(){
-  document.getElementById('milestones-backdrop').style.display='none';
-  document.getElementById('milestones-modal').style.display='none';
-  document.body.style.overflow='';
-}
 function openRankTiers(){
   renderRankTiers();
   document.getElementById('rank-tiers-backdrop').style.display='block';
@@ -14684,44 +14397,6 @@ function renderRankTiers(){
         <div style="font-size:11px;color:var(--muted);line-height:1.55">${t.flavor}</div>
       </div>
     </div>`).join('');
-}
-function renderMilestones(){
-  const vol=totalVolume||0;
-  const totEl=document.getElementById('ms-total');
-  if(totEl)totEl.textContent=Math.round(vol).toLocaleString()+' kg lifted, '+(totalSess||0)+' sessions';
-  const sorted=[...WEIGHT_MILESTONES].sort((a,b)=>a.kg-b.kg);
-  const next=sorted.find(m=>!milestoneUnlocked(m));
-  const nextEl=document.getElementById('ms-next-card');
-  if(nextEl){
-    if(next){
-      const pct=milestonePct(next);
-      const kgLeft=Math.max(0,Math.round(next.kg-vol));
-      const sessLeft=Math.max(0,next.sessions-(totalSess||0));
-      nextEl.innerHTML=`<div class="ms-milestone-icon" style="width:48px;height:48px;margin:0 auto 6px">${milestoneIconHTML(next)}</div>
-        <div style="font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,122,46,.7)">Next milestone</div>
-        <div style="font-size:16px;font-weight:800;color:var(--white);margin:2px 0 8px">${next.name}</div>
-        <div style="height:8px;background:var(--border);border-radius:4px;overflow:hidden"><div style="height:100%;width:${pct}%;background:linear-gradient(90deg,#FF8342,#F36717);border-radius:4px"></div></div>
-        <div style="font-size:11px;color:var(--muted);margin-top:6px">${(kgLeft>0?kgLeft.toLocaleString()+'kg':'')+(kgLeft>0&&sessLeft>0?' and ':'')+(sessLeft>0?sessLeft+' session'+(sessLeft===1?'':'s'):'')} to go</div>`;
-    } else {
-      nextEl.innerHTML=`<div style="width:32px;height:32px;margin:0 auto 6px;display:flex;align-items:center;justify-content:center"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 4h8v4a4 4 0 01-8 0V4z"/><path d="M8 5H4v1a4 4 0 004 4"/><path d="M16 5h4v1a4 4 0 01-4 4"/><path d="M12 13v4"/><path d="M9 21h6"/><path d="M10 17h4v4h-4z"/></svg></div>
-        <div style="font-size:14px;font-weight:800;color:var(--white)">You've cleared every milestone here.</div>
-        <div style="font-size:11px;color:var(--muted);margin-top:4px">Keep stacking volume and sessions — genuinely elite territory.</div>`;
-    }
-  }
-  const listEl=document.getElementById('ms-list');
-  if(listEl){
-    listEl.innerHTML=sorted.map(m=>{
-      const done=milestoneUnlocked(m);
-      return `<div style="display:flex;align-items:center;gap:12px;padding:12px;background:${done?'rgba(255,122,46,.06)':'var(--panel2)'};border:1.5px solid ${done?'rgba(255,122,46,.3)':'var(--border2)'};border-radius:10px;margin-bottom:8px">
-        <div class="ms-milestone-icon" style="width:26px;height:26px;flex-shrink:0;opacity:${done?'1':'.35'};filter:${done?'none':'grayscale(1)'}">${milestoneIconHTML(m)}</div>
-        <div style="flex:1;min-width:0">
-          <div style="font-size:12.5px;font-weight:700;color:${done?'var(--white)':'var(--muted)'}">${m.name}</div>
-          <div style="font-size:10px;color:var(--muted)">${m.kg.toLocaleString()}kg lifetime · ${m.sessions} sessions</div>
-        </div>
-        ${done?'<div style="color:var(--green);font-size:16px;flex-shrink:0">✓</div>':''}
-      </div>`;
-    }).join('');
-  }
 }
 
 // ── LIFTER RANK ── six-stage ladder, back to the mythic narrative the
@@ -15653,7 +15328,7 @@ function updateStreakFromActivity(){
 // only fixing itself once the user navigated away and back.
 function syncPageChrome(id){
   const sharedTopbar=document.querySelector('.topbar');
-  if(sharedTopbar)sharedTopbar.style.display=(id==='dashboard'||id==='progress'||id==='shop'||id==='trophycabinet'||id==='labors'||id==='nutrition'||id==='workout'||id==='schedule'||id==='leaderboard'||id==='xproad'||id==='trophyroad'||id==='weightroad'||id==='aicoach'||id==='session'||id==='recipes'||id==='legal'||id==='settings'||id==='profile'||id==='subscription'||id==='leagues'||id==='recovery'||id==='learn'||id==='roadmap'||id==='reflection')?'none':'';
+  if(sharedTopbar)sharedTopbar.style.display=(id==='dashboard'||id==='progress'||id==='shop'||id==='trophycabinet'||id==='labors'||id==='nutrition'||id==='workout'||id==='schedule'||id==='leaderboard'||id==='xproad'||id==='trophyroad'||id==='aicoach'||id==='session'||id==='recipes'||id==='legal'||id==='settings'||id==='profile'||id==='subscription'||id==='leagues'||id==='recovery'||id==='learn'||id==='roadmap'||id==='reflection')?'none':'';
   const lvTopbars=document.querySelectorAll('.lv-page-topbar');
   lvTopbars.forEach(el=>{el.style.display=(el.dataset.page===id)?'flex':'none';});
   try{syncLvBadges();}catch(e){}
@@ -15668,7 +15343,7 @@ function showPage(id){
   if(pg)pg.classList.add('active');
   document.querySelectorAll('.sb-item').forEach(i=>{if(i.getAttribute('onclick')?.includes(id))i.classList.add('active')});
   try{
-    const titles={dashboard:'Home',workout:'The Forge',session:'Session',nutrition:'Nutrition',recipes:'Recipes',progress:'Progress',shop:'Shop',trophycabinet:'Trophy Cabinet',labors:'The 12 Labors',xproad:'Arete Road',trophyroad:'The Way Home',weightroad:'Weight Road',recovery:'Recovery',schedule:'Schedule',leaderboard:'Leaderboard',leagues:'Leagues',learn:'Science',profile:'Profile',legal:'Legal',settings:'Settings',aicoach:'Coach Sam',subscription:'Go Premium',roadmap:'Roadmap',reflection:'Daily Reflection'};
+    const titles={dashboard:'Home',workout:'The Forge',session:'Session',nutrition:'Nutrition',recipes:'Recipes',progress:'Progress',shop:'Shop',trophycabinet:'Trophy Cabinet',labors:'The 12 Labors',xproad:'Arete Road',trophyroad:'The Way Home',recovery:'Recovery',schedule:'Schedule',leaderboard:'Leaderboard',leagues:'Leagues',learn:'Science',profile:'Profile',legal:'Legal',settings:'Settings',aicoach:'Coach Sam',subscription:'Go Premium',roadmap:'Roadmap',reflection:'Daily Reflection'};
     const t=titles[id]||id;
     const tte=document.getElementById('tb-title');
     if(tte){tte.textContent=t;tte.classList.toggle('tb-title-sm',id==='trophycabinet');}
@@ -15678,7 +15353,7 @@ function showPage(id){
     catch(e){
       console.error(name+' error:',e&&e.message||e,e&&e.stack);
       // Show error visibly on the page for debugging
-      const pgId='page-'+(name==='workout'||name==='session'||name==='nutrition'||name==='progress'||name==='recovery'||name==='schedule'||name==='leaderboard'||name==='learn'||name==='xproad'||name==='trophyroad'||name==='weightroad'||name==='shop'?name:'dashboard');const pg=document.getElementById(pgId);
+      const pgId='page-'+(name==='workout'||name==='session'||name==='nutrition'||name==='progress'||name==='recovery'||name==='schedule'||name==='leaderboard'||name==='learn'||name==='xproad'||name==='trophyroad'||name==='shop'?name:'dashboard');const pg=document.getElementById(pgId);
       if(pg){
         const errDiv=pg.querySelector('.render-error')||document.createElement('div');
         errDiv.className='render-error';
@@ -15732,7 +15407,6 @@ function showPage(id){
   if(id==='trophycabinet')safeRender(renderTrophyCabinet,'trophycabinet');
   if(id==='xproad'){roadIntroPending=true;safeRender(renderXpRoad,'xproad');}
   if(id==='trophyroad'){roadIntroPending=true;safeRender(renderTrophyRoad,'trophyroad');}
-  if(id==='weightroad'){roadIntroPending=true;safeRender(renderWeightRoad,'weightroad');}
   if(id==='leagues')safeRender(renderLeagues,'leagues');
   if(id==='recovery')safeRender(renderRecoveryPage,'recovery');
   if(id==='schedule')safeRender(renderSchedule,'schedule');
@@ -19702,17 +19376,7 @@ function logSet(ei,si,name,muscle){
   chip.classList.add('done');
   chip.textContent=w>0?`✓ ${w}×${r}`:'✓';
   markTrainedToday();
-  const prevTotalVolume=totalVolume;
   totalVolume+=effW*r;
-  // Only fires when THIS set is genuinely what tips it over — needs the
-  // session count already met too, otherwise a huge one-off set with no
-  // real training history behind it could "unlock" a milestone the
-  // sessions gate says isn't earned yet.
-  const justPassed=WEIGHT_MILESTONES.find(m=>prevTotalVolume<m.kg&&totalVolume>=m.kg&&(totalSess||0)>=m.sessions);
-  if(justPassed){
-    const article=/^[aeiou]/i.test(justPassed.name)?'an':'a';
-    toast(justPassed.icon,'You\'ve now moved the weight of '+article+' '+justPassed.name+' — lifetime total!');
-  }
   if(w>0&&muscle){
     const today=localDateKey(new Date());
     muscle.split('+').map(m=>m.trim()).filter(Boolean).forEach(m=>{
@@ -21430,8 +21094,6 @@ const AI_COACH_KB=[
    a:"Every crate tier lists its own exact rarity percentages — tap the ⓘ icon on any Areviax Crate tile (Bronze through the Areviax Crate) on the Progress page to see the full breakdown. Higher tiers trade a lower common rate for real odds at mythic and above; the Areviax Crate is the only tier that guarantees legendary or better every time."},
   {q:'What happens if I pull a card I already have?',kw:['duplicate card','duplicate legend','already have this card','pulled the same card'],
    a:"Duplicate pulls still count — you'll see \"DUPLICATE\" instead of \"NEW\" on the reveal, and a small ×N badge appears on that card everywhere it's shown (Trophy Cabinet, your Profile preview) so you can see exactly how many times you've pulled it. Duplicates still award a smaller Arete bonus, they just don't add a new card to your collection count."},
-  {q:'What is Weight Road?',kw:['weight road'],
-   a:'Weight Road is a checkpoint ladder driven by your logged bodyweight progress toward your goal — each checkpoint along the path unlocks a reward as you get closer. Find it from its hub card on the Progress page.'},
   {q:'What is The Way Home?',kw:['trophy road','road to olympus','the way home','tale of odysseus'],
    a:"The Way Home is a checkpoint ladder driven by lifetime training milestones (sessions completed, volume lifted, streaks) — distinct from the Trophy Cabinet, which is your actual card collection. Find it from its hub card on the Progress page."},
   {q:'What\'s the difference between Leaderboard and Leagues?',kw:['leaderboard vs leagues','difference leaderboard leagues'],
@@ -21501,7 +21163,7 @@ const AI_COACH_KB=[
   {q:'What counts as a Personal Record?',kw:['personal record','personal records','pr','prs','what is a pr'],
    a:"Personal Records tracks your best logged weight × reps for every exercise you've trained — a new PR gets flagged automatically the moment you log a set that beats it, right there in Session. Check the Personal Records tab on your Progress page's Data Terminal for the full list."},
   {q:'How does bodyweight tracking work?',kw:['weight log','log my weight','track bodyweight','log bodyweight','track my weight'],
-   a:"Log your bodyweight from the Weight Log tab in the Progress page's Data Terminal, or right from Settings when you update your stats. It feeds both your Weight Road progress and the trend line on your Weight Log history."},
+   a:"Log your bodyweight from the Weight Log tab in the Progress page's Data Terminal, or right from Settings when you update your stats. It feeds the trend line on your Weight Log history."},
   {q:'Is AI Food Scan available yet?',kw:['ai food scan','food scan','scan a meal','photo of my meal','scan my food'],
    a:"Not yet — it's a planned Premium feature (snap a photo of a meal, get macros back), but that AI layer isn't wired up in this build, so nothing happens if you look for it right now. Smart Log's plain-English portion matching is the closest thing that actually works today, and real barcode scanning already works from the Nutrition page's Scan button. Check the Roadmap page for where this actually stands."},
   {q:'Is this AI Coach actually AI?',kw:['is this real ai','real ai coach','chatgpt','is ai coach real','actual ai'],
