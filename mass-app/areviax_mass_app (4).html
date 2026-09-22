@@ -170,6 +170,17 @@ input,input:focus,input:active,
    it; below 760px+padding this is a no-op (100% width), so mobile is
    pixel-identical to before. */
 .topbar{height:calc(60px + env(safe-area-inset-top,0px));padding-top:calc(env(safe-area-inset-top,0px) + 8px);box-sizing:border-box;flex-shrink:0;background:var(--bg2);border-bottom:1.5px solid var(--border)}
+/* GLOBAL MOBILE TOP BAR — see the HTML comment above #global-topbar for
+   why this exists. Hidden by default (desktop keeps .topbar); the mobile
+   media query below both shows it and gives .content matching extra
+   padding-top so it never overlaps the first bit of page content. */
+#global-topbar{
+  display:none;position:fixed;top:max(var(--safe-top,0px),env(safe-area-inset-top,0px));left:0;right:0;
+  height:52px;padding:0 18px;box-sizing:border-box;
+  align-items:center;justify-content:space-between;
+  background:#000;border-bottom:1px solid rgba(255,255,255,.08);
+  z-index:960;
+}
 .topbar-inner{max-width:760px;margin:0 auto;height:100%;display:flex;align-items:center;justify-content:space-between;padding:0 20px;box-sizing:border-box}
 .tb-left{display:flex;align-items:center}
 .tb-title{font-family:'Cinzel',sans-serif;font-weight:700;font-size:22px;letter-spacing:.01em;text-transform:uppercase;color:var(--white)}
@@ -1425,7 +1436,14 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     @media(max-width:800px){
       #mobile-nav{display:flex!important}
       .sidebar{display:none!important}
+      #global-topbar{display:flex!important}
+      /* .lv-topbar is the same logo/streak/profile row #global-topbar now
+         provides everywhere — kept in the markup for desktop's narrower
+         pages (Profile, AI Coach, etc, where the sidebar already carries
+         nav) but redundant directly under the new fixed bar on mobile. */
+      .lv-topbar{display:none!important}
       .content{
+        padding-top:calc(max(var(--safe-top,0px),env(safe-area-inset-top,0px)) + 52px + 14px)!important;
         padding-bottom:calc(60px + env(safe-area-inset-bottom, 0px) + 24px)!important;
         padding-left:16px!important;
         padding-right:16px!important;
@@ -2225,30 +2243,54 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        header zone (icon + name + criterion, unique gradient per stage —
        see TRIALS_STAGES' own visual field) sitting above a WIN pip that
        reads cleared/current/locked from one shared state class. */
-    .trial-stage-wrap{flex:0 0 auto;width:206px;scroll-snap-align:center}
+    /* Cards + hero enlarged (206px -> 248px, plus every inner element
+       scaled up to match) so the Championship page actually fills an
+       iPhone screen instead of leaving a big dead stretch of black below
+       one short horizontal row — was the single "make the challenges
+       larger" complaint from a real device screenshot. */
+    .trial-stage-wrap{flex:0 0 auto;width:248px;scroll-snap-align:center}
     .trial-stage-label{font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;text-align:center}
     /* Double-bezel: an outer dark shell (the border/shadow below) holding
        an inner coloured zone, same "machined hardware" depth cue as the
        app's other hero cards — a flat colour block never reads as
        premium the way a lit, slightly-inset panel does. */
-    .trial-stage-card{border-radius:20px;overflow:hidden;border:1.5px solid rgba(255,255,255,.08);background:#0E0B12;box-shadow:0 14px 28px -14px rgba(0,0,0,.6);transition:opacity .2s,filter .2s,transform .2s}
+    .trial-stage-card{border-radius:22px;overflow:hidden;border:1.5px solid rgba(255,255,255,.08);background:#0E0B12;box-shadow:0 14px 28px -14px rgba(0,0,0,.6);transition:opacity .2s,filter .2s,transform .2s}
     .trial-stage-card.locked{opacity:.55;filter:grayscale(.45)}
     .trial-stage-card.current{border-color:rgba(224,170,255,.7);box-shadow:0 0 0 1.5px rgba(224,170,255,.35),0 16px 32px -12px rgba(139,47,199,.7)}
-    .trial-stage-colorzone{position:relative;margin:5px 5px 0;border-radius:15px;padding:13px 13px 8px;color:#fff;overflow:hidden;box-shadow:inset 0 1px 1px rgba(255,255,255,.35),inset 0 -12px 20px -10px rgba(0,0,0,.35)}
-    .trial-stage-header{position:relative;z-index:1;display:flex;align-items:flex-start;gap:9px}
-    .trial-stage-icon-badge{width:32px;height:32px;border-radius:10px;background:rgba(255,255,255,.22);box-shadow:inset 0 1px 1px rgba(255,255,255,.5),0 2px 6px -2px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;flex-shrink:0}
-    .trial-stage-name{font-size:12.5px;font-weight:800;line-height:1.25;text-shadow:0 1px 2px rgba(0,0,0,.25)}
-    .trial-stage-sub{font-size:9.5px;color:rgba(255,255,255,.88);margin-top:3px;line-height:1.35}
-    .trial-stage-visual{position:relative;z-index:1;display:flex;align-items:center;justify-content:center;padding:12px 0 6px}
-    .trial-stage-visual::before{content:'';position:absolute;inset:-10px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.22),transparent 68%);z-index:-1}
+    .trial-stage-colorzone{position:relative;margin:6px 6px 0;border-radius:17px;padding:16px 16px 10px;color:#fff;overflow:hidden;box-shadow:inset 0 1px 1px rgba(255,255,255,.35),inset 0 -12px 20px -10px rgba(0,0,0,.35)}
+    .trial-stage-header{position:relative;z-index:1;display:flex;align-items:flex-start;gap:10px}
+    .trial-stage-icon-badge{width:38px;height:38px;border-radius:12px;background:rgba(255,255,255,.22);box-shadow:inset 0 1px 1px rgba(255,255,255,.5),0 2px 6px -2px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .trial-stage-name{font-size:14.5px;font-weight:800;line-height:1.25;text-shadow:0 1px 2px rgba(0,0,0,.25)}
+    .trial-stage-sub{font-size:10.5px;color:rgba(255,255,255,.88);margin-top:4px;line-height:1.4}
+    .trial-stage-visual{position:relative;z-index:1;display:flex;align-items:center;justify-content:center;padding:18px 0 10px}
+    .trial-stage-visual::before{content:'';position:absolute;inset:-14px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.22),transparent 68%);z-index:-1}
     .trial-stage-visual svg{filter:drop-shadow(0 3px 6px rgba(0,0,0,.3));opacity:.9}
-    .trial-win-row{padding:10px 12px 12px;display:flex;justify-content:center}
-    .trial-win-pip{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 16px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.06);min-width:92px}
+    .trial-win-row{padding:12px 14px 16px;display:flex;justify-content:center}
+    .trial-win-pip{display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 20px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.06);min-width:110px}
     .trial-win-pip.done{background:rgba(0,230,118,.12);border-color:rgba(0,230,118,.3)}
     .trial-win-pip.active{background:rgba(224,170,255,.16);border-color:rgba(224,170,255,.5);box-shadow:0 0 12px -3px rgba(224,170,255,.5)}
-    .trial-win-pip .win-check{font-size:16px;line-height:1;display:flex}
-    .trial-win-pip .win-label{font-size:8px;font-weight:800;letter-spacing:.12em;color:rgba(255,255,255,.55);margin-top:2px}
-    .trial-win-pip .win-reward{font-size:10px;font-weight:700;color:#FFD24A;margin-top:1px}
+    .trial-win-pip .win-check{font-size:19px;line-height:1;display:flex}
+    .trial-win-pip .win-label{font-size:9px;font-weight:800;letter-spacing:.12em;color:rgba(255,255,255,.55);margin-top:2px}
+    .trial-win-pip .win-reward{font-size:11.5px;font-weight:700;color:#FFD24A;margin-top:1px}
+    /* ALL-STAGES LIST — the horizontal carousel above only shows one card
+       at a time on a phone; this compact vertical list underneath is the
+       actual "see everything at once" overview, and what fills the rest
+       of the page out to a real full-height screen. */
+    .trial-list-row{
+      display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;
+      background:rgba(255,255,255,.03);border:1.5px solid rgba(255,255,255,.06);margin-bottom:8px;
+    }
+    .trial-list-row:last-child{margin-bottom:0}
+    .trial-list-row.current{border-color:rgba(224,170,255,.5);background:rgba(224,170,255,.08)}
+    .trial-list-row.done{opacity:.7}
+    .trial-list-num{flex-shrink:0;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;background:rgba(255,255,255,.06)}
+    .trial-list-row.done .trial-list-num{background:rgba(0,230,118,.18);color:#00E676}
+    .trial-list-row.current .trial-list-num{background:rgba(224,170,255,.25);color:#E0AAFF}
+    .trial-list-icon{flex-shrink:0;width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;box-shadow:inset 0 1px 1px rgba(255,255,255,.35)}
+    .trial-list-body{flex:1;min-width:0}
+    .trial-list-name{font-size:12.5px;font-weight:800;color:#fff}
+    .trial-list-desc{font-size:10.5px;color:rgba(255,255,255,.5);margin-top:1px;line-height:1.35}
+    .trial-list-reward{flex-shrink:0;font-size:11px;font-weight:700;color:#FFD24A;text-align:right;white-space:nowrap}
 
     /* ── COMPASS DROP CRATES — a Brawl-Stars-Star-Drop-style capsule
        (hexagonal gem, tier-tinted gradient + glow, gentle float when
@@ -2750,7 +2792,17 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        Both sit ABOVE the icon layer (z-index:2 vs the icon's 1) so the
        Areviax emblem — full-bleed onto the hex below — still reads as a
        lit, faceted surface rather than a flat sticker pasted over it. */
-    .compass-crate .crate-icon{position:relative;z-index:1;display:flex;filter:drop-shadow(0 1px 2px rgba(0,0,0,.35))}
+    /* THE REAL FIX for crate art rendering as a tiny sliver in the
+       Areviax Crates grid (and everywhere else crateIconHTML()'s <img>
+       is used) — this span had no explicit size, and the img inside it
+       is styled width:100%/height:100%. A percentage height only
+       resolves against a definite-height ancestor; with none here, the
+       browser fell back to the PNG's own large native pixel size, which
+       then overflowed this tiny 54-56px tile with only a sliver ever
+       inside the visible box. Giving the span the same 100%/100% it
+       already visually needs to fill its (definite-sized) .compass-crate
+       parent lets the img's own 100%/100% resolve correctly instead. */
+    .compass-crate .crate-icon{position:relative;z-index:1;display:flex;width:100%;height:100%;align-items:center;justify-content:center;filter:drop-shadow(0 1px 2px rgba(0,0,0,.35))}
     .compass-crate .crate-icon svg{width:26px;height:26px;color:#fff}
     /* Every tier's background fill, sheen overlay, and shimmer sweep
        above were all clipped to the hex silhouette (.compass-crate's own
@@ -3989,16 +4041,14 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     }
 
     /* ── WORD OF THE DAY (Socrates / Greek gods quote) ── */
-    .daily-quote-card{display:flex;gap:14px;align-items:flex-start}
-    .daily-quote-bust{
-      flex-shrink:0;width:52px;height:52px;border-radius:14px;
-      background:radial-gradient(circle at 32% 28%,rgba(243,103,23,.28),rgba(243,103,23,.06) 60%),rgba(232,214,196,.05);
-      border:1.5px solid rgba(243,103,23,.35);
-      display:flex;align-items:center;justify-content:center;
-    }
-    .daily-quote-bust svg{width:30px;height:30px;color:#F36717}
-    .daily-quote-text{font-family:var(--lv-display,inherit);font-weight:400;font-size:1.05rem;line-height:1.32;color:var(--lv-fg,var(--white));font-style:italic}
-    .daily-quote-author{margin-top:6px;font-size:10.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#F36717}
+    /* Solid orange glow card — was a small dark icon badge + italic serif
+       text; reverted to the original look per direct ask ("the old look,
+       orange backdrop and different font"), matching the Dashboard's
+       equivalent card. */
+    .daily-quote-card{background:linear-gradient(135deg,#FF8A2E,#E85A00);padding:22px 20px;box-shadow:0 0 40px -8px rgba(255,122,46,.5)}
+    .daily-quote-label{font-family:var(--lv-sans,inherit);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:rgba(26,13,0,.6);margin-bottom:9px;font-weight:800}
+    .daily-quote-text{font-family:var(--lv-sans,inherit);font-weight:800;font-size:15px;line-height:1.35;color:#1A0D00;font-style:italic}
+    .daily-quote-author{margin-top:10px;font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:rgba(26,13,0,.6)}
 
     /* ── MOBILE "MORE" SHEET ── */
     #more-sheet-backdrop{
@@ -4436,6 +4486,33 @@ body[data-goal-theme="cut"] .lv-page{
      over solid black is still solid black, keeping this strip pure black
      at all times makes the backdrop passing over it invisible instead. -->
 <div id="status-bar-blackout" style="position:fixed;top:0;left:0;right:0;height:max(var(--safe-top,0px),env(safe-area-inset-top,0px));background:#000;z-index:1000;pointer-events:none" aria-hidden="true"></div>
+<!-- GLOBAL MOBILE TOP BAR — one persistent bar (logo, streak, Way Home
+     pill, Shop, Profile) sitting right below the status-bar-blackout
+     strip, mobile-only (desktop keeps its own .topbar). Every individual
+     page used to either build its own version of this row into its hero
+     photo header (Dashboard, Workout) or have nothing at all up there
+     (every other page) — this replaces both with one fixed instance, pure
+     black per the "make the top dashboard black" ask, so it's the same
+     on every single page rather than page-by-page. .content gets matching
+     extra padding-top (see the mobile media query) so page content clears
+     it instead of sitting underneath. Reuses the .lv-streak-badge/
+     .lv-road-pill/.lv-profile-badge CLASSES (not ids) that syncLvBadges()
+     already updates everywhere, so this stays live for free. -->
+<div id="global-topbar">
+  <span style="display:flex;align-items:center;gap:8px">
+    <svg width="20" height="20" viewBox="0 0 48 48" fill="none" stroke="var(--lv-gold,#E6BE6D)" aria-hidden="true"><path d="M24 5 26.6 21.4 43 24 26.6 26.6 24 43 21.4 26.6 5 24 21.4 21.4Z" fill="var(--lv-gold,#E6BE6D)" stroke="none" opacity=".95"/><path d="M24 12v24M12 24h24" stroke-width=".6" opacity=".5"/><circle cx="24" cy="24" r="11" stroke-width=".7" opacity=".45"/><path d="M15 9c-7 5-9 14-5 22 2.5 5 6.5 8.5 11 10" stroke-width="1.4" opacity=".8"/><path d="M33 9c7 5 9 14 5 22-2.5 5-6.5 8.5-11 10" stroke-width="1.4" opacity=".8"/></svg>
+    <span style="font-family:var(--lv-display,serif);font-weight:700;font-size:15px;letter-spacing:.02em;color:#F7F5F2">Areviax</span>
+  </span>
+  <div style="display:flex;align-items:center;gap:9px">
+    <span class="lv-pill" style="background:var(--lv-primary);color:var(--lv-primary-fg)"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="lv-streak-flame"><path d="M12 22c4.4 0 7-2.9 7-6.8 0-3-1.7-5-3-7-.2 1.7-1 2.8-2 3.4.3-2.7-.7-5.6-3-7.6-.3 2.5-1.2 3.9-2.7 5.4C6.8 10.8 6 12.6 6 15c0 4 2.7 7 6 7z"/></svg> <span class="lv-streak-badge">0</span></span>
+    <button type="button" class="lv-road-pill" onclick="showPage('trophyroad')" aria-label="The Way Home — Arete progress">
+      <span class="lv-road-pill-top"><img src="images/icons/arete.png" alt="" class="lv-road-pill-icon"> <span class="lv-road-arete-num">0</span></span>
+      <span class="lv-road-pill-track"><span class="lv-road-pill-fill" style="width:0%"></span></span>
+    </button>
+    <button type="button" class="lv-profile-btn" onclick="showPage('shop')" aria-label="Marketplace"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F7F5F2" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2 3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 01-8 0"/></svg></button>
+    <button type="button" class="lv-profile-btn" onclick="showPage('profile')" aria-label="Profile"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F7F5F2" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="lv-profile-badge"></span></button>
+  </div>
+</div>
 <div id="rotate-lock"><div class="rl-icon">📱</div><div class="rl-title">Rotate back to portrait</div><div class="rl-sub">Areviax Mass is designed for portrait mode — turn your phone back upright to keep training.</div></div>
 <!-- Shared gradient defs for the ultralegendary trophy-cabinet ornaments
      (crown/wings) — one definition referenced via url(#lgi-holo-grad)
@@ -5058,52 +5135,16 @@ body[data-goal-theme="cut"] .lv-page{
   <!-- HERO — literal port of website-refresh's HomeScreen <header>, real
        data threaded into the same slots (see renderDashHeroLovable() and
        initApp()). -->
-  <!-- Solid black spacer for the notch/status-bar strip — the header
-       below has its own gradient wash that runs edge-to-edge, so padding
-       alone (which only moves the text, not the background) still left
-       the time/wifi/battery icons sitting on top of the orange gradient
-       instead of plain black. -->
-  <!-- Dashboard's own spacer is smaller than the shared 10px elsewhere —
-       this header's own top padding (20px) already adds real separation
-       from the status bar on top of it, so the full 10px here read as too
-       much combined gap between the header "tile" and the top of the
-       page — direct report after the original status-bar fix landed. -->
-  <div style="height:calc(4px + max(var(--safe-top,0px),env(safe-area-inset-top,0px)));background:var(--lv-bg);margin:0 -20px"></div>
   <!-- --lv-fg/--lv-border/--lv-gold etc pinned to their dark-mode values here since this
        header's background is always the same dark photo regardless of theme — without this,
        light mode flips --lv-fg to near-black and the hero text disappears into the art. -->
   <header class="lv-grain lv-pediment" style="position:relative;overflow:hidden;margin:0 -20px;padding:20px 20px 26px;border-radius:0 0 28px 28px;background-image:linear-gradient(180deg,rgba(10,7,4,.55) 0%,rgba(10,7,4,.74) 45%,rgba(10,7,4,.95) 100%),url('images/roads/realm-mortal.jpg');background-size:cover;background-position:center 25%;--lv-fg:#F7F5F2;--lv-muted-fg:#9E9791;--lv-border:#342C28;--lv-border-strong:#56433A;--lv-gold:#E6BE6D">
     <span class="lv-ghost-numeral" style="right:-12px;top:56px">Δ</span>
     <div style="position:relative;z-index:1">
-      <!-- TOP BAR — the logo + icon row used to float directly on the hero
-           photo with nothing to separate it, so it competed with the art
-           behind it. Given its own solid/blurred strip (bled edge-to-edge
-           via negative margin) so the chrome reads as UI sitting above the
-           background, not as part of the photo. -->
-      <div style="margin:-20px -20px 0 -20px;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;background:rgba(8,6,4,.6);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid rgba(255,255,255,.08)">
-        <span style="display:flex;align-items:center;gap:8px">
-          <svg width="22" height="22" viewBox="0 0 48 48" fill="none" stroke="var(--lv-gold)" aria-hidden="true"><path d="M24 5 26.6 21.4 43 24 26.6 26.6 24 43 21.4 26.6 5 24 21.4 21.4Z" fill="var(--lv-gold)" stroke="none" opacity=".95"/><path d="M24 12v24M12 24h24" stroke-width=".6" opacity=".5"/><circle cx="24" cy="24" r="11" stroke-width=".7" opacity=".45"/><path d="M15 9c-7 5-9 14-5 22 2.5 5 6.5 8.5 11 10" stroke-width="1.4" opacity=".8"/><path d="M33 9c7 5 9 14 5 22-2.5 5-6.5 8.5-11 10" stroke-width="1.4" opacity=".8"/><g opacity=".7"><ellipse cx="10.5" cy="13" rx="2.6" ry="1.2" transform="rotate(-35 10.5 13)" stroke-width=".9"/><ellipse cx="37.5" cy="13" rx="2.6" ry="1.2" transform="rotate(35 37.5 13)" stroke-width=".9"/></g><g opacity=".7"><ellipse cx="11.3" cy="19" rx="2.6" ry="1.2" transform="rotate(-35 11.3 19)" stroke-width=".9"/><ellipse cx="36.7" cy="19" rx="2.6" ry="1.2" transform="rotate(35 36.7 19)" stroke-width=".9"/></g><g opacity=".7"><ellipse cx="12.1" cy="25" rx="2.6" ry="1.2" transform="rotate(-35 12.1 25)" stroke-width=".9"/><ellipse cx="35.9" cy="25" rx="2.6" ry="1.2" transform="rotate(35 35.9 25)" stroke-width=".9"/></g><g opacity=".7"><ellipse cx="12.9" cy="31" rx="2.6" ry="1.2" transform="rotate(-35 12.9 31)" stroke-width=".9"/><ellipse cx="35.1" cy="31" rx="2.6" ry="1.2" transform="rotate(35 35.1 31)" stroke-width=".9"/></g></svg>
-          <span class="lv-wordmark">Areviax</span>
-        </span>
-        <div style="display:flex;align-items:center;gap:9px">
-          <span class="lv-pill" style="background:var(--lv-primary);color:var(--lv-primary-fg)"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="lv-streak-flame"><path d="M12 22c4.4 0 7-2.9 7-6.8 0-3-1.7-5-3-7-.2 1.7-1 2.8-2 3.4.3-2.7-.7-5.6-3-7.6-.3 2.5-1.2 3.9-2.7 5.4C6.8 10.8 6 12.6 6 15c0 4 2.7 7 6 7z"/></svg> <span id="dash-streak-badge" class="lv-streak-badge">0</span></span>
-          <!-- ROAD TO OLYMPUS PILL — Arete used to be its own flat number
-               pill floating next to the streak, disconnected from what it
-               actually measures. Folded into the Road to Olympus button
-               itself instead — icon, count, and a real fill bar toward the
-               next checkpoint, same "trophy count with a progress bar
-               built in" treatment a real mobile game uses at the top of
-               its home screen rather than a bare number. -->
-          <button type="button" class="lv-road-pill" onclick="showPage('trophyroad')" aria-label="The Way Home — Arete progress">
-            <span class="lv-road-pill-top"><img src="images/icons/arete.png" alt="" class="lv-road-pill-icon"> <span class="lv-road-arete-num">0</span></span>
-            <span class="lv-road-pill-track"><span class="lv-road-pill-fill" style="width:0%"></span></span>
-          </button>
-          <button type="button" class="lv-profile-btn" onclick="showPage('shop')" aria-label="Marketplace"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--lv-fg)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2 3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 01-8 0"/></svg></button>
-          <button type="button" class="lv-profile-btn" onclick="showPage('profile')" aria-label="Profile"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--lv-fg)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="lv-profile-badge"></span></button>
-        </div>
-      </div>
-
-      <p class="lv-label-eyebrow lv-pulse-dot" style="margin-top:22px;color:var(--lv-fg);opacity:.7" id="dash-eyebrow-text">Session</p>
+      <!-- The logo + streak/icon row that used to live here (repeated on
+           every hero page) is now the single #global-topbar fixed above
+           all pages — see its HTML comment. -->
+      <p class="lv-label-eyebrow lv-pulse-dot" style="margin-top:0;color:var(--lv-fg);opacity:.7" id="dash-eyebrow-text">Session</p>
 
       <h1 style="margin-top:6px;color:var(--lv-fg);font-family:'Bebas Neue',sans-serif;font-weight:400;font-size:clamp(2.6rem,14vw,4rem);line-height:.9;letter-spacing:.01em;text-transform:uppercase"><span id="dash-greeting-word1">Good</span><br><span class="lv-serif-accent lv-gold-text" id="dash-greeting-word2" style="font-size:.8em">morning</span></h1>
       <!-- Name deliberately kept OUT of the huge clamp'd headline above —
@@ -5111,15 +5152,15 @@ body[data-goal-theme="cut"] .lv-page{
            that size. Sits directly underneath it instead, its own row,
            enlarged — the next-session name/lifts/time/last row that used
            to live here moved below, right-aligned. -->
-      <div style="margin-top:4px;display:flex;align-items:baseline;gap:7px;font-family:var(--lv-sans);font-size:24px;font-weight:800;color:var(--lv-fg)">
+      <div style="margin-top:4px;display:flex;align-items:baseline;gap:7px;font-family:var(--lv-sans);font-size:30px;font-weight:800;color:var(--lv-fg)">
         <span id="dash-greeting-name"></span>
-        <span id="dash-title-badge" style="display:none;font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--lv-gold)"></span>
+        <span id="dash-title-badge" style="display:none;font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--lv-gold)"></span>
       </div>
 
       <!-- Next-session preview — moved to the right (was left-aligned under
            the name) now that the name owns its own row above. -->
       <div style="margin-top:10px;display:flex;justify-content:flex-end">
-        <div style="font-family:var(--lv-sans);font-size:15px;font-weight:800;color:var(--lv-fg);text-align:right">
+        <div style="font-family:var(--lv-sans);font-size:19px;font-weight:800;color:var(--lv-fg);text-align:right">
           <span id="d-next-word1">Push</span> <span class="lv-serif-accent lv-gold-text" id="d-next-word2">upper</span>
         </div>
       </div>
@@ -5279,21 +5320,17 @@ body[data-goal-theme="cut"] .lv-page{
     </section>
 
     <!-- QUOTE — real, individually-attributed QUOTES/day-index rotation
-         (see pickQuote(), now mixed with the Word of the Day mythic pool
-         too), given the same bust-icon "Word of the Day" treatment as
-         the Profile page's card instead of its own separate look. Tapping
-         it opens Coach Sam's chat with the quote as the opener — same
-         "leads to chat" treatment as the other Coach Sam notifications. -->
-    <section class="lv-surface" style="padding:18px 20px;cursor:pointer" onclick="openDashQuoteInChat()">
-      <p class="lv-label-eyebrow" style="margin-bottom:12px">Word of the Day</p>
-      <div style="display:flex;gap:14px;align-items:flex-start">
-        <div style="flex-shrink:0;width:44px;height:44px;border-radius:12px;background:radial-gradient(circle at 32% 28%,rgba(243,103,23,.28),rgba(243,103,23,.06) 60%),rgba(232,214,196,.05);border:1.5px solid rgba(243,103,23,.35);display:flex;align-items:center;justify-content:center;color:#F36717">
-          <svg width="24" height="24" viewBox="0 0 40 40" fill="currentColor" aria-hidden="true"><path d="M20 3c-5 0-8 3.5-8 8 0 3 1.3 5.2 3 6.7-4 1.6-7 5-7 9.3v2h24v-2c0-4.3-3-7.7-7-9.3 1.7-1.5 3-3.7 3-6.7 0-4.5-3-8-8-8z"/><rect x="10" y="30" width="20" height="4" rx="1"/></svg>
-        </div>
-        <div style="min-width:0">
-          <p style="font-family:var(--lv-display);font-weight:400;font-size:1.05rem;line-height:1.32;font-style:italic;color:var(--lv-fg)" id="dash-quote-text">—</p>
-          <p style="margin-top:6px;font-size:10.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#F36717" id="dash-quote-attrib">Areviax</p>
-        </div>
+         (see pickQuote(), mixed with the Word of the Day mythic pool too).
+         Back to its original solid-orange glow card (a later pass had
+         switched this to a small dark icon badge + italic serif display
+         font, matching Profile's card — reverted per direct ask: "the old
+         look, orange backdrop and different font"). Tapping it opens
+         Coach Sam's chat with the quote as the opener. -->
+    <section class="lv-surface" style="padding:0;cursor:pointer;overflow:hidden;border:none" onclick="openDashQuoteInChat()">
+      <div style="background:linear-gradient(135deg,#FF8A2E,#E85A00);padding:22px 20px;box-shadow:0 0 40px -8px rgba(255,122,46,.5)">
+        <div style="font-family:var(--lv-sans);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:rgba(26,13,0,.6);margin-bottom:9px;font-weight:800">Word of the Day</div>
+        <p style="font-family:var(--lv-sans);font-weight:800;font-size:15px;line-height:1.35;font-style:italic;color:#1A0D00" id="dash-quote-text">—</p>
+        <p style="margin-top:10px;font-family:var(--lv-sans);font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:rgba(26,13,0,.6)" id="dash-quote-attrib">Areviax</p>
       </div>
     </section>
 
@@ -5379,18 +5416,12 @@ body[data-goal-theme="cut"] .lv-page{
      this uses the same CSS-only colonnade/ember-wash header Session
      uses instead of reusing someone else's photo. -->
 <div class="page lv-page" id="page-reflection">
-  <div style="height:calc(10px + max(var(--safe-top,0px),env(safe-area-inset-top,0px)));background:var(--lv-bg);margin:0 -20px"></div>
   <header class="lv-ember-wash lv-grain lv-colonnade lv-temple-glow lv-pediment" style="position:relative;overflow:hidden;margin:0 -20px 16px;padding:20px 20px 26px;border-radius:0 0 28px 28px">
     <span class="lv-ghost-numeral" style="right:-14px;top:38px">Ζ</span>
     <div style="position:relative;z-index:1">
-      <div style="display:flex;align-items:center;justify-content:space-between">
-        <span style="display:flex;align-items:center;gap:8px">
-          <svg width="22" height="22" viewBox="0 0 48 48" fill="none" stroke="var(--lv-gold)" aria-hidden="true"><path d="M24 5 26.6 21.4 43 24 26.6 26.6 24 43 21.4 26.6 5 24 21.4 21.4Z" fill="var(--lv-gold)" stroke="none" opacity=".95"/><path d="M24 12v24M12 24h24" stroke-width=".6" opacity=".5"/><circle cx="24" cy="24" r="11" stroke-width=".7" opacity=".45"/><path d="M15 9c-7 5-9 14-5 22 2.5 5 6.5 8.5 11 10" stroke-width="1.4" opacity=".8"/><path d="M33 9c7 5 9 14 5 22-2.5 5-6.5 8.5-11 10" stroke-width="1.4" opacity=".8"/><g opacity=".7"><ellipse cx="10.5" cy="13" rx="2.6" ry="1.2" transform="rotate(-35 10.5 13)" stroke-width=".9"/><ellipse cx="37.5" cy="13" rx="2.6" ry="1.2" transform="rotate(35 37.5 13)" stroke-width=".9"/></g><g opacity=".7"><ellipse cx="11.3" cy="19" rx="2.6" ry="1.2" transform="rotate(-35 11.3 19)" stroke-width=".9"/><ellipse cx="36.7" cy="19" rx="2.6" ry="1.2" transform="rotate(35 36.7 19)" stroke-width=".9"/></g><g opacity=".7"><ellipse cx="12.1" cy="25" rx="2.6" ry="1.2" transform="rotate(-35 12.1 25)" stroke-width=".9"/><ellipse cx="35.9" cy="25" rx="2.6" ry="1.2" transform="rotate(35 35.9 25)" stroke-width=".9"/></g><g opacity=".7"><ellipse cx="12.9" cy="31" rx="2.6" ry="1.2" transform="rotate(-35 12.9 31)" stroke-width=".9"/><ellipse cx="35.1" cy="31" rx="2.6" ry="1.2" transform="rotate(35 35.1 31)" stroke-width=".9"/></g></svg>
-          <span class="lv-wordmark">Areviax</span>
-        </span>
-        <button type="button" class="lv-profile-btn" onclick="showPage('profile')" aria-label="Profile"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--lv-fg)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="lv-profile-badge"></span></button>
-      </div>
-      <p class="lv-label-eyebrow" style="margin-top:22px;color:var(--lv-fg);opacity:.7">Look back</p>
+      <!-- The logo + icon row that used to live here is now the single
+           #global-topbar fixed above all pages. -->
+      <p class="lv-label-eyebrow" style="margin-top:0;color:var(--lv-fg);opacity:.7">Look back</p>
       <h1 style="margin-top:6px;color:var(--lv-fg);font-family:'Bebas Neue',sans-serif;font-weight:400;font-size:clamp(2.6rem,14vw,4rem);line-height:.9;letter-spacing:.01em;text-transform:uppercase">Reflect<br><span class="lv-serif-accent lv-gold-text" style="font-size:.8em">on today</span></h1>
       <div style="margin-top:14px;font-family:var(--lv-mono);font-size:11px;color:var(--lv-muted-fg)" id="reflection-hero-stat">Three minutes, most days, beats a perfect entry every day.</div>
       <div class="lv-meander-bold" style="margin-top:18px"></div>
@@ -5411,7 +5442,6 @@ body[data-goal-theme="cut"] .lv-page{
   <!-- HERO — literal port of website-refresh's WorkoutScreen <header>.
        Real wb-type/wb-time/sessionFocus/exercise-count data — see
        renderWorkoutHeroLovable(), called from the end of renderExercises(). -->
-  <div style="height:calc(10px + max(var(--safe-top,0px),env(safe-area-inset-top,0px)));background:var(--lv-bg);margin:0 -20px"></div>
   <!-- Real painted hero art (realm-underworld.jpg) instead of a flat gradient wash — same
        treatment as the Dashboard hero. Underworld's forge/lava mood fits "Forge the session"
        directly, so no new asset was needed here. -->
@@ -5421,22 +5451,9 @@ body[data-goal-theme="cut"] .lv-page{
   <header class="lv-grain lv-pediment" style="position:relative;overflow:hidden;margin:0 -20px;padding:20px 20px 26px;border-radius:0 0 28px 28px;background-image:linear-gradient(180deg,rgba(10,7,4,.5) 0%,rgba(10,7,4,.72) 45%,rgba(10,7,4,.95) 100%),url('images/roads/realm-underworld.jpg');background-size:cover;background-position:center 40%;--lv-fg:#F7F5F2;--lv-muted-fg:#9E9791;--lv-border:#342C28;--lv-border-strong:#56433A;--lv-gold:#E6BE6D">
     <span class="lv-ghost-numeral" style="right:-14px;top:38px">Ω</span>
     <div style="position:relative;z-index:1">
-      <div style="display:flex;align-items:center;justify-content:space-between">
-        <span style="display:flex;align-items:center;gap:8px">
-          <svg width="22" height="22" viewBox="0 0 48 48" fill="none" stroke="var(--lv-gold)" aria-hidden="true"><path d="M24 5 26.6 21.4 43 24 26.6 26.6 24 43 21.4 26.6 5 24 21.4 21.4Z" fill="var(--lv-gold)" stroke="none" opacity=".95"/><path d="M24 12v24M12 24h24" stroke-width=".6" opacity=".5"/><circle cx="24" cy="24" r="11" stroke-width=".7" opacity=".45"/><path d="M15 9c-7 5-9 14-5 22 2.5 5 6.5 8.5 11 10" stroke-width="1.4" opacity=".8"/><path d="M33 9c7 5 9 14 5 22-2.5 5-6.5 8.5-11 10" stroke-width="1.4" opacity=".8"/><g opacity=".7"><ellipse cx="10.5" cy="13" rx="2.6" ry="1.2" transform="rotate(-35 10.5 13)" stroke-width=".9"/><ellipse cx="37.5" cy="13" rx="2.6" ry="1.2" transform="rotate(35 37.5 13)" stroke-width=".9"/></g><g opacity=".7"><ellipse cx="11.3" cy="19" rx="2.6" ry="1.2" transform="rotate(-35 11.3 19)" stroke-width=".9"/><ellipse cx="36.7" cy="19" rx="2.6" ry="1.2" transform="rotate(35 36.7 19)" stroke-width=".9"/></g><g opacity=".7"><ellipse cx="12.1" cy="25" rx="2.6" ry="1.2" transform="rotate(-35 12.1 25)" stroke-width=".9"/><ellipse cx="35.9" cy="25" rx="2.6" ry="1.2" transform="rotate(35 35.9 25)" stroke-width=".9"/></g><g opacity=".7"><ellipse cx="12.9" cy="31" rx="2.6" ry="1.2" transform="rotate(-35 12.9 31)" stroke-width=".9"/><ellipse cx="35.1" cy="31" rx="2.6" ry="1.2" transform="rotate(35 35.1 31)" stroke-width=".9"/></g></svg>
-          <span class="lv-wordmark">Areviax</span>
-        </span>
-        <div style="display:flex;align-items:center;gap:9px">
-          <span class="lv-pill" style="background:var(--lv-primary);color:var(--lv-primary-fg)"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="lv-streak-flame"><path d="M12 22c4.4 0 7-2.9 7-6.8 0-3-1.7-5-3-7-.2 1.7-1 2.8-2 3.4.3-2.7-.7-5.6-3-7.6-.3 2.5-1.2 3.9-2.7 5.4C6.8 10.8 6 12.6 6 15c0 4 2.7 7 6 7z"/></svg> <span class="lv-streak-badge">0</span></span>
-          <button type="button" class="lv-road-pill" onclick="showPage('trophyroad')" aria-label="The Way Home — Arete progress">
-            <span class="lv-road-pill-top"><img src="images/icons/arete.png" alt="" class="lv-road-pill-icon"> <span class="lv-road-arete-num">0</span></span>
-            <span class="lv-road-pill-track"><span class="lv-road-pill-fill" style="width:0%"></span></span>
-          </button>
-          <button type="button" class="lv-profile-btn" onclick="showPage('profile')" aria-label="Profile"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--lv-fg)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="lv-profile-badge"></span></button>
-        </div>
-      </div>
-
-      <p class="lv-label-eyebrow lv-pulse-dot" style="margin-top:22px;color:var(--lv-fg);opacity:.7" id="wo-eyebrow-text">The Palaestra</p>
+      <!-- The logo + streak/icon row that used to live here is now the
+           single #global-topbar fixed above all pages. -->
+      <p class="lv-label-eyebrow lv-pulse-dot" style="margin-top:0;color:var(--lv-fg);opacity:.7" id="wo-eyebrow-text">The Palaestra</p>
       <h1 style="margin-top:6px;color:var(--lv-fg);font-family:'Bebas Neue',sans-serif;font-weight:400;font-size:clamp(3.75rem,22vw,6rem);line-height:.82;letter-spacing:.01em;text-transform:uppercase">Forge<br><span class="lv-serif-accent lv-gold-text" style="font-size:.8em">the session</span></h1>
 
       <div style="margin-top:18px;display:flex;align-items:flex-end;justify-content:space-between">
@@ -5669,18 +5686,12 @@ body[data-goal-theme="cut"] .lv-page{
 
 <!-- SESSION -->
 <div class="page lv-page" id="page-session">
-  <div style="height:calc(10px + max(var(--safe-top,0px),env(safe-area-inset-top,0px)));background:var(--lv-bg);margin:0 -20px"></div>
   <header class="lv-ember-wash lv-grain lv-colonnade lv-temple-glow lv-pediment" style="position:relative;overflow:hidden;margin:0 -20px 16px;padding:20px 20px 26px;border-radius:0 0 28px 28px">
     <span class="lv-ghost-numeral" style="right:-14px;top:38px">Σ</span>
     <div style="position:relative;z-index:1">
-      <div style="display:flex;align-items:center;justify-content:space-between">
-        <span style="display:flex;align-items:center;gap:8px">
-          <svg width="22" height="22" viewBox="0 0 48 48" fill="none" stroke="var(--lv-gold)" aria-hidden="true"><path d="M24 5 26.6 21.4 43 24 26.6 26.6 24 43 21.4 26.6 5 24 21.4 21.4Z" fill="var(--lv-gold)" stroke="none" opacity=".95"/><path d="M24 12v24M12 24h24" stroke-width=".6" opacity=".5"/><circle cx="24" cy="24" r="11" stroke-width=".7" opacity=".45"/><path d="M15 9c-7 5-9 14-5 22 2.5 5 6.5 8.5 11 10" stroke-width="1.4" opacity=".8"/><path d="M33 9c7 5 9 14 5 22-2.5 5-6.5 8.5-11 10" stroke-width="1.4" opacity=".8"/><g opacity=".7"><ellipse cx="10.5" cy="13" rx="2.6" ry="1.2" transform="rotate(-35 10.5 13)" stroke-width=".9"/><ellipse cx="37.5" cy="13" rx="2.6" ry="1.2" transform="rotate(35 37.5 13)" stroke-width=".9"/></g><g opacity=".7"><ellipse cx="11.3" cy="19" rx="2.6" ry="1.2" transform="rotate(-35 11.3 19)" stroke-width=".9"/><ellipse cx="36.7" cy="19" rx="2.6" ry="1.2" transform="rotate(35 36.7 19)" stroke-width=".9"/></g><g opacity=".7"><ellipse cx="12.1" cy="25" rx="2.6" ry="1.2" transform="rotate(-35 12.1 25)" stroke-width=".9"/><ellipse cx="35.9" cy="25" rx="2.6" ry="1.2" transform="rotate(35 35.9 25)" stroke-width=".9"/></g><g opacity=".7"><ellipse cx="12.9" cy="31" rx="2.6" ry="1.2" transform="rotate(-35 12.9 31)" stroke-width=".9"/><ellipse cx="35.1" cy="31" rx="2.6" ry="1.2" transform="rotate(35 35.1 31)" stroke-width=".9"/></g></svg>
-          <span class="lv-wordmark">Areviax</span>
-        </span>
-        <button type="button" class="lv-profile-btn" onclick="showPage('profile')" aria-label="Profile"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--lv-fg)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="lv-profile-badge"></span></button>
-      </div>
-      <p class="lv-label-eyebrow" style="margin-top:22px;color:var(--lv-fg);opacity:.7">In session</p>
+      <!-- The logo + icon row that used to live here is now the single
+           #global-topbar fixed above all pages. -->
+      <p class="lv-label-eyebrow" style="margin-top:0;color:var(--lv-fg);opacity:.7">In session</p>
       <h1 style="margin-top:6px;color:var(--lv-fg);font-family:'Bebas Neue',sans-serif;font-weight:400;font-size:clamp(2.6rem,14vw,4rem);line-height:.9;letter-spacing:.01em;text-transform:uppercase" id="sess-hero-name">Today's<br><span class="lv-serif-accent lv-gold-text" style="font-size:.8em">session</span></h1>
       <div style="margin-top:14px;font-family:var(--lv-mono);font-size:11px;color:var(--lv-muted-fg)" id="sess-hero-stat">0 exercises</div>
       <div class="lv-meander-bold" style="margin-top:18px"></div>
@@ -5817,7 +5828,6 @@ body[data-goal-theme="cut"] .lv-page{
 
   <!-- HERO — literal port of website-refresh's NutritionScreen <header>.
        Real dayMacros/profile data — see renderNutritionHeroLovable(). -->
-  <div style="height:calc(10px + max(var(--safe-top,0px),env(safe-area-inset-top,0px)));background:var(--lv-bg);margin:0 -20px"></div>
   <!-- Real painted hero art (realm-grove.jpg) instead of a flat gradient wash — same
        treatment as Dashboard/Workout/Trophy Cabinet. Olive grove + laden table fits
        "Eat to grow" directly. --lv-fg/--lv-border/--lv-gold etc pinned to dark-mode
@@ -5826,22 +5836,9 @@ body[data-goal-theme="cut"] .lv-page{
   <header class="lv-grain lv-pediment" style="position:relative;overflow:hidden;margin:0 -20px;padding:20px 20px 26px;border-radius:0 0 28px 28px;background-image:linear-gradient(180deg,rgba(10,7,4,.5) 0%,rgba(10,7,4,.72) 45%,rgba(10,7,4,.95) 100%),url('images/roads/realm-grove.jpg');background-size:cover;background-position:center 40%;--lv-fg:#F7F5F2;--lv-muted-fg:#9E9791;--lv-border:#342C28;--lv-border-strong:#56433A;--lv-gold:#E6BE6D">
     <span class="lv-ghost-numeral" style="right:-14px;top:38px">Θ</span>
     <div style="position:relative;z-index:1">
-      <div style="display:flex;align-items:center;justify-content:space-between">
-        <span style="display:flex;align-items:center;gap:8px">
-          <svg width="22" height="22" viewBox="0 0 48 48" fill="none" stroke="var(--lv-gold)" aria-hidden="true"><path d="M24 5 26.6 21.4 43 24 26.6 26.6 24 43 21.4 26.6 5 24 21.4 21.4Z" fill="var(--lv-gold)" stroke="none" opacity=".95"/><path d="M24 12v24M12 24h24" stroke-width=".6" opacity=".5"/><circle cx="24" cy="24" r="11" stroke-width=".7" opacity=".45"/><path d="M15 9c-7 5-9 14-5 22 2.5 5 6.5 8.5 11 10" stroke-width="1.4" opacity=".8"/><path d="M33 9c7 5 9 14 5 22-2.5 5-6.5 8.5-11 10" stroke-width="1.4" opacity=".8"/><g opacity=".7"><ellipse cx="10.5" cy="13" rx="2.6" ry="1.2" transform="rotate(-35 10.5 13)" stroke-width=".9"/><ellipse cx="37.5" cy="13" rx="2.6" ry="1.2" transform="rotate(35 37.5 13)" stroke-width=".9"/></g><g opacity=".7"><ellipse cx="11.3" cy="19" rx="2.6" ry="1.2" transform="rotate(-35 11.3 19)" stroke-width=".9"/><ellipse cx="36.7" cy="19" rx="2.6" ry="1.2" transform="rotate(35 36.7 19)" stroke-width=".9"/></g><g opacity=".7"><ellipse cx="12.1" cy="25" rx="2.6" ry="1.2" transform="rotate(-35 12.1 25)" stroke-width=".9"/><ellipse cx="35.9" cy="25" rx="2.6" ry="1.2" transform="rotate(35 35.9 25)" stroke-width=".9"/></g><g opacity=".7"><ellipse cx="12.9" cy="31" rx="2.6" ry="1.2" transform="rotate(-35 12.9 31)" stroke-width=".9"/><ellipse cx="35.1" cy="31" rx="2.6" ry="1.2" transform="rotate(35 35.1 31)" stroke-width=".9"/></g></svg>
-          <span class="lv-wordmark">Areviax</span>
-        </span>
-        <div style="display:flex;align-items:center;gap:9px">
-          <span class="lv-pill" style="background:var(--lv-primary);color:var(--lv-primary-fg)"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="lv-streak-flame"><path d="M12 22c4.4 0 7-2.9 7-6.8 0-3-1.7-5-3-7-.2 1.7-1 2.8-2 3.4.3-2.7-.7-5.6-3-7.6-.3 2.5-1.2 3.9-2.7 5.4C6.8 10.8 6 12.6 6 15c0 4 2.7 7 6 7z"/></svg> <span class="lv-streak-badge">0</span></span>
-          <button type="button" class="lv-road-pill" onclick="showPage('trophyroad')" aria-label="The Way Home — Arete progress">
-            <span class="lv-road-pill-top"><img src="images/icons/arete.png" alt="" class="lv-road-pill-icon"> <span class="lv-road-arete-num">0</span></span>
-            <span class="lv-road-pill-track"><span class="lv-road-pill-fill" style="width:0%"></span></span>
-          </button>
-          <button type="button" class="lv-profile-btn" onclick="showPage('profile')" aria-label="Profile"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--lv-fg)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="lv-profile-badge"></span></button>
-        </div>
-      </div>
-
-      <p class="lv-label-eyebrow lv-pulse-dot" style="margin-top:22px;color:var(--lv-fg);opacity:.7" id="nutr-eyebrow-text">Fuel</p>
+      <!-- The logo + streak/icon row that used to live here is now the
+           single #global-topbar fixed above all pages. -->
+      <p class="lv-label-eyebrow lv-pulse-dot" style="margin-top:0;color:var(--lv-fg);opacity:.7" id="nutr-eyebrow-text">Fuel</p>
       <h1 style="margin-top:6px;color:var(--lv-fg);font-family:'Bebas Neue',sans-serif;font-weight:400;font-size:clamp(3.75rem,22vw,6rem);line-height:.82;letter-spacing:.01em;text-transform:uppercase">Eat<br><span class="lv-serif-accent lv-gold-text" style="font-size:.8em">to grow</span></h1>
 
       <div style="margin-top:18px;display:flex;align-items:flex-end;justify-content:space-between">
@@ -6311,18 +6308,12 @@ body[data-goal-theme="cut"] .lv-page{
      clean placeholder (icon + macro chips) instead of a fake stock
      photo, ready to swap for real images once provided. -->
 <div class="page lv-page" id="page-recipes">
-  <div style="height:calc(10px + max(var(--safe-top,0px),env(safe-area-inset-top,0px)));background:var(--lv-bg);margin:0 -20px"></div>
   <header class="lv-ember-wash lv-grain lv-colonnade lv-temple-glow lv-pediment" style="position:relative;overflow:hidden;margin:0 -20px 16px;padding:20px 20px 26px;border-radius:0 0 28px 28px">
     <span class="lv-ghost-numeral" style="right:-14px;top:38px">Ρ</span>
     <div style="position:relative;z-index:1">
-      <div style="display:flex;align-items:center;justify-content:space-between">
-        <span style="display:flex;align-items:center;gap:8px">
-          <svg width="22" height="22" viewBox="0 0 48 48" fill="none" stroke="var(--lv-gold)" aria-hidden="true"><path d="M24 5 26.6 21.4 43 24 26.6 26.6 24 43 21.4 26.6 5 24 21.4 21.4Z" fill="var(--lv-gold)" stroke="none" opacity=".95"/><path d="M24 12v24M12 24h24" stroke-width=".6" opacity=".5"/><circle cx="24" cy="24" r="11" stroke-width=".7" opacity=".45"/><path d="M15 9c-7 5-9 14-5 22 2.5 5 6.5 8.5 11 10" stroke-width="1.4" opacity=".8"/><path d="M33 9c7 5 9 14 5 22-2.5 5-6.5 8.5-11 10" stroke-width="1.4" opacity=".8"/><g opacity=".7"><ellipse cx="10.5" cy="13" rx="2.6" ry="1.2" transform="rotate(-35 10.5 13)" stroke-width=".9"/><ellipse cx="37.5" cy="13" rx="2.6" ry="1.2" transform="rotate(35 37.5 13)" stroke-width=".9"/></g><g opacity=".7"><ellipse cx="11.3" cy="19" rx="2.6" ry="1.2" transform="rotate(-35 11.3 19)" stroke-width=".9"/><ellipse cx="36.7" cy="19" rx="2.6" ry="1.2" transform="rotate(35 36.7 19)" stroke-width=".9"/></g><g opacity=".7"><ellipse cx="12.1" cy="25" rx="2.6" ry="1.2" transform="rotate(-35 12.1 25)" stroke-width=".9"/><ellipse cx="35.9" cy="25" rx="2.6" ry="1.2" transform="rotate(35 35.9 25)" stroke-width=".9"/></g><g opacity=".7"><ellipse cx="12.9" cy="31" rx="2.6" ry="1.2" transform="rotate(-35 12.9 31)" stroke-width=".9"/><ellipse cx="35.1" cy="31" rx="2.6" ry="1.2" transform="rotate(35 35.1 31)" stroke-width=".9"/></g></svg>
-          <span class="lv-wordmark">Areviax</span>
-        </span>
-        <button type="button" class="lv-profile-btn" onclick="showPage('profile')" aria-label="Profile"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--lv-fg)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="lv-profile-badge"></span></button>
-      </div>
-      <p class="lv-label-eyebrow" style="margin-top:22px;color:var(--lv-fg);opacity:.7">The Larder</p>
+      <!-- The logo + icon row that used to live here is now the single
+           #global-topbar fixed above all pages. -->
+      <p class="lv-label-eyebrow" style="margin-top:0;color:var(--lv-fg);opacity:.7">The Larder</p>
       <h1 style="margin-top:6px;color:var(--lv-fg);font-family:'Bebas Neue',sans-serif;font-weight:400;font-size:clamp(2.6rem,14vw,4rem);line-height:.9;letter-spacing:.01em;text-transform:uppercase">Recipes<br><span class="lv-serif-accent lv-gold-text" style="font-size:.8em">to grow</span></h1>
       <div style="margin-top:14px;font-family:var(--lv-mono);font-size:11px;color:var(--lv-muted-fg)" id="recipes-hero-stat">0 recipes</div>
       <div class="lv-meander-bold" style="margin-top:18px"></div>
@@ -6535,7 +6526,6 @@ body[data-goal-theme="cut"] .lv-page{
        devices showed content sitting directly against the status bar,
        since the app-wide safe-top fix only updated existing spacers and
        there was none here to update. -->
-  <div style="height:calc(10px + max(var(--safe-top,0px),env(safe-area-inset-top,0px)));background:var(--lv-bg);margin:0 -20px"></div>
   <!-- Real painted hero art (realm-ascend.jpg) instead of a flat gradient wash — same
        treatment as Dashboard/Workout/Trophy Cabinet/Nutrition. A stairway climbing to a
        Greek temple fits Progress's "ascension" theme directly. --lv-fg/--lv-border/
@@ -6544,20 +6534,8 @@ body[data-goal-theme="cut"] .lv-page{
   <header class="lv-grain lv-pediment" style="position:relative;overflow:hidden;margin:0 -20px 16px;padding:20px 20px 26px;background-image:linear-gradient(180deg,rgba(10,7,4,.5) 0%,rgba(10,7,4,.72) 45%,rgba(10,7,4,.95) 100%),url('images/roads/realm-ascend.jpg');background-size:cover;background-position:center 35%;--lv-fg:#F7F5F2;--lv-muted-fg:#9E9791;--lv-border:#342C28;--lv-border-strong:#56433A;--lv-gold:#E6BE6D">
     <span class="lv-ghost-numeral" style="right:-14px;top:38px">Ω</span>
     <div style="position:relative;z-index:1">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px">
-        <span style="display:flex;align-items:center;gap:8px">
-          <svg width="22" height="22" viewBox="0 0 48 48" fill="none" stroke="var(--lv-gold)" aria-hidden="true"><path d="M24 5 26.6 21.4 43 24 26.6 26.6 24 43 21.4 26.6 5 24 21.4 21.4Z" fill="var(--lv-gold)" stroke="none" opacity=".95"/><path d="M24 12v24M12 24h24" stroke-width=".6" opacity=".5"/><circle cx="24" cy="24" r="11" stroke-width=".7" opacity=".45"/><path d="M15 9c-7 5-9 14-5 22 2.5 5 6.5 8.5 11 10" stroke-width="1.4" opacity=".8"/><path d="M33 9c7 5 9 14 5 22-2.5 5-6.5 8.5-11 10" stroke-width="1.4" opacity=".8"/><g opacity=".7"><ellipse cx="10.5" cy="13" rx="2.6" ry="1.2" transform="rotate(-35 10.5 13)" stroke-width=".9"/><ellipse cx="37.5" cy="13" rx="2.6" ry="1.2" transform="rotate(35 37.5 13)" stroke-width=".9"/></g><g opacity=".7"><ellipse cx="11.3" cy="19" rx="2.6" ry="1.2" transform="rotate(-35 11.3 19)" stroke-width=".9"/><ellipse cx="36.7" cy="19" rx="2.6" ry="1.2" transform="rotate(35 36.7 19)" stroke-width=".9"/></g><g opacity=".7"><ellipse cx="12.1" cy="25" rx="2.6" ry="1.2" transform="rotate(-35 12.1 25)" stroke-width=".9"/><ellipse cx="35.9" cy="25" rx="2.6" ry="1.2" transform="rotate(35 35.9 25)" stroke-width=".9"/></g><g opacity=".7"><ellipse cx="12.9" cy="31" rx="2.6" ry="1.2" transform="rotate(-35 12.9 31)" stroke-width=".9"/><ellipse cx="35.1" cy="31" rx="2.6" ry="1.2" transform="rotate(35 35.1 31)" stroke-width=".9"/></g></svg>
-          <span class="lv-wordmark">Areviax</span>
-        </span>
-        <div style="display:flex;align-items:center;gap:9px">
-          <span class="lv-pill" style="background:var(--lv-primary);color:var(--lv-primary-fg)"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="lv-streak-flame"><path d="M12 22c4.4 0 7-2.9 7-6.8 0-3-1.7-5-3-7-.2 1.7-1 2.8-2 3.4.3-2.7-.7-5.6-3-7.6-.3 2.5-1.2 3.9-2.7 5.4C6.8 10.8 6 12.6 6 15c0 4 2.7 7 6 7z"/></svg> <span class="lv-streak-badge">0</span></span>
-          <button type="button" class="lv-road-pill" onclick="showPage('trophyroad')" aria-label="The Way Home — Arete progress">
-            <span class="lv-road-pill-top"><img src="images/icons/arete.png" alt="" class="lv-road-pill-icon"> <span class="lv-road-arete-num">0</span></span>
-            <span class="lv-road-pill-track"><span class="lv-road-pill-fill" style="width:0%"></span></span>
-          </button>
-          <button type="button" class="lv-profile-btn" onclick="showPage('profile')" aria-label="Profile"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--lv-fg)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="lv-profile-badge"></span></button>
-        </div>
-      </div>
+      <!-- The logo + streak/icon row that used to live here is now the
+           single #global-topbar fixed above all pages. -->
       <p class="lv-label-eyebrow" style="color:var(--lv-primary)">Total volume · <span id="prog-hero-range-label">12W</span></p>
       <h1 class="lv-display-hero" style="margin-top:8px;color:var(--lv-fg)"><span id="prog-hero-num">0</span><span class="lv-serif-accent lv-gold-text" style="font-size:.7em">t</span></h1>
       <div style="margin-top:10px;display:flex;align-items:center;gap:10px;font-family:var(--lv-mono);font-size:11px;color:var(--lv-muted-fg)" id="prog-hero-trend">Your first set writes the first line here.</div>
@@ -6827,7 +6805,6 @@ body[data-goal-theme="cut"] .lv-page{
      renderAchievements()/renderDailySpin() render calls as before — only
      where this markup lives changed, not how it's populated. -->
 <div class="page lv-page" id="page-shop">
-  <div style="height:calc(10px + max(var(--safe-top,0px),env(safe-area-inset-top,0px)));background:var(--lv-bg);margin:0 -20px"></div>
   <!-- Photo header — now the SAME full hero shape every other page uses
        (Dashboard/Workout/Nutrition: icon row, eyebrow, huge headline, one
        stat row, meander), not the old road-page-head bar this carried
@@ -6840,22 +6817,9 @@ body[data-goal-theme="cut"] .lv-page{
   <header class="lv-grain lv-pediment" style="position:relative;overflow:hidden;margin:0 -20px 16px;padding:20px 20px 26px;border-radius:0 0 28px 28px;background-image:linear-gradient(180deg,rgba(10,7,4,.5) 0%,rgba(10,7,4,.72) 45%,rgba(10,7,4,.95) 100%),url('images/shop/greek-marketplace-real.jpg');background-size:cover;background-position:center 30%;--lv-fg:#F7F5F2;--lv-muted-fg:#9E9791;--lv-border:#342C28;--lv-border-strong:#56433A;--lv-gold:#E6BE6D">
     <span class="lv-ghost-numeral" style="right:-14px;top:38px">Π</span>
     <div style="position:relative;z-index:1">
-      <div style="display:flex;align-items:center;justify-content:space-between">
-        <span style="display:flex;align-items:center;gap:8px">
-          <svg width="22" height="22" viewBox="0 0 48 48" fill="none" stroke="var(--lv-gold)" aria-hidden="true"><path d="M24 5 26.6 21.4 43 24 26.6 26.6 24 43 21.4 26.6 5 24 21.4 21.4Z" fill="var(--lv-gold)" stroke="none" opacity=".95"/><path d="M24 12v24M12 24h24" stroke-width=".6" opacity=".5"/><circle cx="24" cy="24" r="11" stroke-width=".7" opacity=".45"/><path d="M15 9c-7 5-9 14-5 22 2.5 5 6.5 8.5 11 10" stroke-width="1.4" opacity=".8"/><path d="M33 9c7 5 9 14 5 22-2.5 5-6.5 8.5-11 10" stroke-width="1.4" opacity=".8"/><g opacity=".7"><ellipse cx="10.5" cy="13" rx="2.6" ry="1.2" transform="rotate(-35 10.5 13)" stroke-width=".9"/><ellipse cx="37.5" cy="13" rx="2.6" ry="1.2" transform="rotate(35 37.5 13)" stroke-width=".9"/></g><g opacity=".7"><ellipse cx="11.3" cy="19" rx="2.6" ry="1.2" transform="rotate(-35 11.3 19)" stroke-width=".9"/><ellipse cx="36.7" cy="19" rx="2.6" ry="1.2" transform="rotate(35 36.7 19)" stroke-width=".9"/></g><g opacity=".7"><ellipse cx="12.1" cy="25" rx="2.6" ry="1.2" transform="rotate(-35 12.1 25)" stroke-width=".9"/><ellipse cx="35.9" cy="25" rx="2.6" ry="1.2" transform="rotate(35 35.9 25)" stroke-width=".9"/></g><g opacity=".7"><ellipse cx="12.9" cy="31" rx="2.6" ry="1.2" transform="rotate(-35 12.9 31)" stroke-width=".9"/><ellipse cx="35.1" cy="31" rx="2.6" ry="1.2" transform="rotate(35 35.1 31)" stroke-width=".9"/></g></svg>
-          <span class="lv-wordmark">Areviax</span>
-        </span>
-        <div style="display:flex;align-items:center;gap:9px">
-          <span class="lv-pill" style="background:var(--lv-primary);color:var(--lv-primary-fg)"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="lv-streak-flame"><path d="M12 22c4.4 0 7-2.9 7-6.8 0-3-1.7-5-3-7-.2 1.7-1 2.8-2 3.4.3-2.7-.7-5.6-3-7.6-.3 2.5-1.2 3.9-2.7 5.4C6.8 10.8 6 12.6 6 15c0 4 2.7 7 6 7z"/></svg> <span class="lv-streak-badge">0</span></span>
-          <button type="button" class="lv-road-pill" onclick="showPage('trophyroad')" aria-label="The Way Home — Arete progress">
-            <span class="lv-road-pill-top"><img src="images/icons/arete.png" alt="" class="lv-road-pill-icon"> <span class="lv-road-arete-num">0</span></span>
-            <span class="lv-road-pill-track"><span class="lv-road-pill-fill" style="width:0%"></span></span>
-          </button>
-          <button type="button" class="lv-profile-btn" onclick="showPage('profile')" aria-label="Profile"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--lv-fg)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="lv-profile-badge"></span></button>
-        </div>
-      </div>
-
-      <p class="lv-label-eyebrow lv-pulse-dot" style="margin-top:22px;color:var(--lv-fg);opacity:.7">The Agora</p>
+      <!-- The logo + streak/icon row that used to live here is now the
+           single #global-topbar fixed above all pages. -->
+      <p class="lv-label-eyebrow lv-pulse-dot" style="margin-top:0;color:var(--lv-fg);opacity:.7">The Agora</p>
       <h1 style="margin-top:6px;color:var(--lv-fg);font-family:'Bebas Neue',sans-serif;font-weight:400;font-size:clamp(3.75rem,22vw,6rem);line-height:.82;letter-spacing:.01em;text-transform:uppercase">Open<br><span class="lv-serif-accent lv-gold-text" style="font-size:.8em">the agora</span></h1>
 
       <div style="margin-top:18px;display:flex;align-items:flex-end;justify-content:space-between;gap:12px">
@@ -6918,7 +6882,6 @@ body[data-goal-theme="cut"] .lv-page{
      real (a crate, spare shards, or a guaranteed Legend Card at the
      big ones). Reached from the Arete Road hub card on Progress. -->
 <div class="page" id="page-xproad">
-  <div style="height:calc(10px + max(var(--safe-top,0px),env(safe-area-inset-top,0px)));background:var(--lv-bg);margin:0 -20px"></div>
   <div class="road-page-head">
     <button class="btn btn-out btn-sm" onclick="showPage('progress')">← Progress</button>
     <span class="ct glow-title xp" style="font-size:17px"><img src="images/roads/xp-compass.png" alt="" class="road-title-icon" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'"><span class="road-title-icon-fallback">🛤️</span> Arete Road</span>
@@ -6969,7 +6932,6 @@ body[data-goal-theme="cut"] .lv-page{
      here). Reached from the Road icon in the Dashboard header's
      top-right corner. -->
 <div class="page" id="page-trophyroad">
-  <div style="height:calc(10px + max(var(--safe-top,0px),env(safe-area-inset-top,0px)));background:var(--lv-bg);margin:0 -20px"></div>
   <div class="road-page-head">
     <button class="btn btn-out btn-sm" onclick="showPage('dashboard')">← Home</button>
     <span class="ct glow-title trophy" style="font-size:17px"><img src="images/roads/trophy-compass.png" alt="" class="road-title-icon" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'"><span class="road-title-icon-fallback">⚔️</span> The Way Home</span>
@@ -7029,7 +6991,6 @@ body[data-goal-theme="cut"] .lv-page{
        Missing safe-area spacer added — same real-device status-bar
        overlap bug as Progress had, for the same reason (no spacer div
        existed for the app-wide safe-top fix to update). -->
-  <div style="height:calc(10px + max(var(--safe-top,0px),env(safe-area-inset-top,0px)));background:var(--lv-bg);margin:0 -20px"></div>
   <!-- Real painted hero art (realm-elysium.jpg) instead of a flat gradient wash — same
        treatment as Dashboard/Workout. Elysium (where legendary heroes rest in glory) fits
        a trophy hall thematically, and it's the one realm-*.jpg asset not used elsewhere yet.
@@ -7128,7 +7089,6 @@ body[data-goal-theme="cut"] .lv-page{
   <!-- Missing on this page until now (every other hero page has it) —
        without it the back button and "Trials of Heracles" sat right at
        the very top of the screen, under the real device's status bar. -->
-  <div style="height:calc(10px + max(var(--safe-top,0px),env(safe-area-inset-top,0px)));background:var(--lv-bg);margin:0 -20px"></div>
   <!-- Real painted hero art (realm-trial.jpg) instead of a flat gradient wash — same
        treatment as the other rebuilt heroes. A wild mountain pass fits "Trials of
        Heracles" directly. --lv-fg/--lv-border/--lv-gold etc pinned to dark-mode values
@@ -7151,18 +7111,12 @@ body[data-goal-theme="cut"] .lv-page{
 
 <!-- RECOVERY — its own dedicated page. Sleep tracking, wind-down sounds, breathing, and the science of why this matters. -->
 <div class="page lv-page" id="page-recovery">
-  <div style="height:calc(10px + max(var(--safe-top,0px),env(safe-area-inset-top,0px)));background:var(--lv-bg);margin:0 -20px"></div>
   <header class="lv-grain lv-pediment" style="position:relative;overflow:hidden;margin:0 -20px 16px;padding:20px 20px 26px;border-radius:0 0 28px 28px;background-image:linear-gradient(180deg,rgba(10,7,4,.5) 0%,rgba(10,7,4,.72) 45%,rgba(10,7,4,.95) 100%),url('images/roads/realm-baths.jpg');background-size:cover;background-position:center 40%;--lv-fg:#F7F5F2;--lv-muted-fg:#9E9791;--lv-border:#342C28;--lv-border-strong:#56433A;--lv-gold:#E6BE6D">
     <span class="lv-ghost-numeral" style="right:-14px;top:38px">Λ</span>
     <div style="position:relative;z-index:1">
-      <div style="display:flex;align-items:center;justify-content:space-between">
-        <span style="display:flex;align-items:center;gap:8px">
-          <svg width="22" height="22" viewBox="0 0 48 48" fill="none" stroke="var(--lv-gold)" aria-hidden="true"><path d="M24 5 26.6 21.4 43 24 26.6 26.6 24 43 21.4 26.6 5 24 21.4 21.4Z" fill="var(--lv-gold)" stroke="none" opacity=".95"/><path d="M24 12v24M12 24h24" stroke-width=".6" opacity=".5"/><circle cx="24" cy="24" r="11" stroke-width=".7" opacity=".45"/><path d="M15 9c-7 5-9 14-5 22 2.5 5 6.5 8.5 11 10" stroke-width="1.4" opacity=".8"/><path d="M33 9c7 5 9 14 5 22-2.5 5-6.5 8.5-11 10" stroke-width="1.4" opacity=".8"/><g opacity=".7"><ellipse cx="10.5" cy="13" rx="2.6" ry="1.2" transform="rotate(-35 10.5 13)" stroke-width=".9"/><ellipse cx="37.5" cy="13" rx="2.6" ry="1.2" transform="rotate(35 37.5 13)" stroke-width=".9"/></g><g opacity=".7"><ellipse cx="11.3" cy="19" rx="2.6" ry="1.2" transform="rotate(-35 11.3 19)" stroke-width=".9"/><ellipse cx="36.7" cy="19" rx="2.6" ry="1.2" transform="rotate(35 36.7 19)" stroke-width=".9"/></g><g opacity=".7"><ellipse cx="12.1" cy="25" rx="2.6" ry="1.2" transform="rotate(-35 12.1 25)" stroke-width=".9"/><ellipse cx="35.9" cy="25" rx="2.6" ry="1.2" transform="rotate(35 35.9 25)" stroke-width=".9"/></g><g opacity=".7"><ellipse cx="12.9" cy="31" rx="2.6" ry="1.2" transform="rotate(-35 12.9 31)" stroke-width=".9"/><ellipse cx="35.1" cy="31" rx="2.6" ry="1.2" transform="rotate(35 35.1 31)" stroke-width=".9"/></g></svg>
-          <span class="lv-wordmark">Areviax</span>
-        </span>
-        <button type="button" class="lv-profile-btn" onclick="showPage('profile')" aria-label="Profile"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--lv-fg)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="lv-profile-badge"></span></button>
-      </div>
-      <p class="lv-label-eyebrow" style="margin-top:22px;color:var(--lv-fg);opacity:.7">The Baths</p>
+      <!-- The logo + icon row that used to live here is now the single
+           #global-topbar fixed above all pages. -->
+      <p class="lv-label-eyebrow" style="margin-top:0;color:var(--lv-fg);opacity:.7">The Baths</p>
       <h1 style="margin-top:6px;color:var(--lv-fg);font-family:'Bebas Neue',sans-serif;font-weight:400;font-size:clamp(2.6rem,14vw,4rem);line-height:.9;letter-spacing:.01em;text-transform:uppercase">Recover<br><span class="lv-serif-accent lv-gold-text" style="font-size:.8em">and grow</span></h1>
       <div style="margin-top:14px;font-family:var(--lv-mono);font-size:11px;color:var(--lv-muted-fg)" id="recovery-hero-stat">Log a session to see readiness</div>
       <div class="lv-meander-bold" style="margin-top:18px"></div>
@@ -7500,18 +7454,12 @@ body[data-goal-theme="cut"] .lv-page{
 
 <!-- SCHEDULE -->
 <div class="page lv-page" id="page-schedule">
-  <div style="height:calc(10px + max(var(--safe-top,0px),env(safe-area-inset-top,0px)));background:var(--lv-bg);margin:0 -20px"></div>
   <header class="lv-ember-wash lv-grain lv-colonnade lv-temple-glow lv-pediment" style="position:relative;overflow:hidden;margin:0 -20px 16px;padding:20px 20px 26px;border-radius:0 0 28px 28px">
     <span class="lv-ghost-numeral" style="right:-14px;top:38px">Ψ</span>
     <div style="position:relative;z-index:1">
-      <div style="display:flex;align-items:center;justify-content:space-between">
-        <span style="display:flex;align-items:center;gap:8px">
-          <svg width="22" height="22" viewBox="0 0 48 48" fill="none" stroke="var(--lv-gold)" aria-hidden="true"><path d="M24 5 26.6 21.4 43 24 26.6 26.6 24 43 21.4 26.6 5 24 21.4 21.4Z" fill="var(--lv-gold)" stroke="none" opacity=".95"/><path d="M24 12v24M12 24h24" stroke-width=".6" opacity=".5"/><circle cx="24" cy="24" r="11" stroke-width=".7" opacity=".45"/><path d="M15 9c-7 5-9 14-5 22 2.5 5 6.5 8.5 11 10" stroke-width="1.4" opacity=".8"/><path d="M33 9c7 5 9 14 5 22-2.5 5-6.5 8.5-11 10" stroke-width="1.4" opacity=".8"/><g opacity=".7"><ellipse cx="10.5" cy="13" rx="2.6" ry="1.2" transform="rotate(-35 10.5 13)" stroke-width=".9"/><ellipse cx="37.5" cy="13" rx="2.6" ry="1.2" transform="rotate(35 37.5 13)" stroke-width=".9"/></g><g opacity=".7"><ellipse cx="11.3" cy="19" rx="2.6" ry="1.2" transform="rotate(-35 11.3 19)" stroke-width=".9"/><ellipse cx="36.7" cy="19" rx="2.6" ry="1.2" transform="rotate(35 36.7 19)" stroke-width=".9"/></g><g opacity=".7"><ellipse cx="12.1" cy="25" rx="2.6" ry="1.2" transform="rotate(-35 12.1 25)" stroke-width=".9"/><ellipse cx="35.9" cy="25" rx="2.6" ry="1.2" transform="rotate(35 35.9 25)" stroke-width=".9"/></g><g opacity=".7"><ellipse cx="12.9" cy="31" rx="2.6" ry="1.2" transform="rotate(-35 12.9 31)" stroke-width=".9"/><ellipse cx="35.1" cy="31" rx="2.6" ry="1.2" transform="rotate(35 35.1 31)" stroke-width=".9"/></g></svg>
-          <span class="lv-wordmark">Areviax</span>
-        </span>
-        <button type="button" class="lv-profile-btn" onclick="showPage('profile')" aria-label="Profile"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--lv-fg)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="lv-profile-badge"></span></button>
-      </div>
-      <p class="lv-label-eyebrow" style="margin-top:22px;color:var(--lv-fg);opacity:.7" id="sched-eyebrow-text">The Almanac</p>
+      <!-- The logo + icon row that used to live here is now the single
+           #global-topbar fixed above all pages. -->
+      <p class="lv-label-eyebrow" style="margin-top:0;color:var(--lv-fg);opacity:.7" id="sched-eyebrow-text">The Almanac</p>
       <h1 style="margin-top:6px;color:var(--lv-fg);font-family:'Bebas Neue',sans-serif;font-weight:400;font-size:clamp(2.6rem,14vw,4rem);line-height:.9;letter-spacing:.01em;text-transform:uppercase">Plan<br><span class="lv-serif-accent lv-gold-text" style="font-size:.8em">the week</span></h1>
       <div style="margin-top:14px;font-family:var(--lv-mono);font-size:11px;color:var(--lv-muted-fg)" id="sched-hero-stat">0 of 0 days scheduled this week</div>
       <div class="lv-meander-bold" style="margin-top:18px"></div>
@@ -7539,7 +7487,6 @@ body[data-goal-theme="cut"] .lv-page{
 
 <!-- LEADERBOARD -->
 <div class="page lv-page" id="page-leaderboard">
-  <div style="height:calc(10px + max(var(--safe-top,0px),env(safe-area-inset-top,0px)));background:var(--lv-bg);margin:0 -20px"></div>
   <!-- Real painted hero art (realm-agora.jpg) instead of a flat gradient wash — same
        treatment as the other rebuilt heroes. A golden trophy hall fits "Rise through the
        ranks" directly. --lv-fg/--lv-border/--lv-gold etc pinned to dark-mode values since
@@ -7547,14 +7494,9 @@ body[data-goal-theme="cut"] .lv-page{
   <header class="lv-grain lv-pediment" style="position:relative;overflow:hidden;margin:0 -20px 16px;padding:20px 20px 26px;border-radius:0 0 28px 28px;background-image:linear-gradient(180deg,rgba(10,7,4,.5) 0%,rgba(10,7,4,.72) 45%,rgba(10,7,4,.95) 100%),url('images/roads/realm-agora.jpg');background-size:cover;background-position:center 40%;--lv-fg:#F7F5F2;--lv-muted-fg:#9E9791;--lv-border:#342C28;--lv-border-strong:#56433A;--lv-gold:#E6BE6D">
     <span class="lv-ghost-numeral" style="right:-14px;top:38px">Ρ</span>
     <div style="position:relative;z-index:1">
-      <div style="display:flex;align-items:center;justify-content:space-between">
-        <span style="display:flex;align-items:center;gap:8px">
-          <svg width="22" height="22" viewBox="0 0 48 48" fill="none" stroke="var(--lv-gold)" aria-hidden="true"><path d="M24 5 26.6 21.4 43 24 26.6 26.6 24 43 21.4 26.6 5 24 21.4 21.4Z" fill="var(--lv-gold)" stroke="none" opacity=".95"/><path d="M24 12v24M12 24h24" stroke-width=".6" opacity=".5"/><circle cx="24" cy="24" r="11" stroke-width=".7" opacity=".45"/><path d="M15 9c-7 5-9 14-5 22 2.5 5 6.5 8.5 11 10" stroke-width="1.4" opacity=".8"/><path d="M33 9c7 5 9 14 5 22-2.5 5-6.5 8.5-11 10" stroke-width="1.4" opacity=".8"/><g opacity=".7"><ellipse cx="10.5" cy="13" rx="2.6" ry="1.2" transform="rotate(-35 10.5 13)" stroke-width=".9"/><ellipse cx="37.5" cy="13" rx="2.6" ry="1.2" transform="rotate(35 37.5 13)" stroke-width=".9"/></g><g opacity=".7"><ellipse cx="11.3" cy="19" rx="2.6" ry="1.2" transform="rotate(-35 11.3 19)" stroke-width=".9"/><ellipse cx="36.7" cy="19" rx="2.6" ry="1.2" transform="rotate(35 36.7 19)" stroke-width=".9"/></g><g opacity=".7"><ellipse cx="12.1" cy="25" rx="2.6" ry="1.2" transform="rotate(-35 12.1 25)" stroke-width=".9"/><ellipse cx="35.9" cy="25" rx="2.6" ry="1.2" transform="rotate(35 35.9 25)" stroke-width=".9"/></g><g opacity=".7"><ellipse cx="12.9" cy="31" rx="2.6" ry="1.2" transform="rotate(-35 12.9 31)" stroke-width=".9"/><ellipse cx="35.1" cy="31" rx="2.6" ry="1.2" transform="rotate(35 35.1 31)" stroke-width=".9"/></g></svg>
-          <span class="lv-wordmark">Areviax</span>
-        </span>
-        <button type="button" class="lv-profile-btn" onclick="showPage('profile')" aria-label="Profile"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--lv-fg)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="lv-profile-badge"></span></button>
-      </div>
-      <p class="lv-label-eyebrow" style="margin-top:22px;color:var(--lv-fg);opacity:.7">The Agora</p>
+      <!-- The logo + icon row that used to live here is now the single
+           #global-topbar fixed above all pages. -->
+      <p class="lv-label-eyebrow" style="margin-top:0;color:var(--lv-fg);opacity:.7">The Agora</p>
       <h1 style="margin-top:6px;color:var(--lv-fg);font-family:'Bebas Neue',sans-serif;font-weight:400;font-size:clamp(2.6rem,14vw,4rem);line-height:.9;letter-spacing:.01em;text-transform:uppercase">Rise<br><span class="lv-serif-accent lv-gold-text" style="font-size:.8em">through the ranks</span></h1>
       <div style="margin-top:14px;font-family:var(--lv-mono);font-size:11px;color:var(--lv-muted-fg)" id="lb-hero-rank">Join below to see your rank</div>
       <div class="lv-meander-bold" style="margin-top:18px"></div>
@@ -7623,18 +7565,12 @@ body[data-goal-theme="cut"] .lv-page{
 
 <!-- LEARN / SCIENCE EDUCATION -->
 <div class="page lv-page" id="page-learn">
-  <div style="height:calc(10px + max(var(--safe-top,0px),env(safe-area-inset-top,0px)));background:var(--lv-bg);margin:0 -20px"></div>
   <header class="lv-ember-wash lv-grain lv-colonnade lv-temple-glow lv-pediment" style="position:relative;overflow:hidden;margin:0 -20px 16px;padding:20px 20px 26px;border-radius:0 0 28px 28px">
     <span class="lv-ghost-numeral" style="right:-14px;top:38px">Μ</span>
     <div style="position:relative;z-index:1">
-      <div style="display:flex;align-items:center;justify-content:space-between">
-        <span style="display:flex;align-items:center;gap:8px">
-          <svg width="22" height="22" viewBox="0 0 48 48" fill="none" stroke="var(--lv-gold)" aria-hidden="true"><path d="M24 5 26.6 21.4 43 24 26.6 26.6 24 43 21.4 26.6 5 24 21.4 21.4Z" fill="var(--lv-gold)" stroke="none" opacity=".95"/><path d="M24 12v24M12 24h24" stroke-width=".6" opacity=".5"/><circle cx="24" cy="24" r="11" stroke-width=".7" opacity=".45"/><path d="M15 9c-7 5-9 14-5 22 2.5 5 6.5 8.5 11 10" stroke-width="1.4" opacity=".8"/><path d="M33 9c7 5 9 14 5 22-2.5 5-6.5 8.5-11 10" stroke-width="1.4" opacity=".8"/><g opacity=".7"><ellipse cx="10.5" cy="13" rx="2.6" ry="1.2" transform="rotate(-35 10.5 13)" stroke-width=".9"/><ellipse cx="37.5" cy="13" rx="2.6" ry="1.2" transform="rotate(35 37.5 13)" stroke-width=".9"/></g><g opacity=".7"><ellipse cx="11.3" cy="19" rx="2.6" ry="1.2" transform="rotate(-35 11.3 19)" stroke-width=".9"/><ellipse cx="36.7" cy="19" rx="2.6" ry="1.2" transform="rotate(35 36.7 19)" stroke-width=".9"/></g><g opacity=".7"><ellipse cx="12.1" cy="25" rx="2.6" ry="1.2" transform="rotate(-35 12.1 25)" stroke-width=".9"/><ellipse cx="35.9" cy="25" rx="2.6" ry="1.2" transform="rotate(35 35.9 25)" stroke-width=".9"/></g><g opacity=".7"><ellipse cx="12.9" cy="31" rx="2.6" ry="1.2" transform="rotate(-35 12.9 31)" stroke-width=".9"/><ellipse cx="35.1" cy="31" rx="2.6" ry="1.2" transform="rotate(35 35.1 31)" stroke-width=".9"/></g></svg>
-          <span class="lv-wordmark">Areviax</span>
-        </span>
-        <button type="button" class="lv-profile-btn" onclick="showPage('profile')" aria-label="Profile"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--lv-fg)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="lv-profile-badge"></span></button>
-      </div>
-      <p class="lv-label-eyebrow" style="margin-top:22px;color:var(--lv-fg);opacity:.7">The Lyceum</p>
+      <!-- The logo + icon row that used to live here is now the single
+           #global-topbar fixed above all pages. -->
+      <p class="lv-label-eyebrow" style="margin-top:0;color:var(--lv-fg);opacity:.7">The Lyceum</p>
       <h1 style="margin-top:6px;color:var(--lv-fg);font-family:'Bebas Neue',sans-serif;font-weight:400;font-size:clamp(2.6rem,14vw,4rem);line-height:.9;letter-spacing:.01em;text-transform:uppercase">Learn<br><span class="lv-serif-accent lv-gold-text" style="font-size:.8em">the science</span></h1>
       <div style="margin-top:14px;font-family:var(--lv-mono);font-size:11px;color:var(--lv-muted-fg)">9 chapters</div>
       <div class="lv-meander-bold" style="margin-top:18px"></div>
@@ -8093,7 +8029,6 @@ body[data-goal-theme="cut"] .lv-page{
 
 <!-- PROFILE -->
 <div class="page lv-page" id="page-profile">
-  <div style="height:calc(10px + max(var(--safe-top,0px),env(safe-area-inset-top,0px)));background:var(--lv-bg);margin:0 -20px"></div>
   <header class="lv-ember-wash lv-grain lv-colonnade lv-temple-glow lv-pediment" style="position:relative;overflow:hidden;margin:0 -20px 16px;padding:20px 20px 26px;border-radius:0 0 28px 28px">
     <span class="lv-ghost-numeral" style="right:-14px;top:38px">Φ</span>
     <div style="position:relative;z-index:1;text-align:center">
@@ -8224,8 +8159,7 @@ body[data-goal-theme="cut"] .lv-page{
        same one all day for everyone (deterministic by date), new again
        tomorrow. A small dose of the app's mythic voice living somewhere
        calmer than a banner or a toast. -->
-  <div class="card lv-surface" style="margin-bottom:14px">
-    <div class="ch"><span class="ct">Word of the Day</span></div>
+  <div class="card lv-surface" style="margin-bottom:14px;padding:0;overflow:hidden;border:none">
     <div class="daily-quote-card" id="daily-quote-card"></div>
   </div>
 
@@ -8341,7 +8275,6 @@ body[data-goal-theme="cut"] .lv-page{
 
 <!-- LEGAL -->
 <div class="page lv-page" id="page-legal">
-  <div style="height:calc(10px + max(var(--safe-top,0px),env(safe-area-inset-top,0px)));background:var(--lv-bg);margin:0 -20px"></div>
   <div class="lv-topbar" style="margin:0 -20px 16px">
     <span style="display:flex;align-items:center;gap:8px">
       <svg width="18" height="18" viewBox="0 0 48 48" fill="none" stroke="var(--lv-gold)" aria-hidden="true"><path d="M24 5 26.6 21.4 43 24 26.6 26.6 24 43 21.4 26.6 5 24 21.4 21.4Z" fill="var(--lv-gold)" stroke="none" opacity=".95"/><path d="M24 12v24M12 24h24" stroke-width=".6" opacity=".5"/><circle cx="24" cy="24" r="11" stroke-width=".7" opacity=".45"/><path d="M15 9c-7 5-9 14-5 22 2.5 5 6.5 8.5 11 10" stroke-width="1.4" opacity=".8"/><path d="M33 9c7 5 9 14 5 22-2.5 5-6.5 8.5-11 10" stroke-width="1.4" opacity=".8"/><g opacity=".7"><ellipse cx="10.5" cy="13" rx="2.6" ry="1.2" transform="rotate(-35 10.5 13)" stroke-width=".9"/><ellipse cx="37.5" cy="13" rx="2.6" ry="1.2" transform="rotate(35 37.5 13)" stroke-width=".9"/></g><g opacity=".7"><ellipse cx="11.3" cy="19" rx="2.6" ry="1.2" transform="rotate(-35 11.3 19)" stroke-width=".9"/><ellipse cx="36.7" cy="19" rx="2.6" ry="1.2" transform="rotate(35 36.7 19)" stroke-width=".9"/></g><g opacity=".7"><ellipse cx="12.1" cy="25" rx="2.6" ry="1.2" transform="rotate(-35 12.1 25)" stroke-width=".9"/><ellipse cx="35.9" cy="25" rx="2.6" ry="1.2" transform="rotate(35 35.9 25)" stroke-width=".9"/></g><g opacity=".7"><ellipse cx="12.9" cy="31" rx="2.6" ry="1.2" transform="rotate(-35 12.9 31)" stroke-width=".9"/><ellipse cx="35.1" cy="31" rx="2.6" ry="1.2" transform="rotate(35 35.1 31)" stroke-width=".9"/></g></svg>
@@ -8443,7 +8376,6 @@ body[data-goal-theme="cut"] .lv-page{
 
 <!-- SETTINGS -->
 <div class="page lv-page" id="page-settings">
-  <div style="height:calc(10px + max(var(--safe-top,0px),env(safe-area-inset-top,0px)));background:var(--lv-bg);margin:0 -20px"></div>
   <div class="lv-topbar" style="margin:0 -20px 16px">
     <span style="display:flex;align-items:center;gap:8px">
       <svg width="18" height="18" viewBox="0 0 48 48" fill="none" stroke="var(--lv-gold)" aria-hidden="true"><path d="M24 5 26.6 21.4 43 24 26.6 26.6 24 43 21.4 26.6 5 24 21.4 21.4Z" fill="var(--lv-gold)" stroke="none" opacity=".95"/><path d="M24 12v24M12 24h24" stroke-width=".6" opacity=".5"/><circle cx="24" cy="24" r="11" stroke-width=".7" opacity=".45"/><path d="M15 9c-7 5-9 14-5 22 2.5 5 6.5 8.5 11 10" stroke-width="1.4" opacity=".8"/><path d="M33 9c7 5 9 14 5 22-2.5 5-6.5 8.5-11 10" stroke-width="1.4" opacity=".8"/><g opacity=".7"><ellipse cx="10.5" cy="13" rx="2.6" ry="1.2" transform="rotate(-35 10.5 13)" stroke-width=".9"/><ellipse cx="37.5" cy="13" rx="2.6" ry="1.2" transform="rotate(35 37.5 13)" stroke-width=".9"/></g><g opacity=".7"><ellipse cx="11.3" cy="19" rx="2.6" ry="1.2" transform="rotate(-35 11.3 19)" stroke-width=".9"/><ellipse cx="36.7" cy="19" rx="2.6" ry="1.2" transform="rotate(35 36.7 19)" stroke-width=".9"/></g><g opacity=".7"><ellipse cx="12.1" cy="25" rx="2.6" ry="1.2" transform="rotate(-35 12.1 25)" stroke-width=".9"/><ellipse cx="35.9" cy="25" rx="2.6" ry="1.2" transform="rotate(35 35.9 25)" stroke-width=".9"/></g><g opacity=".7"><ellipse cx="12.9" cy="31" rx="2.6" ry="1.2" transform="rotate(-35 12.9 31)" stroke-width=".9"/><ellipse cx="35.1" cy="31" rx="2.6" ry="1.2" transform="rotate(35 35.1 31)" stroke-width=".9"/></g></svg>
@@ -8608,7 +8540,6 @@ body[data-goal-theme="cut"] .lv-page{
      FAQ layer for now, with a clear escalation to a real human the
      moment it can't help, rather than pretending to be a full AI. -->
 <div class="page lv-page" id="page-aicoach">
-  <div style="height:calc(10px + max(var(--safe-top,0px),env(safe-area-inset-top,0px)));background:var(--lv-bg);margin:0 -20px"></div>
   <div class="lv-topbar" style="margin:0 -20px 16px">
     <span style="display:flex;align-items:center;gap:8px">
       <svg width="18" height="18" viewBox="0 0 48 48" fill="none" stroke="var(--lv-gold)" aria-hidden="true"><path d="M24 5 26.6 21.4 43 24 26.6 26.6 24 43 21.4 26.6 5 24 21.4 21.4Z" fill="var(--lv-gold)" stroke="none" opacity=".95"/><path d="M24 12v24M12 24h24" stroke-width=".6" opacity=".5"/><circle cx="24" cy="24" r="11" stroke-width=".7" opacity=".45"/></svg>
@@ -8658,7 +8589,6 @@ body[data-goal-theme="cut"] .lv-page{
      a card. Free-tier limits shown are the current design's proposal,
      not something enforced elsewhere in the app yet. -->
 <div class="page lv-page" id="page-subscription">
-  <div style="height:calc(10px + max(var(--safe-top,0px),env(safe-area-inset-top,0px)));background:var(--lv-bg);margin:0 -20px"></div>
   <div class="lv-topbar" style="margin:0 -20px 16px">
     <span style="display:flex;align-items:center;gap:8px">
       <svg width="18" height="18" viewBox="0 0 48 48" fill="none" stroke="var(--lv-gold)" aria-hidden="true"><path d="M24 5 26.6 21.4 43 24 26.6 26.6 24 43 21.4 26.6 5 24 21.4 21.4Z" fill="var(--lv-gold)" stroke="none" opacity=".95"/><path d="M24 12v24M12 24h24" stroke-width=".6" opacity=".5"/><circle cx="24" cy="24" r="11" stroke-width=".7" opacity=".45"/><path d="M15 9c-7 5-9 14-5 22 2.5 5 6.5 8.5 11 10" stroke-width="1.4" opacity=".8"/><path d="M33 9c7 5 9 14 5 22-2.5 5-6.5 8.5-11 10" stroke-width="1.4" opacity=".8"/><g opacity=".7"><ellipse cx="10.5" cy="13" rx="2.6" ry="1.2" transform="rotate(-35 10.5 13)" stroke-width=".9"/><ellipse cx="37.5" cy="13" rx="2.6" ry="1.2" transform="rotate(35 37.5 13)" stroke-width=".9"/></g><g opacity=".7"><ellipse cx="11.3" cy="19" rx="2.6" ry="1.2" transform="rotate(-35 11.3 19)" stroke-width=".9"/><ellipse cx="36.7" cy="19" rx="2.6" ry="1.2" transform="rotate(35 36.7 19)" stroke-width=".9"/></g><g opacity=".7"><ellipse cx="12.1" cy="25" rx="2.6" ry="1.2" transform="rotate(-35 12.1 25)" stroke-width=".9"/><ellipse cx="35.9" cy="25" rx="2.6" ry="1.2" transform="rotate(35 35.9 25)" stroke-width=".9"/></g><g opacity=".7"><ellipse cx="12.9" cy="31" rx="2.6" ry="1.2" transform="rotate(-35 12.9 31)" stroke-width=".9"/><ellipse cx="35.1" cy="31" rx="2.6" ry="1.2" transform="rotate(35 35.1 31)" stroke-width=".9"/></g></svg>
@@ -8702,7 +8632,6 @@ body[data-goal-theme="cut"] .lv-page{
      ROADMAP_ITEMS/renderRoadmap() below; ETAs are our own soft internal
      targets, not guarantees — worded that way deliberately. -->
 <div class="page lv-page" id="page-roadmap">
-  <div style="height:calc(10px + max(var(--safe-top,0px),env(safe-area-inset-top,0px)));background:var(--lv-bg);margin:0 -20px"></div>
   <div class="lv-topbar" style="margin:0 -20px 16px">
     <span style="display:flex;align-items:center;gap:8px">
       <svg width="18" height="18" viewBox="0 0 48 48" fill="none" stroke="var(--lv-gold)" aria-hidden="true"><path d="M24 5 26.6 21.4 43 24 26.6 26.6 24 43 21.4 26.6 5 24 21.4 21.4Z" fill="var(--lv-gold)" stroke="none" opacity=".95"/><path d="M24 12v24M12 24h24" stroke-width=".6" opacity=".5"/><circle cx="24" cy="24" r="11" stroke-width=".7" opacity=".45"/></svg>
@@ -11285,9 +11214,9 @@ function renderDailyQuote(){
   if(!el)return;
   const dayIdx=Math.floor(Date.now()/86400000);
   const q=DAILY_QUOTES[dayIdx%DAILY_QUOTES.length];
-  el.innerHTML='<div class="daily-quote-bust">'+bustSVG()+'</div>'+
-    '<div><div class="daily-quote-text">“'+q.text+'”</div>'+
-    '<div class="daily-quote-author">'+q.author+'</div></div>';
+  el.innerHTML='<div class="daily-quote-label">Word of the Day</div>'+
+    '<div class="daily-quote-text">“'+q.text+'”</div>'+
+    '<div class="daily-quote-author">'+q.author+'</div>';
 }
 function renderHallOfStatues(){
   const hall=document.getElementById('hall-of-statues');
@@ -24226,7 +24155,11 @@ function renderMuscleReadiness(){
         `</ellipse>`;
     });
   });
-  wrap.innerHTML=`<svg viewBox="0 0 880 824" preserveAspectRatio="xMidYMid meet" style="position:absolute;inset:0;width:100%;height:100%">
+  // mix-blend-mode:screen makes each glow brighten the white anatomical
+  // linework underneath it instead of sitting on top as a flat translucent
+  // color patch — reads as the muscle itself glowing rather than a sticker
+  // laid over the art.
+  wrap.innerHTML=`<svg viewBox="0 0 880 824" preserveAspectRatio="xMidYMid meet" style="position:absolute;inset:0;width:100%;height:100%;mix-blend-mode:screen">
     <defs>${defs}</defs>
     ${ellipses}
   </svg>`;
@@ -27429,17 +27362,17 @@ function renderTrials(){
       '<div class="trial-stage-card'+(isCurrent?' current':'')+(pipState==='locked'?' locked':'')+'">'+
         '<div class="trial-stage-colorzone" style="background:linear-gradient(160deg,'+stage.visual.c1+','+stage.visual.c2+')">'+
           '<div class="trial-stage-header">'+
-            '<span class="trial-stage-icon-badge">'+trialStageIconSVG(stage.visual.icon,17)+'</span>'+
+            '<span class="trial-stage-icon-badge">'+trialStageIconSVG(stage.visual.icon,20)+'</span>'+
             '<div style="min-width:0">'+
               '<div class="trial-stage-name">'+stage.name+'</div>'+
               '<div class="trial-stage-sub">'+stage.desc+'</div>'+
             '</div>'+
           '</div>'+
-          '<div class="trial-stage-visual">'+trialStageIconSVG(stage.visual.icon,46)+'</div>'+
+          '<div class="trial-stage-visual">'+trialStageIconSVG(stage.visual.icon,56)+'</div>'+
         '</div>'+
         '<div class="trial-win-row">'+
           '<div class="trial-win-pip '+pipState+'">'+
-            '<span class="win-check">'+trialsRewardIconHTML(stage,20)+'</span>'+
+            '<span class="win-check">'+trialsRewardIconHTML(stage,22)+'</span>'+
             '<span class="win-label">WIN</span>'+
             '<span class="win-reward">'+trialsRewardLine(stage)+'</span>'+
           '</div>'+
@@ -27448,15 +27381,36 @@ function renderTrials(){
     '</div>';
   }).join('');
 
+  // Full vertical overview of all 12 stages — the horizontal carousel
+  // above is a one-at-a-time swipe; this is "see the whole ladder at a
+  // glance", and what actually fills an iPhone screen out to the bottom
+  // instead of leaving dead space under one short row.
+  const listRows=TRIALS_STAGES.map((stage,i)=>{
+    const cleared=i<trialsStageIdx;
+    const isCurrent=i===trialsStageIdx&&!allCleared;
+    const rowState=cleared?'done':isCurrent?'current':'';
+    return '<div class="trial-list-row '+rowState+'">'+
+      '<span class="trial-list-num">'+(cleared?'✓':(i+1))+'</span>'+
+      '<span class="trial-list-icon" style="background:linear-gradient(160deg,'+stage.visual.c1+','+stage.visual.c2+')">'+trialStageIconSVG(stage.visual.icon,17)+'</span>'+
+      '<div class="trial-list-body">'+
+        '<div class="trial-list-name">'+stage.name+'</div>'+
+        '<div class="trial-list-desc">'+stage.desc+'</div>'+
+      '</div>'+
+      '<div class="trial-list-reward">'+trialsRewardLine(stage)+'</div>'+
+    '</div>';
+  }).join('');
+
   cont.innerHTML=
-    '<div style="text-align:center;padding:22px 18px;margin-bottom:12px;border-radius:1.75rem;color:#F3E8FF;background:linear-gradient(135deg,#7B2FF7,#3D1670);box-shadow:0 12px 30px -12px rgba(139,47,199,.65)">'+
-      '<div style="font-size:10px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;opacity:.85">Limited-Time Event</div>'+
-      '<div style="font-size:22px;font-weight:800;margin-top:4px;letter-spacing:.02em">THE AREVIAX CHAMPIONSHIP</div>'+
-      '<div style="font-size:12px;color:#E0AAFF;font-weight:700;margin-top:6px">⏳ '+timeLeftText+' left this cycle</div>'+
+    '<div style="text-align:center;padding:28px 20px;margin-bottom:14px;border-radius:1.75rem;color:#F3E8FF;background:linear-gradient(135deg,#7B2FF7,#3D1670);box-shadow:0 12px 30px -12px rgba(139,47,199,.65)">'+
+      '<div style="font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;opacity:.85">Limited-Time Event</div>'+
+      '<div style="font-size:26px;font-weight:800;margin-top:6px;letter-spacing:.02em">THE AREVIAX CHAMPIONSHIP</div>'+
+      '<div style="font-size:13.5px;color:#E0AAFF;font-weight:700;margin-top:8px">⏳ '+timeLeftText+' left this cycle</div>'+
     '</div>'+
     bannerHTML+
     '<div class="nutr-carousel-label">‹ Swipe through all 12 trials ›</div>'+
-    '<div class="nutr-carousel" id="trials-carousel">'+cards+'</div>';
+    '<div class="nutr-carousel" id="trials-carousel">'+cards+'</div>'+
+    '<div class="lv-label-eyebrow" style="margin:18px 2px 10px">All 12 trials</div>'+
+    '<div>'+listRows+'</div>';
 
   // Bring the live/most-relevant stage into view without the page loading
   // scrolled to Stage 1 every time — same reasoning as a chat app opening
@@ -28029,10 +27983,6 @@ document.addEventListener('DOMContentLoaded', function(){
     <div class="more-sheet-item" onclick="showPage('recipes');toggleMoreSheet()">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>
       <span>Recipes</span>
-    </div>
-    <div class="more-sheet-item" onclick="showPage('shop');toggleMoreSheet()">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 01-8 0"/></svg>
-      <span>Marketplace</span>
     </div>
     <div class="more-sheet-item" onclick="showPage('trophycabinet');toggleMoreSheet()">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 01-10 0V4z"/><path d="M7 5H3v2a4 4 0 004 4M17 5h4v2a4 4 0 01-4 4"/></svg>
