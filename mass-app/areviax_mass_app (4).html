@@ -9094,19 +9094,60 @@ const WARMUP_MOVES=[
   {name:'Hip Circles',duration:'30 sec',cue:'Hands on your hips, trace slow, wide circles with your hips both directions. Lower back and hip mobility before you load the spine.'},
   {name:'Jumping Jacks',duration:'45 sec',cue:'A simple way to raise your core temperature and heart rate before the working sets start — swap for marching in place if jumping isn\'t an option today.'},
 ];
+// Two stretches per muscle group — showCooldownFlow() picks ONE per
+// trained group (day-seeded so it's not the same pick every time, still
+// deterministic within a given day rather than random on every render),
+// so a returning lifter sees some real variety instead of the identical
+// stretch after every session that hits that muscle.
 const COOLDOWN_STRETCHES={
-  chest:{name:'Doorway Chest Stretch',duration:'30 sec each side',cue:'Forearm against a doorframe, elbow at shoulder height, gently lean your body forward through the doorway until you feel a stretch across your chest.'},
-  back:{name:'Child\'s Pose',duration:'30 sec',cue:'Kneel and sit back onto your heels, reaching your arms forward on the floor, letting your back round and stretch out completely.'},
-  shoulders:{name:'Cross-Body Shoulder Stretch',duration:'30 sec each side',cue:'Pull one arm straight across your chest with the other hand, keeping the pulled arm relaxed rather than fighting it.'},
-  biceps:{name:'Wall Bicep Stretch',duration:'20 sec each side',cue:'Place your palm flat on a wall behind you, arm straight, then slowly rotate your body away from the wall until you feel a stretch through the front of your arm.'},
-  triceps:{name:'Overhead Triceps Stretch',duration:'20 sec each side',cue:'Reach one arm overhead, bend the elbow so your hand drops behind your head, and gently pull the elbow with your other hand.'},
-  quads:{name:'Standing Quad Stretch',duration:'30 sec each side',cue:'Hold something for balance, pull one heel toward your glutes, keeping your knees together and hips pushed slightly forward.'},
-  hamstrings:{name:'Seated Hamstring Stretch',duration:'30 sec each side',cue:'Sit with one leg extended straight, the other bent in, and hinge forward from the hips over the straight leg, keeping your back flat rather than rounding.'},
-  glutes:{name:'Figure-4 Stretch',duration:'30 sec each side',cue:'Lying on your back, cross one ankle over the opposite knee, then pull the uncrossed leg toward your chest until you feel it in your glute.'},
-  calves:{name:'Wall Calf Stretch',duration:'30 sec each side',cue:'Hands on a wall, step one foot back with the heel flat on the floor and the leg straight, leaning forward until you feel the stretch in your calf.'},
-  core:{name:'Cobra Stretch',duration:'30 sec',cue:'Lying face down, press your palms into the floor and straighten your arms, lifting your chest while keeping your hips down.'},
+  chest:[
+    {name:'Doorway Chest Stretch',duration:'30 sec each side',cue:'Forearm against a doorframe, elbow at shoulder height, gently lean your body forward through the doorway until you feel a stretch across your chest.'},
+    {name:'Cross-Arm Chest Stretch',duration:'20 sec each side',cue:'Pull one straight arm across the front of your chest at shoulder height with the other hand, and gently rotate your torso away from that arm until you feel it across your chest and front shoulder.'},
+  ],
+  back:[
+    {name:'Child\'s Pose',duration:'30 sec',cue:'Kneel and sit back onto your heels, reaching your arms forward on the floor, letting your back round and stretch out completely.'},
+    {name:'Cat-Cow',duration:'8–10 slow reps',cue:'On hands and knees, alternate between arching your back up toward the ceiling (cat) and letting your belly drop while lifting your chest (cow), moving slowly with your breath.'},
+  ],
+  shoulders:[
+    {name:'Cross-Body Shoulder Stretch',duration:'30 sec each side',cue:'Pull one arm straight across your chest with the other hand, keeping the pulled arm relaxed rather than fighting it.'},
+    {name:'Shoulder Wall Slide',duration:'8–10 reps',cue:'Back against a wall, arms in a goalpost position touching the wall, slowly slide them up overhead and back down while keeping contact with the wall throughout.'},
+  ],
+  biceps:[
+    {name:'Wall Bicep Stretch',duration:'20 sec each side',cue:'Place your palm flat on a wall behind you, arm straight, then slowly rotate your body away from the wall until you feel a stretch through the front of your arm.'},
+    {name:'Overhead Bicep Reach',duration:'20 sec each side',cue:'Reach one arm straight up and slightly back, palm facing up, then gently lean away from that side until you feel the stretch through the front of your upper arm.'},
+  ],
+  triceps:[
+    {name:'Overhead Triceps Stretch',duration:'20 sec each side',cue:'Reach one arm overhead, bend the elbow so your hand drops behind your head, and gently pull the elbow with your other hand.'},
+    {name:'Cross-Body Triceps Stretch',duration:'20 sec each side',cue:'Bring one straight arm across your body at shoulder height, then use your other arm to pull it in closer, feeling the stretch through the back of your upper arm.'},
+  ],
+  quads:[
+    {name:'Standing Quad Stretch',duration:'30 sec each side',cue:'Hold something for balance, pull one heel toward your glutes, keeping your knees together and hips pushed slightly forward.'},
+    {name:'Couch Stretch',duration:'30 sec each side',cue:'Kneel with your back shin against a wall or couch, back foot up, front foot planted ahead of you, then gently push your hips forward until you feel a deep stretch down the front of your back leg.'},
+  ],
+  hamstrings:[
+    {name:'Seated Hamstring Stretch',duration:'30 sec each side',cue:'Sit with one leg extended straight, the other bent in, and hinge forward from the hips over the straight leg, keeping your back flat rather than rounding.'},
+    {name:'Standing Toe Touch',duration:'30 sec',cue:'Feet hip-width apart, knees very slightly bent, hinge at the hips and let your upper body hang down toward your toes, relaxing your neck and shoulders rather than forcing the reach.'},
+  ],
+  glutes:[
+    {name:'Figure-4 Stretch',duration:'30 sec each side',cue:'Lying on your back, cross one ankle over the opposite knee, then pull the uncrossed leg toward your chest until you feel it in your glute.'},
+    {name:'Pigeon Pose',duration:'30 sec each side',cue:'From a tabletop position, bring one knee forward toward your wrist with that shin angled across your body, extend the other leg straight back, and fold forward over the front leg.'},
+  ],
+  calves:[
+    {name:'Wall Calf Stretch',duration:'30 sec each side',cue:'Hands on a wall, step one foot back with the heel flat on the floor and the leg straight, leaning forward until you feel the stretch in your calf.'},
+    {name:'Downward Dog Calf Pump',duration:'30 sec',cue:'From a downward dog position, alternate slowly pedaling your heels toward the floor one at a time, feeling the stretch shift through each calf.'},
+  ],
+  core:[
+    {name:'Cobra Stretch',duration:'30 sec',cue:'Lying face down, press your palms into the floor and straighten your arms, lifting your chest while keeping your hips down.'},
+    {name:'Seated Spinal Twist',duration:'20 sec each side',cue:'Sitting with legs extended, cross one foot over the opposite knee and gently twist your torso toward the bent-knee side, using your arm against the knee for leverage.'},
+  ],
 };
-const COOLDOWN_FALLBACK=[COOLDOWN_STRETCHES.back,COOLDOWN_STRETCHES.core,COOLDOWN_STRETCHES.hamstrings];
+function pickCooldownStretch(key){
+  const options=COOLDOWN_STRETCHES[key];
+  if(!options||!options.length)return null;
+  const dayNum=Math.floor(Date.now()/86400000);
+  return options[dayNum%options.length];
+}
+const COOLDOWN_FALLBACK_KEYS=['back','core','hamstrings'];
 // Ellipse coordinates for the Muscle Readiness heatmap specifically (same
 // 0 0 880 824 dual front/back figure space as getMuscleHighlight(), but
 // NOT the same numbers anymore for every group — shoulders/biceps/
@@ -9872,6 +9913,11 @@ const EX={
         {feel:'Front of shoulder, not chest', fix:'Your arms are probably traveling too high, more like an overhead motion than a hug. Keep the movement roughly chest height, hands finishing in front of your sternum, not up near your face.'},
         {feel:'Elbows ache', fix:'You\'re likely changing your elbow bend mid-rep, turning it into a half-press. Lock your elbow angle in at the start and keep it fixed for the whole set — only your shoulder joint should move.'},
       ]},
+    {name:'Dumbbell Pullover',muscle:'chest + back',sets:3,reps:'10–12',eff:76,syn:81,safe:90,equip:['full','dumbbells','dumbbells_bench'],anim:'press',cue:'Lying flat on a bench, hold one dumbbell with both hands above your chest, then lower it back over your head in an arc until you feel a deep stretch across your chest and lats, keeping a slight bend in your elbows throughout. Pull it back over your chest along the same arc.',
+      troubleshoot:[
+        {feel:'Shoulders instead of chest/lats', fix:'You\'re probably bending your elbows more as you lower, turning it into a tricep-dominant movement. Keep the elbow bend fixed and let the stretch come from the shoulder joint, not the elbows.'},
+        {feel:'Lower back arching off the bench', fix:'Brace your core and keep your hips down — if your ribs are flaring up as the weight goes overhead, use a lighter dumbbell until you can control the range without arching.'},
+      ]},
   ],
   'upper-pull':[
     {name:'T-Bar Row',muscle:'back',sets:4,reps:'8–10',eff:91,syn:90,safe:86,equip:['full','barbell'],anim:'row',cue:'The chest-supported or bent-over angle lets you row heavier than most rows while still hammering back thickness. Pull the handle into your lower ribs, driving your elbows back rather than just curling the weight up with your arms.',
@@ -10064,6 +10110,11 @@ const EX={
         {feel:'One side working harder', fix:'Check you\'re not leaning or shrugging one shoulder higher than the other — keep the movement symmetrical and controlled on both sides.'},
         {feel:'Grip giving out before the traps do', fix:'Use lifting straps if your gym allows them — grip is the real limiter on a heavy dumbbell shrug, not trap strength, so there\'s no downside to taking it out of the equation.'},
       ]},
+    {name:'Wrist Curl',muscle:'biceps + forearms',sets:3,reps:'15–20',eff:68,syn:74,safe:97,equip:['full','dumbbells','barbell'],anim:'curl',cue:'Forearms resting on your thighs or a bench, palms up, let the weight roll down to your fingertips, then curl it back up by flexing only your wrists. A small range of motion, so go slow and controlled rather than swinging.',
+      troubleshoot:[
+        {feel:'Elbows or forearms moving', fix:'Keep your forearms completely still against your thighs or the bench — this is a wrist-only movement, any arm swing is just cheating the weight up.'},
+        {feel:'Nothing at the fingertip end of the range', fix:'You\'re probably not letting the weight roll all the way down. Let it unroll to your fingertips before curling back up for the full range this exercise depends on.'},
+      ]},
   ],
   'upper-full':[
     {name:'Incline Dumbbell Press',muscle:'chest',sets:3,reps:'8–10',eff:90,syn:89,safe:90,equip:['full','dumbbells','dumbbells_bench'],anim:'press',cue:'Set the bench to 30–45° and press the dumbbells up and slightly together, keeping the lower chest emphasis of a flat press while shifting more work to the upper chest.',
@@ -10183,6 +10234,16 @@ const EX={
     {name:'Cable Crunch',muscle:'core',sets:3,reps:'12–15',eff:87,syn:88,safe:95,equip:['cableMachine'],anim:'core',cue:'Kneel facing the cable, rope behind your neck. Round your spine and crunch down toward your knees — spinal flexion, not a hip hinge, so your hips barely move while your upper back curls down.',
       troubleshoot:[
         {feel:'Hips moving, not abs', fix:'You\'re hinging at the hips instead of curling your spine. Keep your hips still and focus the movement on rounding your upper back down toward your knees.'},
+      ]},
+    {name:'Bicycle Crunch',muscle:'core',sets:3,reps:'15–20 each side',eff:80,syn:85,safe:93,equip:['home','bodyweight','full'],anim:'core',cue:'Lying on your back, hands lightly behind your head, bring one elbow toward the opposite knee while extending the other leg out straight, then switch sides in a slow pedaling motion. Rotate from your ribs, not by yanking on your neck with your hands.',
+      troubleshoot:[
+        {feel:'Neck strain', fix:'Your hands are pulling your head forward instead of just lightly supporting it. Keep your elbows wide and let the rotation come from your core, not your arms.'},
+        {feel:'Moving too fast to feel it', fix:'Slow it right down — this is easy to rush into a flailing motion that does nothing. A slow, controlled pedal works far harder than a fast one.'},
+      ]},
+    {name:'Mountain Climber',muscle:'core',sets:3,reps:'30–40 sec',eff:78,syn:83,safe:94,equip:['home','bodyweight','full','park'],anim:'core',cue:'In a plank position, drive your knees toward your chest one at a time in a fast running motion, keeping your hips low and your core braced throughout rather than letting them pike up.',
+      troubleshoot:[
+        {feel:'Hips bouncing up and down', fix:'Brace your core harder and keep your hips at a fixed, low height — the movement should come entirely from your legs driving in and out, not your hips rising and falling.'},
+        {feel:'Lower back ache', fix:'Your hips are probably sagging toward the floor. Keep your core braced hard enough to hold a straight plank line even as your legs move.'},
       ]},
   ],
   'lower':[
@@ -10397,6 +10458,20 @@ const EX={
     {name:'Reverse Lunge',muscle:'quads + glutes',sets:3,reps:'10–12 each leg',eff:79,syn:83,safe:94,equip:['full','home','bodyweight','dumbbells'],anim:'squat',cue:'Step backward into the lunge rather than forward — generally easier on the knees than a forward lunge since there\'s less forward momentum to control, making it a good option if forward lunges bother your knees.',
       troubleshoot:[
         {feel:'Losing balance', fix:'Take a shorter step back and keep your front shin as vertical as possible for a more stable base.'},
+      ]},
+    {name:'Walking Lunge',muscle:'quads + glutes',sets:3,reps:'10–12 each leg',eff:85,syn:86,safe:88,equip:['full','home','bodyweight','dumbbells','park'],anim:'squat',cue:'Step forward into a lunge, then instead of stepping back, drive off your front foot into the next step forward, alternating legs as you travel across the room. Keep your torso upright and your front knee tracking over your foot, not caving inward.',
+      troubleshoot:[
+        {feel:'Knee caving inward', fix:'Actively push your knee out in line with your toes on every rep — a caving knee under load is a real injury risk, so drop the weight until you can control it.'},
+        {feel:'Running out of room', fix:'Use shorter steps and turn around once you reach the end of your space rather than trying to cover more ground than you have.'},
+      ]},
+    {name:'Hip Abduction (Machine)',muscle:'glutes',sets:3,reps:'15–20',eff:74,syn:80,safe:97,equip:['full'],anim:'glutes',cue:'Seated with your knees against the pads, push your legs outward against the resistance, squeezing your outer glutes at the widest point before returning under control.',
+      troubleshoot:[
+        {feel:'Barely feeling it', fix:'Slow the rep down and pause for a full second at the widest point — this is an isolation exercise that rewards a deliberate squeeze over speed.'},
+      ]},
+    {name:'Back Extension',muscle:'full posterior chain',sets:3,reps:'12–15',eff:80,syn:84,safe:90,equip:['ghdMachine'],anim:'deadlift',cue:'Hips on the pad, ankles secured, lower your torso down under control until you feel a stretch through your hamstrings and lower back, then raise back up to a straight line — stop at flat, don\'t hyperextend past it.',
+      troubleshoot:[
+        {feel:'Lower back doing all the work', fix:'Actively squeeze your glutes to drive the movement rather than just arching your lower back — think of it as a hip hinge, not a spinal crunch in reverse.'},
+        {feel:'Rounding past straight at the top', fix:'Stop the rep the moment your body forms a straight line — hyperextending backward past that adds no benefit and puts unnecessary strain on your spine.'},
       ]},
   ],
   'full':[
@@ -10905,6 +10980,40 @@ function getWalkthroughSVG(anim){
           <animate attributeName="opacity" values="0.75;1;1;0.75" keyTimes="0; 0.4; 0.55; 1" dur="2.6s" repeatCount="indefinite"/>
         </ellipse>`;
       break;
+    case 'lateral':
+      // Shoulder pivots measured directly off the artwork the same way as
+      // curl's elbows: left shoulder (143,196) — the point where the
+      // deltoid's fibers visibly converge/radiate from in the linework —
+      // right shoulder mirrored around the same ~227 centerline curl uses
+      // (2*227-143=311). The upper-arm rect is drawn hanging from that
+      // pivot down to the measured elbow position (105,303 left / 349,303
+      // right) at rest, then rotated about the shoulder — same rotate-a-
+      // rect technique as curl's forearm, just swinging out to the side
+      // (raising to roughly shoulder height) instead of up and in across
+      // the chest. Same reasoning as curl's comment applies to the sign:
+      // the left arm sweeps toward negative (out to its own left/away from
+      // the body), the right arm toward positive, mirrored — confirmed by
+      // rendering and checking the raised pose actually reads as arms out
+      // to the sides, not crossing in front of the body.
+      overlay=`
+        <g id="wtArmL${_uid}"><rect x="135" y="196" width="16" height="108" rx="8" fill="rgba(232,214,196,.55)"/></g>
+        <g id="wtArmR${_uid}"><rect x="303" y="196" width="16" height="108" rx="8" fill="rgba(232,214,196,.55)"/></g>
+        <animateTransform href="#wtArmL${_uid}" attributeName="transform" type="rotate"
+          values="-14 143 196; -95 143 196; -95 143 196; -14 143 196" keyTimes="0; 0.4; 0.55; 1"
+          dur="2.6s" repeatCount="indefinite" calcMode="spline"
+          keySplines="0.4 0 0.2 1; 0 0 1 1; 0.4 0 0.2 1"/>
+        <animateTransform href="#wtArmR${_uid}" attributeName="transform" type="rotate"
+          values="14 311 196; 95 311 196; 95 311 196; 14 311 196" keyTimes="0; 0.4; 0.55; 1"
+          dur="2.6s" repeatCount="indefinite" calcMode="spline"
+          keySplines="0.4 0 0.2 1; 0 0 1 1; 0.4 0 0.2 1"/>`;
+      pulse=`
+        <ellipse cx="143" cy="189" rx="34" ry="40" fill="url(#rgW${_uid})">
+          <animate attributeName="opacity" values="0.75;1;1;0.75" keyTimes="0; 0.4; 0.55; 1" dur="2.6s" repeatCount="indefinite"/>
+        </ellipse>
+        <ellipse cx="311" cy="189" rx="34" ry="40" fill="url(#rgW${_uid})">
+          <animate attributeName="opacity" values="0.75;1;1;0.75" keyTimes="0; 0.4; 0.55; 1" dur="2.6s" repeatCount="indefinite"/>
+        </ellipse>`;
+      break;
     default:
       // No animated rig built for this pattern yet — show the same static
       // highlighted muscle the small card thumbnail already shows, rather
@@ -10948,7 +11057,7 @@ function openWatch(i){
   const e=exs[i];if(!e)return;
   document.getElementById('watch-title').textContent=e.name;
   document.getElementById('watch-body').innerHTML=getWalkthroughSVG(e.anim);
-  document.getElementById('watch-note').textContent=(e.anim==='curl'||e.anim==='squat')
+  document.getElementById('watch-note').textContent=(e.anim==='curl'||e.anim==='squat'||e.anim==='lateral')
     ?'Overlay shows the rep path — the highlighted muscle is what should be doing the work.'
     :'No animated walkthrough built yet for this movement — showing the muscle it targets instead.';
   document.getElementById('watch-backdrop').style.display='block';
@@ -20372,10 +20481,10 @@ function completeSessionModalContinue(btn){
   if(pendingCooldownMuscles){showCooldownFlow(pendingCooldownMuscles);pendingCooldownMuscles=null;}
 }
 function showCooldownFlow(muscleGroups){
-  let moves=(muscleGroups||[]).map(k=>COOLDOWN_STRETCHES[k]).filter(Boolean);
+  const keys=(muscleGroups&&muscleGroups.length)?muscleGroups:COOLDOWN_FALLBACK_KEYS;
+  let moves=keys.map(k=>pickCooldownStretch(k)).filter(Boolean);
   const seen=new Set();
   moves=moves.filter(m=>{if(seen.has(m.name))return false;seen.add(m.name);return true;});
-  if(!moves.length)moves=COOLDOWN_FALLBACK;
   moves=moves.slice(0,4); // keep it short — a cool-down nobody finishes isn't worth much
   const overlay=document.createElement('div');
   overlay.className='achievement-overlay';
@@ -20940,6 +21049,43 @@ const FOODS_DB=[
   {name:'Pierogi (potato & cheese)',cals:45,prot:1.5,carbs:7,fats:1.3,unitGrams:20,unitName:'pierogi'},
   {name:'Churro',cals:116,prot:1.5,carbs:13,fats:6.5,unitGrams:30,unitName:'churro'},
   {name:'Baklava',cals:145,prot:2,carbs:15,fats:9,unitGrams:40,unitName:'piece'},
+
+  // ── BATCH: BRITISH CLASSICS, TAKEAWAY, CURRIES & BREADS ──
+  {name:'Lasagne',cals:145,prot:8,carbs:12,fats:7},
+  {name:'Shepherd\'s Pie',cals:120,prot:7,carbs:10,fats:6},
+  {name:'Cottage Pie',cals:118,prot:7,carbs:10,fats:5.5},
+  {name:'Chow Mein (chicken)',cals:145,prot:8,carbs:16,fats:5.5},
+  {name:'Egg Fried Rice',cals:170,prot:4,carbs:25,fats:5.5},
+  {name:'Sweet and Sour Chicken',cals:180,prot:10,carbs:22,fats:6},
+  {name:'Chicken Wings (BBQ)',cals:290,prot:24,carbs:6,fats:19,unitGrams:35,unitName:'wing'},
+  {name:'Chicken Wings (buffalo)',cals:270,prot:23,carbs:2,fats:19,unitGrams:35,unitName:'wing'},
+  {name:'Onion Rings (fried)',cals:280,prot:3.5,carbs:32,fats:15},
+  {name:'Meatballs (beef, in sauce)',cals:155,prot:12,carbs:5,fats:9.5},
+  {name:'Chilli Con Carne (no rice)',cals:135,prot:11,carbs:9,fats:6},
+  {name:'California Roll',cals:130,prot:4,carbs:22,fats:3,unitGrams:150,unitName:'roll (6pc)'},
+  {name:'Chicken Fajitas (no wrap)',cals:150,prot:18,carbs:6,fats:6},
+  {name:'Overnight Oats (made with milk)',cals:145,prot:6,carbs:20,fats:4.5},
+  {name:'Protein Pancakes',cals:190,prot:20,carbs:15,fats:5.5},
+  {name:'Milkshake (whole milk)',cals:130,prot:4,carbs:18,fats:4.5},
+  {name:'Smoothie Bowl',cals:110,prot:2.5,carbs:23,fats:1.5},
+  {name:'Acai Bowl',cals:130,prot:2,carbs:24,fats:3},
+  {name:'Pretzel (soft)',cals:340,prot:9,carbs:70,fats:2.5,unitGrams:120,unitName:'pretzel'},
+  {name:'Trail Mix',cals:480,prot:14,carbs:38,fats:31},
+  {name:'Turkey Burger (patty only)',cals:170,prot:20,carbs:0,fats:10,unitGrams:113,unitName:'patty'},
+  {name:'Fish Fingers (cooked)',cals:220,prot:12,carbs:18,fats:11,unitGrams:28,unitName:'finger'},
+  {name:'Yorkshire Pudding',cals:180,prot:6,carbs:22,fats:7.5,unitGrams:35,unitName:'pudding'},
+  {name:'Roast Potatoes',cals:150,prot:2.5,carbs:22,fats:6},
+  {name:'Chicken Tikka Masala (no rice)',cals:155,prot:14,carbs:6,fats:9},
+  {name:'Chicken Korma (no rice)',cals:190,prot:13,carbs:6,fats:13},
+  {name:'Jollof Rice',cals:170,prot:3.5,carbs:31,fats:4},
+  {name:'Plantain (fried)',cals:170,prot:1,carbs:35,fats:4},
+  {name:'Samosa (vegetable)',cals:130,prot:2.5,carbs:15,fats:7,unitGrams:50,unitName:'samosa'},
+  {name:'Onion Bhaji',cals:155,prot:3,carbs:15,fats:9,unitGrams:50,unitName:'bhaji'},
+  {name:'Naan Bread (plain)',cals:310,prot:9,carbs:52,fats:7,unitGrams:90,unitName:'naan'},
+  {name:'Chapati',cals:105,prot:3,carbs:19,fats:2,unitGrams:40,unitName:'chapati'},
+  {name:'Paratha',cals:260,prot:6,carbs:34,fats:11,unitGrams:70,unitName:'paratha'},
+  {name:'Chicken Shawarma (no wrap)',cals:170,prot:20,carbs:3,fats:9},
+  {name:'Beef Chow Fun',cals:150,prot:7,carbs:18,fats:5.5},
 ];
 
 // ── RECIPE DATABASE — for the meal plan generator ──
