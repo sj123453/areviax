@@ -1680,6 +1680,35 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .achievement-overlay.show .achievement-modal{transform:scale(1) translateY(0);opacity:1}
     .achievement-icon{font-size:52px;margin-bottom:10px;filter:drop-shadow(0 4px 12px rgba(255,210,74,.4))}
 
+    /* ── WARM-UP / COOL-DOWN FLOW MODAL ── */
+    .flow-modal{max-width:340px;text-align:left;padding:28px 24px 24px}
+    .flow-modal .achievement-icon{text-align:center;width:100%}
+    .flow-modal .achievement-title{text-align:center}
+    .flow-modal .achievement-desc{text-align:center;margin-bottom:16px}
+    .flow-move-list{display:flex;flex-direction:column;gap:8px;margin-bottom:18px}
+    .flow-move-row{
+      display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:10px;
+      background:rgba(var(--white-rgb),.04);border:1.5px solid rgba(var(--white-rgb),.08);
+      cursor:pointer;transition:background .2s,border-color .2s;
+    }
+    .flow-move-check{margin-top:1px}
+    .flow-move-row.done{background:rgba(90,200,120,.1);border-color:rgba(90,200,120,.35)}
+    .flow-move-check{
+      flex-shrink:0;width:20px;height:20px;border-radius:50%;border:1.5px solid rgba(var(--white-rgb),.25);
+      display:flex;align-items:center;justify-content:center;color:transparent;transition:all .2s;
+    }
+    .flow-move-row.done .flow-move-check{background:#5AC878;border-color:#5AC878;color:#0A0A0A}
+    .flow-move-check svg{width:12px;height:12px}
+    .flow-move-body{flex:1;min-width:0;display:flex;flex-direction:column}
+    .flow-move-name{font-size:12.5px;font-weight:700;color:#fff}
+    .flow-move-cue{font-size:10.5px;color:rgba(var(--white-rgb),.5);margin-top:2px;line-height:1.4}
+    .flow-move-dur{flex-shrink:0;font-size:10px;font-family:var(--lv-mono);color:rgba(var(--white-rgb),.45);white-space:nowrap}
+    .flow-skip-btn{
+      display:block;width:100%;text-align:center;background:none;border:none;
+      font-size:11.5px;color:rgba(var(--white-rgb),.45);text-decoration:underline;text-underline-offset:2px;
+      cursor:pointer;margin-top:4px;padding:6px;
+    }
+
     /* ── TROPHY SHOWCASE — tapping a trophy in the Cabinet used to just
        toast its name. This is the actual "step up and look at it" view:
        the same 3D-rendered relic art, large, on a lit pedestal, slowly
@@ -1751,6 +1780,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       color:rgba(var(--white-rgb),.7);font-size:14px;display:flex;align-items:center;justify-content:center;cursor:pointer;
     }
     .session-complete-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:20px}
+    .session-complete-stats.four{grid-template-columns:1fr 1fr}
     .sc-stat{background:rgba(var(--white-rgb),.04);border:1px solid rgba(var(--white-rgb),.08);border-radius:10px;padding:10px 4px}
     .sc-stat-icon{display:block;width:20px;height:20px;margin:0 auto 6px;object-fit:contain}
     .sc-stat-val{font-size:15px;font-weight:900;color:#fff;letter-spacing:-.01em}
@@ -5691,6 +5721,12 @@ body[data-goal-theme="cut"] .lv-page{
       </div>
     </div>
     <div style="font-size:10px;color:var(--muted);margin-top:8px" id="burn-meter-label">Optimal hypertrophy window</div>
+    <!-- Live calorie estimate — ticks with the session timer (see
+         renderSessTimer()/estimateStrengthCalories()). Hidden entirely
+         when there's no bodyweight on file to estimate from, same honest
+         "don't show a guessed number" rule the cardio logger already
+         follows. -->
+    <div style="font-size:11px;color:var(--orange);font-weight:700;margin-top:4px;display:none" id="sess-cal-burn"></div>
     <div style="display:flex;gap:7px;justify-content:center;margin-top:10px">
       <button class="btn btn-g btn-sm" id="timer-btn" onclick="toggleTimer()">Start</button>
       <button class="btn btn-ghost btn-sm" onclick="resetTimer()">Reset</button>
@@ -9041,6 +9077,36 @@ const MUSCLE_GROUP_LABEL={
   chest:'Chest',back:'Back',shoulders:'Shoulders',biceps:'Biceps',triceps:'Triceps',
   quads:'Quads',hamstrings:'Hamstrings',glutes:'Glutes',calves:'Calves',core:'Core'
 };
+
+// ── WARM-UP / COOL-DOWN FLOW — a short optional checklist shown before a
+// session starts and after it ends. Warm-up is one fixed generic sequence
+// (raising heart rate/loosening joints doesn't need to be muscle-specific
+// the way a stretch does); cool-down picks its moves from whichever
+// canonical muscle groups the session actually trained (musclesPresentInTag()
+// against plannedSessionExs), falling back to a small generic set for a
+// session with no exercise data. Either flow can be skipped outright —
+// "Start lifting"/"Skip warm-up" and "Done"/"Skip" both just dismiss and
+// move on, no move is ever required.
+const WARMUP_MOVES=[
+  {name:'Arm Circles',duration:'30 sec',cue:'Small circles for the first 10 seconds, gradually opening up to full-arm circles both directions. Loosens the shoulders before any pressing or pulling.'},
+  {name:'Bodyweight Squats',duration:'45 sec',cue:'Slow, controlled squats, no weight. Raises your heart rate and warms up your hips and knees before they see load.'},
+  {name:'Leg Swings',duration:'30 sec each leg',cue:'Hold something for balance, swing one leg forward and back in a controlled arc, then switch. Opens up the hips.'},
+  {name:'Hip Circles',duration:'30 sec',cue:'Hands on your hips, trace slow, wide circles with your hips both directions. Lower back and hip mobility before you load the spine.'},
+  {name:'Jumping Jacks',duration:'45 sec',cue:'A simple way to raise your core temperature and heart rate before the working sets start — swap for marching in place if jumping isn\'t an option today.'},
+];
+const COOLDOWN_STRETCHES={
+  chest:{name:'Doorway Chest Stretch',duration:'30 sec each side',cue:'Forearm against a doorframe, elbow at shoulder height, gently lean your body forward through the doorway until you feel a stretch across your chest.'},
+  back:{name:'Child\'s Pose',duration:'30 sec',cue:'Kneel and sit back onto your heels, reaching your arms forward on the floor, letting your back round and stretch out completely.'},
+  shoulders:{name:'Cross-Body Shoulder Stretch',duration:'30 sec each side',cue:'Pull one arm straight across your chest with the other hand, keeping the pulled arm relaxed rather than fighting it.'},
+  biceps:{name:'Wall Bicep Stretch',duration:'20 sec each side',cue:'Place your palm flat on a wall behind you, arm straight, then slowly rotate your body away from the wall until you feel a stretch through the front of your arm.'},
+  triceps:{name:'Overhead Triceps Stretch',duration:'20 sec each side',cue:'Reach one arm overhead, bend the elbow so your hand drops behind your head, and gently pull the elbow with your other hand.'},
+  quads:{name:'Standing Quad Stretch',duration:'30 sec each side',cue:'Hold something for balance, pull one heel toward your glutes, keeping your knees together and hips pushed slightly forward.'},
+  hamstrings:{name:'Seated Hamstring Stretch',duration:'30 sec each side',cue:'Sit with one leg extended straight, the other bent in, and hinge forward from the hips over the straight leg, keeping your back flat rather than rounding.'},
+  glutes:{name:'Figure-4 Stretch',duration:'30 sec each side',cue:'Lying on your back, cross one ankle over the opposite knee, then pull the uncrossed leg toward your chest until you feel it in your glute.'},
+  calves:{name:'Wall Calf Stretch',duration:'30 sec each side',cue:'Hands on a wall, step one foot back with the heel flat on the floor and the leg straight, leaning forward until you feel the stretch in your calf.'},
+  core:{name:'Cobra Stretch',duration:'30 sec',cue:'Lying face down, press your palms into the floor and straighten your arms, lifting your chest while keeping your hips down.'},
+};
+const COOLDOWN_FALLBACK=[COOLDOWN_STRETCHES.back,COOLDOWN_STRETCHES.core,COOLDOWN_STRETCHES.hamstrings];
 // Ellipse coordinates for the Muscle Readiness heatmap specifically (same
 // 0 0 880 824 dual front/back figure space as getMuscleHighlight(), but
 // NOT the same numbers anymore for every group — shoulders/biceps/
@@ -9988,6 +10054,16 @@ const EX={
         {feel:'Barely feeling the rear delts', fix:'You\'re probably using too much weight and relying on momentum. Drop the weight significantly and focus purely on the squeeze at the back of the movement — this exercise should feel light but very controlled.'},
         {feel:'Chest lifting off the pad', fix:'You\'re arching to generate momentum. Keep your chest pinned to the pad throughout — if it lifts, the weight is too heavy.'},
       ]},
+    {name:'Barbell Shrug',muscle:'back + traps',sets:3,reps:'10–15',eff:78,syn:80,safe:88,equip:['full','barbell'],anim:'row',cue:'Hold the bar at arm\'s length in front of your thighs and shrug your shoulders straight up toward your ears, no rolling or rotating. Pause and squeeze hard at the top for a full second, then lower under control rather than dropping the weight back down.',
+      troubleshoot:[
+        {feel:'Biceps or forearms fatiguing first', fix:'You\'re probably gripping too hard or letting your elbows bend. Keep your arms straight and relaxed — they\'re just hooks holding the bar, not part of the lift.'},
+        {feel:'Neck strain', fix:'You\'re rolling your shoulders instead of moving straight up and down. A shrug is a vertical shoulder-elevation only — rolling adds nothing but neck irritation.'},
+      ]},
+    {name:'Dumbbell Shrug',muscle:'back + traps',sets:3,reps:'10–15',eff:76,syn:79,safe:90,equip:['full','dumbbells','dumbbells_bench','home'],anim:'row',cue:'A dumbbell in each hand at your sides, shrug straight up toward your ears and hold the squeeze for a full second before lowering slowly. The neutral grip and independent sides let you go a little heavier and feel each rep more evenly than a barbell version.',
+      troubleshoot:[
+        {feel:'One side working harder', fix:'Check you\'re not leaning or shrugging one shoulder higher than the other — keep the movement symmetrical and controlled on both sides.'},
+        {feel:'Grip giving out before the traps do', fix:'Use lifting straps if your gym allows them — grip is the real limiter on a heavy dumbbell shrug, not trap strength, so there\'s no downside to taking it out of the equation.'},
+      ]},
   ],
   'upper-full':[
     {name:'Incline Dumbbell Press',muscle:'chest',sets:3,reps:'8–10',eff:90,syn:89,safe:90,equip:['full','dumbbells','dumbbells_bench'],anim:'press',cue:'Set the bench to 30–45° and press the dumbbells up and slightly together, keeping the lower chest emphasis of a flat press while shifting more work to the upper chest.',
@@ -10094,6 +10170,11 @@ const EX={
     {name:'Reverse Pec Deck',muscle:'rear delts',sets:3,reps:'12–15',eff:76,syn:82,safe:96,equip:['deltFlyMachine'],anim:'lateral',cue:'Facing into the machine, grip the handles with a slight bend in your elbows, and pull your arms back and out in a wide arc, squeezing your rear delts and upper back together at the end of each rep.',
       troubleshoot:[
         {feel:'Not feeling it in rear delts', fix:'Slow the rep down and focus on leading with your elbows rather than your hands — this is easy to turn into a shrug if you rush it.'},
+      ]},
+    {name:'Barbell Shrug',muscle:'back + traps',sets:3,reps:'10–15',eff:78,syn:80,safe:88,equip:['full','barbell'],anim:'row',cue:'Hold the bar at arm\'s length in front of your thighs and shrug your shoulders straight up toward your ears, no rolling or rotating. Pause and squeeze hard at the top for a full second, then lower under control rather than dropping the weight back down.',
+      troubleshoot:[
+        {feel:'Biceps or forearms fatiguing first', fix:'You\'re probably gripping too hard or letting your elbows bend. Keep your arms straight and relaxed — they\'re just hooks holding the bar, not part of the lift.'},
+        {feel:'Neck strain', fix:'You\'re rolling your shoulders instead of moving straight up and down. A shrug is a vertical shoulder-elevation only — rolling adds nothing but neck irritation.'},
       ]},
     {name:'Hanging Knee Raise',muscle:'core',sets:3,reps:'12–15',eff:84,syn:86,safe:92,equip:['full','home','park'],anim:'core',cue:'Hang from a bar with a still upper body, then bring your knees up toward your chest without swinging. A natural finisher on an upper day — you\'re already at the pull-up bar.',
       troubleshoot:[
@@ -10520,6 +10601,11 @@ const EX={
     {name:'Wide-Grip Barbell Row',muscle:'back',sets:4,reps:'8–10',eff:86,syn:87,safe:86,equip:['barbell'],anim:'row',cue:'Hands wider than shoulder width, hinge to roughly 45 degrees, and row the bar up toward your lower chest, leading with your elbows flared slightly out to bias your upper back and rear delts more than a close grip would.',
       troubleshoot:[
         {feel:'Lower back rounding under load', fix:'Set your hip hinge and brace your core before every rep, and reduce the weight if your back starts rounding to complete reps.'},
+      ]},
+    {name:'Barbell Shrug',muscle:'back + traps',sets:3,reps:'10–15',eff:78,syn:80,safe:88,equip:['full','barbell'],anim:'row',cue:'Hold the bar at arm\'s length in front of your thighs and shrug your shoulders straight up toward your ears, no rolling or rotating. Pause and squeeze hard at the top for a full second, then lower under control rather than dropping the weight back down.',
+      troubleshoot:[
+        {feel:'Biceps or forearms fatiguing first', fix:'You\'re probably gripping too hard or letting your elbows bend. Keep your arms straight and relaxed — they\'re just hooks holding the bar, not part of the lift.'},
+        {feel:'Neck strain', fix:'You\'re rolling your shoulders instead of moving straight up and down. A shrug is a vertical shoulder-elevation only — rolling adds nothing but neck irritation.'},
       ]},
     {name:'Cuban Press',muscle:'shoulders',sets:3,reps:'10–12',eff:74,syn:80,safe:94,equip:['full','dumbbells'],anim:'ohp',cue:'A three-part movement: upright row to elbow height, external rotation so your forearms point up, then press overhead. Slower and lighter than a normal press, built for shoulder health and rotator cuff strength rather than raw load.',
       troubleshoot:[
@@ -16661,6 +16747,21 @@ function estimateCardioCalories(activity,intensity,durationMin){
   const weightKg=profile.weight*0.453592;
   return Math.round(mets*mult*weightKg*(durationMin/60));
 }
+// STRENGTH SESSION CALORIE ESTIMATE — same honest-estimate framing and
+// bodyweight-based MET formula as the cardio one above, just a single MET
+// value (5.5) blended across working sets AND rest between them, since a
+// lifting session's total elapsed time (not just time-under-tension) is
+// what the on-screen timer actually tracks. That blended value sits
+// between "resistance training, light/moderate effort" (~3.5 MET) and
+// "vigorous effort, free weights" (~6.0 MET) in the Compendium of
+// Physical Activities — a reasonable middle for a typical hypertrophy
+// session's work:rest mix, not a precise measurement.
+const STRENGTH_SESSION_MET = 5.5;
+function estimateStrengthCalories(secs){
+  if(!profile.weight||!secs)return null; // no bodyweight on file yet — can't estimate, don't guess
+  const weightKg=profile.weight*0.453592;
+  return Math.round(STRENGTH_SESSION_MET*weightKg*(secs/3600));
+}
 let cardioSelectedActivity = CARDIO_ACTIVITIES[0];
 let cardioSelectedIntensity = 'Moderate';
 // Display/input preference only, same pattern as weightUnit/heightUnit —
@@ -18791,6 +18892,7 @@ function commitAndStartSession(){
   setTimeout(()=>{
     if(ov)ov.classList.remove('show');
     showPage('session');
+    showWarmupFlow();
   },1200);
 }
 function saveWorkout(){commitAndStartSession()}
@@ -19259,7 +19361,7 @@ function renderSessionHistory(){
     const d=parseLocalDate(s.date);
     const dLabel=d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});
     return `<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 12px;background:rgba(232,214,196,.03);border:1.5px solid var(--border2);border-radius:8px">
-      <div style="min-width:0"><div style="font-size:12px;font-weight:700;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${s.name}</div><div style="font-size:10px;color:var(--muted)">${dLabel} · ${s.exs.length} exercises${s.durationSec?' · '+Math.round(s.durationSec/60)+'min':''}</div></div>
+      <div style="min-width:0"><div style="font-size:12px;font-weight:700;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${s.name}</div><div style="font-size:10px;color:var(--muted)">${dLabel} · ${s.exs.length} exercises${s.durationSec?' · '+Math.round(s.durationSec/60)+'min':''}${s.caloriesBurned?' · ~'+s.caloriesBurned+' cal':''}</div></div>
       <button class="btn btn-out btn-sm" style="flex-shrink:0" onclick="loadSessionFromHistory(${i})">Load</button>
     </div>`;
   }).join('');
@@ -19867,6 +19969,12 @@ function renderSessTimer(){
   const m=Math.floor(secs/60),s=secs%60;
   const st=document.getElementById('sess-timer');if(st)st.textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
   updateBurnMeter(secs);
+  const calEl=document.getElementById('sess-cal-burn');
+  if(calEl){
+    const cal=estimateStrengthCalories(secs);
+    if(cal){calEl.style.display='';calEl.textContent='~'+cal.toLocaleString()+' cal burned (est.)';}
+    else calEl.style.display='none';
+  }
 }
 function toggleTimer(){
   if(!timerOn){timerStartedAt=Date.now();}
@@ -19876,7 +19984,7 @@ function toggleTimer(){
   if(timerOn)timerInt=setInterval(renderSessTimer,1000);
   else clearInterval(timerInt);
 }
-function resetTimer(){clearInterval(timerInt);timerOn=false;timerSecs=0;timerStartedAt=0;burnMeterWarned=false;const st=document.getElementById('sess-timer');if(st)st.textContent='00:00';const tb=document.getElementById('timer-btn');if(tb)tb.textContent='Start';updateBurnMeter(0)}
+function resetTimer(){clearInterval(timerInt);timerOn=false;timerSecs=0;timerStartedAt=0;burnMeterWarned=false;const st=document.getElementById('sess-timer');if(st)st.textContent='00:00';const tb=document.getElementById('timer-btn');if(tb)tb.textContent='Start';updateBurnMeter(0);const calEl=document.getElementById('sess-cal-burn');if(calEl)calEl.style.display='none';}
 
 // Rest timer, rebuilt around an absolute end timestamp instead of a
 // simple decrementing counter: mobile browsers throttle or fully suspend
@@ -20151,8 +20259,9 @@ function completeSession(nameOverride){
   const alreadyTrainedToday=(lastSessionDate===today);
   const todaysWorkoutName=nameOverride||document.getElementById('d-next-full')?.textContent||'a session';
 
+  const sessionCaloriesBurned=estimateStrengthCalories(sessionDurationSec);
   if(plannedSessionExs&&plannedSessionExs.length){
-    sessionHistory.unshift({date:today,name:todaysWorkoutName,type:plannedSessionType,exs:plannedSessionExs,durationSec:sessionDurationSec});
+    sessionHistory.unshift({date:today,name:todaysWorkoutName,type:plannedSessionType,exs:plannedSessionExs,durationSec:sessionDurationSec,caloriesBurned:sessionCaloriesBurned});
     if(sessionHistory.length>15)sessionHistory.length=15; // keep the list manageable
     if(sessionDurationSec>0)checkSessionPacing(sessionDurationSec,plannedSessionExs);
   }
@@ -20209,8 +20318,13 @@ function completeSession(nameOverride){
   checkBackupReminder();
   // Full-screen win screen only for a genuine first session of the day,
   // not the emergency rescue routine and not a same-day duplicate extra
-  // session — those aren't really "wins" worth the ceremony.
-  if(genuineWin)showSessionCompleteModal(sessionDurationSec);
+  // session — those aren't really "wins" worth the ceremony. Cool-down
+  // offer rides along on the same gate — read the muscle groups now,
+  // before plannedSessionExs gets cleared for the next visit below.
+  if(genuineWin){
+    pendingCooldownMuscles=[...new Set((plannedSessionExs||[]).flatMap(e=>musclesPresentInTag(e.muscle)))];
+    showSessionCompleteModal(sessionDurationSec,sessionCaloriesBurned);
+  }
   // Clear the just-finished plan so the NEXT visit to the Session page
   // builds a fresh one instead of re-showing the same completed session.
   // Without this, sessionEnteredAt stays truthy (the old start time) and
@@ -20225,11 +20339,63 @@ function completeSession(nameOverride){
   skippedExercises=new Set();
   sessionEnteredAt=0;
 }
-function showSessionCompleteModal(durationSec){
+function renderFlowMoveList(moves){
+  return moves.map(m=>`<div class="flow-move-row" onclick="this.classList.toggle('done')">
+    <span class="flow-move-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+    <span class="flow-move-body"><span class="flow-move-name">${m.name}</span><span class="flow-move-cue">${m.cue}</span></span>
+    <span class="flow-move-dur">${m.duration}</span>
+  </div>`).join('');
+}
+function showWarmupFlow(){
+  const overlay=document.createElement('div');
+  overlay.className='achievement-overlay';
+  overlay.innerHTML=`<div class="achievement-modal flow-modal">
+    <div class="achievement-icon">🔥</div>
+    <div class="achievement-title">Warm Up First</div>
+    <div class="achievement-desc">A few minutes here means heavier, safer working sets. Tap a move once you've done it — none of this is required.</div>
+    <div class="flow-move-list">${renderFlowMoveList(WARMUP_MOVES)}</div>
+    <button class="achievement-share-btn" onclick="this.closest('.achievement-overlay').remove()">Start lifting</button>
+    <button class="flow-skip-btn" onclick="this.closest('.achievement-overlay').remove()">Skip warm-up</button>
+  </div>`;
+  document.body.appendChild(overlay);
+  requestAnimationFrame(()=>overlay.classList.add('show'));
+}
+// Set right before a genuine-win session-complete modal shows, and consumed
+// (then cleared) the moment that modal's Continue button is tapped — this
+// is what actually decides whether a cool-down offer follows it, since the
+// win modal already gates out duplicate/rescue sessions that shouldn't get
+// the full ceremony (see completeSession()'s genuineWin check).
+let pendingCooldownMuscles=null;
+function completeSessionModalContinue(btn){
+  const overlay=btn.closest('.achievement-overlay');
+  if(overlay)overlay.remove();
+  if(pendingCooldownMuscles){showCooldownFlow(pendingCooldownMuscles);pendingCooldownMuscles=null;}
+}
+function showCooldownFlow(muscleGroups){
+  let moves=(muscleGroups||[]).map(k=>COOLDOWN_STRETCHES[k]).filter(Boolean);
+  const seen=new Set();
+  moves=moves.filter(m=>{if(seen.has(m.name))return false;seen.add(m.name);return true;});
+  if(!moves.length)moves=COOLDOWN_FALLBACK;
+  moves=moves.slice(0,4); // keep it short — a cool-down nobody finishes isn't worth much
+  const overlay=document.createElement('div');
+  overlay.className='achievement-overlay';
+  overlay.innerHTML=`<div class="achievement-modal flow-modal">
+    <div class="achievement-icon">🧘</div>
+    <div class="achievement-title">Cool Down</div>
+    <div class="achievement-desc">A short stretch for what you just trained. Tap a move once you've done it — none of this is required.</div>
+    <div class="flow-move-list">${renderFlowMoveList(moves)}</div>
+    <button class="achievement-share-btn" onclick="this.closest('.achievement-overlay').remove()">Done</button>
+    <button class="flow-skip-btn" onclick="this.closest('.achievement-overlay').remove()">Skip</button>
+  </div>`;
+  document.body.appendChild(overlay);
+  requestAnimationFrame(()=>overlay.classList.add('show'));
+}
+function showSessionCompleteModal(durationSec,caloriesBurned){
   const areteEarned=Math.max(0,Math.round(xp-sessionStartXP));
   const kgLifted=Math.max(0,Math.round(totalVolume-sessionStartVolume));
   const mins=Math.floor(durationSec/60),secs=Math.floor(durationSec%60);
   const timeStr=mins+':'+String(secs).padStart(2,'0');
+  const calStat=caloriesBurned?`<div class="sc-stat"><div class="sc-stat-icon" style="font-size:18px;line-height:20px">🔥</div><div class="sc-stat-val">${caloriesBurned.toLocaleString()}</div><div class="sc-stat-lbl">CAL BURNED</div></div>`:'';
   const overlay=document.createElement('div');
   overlay.className='achievement-overlay';
   overlay.innerHTML=`<div class="achievement-modal session-complete-modal">
@@ -20237,12 +20403,13 @@ function showSessionCompleteModal(durationSec){
     <div class="achievement-icon">🔥</div>
     <div class="achievement-title">Session complete!</div>
     <div class="achievement-desc">Making Success Real.</div>
-    <div class="session-complete-stats">
+    <div class="session-complete-stats${calStat?' four':''}">
       <div class="sc-stat"><img class="sc-stat-icon" src="images/icons/arete.png" alt=""><div class="sc-stat-val">+${areteEarned}</div><div class="sc-stat-lbl">ARETE</div></div>
       <div class="sc-stat"><div class="sc-stat-icon" style="font-size:18px;line-height:20px">💪</div><div class="sc-stat-val">${kgLifted.toLocaleString()}</div><div class="sc-stat-lbl">KG LIFTED</div></div>
       <div class="sc-stat"><div class="sc-stat-icon" style="font-size:18px;line-height:20px">⏱</div><div class="sc-stat-val">${timeStr}</div><div class="sc-stat-lbl">TRAINED</div></div>
+      ${calStat}
     </div>
-    <button class="achievement-share-btn" onclick="this.closest('.achievement-overlay').remove()">Continue</button>
+    <button class="achievement-share-btn" onclick="completeSessionModalContinue(this)">Continue</button>
   </div>`;
   document.body.appendChild(overlay);
   requestAnimationFrame(()=>overlay.classList.add('show'));
