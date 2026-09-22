@@ -5045,7 +5045,12 @@ body[data-goal-theme="cut"] .lv-page{
   <header class="lv-grain lv-pediment" style="position:relative;overflow:hidden;margin:0 -20px;padding:20px 20px 26px;border-radius:0 0 28px 28px;background-image:linear-gradient(180deg,rgba(10,7,4,.55) 0%,rgba(10,7,4,.74) 45%,rgba(10,7,4,.95) 100%),url('images/roads/realm-mortal.jpg');background-size:cover;background-position:center 25%;--lv-fg:#F7F5F2;--lv-muted-fg:#9E9791;--lv-border:#342C28;--lv-border-strong:#56433A;--lv-gold:#E6BE6D">
     <span class="lv-ghost-numeral" style="right:-12px;top:56px">Δ</span>
     <div style="position:relative;z-index:1">
-      <div style="display:flex;align-items:center;justify-content:space-between">
+      <!-- TOP BAR — the logo + icon row used to float directly on the hero
+           photo with nothing to separate it, so it competed with the art
+           behind it. Given its own solid/blurred strip (bled edge-to-edge
+           via negative margin) so the chrome reads as UI sitting above the
+           background, not as part of the photo. -->
+      <div style="margin:-20px -20px 0 -20px;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;background:rgba(8,6,4,.6);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid rgba(255,255,255,.08)">
         <span style="display:flex;align-items:center;gap:8px">
           <svg width="22" height="22" viewBox="0 0 48 48" fill="none" stroke="var(--lv-gold)" aria-hidden="true"><path d="M24 5 26.6 21.4 43 24 26.6 26.6 24 43 21.4 26.6 5 24 21.4 21.4Z" fill="var(--lv-gold)" stroke="none" opacity=".95"/><path d="M24 12v24M12 24h24" stroke-width=".6" opacity=".5"/><circle cx="24" cy="24" r="11" stroke-width=".7" opacity=".45"/><path d="M15 9c-7 5-9 14-5 22 2.5 5 6.5 8.5 11 10" stroke-width="1.4" opacity=".8"/><path d="M33 9c7 5 9 14 5 22-2.5 5-6.5 8.5-11 10" stroke-width="1.4" opacity=".8"/><g opacity=".7"><ellipse cx="10.5" cy="13" rx="2.6" ry="1.2" transform="rotate(-35 10.5 13)" stroke-width=".9"/><ellipse cx="37.5" cy="13" rx="2.6" ry="1.2" transform="rotate(35 37.5 13)" stroke-width=".9"/></g><g opacity=".7"><ellipse cx="11.3" cy="19" rx="2.6" ry="1.2" transform="rotate(-35 11.3 19)" stroke-width=".9"/><ellipse cx="36.7" cy="19" rx="2.6" ry="1.2" transform="rotate(35 36.7 19)" stroke-width=".9"/></g><g opacity=".7"><ellipse cx="12.1" cy="25" rx="2.6" ry="1.2" transform="rotate(-35 12.1 25)" stroke-width=".9"/><ellipse cx="35.9" cy="25" rx="2.6" ry="1.2" transform="rotate(35 35.9 25)" stroke-width=".9"/></g><g opacity=".7"><ellipse cx="12.9" cy="31" rx="2.6" ry="1.2" transform="rotate(-35 12.9 31)" stroke-width=".9"/><ellipse cx="35.1" cy="31" rx="2.6" ry="1.2" transform="rotate(35 35.1 31)" stroke-width=".9"/></g></svg>
           <span class="lv-wordmark">Areviax</span>
@@ -5063,14 +5068,6 @@ body[data-goal-theme="cut"] .lv-page{
             <span class="lv-road-pill-top"><img src="images/icons/arete.png" alt="" class="lv-road-pill-icon"> <span class="lv-road-arete-num">0</span></span>
             <span class="lv-road-pill-track"><span class="lv-road-pill-fill" style="width:0%"></span></span>
           </button>
-          <!-- THE AREVIAX CHAMPIONSHIP — was buried one level deep inside
-               the sidebar/mobile "More" menu only, which made it too easy
-               to forget it exists. Promoted to its own small icon button
-               right in the header row, same weight as Shop/Profile, so
-               it's a "thing" on the dashboard itself without going back to
-               being a giant banner. Removed from the More menu below since
-               this is now its one reachable spot. -->
-          <button type="button" class="lv-profile-btn" onclick="showPage('trials')" aria-label="The Areviax Championship" style="color:#C084FC;border-color:rgba(192,132,252,.4)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#C084FC" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 14.5a2.5 2.5 0 002.5 2.5 2.5 2.5 0 002.5-2.5c0-1.38-.5-2-1-3-1.07-2.14-.22-4.05 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7.5 7.5 0 11-15 0c0-1.15.43-2.29 1-3a2.5 2.5 0 002.5 2.5z"/></svg></button>
           <button type="button" class="lv-profile-btn" onclick="showPage('shop')" aria-label="Marketplace"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--lv-fg)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2 3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 01-8 0"/></svg></button>
           <button type="button" class="lv-profile-btn" onclick="showPage('profile')" aria-label="Profile"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--lv-fg)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="lv-profile-badge"></span></button>
         </div>
@@ -5081,20 +5078,19 @@ body[data-goal-theme="cut"] .lv-page{
       <h1 style="margin-top:6px;color:var(--lv-fg);font-family:'Bebas Neue',sans-serif;font-weight:400;font-size:clamp(2.6rem,14vw,4rem);line-height:.9;letter-spacing:.01em;text-transform:uppercase"><span id="dash-greeting-word1">Good</span><br><span class="lv-serif-accent lv-gold-text" id="dash-greeting-word2" style="font-size:.8em">morning</span></h1>
       <!-- Name deliberately kept OUT of the huge clamp'd headline above —
            "Good evening, Alexandria" wraps to three lines on a real name at
-           that size. Instead it now sits on the next-session row below,
-           enlarged, in the space the lifts/time/last stats used to occupy —
-           those stats were redundant with the Workout page itself, so they
-           were dropped rather than just moved. -->
-      <!-- Next-session name (left) + user's name (right, enlarged) on one
-           row — same single-row shape as every other page's hero stat +
-           summary pair, instead of the dashboard hero stacking extra rows. -->
-      <div style="margin-top:10px;display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap">
-        <div style="font-family:var(--lv-sans);font-size:15px;font-weight:800;color:var(--lv-fg)">
+           that size. Sits directly underneath it instead, its own row,
+           enlarged — the next-session name/lifts/time/last row that used
+           to live here moved below, right-aligned. -->
+      <div style="margin-top:4px;display:flex;align-items:baseline;gap:7px;font-family:var(--lv-sans);font-size:24px;font-weight:800;color:var(--lv-fg)">
+        <span id="dash-greeting-name"></span>
+        <span id="dash-title-badge" style="display:none;font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--lv-gold)"></span>
+      </div>
+
+      <!-- Next-session preview — moved to the right (was left-aligned under
+           the name) now that the name owns its own row above. -->
+      <div style="margin-top:10px;display:flex;justify-content:flex-end">
+        <div style="font-family:var(--lv-sans);font-size:15px;font-weight:800;color:var(--lv-fg);text-align:right">
           <span id="d-next-word1">Push</span> <span class="lv-serif-accent lv-gold-text" id="d-next-word2">upper</span>
-        </div>
-        <div style="display:flex;align-items:baseline;gap:6px;font-family:var(--lv-sans);font-size:19px;font-weight:800;color:var(--lv-fg)">
-          <span id="dash-greeting-name"></span>
-          <span id="dash-title-badge" style="display:none;font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--lv-gold)"></span>
         </div>
       </div>
       <div id="d-next-full" style="display:none">Push Upper</div>
@@ -5126,6 +5122,19 @@ body[data-goal-theme="cut"] .lv-page{
          that screen position (it was hiding the Sessions/Kcal/Protein
          stats on real devices). -->
     <button class="lv-ember lv-grain" onclick="showPage('workout')" style="width:100%;display:flex;align-items:center;justify-content:space-between;border:none;border-radius:1.25rem;padding:16px 20px;font-family:var(--lv-sans);font-size:16px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;cursor:pointer">Start session <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></button>
+
+    <!-- THE AREVIAX CHAMPIONSHIP — a slim full-width bar (not a small header
+         icon, not the old oversized hero banner), reachable straight off
+         the Dashboard. renderDashTrialsBar() fills in the current stage
+         name + time left. -->
+    <button type="button" class="lv-grain" onclick="showPage('trials')" style="width:100%;display:flex;align-items:center;gap:12px;border:1px solid rgba(192,132,252,.35);border-radius:1rem;padding:13px 16px;background:linear-gradient(120deg,rgba(123,47,247,.22),rgba(61,22,112,.32));cursor:pointer;text-align:left;font-family:inherit;color:inherit">
+      <span style="flex-shrink:0;width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:rgba(192,132,252,.18);border:1px solid rgba(192,132,252,.4);color:#C084FC"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 14.5a2.5 2.5 0 002.5 2.5 2.5 2.5 0 002.5-2.5c0-1.38-.5-2-1-3-1.07-2.14-.22-4.05 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7.5 7.5 0 11-15 0c0-1.15.43-2.29 1-3a2.5 2.5 0 002.5 2.5z"/></svg></span>
+      <span style="flex:1;min-width:0">
+        <span style="display:block;font-size:12.5px;font-weight:800;letter-spacing:.02em;color:var(--lv-fg)">The Areviax Championship</span>
+        <span style="display:block;margin-top:2px;font-size:10.5px;color:#C9A6EE" id="dash-trials-sub">—</span>
+      </span>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C084FC" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+    </button>
 
     <!-- YOUR RANK — the Hall of Statues' current tier, given a real home
          on the Dashboard with room to actually show progress, instead of
@@ -16975,9 +16984,22 @@ function syncLvBadges(){
   renderDashRankPill();
   syncProfileBadge();
 }
+function renderDashTrialsBar(){
+  const sub=document.getElementById('dash-trials-sub');
+  if(!sub)return; // not on this page
+  ensureTrialsEventFresh();
+  if(trialsStageIdx>=TRIALS_STAGES.length){
+    sub.textContent='All trials cleared this cycle';
+    return;
+  }
+  const stage=TRIALS_STAGES[trialsStageIdx];
+  const left=trialsTimeLeft();
+  sub.textContent=stage.name+' · '+(left.days>0?left.days+'d left':left.hours+'h left');
+}
 function renderDashHeroLovable(){
   syncLvBadges();
   renderDashTitleBadge();
+  renderDashTrialsBar();
   const greetW1=document.getElementById('dash-greeting-word1');
   const greetW2=document.getElementById('dash-greeting-word2');
   if(greetW1&&greetW2){
