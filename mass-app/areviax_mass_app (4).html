@@ -3786,6 +3786,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .road-trophy-item-icon{width:56px;height:56px;margin:0 auto 6px;display:flex;align-items:center;justify-content:center;border-radius:14px;background:rgba(232,214,196,.03);border:1.5px solid var(--border2);overflow:hidden}
     .road-trophy-item.earned .road-trophy-item-icon{border-color:rgba(255,180,90,.4);box-shadow:0 0 14px -4px rgba(255,150,50,.5)}
     .road-trophy-item-icon img{width:100%;height:100%;object-fit:contain}
+    .ms-milestone-icon img{width:100%;height:100%;object-fit:contain}
     .road-trophy-item-icon svg,.road-trophy-item-icon span{font-size:26px}
     .road-trophy-item-name{font-size:8.5px;color:var(--muted);line-height:1.3}
     .road-trophy-item.earned .road-trophy-item-name{color:rgba(var(--white-rgb),.75);font-weight:700}
@@ -11252,16 +11253,34 @@ function tenureText(){
 // achievements below), compared against real objects instead of a
 // growing kg number alone. One shared ladder for all your training,
 // not one per exercise \u2014 add more tiers here any time.
+// Each milestone now needs real session consistency too, not just raw
+// volume \u2014 the same "was meant to be volume AND sessions" bottleneck
+// philosophy Hall of Statues' TIERS already uses (see TIERS' own
+// comment), applied here since a huge one-off volume dump used to be
+// able to unlock a milestone on its own with zero real training
+// history behind it.
 const WEIGHT_MILESTONES=[
-  {kg:1000,   icon:'\ud83c\udfb9', img:'images/trophies/piano.png',    name:'Grand Piano'},
-  {kg:3000,   icon:'\ud83d\ude97', img:'images/trophies/car.png',      name:'Small Car'},
-  {kg:8000,   icon:'\ud83d\udc18', img:'images/trophies/elephant.png', name:'Elephant'},
-  {kg:20000,  icon:'\ud83d\udc0b', img:'images/trophies/orca.png',     name:'Orca'},
-  {kg:60000,  icon:'\ud83d\udc33', img:'images/trophies/whale.png',    name:'Blue Whale'},
-  {kg:150000, icon:'\ud83d\uddfd', img:'images/trophies/statue.png',   name:'Statue of Liberty'},
+  {kg:1000,   sessions:5,   icon:'\ud83c\udfb9', img:'images/trophies/piano.png',    name:'Grand Piano'},
+  {kg:3000,   sessions:12,  icon:'\ud83d\ude97', img:'images/trophies/car.png',      name:'Small Car'},
+  {kg:8000,   sessions:25,  icon:'\ud83d\udc18', img:'images/trophies/elephant.png', name:'Elephant'},
+  {kg:20000,  sessions:50,  icon:'\ud83d\udc0b', img:'images/trophies/orca.png',     name:'Orca'},
+  {kg:60000,  sessions:120, icon:'\ud83d\udc33', img:'images/trophies/whale.png',    name:'Blue Whale'},
+  {kg:150000, sessions:250, icon:'\ud83d\uddfd', img:'images/trophies/statue.png',   name:'Statue of Liberty'},
 ];
 function milestoneIconHTML(m){
   return m.img?'<img src="'+m.img+'" alt="'+m.name+'">':m.icon;
+}
+// Bottleneck progress, same idea as Hall of Statues' own rank pill:
+// whichever of volume/sessions you're furthest behind on drives the
+// percent, not an average \u2014 a huge one-off session with no real
+// consistency shouldn't read the same as steady real training.
+function milestoneUnlocked(m){
+  return (totalVolume||0)>=m.kg&&(totalSess||0)>=m.sessions;
+}
+function milestonePct(m){
+  const volPct=m.kg?(totalVolume||0)/m.kg*100:100;
+  const sessPct=m.sessions?(totalSess||0)/m.sessions*100:100;
+  return Math.max(0,Math.min(100,Math.round(Math.min(volPct,sessPct))));
 }
 
 // \u2500\u2500 LEGEND CARDS \u2014 Areviax Crate collectibles. Real bodybuilding
@@ -12400,23 +12419,22 @@ function weightRoadNodeWeight(m){
 function weightRoadNodes(){
   const ascending=[...WEIGHT_MILESTONES].sort((a,b)=>a.kg-b.kg);
   const vol=totalVolume||0;
-  const next=ascending.find(m=>vol<m.kg);
+  const next=ascending.find(m=>!milestoneUnlocked(m));
   return ascending.map((m,i)=>{
-    const claimed=vol>=m.kg;
+    const claimed=milestoneUnlocked(m);
     const isNext=!claimed&&m===next;
-    const prevKg=i===0?0:ascending[i-1].kg;
-    const pct=isNext?Math.max(0,Math.min(100,Math.round((vol-prevKg)/(m.kg-prevKg)*100))):null;
+    const pct=isNext?milestonePct(m):null;
     return {claimed,isNext,icon:milestoneIconHTML(m),valueLabel:m.kg.toLocaleString()+'kg',descLabel:m.name,progressPct:pct,weight:weightRoadNodeWeight(m),roadPos:i/(ascending.length-1||1)};
   });
 }
 function getWeightRoadSummary(){
   const ascending=[...WEIGHT_MILESTONES].sort((a,b)=>a.kg-b.kg);
   const vol=totalVolume||0;
-  const next=ascending.find(m=>vol<m.kg);
-  const pct=next?Math.max(0,Math.min(100,Math.round(vol/next.kg*100))):100;
+  const next=ascending.find(m=>!milestoneUnlocked(m));
+  const pct=next?milestonePct(next):100;
   return {
     icon:next?milestoneIconHTML(next):'\ud83c\udfcb\ufe0f',
-    text:next?(Math.round(vol).toLocaleString()+' / '+next.kg.toLocaleString()+'kg to '+next.name):'All milestones hit \u2014 '+Math.round(vol).toLocaleString()+'kg lifetime.',
+    text:next?(Math.round(vol).toLocaleString()+'kg, '+(totalSess||0)+' sessions \u2014 needs '+next.kg.toLocaleString()+'kg / '+next.sessions+' sessions for '+next.name):'All milestones hit \u2014 '+Math.round(vol).toLocaleString()+'kg lifetime.',
     pct,
   };
 }
@@ -12471,12 +12489,11 @@ function renderWeightRoadTrophies(){
   const galleryEl=document.getElementById('weight-road-trophy-gallery');
   if(!galleryEl)return;
   const ascending=[...WEIGHT_MILESTONES].sort((a,b)=>a.kg-b.kg);
-  const vol=totalVolume||0;
-  const earnedCount=ascending.filter(m=>vol>=m.kg).length;
+  const earnedCount=ascending.filter(milestoneUnlocked).length;
   if(countEl)countEl.textContent=earnedCount+'/'+ascending.length;
   galleryEl.innerHTML=ascending.map(m=>{
-    const earned=vol>=m.kg;
-    return `<div class="road-trophy-item${earned?' earned':''}" title="${m.name} — ${m.kg.toLocaleString()}kg">
+    const earned=milestoneUnlocked(m);
+    return `<div class="road-trophy-item${earned?' earned':''}" title="${m.name} — ${m.kg.toLocaleString()}kg, ${m.sessions} sessions">
       <div class="road-trophy-item-icon">${milestoneIconHTML(m)}</div>
       <div class="road-trophy-item-name">${earned?m.name:'???'}</div>
     </div>`;
@@ -12507,12 +12524,12 @@ function renderCabinetWeightMilestones(){
   if(!cont)return;
   const vol=totalVolume||0;
   const sorted=[...WEIGHT_MILESTONES].sort((a,b)=>a.kg-b.kg);
-  const next=sorted.find(m=>vol<m.kg);
-  const unlockedCount=sorted.filter(m=>vol>=m.kg).length;
+  const next=sorted.find(m=>!milestoneUnlocked(m));
+  const unlockedCount=sorted.filter(milestoneUnlocked).length;
   if(countEl)countEl.textContent=unlockedCount+'/'+sorted.length;
-  if(sub)sub.textContent=next?vol.toLocaleString()+' / '+next.kg.toLocaleString()+'kg lifetime to '+next.name:'All milestones hit \u2014 '+vol.toLocaleString()+'kg lifetime';
+  if(sub)sub.textContent=next?vol.toLocaleString()+'kg / '+(totalSess||0)+' sessions \u2014 needs '+next.kg.toLocaleString()+'kg / '+next.sessions+' sessions for '+next.name:'All milestones hit \u2014 '+vol.toLocaleString()+'kg lifetime';
   cont.innerHTML=sorted.map(m=>{
-    const claimed=vol>=m.kg;
+    const claimed=milestoneUnlocked(m);
     return `<div class="legend-card cabinet-slot iron${claimed?' unlocked':''}" onclick="viewWeightMilestone(${m.kg})">
       <div class="legend-card-icon">${claimed?milestoneIconHTML(m):'\ud83d\udd12'}</div>
       <div class="legend-card-name">${claimed?m.name:'???'}</div>
@@ -12541,9 +12558,8 @@ function renderCabinetAchievements(){
 function viewWeightMilestone(kg){
   const m=WEIGHT_MILESTONES.find(x=>x.kg===kg);
   if(!m)return;
-  const vol=totalVolume||0;
-  const unlocked=vol>=m.kg;
-  toast(unlocked?'\ud83c\udfcb\ufe0f':'\ud83d\udd12',unlocked?m.name+' \u2014 '+m.kg.toLocaleString()+'kg lifetime':m.name+' \u2014 '+m.kg.toLocaleString()+'kg lifetime needed');
+  const unlocked=milestoneUnlocked(m);
+  toast(unlocked?'\ud83c\udfcb\ufe0f':'\ud83d\udd12',unlocked?m.name+' \u2014 '+m.kg.toLocaleString()+'kg lifetime, '+(totalSess||0)+' sessions':m.name+' \u2014 needs '+m.kg.toLocaleString()+'kg lifetime and '+m.sessions+' sessions');
 }
 function viewAchievementBadge(key){
   const a=ACHIEVEMENTS.find(x=>x.key===key);
@@ -12789,7 +12805,7 @@ function setTrophyFilter(targetId,btnEl){
 function renderTrophyHeroLovable(){
   const legendTotal=LEGEND_CARDS.length,legendEarned=unlockedLegends.filter(k=>LEGEND_CARDS.some(l=>l.key===k)).length;
   const vol=totalVolume||0;
-  const msTotal=WEIGHT_MILESTONES.length,msEarned=WEIGHT_MILESTONES.filter(m=>vol>=m.kg).length;
+  const msTotal=WEIGHT_MILESTONES.length,msEarned=WEIGHT_MILESTONES.filter(milestoneUnlocked).length;
   const total=legendTotal+msTotal,earned=legendEarned+msEarned;
   const en=document.getElementById('troph-earned-num');if(en)en.textContent=earned;
   const tn=document.getElementById('troph-total-num');if(tn)tn.textContent=total;
@@ -12800,14 +12816,22 @@ function renderTrophyHeroLovable(){
 
   const card=document.getElementById('troph-closest-card');
   const sorted=[...WEIGHT_MILESTONES].sort((a,b)=>a.kg-b.kg);
-  const next=sorted.find(m=>vol<m.kg);
+  const next=sorted.find(m=>!milestoneUnlocked(m));
   if(card){
     if(next){
       card.style.display='block';
-      const pct=Math.round(vol/next.kg*100);
+      const pct=milestonePct(next);
       const pctEl=document.getElementById('troph-closest-pct');if(pctEl)pctEl.textContent=pct+'%';
       const nameEl=document.getElementById('troph-closest-name');if(nameEl)nameEl.textContent=next.name;
-      const detailEl=document.getElementById('troph-closest-detail');if(detailEl)detailEl.textContent=Math.round(next.kg-vol).toLocaleString()+'kg of lifetime volume left.';
+      const detailEl=document.getElementById('troph-closest-detail');
+      if(detailEl){
+        // Whichever of volume/sessions is the actual bottleneck gets named —
+        // "150kg of volume left" reads as false progress if sessions are
+        // really what's holding the milestone back, and vice versa.
+        const kgLeft=Math.max(0,Math.round(next.kg-vol));
+        const sessLeft=Math.max(0,next.sessions-(totalSess||0));
+        detailEl.textContent=(kgLeft>0?kgLeft.toLocaleString()+'kg':'')+(kgLeft>0&&sessLeft>0?' and ':'')+(sessLeft>0?sessLeft+' session'+(sessLeft===1?'':'s'):'')+' left.';
+      }
       const fillEl2=document.getElementById('troph-closest-fill');if(fillEl2)fillEl2.style.width=Math.min(100,pct)+'%';
     }else{
       card.style.display='none';
@@ -14620,20 +14644,13 @@ function renderTemplateList(){
 // weight equivalents, so "48,200kg" means something more tangible than a
 // bare number. Weights are approximate, picked for a fun/memorable
 // progression rather than scientific precision. ──
-const MILESTONES=[
-  {kg:500,     icon:'🐎', label:'A Racehorse'},
-  {kg:1000,    icon:'🚗', label:'A Small Car'},
-  {kg:2500,    icon:'🦏', label:'A White Rhino'},
-  {kg:5000,    icon:'🐘', label:'An Elephant'},
-  {kg:10000,   icon:'🚌', label:'A Double-Decker Bus'},
-  {kg:25000,   icon:'🦖', label:'A T-Rex'},
-  {kg:50000,   icon:'🏠', label:'A Small House'},
-  {kg:100000,  icon:'✈️', label:'A Boeing 737'},
-  {kg:150000,  icon:'🐋', label:'A Blue Whale'},
-  {kg:204000,  icon:'🗽', label:'The Statue of Liberty'},
-  {kg:300000,  icon:'🚀', label:'A Space Shuttle'},
-  {kg:500000,  icon:'🌉', label:'A Bridge Span'},
-];
+// This modal used to read its own separate MILESTONES list (12 entries,
+// different kg thresholds, emoji-only icons, no session requirement) —
+// a second, drifting-apart copy of the exact same "lifetime volume as
+// real-world weight" idea the Trophy Cabinet's Weight Milestones shelf
+// already does properly (real trophy art, volume+sessions gated). Now
+// reads WEIGHT_MILESTONES directly so there's one milestone list in the
+// whole app, not two that can quietly disagree.
 function openMilestones(){
   renderMilestones();
   document.getElementById('milestones-backdrop').style.display='block';
@@ -14671,33 +14688,35 @@ function renderRankTiers(){
 function renderMilestones(){
   const vol=totalVolume||0;
   const totEl=document.getElementById('ms-total');
-  if(totEl)totEl.textContent=Math.round(vol).toLocaleString()+' kg lifted';
-  const next=MILESTONES.find(m=>m.kg>vol);
+  if(totEl)totEl.textContent=Math.round(vol).toLocaleString()+' kg lifted, '+(totalSess||0)+' sessions';
+  const sorted=[...WEIGHT_MILESTONES].sort((a,b)=>a.kg-b.kg);
+  const next=sorted.find(m=>!milestoneUnlocked(m));
   const nextEl=document.getElementById('ms-next-card');
   if(nextEl){
     if(next){
-      const prevKg=[...MILESTONES].reverse().find(m=>m.kg<=vol)?.kg||0;
-      const pct=Math.max(2,Math.min(100,Math.round((vol-prevKg)/(next.kg-prevKg)*100)));
-      nextEl.innerHTML=`<div style="font-size:32px;margin-bottom:6px">${next.icon}</div>
+      const pct=milestonePct(next);
+      const kgLeft=Math.max(0,Math.round(next.kg-vol));
+      const sessLeft=Math.max(0,next.sessions-(totalSess||0));
+      nextEl.innerHTML=`<div class="ms-milestone-icon" style="width:48px;height:48px;margin:0 auto 6px">${milestoneIconHTML(next)}</div>
         <div style="font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,122,46,.7)">Next milestone</div>
-        <div style="font-size:16px;font-weight:800;color:var(--white);margin:2px 0 8px">${next.label}</div>
+        <div style="font-size:16px;font-weight:800;color:var(--white);margin:2px 0 8px">${next.name}</div>
         <div style="height:8px;background:var(--border);border-radius:4px;overflow:hidden"><div style="height:100%;width:${pct}%;background:linear-gradient(90deg,#FF8342,#F36717);border-radius:4px"></div></div>
-        <div style="font-size:11px;color:var(--muted);margin-top:6px">${Math.round(next.kg-vol).toLocaleString()}kg to go</div>`;
+        <div style="font-size:11px;color:var(--muted);margin-top:6px">${(kgLeft>0?kgLeft.toLocaleString()+'kg':'')+(kgLeft>0&&sessLeft>0?' and ':'')+(sessLeft>0?sessLeft+' session'+(sessLeft===1?'':'s'):'')} to go</div>`;
     } else {
-      nextEl.innerHTML=`<div style="font-size:32px;margin-bottom:6px">🏆</div>
+      nextEl.innerHTML=`<div style="width:32px;height:32px;margin:0 auto 6px;display:flex;align-items:center;justify-content:center"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 4h8v4a4 4 0 01-8 0V4z"/><path d="M8 5H4v1a4 4 0 004 4"/><path d="M16 5h4v1a4 4 0 01-4 4"/><path d="M12 13v4"/><path d="M9 21h6"/><path d="M10 17h4v4h-4z"/></svg></div>
         <div style="font-size:14px;font-weight:800;color:var(--white)">You've cleared every milestone here.</div>
-        <div style="font-size:11px;color:var(--muted);margin-top:4px">Keep stacking volume — genuinely elite territory.</div>`;
+        <div style="font-size:11px;color:var(--muted);margin-top:4px">Keep stacking volume and sessions — genuinely elite territory.</div>`;
     }
   }
   const listEl=document.getElementById('ms-list');
   if(listEl){
-    listEl.innerHTML=MILESTONES.map(m=>{
-      const done=vol>=m.kg;
+    listEl.innerHTML=sorted.map(m=>{
+      const done=milestoneUnlocked(m);
       return `<div style="display:flex;align-items:center;gap:12px;padding:12px;background:${done?'rgba(255,122,46,.06)':'var(--panel2)'};border:1.5px solid ${done?'rgba(255,122,46,.3)':'var(--border2)'};border-radius:10px;margin-bottom:8px">
-        <div style="font-size:26px;opacity:${done?'1':'.35'};filter:${done?'none':'grayscale(1)'}">${m.icon}</div>
+        <div class="ms-milestone-icon" style="width:26px;height:26px;flex-shrink:0;opacity:${done?'1':'.35'};filter:${done?'none':'grayscale(1)'}">${milestoneIconHTML(m)}</div>
         <div style="flex:1;min-width:0">
-          <div style="font-size:12.5px;font-weight:700;color:${done?'var(--white)':'var(--muted)'}">${m.label}</div>
-          <div style="font-size:10px;color:var(--muted)">${m.kg.toLocaleString()}kg lifetime</div>
+          <div style="font-size:12.5px;font-weight:700;color:${done?'var(--white)':'var(--muted)'}">${m.name}</div>
+          <div style="font-size:10px;color:var(--muted)">${m.kg.toLocaleString()}kg lifetime · ${m.sessions} sessions</div>
         </div>
         ${done?'<div style="color:var(--green);font-size:16px;flex-shrink:0">✓</div>':''}
       </div>`;
@@ -19685,7 +19704,11 @@ function logSet(ei,si,name,muscle){
   markTrainedToday();
   const prevTotalVolume=totalVolume;
   totalVolume+=effW*r;
-  const justPassed=WEIGHT_MILESTONES.find(m=>prevTotalVolume<m.kg&&totalVolume>=m.kg);
+  // Only fires when THIS set is genuinely what tips it over — needs the
+  // session count already met too, otherwise a huge one-off set with no
+  // real training history behind it could "unlock" a milestone the
+  // sessions gate says isn't earned yet.
+  const justPassed=WEIGHT_MILESTONES.find(m=>prevTotalVolume<m.kg&&totalVolume>=m.kg&&(totalSess||0)>=m.sessions);
   if(justPassed){
     const article=/^[aeiou]/i.test(justPassed.name)?'an':'a';
     toast(justPassed.icon,'You\'ve now moved the weight of '+article+' '+justPassed.name+' — lifetime total!');
