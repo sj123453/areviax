@@ -2189,6 +2189,16 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       content:'🔒';position:absolute;left:2px;top:2px;font-size:9px;line-height:1;
       opacity:.85;filter:none;z-index:2;
     }
+    /* THE AREVIAX TRIALS — the one currently-live trial in the 12-stage
+       ladder, distinct from a cleared one (checkmark, no ring) and a
+       future one (locked, desaturated). */
+    .legend-card.cabinet-slot.trials-current{
+      border:1.5px solid rgba(255,122,46,.6);
+      box-shadow:0 0 14px -3px rgba(255,122,46,.5);
+    }
+    .legend-card.cabinet-slot.trials-current .legend-card-icon{
+      font-weight:800;color:#FF8342;
+    }
 
     /* ── COMPASS DROP CRATES — a Brawl-Stars-Star-Drop-style capsule
        (hexagonal gem, tier-tinted gradient + glow, gentle float when
@@ -4838,6 +4848,7 @@ body[data-goal-theme="cut"] .lv-page{
       <div class="sb-more-item" onclick="showPage('recovery');toggleSidebarMore()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg><span>Recovery</span></div>
       <div class="sb-more-item" onclick="showPage('leaderboard');toggleSidebarMore()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg><span>Leaderboard</span></div>
       <div class="sb-more-item" onclick="showPage('leagues');toggleSidebarMore()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 01-10 0V4z"/><path d="M7 5H3v2a4 4 0 004 4M17 5h4v2a4 4 0 01-4 4"/></svg><span>Leagues</span></div>
+      <div class="sb-more-item" onclick="showPage('trials');toggleSidebarMore()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5a2.5 2.5 0 002.5 2.5 2.5 2.5 0 002.5-2.5c0-1.38-.5-2-1-3-1.07-2.14-.22-4.05 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7.5 7.5 0 11-15 0c0-1.15.43-2.29 1-3a2.5 2.5 0 002.5 2.5z"/></svg><span>The Areviax Trials</span></div>
       <div class="sb-more-item" onclick="showPage('learn');toggleSidebarMore()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg><span>The Science</span></div>
       <div class="sb-more-item" onclick="showPage('aicoach');toggleSidebarMore()"><img src="images/icons/coach-sam-portrait.png" alt="" style="width:14px;height:14px;border-radius:50%;object-fit:cover;object-position:50% 42%;flex-shrink:0"><span>Coach Sam</span></div>
       <div class="sb-more-item" onclick="showPage('subscription');toggleSidebarMore()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3 7h7l-5.5 4.5L18.5 21 12 16.5 5.5 21l2-7.5L2 9h7z"/></svg><span>Go Premium</span></div>
@@ -6597,6 +6608,17 @@ body[data-goal-theme="cut"] .lv-page{
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--lv-gold)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
   </div>
 
+  <!-- THE AREVIAX TRIALS — CTA into the fortnightly event, unlike the two
+       above this one is time-boxed, so its subtitle leads with the
+       countdown rather than a plain progress count. -->
+  <div onclick="showPage('trials')" class="lv-ember lv-grain" style="cursor:pointer;border-radius:1.75rem;padding:18px 20px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between">
+    <div>
+      <div style="font-family:var(--lv-sans);font-weight:800;font-size:17px;text-transform:uppercase;letter-spacing:.1em">The Areviax Trials</div>
+      <div style="font-family:var(--lv-mono);font-size:11px;opacity:.8;margin-top:4px" id="prog-trials-sub">Limited-time event</div>
+    </div>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
+  </div>
+
   </div><!-- /.prog-top-grid -->
 
   <div class="nutr-carousel-label">‹ Swipe for more ›</div>
@@ -7528,6 +7550,21 @@ body[data-goal-theme="cut"] .lv-page{
   </div>
   <div class="companion" style="margin-top:16px"><div class="companion-msg">Same idea as the leaderboard, with real stakes each week — finish strong and climb, coast and you'll slip back down.</div></div>
   <div id="leagues-body"></div>
+</div>
+
+<!-- THE AREVIAX TRIALS — a fortnightly limited-time event, styled after a
+     "beat the challenge, qualify for the next stage" ladder with a shared
+     loss budget across the whole run. Entirely JS-rendered into
+     #trials-body (see renderTrials()) the same way Leagues renders into
+     #leagues-body, so the layout can react to which of the 4 real states
+     (mid-run / challenge-over / all-cleared / fresh cycle just started)
+     is actually true right now rather than needing 4 near-duplicate
+     static HTML blocks. -->
+<div class="page" id="page-trials">
+  <div style="height:calc(10px + max(var(--safe-top,0px),env(safe-area-inset-top,0px)));background:var(--lv-bg);margin:0 -20px;position:relative">
+    <button onclick="showPage('profile')" aria-label="Back" style="position:absolute;left:16px;top:calc(max(var(--safe-top,0px),env(safe-area-inset-top,0px)) + 10px);z-index:2;width:32px;height:32px;border-radius:50%;background:rgba(0,0,0,.25);border:1px solid #56433A;display:flex;align-items:center;justify-content:center;cursor:pointer"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F7F5F2" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg></button>
+  </div>
+  <div id="trials-body"></div>
 </div>
 
 <!-- LEARN / SCIENCE EDUCATION -->
@@ -8777,6 +8814,9 @@ function updateMobileNav(page){
 
 // ── STATE ──
 let xp=0,streak=0,compassPts=0,totalSess=0,sessThisWeek=0;
+// THE AREVIAX TRIALS — fortnightly limited-time event, see TRIALS_STAGES
+// and evaluateTrialsForToday() further down for the full mechanic.
+let trialsEventStart='', trialsStageIdx=0, trialsLosses=0, trialsChallengeOver=false, trialsLastEvaluatedDate='', trialsClearedStages=[];
 let streakRepairDismissedDate='';
 // STREAK FREEZE — bought in the Shop, auto-consumed the moment a missed
 // day would otherwise break the streak, before the person ever sees a
@@ -9260,6 +9300,8 @@ const TITLES={
   unbowed:{name:'The Unbowed',hint:'A rare pull from any crate'},
   disciplined:{name:'The Disciplined',hint:'A rare pull from any crate'},
   ascendant:{name:'The Ascendant',hint:'A rare pull from any crate'},
+  trials_iron:{name:'The Iron-Willed',hint:'Clear Trial 10 in an Areviax Trials event'},
+  trials_champion:{name:'Champion of the Trials',hint:'Clear every trial in one Areviax Trials event'},
 };
 let unlockedTitles=[];
 let equippedTitle='';
@@ -9308,6 +9350,8 @@ const TITLE_CHIP_STYLE={
   unbowed:{bg:'linear-gradient(160deg,#E85D5D,#8E1F1F)',border:'#FF9E9E',text:'#FFF3F3'},
   disciplined:{bg:'linear-gradient(160deg,#5E97E8,#1F4A8E)',border:'#A8CBFF',text:'#F1F7FF'},
   ascendant:{bg:'linear-gradient(160deg,#FFCE54,#B87A0A)',border:'#FFE9A8',text:'#FFF9E8'},
+  trials_iron:{bg:'linear-gradient(160deg,#B8860B,#5C4409)',border:'#E8C468',text:'#FFF6DF'},
+  trials_champion:{bg:'linear-gradient(160deg,#00E676,#00693B)',border:'#8CFFC4',text:'#EFFFF6'},
 };
 function renderTitlePicker(){
   const conts=[document.getElementById('set-title-toggle'),document.getElementById('profile-title-toggle')].filter(Boolean);
@@ -11329,6 +11373,174 @@ function checkLabors(){
   });
   if(anyNew){try{renderLaborsPage();}catch(e){}}
   return anyNew;
+}
+
+// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550 THE AREVIAX TRIALS \u2014 fortnightly limited-time event \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+// Modelled on Brawl Stars' Championship Challenge: a time-boxed run through
+// 12 numbered trials, each needing exactly one qualifying day to clear
+// before the next unlocks, with a shared loss counter (capped at 4) that
+// ends the whole run early if you attempt a trial and miss it too many
+// times. Unlike THE 12 LABORS above (a permanent, one-time checklist),
+// this is a real "event" \u2014 a fresh set of 12 begins automatically every
+// 14 days, so it never becomes a second always-on grind sitting next to
+// Labors, it's a distinct thing you either catch this cycle or miss.
+//
+// An "attempt" only happens on a day you actually trained \u2014 see
+// evaluateTrialsUpTo(), which judges each COMPLETED day (yesterday and
+// earlier, never today) the next time the app opens, once nutrition and
+// training for that day are both fully logged. Judging same-day at the
+// moment a session finishes was the first draft of this, but that meant
+// a morning workout got judged against a nutrition target with zero food
+// logged yet \u2014 nutrition-based trials would fail almost by construction.
+// One evaluation pass per day of delay instead: you find out how
+// yesterday went the next time you open the app, using that day's real,
+// finished numbers. Rest days are never judged at all \u2014 only a day with
+// tonnageLog entries counts as an attempt, so skipping planned rest days
+// never burns a loss.
+const TRIALS_CYCLE_DAYS=14;
+const TRIALS_LOSS_CAP=4;
+function trialsTrainedOnDate(d){ return tonnageLog.some(e=>e.date===d); }
+function trialsTonnageOnDate(d){ return tonnageLog.filter(e=>e.date===d).reduce((s,e)=>s+e.tonnage,0); }
+function trialsSetCountOnDate(d){ return tonnageLog.filter(e=>e.date===d).length; }
+function trialsMuscleGroupCountOnDate(d){
+  const groups=new Set();
+  tonnageLog.filter(e=>e.date===d).forEach(e=>{const g=PROG_MUSCLE_GROUP[e.muscle];if(g)groups.add(g);});
+  return groups.size;
+}
+// Max single-day tonnage strictly BEFORE d \u2014 never including d itself or
+// anything after it, so a catch-up pass judging several missed days in a
+// row can't let a later day's big session retroactively "beat the record"
+// on an earlier one.
+function trialsMaxTonnageBefore(d){
+  const byDate={};
+  tonnageLog.forEach(e=>{ if(e.date<d) byDate[e.date]=(byDate[e.date]||0)+e.tonnage; });
+  const vals=Object.values(byDate);
+  return vals.length?Math.max(...vals):0;
+}
+function trialsCaloriesOnDate(d){ return (foodLogByDate[d]||[]).reduce((s,it)=>s+(it.cals||0),0); }
+const TRIALS_STAGES=[
+  {key:'threshold', name:'The Threshold', desc:'Complete a training session.',
+    checkWin:(d)=>trialsTrainedOnDate(d),
+    reward:{type:'drachma',amount:10}},
+  {key:'iron', name:'Trial of Iron', desc:'Log 15 or more sets in one session.',
+    checkWin:(d)=>trialsSetCountOnDate(d)>=15,
+    reward:{type:'drachma',amount:15}},
+  {key:'balance', name:'Trial of Balance', desc:'Train 3 or more muscle groups in one session.',
+    checkWin:(d)=>trialsMuscleGroupCountOnDate(d)>=3,
+    reward:{type:'drachma',amount:20}},
+  {key:'swift', name:'Trial of the Swift', desc:'Finish a full session in under 40 minutes.',
+    checkWin:(d)=>sessionHistory.some(s=>s.date===d&&s.durationSec>0&&s.durationSec<2400),
+    reward:{type:'crate',tier:'bronze'}},
+  {key:'discipline', name:'Trial of Discipline', desc:'Hit your protein target.',
+    checkWin:(d)=>proteinHitDates.includes(d),
+    reward:{type:'crate',tier:'bronze'}},
+  {key:'appetite', name:'Trial of Appetite', desc:'Land within 100kcal of your calorie target.',
+    checkWin:(d)=>profile.cals>0&&Math.abs(trialsCaloriesOnDate(d)-profile.cals)<=100,
+    reward:{type:'crate',tier:'silver'}},
+  {key:'growth', name:'Trial of Growth', desc:'Set a new PR on any lift.',
+    checkWin:(d)=>prHistory.some(p=>p.date===d),
+    reward:{type:'crate',tier:'silver'}},
+  {key:'endurance', name:'Trial of Endurance', desc:'Log 20 or more sets in one session.',
+    checkWin:(d)=>trialsSetCountOnDate(d)>=20,
+    reward:{type:'crate',tier:'gold'}},
+  {key:'mastery', name:'Trial of Mastery', desc:'Beat your best single-session tonnage record.',
+    checkWin:(d)=>trialsTonnageOnDate(d)>0&&trialsTonnageOnDate(d)>trialsMaxTonnageBefore(d),
+    reward:{type:'crate',tier:'gold'}},
+  {key:'unbroken', name:'Trial of the Unbroken', desc:'Hit your protein target 3 days running.',
+    checkWin:(d)=>{
+      let streakLen=0;
+      for(let i=0;i<3;i++){
+        const dt=new Date(d+'T00:00:00');dt.setDate(dt.getDate()-i);
+        if(proteinHitDates.includes(localDateKey(dt)))streakLen++;else break;
+      }
+      return streakLen>=3;
+    },
+    reward:{type:'title',key:'trials_iron'}},
+  {key:'elite', name:'Trial of the Elite', desc:'Set a new PR and hit your protein target the same day.',
+    checkWin:(d)=>prHistory.some(p=>p.date===d)&&proteinHitDates.includes(d),
+    reward:{type:'crate',tier:'diamond'}},
+  {key:'ascension', name:'The Final Trial \u2014 Ascension', desc:'Train, hit your protein target, and beat your tonnage record \u2014 all in one day.',
+    checkWin:(d)=>trialsTonnageOnDate(d)>0&&trialsTonnageOnDate(d)>trialsMaxTonnageBefore(d)&&proteinHitDates.includes(d),
+    reward:{type:'title',key:'trials_champion',crateTier:'diamond',xp:150}},
+];
+// Starts a fresh 14-day run the first time this is ever called, and again
+// every time the previous run's window has fully elapsed \u2014 whether or
+// not the last run was cleared, failed, or abandoned mid-way. This is the
+// only place a new cycle begins, so every other Trials function can just
+// assume trialsEventStart is always a live, in-window date.
+function ensureTrialsEventFresh(){
+  const cycleMs=TRIALS_CYCLE_DAYS*24*60*60*1000;
+  const started=trialsEventStart?new Date(trialsEventStart+'T00:00:00').getTime():0;
+  if(!trialsEventStart||(Date.now()-started)>=cycleMs){
+    trialsEventStart=localDateKey(new Date());
+    trialsStageIdx=0;
+    trialsLosses=0;
+    trialsChallengeOver=false;
+    trialsLastEvaluatedDate='';
+    trialsClearedStages=[];
+  }
+}
+function trialsTimeLeft(){
+  ensureTrialsEventFresh();
+  const cycleMs=TRIALS_CYCLE_DAYS*24*60*60*1000;
+  const started=new Date(trialsEventStart+'T00:00:00').getTime();
+  const remainMs=Math.max(0,cycleMs-(Date.now()-started));
+  return {days:Math.floor(remainMs/86400000), hours:Math.floor((remainMs%86400000)/3600000)};
+}
+function grantTrialsReward(stage){
+  const r=stage.reward;
+  if(r.type==='drachma'){
+    drachma+=r.amount;
+    toast('\ud83e\ude99',stage.name+' cleared \u2014 +'+r.amount+' Tetradrachms!');
+  }else if(r.type==='crate'){
+    if(r.tier==='bronze')bronzeDropBank++;
+    else if(r.tier==='silver')silverDropBank++;
+    else if(r.tier==='gold')keyBank++;
+    else if(r.tier==='diamond')diamondDropBank++;
+    toast('\ud83d\udce6',stage.name+' cleared \u2014 '+r.tier[0].toUpperCase()+r.tier.slice(1)+' Crate banked!');
+  }else if(r.type==='title'){
+    unlockTitle(r.key,false);
+    if(r.crateTier==='diamond')diamondDropBank++;
+    toast('\ud83c\udfc6',stage.name+' cleared \u2014 title unlocked: "'+TITLES[r.key].name+'"!');
+  }
+  if(r.xp)addXP(r.xp,'Trials: '+stage.name);
+}
+function trialsDateAfter(d){ const dt=new Date(d+'T00:00:00'); dt.setDate(dt.getDate()+1); return localDateKey(dt); }
+// The one entry point \u2014 walks every completed day between the last
+// evaluation and yesterday (inclusive), judging each in turn. Usually
+// that's zero or one day (called once per app open); if the app wasn't
+// opened for a while, this catches every missed day up in one pass so
+// nothing gets silently skipped or double-counted. Guarded to never touch
+// today, since today isn't finished yet.
+function evaluateTrialsUpTo(){
+  ensureTrialsEventFresh();
+  const yesterday=(()=>{const dt=new Date();dt.setDate(dt.getDate()-1);return localDateKey(dt);})();
+  let cursor=trialsLastEvaluatedDate?trialsDateAfter(trialsLastEvaluatedDate):trialsEventStart;
+  let guard=0,anyChange=false;
+  while(cursor<=yesterday&&guard<TRIALS_CYCLE_DAYS+1){
+    guard++;
+    if(!trialsChallengeOver&&trialsStageIdx<TRIALS_STAGES.length&&trialsTrainedOnDate(cursor)){
+      anyChange=true;
+      const stage=TRIALS_STAGES[trialsStageIdx];
+      let won=false;
+      try{won=stage.checkWin(cursor);}catch(e){won=false;}
+      if(won){
+        grantTrialsReward(stage);
+        trialsClearedStages.push(stage.key);
+        trialsStageIdx++;
+        if(trialsStageIdx>=TRIALS_STAGES.length)toast('\ud83c\udfc6','The Areviax Trials \u2014 every trial cleared this cycle!');
+      }else{
+        trialsLosses++;
+        if(trialsLosses>=TRIALS_LOSS_CAP){
+          trialsChallengeOver=true;
+          toast('\u274c','Trials challenge over \u2014 no more attempts this cycle.');
+        }
+      }
+    }
+    trialsLastEvaluatedDate=cursor;
+    cursor=trialsDateAfter(cursor);
+  }
+  if(anyChange){ saveToStorage(); try{renderTrials();}catch(e){} }
 }
 
 // \u2500\u2500 Arete ROAD \u2014 checkpoints along lifetime Arete, each unlocking something
@@ -15328,7 +15540,7 @@ function updateStreakFromActivity(){
 // only fixing itself once the user navigated away and back.
 function syncPageChrome(id){
   const sharedTopbar=document.querySelector('.topbar');
-  if(sharedTopbar)sharedTopbar.style.display=(id==='dashboard'||id==='progress'||id==='shop'||id==='trophycabinet'||id==='labors'||id==='nutrition'||id==='workout'||id==='schedule'||id==='leaderboard'||id==='xproad'||id==='trophyroad'||id==='aicoach'||id==='session'||id==='recipes'||id==='legal'||id==='settings'||id==='profile'||id==='subscription'||id==='leagues'||id==='recovery'||id==='learn'||id==='roadmap'||id==='reflection')?'none':'';
+  if(sharedTopbar)sharedTopbar.style.display=(id==='dashboard'||id==='progress'||id==='shop'||id==='trophycabinet'||id==='labors'||id==='nutrition'||id==='workout'||id==='schedule'||id==='leaderboard'||id==='xproad'||id==='trophyroad'||id==='aicoach'||id==='session'||id==='recipes'||id==='legal'||id==='settings'||id==='profile'||id==='subscription'||id==='leagues'||id==='trials'||id==='recovery'||id==='learn'||id==='roadmap'||id==='reflection')?'none':'';
   const lvTopbars=document.querySelectorAll('.lv-page-topbar');
   lvTopbars.forEach(el=>{el.style.display=(el.dataset.page===id)?'flex':'none';});
   try{syncLvBadges();}catch(e){}
@@ -15343,7 +15555,7 @@ function showPage(id){
   if(pg)pg.classList.add('active');
   document.querySelectorAll('.sb-item').forEach(i=>{if(i.getAttribute('onclick')?.includes(id))i.classList.add('active')});
   try{
-    const titles={dashboard:'Home',workout:'The Forge',session:'Session',nutrition:'Nutrition',recipes:'Recipes',progress:'Progress',shop:'Shop',trophycabinet:'Trophy Cabinet',labors:'The 12 Labors',xproad:'Arete Road',trophyroad:'The Way Home',recovery:'Recovery',schedule:'Schedule',leaderboard:'Leaderboard',leagues:'Leagues',learn:'Science',profile:'Profile',legal:'Legal',settings:'Settings',aicoach:'Coach Sam',subscription:'Go Premium',roadmap:'Roadmap',reflection:'Daily Reflection'};
+    const titles={dashboard:'Home',workout:'The Forge',session:'Session',nutrition:'Nutrition',recipes:'Recipes',progress:'Progress',shop:'Shop',trophycabinet:'Trophy Cabinet',labors:'The 12 Labors',xproad:'Arete Road',trophyroad:'The Way Home',recovery:'Recovery',schedule:'Schedule',leaderboard:'Leaderboard',leagues:'Leagues',trials:'The Areviax Trials',learn:'Science',profile:'Profile',legal:'Legal',settings:'Settings',aicoach:'Coach Sam',subscription:'Go Premium',roadmap:'Roadmap',reflection:'Daily Reflection'};
     const t=titles[id]||id;
     const tte=document.getElementById('tb-title');
     if(tte){tte.textContent=t;tte.classList.toggle('tb-title-sm',id==='trophycabinet');}
@@ -15408,6 +15620,7 @@ function showPage(id){
   if(id==='xproad'){roadIntroPending=true;safeRender(renderXpRoad,'xproad');}
   if(id==='trophyroad'){roadIntroPending=true;safeRender(renderTrophyRoad,'trophyroad');}
   if(id==='leagues')safeRender(renderLeagues,'leagues');
+  if(id==='trials')safeRender(renderTrials,'trials');
   if(id==='recovery')safeRender(renderRecoveryPage,'recovery');
   if(id==='schedule')safeRender(renderSchedule,'schedule');
   if(id==='leaderboard')safeRender(renderLB,'leaderboard');
@@ -15935,6 +16148,14 @@ function renderProgressTrophyBanner(){
   el.textContent=unlockedLegends.filter(k=>LEGEND_CARDS.some(l=>l.key===k)).length+' of '+LEGEND_CARDS.length+' unlocked';
   const labEl=document.getElementById('prog-labors-sub');
   if(labEl)labEl.textContent=Object.keys(laborsCompleted).length+' of '+LABORS.length+' complete';
+  const trialsEl=document.getElementById('prog-trials-sub');
+  if(trialsEl){
+    try{
+      ensureTrialsEventFresh();
+      const t=trialsTimeLeft();
+      trialsEl.textContent=(trialsChallengeOver?'Over — ':trialsStageIdx>=TRIALS_STAGES.length?'All cleared — ':trialsStageIdx+' of '+TRIALS_STAGES.length+' cleared — ')+t.days+'d '+t.hours+'h left';
+    }catch(e){}
+  }
 }
 function renderLaborsPage(){
   const doneEl=document.getElementById('labors-done-num');
@@ -26708,6 +26929,79 @@ function renderLeagueLadder(){
     '</div>';
   }).join('')+'</div>';
 }
+// Four real states this can be in: mid-run (train today, find out tomorrow),
+// challenge-over (loss cap hit, waiting out the rest of this cycle),
+// all-cleared (every trial done, still waiting out the cycle), and the
+// implicit fresh-cycle state (stage 0, nothing logged yet) which mid-run's
+// own copy already reads fine for, so it gets no special-case branch.
+function renderTrials(){
+  ensureTrialsEventFresh();
+  const cont=document.getElementById('trials-body');
+  if(!cont)return;
+  const t=trialsTimeLeft();
+  const timeLeftText=t.days+'d '+t.hours+'h';
+  const lossPips=Array.from({length:TRIALS_LOSS_CAP},(_,i)=>{
+    const used=i<trialsLosses;
+    return '<div style="width:24px;height:24px;border-radius:50%;border:1.5px solid '+(used?'#E8314A':'var(--border2)')+';background:'+(used?'rgba(232,49,74,.15)':'transparent')+';display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:'+(used?'#E8314A':'var(--muted)')+'">✕</div>';
+  }).join('');
+  const allCleared=trialsStageIdx>=TRIALS_STAGES.length;
+
+  let statusHTML;
+  if(trialsChallengeOver){
+    statusHTML='<div class="card lv-surface" style="text-align:center;padding:24px 18px;border-color:rgba(232,49,74,.35)">'+
+      '<div style="font-size:13px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#E8314A">Challenge Over</div>'+
+      '<div style="font-size:12px;color:var(--muted);margin-top:6px">No more attempts this cycle — cleared '+trialsStageIdx+' of '+TRIALS_STAGES.length+' trials. New Trials begin in '+timeLeftText+'.</div>'+
+    '</div>';
+  }else if(allCleared){
+    statusHTML='<div class="card lv-surface" style="text-align:center;padding:24px 18px;border-color:rgba(0,230,118,.35)">'+
+      '<div style="font-size:13px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#00E676">All 12 Trials Cleared</div>'+
+      '<div style="font-size:12px;color:var(--muted);margin-top:6px">Champion of the Trials — this cycle\'s done. New Trials begin in '+timeLeftText+'.</div>'+
+    '</div>';
+  }else{
+    const stage=TRIALS_STAGES[trialsStageIdx];
+    const rewardText=stage.reward.type==='drachma'?('+'+stage.reward.amount+' Tetradrachms')
+      :stage.reward.type==='crate'?(stage.reward.tier[0].toUpperCase()+stage.reward.tier.slice(1)+' Crate')
+      :('Title: "'+TITLES[stage.reward.key].name+'"'+(stage.reward.crateTier?' + Diamond Crate':''));
+    statusHTML='<div class="card lv-surface" style="padding:20px 18px">'+
+      '<div style="font-size:9px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,122,46,.75)">Trial '+(trialsStageIdx+1)+' of '+TRIALS_STAGES.length+'</div>'+
+      '<div style="font-size:17px;font-weight:800;color:var(--white);margin-top:4px">'+stage.name+'</div>'+
+      '<div style="font-size:12.5px;color:var(--muted);margin-top:6px;line-height:1.5">'+stage.desc+'</div>'+
+      '<div style="font-size:11px;font-weight:700;color:#FFB347;margin-top:10px">🎁 Reward: '+rewardText+'</div>'+
+      '<div style="font-size:10.5px;color:var(--muted);margin-top:10px;font-style:italic">Train today to attempt this trial — you\'ll see whether it cleared the next time you open the app.</div>'+
+    '</div>';
+  }
+
+  const ladder=TRIALS_STAGES.map((stage,i)=>{
+    const cleared=i<trialsStageIdx;
+    const isCurrent=i===trialsStageIdx&&!trialsChallengeOver&&!allCleared;
+    // Current gets .unlocked too (full colour, no auto lock badge — see
+    // .legend-card.cabinet-slot:not(.unlocked)::before) even though it
+    // isn't cleared yet, since it's the one trial actually live right
+    // now — .trials-current is what actually marks it apart from a
+    // cleared one, not desaturation.
+    const icon=cleared?'✓':(isCurrent?String(i+1):'🔒');
+    return '<div class="legend-card cabinet-slot'+((cleared||isCurrent)?' unlocked':'')+(isCurrent?' trials-current':'')+'" title="'+stage.name+'">'+
+      '<div class="legend-card-icon">'+icon+'</div>'+
+      '<div class="legend-card-name">'+(cleared||isCurrent?stage.name:'???')+'</div>'+
+    '</div>';
+  }).join('');
+
+  cont.innerHTML=
+    '<div class="card lv-surface" style="text-align:center;padding:22px 18px;margin-bottom:12px">'+
+      '<div style="font-size:10px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)">Limited-Time Event</div>'+
+      '<div style="font-size:22px;font-weight:800;color:var(--white);margin-top:4px;letter-spacing:.02em">THE AREVIAX TRIALS</div>'+
+      '<div style="font-size:12px;color:rgba(255,122,46,.85);font-weight:700;margin-top:6px">⏳ '+timeLeftText+' left this cycle</div>'+
+    '</div>'+
+    '<div class="card lv-surface" style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;margin-bottom:12px">'+
+      '<span style="font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">Losses</span>'+
+      '<div style="display:flex;gap:8px">'+lossPips+'</div>'+
+    '</div>'+
+    statusHTML+
+    '<div class="card lv-surface" style="margin-top:12px;padding:16px 14px">'+
+      '<div style="font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:10px">All 12 Trials</div>'+
+      '<div class="cabinet-row">'+ladder+'</div>'+
+    '</div>';
+}
 function renderLeagues(){
   checkLeagueWeek();
   const cont=document.getElementById('leagues-body');
@@ -26941,6 +27235,12 @@ function saveToStorage(){
     localStorage.setItem('arx_nutritionFeedbackResponses', JSON.stringify(nutritionFeedbackResponses));
     localStorage.setItem('arx_osBusyOfferShown', osBusyOfferShown?'1':'0');
     localStorage.setItem('arx_cloudBackupConsent', JSON.stringify(cloudBackupConsent));
+    localStorage.setItem('arx_trialsEventStart', trialsEventStart);
+    localStorage.setItem('arx_trialsStageIdx', trialsStageIdx);
+    localStorage.setItem('arx_trialsLosses', trialsLosses);
+    localStorage.setItem('arx_trialsChallengeOver', trialsChallengeOver?'1':'');
+    localStorage.setItem('arx_trialsLastEvaluatedDate', trialsLastEvaluatedDate);
+    localStorage.setItem('arx_trialsClearedStages', JSON.stringify(trialsClearedStages));
   }catch(e){}
   if(cloudBackupConsent===true)autoCloudBackup(); // only ever runs with explicit opt-in
 }
@@ -27155,6 +27455,12 @@ function loadFromStorage(){
     osBusyOfferShown=localStorage.getItem('arx_osBusyOfferShown')==='1';
     const cbc=localStorage.getItem('arx_cloudBackupConsent');
     cloudBackupConsent=cbc!==null?JSON.parse(cbc):null;
+    trialsEventStart=localStorage.getItem('arx_trialsEventStart')||'';
+    trialsStageIdx=parseInt(localStorage.getItem('arx_trialsStageIdx'))||0;
+    trialsLosses=parseInt(localStorage.getItem('arx_trialsLosses'))||0;
+    trialsChallengeOver=localStorage.getItem('arx_trialsChallengeOver')==='1';
+    trialsLastEvaluatedDate=localStorage.getItem('arx_trialsLastEvaluatedDate')||'';
+    { const tcs=localStorage.getItem('arx_trialsClearedStages'); if(tcs){try{trialsClearedStages=JSON.parse(tcs);}catch(e){trialsClearedStages=[];}} }
   }catch(e){}
 }
 
@@ -27210,6 +27516,7 @@ document.addEventListener('DOMContentLoaded', function(){
     const xv=document.getElementById('xp-val');if(xv)xv.textContent=xp;
     const fv=document.getElementById('flame-val');if(fv)fv.textContent=streak;
     initApp();
+    try{evaluateTrialsUpTo();}catch(e){console.error('evaluateTrialsUpTo:',e.message);}
     try{maybeShowDailyPerspective();}catch(e){console.error('maybeShowDailyPerspective:',e.message);}
   }
   }catch(e){console.error("Init error:",e)}
@@ -27283,6 +27590,10 @@ document.addEventListener('DOMContentLoaded', function(){
     <div class="more-sheet-item" onclick="showPage('leagues');toggleMoreSheet()">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 01-10 0V4z"/><path d="M7 5H3v2a4 4 0 004 4M17 5h4v2a4 4 0 01-4 4"/></svg>
       <span>Leagues</span>
+    </div>
+    <div class="more-sheet-item" onclick="showPage('trials');toggleMoreSheet()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5a2.5 2.5 0 002.5 2.5 2.5 2.5 0 002.5-2.5c0-1.38-.5-2-1-3-1.07-2.14-.22-4.05 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7.5 7.5 0 11-15 0c0-1.15.43-2.29 1-3a2.5 2.5 0 002.5 2.5z"/></svg>
+      <span>The Areviax Trials</span>
     </div>
     <div class="more-sheet-item" onclick="showPage('learn');toggleMoreSheet()">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>
