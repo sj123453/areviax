@@ -2195,22 +2195,28 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        header zone (icon + name + criterion, unique gradient per stage —
        see TRIALS_STAGES' own visual field) sitting above a WIN pip that
        reads cleared/current/locked from one shared state class. */
-    .trial-stage-wrap{flex:0 0 auto;width:198px;scroll-snap-align:center}
+    .trial-stage-wrap{flex:0 0 auto;width:206px;scroll-snap-align:center}
     .trial-stage-label{font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;text-align:center}
-    .trial-stage-card{border-radius:16px;overflow:hidden;border:1.5px solid var(--border2);background:var(--panel2);transition:opacity .2s,filter .2s}
-    .trial-stage-card.locked{opacity:.62;filter:grayscale(.35)}
-    .trial-stage-card.current{border-color:rgba(224,170,255,.65);box-shadow:0 0 16px -3px rgba(139,47,199,.55)}
-    .trial-stage-colorzone{padding:12px 12px 6px;color:#fff}
-    .trial-stage-header{display:flex;align-items:flex-start;gap:9px}
-    .trial-stage-icon-badge{width:30px;height:30px;border-radius:8px;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0}
-    .trial-stage-name{font-size:12.5px;font-weight:800;line-height:1.25}
-    .trial-stage-sub{font-size:9.5px;color:rgba(255,255,255,.85);margin-top:3px;line-height:1.35}
-    .trial-stage-visual{display:flex;align-items:center;justify-content:center;padding:10px 0 4px;opacity:.32}
-    .trial-win-row{padding:10px 12px 12px;display:flex;justify-content:center;background:rgba(0,0,0,.22)}
-    .trial-win-pip{display:flex;flex-direction:column;align-items:center;gap:2px;padding:7px 16px;border-radius:10px;background:rgba(255,255,255,.05);min-width:90px}
-    .trial-win-pip.done{background:rgba(0,230,118,.12)}
-    .trial-win-pip.active{background:rgba(224,170,255,.15);box-shadow:inset 0 0 0 1.5px rgba(224,170,255,.4)}
-    .trial-win-pip .win-check{font-size:16px;line-height:1}
+    /* Double-bezel: an outer dark shell (the border/shadow below) holding
+       an inner coloured zone, same "machined hardware" depth cue as the
+       app's other hero cards — a flat colour block never reads as
+       premium the way a lit, slightly-inset panel does. */
+    .trial-stage-card{border-radius:20px;overflow:hidden;border:1.5px solid rgba(255,255,255,.08);background:#0E0B12;box-shadow:0 14px 28px -14px rgba(0,0,0,.6);transition:opacity .2s,filter .2s,transform .2s}
+    .trial-stage-card.locked{opacity:.55;filter:grayscale(.45)}
+    .trial-stage-card.current{border-color:rgba(224,170,255,.7);box-shadow:0 0 0 1.5px rgba(224,170,255,.35),0 16px 32px -12px rgba(139,47,199,.7)}
+    .trial-stage-colorzone{position:relative;margin:5px 5px 0;border-radius:15px;padding:13px 13px 8px;color:#fff;overflow:hidden;box-shadow:inset 0 1px 1px rgba(255,255,255,.35),inset 0 -12px 20px -10px rgba(0,0,0,.35)}
+    .trial-stage-header{position:relative;z-index:1;display:flex;align-items:flex-start;gap:9px}
+    .trial-stage-icon-badge{width:32px;height:32px;border-radius:10px;background:rgba(255,255,255,.22);box-shadow:inset 0 1px 1px rgba(255,255,255,.5),0 2px 6px -2px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .trial-stage-name{font-size:12.5px;font-weight:800;line-height:1.25;text-shadow:0 1px 2px rgba(0,0,0,.25)}
+    .trial-stage-sub{font-size:9.5px;color:rgba(255,255,255,.88);margin-top:3px;line-height:1.35}
+    .trial-stage-visual{position:relative;z-index:1;display:flex;align-items:center;justify-content:center;padding:12px 0 6px}
+    .trial-stage-visual::before{content:'';position:absolute;inset:-10px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.22),transparent 68%);z-index:-1}
+    .trial-stage-visual svg{filter:drop-shadow(0 3px 6px rgba(0,0,0,.3));opacity:.9}
+    .trial-win-row{padding:10px 12px 12px;display:flex;justify-content:center}
+    .trial-win-pip{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 16px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.06);min-width:92px}
+    .trial-win-pip.done{background:rgba(0,230,118,.12);border-color:rgba(0,230,118,.3)}
+    .trial-win-pip.active{background:rgba(224,170,255,.16);border-color:rgba(224,170,255,.5);box-shadow:0 0 12px -3px rgba(224,170,255,.5)}
+    .trial-win-pip .win-check{font-size:16px;line-height:1;display:flex}
     .trial-win-pip .win-label{font-size:8px;font-weight:800;letter-spacing:.12em;color:rgba(255,255,255,.55);margin-top:2px}
     .trial-win-pip .win-reward{font-size:10px;font-weight:700;color:#FFD24A;margin-top:1px}
 
@@ -4862,7 +4868,7 @@ body[data-goal-theme="cut"] .lv-page{
       <div class="sb-more-item" onclick="showPage('recovery');toggleSidebarMore()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg><span>Recovery</span></div>
       <div class="sb-more-item" onclick="showPage('leaderboard');toggleSidebarMore()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg><span>Leaderboard</span></div>
       <div class="sb-more-item" onclick="showPage('leagues');toggleSidebarMore()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 01-10 0V4z"/><path d="M7 5H3v2a4 4 0 004 4M17 5h4v2a4 4 0 01-4 4"/></svg><span>Leagues</span></div>
-      <div class="sb-more-item" onclick="showPage('trials');toggleSidebarMore()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5a2.5 2.5 0 002.5 2.5 2.5 2.5 0 002.5-2.5c0-1.38-.5-2-1-3-1.07-2.14-.22-4.05 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7.5 7.5 0 11-15 0c0-1.15.43-2.29 1-3a2.5 2.5 0 002.5 2.5z"/></svg><span>The Areviax Trials</span></div>
+      <div class="sb-more-item" onclick="showPage('trials');toggleSidebarMore()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5a2.5 2.5 0 002.5 2.5 2.5 2.5 0 002.5-2.5c0-1.38-.5-2-1-3-1.07-2.14-.22-4.05 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7.5 7.5 0 11-15 0c0-1.15.43-2.29 1-3a2.5 2.5 0 002.5 2.5z"/></svg><span>The Areviax Championship</span></div>
       <div class="sb-more-item" onclick="showPage('learn');toggleSidebarMore()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg><span>The Science</span></div>
       <div class="sb-more-item" onclick="showPage('aicoach');toggleSidebarMore()"><img src="images/icons/coach-sam-portrait.png" alt="" style="width:14px;height:14px;border-radius:50%;object-fit:cover;object-position:50% 42%;flex-shrink:0"><span>Coach Sam</span></div>
       <div class="sb-more-item" onclick="showPage('subscription');toggleSidebarMore()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3 7h7l-5.5 4.5L18.5 21 12 16.5 5.5 21l2-7.5L2 9h7z"/></svg><span>Go Premium</span></div>
@@ -5120,24 +5126,6 @@ body[data-goal-theme="cut"] .lv-page{
          stats on real devices). -->
     <button class="lv-ember lv-grain" onclick="showPage('workout')" style="width:100%;display:flex;align-items:center;justify-content:space-between;border:none;border-radius:1.25rem;padding:16px 20px;font-family:var(--lv-sans);font-size:16px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;cursor:pointer">Start session <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></button>
 
-    <!-- THE AREVIAX TRIALS — a live limited-time event deserves the same
-         real estate as the primary CTA, not a buried menu item, so it
-         sits right under Start Session where it can't be missed. Deep
-         violet/imperial-purple on purpose — the app's every other accent
-         (orange/ember, gold, cyan) is already claimed by something else,
-         and a genuinely different colour is what makes this read as its
-         own special thing rather than one more orange card in the feed. -->
-    <button type="button" onclick="showPage('trials')" style="width:100%;display:flex;align-items:center;gap:12px;border:1.5px solid rgba(224,170,255,.35);border-radius:1.25rem;padding:16px 18px;cursor:pointer;text-align:left;font-family:inherit;color:#F3E8FF;background:linear-gradient(135deg,#7B2FF7,#3D1670);box-shadow:0 12px 30px -12px rgba(139,47,199,.65)">
-      <span style="flex-shrink:0;width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center">
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#F3E8FF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 14.5a2.5 2.5 0 002.5 2.5 2.5 2.5 0 002.5-2.5c0-1.38-.5-2-1-3-1.07-2.14-.22-4.05 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7.5 7.5 0 11-15 0c0-1.15.43-2.29 1-3a2.5 2.5 0 002.5 2.5z"/></svg>
-      </span>
-      <div style="flex:1;min-width:0">
-        <div style="font-family:var(--lv-sans);font-weight:800;font-size:14px;text-transform:uppercase;letter-spacing:.08em">The Areviax Trials</div>
-        <div style="font-size:11px;color:#E0AAFF;margin-top:2px;font-family:var(--lv-mono)" id="dash-trials-sub">Limited-time event</div>
-      </div>
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E0AAFF" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
-    </button>
-
     <!-- YOUR RANK — the Hall of Statues' current tier, given a real home
          on the Dashboard with room to actually show progress, instead of
          squeezed into the header's small icon row (tried that first —
@@ -5259,12 +5247,12 @@ body[data-goal-theme="cut"] .lv-page{
     <section class="lv-surface" style="padding:18px 20px;cursor:pointer" onclick="openDashQuoteInChat()">
       <p class="lv-label-eyebrow" style="margin-bottom:12px">Word of the Day</p>
       <div style="display:flex;gap:14px;align-items:flex-start">
-        <div style="flex-shrink:0;width:44px;height:44px;border-radius:50%;background:radial-gradient(circle at 32% 28%,rgba(227,191,118,.28),rgba(227,191,118,.06) 60%),rgba(232,214,196,.05);border:1.5px solid rgba(227,191,118,.35);display:flex;align-items:center;justify-content:center;color:#E3BF76">
+        <div style="flex-shrink:0;width:44px;height:44px;border-radius:50%;background:radial-gradient(circle at 32% 28%,rgba(243,103,23,.28),rgba(243,103,23,.06) 60%),rgba(232,214,196,.05);border:1.5px solid rgba(243,103,23,.35);display:flex;align-items:center;justify-content:center;color:#F36717">
           <svg width="24" height="24" viewBox="0 0 40 40" fill="currentColor" aria-hidden="true"><path d="M20 3c-5 0-8 3.5-8 8 0 3 1.3 5.2 3 6.7-4 1.6-7 5-7 9.3v2h24v-2c0-4.3-3-7.7-7-9.3 1.7-1.5 3-3.7 3-6.7 0-4.5-3-8-8-8z"/><rect x="10" y="30" width="20" height="4" rx="1"/></svg>
         </div>
         <div style="min-width:0">
           <p style="font-family:var(--lv-display);font-weight:400;font-size:1.05rem;line-height:1.32;font-style:italic;color:var(--lv-fg)" id="dash-quote-text">—</p>
-          <p style="margin-top:6px;font-size:10.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#E3BF76" id="dash-quote-attrib">Areviax</p>
+          <p style="margin-top:6px;font-size:10.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:#F36717" id="dash-quote-attrib">Areviax</p>
         </div>
       </div>
     </section>
@@ -8837,7 +8825,7 @@ function updateMobileNav(page){
 let xp=0,streak=0,compassPts=0,totalSess=0,sessThisWeek=0;
 // THE AREVIAX TRIALS — fortnightly limited-time event, see TRIALS_STAGES
 // and evaluateTrialsForToday() further down for the full mechanic.
-let trialsEventStart='', trialsStageIdx=0, trialsLosses=0, trialsChallengeOver=false, trialsLastEvaluatedDate='', trialsClearedStages=[];
+let trialsEventStart='', trialsStageIdx=0, trialsLastEvaluatedDate='', trialsClearedStages=[];
 let streakRepairDismissedDate='';
 // STREAK FREEZE — bought in the Shop, auto-consumed the moment a missed
 // day would otherwise break the streak, before the person ever sees a
@@ -9321,8 +9309,8 @@ const TITLES={
   unbowed:{name:'The Unbowed',hint:'A rare pull from any crate'},
   disciplined:{name:'The Disciplined',hint:'A rare pull from any crate'},
   ascendant:{name:'The Ascendant',hint:'A rare pull from any crate'},
-  trials_iron:{name:'The Iron-Willed',hint:'Clear Trial 10 in an Areviax Trials event'},
-  trials_champion:{name:'Champion of the Trials',hint:'Clear every trial in one Areviax Trials event'},
+  trials_iron:{name:'The Unbroken',hint:'Clear Trial 10 — The Unbroken — in an Areviax Championship'},
+  trials_champion:{name:'Areviax Champion',hint:'Clear every trial in one Areviax Championship'},
 };
 let unlockedTitles=[];
 let equippedTitle='';
@@ -11339,40 +11327,61 @@ function laborsTodayMuscleGroupCount(){
 // flattening it out. difficulty picks the payout from LABOR_XP below and
 // drives the badge shown on each card.
 const LABOR_XP={easy:30,medium:50,hard:75,legendary:100};
+// Personal-baseline helpers for Labors \u2014 same reasoning as Trials' own
+// (see trialsAvgSetsPerSessionBefore): a fixed absolute number is either
+// trivial or structurally out of reach depending on who's playing, so
+// Hydra/Hind compare against this user's OWN rolling average instead.
+// Excludes today so a session still in progress can't inflate its own bar.
+function laborsAvgSetsPerSession(){
+  const today=localDateKey(new Date());
+  const byDate={};
+  tonnageLog.forEach(e=>{ if(e.date!==today) byDate[e.date]=(byDate[e.date]||0)+1; });
+  const vals=Object.values(byDate);
+  return vals.length>=3?vals.reduce((a,b)=>a+b,0)/vals.length:null;
+}
+function laborsAvgSessionDuration(){
+  const today=localDateKey(new Date());
+  const durs=sessionHistory.filter(s=>s.date!==today&&s.durationSec>0).map(s=>s.durationSec);
+  return durs.length>=3?durs.reduce((a,b)=>a+b,0)/durs.length:null;
+}
 const LABORS=[
   {key:'nemean_lion', name:'The Nemean Lion', greek:'\u0391', icon:'\ud83e\udd81',
-    desc:'Set a new single-session tonnage record.', difficulty:'medium',
-    check:()=>laborsTodayTonnage()>0&&laborsTodayTonnage()>laborsDailyTonnageMax(true)},
+    desc:'Set a new single-session tonnage record with real volume behind it.', difficulty:'medium',
+    check:()=>laborsTodayTonnage()>=500&&laborsTodayTonnage()>laborsDailyTonnageMax(true)},
   {key:'hydra', name:'The Lernaean Hydra', greek:'\u0392', icon:'\ud83d\udc0d',
-    desc:'Log 20 or more sets in a single session.', difficulty:'hard',
-    check:()=>laborsTodaySetCount()>=20},
+    desc:'Log 30% more sets than your own usual session.', difficulty:'hard',
+    check:()=>{const avg=laborsAvgSetsPerSession();return laborsTodaySetCount()>=(avg?Math.ceil(avg*1.3):16);}},
   {key:'hind', name:'The Ceryneian Hind', greek:'\u0393', icon:'\ud83e\udd8c',
-    desc:'Finish a full session in under 35 minutes.', difficulty:'medium',
-    check:()=>sessionHistory.some(s=>s.durationSec>0&&s.durationSec<2100&&s.exs&&s.exs.length>0)},
+    desc:'Finish a full session well under your own usual pace.', difficulty:'medium',
+    check:()=>{
+      const avg=laborsAvgSessionDuration();
+      const bar=avg?avg*0.85:1800;
+      return sessionHistory.some(s=>s.durationSec>0&&s.durationSec<bar&&s.exs&&s.exs.length>0);
+    }},
   {key:'boar', name:'The Erymanthian Boar', greek:'\u0394', icon:'\ud83d\udc17',
-    desc:'Set a new PR on any lift.', difficulty:'easy',
-    check:()=>prHistory.length>0},
+    desc:'Set 3 real PRs across your training.', difficulty:'easy',
+    check:()=>prHistory.length>=3},
   {key:'stables', name:'The Augean Stables', greek:'\u0395', icon:'\ud83c\udfdb\ufe0f',
-    desc:'Hit your full weekly session target.', difficulty:'medium',
-    check:()=>profile.days>0&&sessThisWeek>=profile.days},
+    desc:'Beat your full weekly session target, not just meet it.', difficulty:'medium',
+    check:()=>profile.days>0&&sessThisWeek>=profile.days+1},
   {key:'birds', name:'The Stymphalian Birds', greek:'\u03a3', icon:'\ud83d\udc26',
-    desc:'Hit your protein target 7 days running.', difficulty:'hard',
-    check:()=>laborsProteinStreak()>=7},
+    desc:'Hit your protein target 10 days running.', difficulty:'hard',
+    check:()=>laborsProteinStreak()>=10},
   {key:'bull', name:'The Cretan Bull', greek:'\u0396', icon:'\ud83d\udc02',
-    desc:'Reach at least Bronze rank on a Big 4 lift.', difficulty:'medium',
-    check:()=>LIFT_RANK_LIFTS.some(l=>{const r=getLiftRank(l);return r&&r.tierIdx>=2;})},
+    desc:'Reach at least Gold rank on a Big 4 lift.', difficulty:'medium',
+    check:()=>LIFT_RANK_LIFTS.some(l=>{const r=getLiftRank(l);return r&&r.tierIdx>=3;})},
   {key:'mares', name:'The Mares of Diomedes', greek:'\u0397', icon:'\ud83d\udc0e',
-    desc:'Train 3+ muscle groups (push/pull/legs/core) in one session.', difficulty:'easy',
-    check:()=>laborsTodayMuscleGroupCount()>=3},
+    desc:'Train 4+ muscle groups in one session.', difficulty:'easy',
+    check:()=>laborsTodayMuscleGroupCount()>=4},
   {key:'girdle', name:'The Girdle of Hippolyta', greek:'\u0398', icon:'\ud83c\udff5\ufe0f',
-    desc:'Pull your first Legend Card.', difficulty:'easy',
-    check:()=>unlockedLegends.length>=1},
+    desc:'Pull 3 Legend Cards.', difficulty:'easy',
+    check:()=>unlockedLegends.length>=3},
   {key:'geryon', name:'The Cattle of Geryon', greek:'\u0399', icon:'\ud83d\udc02',
-    desc:'Reach a 14-day training streak.', difficulty:'hard',
-    check:()=>streak>=14||bestStreak>=14},
+    desc:'Reach a 21-day training streak.', difficulty:'hard',
+    check:()=>streak>=21||bestStreak>=21},
   {key:'hesperides', name:'The Apples of the Hesperides', greek:'\u039a', icon:'\ud83c\udf4e',
-    desc:'Unlock a Legendary-rarity (or rarer) card.', difficulty:'legendary',
-    check:()=>unlockedLegends.some(k=>{const l=LEGEND_CARDS.find(x=>x.key===k);return l&&(l.rarity==='legendary'||l.rarity==='ultralegendary');})},
+    desc:'Unlock 2 Legendary-rarity (or rarer) cards.', difficulty:'legendary',
+    check:()=>unlockedLegends.filter(k=>{const l=LEGEND_CARDS.find(x=>x.key===k);return l&&(l.rarity==='legendary'||l.rarity==='ultralegendary');}).length>=2},
   {key:'cerberus', name:'Cerberus', greek:'\u039b', icon:'\ud83d\udc15',
     desc:'Complete all 11 other Labors.', difficulty:'legendary',
     check:()=>LABORS.filter(l=>l.key!=='cerberus').every(l=>laborsCompleted[l.key])},
@@ -11396,15 +11405,16 @@ function checkLabors(){
   return anyNew;
 }
 
-// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550 THE AREVIAX TRIALS \u2014 fortnightly limited-time event \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
+// \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550 THE AREVIAX CHAMPIONSHIP \u2014 fortnightly limited-time event \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550
 // Modelled on Brawl Stars' Championship Challenge: a time-boxed run through
-// 12 numbered trials, each needing exactly one qualifying day to clear
-// before the next unlocks, with a shared loss counter (capped at 4) that
-// ends the whole run early if you attempt a trial and miss it too many
-// times. Unlike THE 12 LABORS above (a permanent, one-time checklist),
-// this is a real "event" \u2014 a fresh set of 12 begins automatically every
-// 14 days, so it never becomes a second always-on grind sitting next to
-// Labors, it's a distinct thing you either catch this cycle or miss.
+// 12 numbered trials, each needing one qualifying day to clear before the
+// next unlocks. No loss/fail state \u2014 a day that doesn't meet the current
+// trial's ask just isn't a win yet, you keep trying on every day you
+// train until it clears. Unlike THE 12 LABORS above (a permanent,
+// one-time checklist), this is a real "event" \u2014 a fresh set of 12 begins
+// automatically every 14 days, so it never becomes a second always-on
+// grind sitting next to Labors, it's a distinct thing you either clear
+// this cycle or don't.
 //
 // An "attempt" only happens on a day you actually trained \u2014 see
 // evaluateTrialsUpTo(), which judges each COMPLETED day (yesterday and
@@ -11415,11 +11425,8 @@ function checkLabors(){
 // logged yet \u2014 nutrition-based trials would fail almost by construction.
 // One evaluation pass per day of delay instead: you find out how
 // yesterday went the next time you open the app, using that day's real,
-// finished numbers. Rest days are never judged at all \u2014 only a day with
-// tonnageLog entries counts as an attempt, so skipping planned rest days
-// never burns a loss.
+// finished numbers.
 const TRIALS_CYCLE_DAYS=14;
-const TRIALS_LOSS_CAP=4;
 function trialsTrainedOnDate(d){ return tonnageLog.some(e=>e.date===d); }
 function trialsTonnageOnDate(d){ return tonnageLog.filter(e=>e.date===d).reduce((s,e)=>s+e.tonnage,0); }
 function trialsSetCountOnDate(d){ return tonnageLog.filter(e=>e.date===d).length; }
@@ -11439,6 +11446,28 @@ function trialsMaxTonnageBefore(d){
   return vals.length?Math.max(...vals):0;
 }
 function trialsCaloriesOnDate(d){ return (foodLogByDate[d]||[]).reduce((s,it)=>s+(it.cals||0),0); }
+// Personal-baseline helpers — a fixed absolute number ("15 sets") is
+// either trivial for an advanced lifter or structurally out of reach for
+// someone whose program just never runs that many sets a session, so it
+// isn't actually hard FOR anyone specific, just an arbitrary line. These
+// compare a day against the user's OWN rolling history instead — every
+// trial that uses one is hard because it asks for genuinely more than
+// this person's normal, not because of a number picked with no one in
+// mind. Computed from data strictly BEFORE the day being judged (same
+// reasoning as trialsMaxTonnageBefore) so a later big session can't
+// retroactively raise the bar on an earlier day. Returns null with too
+// little history (<3 sessions) — callers fall back to a modest flat
+// floor until there's a real baseline to compare against.
+function trialsAvgSetsPerSessionBefore(d){
+  const byDate={};
+  tonnageLog.forEach(e=>{ if(e.date<d) byDate[e.date]=(byDate[e.date]||0)+1; });
+  const vals=Object.values(byDate);
+  return vals.length>=3?vals.reduce((a,b)=>a+b,0)/vals.length:null;
+}
+function trialsAvgSessionDurationBefore(d){
+  const durs=sessionHistory.filter(s=>s.date<d&&s.durationSec>0).map(s=>s.durationSec);
+  return durs.length>=3?durs.reduce((a,b)=>a+b,0)/durs.length:null;
+}
 // visual: {c1,c2} the header/hero gradient (a distinct colour per stage,
 // same idea as the reference's Hot Zone red vs Knockout orange \u2014 each
 // stage reads as its own "mode" even though the overall event stays
@@ -11449,16 +11478,20 @@ const TRIALS_STAGES=[
     checkWin:(d)=>trialsTrainedOnDate(d),
     reward:{type:'drachma',amount:10},
     visual:{c1:'#FF9A45',c2:'#D9591C',icon:'<path d="M4 22V4"/><path d="M4 4h14l-3 4 3 4H4"/>'}},
-  {key:'iron', name:'Trial of Iron', desc:'Log 15 or more sets in one session.',
-    checkWin:(d)=>trialsSetCountOnDate(d)>=15,
+  {key:'iron', name:'Trial of Iron', desc:'Beat your own usual set count by 20% in one session.',
+    checkWin:(d)=>{const avg=trialsAvgSetsPerSessionBefore(d);return trialsSetCountOnDate(d)>=(avg?Math.ceil(avg*1.2):12);},
     reward:{type:'drachma',amount:15},
     visual:{c1:'#7C8CA0',c2:'#485563',icon:'<path d="M4 12h16"/><path d="M2 9v6"/><path d="M22 9v6"/><path d="M6 7v10"/><path d="M18 7v10"/>'}},
   {key:'balance', name:'Trial of Balance', desc:'Train 3 or more muscle groups in one session.',
     checkWin:(d)=>trialsMuscleGroupCountOnDate(d)>=3,
     reward:{type:'drachma',amount:20},
     visual:{c1:'#3FCFB8',c2:'#1D8F7D',icon:'<path d="M12 3v18"/><path d="M5 7l-3 6a3 3 0 006 0z"/><path d="M19 7l-3 6a3 3 0 006 0z"/><path d="M5 7h14"/><path d="M9 21h6"/>'}},
-  {key:'swift', name:'Trial of the Swift', desc:'Finish a full session in under 40 minutes.',
-    checkWin:(d)=>sessionHistory.some(s=>s.date===d&&s.durationSec>0&&s.durationSec<2400),
+  {key:'swift', name:'Trial of the Swift', desc:'Finish a session faster than your own usual pace.',
+    checkWin:(d)=>{
+      const avg=trialsAvgSessionDurationBefore(d);
+      const bar=avg?avg*0.85:2700;
+      return sessionHistory.some(s=>s.date===d&&s.durationSec>0&&s.durationSec<bar);
+    },
     reward:{type:'crate',tier:'bronze'},
     visual:{c1:'#4FB6F0',c2:'#1E77B8',icon:'<circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2"/><path d="M9 2h6"/>'}},
   {key:'discipline', name:'Trial of Discipline', desc:'Hit your protein target.',
@@ -11473,8 +11506,8 @@ const TRIALS_STAGES=[
     checkWin:(d)=>prHistory.some(p=>p.date===d),
     reward:{type:'crate',tier:'silver'},
     visual:{c1:'#4ECB71',c2:'#219145',icon:'<path d="M3 17l6-6 4 4 8-8"/><path d="M15 3h6v6"/>'}},
-  {key:'endurance', name:'Trial of Endurance', desc:'Log 20 or more sets in one session.',
-    checkWin:(d)=>trialsSetCountOnDate(d)>=20,
+  {key:'endurance', name:'Trial of Endurance', desc:'A genuinely big one — 50% more sets than you usually log.',
+    checkWin:(d)=>{const avg=trialsAvgSetsPerSessionBefore(d);return trialsSetCountOnDate(d)>=(avg?Math.ceil(avg*1.5):18);},
     reward:{type:'crate',tier:'gold'},
     visual:{c1:'#F0455F',c2:'#B31E37',icon:'<path d="M6.5 8.5a3.5 3.5 0 100 7c1 0 1.9-.4 2.5-1L12 12l3 2.5c.6.6 1.5 1 2.5 1a3.5 3.5 0 100-7c-1 0-1.9.4-2.5 1L12 12l-3-2.5c-.6-.6-1.5-1-2.5-1z"/>'}},
   {key:'mastery', name:'Trial of Mastery', desc:'Beat your best single-session tonnage record.',
@@ -11512,8 +11545,6 @@ function ensureTrialsEventFresh(){
   if(!trialsEventStart||(Date.now()-started)>=cycleMs){
     trialsEventStart=localDateKey(new Date());
     trialsStageIdx=0;
-    trialsLosses=0;
-    trialsChallengeOver=false;
     trialsLastEvaluatedDate='';
     trialsClearedStages=[];
   }
@@ -11557,7 +11588,7 @@ function evaluateTrialsUpTo(){
   let guard=0,anyChange=false;
   while(cursor<=yesterday&&guard<TRIALS_CYCLE_DAYS+1){
     guard++;
-    if(!trialsChallengeOver&&trialsStageIdx<TRIALS_STAGES.length&&trialsTrainedOnDate(cursor)){
+    if(trialsStageIdx<TRIALS_STAGES.length&&trialsTrainedOnDate(cursor)){
       anyChange=true;
       const stage=TRIALS_STAGES[trialsStageIdx];
       let won=false;
@@ -11566,14 +11597,10 @@ function evaluateTrialsUpTo(){
         grantTrialsReward(stage);
         trialsClearedStages.push(stage.key);
         trialsStageIdx++;
-        if(trialsStageIdx>=TRIALS_STAGES.length)toast('\ud83c\udfc6','The Areviax Trials \u2014 every trial cleared this cycle!');
-      }else{
-        trialsLosses++;
-        if(trialsLosses>=TRIALS_LOSS_CAP){
-          trialsChallengeOver=true;
-          toast('\u274c','Trials challenge over \u2014 no more attempts this cycle.');
-        }
+        if(trialsStageIdx>=TRIALS_STAGES.length)toast('\ud83c\udfc6','The Areviax Championship \u2014 every trial cleared this cycle!');
       }
+      // A missed day just isn't a win \u2014 no penalty, no state change beyond
+      // the last-evaluated-date bookkeeping below. Try again next time you train.
     }
     trialsLastEvaluatedDate=cursor;
     cursor=trialsDateAfter(cursor);
@@ -15593,7 +15620,7 @@ function showPage(id){
   if(pg)pg.classList.add('active');
   document.querySelectorAll('.sb-item').forEach(i=>{if(i.getAttribute('onclick')?.includes(id))i.classList.add('active')});
   try{
-    const titles={dashboard:'Home',workout:'The Forge',session:'Session',nutrition:'Nutrition',recipes:'Recipes',progress:'Progress',shop:'Shop',trophycabinet:'Trophy Cabinet',labors:'The 12 Labors',xproad:'Arete Road',trophyroad:'The Way Home',recovery:'Recovery',schedule:'Schedule',leaderboard:'Leaderboard',leagues:'Leagues',trials:'The Areviax Trials',learn:'Science',profile:'Profile',legal:'Legal',settings:'Settings',aicoach:'Coach Sam',subscription:'Go Premium',roadmap:'Roadmap',reflection:'Daily Reflection'};
+    const titles={dashboard:'Home',workout:'The Forge',session:'Session',nutrition:'Nutrition',recipes:'Recipes',progress:'Progress',shop:'Shop',trophycabinet:'Trophy Cabinet',labors:'The 12 Labors',xproad:'Arete Road',trophyroad:'The Way Home',recovery:'Recovery',schedule:'Schedule',leaderboard:'Leaderboard',leagues:'Leagues',trials:'The Areviax Championship',learn:'Science',profile:'Profile',legal:'Legal',settings:'Settings',aicoach:'Coach Sam',subscription:'Go Premium',roadmap:'Roadmap',reflection:'Daily Reflection'};
     const t=titles[id]||id;
     const tte=document.getElementById('tb-title');
     if(tte){tte.textContent=t;tte.classList.toggle('tb-title-sm',id==='trophycabinet');}
@@ -16899,22 +16926,7 @@ function syncLvBadges(){
     document.querySelectorAll('.lv-road-pill .lv-road-pill-fill').forEach(el=>el.style.width=sum.pct+'%');
   }
   renderDashRankPill();
-  renderDashTrialsBanner();
   syncProfileBadge();
-}
-// Keeps the Dashboard's Trials banner subtitle current wherever else
-// syncLvBadges() already fires — same idea as renderDashRankPill() just
-// above, one small text update rather than a full renderTrials() pass
-// (the ladder/current-trial card only need to exist once you're actually
-// on the Trials page itself).
-function renderDashTrialsBanner(){
-  const el=document.getElementById('dash-trials-sub');
-  if(!el)return;
-  try{
-    ensureTrialsEventFresh();
-    const t=trialsTimeLeft();
-    el.textContent=(trialsChallengeOver?'Challenge over — ':trialsStageIdx>=TRIALS_STAGES.length?'All cleared — ':trialsStageIdx+' of '+TRIALS_STAGES.length+' cleared — ')+t.days+'d '+t.hours+'h left';
-  }catch(e){}
 }
 function renderDashHeroLovable(){
   syncLvBadges();
@@ -26984,9 +26996,24 @@ function renderLeagueLadder(){
 // wherever it's shown.
 function trialsRewardLine(stage){
   const r=stage.reward;
-  if(r.type==='drachma')return '🪙 +'+r.amount;
-  if(r.type==='crate')return '📦 '+r.tier[0].toUpperCase()+r.tier.slice(1);
-  return '🏆 '+TITLES[r.key].name+(r.crateTier?' +💎':'');
+  if(r.type==='drachma')return '+'+r.amount;
+  if(r.type==='crate')return r.tier[0].toUpperCase()+r.tier.slice(1)+' Crate';
+  return TITLES[r.key].name+(r.crateTier?' + 💎':'');
+}
+// The WIN pip always shows what you'd actually WIN — the reward's own
+// icon (the real Tetradrachm coin image for currency, a tier-tinted
+// crate/gift icon, or a trophy for a title) — never a generic padlock.
+// A locked stage still shows exactly this; only the card's own
+// desaturation (see .trial-stage-card.locked) marks it as not-yet-live.
+function trialsRewardIconHTML(stage,size){
+  const r=stage.reward;
+  if(r.type==='drachma')return '<img src="images/icons/tetradrachm.png" alt="" style="width:'+size+'px;height:'+size+'px;border-radius:50%">';
+  if(r.type==='crate'){
+    const tierColors={bronze:'#CD7F32',silver:'#C7CCD9',gold:'#FFD700',diamond:'#7DE8F0'};
+    const c=tierColors[r.tier]||'#FFD700';
+    return '<svg width="'+size+'" height="'+size+'" viewBox="0 0 24 24" fill="none" stroke="'+c+'" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12v9H4v-9"/><path d="M2 7h20v5H2z"/><path d="M12 22V7"/><path d="M12 7H7.5a2.5 2.5 0 010-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 000-5C9 2 12 7 12 7z"/></svg>';
+  }
+  return '<svg width="'+size+'" height="'+size+'" viewBox="0 0 24 24" fill="none" stroke="#FFD24A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 01-10 0V4z"/><path d="M7 5H3v2a4 4 0 004 4M17 5h4v2a4 4 0 01-4 4"/></svg>';
 }
 function trialStageIconSVG(innerPath,size){
   return '<svg width="'+size+'" height="'+size+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+innerPath+'</svg>';
@@ -26997,23 +27024,13 @@ function renderTrials(){
   if(!cont)return;
   const t=trialsTimeLeft();
   const timeLeftText=t.days+'d '+t.hours+'h';
-  const lossPips=Array.from({length:TRIALS_LOSS_CAP},(_,i)=>{
-    const used=i<trialsLosses;
-    return '<div style="width:26px;height:26px;border-radius:50%;border:1.5px solid '+(used?'#E8314A':'rgba(255,255,255,.25)')+';background:'+(used?'#E8314A':'transparent')+';display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:'+(used?'#fff':'rgba(255,255,255,.4)')+'">✕</div>';
-  }).join('');
   const allCleared=trialsStageIdx>=TRIALS_STAGES.length;
 
   let bannerHTML='';
-  if(trialsChallengeOver){
-    bannerHTML='<div style="text-align:center;padding:14px 18px;margin-bottom:12px;border-radius:14px;background:rgba(232,49,74,.12);border:1.5px solid rgba(232,49,74,.4)">'+
-      '<div style="font-size:13px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#fff">Challenge Over</div>'+
-      '<div style="font-size:15px;font-weight:800;letter-spacing:.02em;text-transform:uppercase;color:#FF5A70;margin-top:2px">No More Attempts</div>'+
-      '<div style="font-size:11px;color:rgba(255,255,255,.7);margin-top:6px">Cleared '+trialsStageIdx+' of '+TRIALS_STAGES.length+' — new Trials begin in '+timeLeftText+'.</div>'+
-    '</div>';
-  }else if(allCleared){
+  if(allCleared){
     bannerHTML='<div style="text-align:center;padding:14px 18px;margin-bottom:12px;border-radius:14px;background:rgba(0,230,118,.1);border:1.5px solid rgba(0,230,118,.4)">'+
       '<div style="font-size:13px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#00E676">All 12 Trials Cleared</div>'+
-      '<div style="font-size:11px;color:rgba(255,255,255,.7);margin-top:4px">Champion of the Trials — new Trials begin in '+timeLeftText+'.</div>'+
+      '<div style="font-size:11px;color:rgba(255,255,255,.7);margin-top:4px">Areviax Champion — the next Championship begins in '+timeLeftText+'.</div>'+
     '</div>';
   }
 
@@ -27026,9 +27043,8 @@ function renderTrials(){
   // coming is the point of a ladder like this.
   const cards=TRIALS_STAGES.map((stage,i)=>{
     const cleared=i<trialsStageIdx;
-    const isCurrent=i===trialsStageIdx&&!trialsChallengeOver&&!allCleared;
+    const isCurrent=i===trialsStageIdx&&!allCleared;
     const pipState=cleared?'done':isCurrent?'active':'locked';
-    const pipIcon=cleared?'✓':isCurrent?'🔥':'🔒';
     return '<div class="trial-stage-wrap" id="trial-stage-'+i+'">'+
       '<div class="trial-stage-label">Stage '+(i+1)+'</div>'+
       '<div class="trial-stage-card'+(isCurrent?' current':'')+(pipState==='locked'?' locked':'')+'">'+
@@ -27044,7 +27060,7 @@ function renderTrials(){
         '</div>'+
         '<div class="trial-win-row">'+
           '<div class="trial-win-pip '+pipState+'">'+
-            '<span class="win-check">'+pipIcon+'</span>'+
+            '<span class="win-check">'+trialsRewardIconHTML(stage,20)+'</span>'+
             '<span class="win-label">WIN</span>'+
             '<span class="win-reward">'+trialsRewardLine(stage)+'</span>'+
           '</div>'+
@@ -27056,12 +27072,8 @@ function renderTrials(){
   cont.innerHTML=
     '<div style="text-align:center;padding:22px 18px;margin-bottom:12px;border-radius:1.75rem;color:#F3E8FF;background:linear-gradient(135deg,#7B2FF7,#3D1670);box-shadow:0 12px 30px -12px rgba(139,47,199,.65)">'+
       '<div style="font-size:10px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;opacity:.85">Limited-Time Event</div>'+
-      '<div style="font-size:22px;font-weight:800;margin-top:4px;letter-spacing:.02em">THE AREVIAX TRIALS</div>'+
+      '<div style="font-size:22px;font-weight:800;margin-top:4px;letter-spacing:.02em">THE AREVIAX CHAMPIONSHIP</div>'+
       '<div style="font-size:12px;color:#E0AAFF;font-weight:700;margin-top:6px">⏳ '+timeLeftText+' left this cycle</div>'+
-    '</div>'+
-    '<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 18px;margin-bottom:12px;border-radius:14px;background:rgba(139,47,199,.14);border:1.5px solid rgba(224,170,255,.3)">'+
-      '<span style="font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#F3E8FF">Losses</span>'+
-      '<div style="display:flex;gap:7px">'+lossPips+'</div>'+
     '</div>'+
     bannerHTML+
     '<div class="nutr-carousel-label">‹ Swipe through all 12 trials ›</div>'+
@@ -27309,8 +27321,6 @@ function saveToStorage(){
     localStorage.setItem('arx_cloudBackupConsent', JSON.stringify(cloudBackupConsent));
     localStorage.setItem('arx_trialsEventStart', trialsEventStart);
     localStorage.setItem('arx_trialsStageIdx', trialsStageIdx);
-    localStorage.setItem('arx_trialsLosses', trialsLosses);
-    localStorage.setItem('arx_trialsChallengeOver', trialsChallengeOver?'1':'');
     localStorage.setItem('arx_trialsLastEvaluatedDate', trialsLastEvaluatedDate);
     localStorage.setItem('arx_trialsClearedStages', JSON.stringify(trialsClearedStages));
   }catch(e){}
@@ -27529,8 +27539,6 @@ function loadFromStorage(){
     cloudBackupConsent=cbc!==null?JSON.parse(cbc):null;
     trialsEventStart=localStorage.getItem('arx_trialsEventStart')||'';
     trialsStageIdx=parseInt(localStorage.getItem('arx_trialsStageIdx'))||0;
-    trialsLosses=parseInt(localStorage.getItem('arx_trialsLosses'))||0;
-    trialsChallengeOver=localStorage.getItem('arx_trialsChallengeOver')==='1';
     trialsLastEvaluatedDate=localStorage.getItem('arx_trialsLastEvaluatedDate')||'';
     { const tcs=localStorage.getItem('arx_trialsClearedStages'); if(tcs){try{trialsClearedStages=JSON.parse(tcs);}catch(e){trialsClearedStages=[];}} }
   }catch(e){}
@@ -27665,7 +27673,7 @@ document.addEventListener('DOMContentLoaded', function(){
     </div>
     <div class="more-sheet-item" onclick="showPage('trials');toggleMoreSheet()">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5a2.5 2.5 0 002.5 2.5 2.5 2.5 0 002.5-2.5c0-1.38-.5-2-1-3-1.07-2.14-.22-4.05 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7.5 7.5 0 11-15 0c0-1.15.43-2.29 1-3a2.5 2.5 0 002.5 2.5z"/></svg>
-      <span>The Areviax Trials</span>
+      <span>The Areviax Championship</span>
     </div>
     <div class="more-sheet-item" onclick="showPage('learn');toggleMoreSheet()">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>
