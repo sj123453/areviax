@@ -1028,6 +1028,35 @@ input[type=checkbox]{accent-color:var(--orange);width:15px;height:15px;cursor:po
 .review-insight.warn{background:rgba(255,90,0,.06);border-color:rgba(255,90,0,.18)}
 .review-insight.warn svg{stroke:var(--orange)}
 
+/* ── WEEKLY CHALLENGES — 3-4 auto-generated targets each week, sized to
+   the person's own recent history (see wcPersonalTarget()) rather than a
+   fixed number, so it's a genuine stretch instead of trivial or unfair. ── */
+.wc-row{
+  display:flex;align-items:center;gap:12px;padding:12px 13px;border-radius:8px;
+  background:var(--panel2);border:1.5px solid var(--border2);margin-bottom:8px;
+}
+.wc-row:last-child{margin-bottom:0}
+.wc-row.done{border-color:rgba(255,90,0,.35);background:rgba(255,90,0,.06)}
+.wc-icon{
+  flex-shrink:0;width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;
+  background:rgba(255,90,0,.1);border:1.5px solid rgba(255,90,0,.25);color:var(--orange);
+}
+.wc-icon svg{width:17px;height:17px}
+.wc-body{flex:1;min-width:0}
+.wc-title-row{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.wc-title{font-size:12.5px;font-weight:700;color:var(--white)}
+.wc-frac{font-size:10.5px;color:var(--muted);font-family:'JetBrains Mono',monospace;white-space:nowrap}
+.wc-desc{font-size:10.5px;color:var(--muted);margin-top:2px;line-height:1.4}
+.wc-track{height:5px;border-radius:3px;background:var(--muted2);overflow:hidden;margin-top:7px}
+.wc-fill{display:block;height:100%;background:var(--orange);border-radius:3px;transition:width .5s cubic-bezier(.16,1,.3,1)}
+.wc-claim-btn{
+  flex-shrink:0;font-size:10.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;
+  padding:7px 12px;border-radius:6px;border:none;background:var(--orange);color:#1A0D00;cursor:pointer;
+}
+.wc-claim-btn:disabled{background:var(--muted2);color:var(--muted);cursor:default}
+.wc-claimed-badge{flex-shrink:0;font-size:10.5px;font-weight:700;color:var(--orange)}
+.wc-empty{font-size:12px;color:var(--muted);padding:8px 0}
+
 /* ── JOURNAL ── */
 .mood-btn{
   width:42px;height:42px;border-radius:8px;font-size:20px;
@@ -1463,6 +1492,19 @@ input[type=checkbox]{accent-color:var(--orange);width:15px;height:15px;cursor:po
             <span class="card-action" id="review-range" style="text-transform:none;letter-spacing:0;font-weight:500;color:var(--muted)"></span>
           </div>
           <div id="review-body"></div>
+        </div>
+
+        <!-- WEEKLY CHALLENGES — 3-4 targets regenerated every Monday, each
+             sized off your own recent averages (renderWeeklyChallenges() /
+             wcPersonalTarget()) so they're a real stretch, not either free
+             or unreachable. Reward is straight XP into the same Level
+             system + the shared Areviax Hero pool, via addXP(). -->
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Weekly Challenges</span>
+            <span class="card-action" id="wc-resets-in" style="text-transform:none;letter-spacing:0;font-weight:500;color:var(--muted)"></span>
+          </div>
+          <div id="wc-list"></div>
         </div>
 
       </div>
@@ -2716,6 +2758,7 @@ let tasksDone = saved.tasksDone ?? 0;
 let tasksTotal = saved.tasksTotal ?? 0;
 let xpAtDayStart = saved.xpAtDayStart ?? (saved.xp ?? 0);
 let goals = saved.goals || [];
+let weeklyChallenges = saved.weeklyChallenges || {weekStart:'', items:[]}; // {weekStart, items:[{key,target,claimed}]}
 let currentGoalType = 'big'; // 'big' or 'mini' — tracks which type user is creating
 let studyBlocks = saved.studyBlocks || []; // [{subject, day, durationMins, goal, start, dateAdded}]
 // daily rollover — reset today's compass progress if it's a new calendar day
@@ -2753,7 +2796,7 @@ const levels = [
 function saveState(){
   localStorage.setItem(SK, JSON.stringify({
     xp, shards, bestStreak, lastVisitDate, compassDates, habits, pomoSessionsTotal,
-    journalEntries, morningEntries, activeMorningTemplateId, customMorningPrompts, dailyLog, tasksDone, tasksTotal, xpAtDayStart, goals,
+    journalEntries, morningEntries, activeMorningTemplateId, customMorningPrompts, dailyLog, tasksDone, tasksTotal, xpAtDayStart, goals, weeklyChallenges,
     streakFreezes, usedFreezeDates, milestonesHit, workoutHistory, studyBlocks, scheduleEvents,
     reminderSettings, reminderLastFired, customReminders, reminderAcknowledged, styxArchive,
     doneListLog, doneListHourlyEnabled, doneListLastFiredHour,
@@ -3285,6 +3328,7 @@ function getTodayTip(){
 }
 function updateDashboard(){
   try{renderPendingReminders();}catch(e){}
+  try{renderWeeklyChallenges();}catch(e){}
   // Daily quote — seeded by date so it changes each day but stays stable
   const dayNum = Math.floor(Date.now() / 86400000);
   const q = DASH_QUOTES[dayNum % DASH_QUOTES.length];
@@ -6397,6 +6441,7 @@ function saveJournalEntry(){
   renderJournal();
   renderMoodWeek();
   renderWeeklyReview();
+  renderWeeklyChallenges();
   saveState();
   showToast('📝','Entry saved');
 }
@@ -6838,6 +6883,141 @@ function renderWeeklyReview(){
   body.innerHTML = html;
 }
 
+// ── WEEKLY CHALLENGES ──
+// Real calendar week (Monday start), regenerated fresh each week. Every
+// target is sized off the person's OWN recent average, not a fixed number
+// — same fairness principle as Areviax Mass's Championship trials: a
+// beginner and a veteran both get a real stretch, not one trivial and one
+// impossible. Falls back to a flat floor until there's 2+ prior weeks of
+// data to average.
+function isoWeekStartISO(d){
+  const dt = new Date(d);
+  const day = dt.getDay(); // 0=Sun..6=Sat
+  dt.setDate(dt.getDate() + (day===0 ? -6 : 1-day));
+  return dt.toISOString().slice(0,10);
+}
+function wcWeekDates(weekStartISO){
+  const out=[];
+  for(let i=0;i<7;i++){ const d=new Date(weekStartISO+'T00:00:00'); d.setDate(d.getDate()+i); out.push(d.toISOString().slice(0,10)); }
+  return out;
+}
+function wcPastWeekStarts(n){
+  const cur = isoWeekStartISO(new Date());
+  const out=[]; let cursor = new Date(cur+'T00:00:00');
+  for(let i=0;i<n;i++){ cursor.setDate(cursor.getDate()-7); out.push(cursor.toISOString().slice(0,10)); }
+  return out;
+}
+function wcActiveDaysInWeek(weekStartISO){
+  return wcWeekDates(weekStartISO).filter(ds=>{ const l=dailyLog.find(x=>x.date===ds); return l && l.tasksDone>0; }).length;
+}
+function wcHabitChecksInWeek(weekStartISO){
+  const days = wcWeekDates(weekStartISO);
+  return habits.filter(h=>h.kind!=='break').reduce((s,h)=>s+days.filter(d=>h.completedDates.includes(d)).length, 0);
+}
+function wcReflectionsInWeek(weekStartISO){
+  const days = wcWeekDates(weekStartISO);
+  return days.filter(d=>journalEntries.some(e=>e.date===d) || morningEntries.some(e=>e.date===d)).length;
+}
+function wcPerfectDaysInWeek(weekStartISO){
+  return wcWeekDates(weekStartISO).filter(ds=>{ const l=dailyLog.find(x=>x.date===ds); return l && l.tasksTotal>0 && l.tasksDone>=l.tasksTotal; }).length;
+}
+// Average of fn() over up to 4 prior completed weeks that actually have
+// data, floored so cold-start users still get a sane number, capped at 7
+// since every candidate here is "days out of this week."
+function wcPersonalTarget(fn, floor, mult){
+  const weeks = wcPastWeekStarts(4);
+  const withData = weeks.filter(ws => {
+    const days = new Set(wcWeekDates(ws));
+    return dailyLog.some(l=>days.has(l.date)) || journalEntries.some(e=>days.has(e.date)) || habits.some(h=>h.completedDates.some(d=>days.has(d)));
+  });
+  if(withData.length<2) return floor;
+  const avg = withData.reduce((s,ws)=>s+fn(ws),0) / withData.length;
+  return Math.min(7, Math.max(floor, Math.round(avg*mult)));
+}
+const WEEKLY_CHALLENGE_DEFS = [
+  {key:'active_days', title:'Active Days', reward:40,
+    icon:'<path d="M8 2v4M16 2v4M3 10h18"/><rect x="3" y="4" width="18" height="18" rx="2"/>',
+    progress:(ws)=>wcActiveDaysInWeek(ws),
+    target:()=>wcPersonalTarget(wcActiveDaysInWeek,3,1.1),
+    desc:(t)=>`Complete at least one task on ${t} days this week.`},
+  {key:'habit_checks', title:'Habit Consistency', reward:35,
+    icon:'<path d="M12 22c4.4 0 7-2.9 7-6.8 0-3-1.7-5-3-7-.2 1.7-1 2.8-2 3.4.3-2.7-.7-5.6-3-7.6-.3 2.5-1.2 3.9-2.7 5.4C6.8 10.8 6 12.6 6 15c0 4 2.7 7 6 7z"/>',
+    progress:(ws)=>wcHabitChecksInWeek(ws),
+    target:()=>{ const buildCount=habits.filter(h=>h.kind!=='break').length; return buildCount>0 ? wcPersonalTarget(wcHabitChecksInWeek, Math.max(3,buildCount*2), 1.1) : 0; },
+    desc:(t)=>`Check off a habit ${t} times this week.`,
+    locked:()=>habits.filter(h=>h.kind!=='break').length===0,
+    lockedMsg:'Add a habit to build to unlock this challenge.'},
+  {key:'reflections', title:'Reflection', reward:30,
+    icon:'<path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/>',
+    progress:(ws)=>wcReflectionsInWeek(ws),
+    target:()=>wcPersonalTarget(wcReflectionsInWeek,2,1.1),
+    desc:(t)=>`Write a journal or morning pages entry on ${t} days this week.`},
+  {key:'perfect_day', title:'Full Clear', reward:50,
+    icon:'<polyline points="20 6 9 17 4 12"/>',
+    progress:(ws)=>Math.min(1,wcPerfectDaysInWeek(ws)),
+    target:()=>1,
+    desc:()=>`Hit 100% task completion on at least one day this week.`},
+];
+function ensureWeeklyChallengesFresh(){
+  const curWeek = isoWeekStartISO(new Date());
+  if(weeklyChallenges.weekStart===curWeek) return;
+  weeklyChallenges = {
+    weekStart: curWeek,
+    items: WEEKLY_CHALLENGE_DEFS.map(def=>({key:def.key, target:def.target(), claimed:false})),
+  };
+  saveState();
+}
+function renderWeeklyChallenges(){
+  const list = document.getElementById('wc-list');
+  if(!list) return;
+  ensureWeeklyChallengesFresh();
+  const resetsEl = document.getElementById('wc-resets-in');
+  if(resetsEl){
+    const weekEnd = new Date(weeklyChallenges.weekStart+'T00:00:00'); weekEnd.setDate(weekEnd.getDate()+7);
+    const daysLeft = Math.max(1, Math.ceil((weekEnd - new Date())/86400000));
+    resetsEl.textContent = `Resets in ${daysLeft}d`;
+  }
+  const rows = weeklyChallenges.items.map(item=>{
+    const def = WEEKLY_CHALLENGE_DEFS.find(d=>d.key===item.key);
+    if(!def) return '';
+    // Locked state is decided once, at generation time (item.target<=0),
+    // not re-checked live here — a habit added mid-week shouldn't flip a
+    // frozen challenge from locked to active with a stale target.
+    if(item.target<=0){
+      return `<div class="wc-row"><span class="wc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">${def.icon}</svg></span>
+        <div class="wc-body"><div class="wc-title">${def.title}</div><div class="wc-desc">${def.lockedMsg||'Unlocks once you have enough activity to set a fair target.'}</div></div></div>`;
+    }
+    const cur = Math.min(item.target, def.progress(weeklyChallenges.weekStart));
+    const pct = item.target>0 ? Math.round(cur/item.target*100) : 0;
+    const met = item.target>0 && cur>=item.target;
+    let actionHtml;
+    if(item.claimed) actionHtml = `<span class="wc-claimed-badge">✓ Claimed</span>`;
+    else if(met) actionHtml = `<button class="wc-claim-btn" onclick="claimWeeklyChallenge('${item.key}')">Claim +${def.reward}</button>`;
+    else actionHtml = `<button class="wc-claim-btn" disabled>+${def.reward} XP</button>`;
+    return `<div class="wc-row ${met?'done':''}">
+      <span class="wc-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">${def.icon}</svg></span>
+      <div class="wc-body">
+        <div class="wc-title-row"><span class="wc-title">${def.title}</span><span class="wc-frac">${cur}/${item.target}</span></div>
+        <div class="wc-desc">${def.desc(item.target)}</div>
+        <div class="wc-track"><span class="wc-fill" style="width:${pct}%"></span></div>
+      </div>
+      ${actionHtml}
+    </div>`;
+  }).join('');
+  list.innerHTML = rows || '<div class="wc-empty">Challenges refresh every Monday — check back soon.</div>';
+}
+function claimWeeklyChallenge(key){
+  const item = weeklyChallenges.items.find(i=>i.key===key);
+  const def = WEEKLY_CHALLENGE_DEFS.find(d=>d.key===key);
+  if(!item || !def || item.claimed) return;
+  const cur = def.progress(weeklyChallenges.weekStart);
+  if(cur<item.target) return;
+  item.claimed = true;
+  addXP(def.reward, def.title+' challenge');
+  saveState();
+  renderWeeklyChallenges();
+}
+
 // ── INIT / RESTORE ──
 function restoreState(){
   // restore saved list snapshots (only overwrite starter markup if this isn't the first ever visit)
@@ -6873,6 +7053,7 @@ function restoreState(){
   renderMorningSheetForm();
   renderMorningEntries();
   renderWeeklyReview();
+  renderWeeklyChallenges();
   renderWorkoutHistory();
   renderWeeklyStudyLoad();
   renderStudyList();
