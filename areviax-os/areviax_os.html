@@ -805,6 +805,19 @@ body{background:linear-gradient(160deg,#0B0B0B 0%,#0B0B0B 100%) fixed;background
 .hdot.done{background:var(--green)}
 .hdot.partial{background:rgba(142,142,147,.4);border-color:rgba(142,142,147,.6)}
 .hdot.today{border-color:var(--cyan)}
+.habit-kind-pill{
+  flex:1;padding:9px 0;border-radius:8px;background:var(--panel2);border:1.5px solid var(--border2);
+  color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;transition:border-color .15s,color .15s,background .15s;
+}
+.habit-kind-pill.active{border-color:var(--cyan);color:var(--white);background:rgba(255,90,0,.1)}
+.habit-row.break-habit{align-items:flex-start;flex-direction:column;gap:8px;padding:12px;background:var(--panel2);border:1.5px solid var(--border2);border-radius:10px;margin-bottom:10px}
+.habit-slip-log-btn{
+  padding:7px 14px;border-radius:8px;background:rgba(255,90,0,.12);border:1.5px solid var(--cyan);
+  color:var(--cyan);font-size:11.5px;font-weight:700;cursor:pointer;
+}
+.habit-slip-log-btn:hover{background:rgba(255,90,0,.2)}
+.habit-slip-insight{font-size:11px;color:var(--muted);line-height:1.5}
+.habit-slip-clean{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--green)}
 
 /* ── HEATMAP — GitHub-style contribution grid for long-range habit history ── */
 .heatmap-wrap{margin-top:10px;padding-top:14px;border-top:1px solid var(--border2)}
@@ -1887,6 +1900,17 @@ input[type=checkbox]{accent-color:var(--orange);width:15px;height:15px;cursor:po
             <div class="card">
               <div class="card-header"><span class="card-title">Add Habit</span></div>
               <div style="display:flex;flex-direction:column;gap:10px">
+                <!-- BUILD vs BREAK — two different habits need two different
+                     UIs: a habit to build is a daily yes/no you check off,
+                     but a habit to break has no "check off" state (most days
+                     you'll do nothing, which is the goal) — instead it logs
+                     each time it happens with a before/after mood, so the
+                     pattern of "does this actually feel good afterward?"
+                     becomes visible instead of staying a vague feeling. -->
+                <div id="habit-kind-toggle" style="display:flex;gap:6px">
+                  <button type="button" class="habit-kind-pill active" data-kind="build" onclick="setHabitKind(this,'build')">Build a habit</button>
+                  <button type="button" class="habit-kind-pill" data-kind="break" onclick="setHabitKind(this,'break')">Break a habit</button>
+                </div>
                 <input type="text" placeholder="e.g. Read for 30 minutes" id="new-habit">
                 <select id="habit-cat">
                   <option>Health</option><option>Learning</option><option>Mindset</option><option>Productivity</option>
@@ -2184,6 +2208,12 @@ input[type=checkbox]{accent-color:var(--orange);width:15px;height:15px;cursor:po
         </div>
 
         <div id="journal-evening" class="tab-panel">
+        <!-- Surfaces today's break-habit slip(s), if any were logged, right
+             where the day's reflection actually happens — the whole point
+             of capturing before/after mood on a slip is to make it easy to
+             sit with "why did that happen" for a moment, not to bury the
+             data in a habit row nobody revisits. -->
+        <div id="habit-slip-banner"></div>
         <div class="grid-2">
           <div class="card">
             <div class="card-header"><span class="card-title">Today's Entry</span></div>
@@ -5502,15 +5532,25 @@ function deleteGoal(gid){
 }
 
 // ── HABITS ──
+let newHabitKind = 'build';
+function setHabitKind(btn, kind){
+  newHabitKind = kind;
+  document.querySelectorAll('#habit-kind-toggle .habit-kind-pill').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const input = document.getElementById('new-habit');
+  if(input) input.placeholder = kind==='break' ? 'e.g. Gaming instead of working' : 'e.g. Read for 30 minutes';
+}
 function addHabit(){
   const name=document.getElementById('new-habit').value.trim();
   if(!name) return;
-  habits.push({id:'h'+Date.now(), name, completedDates:[]});
+  const habit = {id:'h'+Date.now(), name, kind:newHabitKind, completedDates:[]};
+  if(newHabitKind==='break') habit.instances = [];
+  habits.push(habit);
   document.getElementById('new-habit').value='';
   renderHabits();
   renderGoalHabitPicker();
   saveState();
-  showToast('🔥','Habit added! Check it off daily.');
+  showToast(newHabitKind==='break' ? '🎯' : '🔥', newHabitKind==='break' ? 'Habit added — log it each time it happens, before/after mood included.' : 'Habit added! Check it off daily.');
 }
 
 function renderHabits(){
@@ -5521,6 +5561,7 @@ function renderHabits(){
     return;
   }
   list.innerHTML = habits.map(h=>{
+    if(h.kind==='break') return renderBreakHabitRow(h);
     if(!h.partialDates) h.partialDates = [];
     const dots = [];
     for(let i=6;i>=0;i--){
@@ -5545,6 +5586,102 @@ function renderHabits(){
       ${buildHeatmap(h)}
     </div>`;
   }).join('');
+}
+
+// ── BREAK HABITS — no day-toggle here: most days doing nothing IS the
+// goal, so a streak of empty dots would be backwards. Instead a "clean
+// streak" counts consecutive days with zero logged instances, and each
+// instance carries a before/after mood so the pattern the habit actually
+// follows (does it ever really feel good afterward?) becomes visible
+// instead of staying a vague feeling — see habitSlipInsight().
+function computeCleanStreak(h){
+  let streak=0;
+  for(let i=0;i<3650;i++){
+    const ds=daysAgoISO(i);
+    if((h.instances||[]).some(inst=>inst.date===ds)) break;
+    streak++;
+  }
+  return streak;
+}
+function habitSlipInsight(h){
+  const insts=h.instances||[];
+  if(!insts.length) return 'No instances logged yet — that\'s the goal.';
+  const rank={rough:0,low:1,okay:2,good:3,great:4};
+  const weekAgo=daysAgoISO(6);
+  const thisWeek=insts.filter(i=>i.date>=weekAgo);
+  const worseAfter=thisWeek.filter(i=>rank[i.after]<rank[i.before]).length;
+  const betterAfter=thisWeek.filter(i=>rank[i.after]>rank[i.before]).length;
+  if(!thisWeek.length) return insts.length+' logged total, none this week.';
+  return thisWeek.length+' this week — felt worse after '+worseAfter+', better after '+betterAfter+(thisWeek.length-worseAfter-betterAfter>0?', same the rest':'')+'.';
+}
+function renderBreakHabitRow(h){
+  const clean=computeCleanStreak(h);
+  const linkedGoal = goals.find(g=>(g.linkedHabitIds||[]).includes(h.id));
+  const linkedPill = linkedGoal ? `<span class="habit-linked-pill" title="Feeds goal: ${linkedGoal.title}">🎯 ${linkedGoal.title}</span>` : '';
+  return `<div class="habit-row break-habit">
+    <div style="display:flex;align-items:center;justify-content:space-between;width:100%">
+      <span class="habit-name">${h.name}${linkedPill}</span>
+      <button class="habit-slip-log-btn" onclick="openHabitSlip('${h.id}')">Log it happened</button>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <span class="habit-slip-clean">${clean} day${clean===1?'':'s'} clean</span>
+    </div>
+    <div class="habit-slip-insight">${habitSlipInsight(h)}</div>
+  </div>`;
+}
+
+// ── HABIT SLIP LOG — the 2-step before/after modal a break habit's "Log
+// it happened" button opens. slipState is the in-progress answer, reset
+// each time the modal opens; nothing is saved to the habit until
+// saveHabitSlip() commits it, so cancelling mid-flow loses nothing.
+let slipHabitId=null, slipState={};
+function openHabitSlip(habitId){
+  const h=habits.find(x=>x.id===habitId);
+  if(!h) return;
+  slipHabitId=habitId;
+  slipState={};
+  document.getElementById('slip-habit-name-1').textContent=h.name;
+  document.getElementById('slip-habit-name-2').textContent=h.name;
+  document.getElementById('slip-note').value='';
+  document.querySelectorAll('#habit-slip-backdrop .checkin-step').forEach(s=>s.classList.remove('active'));
+  document.getElementById('slip-step-before').classList.add('active');
+  document.getElementById('habit-slip-backdrop').classList.add('show');
+}
+function closeHabitSlip(){
+  document.getElementById('habit-slip-backdrop').classList.remove('show');
+  slipHabitId=null;
+}
+function habitSlipAnswer(field,val){
+  slipState[field]=val;
+  document.querySelectorAll('#habit-slip-backdrop .checkin-step').forEach(s=>s.classList.remove('active'));
+  if(field==='before'){
+    document.getElementById('slip-step-after').classList.add('active');
+  } else {
+    const rank={rough:0,low:1,okay:2,good:3,great:4};
+    const delta=rank[slipState.after]-rank[slipState.before];
+    const icon=delta<0?'📉':delta>0?'📈':'➖';
+    const text=delta<0
+      ? 'Felt worse after than before. That gap is worth noticing — next time this comes up, it\'s useful data, not a failure.'
+      : delta>0
+      ? 'Actually felt better after? Worth digging into why — that\'s not what "bad habit" usually means.'
+      : 'About the same before and after — no strong before/after signal for this one.';
+    document.getElementById('slip-result-icon').textContent=icon;
+    document.getElementById('slip-result-text').textContent=text;
+    document.getElementById('slip-step-result').classList.add('active');
+  }
+}
+function saveHabitSlip(){
+  const h=habits.find(x=>x.id===slipHabitId);
+  if(!h||!slipState.before||!slipState.after) return;
+  if(!h.instances) h.instances=[];
+  const note=document.getElementById('slip-note').value.trim();
+  h.instances.push({date:todayISO(), before:slipState.before, after:slipState.after, note});
+  closeHabitSlip();
+  renderHabits();
+  renderJournal();
+  addXP(3,'Logged self-awareness');
+  saveState();
+  showToast('🎯','Logged — thanks for being honest about it.');
 }
 
 // ── HEATMAP — builds a ~16-week GitHub-style contribution grid from the
@@ -6284,6 +6421,7 @@ function saveTipToJournal(){
   showToast('💡','Tip saved to your journal');
 }
 function renderJournal(){
+  renderHabitSlipBanner();
   const list = document.getElementById('journal-list');
   if(!list) return;
   if(journalEntries.length===0){
@@ -6304,6 +6442,28 @@ function renderJournal(){
       ${tipSafe ? `<div class="journal-entry-text" style="margin-top:${safe?'8px':'0'};padding:8px 10px;background:rgba(255,196,102,.06);border-left:2px solid var(--orange2);border-radius:4px;font-style:italic;color:rgba(238,240,255,.75)">💡 ${tipSafe}</div>` : ''}
     </div>`;
   }).join('');
+}
+
+// Surfaces today's logged break-habit slip(s) right above the reflection
+// form — the moment someone sits down to reflect on the day is exactly
+// when "why did that happen, and did it actually help" is worth asking,
+// rather than leaving that data buried on a habit row nobody revisits.
+function renderHabitSlipBanner(){
+  const el=document.getElementById('habit-slip-banner');
+  if(!el) return;
+  const today=todayISO();
+  const todaysSlips=[];
+  habits.forEach(h=>{
+    if(h.kind!=='break') return;
+    (h.instances||[]).filter(i=>i.date===today).forEach(inst=>todaysSlips.push({habit:h.name, ...inst}));
+  });
+  if(!todaysSlips.length){ el.innerHTML=''; return; }
+  el.innerHTML = `<div class="card" style="border-color:rgba(255,90,0,.3);background:rgba(255,90,0,.05);margin-bottom:16px">
+    <div class="card-header"><span class="card-title">Logged today</span></div>
+    ${todaysSlips.map(s=>`<div style="font-size:12.5px;color:rgba(238,240,255,.85);padding:6px 0;border-top:1px solid var(--border2)">
+      <strong>${s.habit}</strong> — ${moodEmoji[s.before]||'😐'} before → ${moodEmoji[s.after]||'😐'} after${s.note?`<div style="color:var(--muted);margin-top:3px">"${s.note.replace(/</g,'&lt;')}"</div>`:''}
+    </div>`).join('')}
+  </div>`;
 }
 
 // ── MORNING PAGES — a separate, smaller sheet from the evening reflection
@@ -7177,6 +7337,55 @@ showPage = function(id){
         <div class="checkin-result-text" id="checkin-result-text"></div>
         <textarea id="checkin-note" placeholder="Anything else on your mind? (optional)" style="width:100%;min-height:60px;margin-bottom:12px;resize:vertical"></textarea>
         <button class="checkin-done-btn" onclick="closeCheckin()">Got it</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── HABIT SLIP LOG — logging an instance of a "break" habit, built
+     around one idea: the habit itself isn't the useful data point, how it
+     actually felt before vs. after is. Reuses the checkin-* modal styling
+     (same visual language, no new CSS needed for the shell) but is its
+     own backdrop/id since it's a different flow triggered from a
+     different place (a habit row, not app open). ── -->
+<div class="checkin-backdrop" id="habit-slip-backdrop">
+  <div class="checkin-card">
+    <div class="checkin-step active" id="slip-step-before">
+      <div class="checkin-eyebrow">Logging <span id="slip-habit-name-1">this</span></div>
+      <div class="checkin-q">Right before you did it — how were you feeling?</div>
+      <div class="checkin-opts">
+        <div class="checkin-opt" onclick="habitSlipAnswer('before','great')"><span class="ci-emoji">🔥</span> Great</div>
+        <div class="checkin-opt" onclick="habitSlipAnswer('before','good')"><span class="ci-emoji">💪</span> Good</div>
+        <div class="checkin-opt" onclick="habitSlipAnswer('before','okay')"><span class="ci-emoji">😐</span> Okay</div>
+        <div class="checkin-opt" onclick="habitSlipAnswer('before','low')"><span class="ci-emoji">🌧️</span> Low</div>
+        <div class="checkin-opt" onclick="habitSlipAnswer('before','rough')"><span class="ci-emoji">⚡</span> Rough / stressed</div>
+      </div>
+      <div class="checkin-foot">
+        <button class="checkin-skip" onclick="closeHabitSlip()">Cancel</button>
+        <div class="checkin-dots"><div class="checkin-dot active"></div><div class="checkin-dot"></div></div>
+      </div>
+    </div>
+    <div class="checkin-step" id="slip-step-after">
+      <div class="checkin-eyebrow">Logging <span id="slip-habit-name-2">this</span></div>
+      <div class="checkin-q">And right now, having done it — how do you feel?</div>
+      <div class="checkin-opts">
+        <div class="checkin-opt" onclick="habitSlipAnswer('after','great')"><span class="ci-emoji">🔥</span> Great</div>
+        <div class="checkin-opt" onclick="habitSlipAnswer('after','good')"><span class="ci-emoji">💪</span> Good</div>
+        <div class="checkin-opt" onclick="habitSlipAnswer('after','okay')"><span class="ci-emoji">😐</span> Okay</div>
+        <div class="checkin-opt" onclick="habitSlipAnswer('after','low')"><span class="ci-emoji">🌧️</span> Low</div>
+        <div class="checkin-opt" onclick="habitSlipAnswer('after','rough')"><span class="ci-emoji">⚡</span> Rough / worse</div>
+      </div>
+      <div class="checkin-foot">
+        <button class="checkin-skip" onclick="closeHabitSlip()">Cancel</button>
+        <div class="checkin-dots"><div class="checkin-dot"></div><div class="checkin-dot active"></div></div>
+      </div>
+    </div>
+    <div class="checkin-step" id="slip-step-result">
+      <div class="checkin-result">
+        <div class="checkin-result-icon" id="slip-result-icon">🧭</div>
+        <div class="checkin-result-text" id="slip-result-text"></div>
+        <textarea id="slip-note" placeholder="Anything about why? (optional)" style="width:100%;min-height:60px;margin-bottom:12px;resize:vertical"></textarea>
+        <button class="checkin-done-btn" onclick="saveHabitSlip()">Log it</button>
       </div>
     </div>
   </div>
