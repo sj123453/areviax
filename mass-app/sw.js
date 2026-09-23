@@ -16,7 +16,18 @@
 // the latest build immediately, and only fall back to cache when that
 // fetch actually fails (offline, or a flaky connection) — offline
 // resilience without ever trading away freshness while online.
-const CACHE_NAME = 'areviax-mass-v2';
+//
+// v3: the network-first fetch() below still went through the browser's
+// own HTTP cache — "network-first" in the SW's own logic, but the actual
+// network call could still be silently answered out of HTTP cache
+// without a real round trip, depending on the response's own
+// Cache-Control. cache:'no-store' on the fetch forces a genuine
+// revalidated request every time, so "network-first" is actually true
+// end to end, not just true in the SW's own source. Also gives every
+// device's Cache Storage a clean slate — cheap, and rules out a stale
+// browser-level cache as the explanation the next time a real device
+// reports seeing an already-shipped fix.
+const CACHE_NAME = 'areviax-mass-v3';
 const APP_SHELL = ['./', './index.html', './manifest.json', './images/icons/favicon.png'];
 
 self.addEventListener('install', (event) => {
@@ -34,7 +45,7 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
   event.respondWith(
-    fetch(event.request)
+    fetch(event.request, { cache: 'no-store' })
       .then((response) => {
         if (response && response.ok) {
           const copy = response.clone();

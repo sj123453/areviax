@@ -1450,7 +1450,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
          nav) but redundant directly under the new fixed bar on mobile. */
       .lv-topbar{display:none!important}
       .content{
-        padding-top:calc(max(var(--safe-top,0px),env(safe-area-inset-top,0px)) + 52px + 14px)!important;
+        padding-top:calc(max(var(--safe-top,0px),env(safe-area-inset-top,0px)) + 52px + 28px)!important;
         padding-bottom:calc(60px + env(safe-area-inset-bottom, 0px) + 24px)!important;
         padding-left:16px!important;
         padding-right:16px!important;
@@ -2500,13 +2500,20 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .shop-track-tall .shop-hero-card{width:100%;min-height:18vh}
     .shop-track-stack{min-width:0;display:flex;flex-direction:column;gap:12px}
     .shop-track-stack .shop-grid-card{width:100%}
-    .shop-track-stack .shop-deal-grid,.shop-track-stack .crate-row{max-height:210px}
+    /* Used to cap these at 210px/150px with an internal scrollbar so the
+       card stayed a fixed shelf height — measured against the real
+       .crate-slot content (44px top padding + a 100px icon + label +
+       button, ~200px+ for ONE row alone) that cap was shorter than even
+       a single row, so the "internal scroll" was a near-invisible sliver
+       of the next row peeking in rather than a usable scroll area —
+       exactly what it looked like broken on a real device. Letting both
+       grids grow to their natural content height (the page itself
+       already scrolls) instead of a fixed shelf height. */
     @media(min-width:700px){
       .shop-dual-track{flex-direction:row;align-items:stretch}
       .shop-track-tall{flex:1.05}
       .shop-track-stack{flex:1}
       .shop-track-tall .shop-hero-card{height:100%;min-height:0}
-      .shop-track-stack .shop-deal-grid,.shop-track-stack .crate-row{max-height:150px}
     }
     .shop-hero-card{
       position:relative;border-radius:16px;overflow:hidden;
@@ -2531,7 +2538,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        reads as a sibling of equal visual weight on the shelf), just sized
        to its grid content instead of a fixed narrow width. */
     .shop-grid-card{
-      flex:0 0 auto;width:315px;max-height:291px;border-radius:16px;padding:10px;
+      flex:0 0 auto;width:315px;border-radius:16px;padding:10px;
       border:3px solid rgba(227,191,118,.55);
       background:linear-gradient(165deg,rgba(60,42,20,.55),rgba(18,12,6,.82));
       box-shadow:0 0 0 3px rgba(15,9,5,.85),0 5px 0 rgba(0,0,0,.45),0 9px 16px -4px rgba(0,0,0,.55);
@@ -2550,23 +2557,15 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .shop-grid-card-head>*{transform:skewX(8deg)}
     .shop-grid-card-title{font-family:var(--lv-display);font-weight:400;font-size:1.05rem;color:var(--lv-fg);text-transform:uppercase;letter-spacing:.01em;white-space:nowrap}
     .shop-grid-card-sub{font-size:8px;color:var(--lv-muted-fg);white-space:nowrap}
-    /* Card height is fixed to roughly match the hero card next to it on
-       the shelf (matches the reference's "every section is the same
-       height" shelf), but a dynamic offers/crate list can run longer than
-       one card's-worth of rows — the grid itself scrolls internally
-       inside that fixed height rather than the card growing to fit
-       everything, so the shelf stays a consistent height regardless of
-       how many items happen to be unlocked. */
-    /* max-height (not flex:1) is the load-bearing part here — giving this
-       grid a flex-stretched DEFINITE height instead made Chromium's grid
-       algorithm compress every "auto" row proportionally to fit that
-       definite height rather than let genuine overflow happen (rows all
-       coming out ~41px tall, art clipped to a sliver, confirmed via
-       direct row-track measurement). A max-height keeps the grid's rows
-       at their real natural size and only turns on scrolling once actual
-       content exceeds it — the correct pattern for this "fixed-height
-       card, natural-size scrollable rows" shape. */
-    .shop-deal-grid,.crate-row{overflow-y:auto;-webkit-overflow-scrolling:touch;padding-right:2px;max-height:243px;align-content:start;flex-shrink:0}
+    /* Used to be capped to a fixed shelf height (243px) with an internal
+       scrollbar so this card roughly matched the hero card's height —
+       real .crate-slot content is taller than that cap on its own
+       (~200px+ for one row of 100px icons), so the "scrollable rows"
+       never had room to show a full row, just a sliver of whichever row
+       the internal scroll happened to be sitting on. Natural height
+       instead — the page itself scrolls, and .shop-grid-card no longer
+       clips it (max-height removed there too, see that rule). */
+    .shop-deal-grid,.crate-row{align-content:start;flex-shrink:0}
     /* Currency strip chips — solid colour badge per currency, analysed
        directly against the reference's gem/coin/token row where each
        balance reads as its own distinct coloured pill at a glance. */
@@ -2621,18 +2620,15 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .crate-upgrade-btn{margin-top:5px;font-size:8.5px;font-weight:800;text-align:center;color:#C9D4DE;border:1px solid rgba(201,212,222,.35);border-radius:999px;padding:3px 6px;cursor:pointer;max-width:100%;box-sizing:border-box;line-height:1.3;transition:background .15s}
     .crate-upgrade-btn:active{background:rgba(201,212,222,.15)}
     .key-bank-badge{display:inline-flex;align-items:center;gap:4px;font-size:9px;font-weight:800;color:rgba(var(--white-rgb),.7);background:rgba(232,214,196,.06);border:1px solid var(--border2);border-radius:999px;padding:3px 9px}
-    .crate-row .compass-crate{width:54px;height:54px}
-    .crate-row .compass-crate .crate-icon svg{width:25px;height:25px}
-    /* The crown/wreath's default size (62x65 / 26x13) is tuned for the
-       84px reveal stage and 56px default contexts, both with real room
-       around them. In this row each slot is only ~55px wide — the same
-       decoration at full size spilled 8px+ past each side of the icon it's
-       centered on, past the slot's own edge and into the neighboring tile
-       (visibly crossing tile boundaries — "none of the things line up").
-       Scaled down to fit inside this specific slot without touching the
-       shared default other contexts still rely on. */
-    .crate-row .crate-wreath{width:50px;height:52px}
-    .crate-row .crate-crown{width:22px;height:11px;top:-8px}
+    /* NOTE: this used to shrink the icon/crown/wreath back down for a
+       "~55px wide slot" — stale from before .crate-slot .compass-crate
+       was bumped to 100px (see that rule's comment above). Same
+       specificity as that rule and later in the file, so it was silently
+       winning the cascade and undoing the bump — the crate art was
+       rendering at the old 54px size (a tiny icon lost in a mostly-empty
+       tile) despite the "fill the tile" fix looking correct in the
+       source. Removed; the 100px slot has real room for the default
+       62x65 wreath / 26x13 crown now, no override needed. */
     /* The locked-state desaturation is routed through a custom property
        into this filter so a later .locked{filter:...} dims the tier's
        gradient without wiping it out — a clip-path on the same element
