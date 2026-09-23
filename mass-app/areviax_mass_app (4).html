@@ -11750,6 +11750,42 @@ function trialsAvgSessionDurationBefore(d){
   const durs=sessionHistory.filter(s=>s.date<d&&s.durationSec>0).map(s=>s.durationSec);
   return durs.length>=3?durs.reduce((a,b)=>a+b,0)/durs.length:null;
 }
+// Wires Trial of Growth to the existing Lift Rank strength evaluator
+// (LIFT_RANK_TIERS/getExerciseRank, elsewhere in this file — see the
+// comment above RANK_FAMILY_CURVES for the full system) instead of
+// leaving it purely personal-history-based like the trials above. Same
+// "before d" pattern as every other trial baseline here: the rank is
+// computed from liftHistory strictly BEFORE the day being judged, so
+// today's own PR can't retroactively inflate the bar it has to clear.
+// getExerciseRank() itself always uses the user's CURRENT prs/history,
+// which is why this exists as a separate function rather than reusing
+// it directly.
+function trialsExerciseRankBefore(exName,d){
+  const hist=(liftHistory[exName]||[]).filter(h=>h.date<d);
+  if(!hist.length||!profile.weight)return null;
+  let best=0;
+  hist.forEach(h=>{
+    if(h.weight>0&&h.reps>0){
+      const r=Math.min(h.reps,15);
+      const e=(h.weight*(1+r/30)+h.weight*36/(37-r))/2;
+      if(e>best)best=e;
+    }
+  });
+  if(!best)return null;
+  const curatedLift=LIFT_RANK_LIFTS.find(l=>l.exName===exName);
+  const curve=curatedLift?curatedLift.curve:(EXERCISE_RANK_FAMILY[exName]&&RANK_FAMILY_CURVES[EXERCISE_RANK_FAMILY[exName]]);
+  if(!curve)return null;
+  return computeRankFromRatio(best,profile.weight*0.453592,curve);
+}
+// The actual difficulty curve — how big a same-day PR needs to be (as a
+// % jump in estimated 1RM over yesterday's rank baseline) to clear this
+// trial, indexed by LIFT_RANK_TIERS tier index (0=Wood..8=Olympian).
+// Wood/Bronze ask for nothing beyond a normal PR — exactly the "doesn't
+// require immense strength" floor for someone just starting out — and
+// the bar rises tier by tier from there. These are small percentages on
+// purpose: a 1-2% jump in estimated 1RM is a genuinely real, non-trivial
+// improvement once someone's advanced enough to be running into it.
+const TRIALS_GROWTH_MIN_JUMP_PCT=[0,0,0.25,0.5,0.75,1,1.25,1.5,2];
 // visual: {c1,c2} the header/hero gradient (a distinct colour per stage,
 // same idea as the reference's Hot Zone red vs Knockout orange \u2014 each
 // stage reads as its own "mode" even though the overall event stays
@@ -11784,8 +11820,31 @@ const TRIALS_STAGES=[
     checkWin:(d)=>profile.cals>0&&Math.abs(trialsCaloriesOnDate(d)-profile.cals)<=100,
     reward:{type:'crate',tier:'silver',amount:35},
     visual:{c1:'#FFB347',c2:'#D98A0E',icon:'<path d="M6 2v7a2 2 0 002 2h0a2 2 0 002-2V2"/><path d="M8 11v11"/><path d="M18 2v11"/><path d="M15 2v6a3 3 0 003 3h0"/>'}},
-  {key:'growth', name:'Trial of Growth', desc:'Set a new PR on any lift.',
-    checkWin:(d)=>prHistory.some(p=>p.date===d),
+  {key:'growth', name:'Trial of Growth', desc:'Set a real PR on any lift — how big a jump counts scales with your strength rank on it.',
+    // Below Silver, any PR clears it — this trial is meant to be gettable
+    // early, not a wall. From there the required jump rises with the
+    // lifter's own Lift Rank on that specific exercise (see
+    // trialsExerciseRankBefore/TRIALS_GROWTH_MIN_JUMP_PCT above), so the
+    // same trial is easy for someone just starting out and genuinely
+    // demanding for someone already deep into their strength curve on
+    // that lift — the whole point of tying it to the rank system rather
+    // than a flat "any PR" bar that means something different for
+    // everyone. No rank data yet for that exercise (first time logging
+    // it, or no bodyweight on file) falls back to the old any-PR rule —
+    // same generous fallback every other rank-aware feature in this app
+    // uses when there isn't enough data to judge by yet.
+    checkWin:(d)=>{
+      const todaysPRs=prHistory.filter(p=>p.date===d);
+      return todaysPRs.some(p=>{
+        const rank=trialsExerciseRankBefore(p.name,d);
+        if(!rank)return true;
+        const minPct=TRIALS_GROWTH_MIN_JUMP_PCT[rank.tierIdx]||0;
+        if(minPct<=0)return true;
+        const newE1RM=estimate1RM(p.name);
+        if(!newE1RM||!rank.e1rm)return true;
+        return (newE1RM-rank.e1rm)/rank.e1rm*100>=minPct;
+      });
+    },
     reward:{type:'crate',tier:'diamond',amount:45},
     visual:{c1:'#4ECB71',c2:'#219145',icon:'<path d="M3 17l6-6 4 4 8-8"/><path d="M15 3h6v6"/>'}},
   {key:'endurance', name:'Trial of Endurance', desc:'A genuinely big one — 50% more sets than you usually log.',
