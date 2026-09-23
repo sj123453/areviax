@@ -1450,7 +1450,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
          nav) but redundant directly under the new fixed bar on mobile. */
       .lv-topbar{display:none!important}
       .content{
-        padding-top:calc(max(var(--safe-top,0px),env(safe-area-inset-top,0px)) + 52px + 28px)!important;
+        padding-top:calc(max(var(--safe-top,0px),env(safe-area-inset-top,0px)) + 52px + 18px)!important;
         padding-bottom:calc(60px + env(safe-area-inset-bottom, 0px) + 24px)!important;
         padding-left:16px!important;
         padding-right:16px!important;
@@ -1478,6 +1478,16 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
          against another fixed sibling here. Dock it below the topbar's
          own band by layout math instead of trusting stacking order. */
       #toast{top:calc(max(var(--safe-top,0px),env(safe-area-inset-top,0px)) + 52px + 8px)!important}
+      /* Same bug, different notification system — .dash-notif-fixed
+         (streak-risk, weekly-coverage, muscle-balance, etc.) is a whole
+         separate set of banners from #toast, and it had the exact same
+         stale top:safe-top anchor (predating #global-topbar) PLUS a
+         lower z-index (640 vs the topbar's 960), so it wasn't just
+         landing behind the bar visually — restackDashNotifs()/
+         tryShowNextDashNotif() also set that same top as an inline
+         style, which normally out-specifies a plain class rule, so only
+         !important here reliably wins over both the old CSS and the JS. */
+      .dash-notif-fixed{top:calc(max(var(--safe-top,0px),env(safe-area-inset-top,0px)) + 52px + 8px)!important}
       /* iOS Safari auto-zooms the whole page in on focus whenever a text
          input's computed font-size is under 16px — the base rule was
          13px. 16px is the one value that actually disables it; anything
@@ -4612,6 +4622,30 @@ body[data-goal-theme="cut"] .lv-page{
   // after it decides onboarding vs main-app) — whichever finishes last. A
   // hard fallback timeout still guarantees this can never block forever if
   // something upstream throws before reaching that signal.
+  // The fallback below was the only thing standing between a slow load
+  // and a returning user seeing the raw questionnaire — #onboarding has
+  // no default-hidden state of its own (see the comment above), so if
+  // this fires before the real DOMContentLoaded decision has run, intro
+  // closes and exposes it underneath. That's not just a hypothetical
+  // race: DOMContentLoaded can't fire until this whole ~17MB+ single-
+  // script document is fully parsed, which the earlier comment measured
+  // at ~14s on a throttled connection even before this file grew to its
+  // current size — a real device on a real network can absolutely take
+  // longer than 8s to get there. Fixed at the root instead of just
+  // widening the window: read the same profile localStorage the real
+  // decision (deep in DOMContentLoaded) will use, synchronously, right
+  // here — cheap and redundant with that later check, but it runs the
+  // instant the parser reaches this point (~1.2MB in) rather than
+  // waiting on the other ~16MB, so a returning user's #onboarding is
+  // already hidden long before intro ever considers closing, regardless
+  // of how slow the rest of the load is.
+  try{
+    const p=JSON.parse(localStorage.getItem('arx_profile')||'null');
+    if(p&&p.name&&p.cals>0){
+      const obEarly=document.getElementById('onboarding');
+      if(obEarly)obEarly.style.display='none';
+    }
+  }catch(e){}
   let minTimeElapsed=false, appReady=false, closed=false;
   function tryClose(){
     if(closed||!minTimeElapsed||!appReady)return;
@@ -4619,7 +4653,11 @@ body[data-goal-theme="cut"] .lv-page{
     closeIntro();
   }
   window.__introAppReady=function(){ appReady=true; tryClose(); };
-  setTimeout(function(){ appReady=true; tryClose(); },8000);
+  // Kept as defense-in-depth (e.g. the localStorage read above throwing)
+  // rather than the primary guard now — bumped well past the realistic
+  // worst-case parse time regardless, since the cost of waiting longer
+  // is a longer branded loading screen, not a wrong screen.
+  setTimeout(function(){ appReady=true; tryClose(); },20000);
   if(seenToday){
     introEl.style.transition='none';
     minTimeElapsed=true; // no entrance animation to wait out on a same-day repeat view
