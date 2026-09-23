@@ -178,7 +178,14 @@ input,input:focus,input:active,
   display:none;position:fixed;top:max(var(--safe-top,0px),env(safe-area-inset-top,0px));left:0;right:0;
   height:52px;padding:0 18px;box-sizing:border-box;
   align-items:center;justify-content:space-between;
-  background:#000;border-bottom:1px solid rgba(255,255,255,.08);
+  /* A flat #000 here read as one undifferentiated black slab fused to the
+     real status bar (#status-bar-blackout, also pure #000) sitting right
+     above it — no visible seam between "the phone's clock/WiFi/battery"
+     and "the app's own bar", which real iOS chrome always keeps distinct.
+     A faint warm gradient + gold-tinted hairline gives this bar its own
+     identity without turning it into a bright band. */
+  background:linear-gradient(180deg,#18130F 0%,#0A0807 100%);
+  border-bottom:1px solid rgba(230,190,109,.16);
   z-index:960;
 }
 .topbar-inner{max-width:760px;margin:0 auto;height:100%;display:flex;align-items:center;justify-content:space-between;padding:0 20px;box-sizing:border-box}
@@ -1464,6 +1471,13 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
          .content already pads by above. */
       .bottom-sheet-modal{bottom:calc(60px + env(safe-area-inset-bottom,0px))!important}
       .inset-modal{bottom:calc(16px + 60px + env(safe-area-inset-bottom,0px))!important}
+      /* Same real-device stacking quirk as above hits #toast vs the new
+         #global-topbar: the toast's z-index is higher on paper (10000 vs
+         960) but both sit at the same top:safe-top anchor, and going by
+         the bottom-nav precedent above, paper z-index isn't trustworthy
+         against another fixed sibling here. Dock it below the topbar's
+         own band by layout math instead of trusting stacking order. */
+      #toast{top:calc(max(var(--safe-top,0px),env(safe-area-inset-top,0px)) + 52px + 8px)!important}
       /* iOS Safari auto-zooms the whole page in on focus whenever a text
          input's computed font-size is under 16px — the base rule was
          13px. 16px is the one value that actually disables it; anything
@@ -5152,9 +5166,9 @@ body[data-goal-theme="cut"] .lv-page{
            that size. Sits directly underneath it instead, its own row,
            enlarged — the next-session name/lifts/time/last row that used
            to live here moved below, right-aligned. -->
-      <div style="margin-top:4px;display:flex;align-items:baseline;gap:9px;font-family:var(--lv-sans);font-size:38px;font-weight:800;color:var(--lv-fg)">
-        <span id="dash-greeting-name"></span>
-        <span id="dash-title-badge" style="display:none;font-size:14px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--lv-gold)"></span>
+      <div style="margin-top:4px;font-family:var(--lv-sans);color:var(--lv-fg)">
+        <div style="font-size:38px;font-weight:800;line-height:1.05" id="dash-greeting-name"></div>
+        <div id="dash-title-badge" style="display:none;margin-top:3px;font-size:14px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--lv-gold)"></div>
       </div>
 
       <!-- Next-session preview — moved to the right (was left-aligned under
@@ -8040,6 +8054,7 @@ body[data-goal-theme="cut"] .lv-page{
     <div style="position:relative;z-index:1;text-align:center">
       <p class="lv-label-eyebrow" style="color:var(--lv-fg);opacity:.7" id="profile-tenure">Member for 0 days</p>
       <h1 style="margin-top:6px;color:var(--lv-fg);font-family:'Bebas Neue',sans-serif;font-weight:400;font-size:clamp(2.2rem,11vw,3.2rem);line-height:1;letter-spacing:.01em;text-transform:uppercase" id="profile-header-name">Athlete</h1>
+      <div id="profile-title-badge" style="display:none;margin-top:2px;font-size:13px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--lv-gold)"></div>
       <div style="margin-top:6px;font-family:var(--lv-mono);font-size:10px;color:var(--lv-muted-fg)" id="profile-joindate"></div>
       <div class="lv-meander-bold" style="margin-top:18px"></div>
     </div>
@@ -9412,15 +9427,22 @@ function setEquippedTitle(key){
   renderTitlePicker();
   renderDashTitleBadge();
 }
+// Shared by the Dashboard hero and the Profile header — both now show the
+// equipped title as its own line under the name, coloured by that title's
+// own rarity fill (TITLE_CHIP_STYLE) rather than a flat gold for every
+// title, so a title reads as the specific thing it is at a glance.
 function renderDashTitleBadge(){
-  const el=document.getElementById('dash-title-badge');
-  if(!el)return;
-  if(equippedTitle&&TITLES[equippedTitle]){
-    el.textContent='· '+TITLES[equippedTitle].name;
-    el.style.display='inline';
-  }else{
-    el.style.display='none';
-  }
+  [document.getElementById('dash-title-badge'),document.getElementById('profile-title-badge')].forEach(el=>{
+    if(!el)return;
+    if(equippedTitle&&TITLES[equippedTitle]){
+      el.textContent=TITLES[equippedTitle].name;
+      el.style.display='block';
+      const cs=TITLE_CHIP_STYLE[equippedTitle];
+      el.style.color=cs?cs.border:'var(--lv-gold)';
+    }else{
+      el.style.display='none';
+    }
+  });
 }
 // Rendered in two places now — Settings > Appearance (#set-title-toggle)
 // and the Profile page (#profile-title-toggle) — same markup/behavior,
