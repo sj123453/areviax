@@ -507,6 +507,8 @@ input,input:focus,input:active,
 .set-chip{font-family:'JetBrains Mono',monospace;font-size:11px;padding:5px 9px;background:var(--bg);border:1.5px solid var(--border2);border-radius:3px;transition:all .2s}
 .set-chip.done{background:rgba(243,103,23,.1);border-color:var(--green);color:var(--green)}
 .set-chip.pr{background:rgba(255,215,0,.1);border-color:var(--yellow);color:var(--yellow)}
+.rpe-chip{min-width:26px;text-align:center;cursor:pointer}
+.rpe-chip.selected{background:rgba(243,103,23,.14);border-color:var(--orange);color:var(--orange)}
 
 /* SYNERGY PANEL */
 .syn-panel{}
@@ -9351,6 +9353,13 @@ const MIN_SESSION_MS_FOR_CREDIT=90000; // 90s — shorter than any real set (set
 let restSecs=0,restInt=null,restEndsAt=0;
 let totalVolume=0;
 let tonnageLog=[];
+// [{date, exercise, muscle, rpe, ts}] — one entry per logged set that had
+// an RPE actually entered (optional, so most sets never add a row here).
+// Kept separate from tonnageLog rather than adding a field to it, since
+// tonnageLog is keyed by muscle (fans one set into several rows for a
+// multi-muscle exercise) and RPE is a single per-set number, not
+// something that makes sense to duplicate per muscle.
+let rpeLog=[];
 let feederQuestClaimedDate='';
 let liveSessionProgress={}; // {exerciseName: {weight, reps, doneSets:[0,2,...]}} — lets a mid-workout close/reopen resume exactly where you left off
 let questWeekStart='';
@@ -10170,6 +10179,26 @@ const EX={
         {feel:'Elbows or forearms moving', fix:'Keep your forearms completely still against your thighs or the bench — this is a wrist-only movement, any arm swing is just cheating the weight up.'},
         {feel:'Nothing at the fingertip end of the range', fix:'You\'re probably not letting the weight roll all the way down. Let it unroll to your fingertips before curling back up for the full range this exercise depends on.'},
       ]},
+    {name:'Reverse Wrist Curl',muscle:'biceps + forearms',sets:3,reps:'15–20',eff:64,syn:68,safe:97,equip:['full','dumbbells','barbell'],anim:'curl',cue:'Same setup as a regular wrist curl but palms down — forearms resting on your thighs or a bench, lower the weight by letting your wrists drop, then lift the back of your hand up against it. This is the side wrist curls skip, and it\'s the one that actually protects your elbow from tennis-elbow-style overuse.',
+      troubleshoot:[
+        {feel:'Barely feeling anything', fix:'This side of the forearm is much weaker than the curling side — drop the weight considerably lighter than what you use for regular wrist curls, it\'s normal.'},
+        {feel:'Forearms moving instead of just wrists', fix:'Keep your forearms pinned to your thighs or the bench the whole set — only the hands should move.'},
+      ]},
+    {name:'Reverse Curl',muscle:'biceps + forearms',sets:3,reps:'10–12',eff:76,syn:78,safe:88,equip:['full','barbell','dumbbells'],anim:'curl',cue:'Same curl motion as a standard biceps curl, but with your palms facing down (overhand grip) instead of up. This shifts a good chunk of the work onto your brachialis and forearm extensors — the muscles a regular curl barely touches — building grip and elbow-joint resilience alongside arm size.',
+      troubleshoot:[
+        {feel:'Wrists bending under the load', fix:'Grip the bar firmly and keep your wrists locked flat and neutral through the whole set — a loose grip lets them cock back, which is where wrist strain comes from.'},
+        {feel:'Much weaker than your regular curl', fix:'That\'s expected — the overhand grip is mechanically weaker. Use noticeably less weight than your normal curl, not the same number.'},
+      ]},
+    {name:'Zottman Curl',muscle:'biceps + forearms',sets:3,reps:'10–12',eff:78,syn:80,safe:90,equip:['full','dumbbells'],anim:'curl',cue:'Curl the dumbbells up palms-up like a normal curl, then rotate your wrists to palms-down at the top before lowering back down — so the lift works your biceps and the lower works your forearms. One exercise, both directions covered.',
+      troubleshoot:[
+        {feel:'Forgetting to rotate', fix:'The rotation at the top is the whole point of this variation — pause briefly at the top of each rep to make sure you actually flip your grip before lowering.'},
+        {feel:'Losing control on the way down', fix:'The palms-down lowering is intentionally the harder, slower half. Don\'t rush it — a controlled 2–3 second descent is where the forearm work actually happens.'},
+      ]},
+    {name:'Rack Pull',muscle:'back + traps',sets:3,reps:'5–8',eff:90,syn:85,safe:82,equip:['full','barbell'],anim:'deadlift',cue:'Set the bar on safety pins just below knee height and pull from there — a partial deadlift that lets you overload your back and traps with more weight than a full pull, without needing the hip drive of the bottom portion. Keep your chest up and pull the bar straight up your shins, finishing with a strong squeeze at the top.',
+      troubleshoot:[
+        {feel:'Lower back rounding', fix:'The pin height is probably too low. Raise it so the bar starts at or just below your knees — starting lower turns this into a much harder, more dangerous deadlift variation than intended.'},
+        {feel:'Just your arms/grip giving out first', fix:'That\'s expected at heavier loads — this is one of the best exercises for building grip strength precisely because of that. Straps are fine here if grip is the limiter, not your back.'},
+      ]},
   ],
   'upper-full':[
     {name:'Incline Dumbbell Press',muscle:'chest',sets:3,reps:'8–10',eff:90,syn:89,safe:90,equip:['full','dumbbells','dumbbells_bench'],anim:'press',cue:'Set the bench to 30–45° and press the dumbbells up and slightly together, keeping the lower chest emphasis of a flat press while shifting more work to the upper chest.',
@@ -10537,6 +10566,16 @@ const EX={
       troubleshoot:[
         {feel:'Lower back doing all the work', fix:'Actively squeeze your glutes to drive the movement rather than just arching your lower back — think of it as a hip hinge, not a spinal crunch in reverse.'},
         {feel:'Rounding past straight at the top', fix:'Stop the rep the moment your body forms a straight line — hyperextending backward past that adds no benefit and puts unnecessary strain on your spine.'},
+      ]},
+    {name:'Reverse Hyperextension',muscle:'glutes + hamstrings',sets:3,reps:'12–15',eff:83,syn:86,safe:92,equip:['ghdMachine'],anim:'deadlift',cue:'Chest down on the pad, legs hanging free, swing your legs up from hip-extended to slightly past parallel by squeezing your glutes and hamstrings, then lower back under control. Unlike a back extension, your spine stays still here and your legs do the moving — real decompression for your lower back while still loading the posterior chain hard.',
+      troubleshoot:[
+        {feel:'Using momentum, legs swinging wildly', fix:'Slow down and use a lighter load or no added weight at all — a controlled 2-second lift is what trains the glutes and hamstrings; a fast swing just trains momentum.'},
+        {feel:'Lower back arching to help', fix:'Keep your chest pinned to the pad the whole set. If your back is arching to add extra lift, the weight is too heavy or you\'re rushing the rep.'},
+      ]},
+    {name:'Cable Pull-Through',muscle:'glutes + hamstrings',sets:3,reps:'12–15',eff:82,syn:87,safe:92,equip:['cableMachine'],anim:'deadlift',cue:'Facing away from a low cable with the rope between your legs, hinge at the hips — not your knees — pushing your hips back until you feel a deep hamstring stretch, then drive your hips forward and squeeze your glutes hard to stand tall. A great first hip-hinge pattern to learn since the cable makes it almost impossible to turn into a squat by accident.',
+      troubleshoot:[
+        {feel:'Lower back rounding at the bottom', fix:'Stop the hinge the moment your lower back wants to round — that\'s your hamstring flexibility limit for today, not a range of motion to force through.'},
+        {feel:'Quads taking over, feels like a squat', fix:'Keep your knees soft and mostly still. The movement should come from your hips folding back and forward, not your knees bending like a squat.'},
       ]},
   ],
   'full':[
@@ -19701,6 +19740,14 @@ function buildSession(){
         <div style="flex:1"><label class="lbl" style="margin-top:0">${weightInputLabel(e)}</label><input type="number" id="sw-${i}" style="padding:7px 9px" placeholder="${sug?sug.weight:'kg'}" value="${prefillWeight}" ${isPureBW?`oninput="updateBodyweightNote(${i})"`:''}></div>
         <div style="flex:1"><label class="lbl" style="margin-top:0">Reps</label><input type="number" id="sr-${i}" style="padding:7px 9px" placeholder="${e.reps.split('–')[0]}" value="${prefillReps}"></div>
       </div>
+      <div style="margin-bottom:9px">
+        <label class="lbl" style="margin-top:0" title="Rate of Perceived Exertion — how hard that set felt out of 10. Optional, tap again to clear.">RPE <span style="opacity:.6;font-weight:500;text-transform:none;letter-spacing:0">(optional)</span></label>
+        <input type="hidden" id="srpe-${i}" value="">
+        <div class="sets-row" id="rperow-${i}">${Array.from({length:10},(_,ri)=>{
+          const val=ri+1;
+          return `<div class="set-chip rpe-chip" onclick="setSessionRPE(${i},${val},this)">${val}</div>`;
+        }).join('')}</div>
+      </div>
       ${isPureBW?`<div id="bw-note-${i}" style="font-size:10px;color:var(--cyan);margin:-2px 0 9px;line-height:1.4">${bodyweightNoteText(parseFloat(prefillWeight)||0)}</div>`:''}
       ${plates?`<div style="font-size:10px;color:var(--muted);margin:-2px 0 9px;line-height:1.4">🏋️ Per side: ${plates.parts.join(', ')} <span style="opacity:.7">(20kg bar)</span>${plates.exact?'':' — closest at 1.25kg plates: '+plates.achievedTotal+'kg'}</div>`:''}
       ${sug?`<div style="font-size:10px;color:rgba(243,103,23,.7);margin:-2px 0 9px;line-height:1.4">📈 ${sug.note}</div>`:''}
@@ -20063,9 +20110,29 @@ const DOUBLE_DUMBBELL_EXERCISES=new Set([
   'Preacher Hammer Curl','Rear Delt Fly','Reverse Lunge','Reverse Lunges','Spider Curl',
   'Step-ups','Tate Press','Walking Lunges','Zottman Curl',
 ]);
+// Tap a 1–10 RPE chip to set that exercise's RPE for the sets logged
+// after it; tap the same one again to clear it back to "not rated" —
+// this stays genuinely optional (see rpeLog's own comment), so nothing
+// here should make picking one feel required.
+function setSessionRPE(ei,val,el){
+  const hidden=document.getElementById('srpe-'+ei);
+  const row=document.getElementById('rperow-'+ei);
+  if(!hidden||!row)return;
+  const alreadySelected=el.classList.contains('selected');
+  row.querySelectorAll('.rpe-chip').forEach(c=>c.classList.remove('selected'));
+  if(alreadySelected){
+    hidden.value='';
+  }else{
+    el.classList.add('selected');
+    hidden.value=val;
+  }
+}
 function logSet(ei,si,name,muscle){
   const wRaw=parseFloat(document.getElementById('sw-'+ei).value)||0;
   const r=parseInt(document.getElementById('sr-'+ei).value)||0;
+  const rpeEl=document.getElementById('srpe-'+ei);
+  const rpeRaw=rpeEl?parseFloat(rpeEl.value):NaN;
+  const rpe=(!isNaN(rpeRaw)&&rpeRaw>=1&&rpeRaw<=10)?rpeRaw:null;
   // Assist machines (Assisted Dips/Pull-ups) log the PIN weight — a
   // bigger number there means LESS load, the opposite of every other
   // exercise's weight field. Convert to the actual effective load
@@ -20097,6 +20164,10 @@ function logSet(ei,si,name,muscle){
       tonnageLog.push({date:today,muscle:m,tonnage:effW*r,ts:Date.now()});
     });
     if(tonnageLog.length>2000)tonnageLog=tonnageLog.slice(-2000); // cap growth, keep it from growing forever
+  }
+  if(rpe!==null){
+    rpeLog.push({date:localDateKey(new Date()),exercise:name,muscle,rpe,ts:Date.now()});
+    if(rpeLog.length>2000)rpeLog=rpeLog.slice(-2000);
   }
   // Stores wRaw, not w — this only ever feeds the input's own value=""
   // pre-fill on this same page (see the sw-${i} input above), so it
@@ -20661,6 +20732,11 @@ function showSessionCompleteModal(durationSec,caloriesBurned){
   const mins=Math.floor(durationSec/60),secs=Math.floor(durationSec%60);
   const timeStr=mins+':'+String(secs).padStart(2,'0');
   const calStat=caloriesBurned?`<div class="sc-stat"><div class="sc-stat-icon" style="font-size:18px;line-height:20px">🔥</div><div class="sc-stat-val">${caloriesBurned.toLocaleString()}</div><div class="sc-stat-lbl">CAL BURNED</div></div>`:'';
+  // Optional per-set RPE (see srpe-${i} input in renderSession) — most
+  // sessions log none of these, so this line only shows up at all once
+  // at least one set actually had a number entered today.
+  const todaysRpe=rpeLog.filter(e=>e.date===localDateKey(new Date()));
+  const avgRpeLine=todaysRpe.length?`<div style="font-size:11px;color:var(--muted);margin-top:10px">Avg RPE today: <strong style="color:var(--white)">${(todaysRpe.reduce((s,e)=>s+e.rpe,0)/todaysRpe.length).toFixed(1)}</strong> across ${todaysRpe.length} set${todaysRpe.length===1?'':'s'}</div>`:'';
   const overlay=document.createElement('div');
   overlay.className='achievement-overlay';
   overlay.innerHTML=`<div class="achievement-modal session-complete-modal">
@@ -20674,6 +20750,7 @@ function showSessionCompleteModal(durationSec,caloriesBurned){
       <div class="sc-stat"><div class="sc-stat-icon" style="font-size:18px;line-height:20px">⏱</div><div class="sc-stat-val">${timeStr}</div><div class="sc-stat-lbl">TRAINED</div></div>
       ${calStat}
     </div>
+    ${avgRpeLine}
     <button class="achievement-share-btn" onclick="completeSessionModalContinue(this)">Continue</button>
   </div>`;
   document.body.appendChild(overlay);
@@ -27857,6 +27934,7 @@ function saveToStorage(){
     localStorage.setItem('arx_foodLogByDate', JSON.stringify(foodLogByDate));
     localStorage.setItem('arx_waterDayLog', JSON.stringify(waterDayLog));
     localStorage.setItem('arx_tonnageLog', JSON.stringify(tonnageLog));
+    localStorage.setItem('arx_rpeLog', JSON.stringify(rpeLog));
     localStorage.setItem('arx_recentFoodIdxs', JSON.stringify(recentFoodIdxs));
     localStorage.setItem('arx_feederQuestClaimedDate', feederQuestClaimedDate);
     localStorage.setItem('arx_questWeekStart', questWeekStart);
@@ -28043,6 +28121,8 @@ function loadFromStorage(){
     if(wdl){try{waterDayLog=JSON.parse(wdl);}catch(e){waterDayLog=[];}}
     const tnl=localStorage.getItem('arx_tonnageLog');
     if(tnl){try{tonnageLog=JSON.parse(tnl);}catch(e){tonnageLog=[];}}
+    const rpl=localStorage.getItem('arx_rpeLog');
+    if(rpl){try{rpeLog=JSON.parse(rpl);}catch(e){rpeLog=[];}}
     const rfi=localStorage.getItem('arx_recentFoodIdxs');
     if(rfi){try{recentFoodIdxs=JSON.parse(rfi);}catch(e){recentFoodIdxs=[];}}
     feederQuestClaimedDate=localStorage.getItem('arx_feederQuestClaimedDate')||'';
