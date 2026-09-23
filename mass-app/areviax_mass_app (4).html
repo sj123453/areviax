@@ -16,7 +16,6 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --statue-mask:url('images/misc/statue-1-commonfolk.svg');
   --bg:#0D0806;--bg2:#150D0A;--panel:rgba(24,15,11,.8);--panel2:rgba(21,13,10,.7);
   --blue:#F36717;--blue-l:#F36717;--cyan:#F36717;
   --orange:#F36717;--orange2:#FF8342;--purple:#A59D95;--purple2:#D5CDC0;--purple-d:rgba(142,142,147,.15);--purple-b:rgba(142,142,147,.25);
@@ -1669,29 +1668,20 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       box-shadow:inset 0 0 60px rgba(0,0,0,.55);
     }
     .statue-figure{position:relative;width:230px;height:441px;margin:0 auto;z-index:2}
+    /* Was a flat gradient masked to a hand-drawn SVG silhouette, with a
+       drifting "gleam" animation standing in for light catching real
+       metal. Replaced with real AI-generated statue photography (see
+       TIERS' photo field) — no mask needed since the photo already has
+       its own dark backdrop, and no synthetic gleam since real studio
+       lighting is already baked into the image. background-image is set
+       per-render in JS (updateAvatar + its Profile counterpart). */
     .statue-metal-base,.statue-metal-fill{
       position:absolute;inset:0;
-      -webkit-mask-image:var(--statue-mask);
-      -webkit-mask-size:contain;-webkit-mask-repeat:no-repeat;-webkit-mask-position:top center;
-      mask-image:var(--statue-mask);
-      mask-size:contain;mask-repeat:no-repeat;mask-position:top center;
-      /* Ambient gleam — a slow drift of the metal gradient's own highlight
-         band across the statue, like light catching bronze/gold/silver as
-         it turns. !important since the tier colour itself is set via JS
-         (element.style.background=r.metal, a shorthand that resets
-         background-size to its own initial value each render) — a plain
-         stylesheet background-size would just get clobbered on every
-         re-render otherwise. The animation targets background-position
-         only, which (unlike a plain declaration) wins over inline style
-         for the properties it drives regardless, so it survives that
-         same re-render untouched. */
-      background-size:220% 220%!important;
-      animation:statueMetalGleam 7s ease-in-out infinite;
+      background-size:cover;background-repeat:no-repeat;background-position:top center;
+      border-radius:8px;
     }
-    @keyframes statueMetalGleam{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
-    @media(prefers-reduced-motion:reduce){.statue-metal-base,.statue-metal-fill{animation:none!important}}
-    .statue-metal-base{opacity:.7;transition:background .8s cubic-bezier(.16,1,.3,1)}
-    .statue-metal-fill{clip-path:inset(100% 0 0 0);transition:clip-path 1.4s cubic-bezier(.4,0,.2,1),background .8s cubic-bezier(.16,1,.3,1)}
+    .statue-metal-base{opacity:.85;transition:background-image .8s cubic-bezier(.16,1,.3,1),filter .8s cubic-bezier(.16,1,.3,1)}
+    .statue-metal-fill{clip-path:inset(100% 0 0 0);transition:clip-path 1.4s cubic-bezier(.4,0,.2,1),background-image .8s cubic-bezier(.16,1,.3,1)}
     .statue-pedestal{width:230px;margin:0 auto;margin-top:-6px;position:relative;z-index:2}
     .pedestal-cap{height:14px;background:linear-gradient(180deg,#42424a 0%,#26262c 100%);border-radius:4px 4px 0 0;box-shadow:0 2px 6px rgba(0,0,0,.5)}
     .pedestal-body{
@@ -11211,12 +11201,15 @@ function renderProfile(){
   const base=fill.parentElement.querySelector('.statue-metal-base');
   const r=getRank();
   const pct=Math.min(100,Math.round(xp/AVATAR_MAX_XP*100));
-  const rMaskCSS='url(\''+r.mask+'\')';
-  if(base){base.style.background=r.metal;base.style.webkitMaskImage=rMaskCSS;base.style.maskImage=rMaskCSS;}
+  const rPhotoCSS='url(\''+r.photo+'\')';
+  if(base){
+    base.style.backgroundImage=rPhotoCSS;base.style.webkitMaskImage='none';base.style.maskImage='none';
+    base.style.filter='grayscale(.65) brightness(.4)';
+  }
   fill.style.clipPath='inset('+(100-pct)+'% 0 0 0)';
-  fill.style.background=r.metal;
-  fill.style.webkitMaskImage=rMaskCSS;fill.style.maskImage=rMaskCSS;
-  fill.style.filter='brightness(1.35) saturate(1.3) drop-shadow(0 0 10px '+r.col+'88)';
+  fill.style.backgroundImage=rPhotoCSS;
+  fill.style.webkitMaskImage='none';fill.style.maskImage='none';
+  fill.style.filter='drop-shadow(0 0 14px '+r.col+'88)';
   const unranked=(r===UNRANKED);
   const medalEl=document.getElementById('profile-medal');
   if(medalEl)medalEl.innerHTML=unranked?unrankedSVG(44):medalSVG(r,44);
@@ -15040,30 +15033,37 @@ function renderRankTiers(){
 // on 1RM/bodyweight) or CRATE_TIERS (the loot-crate system, which does
 // use Bronze/Silver/Gold/Diamond naming) — three separate ladders that
 // just happen to live in the same app.
+// photo: real AI-generated statue photography (discus-thrower pose, one
+// consistent series across all 6 tiers — plain bronze -> +helmet -> gold
+// +wreath -> pale glowing platinum -> purple +winged sandals -> radiant
+// gold king +crown+eagle) replacing the old flat hand-drawn SVG
+// silhouettes. mask/metal/dark/mid/light are kept — medalSVG (the small
+// rank badge elsewhere) still uses them, only the big statue render
+// itself (updateAvatar + its Profile counterpart) switched to photo.
 const TIERS=[
   {name:'Mortal', col:'#CD7F32', dark:'#5c3a1e', mid:'#8b5a2b', light:'#f4c896',
    metal:'linear-gradient(105deg,#5c3a1e 0%,#8b5a2b 15%,#cd7f32 35%,#e8a868 48%,#f4c896 52%,#e8a868 56%,#cd7f32 70%,#8b5a2b 85%,#5c3a1e 100%)',
-   mask:'images/misc/statue-1-commonfolk.svg',
+   mask:'images/misc/statue-1-commonfolk.svg', photo:'images/misc/statue-bronze-real.jpg',
    volume:0,     sessions:1},
   {name:'Soldier', col:'#C7CCD9', dark:'#5c5f66', mid:'#9a9da5', light:'#ffffff',
    metal:'linear-gradient(105deg,#5c5f66 0%,#9a9da5 15%,#c7ccd9 35%,#e8ebf0 48%,#ffffff 52%,#e8ebf0 56%,#c7ccd9 70%,#9a9da5 85%,#5c5f66 100%)',
-   mask:'images/misc/statue-2-soldier.svg',
+   mask:'images/misc/statue-2-soldier.svg', photo:'images/misc/statue-2-soldier-real.jpg',
    volume:2500,  sessions:6},
   {name:'Hero',   col:'#E3BF76', dark:'#7a5a0e', mid:'#b8860b', light:'#fff3a0',
    metal:'linear-gradient(105deg,#7a5a0e 0%,#b8860b 15%,#ffd700 35%,#fff3a0 48%,#ffffff 52%,#fff3a0 56%,#ffd700 70%,#b8860b 85%,#7a5a0e 100%)',
-   mask:'images/misc/statue-3-hero.svg',
+   mask:'images/misc/statue-3-hero.svg', photo:'images/misc/statue-3-hero-real.jpg',
    volume:7000,  sessions:14},
   {name:'Demigod',   col:'#B6E3FF', dark:'#3f5b68', mid:'#7ba8c2', light:'#ffffff',
    metal:'linear-gradient(105deg,#3f5b68 0%,#7ba8c2 15%,#b6e3ff 30%,#d4f1ff 42%,#ffffff 50%,#d4f1ff 58%,#b6e3ff 70%,#7ba8c2 85%,#3f5b68 100%)',
-   mask:'images/misc/statue-4-demigod.svg',
+   mask:'images/misc/statue-4-demigod.svg', photo:'images/misc/statue-4-demigod-real.jpg',
    volume:15000, sessions:25},
   {name:'God',     col:'#B586F5', dark:'#3d1f5c', mid:'#6b3fa0', light:'#e8d4ff',
    metal:'linear-gradient(105deg,#3d1f5c 0%,#6b3fa0 15%,#9b5fd9 35%,#c79ef0 48%,#e8d4ff 52%,#c79ef0 56%,#9b5fd9 70%,#6b3fa0 85%,#3d1f5c 100%)',
-   mask:'images/misc/statue-5-god.svg',
+   mask:'images/misc/statue-5-god.svg', photo:'images/misc/statue-5-god-real.jpg',
    volume:28000, sessions:40},
   {name:'God of Gods', col:'#FFB347', dark:'#6b2b00', mid:'#b8500e', light:'#ffe8a3',
    metal:'linear-gradient(105deg,#6b2b00 0%,#b8500e 15%,#ff8c1a 35%,#ffc670 48%,#ffe8a3 52%,#ffc670 56%,#ff8c1a 70%,#b8500e 85%,#6b2b00 100%)',
-   mask:'images/misc/statue-6-kingofgods.svg',
+   mask:'images/misc/statue-6-kingofgods.svg', photo:'images/misc/statue-6-kingofgods-real.jpg',
    volume:50000, sessions:65},
 ];
 // Small drawn SVG medal — circle + ribbon + star, coloured per tier. Replaces
@@ -15098,7 +15098,7 @@ function medalSVG(tier,size){
 }
 const UNRANKED={name:'Unranked',col:'#5a5a64',dark:'#22222a',mid:'#3a3a44',light:'#6a6a74',
   metal:'linear-gradient(100deg,#1a1a20 0%,#2a2a32 30%,#3a3a44 50%,#2a2a32 70%,#1a1a20 100%)',
-  mask:'images/misc/statue-1-commonfolk.svg'};
+  mask:'images/misc/statue-1-commonfolk.svg', photo:'images/misc/statue-bronze-real.jpg'};
 
 function getRankIndex(){
   // -1 means genuinely unranked — hasn't logged a single session yet.
@@ -15162,18 +15162,22 @@ function updateAvatar(){
   if(!fill)return;
   const pct=Math.min(100,Math.round(xp/AVATAR_MAX_XP*100));
   const r=getRank();
-  // The WHOLE statue is cast in your current tier's metal \u2014 you already
-  // earned that. The brighter overlay rising on top shows progress toward
-  // the NEXT tier, instead of most of the figure looking grey/unfinished.
-  // Mask is also set per-tier now (each rank has its own distinct
-  // silhouette \u2014 see images/misc/statue-*.svg \u2014 not one shared shape
-  // just recoloured), so it has to be reapplied every render too.
-  const rMaskCSS='url(\''+r.mask+'\')';
-  if(base){base.style.background=r.metal;base.style.webkitMaskImage=rMaskCSS;base.style.maskImage=rMaskCSS;}
+  // The WHOLE statue is cast in your current tier's real photo \u2014 you
+  // already earned that. The brighter overlay rising on top shows
+  // progress toward the NEXT tier, instead of most of the figure looking
+  // dim/unfinished. Was a flat-gradient mask reveal over a hand-drawn SVG
+  // silhouette; now the same clip-path reveal runs over the actual photo
+  // (images/misc/statue-*-real.jpg), with brightness/saturation
+  // standing in for "cast vs. still forming" instead of a mask+tint.
+  const rPhotoCSS='url(\''+r.photo+'\')';
+  if(base){
+    base.style.backgroundImage=rPhotoCSS;base.style.webkitMaskImage='none';base.style.maskImage='none';
+    base.style.filter='grayscale(.65) brightness(.4)';
+  }
   fill.style.clipPath='inset('+(100-pct)+'% 0 0 0)';
-  fill.style.background=r.metal;
-  fill.style.webkitMaskImage=rMaskCSS;fill.style.maskImage=rMaskCSS;
-  fill.style.filter='brightness(1.35) saturate(1.3) drop-shadow(0 0 10px '+r.col+'88)';
+  fill.style.backgroundImage=rPhotoCSS;
+  fill.style.webkitMaskImage='none';fill.style.maskImage='none';
+  fill.style.filter='drop-shadow(0 0 14px '+r.col+'88)';
   const unranked=(r===UNRANKED);
   const medalEl=document.getElementById('avatar-medal');
   if(medalEl)medalEl.innerHTML=unranked?unrankedSVG(38):medalSVG(r,38);
