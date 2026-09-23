@@ -507,6 +507,8 @@ input,input:focus,input:active,
 .set-chip{font-family:'JetBrains Mono',monospace;font-size:11px;padding:5px 9px;background:var(--bg);border:1.5px solid var(--border2);border-radius:3px;transition:all .2s}
 .set-chip.done{background:rgba(243,103,23,.1);border-color:var(--green);color:var(--green)}
 .set-chip.pr{background:rgba(255,215,0,.1);border-color:var(--yellow);color:var(--yellow)}
+.rpe-chip{min-width:26px;text-align:center;cursor:pointer}
+.rpe-chip.selected{background:rgba(243,103,23,.14);border-color:var(--orange);color:var(--orange)}
 
 /* SYNERGY PANEL */
 .syn-panel{}
@@ -9351,6 +9353,13 @@ const MIN_SESSION_MS_FOR_CREDIT=90000; // 90s — shorter than any real set (set
 let restSecs=0,restInt=null,restEndsAt=0;
 let totalVolume=0;
 let tonnageLog=[];
+// [{date, exercise, muscle, rpe, ts}] — one entry per logged set that had
+// an RPE actually entered (optional, so most sets never add a row here).
+// Kept separate from tonnageLog rather than adding a field to it, since
+// tonnageLog is keyed by muscle (fans one set into several rows for a
+// multi-muscle exercise) and RPE is a single per-set number, not
+// something that makes sense to duplicate per muscle.
+let rpeLog=[];
 let feederQuestClaimedDate='';
 let liveSessionProgress={}; // {exerciseName: {weight, reps, doneSets:[0,2,...]}} — lets a mid-workout close/reopen resume exactly where you left off
 let questWeekStart='';
@@ -19731,6 +19740,14 @@ function buildSession(){
         <div style="flex:1"><label class="lbl" style="margin-top:0">${weightInputLabel(e)}</label><input type="number" id="sw-${i}" style="padding:7px 9px" placeholder="${sug?sug.weight:'kg'}" value="${prefillWeight}" ${isPureBW?`oninput="updateBodyweightNote(${i})"`:''}></div>
         <div style="flex:1"><label class="lbl" style="margin-top:0">Reps</label><input type="number" id="sr-${i}" style="padding:7px 9px" placeholder="${e.reps.split('–')[0]}" value="${prefillReps}"></div>
       </div>
+      <div style="margin-bottom:9px">
+        <label class="lbl" style="margin-top:0" title="Rate of Perceived Exertion — how hard that set felt out of 10. Optional, tap again to clear.">RPE <span style="opacity:.6;font-weight:500;text-transform:none;letter-spacing:0">(optional)</span></label>
+        <input type="hidden" id="srpe-${i}" value="">
+        <div class="sets-row" id="rperow-${i}">${Array.from({length:10},(_,ri)=>{
+          const val=ri+1;
+          return `<div class="set-chip rpe-chip" onclick="setSessionRPE(${i},${val},this)">${val}</div>`;
+        }).join('')}</div>
+      </div>
       ${isPureBW?`<div id="bw-note-${i}" style="font-size:10px;color:var(--cyan);margin:-2px 0 9px;line-height:1.4">${bodyweightNoteText(parseFloat(prefillWeight)||0)}</div>`:''}
       ${plates?`<div style="font-size:10px;color:var(--muted);margin:-2px 0 9px;line-height:1.4">🏋️ Per side: ${plates.parts.join(', ')} <span style="opacity:.7">(20kg bar)</span>${plates.exact?'':' — closest at 1.25kg plates: '+plates.achievedTotal+'kg'}</div>`:''}
       ${sug?`<div style="font-size:10px;color:rgba(243,103,23,.7);margin:-2px 0 9px;line-height:1.4">📈 ${sug.note}</div>`:''}
@@ -20093,9 +20110,29 @@ const DOUBLE_DUMBBELL_EXERCISES=new Set([
   'Preacher Hammer Curl','Rear Delt Fly','Reverse Lunge','Reverse Lunges','Spider Curl',
   'Step-ups','Tate Press','Walking Lunges','Zottman Curl',
 ]);
+// Tap a 1–10 RPE chip to set that exercise's RPE for the sets logged
+// after it; tap the same one again to clear it back to "not rated" —
+// this stays genuinely optional (see rpeLog's own comment), so nothing
+// here should make picking one feel required.
+function setSessionRPE(ei,val,el){
+  const hidden=document.getElementById('srpe-'+ei);
+  const row=document.getElementById('rperow-'+ei);
+  if(!hidden||!row)return;
+  const alreadySelected=el.classList.contains('selected');
+  row.querySelectorAll('.rpe-chip').forEach(c=>c.classList.remove('selected'));
+  if(alreadySelected){
+    hidden.value='';
+  }else{
+    el.classList.add('selected');
+    hidden.value=val;
+  }
+}
 function logSet(ei,si,name,muscle){
   const wRaw=parseFloat(document.getElementById('sw-'+ei).value)||0;
   const r=parseInt(document.getElementById('sr-'+ei).value)||0;
+  const rpeEl=document.getElementById('srpe-'+ei);
+  const rpeRaw=rpeEl?parseFloat(rpeEl.value):NaN;
+  const rpe=(!isNaN(rpeRaw)&&rpeRaw>=1&&rpeRaw<=10)?rpeRaw:null;
   // Assist machines (Assisted Dips/Pull-ups) log the PIN weight — a
   // bigger number there means LESS load, the opposite of every other
   // exercise's weight field. Convert to the actual effective load
@@ -20127,6 +20164,10 @@ function logSet(ei,si,name,muscle){
       tonnageLog.push({date:today,muscle:m,tonnage:effW*r,ts:Date.now()});
     });
     if(tonnageLog.length>2000)tonnageLog=tonnageLog.slice(-2000); // cap growth, keep it from growing forever
+  }
+  if(rpe!==null){
+    rpeLog.push({date:localDateKey(new Date()),exercise:name,muscle,rpe,ts:Date.now()});
+    if(rpeLog.length>2000)rpeLog=rpeLog.slice(-2000);
   }
   // Stores wRaw, not w — this only ever feeds the input's own value=""
   // pre-fill on this same page (see the sw-${i} input above), so it
@@ -20691,6 +20732,11 @@ function showSessionCompleteModal(durationSec,caloriesBurned){
   const mins=Math.floor(durationSec/60),secs=Math.floor(durationSec%60);
   const timeStr=mins+':'+String(secs).padStart(2,'0');
   const calStat=caloriesBurned?`<div class="sc-stat"><div class="sc-stat-icon" style="font-size:18px;line-height:20px">🔥</div><div class="sc-stat-val">${caloriesBurned.toLocaleString()}</div><div class="sc-stat-lbl">CAL BURNED</div></div>`:'';
+  // Optional per-set RPE (see srpe-${i} input in renderSession) — most
+  // sessions log none of these, so this line only shows up at all once
+  // at least one set actually had a number entered today.
+  const todaysRpe=rpeLog.filter(e=>e.date===localDateKey(new Date()));
+  const avgRpeLine=todaysRpe.length?`<div style="font-size:11px;color:var(--muted);margin-top:10px">Avg RPE today: <strong style="color:var(--white)">${(todaysRpe.reduce((s,e)=>s+e.rpe,0)/todaysRpe.length).toFixed(1)}</strong> across ${todaysRpe.length} set${todaysRpe.length===1?'':'s'}</div>`:'';
   const overlay=document.createElement('div');
   overlay.className='achievement-overlay';
   overlay.innerHTML=`<div class="achievement-modal session-complete-modal">
@@ -20704,6 +20750,7 @@ function showSessionCompleteModal(durationSec,caloriesBurned){
       <div class="sc-stat"><div class="sc-stat-icon" style="font-size:18px;line-height:20px">⏱</div><div class="sc-stat-val">${timeStr}</div><div class="sc-stat-lbl">TRAINED</div></div>
       ${calStat}
     </div>
+    ${avgRpeLine}
     <button class="achievement-share-btn" onclick="completeSessionModalContinue(this)">Continue</button>
   </div>`;
   document.body.appendChild(overlay);
@@ -27887,6 +27934,7 @@ function saveToStorage(){
     localStorage.setItem('arx_foodLogByDate', JSON.stringify(foodLogByDate));
     localStorage.setItem('arx_waterDayLog', JSON.stringify(waterDayLog));
     localStorage.setItem('arx_tonnageLog', JSON.stringify(tonnageLog));
+    localStorage.setItem('arx_rpeLog', JSON.stringify(rpeLog));
     localStorage.setItem('arx_recentFoodIdxs', JSON.stringify(recentFoodIdxs));
     localStorage.setItem('arx_feederQuestClaimedDate', feederQuestClaimedDate);
     localStorage.setItem('arx_questWeekStart', questWeekStart);
@@ -28073,6 +28121,8 @@ function loadFromStorage(){
     if(wdl){try{waterDayLog=JSON.parse(wdl);}catch(e){waterDayLog=[];}}
     const tnl=localStorage.getItem('arx_tonnageLog');
     if(tnl){try{tonnageLog=JSON.parse(tnl);}catch(e){tonnageLog=[];}}
+    const rpl=localStorage.getItem('arx_rpeLog');
+    if(rpl){try{rpeLog=JSON.parse(rpl);}catch(e){rpeLog=[];}}
     const rfi=localStorage.getItem('arx_recentFoodIdxs');
     if(rfi){try{recentFoodIdxs=JSON.parse(rfi);}catch(e){recentFoodIdxs=[];}}
     feederQuestClaimedDate=localStorage.getItem('arx_feederQuestClaimedDate')||'';
