@@ -2520,14 +2520,33 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        grids grow to their natural content height (the page itself
        already scrolls) instead of a fixed shelf height. */
     @media(min-width:700px){
-      .shop-dual-track{flex-direction:row;align-items:stretch}
+      /* align-items:stretch used to make sense here — both columns were
+         capped to roughly the same shelf height. Now that the stack
+         column (Daily Deals + Areviax Crates) grows to its real content
+         height instead (see the max-height removal above, which could
+         now easily run 600px+), stretch drags the showcase card in the
+         OTHER column up to match that same height via its own
+         height:100% below — a mostly-empty card with its price footer
+         pushed hundreds of px down the page. flex-start lets each column
+         size to its own content instead. */
+      .shop-dual-track{flex-direction:row;align-items:flex-start}
       .shop-track-tall{flex:1.05}
       .shop-track-stack{flex:1}
-      .shop-track-tall .shop-hero-card{height:100%;min-height:0}
     }
     .shop-hero-card{
       position:relative;border-radius:16px;overflow:hidden;
       border:3px solid rgba(227,191,118,.55);
+      /* The daily-gift instance sets its own opaque photo background
+         inline, but the drachma-offer instance (renderShopHeroOffer)
+         only ever layers a translucent orange gradient on .shop-hero-
+         card-body with nothing opaque under it — in light mode that's
+         the light page background bleeding straight through, turning
+         "SPECIAL OFFER" gold text on a rich dark tile into gold-ish text
+         on a washed-out peach one. A fixed dark base (not a theme
+         variable, which would flip this white in light mode) keeps
+         every instance of this class reading as the same rich shop-tile
+         material regardless of theme, matching its photo-backed sibling. */
+      background:#1A0F08;
       /* "Supercell Pop": a thick near-black ring OUTSIDE the tier-colour
          border (the ring is what reads as the dark cartoon outline; the
          coloured border stays as Areviax's own material accent), stacked
@@ -4379,6 +4398,14 @@ body[data-goal-theme="cut"] .lv-page{
 .lv-stat-huge{font-family:var(--lv-display);font-weight:400;font-size:2.5rem;line-height:.85;font-variant-numeric:tabular-nums}
 .lv-hairline-grid{border:1px solid var(--lv-border);border-radius:1.75rem;overflow:hidden;display:grid;grid-template-columns:repeat(3,1fr);background:rgba(30,22,19,.6)}
 [data-theme="light"] .lv-hairline-grid{background:rgba(0,0,0,.035)}
+/* The Championship bar's purple wash + light-lavender subtext (#C9A6EE)
+   only ever got tuned against the dark background it sits on by default
+   — same low-opacity rgba(123,47,247,..) gradient over a light page
+   reads as a pale lavender card with near-white text on it, close to
+   zero contrast. !important is load-bearing here since the colour is
+   set as an inline style, which normally beats any selector-based rule. */
+[data-theme="light"] #dash-trials-sub{color:#7C3FA8!important}
+[data-theme="light"] #dash-trials-bar{background:linear-gradient(120deg,rgba(123,47,247,.14),rgba(61,22,112,.1))!important;border-color:rgba(124,63,168,.4)!important}
 .lv-hairline-grid>*{border-right:1px solid var(--lv-border)}
 .lv-hairline-grid>*:last-child{border-right:0}
 /* Cinzel, not var(--lv-display)/Bebas Neue — Bebas Neue is Latin-only
@@ -5246,7 +5273,7 @@ body[data-goal-theme="cut"] .lv-page{
          icon, not the old oversized hero banner), reachable straight off
          the Dashboard. renderDashTrialsBar() fills in the current stage
          name + time left. -->
-    <button type="button" class="lv-grain" onclick="showPage('trials')" style="width:100%;display:flex;align-items:center;gap:12px;border:1px solid rgba(192,132,252,.35);border-radius:1rem;padding:13px 16px;background:linear-gradient(120deg,rgba(123,47,247,.22),rgba(61,22,112,.32));cursor:pointer;text-align:left;font-family:inherit;color:inherit">
+    <button type="button" id="dash-trials-bar" class="lv-grain" onclick="showPage('trials')" style="width:100%;display:flex;align-items:center;gap:12px;border:1px solid rgba(192,132,252,.35);border-radius:1rem;padding:13px 16px;background:linear-gradient(120deg,rgba(123,47,247,.22),rgba(61,22,112,.32));cursor:pointer;text-align:left;font-family:inherit;color:inherit">
       <span style="flex-shrink:0;width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:rgba(192,132,252,.18);border:1px solid rgba(192,132,252,.4);color:#C084FC"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 14.5a2.5 2.5 0 002.5 2.5 2.5 2.5 0 002.5-2.5c0-1.38-.5-2-1-3-1.07-2.14-.22-4.05 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7.5 7.5 0 11-15 0c0-1.15.43-2.29 1-3a2.5 2.5 0 002.5 2.5z"/></svg></span>
       <span style="flex:1;min-width:0">
         <span style="display:block;font-size:12.5px;font-weight:800;letter-spacing:.02em;color:var(--lv-fg)">The Areviax Championship</span>
@@ -16480,12 +16507,13 @@ function renderLaborsPage(){
   grid.innerHTML=LABORS.map(l=>{
     const done=!!laborsCompleted[l.key];
     const xpAward=l.key==='cerberus'?200:(LABOR_XP[l.difficulty]||50);
-    // Cerberus stays visually its own tier (the meta-labor that needs the
-    // other 11 done first) regardless of its plain 'hard' difficulty
-    // field, which only exists so it counts toward the 6-hard/3-medium/
-    // 3-easy split above.
-    const dc=l.key==='cerberus'?'#E23532':(diffColor[l.difficulty]||diffColor.medium);
-    const dl=l.key==='cerberus'?'MYTHIC':(diffLabel[l.difficulty]||'MEDIUM');
+    // Used to give Cerberus its own "MYTHIC" badge regardless of its
+    // plain 'hard' difficulty field — reverted: the whole point of that
+    // field was a literal 6-hard/3-medium/3-easy split across all 12
+    // badges, and a one-off fourth label broke that count for anyone
+    // actually reading the badges rather than the underlying data.
+    const dc=diffColor[l.difficulty]||diffColor.medium;
+    const dl=diffLabel[l.difficulty]||'MEDIUM';
     return `<div class="lv-surface" style="padding:16px 18px;display:flex;align-items:center;gap:14px;${done?'':'opacity:.6'}">
       <div style="width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px;background:${done?'rgba(var(--lv-primary-rgb),.18)':'var(--lv-muted)'};border:1.5px solid ${done?'var(--lv-primary)':'var(--lv-border)'}">${done?l.icon:'🔒'}</div>
       <div style="flex:1;min-width:0">
