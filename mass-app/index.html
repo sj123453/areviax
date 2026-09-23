@@ -11522,7 +11522,7 @@ function laborsTodayMuscleGroupCount(){
 // axis repeated 12 times), so the reward should track that instead of
 // flattening it out. difficulty picks the payout from LABOR_XP below and
 // drives the badge shown on each card.
-const LABOR_XP={easy:30,medium:50,hard:75,legendary:100};
+const LABOR_XP={easy:30,medium:50,hard:75};
 // Personal-baseline helpers for Labors \u2014 same reasoning as Trials' own
 // (see trialsAvgSetsPerSessionBefore): a fixed absolute number is either
 // trivial or structurally out of reach depending on who's playing, so
@@ -11564,11 +11564,11 @@ const LABORS=[
     desc:'Hit your protein target 10 days running.', difficulty:'hard',
     check:()=>laborsProteinStreak()>=10},
   {key:'bull', name:'The Cretan Bull', greek:'\u0396', icon:'\ud83d\udc02',
-    desc:'Reach at least Gold rank on a Big 4 lift.', difficulty:'medium',
+    desc:'Reach at least Gold rank on a Big 4 lift.', difficulty:'hard',
     check:()=>LIFT_RANK_LIFTS.some(l=>{const r=getLiftRank(l);return r&&r.tierIdx>=3;})},
   {key:'mares', name:'The Mares of Diomedes', greek:'\u0397', icon:'\ud83d\udc0e',
-    desc:'Train 4+ muscle groups in one session.', difficulty:'easy',
-    check:()=>laborsTodayMuscleGroupCount()>=4},
+    desc:'Train 5+ muscle groups in one session.', difficulty:'easy',
+    check:()=>laborsTodayMuscleGroupCount()>=5},
   {key:'girdle', name:'The Girdle of Hippolyta', greek:'\u0398', icon:'\ud83c\udff5\ufe0f',
     desc:'Pull 3 Legend Cards.', difficulty:'easy',
     check:()=>unlockedLegends.length>=3},
@@ -11576,10 +11576,10 @@ const LABORS=[
     desc:'Reach a 21-day training streak.', difficulty:'hard',
     check:()=>streak>=21||bestStreak>=21},
   {key:'hesperides', name:'The Apples of the Hesperides', greek:'\u039a', icon:'\ud83c\udf4e',
-    desc:'Unlock 2 Legendary-rarity (or rarer) cards.', difficulty:'legendary',
+    desc:'Unlock 2 Legendary-rarity (or rarer) cards.', difficulty:'hard',
     check:()=>unlockedLegends.filter(k=>{const l=LEGEND_CARDS.find(x=>x.key===k);return l&&(l.rarity==='legendary'||l.rarity==='ultralegendary');}).length>=2},
   {key:'cerberus', name:'Cerberus', greek:'\u039b', icon:'\ud83d\udc15',
-    desc:'Complete all 11 other Labors.', difficulty:'legendary',
+    desc:'Complete all 11 other Labors.', difficulty:'hard',
     check:()=>LABORS.filter(l=>l.key!=='cerberus').every(l=>laborsCompleted[l.key])},
 ];
 function checkLabors(){
@@ -16441,13 +16441,17 @@ function renderLaborsPage(){
   const doneCount=LABORS.filter(l=>laborsCompleted[l.key]).length;
   if(doneEl)doneEl.textContent=doneCount;
   if(fillEl)fillEl.style.width=(doneCount/LABORS.length*100)+'%';
-  const diffColor={easy:'#7BAE7F',medium:'#E3BF76',hard:'#F36717',legendary:'#E23532'};
-  const diffLabel={easy:'EASY',medium:'MEDIUM',hard:'HARD',legendary:l=>l==='cerberus'?'MYTHIC':'LEGENDARY'};
+  const diffColor={easy:'#7BAE7F',medium:'#E3BF76',hard:'#F36717'};
+  const diffLabel={easy:'EASY',medium:'MEDIUM',hard:'HARD'};
   grid.innerHTML=LABORS.map(l=>{
     const done=!!laborsCompleted[l.key];
     const xpAward=l.key==='cerberus'?200:(LABOR_XP[l.difficulty]||50);
-    const dc=diffColor[l.difficulty]||diffColor.medium;
-    const dl=l.difficulty==='legendary'?diffLabel.legendary(l.key):(diffLabel[l.difficulty]||'MEDIUM');
+    // Cerberus stays visually its own tier (the meta-labor that needs the
+    // other 11 done first) regardless of its plain 'hard' difficulty
+    // field, which only exists so it counts toward the 6-hard/3-medium/
+    // 3-easy split above.
+    const dc=l.key==='cerberus'?'#E23532':(diffColor[l.difficulty]||diffColor.medium);
+    const dl=l.key==='cerberus'?'MYTHIC':(diffLabel[l.difficulty]||'MEDIUM');
     return `<div class="lv-surface" style="padding:16px 18px;display:flex;align-items:center;gap:14px;${done?'':'opacity:.6'}">
       <div style="width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px;background:${done?'rgba(var(--lv-primary-rgb),.18)':'var(--lv-muted)'};border:1.5px solid ${done?'var(--lv-primary)':'var(--lv-border)'}">${done?l.icon:'🔒'}</div>
       <div style="flex:1;min-width:0">
