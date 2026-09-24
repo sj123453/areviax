@@ -2705,30 +2705,54 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        the time — see the theorised phone-glitch report this was
        written for. */
     body.overlay-open .crate-icon-wrap.ready .crate-icon-burst{animation-play-state:paused}
-    /* A soft ring of small laurel/compass marks (the app's own emblem)
+    /* A scatter of small laurel/compass marks (the app's own emblem)
        behind a ready-to-open crate, instead of the spinning light-ray
        burst this used to be — the rays read as a generic "shine" effect
        stuck flat inside its own circular mask rather than actual light,
-       which looked cheap in a static screenshot. A tiled icon pattern
-       reads as ornament, not a lighting glitch, and doesn't need to spin
-       to feel alive. Centering: same top:50%/left:50% + static translate
-       trick as .crate-wreath — this is 96px, wider than every context it
-       renders in (row/default/info-modal/reveal-stage), so a plain
-       left:50% alone would pin it flush-left instead of centered. */
+       which looked cheap in a static screenshot.
+       v2 (direct report: "leave gaps, make the sparkle inconsistent —
+       that's what a sparkle actually looks like"): the old version tiled
+       one mark on a perfectly even 34px grid, which reads as a stamped
+       pattern, not a sparkle — real glints never land on a regular grid.
+       Replaced the tiled background with 7 individually placed marks at
+       hand-picked, irregular positions/sizes (real gaps between
+       clusters, nothing evenly spaced), and swapped "always visible at
+       a fixed opacity" for crateSparkleTwinkle below — mostly invisible,
+       with a brief irregular flicker every few seconds, so it reads as
+       the crate occasionally catching a glint of light while it sits
+       there waiting, not a permanent glow. Centering: same
+       top:50%/left:50% + static translate trick as .crate-wreath — this
+       is 96px, wider than every context it renders in (row/default/
+       info-modal/reveal-stage), so a plain left:50% alone would pin it
+       flush-left instead of centered. */
     .crate-icon-burst{
       position:absolute;top:50%;left:50%;
       width:96px;height:96px;pointer-events:none;opacity:0;z-index:0;
       transform:translate(-50%,-50%);
-      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'%3E%3Cpath d='M24 5 26.6 21.4 43 24 26.6 26.6 24 43 21.4 26.6 5 24 21.4 21.4Z' fill='white'/%3E%3C/svg%3E");
-      background-repeat:repeat;background-size:34px 34px;
-      -webkit-mask-image:radial-gradient(circle,transparent 30%,#000 48%,#000 74%,transparent 100%);
-      mask-image:radial-gradient(circle,transparent 30%,#000 48%,#000 74%,transparent 100%);
-      transition:opacity .25s;
+      background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='96' height='96' viewBox='0 0 96 96'%3E%3Cpath d='M0 -1 .14 -.14 1 0 .14 .14 0 1 -.14 .14 -1 0 -.14 -.14Z' fill='white' transform='translate(80.8,56.8) scale(10)'/%3E%3Cpath d='M0 -1 .14 -.14 1 0 .14 .14 0 1 -.14 .14 -1 0 -.14 -.14Z' fill='white' transform='translate(61.8,67.7) scale(5)'/%3E%3Cpath d='M0 -1 .14 -.14 1 0 .14 .14 0 1 -.14 .14 -1 0 -.14 -.14Z' fill='white' transform='translate(41.4,85.4) scale(7)'/%3E%3Cpath d='M0 -1 .14 -.14 1 0 .14 .14 0 1 -.14 .14 -1 0 -.14 -.14Z' fill='white' transform='translate(23.4,65.2) scale(4)'/%3E%3Cpath d='M0 -1 .14 -.14 1 0 .14 .14 0 1 -.14 .14 -1 0 -.14 -.14Z' fill='white' transform='translate(9.4,37.6) scale(11)'/%3E%3Cpath d='M0 -1 .14 -.14 1 0 .14 .14 0 1 -.14 .14 -1 0 -.14 -.14Z' fill='white' transform='translate(33.9,31.1) scale(6)'/%3E%3Cpath d='M0 -1 .14 -.14 1 0 .14 .14 0 1 -.14 .14 -1 0 -.14 -.14Z' fill='white' transform='translate(80.5,42.3) scale(8)'/%3E%3C/svg%3E");
+      background-repeat:no-repeat;background-size:96px 96px;
+      -webkit-mask-image:radial-gradient(circle,#000 68%,transparent 100%);
+      mask-image:radial-gradient(circle,#000 68%,transparent 100%);
     }
-    .crate-icon-wrap.gold.ready .crate-icon-burst{opacity:.3}
-    .crate-icon-wrap.diamond.ready .crate-icon-burst{opacity:.38}
-    .crate-icon-wrap.areviax.ready .crate-icon-burst{opacity:.5}
-    @keyframes crateBurstSpin{from{transform:translate(-50%,-50%) rotate(0deg)}to{transform:translate(-50%,-50%) rotate(360deg)}}
+    /* Long quiet stretch, then one irregular multi-blink flicker (never
+       a smooth single fade) so it reads as an actual glint catching the
+       light rather than a pulsing glow — --burst-peak (set per tier
+       below) scales every stop so each tier keeps its own old max
+       brightness (gold .3 / diamond .38 / areviax .5) without needing a
+       separate keyframe block per tier. */
+    @keyframes crateSparkleTwinkle{
+      0%,66%{opacity:0}
+      70%{opacity:calc(var(--burst-peak) * 1)}
+      73%{opacity:calc(var(--burst-peak) * .2)}
+      77%{opacity:calc(var(--burst-peak) * .9)}
+      82%{opacity:calc(var(--burst-peak) * .35)}
+      87%{opacity:calc(var(--burst-peak) * 1)}
+      93%,100%{opacity:0}
+    }
+    .crate-icon-wrap.ready .crate-icon-burst{animation:crateSparkleTwinkle 6.5s ease-in-out infinite}
+    .crate-icon-wrap.gold.ready .crate-icon-burst{--burst-peak:.3}
+    .crate-icon-wrap.diamond.ready .crate-icon-burst{--burst-peak:.38}
+    .crate-icon-wrap.areviax.ready .crate-icon-burst{--burst-peak:.5}
     /* Same crown/wreath ornament language as the Trophy Cabinet's rarity
        ladder (see .legend-card-crown/.legend-card-wreath) — the crates
        never got it, which is exactly why they read as flatter/more
@@ -2852,26 +2876,37 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        every locked crate looking like an identical grey nothing
        instead of "an unopened bronze/silver/gold/diamond crate". */
     .compass-crate.locked{opacity:.5;--crate-sat:.75}
-    /* Something's moving in there — a calm float most of the cycle, then
-       a real jolt/jump around 60% through (as if whatever's inside just
-       bumped the lid), rather than one smooth continuous bob the whole
-       time. Direct ask: "make the crate shake and jump a bit almost
-       like its got something inside it." Paired with a soft synced
-       thump sound — see armCrateIdleThump() below. */
+    /* v2 (direct report: "the crate is still slightly indented in the
+       floor, isn't having the kind of mini jumping effect like the Mega
+       Box"). The old version spent most of its cycle drifting between a
+       tiny -3px lift and a +3px dip below the resting line — that dip
+       below baseline is exactly what read as sinking into the shelf
+       rather than hopping off it, and neither excursion was big enough
+       to register as a real jump either way.
+       Rewritten as a genuine hop, reference-style: a long stretch at
+       rest (0–52%, most of the cycle — it isn't jumping constantly,
+       just "every so often" the same way the sparkle above only glints
+       every so often), then one real launch — anticipation crouch
+       (squash), a real -14px leap with an airborne stretch, a landing
+       squash, one small settle bounce, back to rest. The only points
+       that ever go below the resting line are the crouch/landing
+       squashes themselves (1–2px, standard squash-and-stretch weight
+       cues, not a sink) — the jump's own -14px always dwarfs them, so
+       "hop up and land" reads as the dominant motion, not "wobble in
+       place." Still pairs with the same idle thump sound. */
     @keyframes crateFloat{
-      0%,100%{transform:translateY(0) rotate(0) scale(1)}
-      15%{transform:translateY(-3px) rotate(-2deg) scale(1)}
-      32%{transform:translateY(0) rotate(1.5deg) scale(1)}
-      48%{transform:translateY(-2px) rotate(-1deg) scale(1)}
-      58%{transform:translateY(3px) rotate(4deg) scale(1.035)}
-      64%{transform:translateY(-2px) rotate(-4deg) scale(.98)}
-      70%{transform:translateY(1px) rotate(2deg) scale(1.01)}
-      76%{transform:translateY(0) rotate(0) scale(1)}
+      0%,52%{transform:translateY(0) rotate(0) scale(1,1)}
+      57%{transform:translateY(1px) rotate(-1deg) scale(1.08,.9)}
+      66%{transform:translateY(-14px) rotate(3deg) scale(.93,1.1)}
+      74%{transform:translateY(-8px) rotate(-2deg) scale(.97,1.05)}
+      83%{transform:translateY(1px) rotate(2deg) scale(1.1,.87)}
+      89%{transform:translateY(-2px) rotate(-1deg) scale(1.02,.98)}
+      95%,100%{transform:translateY(0) rotate(0) scale(1,1)}
     }
-    .compass-crate.ready{animation:crateFloat 3.4s ease-in-out infinite}
+    .compass-crate.ready{animation:crateFloat 5s ease-in-out infinite}
     @keyframes areviaxAura{0%,100%{filter:brightness(1) hue-rotate(0deg)}50%{filter:brightness(1.3) hue-rotate(-18deg)}}
     .compass-crate.areviax.ready{
-      animation:crateFloat 2.2s ease-in-out infinite,areviaxAura 2.4s ease-in-out infinite;
+      animation:crateFloat 3.3s ease-in-out infinite,areviaxAura 2.4s ease-in-out infinite;
     }
     /* "Gold ×6" and "Areviax" fit on one line at this column width;
        "Bronze ×4", "Silver ×7", and "Diamond ×3" are long enough to wrap
@@ -3097,7 +3132,14 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       40%{opacity:.9}
       100%{opacity:0;transform:translate(-50%,-50%) scale(1.7) rotate(35deg)}
     }
-    .crate-icon-burst.flare{animation:crateBurstFlare .3s ease-out forwards}
+    /* .crate-icon-wrap.ready .crate-icon-burst (see crateSparkleTwinkle
+       above) is 3 classes; a plain .crate-icon-burst.flare is only 2 and
+       silently lost to it whenever flare fires on the reveal-stage crate
+       (its wrap keeps the "ready" class right up to the crack moment —
+       see showLegendReveal's own markup). Matching the wrap's "ready"
+       class here too makes this 4 classes, so the one-shot flare always
+       wins over the idle twinkle regardless of source order. */
+    .crate-icon-wrap.ready .crate-icon-burst.flare{animation:crateBurstFlare .3s ease-out forwards}
 
     /* One-shot full-bleed flash at the crack moment — the payoff for
        the charge-up beat, tinted per tier (Gold stays warm-amber;
