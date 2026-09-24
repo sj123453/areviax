@@ -4464,14 +4464,6 @@ body[data-goal-theme="cut"] .lv-page{
 .lv-stat-huge{font-family:var(--lv-display);font-weight:400;font-size:2.5rem;line-height:.85;font-variant-numeric:tabular-nums}
 .lv-hairline-grid{border:1px solid var(--lv-border);border-radius:1.75rem;overflow:hidden;display:grid;grid-template-columns:repeat(3,1fr);background:rgba(30,22,19,.6)}
 [data-theme="light"] .lv-hairline-grid{background:rgba(0,0,0,.035)}
-/* The Championship bar's purple wash + light-lavender subtext (#C9A6EE)
-   only ever got tuned against the dark background it sits on by default
-   — same low-opacity rgba(123,47,247,..) gradient over a light page
-   reads as a pale lavender card with near-white text on it, close to
-   zero contrast. !important is load-bearing here since the colour is
-   set as an inline style, which normally beats any selector-based rule. */
-[data-theme="light"] #dash-trials-sub{color:#7C3FA8!important}
-[data-theme="light"] #dash-trials-bar{background:linear-gradient(120deg,rgba(123,47,247,.14),rgba(61,22,112,.1))!important;border-color:rgba(124,63,168,.4)!important}
 .lv-hairline-grid>*{border-right:1px solid var(--lv-border)}
 .lv-hairline-grid>*:last-child{border-right:0}
 /* Cinzel, not var(--lv-display)/Bebas Neue — Bebas Neue is Latin-only
@@ -4617,11 +4609,27 @@ body[data-goal-theme="cut"] .lv-page{
     <span style="font-family:var(--lv-display,serif);font-weight:700;font-size:15px;letter-spacing:.02em;color:#F7F5F2">Areviax</span>
   </span>
   <div style="display:flex;align-items:center;gap:9px">
-    <span class="lv-pill" onclick="openStreakDetail()" style="background:var(--lv-primary);color:var(--lv-primary-fg);cursor:pointer"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="lv-streak-flame"><path d="M12 22c4.4 0 7-2.9 7-6.8 0-3-1.7-5-3-7-.2 1.7-1 2.8-2 3.4.3-2.7-.7-5.6-3-7.6-.3 2.5-1.2 3.9-2.7 5.4C6.8 10.8 6 12.6 6 15c0 4 2.7 7 6 7z"/></svg> <span class="lv-streak-badge">0</span></span>
+    <!-- v2: a flame-only icon read as generic — "make the streak a torch
+         with the Areviax insignia on it, matches the vibe better" for a
+         Greek-themed app. Flame path unchanged (still what
+         syncLvBadges()'s lv-streak-flame glow-tier toggle targets), with
+         a bowl + handle added below it so the silhouette reads as a real
+         torch, not just fire floating in a pill. No insignia mark at
+         this ~13px size (see the streak-detail modal's bigger torch for
+         where that's actually legible) — a mark that small is just
+         noise, not a visible detail. -->
+    <span class="lv-pill" onclick="openStreakDetail()" style="background:var(--lv-primary);color:var(--lv-primary-fg);cursor:pointer"><svg width="13" height="18" viewBox="0 0 24 33" fill="currentColor" aria-hidden="true" class="lv-streak-flame"><path d="M12 22c4.4 0 7-2.9 7-6.8 0-3-1.7-5-3-7-.2 1.7-1 2.8-2 3.4.3-2.7-.7-5.6-3-7.6-.3 2.5-1.2 3.9-2.7 5.4C6.8 10.8 6 12.6 6 15c0 4 2.7 7 6 7z"/><path d="M7.6 22h8.8l-1.8 3.4H9.4z"/><rect x="10.3" y="25.4" width="3.4" height="7" rx="1.4"/></svg> <span class="lv-streak-badge">0</span></span>
     <button type="button" class="lv-road-pill" onclick="showPage('trophyroad')" aria-label="The Way Home — Arete progress">
       <span class="lv-road-pill-top"><img src="images/icons/arete.png" alt="" class="lv-road-pill-icon"> <span class="lv-road-arete-num">0</span></span>
       <span class="lv-road-pill-track"><span class="lv-road-pill-fill" style="width:0%"></span></span>
     </button>
+    <!-- THE AREVIAX CHAMPIONSHIP — moved here from a full-width purple bar
+         on the Dashboard body (direct ask: "move the areviax challenge
+         to the top right") so it's reachable from every page the same
+         way Shop/Profile already are, not just scrolled past on the
+         Dashboard. Purple-tinted to keep its own identity next to the
+         neutral Shop/Profile icons either side of it. -->
+    <button type="button" class="lv-profile-btn" onclick="showPage('trials')" aria-label="The Areviax Championship" style="border-color:rgba(192,132,252,.4);background:rgba(192,132,252,.14)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#C084FC" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 14.5a2.5 2.5 0 002.5 2.5 2.5 2.5 0 002.5-2.5c0-1.38-.5-2-1-3-1.07-2.14-.22-4.05 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7.5 7.5 0 11-15 0c0-1.15.43-2.29 1-3a2.5 2.5 0 002.5 2.5z"/></svg></button>
     <button type="button" class="lv-profile-btn" onclick="showPage('shop')" aria-label="Marketplace"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F7F5F2" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2 3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 01-8 0"/></svg></button>
     <button type="button" class="lv-profile-btn" onclick="showPage('profile')" aria-label="Profile"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F7F5F2" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="lv-profile-badge"></span></button>
   </div>
@@ -5141,7 +5149,7 @@ body[data-goal-theme="cut"] .lv-page{
           <div class="tb-title" id="tb-title">Dashboard</div>
         </div>
         <div class="tb-right">
-          <div class="tb-pill tp-flame" onclick="openStreakDetail()" style="cursor:pointer"><svg width="15" height="15" viewBox="0 0 24 24" style="flex-shrink:0" aria-hidden="true"><path fill="#FFE9D6" d="M12 22c4.4 0 7-2.9 7-6.8 0-3-1.7-5-3-7-.2 1.7-1 2.8-2 3.4.3-2.7-.7-5.6-3-7.6-.3 2.5-1.2 3.9-2.7 5.4C6.8 10.8 6 12.6 6 15c0 4 2.7 7 6 7z"/></svg> <span id="streak-val">0</span> streak</div>
+          <div class="tb-pill tp-flame" onclick="openStreakDetail()" style="cursor:pointer"><svg width="15" height="21" viewBox="0 0 24 33" style="flex-shrink:0" aria-hidden="true"><path fill="#FFE9D6" d="M12 22c4.4 0 7-2.9 7-6.8 0-3-1.7-5-3-7-.2 1.7-1 2.8-2 3.4.3-2.7-.7-5.6-3-7.6-.3 2.5-1.2 3.9-2.7 5.4C6.8 10.8 6 12.6 6 15c0 4 2.7 7 6 7z"/><path fill="#FFE9D6" d="M7.6 22h8.8l-1.8 3.4H9.4z"/><rect fill="#FFE9D6" x="10.3" y="25.4" width="3.4" height="7" rx="1.4"/></svg> <span id="streak-val">0</span> streak</div>
           <div class="tb-pill tp-gold"><img src="images/icons/arete.png" alt="" style="width:13px;height:13px;vertical-align:-2px;border-radius:50%"> <span id="xp-val">0</span> Arete</div>
           <div class="tb-profile-btn" onclick="showPage('profile')" title="Profile"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
         </div>
@@ -5298,15 +5306,27 @@ body[data-goal-theme="cut"] .lv-page{
         <div id="dash-title-badge" style="display:none;margin-top:3px;font-size:14px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--lv-gold)"></div>
       </div>
 
-      <!-- Next-session preview — moved to the right (was left-aligned under
-           the name) now that the name owns its own row above. -->
-      <div style="margin-top:10px;display:flex;justify-content:flex-end">
-        <div style="font-family:var(--lv-sans);font-size:23px;font-weight:800;color:var(--lv-fg);text-align:right">
-          <span id="d-next-word1">Push</span> <span class="lv-serif-accent lv-gold-text" id="d-next-word2">upper</span>
-        </div>
-      </div>
+      <!-- v2 (direct ask): this used to be small right-aligned text with
+           a big empty gap above it (nothing to actually tap), and a
+           whole separate full-width "Start session" button lived below
+           the fold doing the real work. Folded into one real CTA that
+           fills the gap AND starts the session — same showPage('workout')
+           the old button used, same .lv-ember treatment, same
+           d-next-word1/word2/sub ids other code already writes real data
+           into (renderTodaySessionName, the exercise-count/time summary
+           below) — d-next-sub was already being kept updated, it just
+           had nowhere visible to show up before now. -->
+      <button type="button" class="lv-ember lv-grain" onclick="showPage('workout')" style="margin-top:14px;width:100%;display:flex;align-items:center;justify-content:space-between;gap:14px;border:none;border-radius:1.1rem;padding:14px 16px 14px 18px;cursor:pointer;font-family:inherit;text-align:left;-webkit-tap-highlight-color:transparent">
+        <span style="min-width:0;color:var(--lv-primary-fg)">
+          <span style="display:block;font-size:9px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;opacity:.62">Today's session</span>
+          <span style="display:block;margin-top:3px;font-size:21px;font-weight:800;line-height:1.05"><span id="d-next-word1">Push</span> <span id="d-next-word2">upper</span></span>
+          <span style="display:block;margin-top:3px;font-size:11px;font-weight:700;opacity:.62" id="d-next-sub"></span>
+        </span>
+        <span style="flex-shrink:0;width:44px;height:44px;border-radius:50%;background:rgba(0,0,0,.16);display:flex;align-items:center;justify-content:center">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="var(--lv-primary-fg)" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+        </span>
+      </button>
       <div id="d-next-full" style="display:none">Push Upper</div>
-      <div id="d-next-sub" style="display:none"></div>
       <div id="d-next-lifts" style="display:none">0 lifts</div>
       <div id="d-next-time" style="display:none">~0 min</div>
       <div id="d-next-last" style="display:none">last · —</div>
@@ -5326,27 +5346,13 @@ body[data-goal-theme="cut"] .lv-page{
       <div id="d-next-daypicker" style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px"></div>
     </div>
 
-    <!-- START — moved up from the bottom of the page to right under the
-         hero, so the next action is visible without scrolling instead of
-         being the last thing on the page after Coach Sam, volume, stats,
-         the plan, and Fuel. Still a normal in-flow button, not fixed —
-         a fixed floating CTA permanently covered whatever content sat at
-         that screen position (it was hiding the Sessions/Kcal/Protein
-         stats on real devices). -->
-    <button class="lv-ember lv-grain" onclick="showPage('workout')" style="width:100%;display:flex;align-items:center;justify-content:space-between;border:none;border-radius:1.25rem;padding:16px 20px;font-family:var(--lv-sans);font-size:16px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;cursor:pointer">Start session <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></button>
+    <!-- START — the hero's own orange CTA (see the header above) is now
+         the real "start session" action, folded in right under the name
+         instead of a second identical button living down here too. -->
 
-    <!-- THE AREVIAX CHAMPIONSHIP — a slim full-width bar (not a small header
-         icon, not the old oversized hero banner), reachable straight off
-         the Dashboard. renderDashTrialsBar() fills in the current stage
-         name + time left. -->
-    <button type="button" id="dash-trials-bar" class="lv-grain" onclick="showPage('trials')" style="width:100%;display:flex;align-items:center;gap:12px;border:1px solid rgba(192,132,252,.35);border-radius:1rem;padding:13px 16px;background:linear-gradient(120deg,rgba(123,47,247,.22),rgba(61,22,112,.32));cursor:pointer;text-align:left;font-family:inherit;color:inherit">
-      <span style="flex-shrink:0;width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:rgba(192,132,252,.18);border:1px solid rgba(192,132,252,.4);color:#C084FC"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 14.5a2.5 2.5 0 002.5 2.5 2.5 2.5 0 002.5-2.5c0-1.38-.5-2-1-3-1.07-2.14-.22-4.05 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7.5 7.5 0 11-15 0c0-1.15.43-2.29 1-3a2.5 2.5 0 002.5 2.5z"/></svg></span>
-      <span style="flex:1;min-width:0">
-        <span style="display:block;font-size:12.5px;font-weight:800;letter-spacing:.02em;color:var(--lv-fg)">The Areviax Championship</span>
-        <span style="display:block;margin-top:2px;font-size:10.5px;color:#C9A6EE" id="dash-trials-sub">—</span>
-      </span>
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C084FC" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
-    </button>
+    <!-- THE AREVIAX CHAMPIONSHIP — moved to a header icon button (see
+         #global-topbar) instead of a full-width bar here, per direct
+         ask ("move the areviax challenge to the top right"). -->
 
     <!-- YOUR RANK — the Hall of Statues' current tier, given a real home
          on the Dashboard with room to actually show progress, instead of
@@ -8694,7 +8700,7 @@ body[data-goal-theme="cut"] .lv-page{
       <span class="lv-wordmark" style="font-size:11px">Areviax</span><span style="font-size:10px;color:var(--lv-muted-fg);margin-left:7px;padding-left:7px;border-left:1px solid var(--lv-border-strong)">Coach Sam</span>
     </span>
     <div style="display:flex;align-items:center;gap:9px">
-      <span class="lv-pill" onclick="openStreakDetail()" style="padding:4px 8px;background:var(--lv-primary);color:var(--lv-primary-fg);font-size:10px;cursor:pointer"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="lv-streak-flame"><path d="M12 22c4.4 0 7-2.9 7-6.8 0-3-1.7-5-3-7-.2 1.7-1 2.8-2 3.4.3-2.7-.7-5.6-3-7.6-.3 2.5-1.2 3.9-2.7 5.4C6.8 10.8 6 12.6 6 15c0 4 2.7 7 6 7z"/></svg> <span class="lv-streak-badge">0</span></span>
+      <span class="lv-pill" onclick="openStreakDetail()" style="padding:4px 8px;background:var(--lv-primary);color:var(--lv-primary-fg);font-size:10px;cursor:pointer"><svg width="11" height="15" viewBox="0 0 24 33" fill="currentColor" aria-hidden="true" class="lv-streak-flame"><path d="M12 22c4.4 0 7-2.9 7-6.8 0-3-1.7-5-3-7-.2 1.7-1 2.8-2 3.4.3-2.7-.7-5.6-3-7.6-.3 2.5-1.2 3.9-2.7 5.4C6.8 10.8 6 12.6 6 15c0 4 2.7 7 6 7z"/><path d="M7.6 22h8.8l-1.8 3.4H9.4z"/><rect x="10.3" y="25.4" width="3.4" height="7" rx="1.4"/></svg> <span class="lv-streak-badge">0</span></span>
       <button type="button" class="lv-road-pill" onclick="showPage('trophyroad')" aria-label="The Way Home — Arete progress">
         <span class="lv-road-pill-top"><img src="images/icons/arete.png" alt="" class="lv-road-pill-icon"> <span class="lv-road-arete-num">0</span></span>
         <span class="lv-road-pill-track"><span class="lv-road-pill-fill" style="width:0%"></span></span>
@@ -8887,9 +8893,22 @@ body[data-goal-theme="cut"] .lv-page{
     <button onclick="closeStreakDetail()" style="background:var(--border2);border:none;color:var(--muted);font-size:16px;cursor:pointer;line-height:1;padding:6px 10px;border-radius:50%">✕</button>
   </div>
   <div style="flex:1;min-height:0;overflow-y:auto;padding:0 24px 24px;text-align:center">
-    <svg width="52" height="70" viewBox="0 0 32 44" fill="none" style="margin:4px auto 8px">
+    <!-- v2 (direct ask): "make the streak a torch with the Areviax
+         insignia on it." Flame paths/gradients untouched (they already
+         taper to a single point at the bottom — 16,42/16,40 — which is
+         exactly where a real torch's flame meets its cup, so nothing
+         about the flame itself needed to change). Added a bowl flaring
+         out from that same point, a handle below it, and the actual
+         compass-star mark from the brand emblem (same shape as the
+         #global-topbar logo, just scaled down) sitting on the handle —
+         big enough here (unlike the ~13px topbar torch) for the mark to
+         actually read as a mark, not a speck. -->
+    <svg width="44" height="86" viewBox="0 0 32 62" fill="none" style="margin:4px auto 8px">
       <path d="M16 42 C6 42 2 34 2 28 C2 20 8 16 10 10 C11 7 11 4 10 2 C13 5 14 8 14 11 C16 8 17 4 15 0 C20 4 24 10 22 18 C24 15 25 11 24 8 C28 13 30 20 30 26 C30 34 26 42 16 42Z" fill="url(#sdFgD1)" opacity=".9"/>
       <path d="M16 40 C9 40 6 33 6 28 C6 23 9 19 11 15 C12 12 12 9 11 7 C14 10 15 13 14 16 C16 13 17 10 16 7 C19 11 21 16 20 21 C22 18 22 15 21 12 C24 17 26 22 26 28 C26 34 22 40 16 40Z" fill="url(#sdFgD2)"/>
+      <path d="M13 42 L19 42 L24 49 L8 49 Z" fill="#6B4423"/>
+      <rect x="11.5" y="49" width="9" height="13" rx="3" fill="#5A3820"/>
+      <path d="M0 -1 .14 -.14 1 0 .14 .14 0 1 -.14 .14 -1 0 -.14 -.14Z" fill="#FFD98A" stroke="#2A1206" stroke-width=".12" transform="translate(16,55.5) scale(3.8)"/>
       <defs>
         <linearGradient id="sdFgD1" x1="16" y1="42" x2="16" y2="0" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#FF8342" stop-opacity=".9"/><stop offset="100%" stop-color="#FFC98A" stop-opacity=".7"/></linearGradient>
         <linearGradient id="sdFgD2" x1="16" y1="40" x2="16" y2="7" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#E85F1A"/><stop offset="100%" stop-color="#FFD8A8" stop-opacity=".9"/></linearGradient>
@@ -16126,6 +16145,7 @@ function showPage(id){
   if(id==='dashboard'){
     // Recalculate greeting on every dashboard visit
     updateGreeting();
+    try{refreshDashNextSession();}catch(e){console.error('refreshDashNextSession:',e.message);}
     try{checkStreakAtRisk();}catch(e){}
     try{checkStreakBroken();}catch(e){}
     try{checkSleepReminder();}catch(e){}
@@ -17431,22 +17451,9 @@ function syncLvBadges(){
   renderDashRankPill();
   syncProfileBadge();
 }
-function renderDashTrialsBar(){
-  const sub=document.getElementById('dash-trials-sub');
-  if(!sub)return; // not on this page
-  ensureTrialsEventFresh();
-  if(trialsStageIdx>=TRIALS_STAGES.length){
-    sub.textContent='All trials cleared this cycle';
-    return;
-  }
-  const stage=TRIALS_STAGES[trialsStageIdx];
-  const left=trialsTimeLeft();
-  sub.textContent=stage.name+' · '+(left.days>0?left.days+'d left':left.hours+'h left');
-}
 function renderDashHeroLovable(){
   syncLvBadges();
   renderDashTitleBadge();
-  renderDashTrialsBar();
   const greetW1=document.getElementById('dash-greeting-word1');
   const greetW2=document.getElementById('dash-greeting-word2');
   if(greetW1&&greetW2){
@@ -17620,6 +17627,32 @@ function renderDashPlanList(){
     </div>`;
   }).join('');
 }
+// Session card previously just said the session type name with no sense
+// of how big it is or where it sits in the week — real counts pulled
+// from the actual planned exercise list, not invented. Used to only run
+// once, inside initApp() — fine while d-next-sub stayed hidden, but now
+// that the Dashboard hero CTA actually shows it (see the header button),
+// it needs to refresh every time the Dashboard is shown, not just at
+// boot, or it goes stale the moment plannedSessionExs changes mid-
+// session (e.g. after visiting The Forge and swapping an exercise).
+function refreshDashNextSession(){
+  const dnsub=document.getElementById('d-next-sub');
+  const sessIdx=Math.min(sessThisWeek+1,profile.days);
+  const dni=document.getElementById('d-next-idx');if(dni)dni.textContent=sessIdx;
+  const dnt=document.getElementById('d-next-total');if(dnt)dnt.textContent=profile.days;
+  try{syncTodaysPlanFromSchedule();}catch(e){console.error('syncTodaysPlanFromSchedule:',e.message);}
+  renderTodaySessionName(plannedSessionName||document.getElementById('d-next-full')?.textContent||'');
+  renderDashPlanList();
+  if(dnsub){
+    const n=plannedSessionExs?plannedSessionExs.length:0;
+    if(n){
+      const estMin=Math.round(n*5.5);
+      dnsub.textContent=n+' exercise'+(n===1?'':'s')+' · ~'+estMin+' min';
+    }else{
+      dnsub.textContent='';
+    }
+  }
+}
 function initApp(){
   if(typeof profile==='undefined')return;
   if(!document.getElementById('dash-name'))return;
@@ -17639,25 +17672,7 @@ function initApp(){
   const dprot=document.getElementById('d-protein');if(dprot)dprot.textContent=profile.protein+'g';
   const dw=document.getElementById('d-weight');if(dw)dw.textContent=profile.weight+'lbs';
   const ds2=document.getElementById('d-sessions');if(ds2)ds2.textContent=sessThisWeek+'/'+profile.days;
-  // Session card previously just said the session type name with no
-  // sense of how big it is or where it sits in the week — real counts
-  // pulled from the actual planned exercise list, not invented.
-  const dnsub=document.getElementById('d-next-sub');
-  const sessIdx=Math.min(sessThisWeek+1,profile.days);
-  const dni=document.getElementById('d-next-idx');if(dni)dni.textContent=sessIdx;
-  const dnt=document.getElementById('d-next-total');if(dnt)dnt.textContent=profile.days;
-  try{syncTodaysPlanFromSchedule();}catch(e){console.error('syncTodaysPlanFromSchedule:',e.message);}
-  renderTodaySessionName(plannedSessionName||document.getElementById('d-next-full')?.textContent||'');
-  renderDashPlanList();
-  if(dnsub){
-    const n=plannedSessionExs?plannedSessionExs.length:0;
-    if(n){
-      const estMin=Math.round(n*5.5);
-      dnsub.textContent=n+' exercise'+(n===1?'':'s')+' · ~'+estMin+' min';
-    }else{
-      dnsub.textContent='';
-    }
-  }
+  refreshDashNextSession();
   const dcb=document.getElementById('d-cals-brief');if(dcb)dcb.textContent=formatCompactK(dayMacros.cals||0);
   const dct=document.getElementById('d-cals-target');if(dct)dct.textContent='/'+formatCompactK(profile.cals||0);
   try{renderSmartLogRecent();}catch(e){}
