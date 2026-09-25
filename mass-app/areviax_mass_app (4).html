@@ -11136,8 +11136,43 @@ function getCardThumb(ex,compact){
 // happens, retry with more forceful, specific pose language (exact
 // joint angles, exact distance from the floor) rather than accepting a
 // near-duplicate pair.
+//
+// SCALE MATCHING — two independently generated frames of the "same"
+// camera setup still drift in apparent zoom/distance (the model doesn't
+// actually hold a consistent focal length across generations), which
+// reads as the photo pair "zooming" instead of the body moving. Before
+// shipping a new frame pair, measure each frame's subject bounding box
+// (background-subtraction via a large-radius Gaussian blur diff works
+// without needing a person-segmentation model) and crop the frame with
+// the *wider* framing down to match the *tighter* one's subject-height
+// fraction, anchored on the floor-contact point (hands/feet — the only
+// stable shared reference across push-up positions). Crop, don't pad:
+// padding the tighter frame back out to full size requires inventing
+// background pixels (tried flat-fill and edge-replicate and both left a
+// visible seam/smear; a background-subtraction matte composited onto
+// the other frame's own background produced visible ghosting from the
+// soft shadow near the feet). Cropping the wider frame in has no such
+// artifact since every pixel is real. `exwalk-pushup-top-matched.jpg`
+// is `exwalk-pushup-top.jpg` cropped this way to match the bottom
+// frame's tighter framing — the original top.jpg is kept unmodified in
+// case a future regenerated frame set needs the original framing back.
+//
+// STILL OPEN: this exercise only has top/bottom (2 frames), not
+// top/middle/bottom (3) — a genuine ~90°-bent "middle" pose has proven
+// hard to get out of this model. A fixed seed with only the pose text
+// varied barely changes the pose at all (structure is seed-dominated);
+// a random seed gives real pose variation but re-introduces the scale
+// drift above; and explicit "keep the same wide framing" language in
+// the prompt measurably fights the pose instruction — attempts with it
+// added collapsed back toward the extended/top silhouette instead of a
+// true bent-elbow midpoint. Next attempt should probably generate the
+// middle frame with plain concise pose language (no framing padding,
+// random seed) and expect to run several seeds before one lands on a
+// real midpoint, then scale-match it against the other two afterward
+// using the technique above rather than trying to solve pose + framing
+// in one generation.
 const EXERCISE_PHOTO_WALKTHROUGH={
-  'Push-ups':{frames:['images/misc/exwalk-pushup-top.jpg','images/misc/exwalk-pushup-bottom.jpg'],labels:['Top','Bottom']},
+  'Push-ups':{frames:['images/misc/exwalk-pushup-top-matched.jpg','images/misc/exwalk-pushup-bottom.jpg'],labels:['Top','Bottom']},
 };
 // Real photo frames crossfading in place, instead of the vector rig
 // getWalkthroughSVG() below uses — those two only ever coexist as
