@@ -4553,19 +4553,33 @@ body[data-goal-theme="cut"] .lv-page{
    absolutely and crossfade via one shared keyframe with a per-frame
    negative animation-delay (set inline per image) instead of one
    keyframe per exercise. The keyframe shape itself (a symmetric 2-beat
-   hold/crossfade) is tuned for exactly 2 frames — today's only real
-   case (top/bottom position pairs) — a 3+-frame sequence would need its
-   own keyframe with narrower visible windows, not just a different
-   delay. Loops on its own forever — no tap/button needed to see both
-   positions, same as every other idle animation in this app.
+   hold/blur-drift-crossfade) is tuned for exactly 2 frames — today's
+   only real case (top/bottom position pairs) — a 3+-frame sequence
+   would need its own keyframe with narrower visible windows, not just
+   a different delay. Loops on its own forever — no tap/button needed
+   to see both positions, same as every other idle animation in this
+   app.
    object-fit:contain (not cover) is load-bearing here — direct ask:
    "ensure it shows full body." A crop-to-fill would happily slice off
    feet or a hand reaching off the bottom/side of frame depending on the
    modal's actual aspect ratio at runtime; contain guarantees the whole
    locked-template shot (head to feet) is always visible, letterboxed on
    the dark stage background rather than cropped. */
-.exwalk-frame{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;animation-name:exwalkCrossfade;animation-timing-function:ease-in-out;animation-iteration-count:infinite}
-@keyframes exwalkCrossfade{0%,42%{opacity:1}50%{opacity:0}92%{opacity:0}100%{opacity:1}}
+.exwalk-frame{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;animation-name:exwalkCrossfade;animation-timing-function:ease-in-out;animation-iteration-count:infinite;will-change:opacity,filter,transform}
+/* Each frame blurs and drifts as it hands off to the other one, instead
+   of a flat opacity dissolve — a plain crossfade between two stills reads
+   as a slide/dissolve, not the body actually moving. The blur+drift only
+   happens during THIS image's own fade window (40-50% out, 90-100% in);
+   it's fully still and sharp while it's the one being held on screen, so
+   it never looks blurred at rest. */
+@keyframes exwalkCrossfade{
+  0%,40%{opacity:1;filter:blur(0);transform:scale(1) translateY(0)}
+  48%{opacity:.35;filter:blur(5px);transform:scale(.985) translateY(2.5%)}
+  50%{opacity:0;filter:blur(7px);transform:scale(.98) translateY(3.5%)}
+  90%{opacity:0;filter:blur(7px);transform:scale(.98) translateY(-3.5%)}
+  92%{opacity:.35;filter:blur(5px);transform:scale(.985) translateY(-2.5%)}
+  100%{opacity:1;filter:blur(0);transform:scale(1) translateY(0)}
+}
 </style>
 </head>
 <body>
