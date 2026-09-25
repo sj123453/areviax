@@ -4556,11 +4556,15 @@ body[data-goal-theme="cut"] .lv-page{
    hold/crossfade) is tuned for exactly 2 frames — today's only real
    case (top/bottom position pairs) — a 3+-frame sequence would need its
    own keyframe with narrower visible windows, not just a different
-   delay. object-position pinned toward the top since every locked-
-   template shot has real headroom above the model and the body fills
-   the lower ~70% — a plain center crop wasted the frame on empty studio
-   background. */
-.exwalk-frame{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 12%;animation-name:exwalkCrossfade;animation-timing-function:ease-in-out;animation-iteration-count:infinite}
+   delay. Loops on its own forever — no tap/button needed to see both
+   positions, same as every other idle animation in this app.
+   object-fit:contain (not cover) is load-bearing here — direct ask:
+   "ensure it shows full body." A crop-to-fill would happily slice off
+   feet or a hand reaching off the bottom/side of frame depending on the
+   modal's actual aspect ratio at runtime; contain guarantees the whole
+   locked-template shot (head to feet) is always visible, letterboxed on
+   the dark stage background rather than cropped. */
+.exwalk-frame{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;animation-name:exwalkCrossfade;animation-timing-function:ease-in-out;animation-iteration-count:infinite}
 @keyframes exwalkCrossfade{0%,42%{opacity:1}50%{opacity:0}92%{opacity:0}100%{opacity:1}}
 </style>
 </head>
@@ -11091,11 +11095,47 @@ function getCardThumb(ex,compact){
 // REAL-PHOTO WALKTHROUGHS — the first exercises to get an actual
 // stop-motion photo pair instead of a vector overlay, keyed by the
 // exercise's own name (exact match against EX's own `name:` field).
-// Every entry so far shares one locked visual template (same model,
-// black shorts, barefoot, light-grey seamless studio, same lighting/
-// camera height) so a new exercise's frames drop into this same
-// component without needing their own bespoke styling — see
-// getPhotoWalkthroughHTML() below for how the frames actually crossfade.
+// Every entry so far shares one locked visual template so a new
+// exercise's frames drop into this same component without needing
+// their own bespoke styling — see getPhotoWalkthroughHTML() below for
+// how the frames actually crossfade.
+//
+// LOCKED CHARACTER/SCENE TEMPLATE — copy this verbatim for every new
+// exercise's frames (only the [POSE] clause changes between frames/
+// exercises). Written down here, not just left to reverse-engineering
+// the existing images, specifically so it survives a session boundary —
+// direct ask: "ensure you keep the character constant for every single
+// exercise." Deliberately does NOT try to have the image generator also
+// paint a muscle-highlight glow onto the model — holding one consistent
+// character across many separate generations is already the hard part
+// for these models; asking for an anatomically correct overlay in the
+// same shot on top of that is exactly the kind of thing they don't
+// reliably remember together, and a wrong one (glowing the wrong spot)
+// would be worse than not trying. Muscles-worked instead reuses the
+// app's own existing chip system (see getPhotoWalkthroughHTML's
+// muscleChips) — same idea getMuscleHighlight() already relies on.
+//
+// "Photorealistic commercial fitness photography, athletic male model
+// with short dark brown hair, shirtless, wearing plain black athletic
+// shorts, barefoot, [POSE], side profile view facing left, on a
+// seamless light gray studio floor and background, soft even studio
+// lighting, soft shadow beneath the body, sharp focus, high detail skin
+// texture, 3/4 side angle camera at low height, no text, no watermark"
+//
+// [POSE] examples already generated (Push-ups):
+//   top:    "performing a push-up at the top position, arms fully
+//            extended, body in a straight line from head to heels"
+//   bottom: "at the very bottom of a push-up: chest and torso lowered
+//            to only a few inches above the floor, elbows sharply bent
+//            at roughly 45 degrees and tucked close against the ribs,
+//            body still perfectly straight from head to heels in a low
+//            plank line"
+// Generate at 1344x1728 (7:9) to match the existing pair. The first
+// attempt at a new [POSE] sometimes comes out nearly identical to the
+// other frame (the model tends toward one "default" pose) — if that
+// happens, retry with more forceful, specific pose language (exact
+// joint angles, exact distance from the floor) rather than accepting a
+// near-duplicate pair.
 const EXERCISE_PHOTO_WALKTHROUGH={
   'Push-ups':{frames:['images/misc/exwalk-pushup-top.jpg','images/misc/exwalk-pushup-bottom.jpg'],labels:['Top','Bottom']},
 };
@@ -11108,7 +11148,17 @@ const EXERCISE_PHOTO_WALKTHROUGH={
 // tuned for the 2-frame case every entry here has today; a 3+-frame
 // exercise would need its own keyframe shape, not just a smaller delay
 // step, so don't add one assuming this scales for free.
-function getPhotoWalkthroughHTML(name){
+// muscle worked comes from the exercise's own `muscle:` field (e.g.
+// "chest + triceps") rather than trying to get the image generator to
+// paint a highlight glow onto the right spot on the model — asking it
+// to hold the locked character AND place an anatomically correct
+// overlay in the same shot is exactly the kind of thing these models
+// don't reliably remember together, and getting it wrong (a chest
+// exercise glowing over the shoulder) would be worse than not trying.
+// The rest of the app already has a proven way to say "this is the
+// muscle" — the same red/neutral chip pairing getMuscleHighlight() uses
+// — so this reuses that instead of a fragile pixel-perfect overlay.
+function getPhotoWalkthroughHTML(name,muscle){
   const cfg=EXERCISE_PHOTO_WALKTHROUGH[name];
   if(!cfg)return null;
   const n=cfg.frames.length;
@@ -11117,9 +11167,19 @@ function getPhotoWalkthroughHTML(name){
     const delay=-(dur*i/n);
     return `<img src="${src}" alt="${name} — ${cfg.labels[i]||''}" class="exwalk-frame" style="animation-duration:${dur}s;animation-delay:${delay}s">`;
   }).join('');
-  return `<div style="width:100%;height:100%;display:flex;flex-direction:column;gap:8px">
-    <div style="position:relative;flex:1;min-height:0;border-radius:12px;overflow:hidden;background:#1a1a1a">${imgs}</div>
+  const muscleParts=(muscle||'').split('+').map(m=>m.trim()).filter(Boolean);
+  const muscleChips=muscleParts.map((m,i)=>i===0
+    ?`<span style="background:rgba(232,49,74,.28);color:#E8314A;padding:2px 8px;border-radius:8px;font-size:9px;font-weight:800;text-transform:uppercase;white-space:nowrap">${m}</span>`
+    :`<span style="background:rgba(232,214,196,.07);color:#A59D95;padding:2px 7px;border-radius:8px;font-size:8.5px;text-transform:uppercase;white-space:nowrap">${m}</span>`
+  ).join('');
+  return `<div style="width:100%;height:100%;display:flex;flex-direction:column;gap:8px;align-items:center">
+    <!-- max-height caps this well under the modal's own available space
+       (direct ask: "don't make the image too large") — object-fit:contain
+       on .exwalk-frame still guarantees the full body fits inside
+       whatever box this ends up, this just keeps that box modest. -->
+    <div style="position:relative;width:100%;max-width:280px;max-height:320px;aspect-ratio:1344/1728;border-radius:12px;overflow:hidden;background:#1a1a1a">${imgs}</div>
     <div style="flex-shrink:0;display:flex;justify-content:center;gap:6px">${cfg.labels.map(l=>`<span style="font-size:9px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);background:rgba(232,214,196,.07);border-radius:6px;padding:3px 8px">${l}</span>`).join('')}</div>
+    ${muscleChips?`<div style="flex-shrink:0;display:flex;justify-content:center;flex-wrap:wrap;gap:5px">${muscleChips}</div>`:''}
   </div>`;
 }
 function getWalkthroughSVG(anim){
@@ -11280,7 +11340,7 @@ function openWatch(i){
   // Real photo pair wins over the vector rig when one exists for this
   // exact exercise — see EXERCISE_PHOTO_WALKTHROUGH's own comment for
   // why they're both real, exclusive per-exercise, and don't stack.
-  const photo=getPhotoWalkthroughHTML(e.name);
+  const photo=getPhotoWalkthroughHTML(e.name,e.muscle);
   document.getElementById('watch-body').innerHTML=photo||getWalkthroughSVG(e.anim);
   document.getElementById('watch-note').textContent=photo
     ?'Real photo reference — top and bottom of the rep.'
