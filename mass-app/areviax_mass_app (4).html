@@ -353,13 +353,20 @@ input,input:focus,input:active,
    text stays a fixed dark shade that reads on every tier's material. */
 .ex-rank-badge{display:inline-block;margin-bottom:4px;padding:2px 8px;border-radius:999px;font-size:8.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#2B1300;background:linear-gradient(135deg,var(--rk-c1),var(--rk-c2))}
 .ex-top{display:flex;flex-direction:row;gap:10px;align-items:flex-start}
-.ex-fig{width:272px;height:266px;flex-shrink:0;background:#0D0806;border:1.5px solid rgba(232,214,196,.12);border-radius:8px;overflow:hidden;position:relative;box-shadow:inset 0 0 0 1px rgba(232,214,196,.03)}
-/* Lifts the anatomy render off the flat black backdrop with a soft
-   spotlight instead of a bare box — matches the ambient-glow language
-   used on .ex-card and the crate/road elements elsewhere in the app.
-   ::before paints first (behind the <img> that follows it in the DOM),
-   and the chip row underneath has its own opaque background so the glow
-   never bleeds into it. */
+/* Fades to transparent at the edges instead of a flat-filled rectangle
+   with a border — direct ask after the box read as a hard-edged box
+   against the page's own warm ambient gradient behind it: "remove that
+   box look by making it fade into the background." No border/inset
+   shadow either, since those were the other half of what drew the eye
+   to a rectangle. getFig()/getCardThumb() render transparent now and
+   rely on this gradient as their only backdrop (see those functions). */
+.ex-fig{width:272px;height:266px;flex-shrink:0;border-radius:8px;overflow:hidden;position:relative;background:radial-gradient(ellipse at 50% 45%,rgba(13,8,6,.92) 0%,rgba(13,8,6,.55) 55%,rgba(13,8,6,0) 88%)}
+/* Lifts the anatomy render off the faded backdrop with a soft spotlight
+   — matches the ambient-glow language used on .ex-card and the
+   crate/road elements elsewhere in the app. ::before paints first
+   (behind the <img> that follows it in the DOM), and the chip row
+   underneath has its own opaque background so the glow never bleeds
+   into it. */
 .ex-fig::before,.custom-ex-fig::before,.custom-sel-fig::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 40%,rgba(243,103,23,.14),transparent 62%);pointer-events:none}
 .ex-info{flex:1;min-width:0}
 .ex-name{font-weight:700;font-size:13px;margin-bottom:2px}
@@ -1608,7 +1615,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       display:flex;align-items:center;gap:10px;
       padding:8px 10px;border-bottom:1.5px solid rgba(232,214,196,.05);font-size:12px;
     }
-    .custom-ex-fig{width:147px;height:116px;flex-shrink:0;border-radius:8px;overflow:hidden;background:#0D0806;border:1.5px solid rgba(232,214,196,.12);position:relative}
+    .custom-ex-fig{width:147px;height:116px;flex-shrink:0;border-radius:8px;overflow:hidden;position:relative;background:radial-gradient(ellipse at 50% 45%,rgba(13,8,6,.92) 0%,rgba(13,8,6,.55) 55%,rgba(13,8,6,0) 88%)}
     .custom-ex-info{flex:1;min-width:0}
     .custom-ex-row:last-child{border-bottom:none}
     .custom-ex-row span:first-child{font-weight:700;color:var(--white)}
@@ -1621,7 +1628,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       display:flex;align-items:center;gap:10px;padding:8px;
       background:rgba(232,214,196,.03);border-radius:6px;margin-bottom:6px;
     }
-    .custom-sel-fig{width:147px;height:116px;flex-shrink:0;border-radius:8px;overflow:hidden;background:#0D0806;border:1.5px solid rgba(232,214,196,.12);position:relative}
+    .custom-sel-fig{width:147px;height:116px;flex-shrink:0;border-radius:8px;overflow:hidden;position:relative;background:radial-gradient(ellipse at 50% 45%,rgba(13,8,6,.92) 0%,rgba(13,8,6,.55) 55%,rgba(13,8,6,0) 88%)}
     .custom-sel-info{flex:1;min-width:0}
     .custom-sel-name{font-size:12px;font-weight:700;color:var(--white)}
     .custom-sel-muscle{font-size:10px;color:var(--muted);text-transform:capitalize}
@@ -4549,37 +4556,6 @@ body[data-goal-theme="cut"] .lv-page{
 .lv-streak-flame.lv-flame-t3{filter:drop-shadow(0 0 6px currentColor) drop-shadow(0 0 2px currentColor)}
 .lv-topbar{position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--lv-border);background:var(--lv-bg,rgb(18,12,9));backdrop-filter:blur(20px);padding:calc(10px + max(var(--safe-top,0px),env(safe-area-inset-top,0px))) 20px 10px}
 .dash-qf-btn.logged{border-color:var(--lv-fuel)!important;background:rgba(var(--lv-fuel-rgb),.15)!important;color:var(--lv-fuel)!important}
-/* REAL-PHOTO WALKTHROUGH — see getPhotoWalkthroughHTML(). Frames stack
-   absolutely and crossfade via one shared keyframe with a per-frame
-   negative animation-delay (set inline per image) instead of one
-   keyframe per exercise. The keyframe shape itself (a symmetric 2-beat
-   hold/blur-drift-crossfade) is tuned for exactly 2 frames — today's
-   only real case (top/bottom position pairs) — a 3+-frame sequence
-   would need its own keyframe with narrower visible windows, not just
-   a different delay. Loops on its own forever — no tap/button needed
-   to see both positions, same as every other idle animation in this
-   app.
-   object-fit:contain (not cover) is load-bearing here — direct ask:
-   "ensure it shows full body." A crop-to-fill would happily slice off
-   feet or a hand reaching off the bottom/side of frame depending on the
-   modal's actual aspect ratio at runtime; contain guarantees the whole
-   locked-template shot (head to feet) is always visible, letterboxed on
-   the dark stage background rather than cropped. */
-.exwalk-frame{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;animation-name:exwalkCrossfade;animation-timing-function:ease-in-out;animation-iteration-count:infinite;will-change:opacity,filter,transform}
-/* Each frame blurs and drifts as it hands off to the other one, instead
-   of a flat opacity dissolve — a plain crossfade between two stills reads
-   as a slide/dissolve, not the body actually moving. The blur+drift only
-   happens during THIS image's own fade window (40-50% out, 90-100% in);
-   it's fully still and sharp while it's the one being held on screen, so
-   it never looks blurred at rest. */
-@keyframes exwalkCrossfade{
-  0%,40%{opacity:1;filter:blur(0);transform:scale(1) translateY(0)}
-  48%{opacity:.35;filter:blur(5px);transform:scale(.985) translateY(2.5%)}
-  50%{opacity:0;filter:blur(7px);transform:scale(.98) translateY(3.5%)}
-  90%{opacity:0;filter:blur(7px);transform:scale(.98) translateY(-3.5%)}
-  92%{opacity:.35;filter:blur(5px);transform:scale(.985) translateY(-2.5%)}
-  100%{opacity:1;filter:blur(0);transform:scale(1) translateY(0)}
-}
 </style>
 </head>
 <body>
@@ -11021,7 +10997,11 @@ function getFig(key,compact){
   // whichever one happens to be first in the DOM — breaking the highlight
   // on every other card the moment more than one is rendered on screen.
   const _uid='_'+(_figIdSeq++);
-  const _raw=`<div style="width:100%;height:100%;display:flex;flex-direction:column;background:#0D0806;border-radius:3px;overflow:hidden">
+  // Transparent — the calling .ex-fig/.custom-ex-fig/.custom-sel-fig
+  // wrapper is always what's actually behind this (see their CSS), and
+  // painting a second flat background here would redraw the exact same
+  // hard edge that gradient was written to remove.
+  const _raw=`<div style="width:100%;height:100%;display:flex;flex-direction:column;background:transparent;border-radius:3px;overflow:hidden">
     <div style="flex:1;position:relative;min-height:0">
       <div class="ex-body-img"></div>
       <svg viewBox="0 0 880 824" preserveAspectRatio="xMidYMid meet"
@@ -11084,7 +11064,10 @@ function getCardThumb(ex,compact){
   const src=(panelId&&CARD_THUMB_V3_PANELS.has(panelId))?THUMB_PANELS[panelId]:null;
   if(!src)return getFig(ex.anim,compact);
   const {chips}=getMuscleHighlight(ex.anim);
-  return `<div style="width:100%;height:100%;display:flex;flex-direction:column;background:#0D0806;border-radius:3px;overflow:hidden">
+  // Transparent for the same reason as getFig()'s own div — the wrapping
+  // .ex-fig/.custom-ex-fig/.custom-sel-fig already supplies the faded
+  // backdrop; painting a second flat one here just redraws the box.
+  return `<div style="width:100%;height:100%;display:flex;flex-direction:column;background:transparent;border-radius:3px;overflow:hidden">
     <div style="flex:1;display:flex;align-items:center;justify-content:center;min-height:0;padding:4px">
       <img src="${src}" style="width:100%;height:100%;object-fit:contain" alt="Muscles worked">
     </div>
@@ -11106,131 +11089,22 @@ function getCardThumb(ex,compact){
 // the static highlighted figure with no limb motion, rather than
 // guessing at anatomically wrong movement — extend the switch below
 // pattern by pattern rather than assuming a generic rig works for all 14.
-// REAL-PHOTO WALKTHROUGHS — the first exercises to get an actual
-// stop-motion photo pair instead of a vector overlay, keyed by the
-// exercise's own name (exact match against EX's own `name:` field).
-// Every entry so far shares one locked visual template so a new
-// exercise's frames drop into this same component without needing
-// their own bespoke styling — see getPhotoWalkthroughHTML() below for
-// how the frames actually crossfade.
-//
-// LOCKED CHARACTER/SCENE TEMPLATE — copy this verbatim for every new
-// exercise's frames (only the [POSE] clause changes between frames/
-// exercises). Written down here, not just left to reverse-engineering
-// the existing images, specifically so it survives a session boundary —
-// direct ask: "ensure you keep the character constant for every single
-// exercise." Deliberately does NOT try to have the image generator also
-// paint a muscle-highlight glow onto the model — holding one consistent
-// character across many separate generations is already the hard part
-// for these models; asking for an anatomically correct overlay in the
-// same shot on top of that is exactly the kind of thing they don't
-// reliably remember together, and a wrong one (glowing the wrong spot)
-// would be worse than not trying. Muscles-worked instead reuses the
-// app's own existing chip system (see getPhotoWalkthroughHTML's
-// muscleChips) — same idea getMuscleHighlight() already relies on.
-//
-// "Photorealistic commercial fitness photography, athletic male model
-// with short dark brown hair, shirtless, wearing plain black athletic
-// shorts, barefoot, [POSE], side profile view facing left, on a
-// seamless light gray studio floor and background, soft even studio
-// lighting, soft shadow beneath the body, sharp focus, high detail skin
-// texture, 3/4 side angle camera at low height, no text, no watermark"
-//
-// [POSE] examples already generated (Push-ups):
-//   top:    "performing a push-up at the top position, arms fully
-//            extended, body in a straight line from head to heels"
-//   bottom: "at the very bottom of a push-up: chest and torso lowered
-//            to only a few inches above the floor, elbows sharply bent
-//            at roughly 45 degrees and tucked close against the ribs,
-//            body still perfectly straight from head to heels in a low
-//            plank line"
-// Generate at 1344x1728 (7:9) to match the existing pair. The first
-// attempt at a new [POSE] sometimes comes out nearly identical to the
-// other frame (the model tends toward one "default" pose) — if that
-// happens, retry with more forceful, specific pose language (exact
-// joint angles, exact distance from the floor) rather than accepting a
-// near-duplicate pair.
-//
-// SCALE MATCHING — two independently generated frames of the "same"
-// camera setup still drift in apparent zoom/distance (the model doesn't
-// actually hold a consistent focal length across generations), which
-// reads as the photo pair "zooming" instead of the body moving. Before
-// shipping a new frame pair, measure each frame's subject bounding box
-// (background-subtraction via a large-radius Gaussian blur diff works
-// without needing a person-segmentation model) and crop the frame with
-// the *wider* framing down to match the *tighter* one's subject-height
-// fraction, anchored on the floor-contact point (hands/feet — the only
-// stable shared reference across push-up positions). Crop, don't pad:
-// padding the tighter frame back out to full size requires inventing
-// background pixels (tried flat-fill and edge-replicate and both left a
-// visible seam/smear; a background-subtraction matte composited onto
-// the other frame's own background produced visible ghosting from the
-// soft shadow near the feet). Cropping the wider frame in has no such
-// artifact since every pixel is real. `exwalk-pushup-top-matched.jpg`
-// is `exwalk-pushup-top.jpg` cropped this way to match the bottom
-// frame's tighter framing — the original top.jpg is kept unmodified in
-// case a future regenerated frame set needs the original framing back.
-//
-// STILL OPEN: this exercise only has top/bottom (2 frames), not
-// top/middle/bottom (3) — a genuine ~90°-bent "middle" pose has proven
-// hard to get out of this model. A fixed seed with only the pose text
-// varied barely changes the pose at all (structure is seed-dominated);
-// a random seed gives real pose variation but re-introduces the scale
-// drift above; and explicit "keep the same wide framing" language in
-// the prompt measurably fights the pose instruction — attempts with it
-// added collapsed back toward the extended/top silhouette instead of a
-// true bent-elbow midpoint. Next attempt should probably generate the
-// middle frame with plain concise pose language (no framing padding,
-// random seed) and expect to run several seeds before one lands on a
-// real midpoint, then scale-match it against the other two afterward
-// using the technique above rather than trying to solve pose + framing
-// in one generation.
-const EXERCISE_PHOTO_WALKTHROUGH={
-  'Push-ups':{frames:['images/misc/exwalk-pushup-top-matched.jpg','images/misc/exwalk-pushup-bottom.jpg'],labels:['Top','Bottom']},
-};
-// Real photo frames crossfading in place, instead of the vector rig
-// getWalkthroughSVG() below uses — those two only ever coexist as
-// alternatives for the same exercise (openWatch() picks one or the
-// other), never both at once. Negative animation-delay phase-shifts
-// each frame by its own share of the cycle so they take turns being the
-// visible one — the exwalkCrossfade keyframe itself (see CSS) is only
-// tuned for the 2-frame case every entry here has today; a 3+-frame
-// exercise would need its own keyframe shape, not just a smaller delay
-// step, so don't add one assuming this scales for free.
-// muscle worked comes from the exercise's own `muscle:` field (e.g.
-// "chest + triceps") rather than trying to get the image generator to
-// paint a highlight glow onto the right spot on the model — asking it
-// to hold the locked character AND place an anatomically correct
-// overlay in the same shot is exactly the kind of thing these models
-// don't reliably remember together, and getting it wrong (a chest
-// exercise glowing over the shoulder) would be worse than not trying.
-// The rest of the app already has a proven way to say "this is the
-// muscle" — the same red/neutral chip pairing getMuscleHighlight() uses
-// — so this reuses that instead of a fragile pixel-perfect overlay.
-function getPhotoWalkthroughHTML(name,muscle){
-  const cfg=EXERCISE_PHOTO_WALKTHROUGH[name];
-  if(!cfg)return null;
-  const n=cfg.frames.length;
-  const dur=n*1.6; // ~1.6s holds each frame at a believable rep tempo
-  const imgs=cfg.frames.map((src,i)=>{
-    const delay=-(dur*i/n);
-    return `<img src="${src}" alt="${name} — ${cfg.labels[i]||''}" class="exwalk-frame" style="animation-duration:${dur}s;animation-delay:${delay}s">`;
-  }).join('');
-  const muscleParts=(muscle||'').split('+').map(m=>m.trim()).filter(Boolean);
-  const muscleChips=muscleParts.map((m,i)=>i===0
-    ?`<span style="background:rgba(232,49,74,.28);color:#E8314A;padding:2px 8px;border-radius:8px;font-size:9px;font-weight:800;text-transform:uppercase;white-space:nowrap">${m}</span>`
-    :`<span style="background:rgba(232,214,196,.07);color:#A59D95;padding:2px 7px;border-radius:8px;font-size:8.5px;text-transform:uppercase;white-space:nowrap">${m}</span>`
-  ).join('');
-  return `<div style="width:100%;height:100%;display:flex;flex-direction:column;gap:8px;align-items:center">
-    <!-- max-height caps this well under the modal's own available space
-       (direct ask: "don't make the image too large") — object-fit:contain
-       on .exwalk-frame still guarantees the full body fits inside
-       whatever box this ends up, this just keeps that box modest. -->
-    <div style="position:relative;width:100%;max-width:280px;max-height:320px;aspect-ratio:1344/1728;border-radius:12px;overflow:hidden;background:#1a1a1a">${imgs}</div>
-    <div style="flex-shrink:0;display:flex;justify-content:center;gap:6px">${cfg.labels.map(l=>`<span style="font-size:9px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);background:rgba(232,214,196,.07);border-radius:6px;padding:3px 8px">${l}</span>`).join('')}</div>
-    ${muscleChips?`<div style="flex-shrink:0;display:flex;justify-content:center;flex-wrap:wrap;gap:5px">${muscleChips}</div>`:''}
-  </div>`;
-}
+// REAL-PHOTO WALKTHROUGH — tried and retired. Push-ups briefly had an
+// AI-photo-generated top/bottom pair (Z-Image-Turbo) crossfading in
+// place of the vector rig below. Retired because the underlying problem
+// wasn't fixable with more prompt engineering: the generator kept
+// collapsing the "bottom of the rep" pose back toward the same
+// extended-arm silhouette as "top" (confirmed by inspecting the actual
+// shipped bottom.jpg — it was the same plank pose at a different camera
+// distance, not a real low position), so the pair never actually showed
+// two different body positions no matter how the scale/framing was
+// fixed. Direct ask, after seeing it fail in practice: use the same
+// reliable pre-made muscle diagram every other exercise already uses
+// instead of fighting AI photo consistency exercise-by-exercise. The
+// old prompt template, scale-matching technique, and frame files are
+// gone — if photo walkthroughs come back, they need a source that can
+// actually hold a specific pose (e.g. a real reference photo edited per
+// position), not blind text-to-image.
 function getWalkthroughSVG(anim){
   const _uid='_wt'+(_figIdSeq++);
   let overlay='',pulse='';
@@ -11352,7 +11226,10 @@ function getWalkthroughSVG(anim){
       const {fp,bp}=getMuscleHighlight(anim);
       overlay=fp+bp;
   }
-  return `<div style="width:100%;height:100%;display:flex;flex-direction:column;background:#0D0806;border-radius:8px;overflow:hidden">
+  // Unlike getFig()/getCardThumb(), this renders standalone into the
+  // Watch modal's own body panel — no .ex-fig wrapper around it — so it
+  // needs its own fading backdrop rather than relying on one.
+  return `<div style="width:100%;height:100%;display:flex;flex-direction:column;background:radial-gradient(ellipse at 50% 45%,rgba(13,8,6,.92) 0%,rgba(13,8,6,.55) 55%,rgba(13,8,6,0) 88%);border-radius:8px;overflow:hidden">
     <div style="flex:1;position:relative;min-height:0">
       <div class="ex-body-img"></div>
       <svg viewBox="0 0 880 824" preserveAspectRatio="xMidYMid meet" style="position:absolute;inset:0;width:100%;height:100%">
@@ -11386,14 +11263,8 @@ function openWatch(i){
   const exs=plannedSessionExs&&plannedSessionExs.length?plannedSessionExs:(EX['upper-push']||[]).filter(e=>equipOk(e));
   const e=exs[i];if(!e)return;
   document.getElementById('watch-title').textContent=e.name;
-  // Real photo pair wins over the vector rig when one exists for this
-  // exact exercise — see EXERCISE_PHOTO_WALKTHROUGH's own comment for
-  // why they're both real, exclusive per-exercise, and don't stack.
-  const photo=getPhotoWalkthroughHTML(e.name,e.muscle);
-  document.getElementById('watch-body').innerHTML=photo||getWalkthroughSVG(e.anim);
-  document.getElementById('watch-note').textContent=photo
-    ?'Real photo reference — top and bottom of the rep.'
-    :(e.anim==='curl'||e.anim==='squat'||e.anim==='lateral')
+  document.getElementById('watch-body').innerHTML=getWalkthroughSVG(e.anim);
+  document.getElementById('watch-note').textContent=(e.anim==='curl'||e.anim==='squat'||e.anim==='lateral')
     ?'Overlay shows the rep path — the highlighted muscle is what should be doing the work.'
     :'No animated walkthrough built yet for this movement — showing the muscle it targets instead.';
   document.getElementById('watch-backdrop').style.display='block';
