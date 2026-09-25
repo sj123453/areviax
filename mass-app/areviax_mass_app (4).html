@@ -4549,6 +4549,19 @@ body[data-goal-theme="cut"] .lv-page{
 .lv-streak-flame.lv-flame-t3{filter:drop-shadow(0 0 6px currentColor) drop-shadow(0 0 2px currentColor)}
 .lv-topbar{position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--lv-border);background:var(--lv-bg,rgb(18,12,9));backdrop-filter:blur(20px);padding:calc(10px + max(var(--safe-top,0px),env(safe-area-inset-top,0px))) 20px 10px}
 .dash-qf-btn.logged{border-color:var(--lv-fuel)!important;background:rgba(var(--lv-fuel-rgb),.15)!important;color:var(--lv-fuel)!important}
+/* REAL-PHOTO WALKTHROUGH — see getPhotoWalkthroughHTML(). Frames stack
+   absolutely and crossfade via one shared keyframe with a per-frame
+   negative animation-delay (set inline per image) instead of one
+   keyframe per exercise. The keyframe shape itself (a symmetric 2-beat
+   hold/crossfade) is tuned for exactly 2 frames — today's only real
+   case (top/bottom position pairs) — a 3+-frame sequence would need its
+   own keyframe with narrower visible windows, not just a different
+   delay. object-position pinned toward the top since every locked-
+   template shot has real headroom above the model and the body fills
+   the lower ~70% — a plain center crop wasted the frame on empty studio
+   background. */
+.exwalk-frame{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 12%;animation-name:exwalkCrossfade;animation-timing-function:ease-in-out;animation-iteration-count:infinite}
+@keyframes exwalkCrossfade{0%,42%{opacity:1}50%{opacity:0}92%{opacity:0}100%{opacity:1}}
 </style>
 </head>
 <body>
@@ -11075,6 +11088,40 @@ function getCardThumb(ex,compact){
 // the static highlighted figure with no limb motion, rather than
 // guessing at anatomically wrong movement — extend the switch below
 // pattern by pattern rather than assuming a generic rig works for all 14.
+// REAL-PHOTO WALKTHROUGHS — the first exercises to get an actual
+// stop-motion photo pair instead of a vector overlay, keyed by the
+// exercise's own name (exact match against EX's own `name:` field).
+// Every entry so far shares one locked visual template (same model,
+// black shorts, barefoot, light-grey seamless studio, same lighting/
+// camera height) so a new exercise's frames drop into this same
+// component without needing their own bespoke styling — see
+// getPhotoWalkthroughHTML() below for how the frames actually crossfade.
+const EXERCISE_PHOTO_WALKTHROUGH={
+  'Push-ups':{frames:['images/misc/exwalk-pushup-top.jpg','images/misc/exwalk-pushup-bottom.jpg'],labels:['Top','Bottom']},
+};
+// Real photo frames crossfading in place, instead of the vector rig
+// getWalkthroughSVG() below uses — those two only ever coexist as
+// alternatives for the same exercise (openWatch() picks one or the
+// other), never both at once. Negative animation-delay phase-shifts
+// each frame by its own share of the cycle so they take turns being the
+// visible one — the exwalkCrossfade keyframe itself (see CSS) is only
+// tuned for the 2-frame case every entry here has today; a 3+-frame
+// exercise would need its own keyframe shape, not just a smaller delay
+// step, so don't add one assuming this scales for free.
+function getPhotoWalkthroughHTML(name){
+  const cfg=EXERCISE_PHOTO_WALKTHROUGH[name];
+  if(!cfg)return null;
+  const n=cfg.frames.length;
+  const dur=n*1.6; // ~1.6s holds each frame at a believable rep tempo
+  const imgs=cfg.frames.map((src,i)=>{
+    const delay=-(dur*i/n);
+    return `<img src="${src}" alt="${name} — ${cfg.labels[i]||''}" class="exwalk-frame" style="animation-duration:${dur}s;animation-delay:${delay}s">`;
+  }).join('');
+  return `<div style="width:100%;height:100%;display:flex;flex-direction:column;gap:8px">
+    <div style="position:relative;flex:1;min-height:0;border-radius:12px;overflow:hidden;background:#1a1a1a">${imgs}</div>
+    <div style="flex-shrink:0;display:flex;justify-content:center;gap:6px">${cfg.labels.map(l=>`<span style="font-size:9px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);background:rgba(232,214,196,.07);border-radius:6px;padding:3px 8px">${l}</span>`).join('')}</div>
+  </div>`;
+}
 function getWalkthroughSVG(anim){
   const _uid='_wt'+(_figIdSeq++);
   let overlay='',pulse='';
@@ -11230,8 +11277,14 @@ function openWatch(i){
   const exs=plannedSessionExs&&plannedSessionExs.length?plannedSessionExs:(EX['upper-push']||[]).filter(e=>equipOk(e));
   const e=exs[i];if(!e)return;
   document.getElementById('watch-title').textContent=e.name;
-  document.getElementById('watch-body').innerHTML=getWalkthroughSVG(e.anim);
-  document.getElementById('watch-note').textContent=(e.anim==='curl'||e.anim==='squat'||e.anim==='lateral')
+  // Real photo pair wins over the vector rig when one exists for this
+  // exact exercise — see EXERCISE_PHOTO_WALKTHROUGH's own comment for
+  // why they're both real, exclusive per-exercise, and don't stack.
+  const photo=getPhotoWalkthroughHTML(e.name);
+  document.getElementById('watch-body').innerHTML=photo||getWalkthroughSVG(e.anim);
+  document.getElementById('watch-note').textContent=photo
+    ?'Real photo reference — top and bottom of the rep.'
+    :(e.anim==='curl'||e.anim==='squat'||e.anim==='lateral')
     ?'Overlay shows the rep path — the highlighted muscle is what should be doing the work.'
     :'No animated walkthrough built yet for this movement — showing the muscle it targets instead.';
   document.getElementById('watch-backdrop').style.display='block';
