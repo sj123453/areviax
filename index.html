@@ -205,7 +205,7 @@ input,input:focus,input:active,
 .tp-flame{background:linear-gradient(135deg,var(--orange),var(--orange2));border:1.5px solid rgba(243,103,23,.6);color:#fff;box-shadow:0 2px 10px -2px rgba(243,103,23,.55);font-size:13px}
 
 #main-app{display:flex;height:100vh;overflow:hidden}
-    .content{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior-x:none;-webkit-overflow-scrolling:touch;padding:18px 20px;scrollbar-width:thin;scrollbar-color:rgba(232,214,196,.1) transparent}
+    .content{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior-x:none;-webkit-overflow-scrolling:touch;padding:18px 20px;scrollbar-width:thin;scrollbar-color:rgba(232,214,196,.1) transparent;transition:padding-top .3s ease}
 .content::-webkit-scrollbar{width:3px}
 .content::-webkit-scrollbar-thumb{background:var(--border)}
 
@@ -659,10 +659,10 @@ input,input:focus,input:active,
 .aicoach-row.received{justify-content:flex-start}
 .aicoach-bubble{max-width:78%;padding:8px 11px;font-size:12.5px;line-height:1.5;position:relative}
 .aicoach-bubble a{color:inherit;text-decoration:underline}
-.aicoach-row.received .aicoach-bubble{background:#241A15;color:rgba(var(--white-rgb),.92);border-radius:4px 14px 14px 14px;box-shadow:0 1px 3px rgba(0,0,0,.35)}
+.aicoach-row.received .aicoach-bubble{background:#241A15;color:rgba(248,245,239,.92);border-radius:4px 14px 14px 14px;box-shadow:0 1px 3px rgba(0,0,0,.35)}
 .aicoach-row.sent .aicoach-bubble{background:linear-gradient(160deg,#FF8A3D,#F36717);color:#170C09;border-radius:14px 4px 14px 14px;box-shadow:0 1px 3px rgba(0,0,0,.35)}
 .aicoach-bubble-time{display:block;text-align:right;font-size:9px;margin-top:3px;font-weight:600}
-.aicoach-row.received .aicoach-bubble-time{color:rgba(var(--white-rgb),.35)}
+.aicoach-row.received .aicoach-bubble-time{color:rgba(248,245,239,.35)}
 .aicoach-row.sent .aicoach-bubble-time{color:rgba(23,12,9,.55)}
 .aicoach-composer{display:flex;align-items:center;gap:8px}
 .aicoach-composer input[type=text]{flex:1;border-radius:24px;background:rgba(232,214,196,.05);border:1.5px solid var(--border2)}
@@ -1270,7 +1270,7 @@ select option{background:var(--panel)}
 #toast-head{display:flex;align-items:baseline;gap:6px;margin-bottom:1px}
 #toast-app{font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:rgba(255,255,255,.5)}
 #toast-time{font-size:10px;color:rgba(255,255,255,.38);flex-shrink:0;margin-left:auto}
-#toast #tm{font-size:13.5px;font-weight:600;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+#toast #tm{font-size:13.5px;font-weight:600;line-height:1.35;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 
 /* ONBOARDING */
 #onboarding{position:fixed;inset:0;background:var(--bg);z-index:900;display:flex;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;-webkit-overflow-scrolling:touch}
@@ -1452,6 +1452,14 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       #mobile-nav{display:flex!important}
       .sidebar{display:none!important}
       #global-topbar{display:flex!important}
+      /* Its Shop/Profile/streak icons look tappable but do nothing while
+         #main-app is still display:none during onboarding (higher
+         specificity than the bare #global-topbar rule above, so it wins
+         over that !important) — direct QA finding: dead affordance
+         confusing new users. body.onboarding-active is removed the
+         moment onboarding finishes/is skipped (see finishOnboarding()
+         and the returning-user boot path). */
+      body.onboarding-active #global-topbar{display:none!important}
       /* .lv-topbar is the same logo/streak/profile row #global-topbar now
          provides everywhere — kept in the markup for desktop's narrower
          pages (Profile, AI Coach, etc, where the sidebar already carries
@@ -2472,8 +2480,12 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        clearer Brawl Stars shop screenshot: their badges sit flush in the
        corner as a small tag, not a wide diagonal banner cutting across the
        card — swapped from the earlier rotated-ribbon version to match. */
+    /* top:2px (not a negative value poking above the card) — .offer-card
+       has overflow:hidden to keep its gradient bg/art inside the rounded
+       corners, which was flat-clipping this badge's own rounded top edge
+       square whenever it tried to sit half outside that boundary. */
     .shop-badge{
-      position:absolute;top:-6px;right:10px;z-index:2;border-radius:6px;
+      position:absolute;top:2px;right:10px;z-index:2;border-radius:6px;
       font-size:8.5px;font-weight:900;letter-spacing:.04em;color:#0D0806;
       padding:3px 8px;box-shadow:0 2px 5px rgba(0,0,0,.45);
     }
@@ -4468,7 +4480,13 @@ body[data-goal-theme="cut"] .lv-page{
 .lv-grain::after{content:'';position:absolute;inset:0;pointer-events:none;opacity:.05;background-image:radial-gradient(var(--lv-fg) .5px,transparent .5px);background-size:3px 3px}
 .lv-ember-wash{background:radial-gradient(120% 80% at 50% -10%,rgba(var(--lv-primary-rgb),.32) 0%,transparent 60%),var(--lv-bg)}
 .lv-display-hero{font-family:var(--lv-display);font-weight:400;font-size:clamp(2.6rem,14vw,4rem);line-height:.9;letter-spacing:.01em;text-transform:uppercase}
-.lv-stat-huge{font-family:var(--lv-display);font-weight:400;font-size:2.5rem;line-height:.85;font-variant-numeric:tabular-nums}
+/* color explicit rather than left to inherit from body's --white — inside
+   a photo-hero header (Forge, Fuel) --lv-fg is pinned to its dark-mode
+   value so the number stays legible against the photo regardless of
+   theme; outside a header --lv-fg falls back to the normal theme-correct
+   root value. Inheriting body's --white instead (the previous behavior)
+   skipped that pinning and went near-black-on-photo in light mode. */
+.lv-stat-huge{font-family:var(--lv-display);font-weight:400;font-size:2.5rem;line-height:.85;font-variant-numeric:tabular-nums;color:var(--lv-fg)}
 .lv-hairline-grid{border:1px solid var(--lv-border);border-radius:1.75rem;overflow:hidden;display:grid;grid-template-columns:repeat(3,1fr);background:rgba(30,22,19,.6)}
 [data-theme="light"] .lv-hairline-grid{background:rgba(0,0,0,.035)}
 .lv-hairline-grid>*{border-right:1px solid var(--lv-border)}
@@ -4558,7 +4576,7 @@ body[data-goal-theme="cut"] .lv-page{
 .dash-qf-btn.logged{border-color:var(--lv-fuel)!important;background:rgba(var(--lv-fuel-rgb),.15)!important;color:var(--lv-fuel)!important}
 </style>
 </head>
-<body>
+<body class="onboarding-active">
 <script>
 // Static, JS-computed safe-area value instead of a live env() reference in
 // CSS — on iOS standalone PWAs, env(safe-area-inset-top) has been observed
@@ -5343,7 +5361,7 @@ body[data-goal-theme="cut"] .lv-page{
            had nowhere visible to show up before now. -->
       <button type="button" class="lv-ember lv-grain" onclick="showPage('workout')" style="margin-top:14px;width:100%;display:flex;align-items:center;justify-content:space-between;gap:14px;border:none;border-radius:1.1rem;padding:14px 16px 14px 18px;cursor:pointer;font-family:inherit;text-align:left;-webkit-tap-highlight-color:transparent">
         <span style="min-width:0;color:var(--lv-primary-fg)">
-          <span style="display:block;font-size:9px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;opacity:.62">Today's session</span>
+          <span id="d-next-eyebrow" style="display:block;font-size:9px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;opacity:.62">Today's session</span>
           <span style="display:block;margin-top:3px;font-size:21px;font-weight:800;line-height:1.05"><span id="d-next-word1">Push</span> <span id="d-next-word2">upper</span></span>
           <span style="display:block;margin-top:3px;font-size:11px;font-weight:700;opacity:.62" id="d-next-sub"></span>
         </span>
@@ -8584,7 +8602,6 @@ body[data-goal-theme="cut"] .lv-page{
         <button type="button" class="equip-chip" data-u="light" onclick="setTheme('light')" style="padding:3px 10px;font-size:10px">☀️ Light</button>
       </div>
     </div>
-    <div style="font-size:10.5px;color:var(--muted);margin-top:6px;line-height:1.5">Every page has had a light-mode pass now — flag anything that still looks off and it'll get fixed.</div>
     <div style="display:flex;align-items:center;justify-content:space-between;margin-top:14px">
       <label class="lbl" style="margin:0">Accent</label>
       <div id="set-accent-toggle" style="display:flex;gap:4px"></div>
@@ -8688,12 +8705,6 @@ body[data-goal-theme="cut"] .lv-page{
       Speak rest-timer cues during workouts
     </label>
     <button class="btn btn-out" style="width:100%" onclick="speakCoachRaw('Rest\'s over. Next set.')">🔊 Test voice</button>
-  </div>
-
-  <div class="card lv-surface" style="margin-top:14px">
-    <div class="ch"><span class="ct">Testing</span></div>
-    <div style="font-size:11px;color:var(--muted);margin-bottom:10px">Banks one Bronze/Silver/Gold/Diamond crate so you can check the open/reveal flow without waiting to earn them.</div>
-    <button class="btn btn-out" style="width:100%" onclick="grantTestCrates()">🎁 Grant test crates</button>
   </div>
 
   <div style="text-align:center;margin-top:16px">
@@ -11273,8 +11284,14 @@ function openWatch(i){
   // the SVG for muscle groups that don't have real panel art yet.
   const panelId=!hasRig&&panelForExercise(e);
   const usePanel=panelId&&CARD_THUMB_V3_PANELS.has(panelId);
+  // max-width bumped from 320px — this near-fullscreen sheet has far
+  // more room than that left a small diagram floating in a lot of blank
+  // space (direct QA finding). min(90%, 90vh, 440px) lets it actually
+  // fill the modal on a tall phone while still capping out sensibly on
+  // a short one or on desktop, and object-fit:contain (getCardThumb's
+  // own <img> already has it) keeps the square artwork from stretching.
   document.getElementById('watch-body').innerHTML=hasRig?getWalkthroughSVG(e.anim)
-    :usePanel?`<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center"><div style="width:100%;max-width:320px;aspect-ratio:1/1">${getCardThumb(e)}</div></div>`
+    :usePanel?`<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center"><div style="width:min(90%,90vh,440px);aspect-ratio:1/1">${getCardThumb(e)}</div></div>`
     :getWalkthroughSVG(e.anim);
   document.getElementById('watch-note').textContent=hasRig
     ?'Overlay shows the rep path — the highlighted muscle is what should be doing the work.'
@@ -15453,6 +15470,19 @@ function checkProteinQuest(){
 // arrive/leave animation for every item in turn.
 let toastQueue=[];
 let toastShowing=false;
+// Both the dash-notif banner and the #toast pill are position:fixed near
+// the top of the viewport, so they never push scroll content down on
+// their own — whatever text happened to sit at that same height (the
+// dashboard greeting, a session's weight/reps labels) just renders
+// underneath them for the few seconds they're showing. Reserving that
+// height as top padding on .content (the one shared scrollable pane
+// every page renders into) keeps the content clear instead. Called with
+// 0 to release the reservation once the banner/toast is gone.
+function setNotifSpace(px){
+  const c=document.querySelector('.content');
+  if(!c)return;
+  c.style.paddingTop=px>0?`calc(18px + ${Math.round(px)}px + 8px)`:'';
+}
 function toast(icon,msg,category){
   if(category&&notifPrefs[category]===false)return;
   // A full-screen .achievement-overlay (crate reveal, trophy showcase,
@@ -15477,6 +15507,7 @@ function processToastQueue(){
   toastShowing=true;
   t.style.transform='';t.style.transition='';
   t.classList.add('show');
+  setNotifSpace(t.offsetHeight);
   clearTimeout(t._t);
   t._t=setTimeout(hideCurrentToast,3000);
 }
@@ -15484,6 +15515,7 @@ function hideCurrentToast(){
   const t=document.getElementById('toast');if(!t)return;
   clearTimeout(t._t);
   t.classList.remove('show');
+  setNotifSpace(0);
   toastShowing=false;
   // Gives the .5s leave transition (see #toast's own transition) room to
   // actually finish before the next one arrives, instead of the next
@@ -16491,6 +16523,7 @@ function finishOnboarding(){
   }
   const obEl=document.getElementById('onboarding');if(obEl)obEl.style.display='none';
   const maEl=document.getElementById('main-app');if(maEl)maEl.style.display='flex';
+  document.body.classList.remove('onboarding-active');
   if(!joinDate)joinDate=localDateKey(new Date()); // set once, on first real use
   initApp();
   saveToStorage();
@@ -17353,7 +17386,7 @@ function tryShowNextDashNotif(){
   if(!el||getComputedStyle(el).display==='none'){tryShowNextDashNotif();return;} // hidden again before its turn — skip it
   dashNotifShowing=id;
   el.classList.add('dash-notif-shown');
-  requestAnimationFrame(()=>{el.classList.add('dash-notif-in');restackDashNotifs();});
+  requestAnimationFrame(()=>{el.classList.add('dash-notif-in');restackDashNotifs();setNotifSpace(el.offsetHeight);});
   clearTimeout(el._dashNotifHideTimer);
   el._dashNotifHideTimer=setTimeout(()=>dismissDashNotif(id),6000);
 }
@@ -17374,6 +17407,7 @@ function armDashNotifWatchers(){
         clearTimeout(el._dashNotifHideTimer);
         if(dashNotifShowing===id){
           dashNotifShowing=null;
+          setNotifSpace(0);
           setTimeout(tryShowNextDashNotif,300); // small gap before the next one slides in
         }
       }
@@ -17387,6 +17421,7 @@ function dismissDashNotif(id){
   el.classList.remove('dash-notif-in');
   if(dashNotifShowing===id){
     dashNotifShowing=null;
+    setNotifSpace(0);
     setTimeout(tryShowNextDashNotif,300);
   }
 }
@@ -17808,6 +17843,15 @@ function initApp(){
     const rdc=document.getElementById('rest-day-card');if(rdc)rdc.style.display='';
     const rdb=document.getElementById('rest-day-body');if(rdb)rdb.textContent='Right now your muscle fibres are actively repairing. Satellite cells are fusing with the fibres you trained, laying down new contractile proteins that make them bigger and stronger. This is when the growth from your last session actually happens. Your job today is simple: eat your protein and sleep well.';
   }
+  // The hero CTA below still shows the next planned session (so it's one
+  // tap away if you want to train anyway on a rest day — syncTodaysPlanFromSchedule
+  // deliberately leaves that data alone on a rest day rather than wiping
+  // it), but labeling it "Today's session" while the rest-day card right
+  // below says the opposite read as a straight contradiction. Reframing
+  // the label as forward-looking on a rest day removes that without
+  // touching the actual session data or the button's own behavior.
+  const dne=document.getElementById('d-next-eyebrow');
+  if(dne)dne.textContent=isRestToday?"Next session":"Today's session";
   setTimeout(drawCompass,80);
 }
 
@@ -20695,7 +20739,7 @@ function completeSession(nameOverride){
     const elapsedMs=Date.now()-sessionEnteredAt;
     if(elapsedMs<requiredMs){
       const remainingMin=Math.ceil((requiredMs-elapsedMs)/60000);
-      toast('⏱️',`Give it a bit longer — this session needs about ${remainingMin} more min before it counts (skip an exercise to lower that). Rushing it won't earn the streak or shard.`);
+      toast('⏱️',`Give it about ${remainingMin} more min — or skip an exercise to speed it up. Rushing it won't earn the streak or shard.`);
       return;
     }
   }
@@ -23230,6 +23274,14 @@ function renderNutrition(){
     const pct=Math.min(100,profile.cals?(dayMacros.cals||0)/profile.cals*100:0);
     if(nPct)nPct.textContent=Math.round(pct)+'% of '+profile.cals.toLocaleString();
     if(nFill)nFill.style.width=pct+'%';
+  }else if(nRemaining){
+    // No calorie target set yet (fresh account, before Settings has ever
+    // been saved) — "0% of 0" read as broken math rather than an actual
+    // empty state, since the JS above simply skips updating these and
+    // leaves the markup's literal placeholder text showing.
+    nRemaining.innerHTML='—<span style="margin-left:4px;font-family:var(--lv-mono);font-size:11px;color:var(--lv-muted-fg)">kcal</span>';
+    if(nPct)nPct.textContent='Set your calorie target in Settings';
+    if(nFill)nFill.style.width='0%';
   }
   renderTodayLog();
   renderFeederQuest();
@@ -28397,6 +28449,7 @@ document.addEventListener('DOMContentLoaded', function(){
     const ma=document.getElementById('main-app');
     if(ob)ob.style.display='none';
     if(ma)ma.style.display='flex';
+    document.body.classList.remove('onboarding-active');
     const sv=document.getElementById('streak-val');if(sv)sv.textContent=streak;
   const dgsn=document.getElementById('dash-greeting-streak-num');if(dgsn)dgsn.textContent=streak;
   const dsw=document.getElementById('dash-streak-watermark');if(dsw)dsw.textContent=streak;
