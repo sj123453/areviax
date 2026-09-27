@@ -54,6 +54,25 @@ body{background:linear-gradient(160deg,#120C09 0%,#0D0806 100%) fixed;background
    from scratch. */
 .os-meander{height:16px;opacity:.85;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='16' viewBox='0 0 32 16' fill='none' stroke='%23b08c4f' stroke-width='1.6'%3E%3Cpath d='M0 1h32M0 15h32'/%3E%3Cpath d='M3 12V4h10v5H7v-2'/%3E%3Cpath d='M19 4v8h10V7h-6v2'/%3E%3C/svg%3E");background-repeat:repeat-x;background-size:32px 16px;-webkit-mask-image:linear-gradient(90deg,transparent,black 12%,black 88%,transparent);mask-image:linear-gradient(90deg,transparent,black 12%,black 88%,transparent)}
 
+/* PAGE HEADER — photo-backed hero banner at the top of a page's own
+   content, ported from the Mass app's lv-pediment/lv-grain header
+   pattern (same negative-margin full-bleed technique, same dark
+   gradient-over-photo, same subtle dot-grain texture) rather than
+   redrawn from scratch, so both apps read as the same product family.
+   Only some pages have art yet (see EXERCISE_PHOTO_WALKTHROUGH-style
+   rollout in Mass for precedent — pages get this class added as their
+   own images land, not all at once). margin cancels .content's own
+   padding exactly so the photo bleeds to the sheet's real edges; the
+   900px breakpoint has its own override since .content's padding
+   changes there too. */
+.os-page-header{position:relative;overflow:hidden;margin:-24px -28px 20px;padding:22px 20px 26px;border-radius:0 0 24px 24px;background-size:cover;background-position:center 40%}
+@media(min-width:900px){.os-page-header{margin:-32px -40px 20px}}
+.os-page-header::after{content:'';position:absolute;inset:0;pointer-events:none;opacity:.05;background-image:radial-gradient(var(--white) .5px,transparent .5px);background-size:3px 3px}
+.os-page-header-inner{position:relative;z-index:1}
+.os-page-header-eyebrow{font-family:var(--serif-font);font-size:11px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:rgba(247,245,242,.75)}
+.os-page-header-title{margin-top:6px;font-family:var(--display-font);font-weight:400;font-size:clamp(2.2rem,9vw,3rem);line-height:.92;letter-spacing:.01em;text-transform:uppercase;color:var(--white)}
+.os-page-header-sub{margin-top:8px;font-size:12.5px;color:rgba(247,245,242,.72);max-width:85%}
+
 /* ── LAYOUT ── */
 .app{display:flex;height:100vh;overflow:hidden}
 
@@ -1447,6 +1466,13 @@ input[type=checkbox]{accent-color:var(--orange);width:15px;height:15px;cursor:po
 
       <!-- ════ DASHBOARD ════ -->
       <div class="page active" id="page-dashboard">
+        <header class="os-page-header" style="background-image:linear-gradient(180deg,rgba(10,7,4,.5) 0%,rgba(10,7,4,.72) 45%,rgba(18,12,9,.95) 100%),url('images/roads/os-dashboard.jpg')">
+          <div class="os-page-header-inner">
+            <p class="os-page-header-eyebrow">The Overlook</p>
+            <h1 class="os-page-header-title">Dashboard</h1>
+            <p class="os-page-header-sub">Your command centre for today</p>
+          </div>
+        </header>
         <!-- Hero Compass -->
         <div class="hero-compass-wrap">
           <div class="hero-compass-canvas-box">
@@ -1530,6 +1556,13 @@ input[type=checkbox]{accent-color:var(--orange);width:15px;height:15px;cursor:po
 
       <!-- ════ WORKOUT PLANNER ════ -->
       <div class="page" id="page-workout">
+        <header class="os-page-header" style="background-image:linear-gradient(180deg,rgba(10,7,4,.5) 0%,rgba(10,7,4,.72) 45%,rgba(18,12,9,.95) 100%),url('images/roads/os-workout.jpg')">
+          <div class="os-page-header-inner">
+            <p class="os-page-header-eyebrow">The Palaestra</p>
+            <h1 class="os-page-header-title">Workout Planner</h1>
+            <p class="os-page-header-sub">Build and log your training sessions</p>
+          </div>
+        </header>
         <div class="upsell-card">
           <span style="font-size:15px;flex-shrink:0">💪</span>
           <div class="upsell-body">
