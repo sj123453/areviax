@@ -4463,17 +4463,21 @@ body[data-goal-theme="cut"] .lv-page{
 }
 .lv-page h1,.lv-page h2,.lv-page h3{font-family:var(--lv-display);letter-spacing:.02em}
 .lv-marble{background-color:var(--lv-bg);background-image:linear-gradient(100deg,transparent 0 46%,rgba(232,232,222,.035) 46% 47%,transparent 47% 100%),linear-gradient(72deg,transparent 0 22%,rgba(232,232,222,.025) 22% 23%,transparent 23% 100%),radial-gradient(140% 60% at 50% 0%,rgba(var(--lv-ember1-rgb),.1),transparent 70%);background-size:340px 100%,220px 100%,100% 100vh;background-repeat:repeat,repeat,no-repeat}
-/* Every card used to sit inside its own filled/bordered/shadowed panel —
-   a "black box" floating on top of the page's own ember-gradient
-   background. Dropped the fill, border and shadow so cards blend
-   straight into that background instead, by request: the hero header
-   at the top of each page (a separate element, untouched here) is the
-   one thing meant to read as a distinct surface — every card below it
-   should NOT compete with that. Kept position/radius since those are
-   layout, not "box" styling, and a hairline border-bottom (not a full
-   border) as the only separator between stacked cards, faint enough to
-   not read as a box edge. */
-.lv-surface{position:relative;border-radius:1.75rem;border-bottom:1px solid rgba(var(--lv-border-rgb),.4)}
+/* RE-INSTATED as a real bounded panel. Cards used to sit in their own
+   filled/bordered/shadowed surface, then got flattened to just a
+   hairline border-bottom "by request" so they wouldn't compete with
+   the hero header's own distinct surface (see git history). Direct
+   follow-up feedback on the flattened result: the app reads as
+   crowded and nothing blends — with no real boundary, stacked sections
+   run straight into each other instead of reading as a legible rhythm
+   of distinct panels (this is what the OS app already gets right, and
+   the thing being matched here). Reuses --lv-cardg1/--lv-cardg2 — the
+   original per-theme card gradient tokens, left sitting unused in
+   every theme block since the flattening rather than removed — so this
+   is the design's own previously-tuned card look, not a new one
+   invented from scratch. padding is a fallback only; nearly every
+   instance still sets its own inline padding and that wins as always. */
+.lv-surface{position:relative;border-radius:1.75rem;padding:20px;background:linear-gradient(135deg,var(--lv-cardg1),var(--lv-cardg2));border:1.5px solid var(--lv-border);box-shadow:0 20px 40px -28px rgba(0,0,0,.35),0 1px 0 rgba(255,255,255,.04) inset}
 .lv-ember{background-image:linear-gradient(135deg,var(--lv-ember1),var(--lv-ember2));color:var(--lv-primary-fg);box-shadow:0 12px 30px -12px rgba(var(--lv-primary-rgb),.55)}
 .lv-label-eyebrow{font-size:.6875rem;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--lv-muted-fg)}
 .lv-grain{position:relative}
