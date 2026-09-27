@@ -4574,26 +4574,19 @@ body[data-goal-theme="cut"] .lv-page{
 .lv-streak-flame.lv-flame-t3{filter:drop-shadow(0 0 6px currentColor) drop-shadow(0 0 2px currentColor)}
 .lv-topbar{position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--lv-border);background:var(--lv-bg,rgb(18,12,9));backdrop-filter:blur(20px);padding:calc(10px + max(var(--safe-top,0px),env(safe-area-inset-top,0px))) 20px 10px}
 .dash-qf-btn.logged{border-color:var(--lv-fuel)!important;background:rgba(var(--lv-fuel-rgb),.15)!important;color:var(--lv-fuel)!important}
-/* ANATOMICAL-DIAGRAM WALKTHROUGH — see getPhotoWalkthroughHTML(). Frames
-   stack absolutely and crossfade via one shared keyframe with a per-frame
-   negative animation-delay (set inline per image), same technique the
-   retired 2-frame version used. This keyframe's visible/hidden windows
-   are sized for exactly 3 frames (33.33% share each) — a different frame
-   count needs its own keyframe shape, not just a different delay step.
-   Blur+drift only happens during THIS frame's own transition window; it
-   stays fully still and sharp whenever it's the one being held on
-   screen, so the handoff reads as motion happening in front of you
-   rather than a flat dissolve. object-fit:contain matches the frames'
-   own square (1024x1024) output with zero letterboxing. */
-.exwalk3-frame{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;animation-name:exwalk3Crossfade;animation-timing-function:ease-in-out;animation-iteration-count:infinite;will-change:opacity,filter,transform}
-@keyframes exwalk3Crossfade{
-  0%,20%{opacity:1;filter:blur(0);transform:scale(1) translateY(0)}
-  27%{opacity:.35;filter:blur(5px);transform:scale(.985) translateY(2.5%)}
-  33.33%{opacity:0;filter:blur(7px);transform:scale(.98) translateY(3.5%)}
-  86.67%{opacity:0;filter:blur(7px);transform:scale(.98) translateY(-3.5%)}
-  93%{opacity:.35;filter:blur(5px);transform:scale(.985) translateY(-2.5%)}
-  100%{opacity:1;filter:blur(0);transform:scale(1) translateY(0)}
-}
+/* INFO-CARD WALKTHROUGH — see getInfoCardWalkthroughHTML(). Native
+   horizontal scroll-snap carousel, same technique .nutr-carousel (Fuel
+   meal plan) already uses — no JS swipe-gesture handling needed, the
+   browser does it. Each card is the FULL width (flex:0 0 100%), unlike
+   nutr-carousel's partial-width "peek" cards — these are the entire
+   point of the modal, not a secondary strip among other content, and a
+   sliver of the next card's baked-in text would just be confusing.
+   aspect-ratio matches the cards' own 16:9 source render; object-fit:
+   contain guarantees the callout labels near the edges are never
+   cropped by scroll-snap-align. */
+.exwalk-card-carousel{display:flex;width:100%;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;border-radius:12px;background:#000}
+.exwalk-card-carousel::-webkit-scrollbar{display:none}
+.exwalk-card{flex:0 0 100%;width:100%;aspect-ratio:16/9;object-fit:contain;scroll-snap-align:center}
 </style>
 </head>
 <body class="onboarding-active">
@@ -11120,106 +11113,56 @@ function getCardThumb(ex,compact){
 // the static highlighted figure with no limb motion, rather than
 // guessing at anatomically wrong movement — extend the switch below
 // pattern by pattern rather than assuming a generic rig works for all 14.
-// ANATOMICAL-DIAGRAM WALKTHROUGH — the second attempt at showing real
-// movement instead of a static highlighted figure, after the first
-// attempt (a photorealistic AI photo pair, see git history) was retired
-// for not holding a genuine top/bottom pose difference. This time the
-// generator (Z-Image-Turbo, no image-reference conditioning — that had
-// caused anatomy defects like backwards hands and missing heads in an
-// earlier try) targets the app's OWN existing visual style instead of a
-// photo: the gray/white clinical muscle-diagram look already used for
-// every other exercise's panel art (getCardThumb/THUMB_PANELS), so a
-// generated frame looks like it belongs next to the rest of the app
-// rather than like a stock photo dropped in. Direct ask: "we use that
-// diagram but we generate images of it doing the top position then the
-// second position then third position of a push up and then loop it."
-//
-// LOCKED TEMPLATE for future exercises — keep this exact structure,
-// only swap the position-specific clause. Verbose/over-qualified
-// prompts reliably fail (the model reverts to a generic standing pose);
-// a short, direct clause with ONE new instruction at a time is what
-// actually worked here. Wide/full-body framing also reliably collapses
-// back to a straight-arm "iconic" plank regardless of pose text — a
-// tight CLOSE-UP crop with explicit headroom wording is load-bearing,
-// not just stylistic, for getting a genuine bent-elbow pose without
-// losing the head off the top of frame:
-//
-// "Clinical 3D anatomical muscle diagram render, gray/white shaded
-// medical anatomy figure with visible muscle striations, on a plain
-// solid dark navy background, textbook anatomy illustration quality.
-// Single figure performing a push-up, leaning forward over the ground
-// at a diagonal angle, side profile view facing left. CLOSE-UP framing
-// on the head, neck, shoulder, chest, and arm — cropped at the hips,
-// with enough headroom that the whole head is visible and not cut off
-// at the top of the frame. [POSITION CLAUSE]. No muscle color
-// highlighting, no text, no watermark."
-//
-// [POSITION CLAUSE]s already generated (Push-ups, 1024x1024):
-//   top:    "Arms fully extended and locked straight, elbow joint
-//            straight, torso and chest lifted high off the ground —
-//            this is the top of the push-up, body forming a straight
-//            rigid line from shoulders to hips, right before lowering
-//            down."
-//   mid:    "Elbow bent to a 90 degree angle, upper arm horizontal,
-//            forearm vertical, hand flat on the ground directly below
-//            the elbow. Chest is at the halfway point between the top
-//            and the bottom of the push-up — not a straight-arm plank,
-//            and not chest touching the ground, but bent halfway down,
-//            like a push-up caught mid-repetition."
-//   bottom: "Elbow bent sharply to about 45 degrees, upper arm and
-//            forearm both angled, tucked close against the ribs, hand
-//            flat on the ground. Chest and torso lowered to only a
-//            couple of inches above the ground — this is the very
-//            bottom of the push-up, right before pushing back up,
-//            chest almost touching the floor."
+// INFO-CARD WALKTHROUGH — third attempt at showing real movement,
+// after (1) a photorealistic AI photo pair that never held a genuine
+// top/bottom pose difference, and (2) a 3-frame anatomical-diagram
+// crossfade loop that got the pose right but read as too polished/
+// impersonal and gave no room to explain each position — see git
+// history for both. Direct verdict on attempt 2, generated by hand
+// with a diligent prompt template: "it does work but it's slightly
+// time consuming for me [to generate]." Attempt 3 sidesteps the
+// generation cost entirely: the user built these themselves (their own
+// image gen, no per-exercise prompt engineering required) as complete,
+// already-labelled instructional cards — numbered badge, title,
+// subtitle, description, callout labels pointing at the exact joints,
+// and a muscle-worked inset baked directly into the image. Nothing left
+// for this app to add on top (no separate muscle chips, no text
+// overlay) — it just needs to present the cards themselves, one at a
+// time, swipeable.
 //
 // Keyed by the exercise's own name (exact match), not by `anim`, since
-// the frames depict one specific standard-form pose — applying them to
-// every anim:'pushup' variant (Pike, Archer, Spiderman...) would show
-// the wrong form for those.
-const EXERCISE_PHOTO_WALKTHROUGH={
-  'Push-ups':{frames:['images/misc/exwalk-pushup-top.jpg','images/misc/exwalk-pushup-mid.jpg','images/misc/exwalk-pushup-bottom.jpg'],labels:['Top','Mid','Bottom']},
+// each card set is exercise-specific content, not a generic pose that
+// transfers to every anim:'pushup' variant (Pike, Archer, Spiderman...).
+const EXERCISE_INFO_CARDS={
+  'Push-ups':[
+    {src:'images/misc/exwalk-pushup-card1-start.jpg',alt:'Push-ups — 1. Starting Position (High Plank)'},
+    {src:'images/misc/exwalk-pushup-card2-lowering.jpg',alt:'Push-ups — 2. Lowering'},
+    {src:'images/misc/exwalk-pushup-card3-bottom.jpg',alt:'Push-ups — 3. Bottom Position'},
+    {src:'images/misc/exwalk-pushup-card4-return.jpg',alt:'Push-ups — 4. Push Up (Return to Start)'},
+  ],
 };
-// Real generated frames crossfading in place, instead of the vector rig
-// getWalkthroughSVG() below uses — those two only ever coexist as
-// alternatives for the same exercise (openWatch() picks one or the
-// other), never both at once. Negative animation-delay phase-shifts
-// each frame by its own share of the cycle so they take turns being the
-// visible one (generalized for any frame count n). The .exwalk3-frame
-// keyframe below is tuned for the 3-frame case every entry here has
-// today; a 2-frame or 4+-frame exercise would need its own keyframe
-// shape, not just a different delay step — narrower/wider visible
-// windows change with frame count, not just cycle length.
-// muscle worked comes from the exercise's own `muscle:` field (e.g.
-// "chest + triceps") reusing the app's existing chip system
-// (getMuscleHighlight's red/neutral pairing) rather than asking the
-// generator to also paint a highlight glow onto the model — holding one
-// consistent style across three separate generations is already the
-// hard part; an anatomically-correct overlay in the same shot is
-// exactly what these models don't reliably remember together.
-function getPhotoWalkthroughHTML(name,muscle){
-  const cfg=EXERCISE_PHOTO_WALKTHROUGH[name];
-  if(!cfg)return null;
-  const n=cfg.frames.length;
-  const dur=n*1.6; // ~1.6s per frame at a believable rep tempo
-  const imgs=cfg.frames.map((src,i)=>{
-    const delay=-(dur*i/n);
-    return `<img src="${src}" alt="${name} — ${cfg.labels[i]||''}" class="exwalk3-frame" style="animation-duration:${dur}s;animation-delay:${delay}s">`;
-  }).join('');
-  const muscleParts=(muscle||'').split('+').map(m=>m.trim()).filter(Boolean);
-  const muscleChips=muscleParts.map((m,i)=>i===0
-    ?`<span style="background:rgba(232,49,74,.28);color:#E8314A;padding:2px 8px;border-radius:8px;font-size:9px;font-weight:800;text-transform:uppercase;white-space:nowrap">${m}</span>`
-    :`<span style="background:rgba(232,214,196,.07);color:#A59D95;padding:2px 7px;border-radius:8px;font-size:8.5px;text-transform:uppercase;white-space:nowrap">${m}</span>`
-  ).join('');
-  // aspect-ratio 1/1 + object-fit:contain on .exwalk3-frame matches the
-  // generated frames' own 1024x1024 square output exactly — no
-  // letterboxing. Background is the same dark navy the frames render
-  // on, so the container edge is invisible even mid-crossfade-blur.
-  return `<div style="width:100%;height:100%;display:flex;flex-direction:column;gap:8px;align-items:center">
-    <div style="position:relative;width:100%;max-width:280px;max-height:320px;aspect-ratio:1/1;border-radius:12px;overflow:hidden;background:#0b0f1a">${imgs}</div>
-    <div style="flex-shrink:0;display:flex;justify-content:center;gap:6px">${cfg.labels.map(l=>`<span style="font-size:9px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);background:rgba(232,214,196,.07);border-radius:6px;padding:3px 8px">${l}</span>`).join('')}</div>
-    ${muscleChips?`<div style="flex-shrink:0;display:flex;justify-content:center;flex-wrap:wrap;gap:5px">${muscleChips}</div>`:''}
+// Swipeable, not auto-looping — these cards carry real instructional
+// text meant to be read, not just a pose to glance at, so an
+// auto-advancing crossfade (right for the old pose-only frames) would
+// yank a card away mid-read. Reuses the app's existing native
+// scroll-snap carousel technique (see .nutr-carousel in the Fuel meal
+// plan) rather than a JS-driven slider — no swipe-gesture code needed,
+// the browser's own touch scrolling does it. exwalkCardScroll() only
+// syncs the dot indicator to whichever card the snap landed on.
+function getInfoCardWalkthroughHTML(name){
+  const cards=EXERCISE_INFO_CARDS[name];
+  if(!cards)return null;
+  const imgs=cards.map(c=>`<img src="${c.src}" alt="${c.alt}" class="exwalk-card">`).join('');
+  const dots=cards.map((_,i)=>`<div class="howto-dot${i===0?' active':''}"></div>`).join('');
+  return `<div style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px">
+    <div class="exwalk-card-carousel" onscroll="exwalkCardScroll(this)">${imgs}</div>
+    <div class="howto-dots" style="margin-bottom:0">${dots}</div>
   </div>`;
+}
+function exwalkCardScroll(el){
+  const dots=el.nextElementSibling;if(!dots)return;
+  const idx=Math.round(el.scrollLeft/el.clientWidth);
+  dots.querySelectorAll('.howto-dot').forEach((d,i)=>d.classList.toggle('active',i===idx));
 }
 function getWalkthroughSVG(anim){
   const _uid='_wt'+(_figIdSeq++);
@@ -11389,11 +11332,11 @@ function openWatch(i){
   // the SVG for muscle groups that don't have real panel art yet.
   const panelId=!hasRig&&panelForExercise(e);
   const usePanel=panelId&&CARD_THUMB_V3_PANELS.has(panelId);
-  // A real 3-position generated sequence (see getPhotoWalkthroughHTML)
-  // beats both the rig and the static panel when one exists for this
-  // exact exercise — it's the only option that actually shows the body
-  // moving through top/mid/bottom rather than a single held pose.
-  const photo=!hasRig&&getPhotoWalkthroughHTML(e.name,e.muscle);
+  // Real step-by-step info cards (see getInfoCardWalkthroughHTML) beat
+  // both the rig and the static panel when a set exists for this exact
+  // exercise — it's the only option that shows the body moving through
+  // the full rep AND explains each position, instead of one held pose.
+  const cards=!hasRig&&getInfoCardWalkthroughHTML(e.name);
   // max-width bumped from 320px — this near-fullscreen sheet has far
   // more room than that left a small diagram floating in a lot of blank
   // space (direct QA finding). min(90%, 90vh, 440px) lets it actually
@@ -11401,12 +11344,12 @@ function openWatch(i){
   // a short one or on desktop, and object-fit:contain (getCardThumb's
   // own <img> already has it) keeps the square artwork from stretching.
   document.getElementById('watch-body').innerHTML=hasRig?getWalkthroughSVG(e.anim)
-    :photo?photo
+    :cards?cards
     :usePanel?`<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center"><div style="width:min(90%,90vh,440px);aspect-ratio:1/1">${getCardThumb(e)}</div></div>`
     :getWalkthroughSVG(e.anim);
   document.getElementById('watch-note').textContent=hasRig
     ?'Overlay shows the rep path — the highlighted muscle is what should be doing the work.'
-    :photo?'Top, mid, and bottom position of the movement, looping.'
+    :cards?'Swipe through — each card covers one position of the movement.'
     :'No animated walkthrough built yet for this movement — showing the muscle it targets instead.';
   document.getElementById('watch-backdrop').style.display='block';
   document.getElementById('watch-modal').style.display='flex';
