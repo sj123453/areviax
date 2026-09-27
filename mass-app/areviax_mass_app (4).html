@@ -11141,14 +11141,18 @@ const EXERCISE_INFO_CARDS={
     {src:'images/misc/exwalk-pushup-card4-return.jpg',alt:'Push-ups — 4. Push Up (Return to Start)'},
   ],
 };
-// Swipeable, not auto-looping — these cards carry real instructional
-// text meant to be read, not just a pose to glance at, so an
-// auto-advancing crossfade (right for the old pose-only frames) would
-// yank a card away mid-read. Reuses the app's existing native
-// scroll-snap carousel technique (see .nutr-carousel in the Fuel meal
-// plan) rather than a JS-driven slider — no swipe-gesture code needed,
-// the browser's own touch scrolling does it. exwalkCardScroll() only
-// syncs the dot indicator to whichever card the snap landed on.
+// Auto-advancing, not swipe-only — first shipped as swipe-to-read, but
+// direct ask: "I don't love making them swipe... I want it to go to
+// each movement cleanly like a stop motion." Reuses the app's existing
+// native scroll-snap carousel technique (see .nutr-carousel in the Fuel
+// meal plan) as the underlying mechanism — still swipeable by hand if
+// someone wants to linger or go back — but exwalkCardAutoStart() drives
+// it on its own with a hard cut to the next card at a fixed interval
+// (scrollTo behavior:'auto' jumps instantly, no smooth slide — a slide
+// would read as swiping-for-you, not stop motion) rather than a
+// crossfade, so each card lands sharp the way a real stop-motion frame
+// does. exwalkCardScroll() syncs the dot indicator whichever way a card
+// change happened, manual or automatic.
 function getInfoCardWalkthroughHTML(name){
   const cards=EXERCISE_INFO_CARDS[name];
   if(!cards)return null;
@@ -11163,6 +11167,23 @@ function exwalkCardScroll(el){
   const dots=el.nextElementSibling;if(!dots)return;
   const idx=Math.round(el.scrollLeft/el.clientWidth);
   dots.querySelectorAll('.howto-dot').forEach((d,i)=>d.classList.toggle('active',i===idx));
+}
+let exwalkAutoTimer=null;
+// Computes the next index from the carousel's OWN current scrollLeft
+// every tick, rather than tracking a separate counter — so a manual
+// swipe never fights the timer, it just keeps advancing from wherever
+// the person left it. Loops back to card 1 after the last card.
+function exwalkCardAutoStart(el){
+  exwalkCardAutoStop();
+  if(!el)return;
+  const n=el.children.length;if(n<2)return;
+  exwalkAutoTimer=setInterval(()=>{
+    const idx=Math.round(el.scrollLeft/el.clientWidth);
+    el.scrollTo({left:((idx+1)%n)*el.clientWidth,behavior:'auto'});
+  },2800);
+}
+function exwalkCardAutoStop(){
+  if(exwalkAutoTimer){clearInterval(exwalkAutoTimer);exwalkAutoTimer=null}
 }
 function getWalkthroughSVG(anim){
   const _uid='_wt'+(_figIdSeq++);
@@ -11349,16 +11370,19 @@ function openWatch(i){
     :getWalkthroughSVG(e.anim);
   document.getElementById('watch-note').textContent=hasRig
     ?'Overlay shows the rep path — the highlighted muscle is what should be doing the work.'
-    :cards?'Swipe through — each card covers one position of the movement.'
+    :cards?'Steps through each position of the movement on its own — swipe to jump ahead.'
     :'No animated walkthrough built yet for this movement — showing the muscle it targets instead.';
   document.getElementById('watch-backdrop').style.display='block';
   document.getElementById('watch-modal').style.display='flex';
   document.body.style.overflow='hidden';
+  exwalkCardAutoStop();
+  if(cards)exwalkCardAutoStart(document.querySelector('#watch-body .exwalk-card-carousel'));
 }
 function closeWatch(){
   document.getElementById('watch-backdrop').style.display='none';
   document.getElementById('watch-modal').style.display='none';
   document.body.style.overflow='';
+  exwalkCardAutoStop();
 }
 function openStreakDetail(){
   const numEl=document.getElementById('sd-streak-num');if(numEl)numEl.textContent=streak;
