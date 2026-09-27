@@ -10244,6 +10244,10 @@ const EX={
         {feel:'Front of shoulder', fix:'You\'re probably lifting your upper arms off the pad as you curl. Keep them pressed flat against it for the entire set — if you can\'t, the weight is too heavy.'},
         {feel:'Elbow discomfort', fix:'Avoid locking out completely straight at the bottom under load — stop just short of full extension to keep tension off the elbow joint itself.'},
       ]},
+    {name:'Incline Dumbbell Curl',beginnerAlt:'Dumbbell Curl',muscle:'biceps',sets:3,reps:'8–12',eff:83,syn:83,safe:92,equip:['full','dumbbells'],anim:'curl',cue:'Sit back on an incline bench (45–60°) and let your arms hang straight down, behind the line of your torso rather than in front of it. That shoulder position is what actually matters here — it puts a deep stretch on the long head of your bicep, the part a preacher or concentration curl can\'t reach, right before every single rep. Curl up without letting your elbows drift forward.',
+      troubleshoot:[
+        {feel:'Front of shoulder', fix:'Your elbows have probably drifted forward in front of your torso as you fatigue, which is exactly the position this exercise is meant to avoid. Keep your upper arms pinned back against the bench the whole set, or use less weight.'},
+      ]},
     {name:'Cable Y-Raise',muscle:'shoulders',sets:3,reps:'12–15',eff:78,syn:87,safe:96,equip:['cableMachine'],anim:'lateral',cue:'Raise the cables up and out at an angle, forming a Y-shape with your arms rather than a straight T like a normal lateral raise. This angle hits the lower fibers of your traps and rotator cuff stabilizers alongside your shoulders, which a standard lateral raise mostly skips.',
       troubleshoot:[
         {feel:'Neck or upper traps', fix:'Keep your shoulders down and relaxed, and raise your arms at the Y-angle rather than straight up toward your ears.'},
@@ -18331,11 +18335,18 @@ function moveExercise(index,direction){
   const wbTime=document.getElementById('wb-time');
   if(!wbType||!wbTime) return;
   const type=wbType.value;
-  const allEx=EX[type]||[];
+  // 'arms' has no real EX['arms'] array — it's always the upper-push +
+  // upper-pull union, filtered down to bicep/tricep moves (see
+  // renderExercises/rerollWorkout for the same pattern). Falling back to
+  // EX[type]||[] here silently returned an empty pool for Arms Day,
+  // which made the ↑/↓ reorder buttons a no-op on that session type.
+  const allEx=type==='arms'
+    ? [...(EX['upper-push']||[]),...(EX['upper-pull']||[])].filter(e=>/bicep|tricep/i.test(e.muscle)||/curl|pushdown|extension/i.test(e.name))
+    : (EX[type]||[]);
   const filtered=allEx.filter(e=>equipOk(e));
   const timeVal=wbTime.value;
   const maxEx=maxExForTime(timeVal,filtered.length);
-  let exs=selectedMuscles.size>0 ? spreadBySelectedMuscle(filtered,maxEx) : MUSCLE_BALANCED_TYPES.includes(type) ? buildBalancedSession(filtered,maxEx,type) : filtered.slice(0,maxEx);
+  let exs=selectedMuscles.size>0 ? spreadBySelectedMuscle(filtered,maxEx) : type==='arms' ? buildArmsSession(filtered,maxEx) : MUSCLE_BALANCED_TYPES.includes(type) ? buildBalancedSession(filtered,maxEx,type) : filtered.slice(0,maxEx);
   exs=applyBeginnerSubs(exs);
   exs=applyCustomOrder(exs,type);
   const newIndex=index+direction;
@@ -18431,6 +18442,11 @@ const SESSION_REQUIRED_MUSCLES={
   // satisfied. Core belongs to 'full', where the pool actually has it.
   'lower':['quads','hamstrings','glutes','calves'],
   'full':['chest','back','shoulders','biceps','triceps','quads','hamstrings','glutes','calves','core'],
+  // 'arms' is listed here for reference but no longer actually routed
+  // through buildBalancedSession below — a broad 'biceps'/'triceps'
+  // requirement only guarantees ONE exercise per muscle, not real
+  // coverage of every head. See buildArmsSession/ARM_HEAD_TAGS further
+  // down for the head-aware replacement Arm Day actually uses.
   'arms':['biceps','triceps'],
 };
 function exerciseMuscleGroups(e){ return musclesPresentInTag(e.muscle||''); }
@@ -18495,6 +18511,89 @@ function buildBalancedSession(pool,count,type){
   while(picked.length<count){
     const candidates=remaining().filter(withinCap);
     const src=candidates.length?candidates:remaining(); // cap exhausted everywhere — slightly over-filling one muscle beats leaving a slot empty
+    if(!src.length)break;
+    pick(rankFiller(src)[0]);
+  }
+  return picked;
+}
+// ── ARM DAY HEAD COVERAGE ──
+// Direct ask, backed by real biomechanics research, not folklore: the
+// biceps has two heads and the triceps has three, and which one an
+// exercise actually biases comes down to shoulder position, not just
+// "is this a curl/pushdown." Biceps — long head (outer, closer to the
+// shoulder) is stretched hardest by an arm-BEHIND-the-torso, shoulder-
+// EXTENDED position (an incline curl); short head (inner, closer to the
+// elbow) is stretched hardest by an arm-IN-FRONT, shoulder-FLEXED
+// position (preacher/spider/concentration curls). A 2025 preacher-vs-
+// incline hypertrophy study found exactly this split: incline curls
+// grew the proximal (upper-arm-side) elbow flexors more, preacher curls
+// grew the distal (elbow-side) more. Triceps — long head responds to
+// overhead/stretched positions (overhead extensions, skull crushers),
+// lateral head to elbows-at-the-side pushdown work, medial head to
+// reverse-grip pushdowns or elbows-tucked close-grip presses.
+// SESSION_REQUIRED_MUSCLES['arms'] above only ever guaranteed ONE
+// bicep exercise and ONE tricep exercise total — real muscle-group
+// coverage, but not real HEAD coverage, which is what actually matters
+// for arm size. Keyed by exercise NAME rather than added as a field on
+// the base EX entries, since the same exercise is duplicated across
+// several session-type arrays (upper-push, upper-pull, full, ...) — a
+// name lookup covers every copy of "Preacher Curl" at once rather than
+// needing each duplicate hand-edited individually.
+const ARM_HEAD_TAGS={
+  'Incline Dumbbell Curl':['bicep-long'],
+  'Preacher Curl':['bicep-short'],'Preacher Hammer Curl':['bicep-short'],
+  'Spider Curl':['bicep-short'],'Concentration Curl':['bicep-short'],
+  'Overhead Tricep Extension':['tricep-long'],'Cable Overhead Tricep Extension':['tricep-long'],
+  'Skull Crushers':['tricep-long'],'EZ-Bar Skull Crusher':['tricep-long'],'Dumbbell Skull Crusher':['tricep-long'],
+  'Tricep Pushdown':['tricep-lateral'],'Rope Tricep Pushdown':['tricep-lateral'],
+  'V-Bar Tricep Pushdown':['tricep-lateral'],'EZ-Bar Tricep Pushdown':['tricep-lateral'],
+  'Diamond Push-ups':['tricep-lateral'],'Bench Dip':['tricep-lateral'],'Single-Arm Cable Pushdown':['tricep-lateral'],
+  'Close-Grip Bench Press':['tricep-medial'],'Close-Grip Push-up':['tricep-medial'],
+  'Reverse-Grip Tricep Pushdown':['tricep-medial'],
+};
+function armHeadsOf(e){ return ARM_HEAD_TAGS[e.name]||[]; }
+// Interleaved biceps/triceps rather than all 2 bicep heads then all 3
+// tricep heads — a short session (few slots) should still land on both
+// muscles before it exhausts either one's heads.
+const ARM_HEADS_REQUIRED=['bicep-long','tricep-lateral','bicep-short','tricep-long','tricep-medial'];
+function buildArmsSession(pool,count){
+  if(!pool.length)return [];
+  if(pool.length<=count)return [...pool];
+  const picked=[];const pickedNames=new Set();
+  const scoreOf=e=>(e.eff||0)+(favoriteExercises.has(e.name)?1000:0);
+  const pick=e=>{picked.push(e);pickedNames.add(e.name);};
+  for(const head of ARM_HEADS_REQUIRED){
+    if(picked.length>=count)break;
+    const options=pool.filter(e=>!pickedNames.has(e.name)&&armHeadsOf(e).includes(head)).sort((a,b)=>scoreOf(b)-scoreOf(a));
+    if(options[0])pick(options[0]);
+  }
+  // Filler pass, same shape as buildBalancedSession's: favourites first,
+  // then plain effectiveness, capped per muscle (not per head — once
+  // every head has real coverage, extra slots are just "more volume"
+  // rather than needing further head-splitting) so biceps or triceps
+  // can't eat every remaining slot on its own. Restricted to genuinely
+  // arm-focused moves (primary muscle is biceps/triceps) rather than the
+  // full candidate pool — that pool also contains chest/back compounds
+  // where triceps/biceps are just a secondary synergist (Bench Press,
+  // Chin-ups...), which pass the broad bicep|tricep regex used to build
+  // it but aren't what anyone wants padding out a dedicated Arms Day.
+  // Falls back to the full pool only if arm-focused options are actually
+  // exhausted, so a short-on-content equipment setup still fills slots.
+  const primaryMuscle=e=>(e.muscle||'').split('+')[0].trim().toLowerCase();
+  const isArmFocused=e=>primaryMuscle(e)==='biceps'||primaryMuscle(e)==='triceps';
+  const perMuscleCap=Math.max(2,Math.ceil(count*0.55));
+  const muscleCount=m=>picked.filter(e=>exerciseMuscleGroups(e).includes(m)).length;
+  const withinCap=e=>exerciseMuscleGroups(e).every(m=>muscleCount(m)<perMuscleCap);
+  const remaining=()=>pool.filter(e=>!pickedNames.has(e.name));
+  const rankFiller=list=>[...list].sort((a,b)=>{
+    const favA=favoriteExercises.has(a.name)?1:0,favB=favoriteExercises.has(b.name)?1:0;
+    if(favA!==favB)return favB-favA;
+    return (b.eff||0)-(a.eff||0);
+  });
+  while(picked.length<count){
+    const armFocused=remaining().filter(isArmFocused);
+    const candidates=(armFocused.length?armFocused:remaining()).filter(withinCap);
+    const src=candidates.length?candidates:(armFocused.length?armFocused:remaining());
     if(!src.length)break;
     pick(rankFiller(src)[0]);
   }
@@ -18642,7 +18741,9 @@ function renderExercises(){
   // one slot on the single best COMPOUND option for every muscle the session type
   // must cover before it ever fills remaining slots, so a 30-min Upper Full or Lower
   // still touches every major group at least once instead of silently dropping it.
-  let exs=(selectedMuscles.size>0&&!searchTerm) ? spreadBySelectedMuscle(filtered,maxEx) : (MUSCLE_BALANCED_TYPES.includes(type)&&!searchTerm) ? buildBalancedSession(filtered,maxEx,type) : filtered.slice(0,maxEx);
+  let exs=(selectedMuscles.size>0&&!searchTerm) ? spreadBySelectedMuscle(filtered,maxEx)
+    : (type==='arms'&&!searchTerm) ? buildArmsSession(filtered,maxEx)
+    : (MUSCLE_BALANCED_TYPES.includes(type)&&!searchTerm) ? buildBalancedSession(filtered,maxEx,type) : filtered.slice(0,maxEx);
   // Skip during an active search — swapping a beginner's own explicit search
   // hit for something else would just read as broken, not helpful.
   if(!searchTerm)exs=applyBeginnerSubs(exs);
@@ -19202,8 +19303,9 @@ function rerollWorkout(){
   // entire muscle like back purely by chance on any given reroll. Same
   // buildBalancedSession guarantee applies here so a reroll still covers
   // every required muscle for this session type, not just whatever the
-  // shuffle happened to land on.
-  const exs=applyBeginnerSubs(MUSCLE_BALANCED_TYPES.includes(type)?buildBalancedSession(pool,maxEx,type):pool.slice(0,maxEx));
+  // shuffle happened to land on. Arms gets its own head-aware version
+  // (buildArmsSession) instead — same reasoning as renderExercises().
+  const exs=applyBeginnerSubs(type==='arms'?buildArmsSession(pool,maxEx):MUSCLE_BALANCED_TYPES.includes(type)?buildBalancedSession(pool,maxEx,type):pool.slice(0,maxEx));
   const cont=document.getElementById('ex-list');
   if(!cont)return;
   cont.innerHTML=exs.map((e,i)=>`
