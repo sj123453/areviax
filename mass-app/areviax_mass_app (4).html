@@ -4477,7 +4477,24 @@ body[data-goal-theme="cut"] .lv-page{
    is the design's own previously-tuned card look, not a new one
    invented from scratch. padding is a fallback only; nearly every
    instance still sets its own inline padding and that wins as always. */
-.lv-surface{position:relative;border-radius:1.75rem;padding:20px;background:linear-gradient(135deg,var(--lv-cardg1),var(--lv-cardg2));border:1.5px solid var(--lv-border);box-shadow:0 20px 40px -28px rgba(0,0,0,.35),0 1px 0 rgba(255,255,255,.04) inset}
+/* .card is OS's own class name, literal — a direct pilot request to see
+   OS's actual page code (not just Mass's own re-styled equivalent)
+   applied to a real Mass page. Shares lv-surface's exact rules (single
+   source of truth) rather than a separate near-duplicate, since
+   lv-surface already IS this same panel treatment. card-header/
+   card-title/card-action/stat-card are genuinely new though — lv-surface
+   never had a standard title-row or small-stat-tile component the way
+   OS's page composition leans on constantly, so those are ported for
+   real, using Mass's own tokens throughout (--lv-*, not OS's hardcoded
+   hex) so this stays theme-correct in light mode / every goal-theme. */
+.lv-surface,.card{position:relative;border-radius:1.75rem;padding:20px;background:linear-gradient(135deg,var(--lv-cardg1),var(--lv-cardg2));border:1.5px solid var(--lv-border);box-shadow:0 20px 40px -28px rgba(0,0,0,.35),0 1px 0 rgba(255,255,255,.04) inset}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.card-title{font-family:var(--lv-serif);font-size:12px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--lv-fg)}
+.card-action{font-size:11px;font-weight:700;color:var(--lv-gold);cursor:pointer;background:none;border:none;padding:0;font-family:inherit}
+.stat-card{position:relative;overflow:hidden;background:linear-gradient(135deg,var(--lv-cardg1),var(--lv-cardg2));border:1.5px solid var(--lv-border);border-radius:1.75rem;padding:18px 20px;display:flex;flex-direction:column;gap:4px}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--stat-accent,var(--lv-primary))}
+.stat-val{font-family:var(--lv-mono);font-weight:800;font-size:28px;letter-spacing:-.02em;color:var(--lv-fg)}
+.stat-label{font-size:11px;color:var(--lv-muted-fg);letter-spacing:.05em}
 .lv-ember{background-image:linear-gradient(135deg,var(--lv-ember1),var(--lv-ember2));color:var(--lv-primary-fg);box-shadow:0 12px 30px -12px rgba(var(--lv-primary-rgb),.55)}
 .lv-label-eyebrow{font-size:.6875rem;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--lv-muted-fg)}
 .lv-grain{position:relative}
@@ -5323,126 +5340,71 @@ body[data-goal-theme="cut"] .lv-page{
        as before — only the containers around them changed. -->
   <div class="dash-grid lv-page">
 
-  <!-- HERO — literal port of website-refresh's HomeScreen <header>, real
-       data threaded into the same slots (see renderDashHeroLovable() and
-       initApp()). -->
-  <!-- --lv-fg/--lv-border/--lv-gold etc pinned to their dark-mode values here since this
-       header's background is always the same dark photo regardless of theme — without this,
-       light mode flips --lv-fg to near-black and the hero text disappears into the art. -->
-  <header class="lv-grain lv-pediment" style="position:relative;overflow:hidden;margin:0 -20px;padding:20px 20px 26px;border-radius:0 0 28px 28px;background-image:linear-gradient(180deg,rgba(10,7,4,.55) 0%,rgba(10,7,4,.74) 45%,rgba(10,7,4,.95) 100%),url('images/roads/realm-mortal.jpg');background-size:cover;background-position:center 25%;--lv-fg:#F7F5F2;--lv-muted-fg:#9E9791;--lv-border:#342C28;--lv-border-strong:#56433A;--lv-gold:#E6BE6D">
-    <span class="lv-ghost-numeral" style="right:-12px;top:56px">Δ</span>
-    <div style="position:relative;z-index:1">
-      <!-- The logo + streak/icon row that used to live here (repeated on
-           every hero page) is now the single #global-topbar fixed above
-           all pages — see its HTML comment. -->
-      <!-- YOUR RANK — moved onto the hero's own photo (direct ask: "move
-           the hero lifter somewhere, maybe main background space") from
-           a separate fully-boxed card further down the page. Same
-           renderDashRankPill() data/ids, just compact enough to sit as a
-           badge in the corner of the art instead of its own section —
-           the exact percent/reason text (dash-rank-pct) is dropped from
-           view here; medal + fill bar is enough at a glance, and tapping
-           through to Profile still shows the real number, same
-           progressive-disclosure idea the Week Strip/stats below lean on
-           too now. -->
-      <button type="button" onclick="showPage('profile');setTimeout(()=>{const el=document.getElementById('hall-of-statues');if(el)el.scrollIntoView({behavior:'smooth',block:'center'});},350)" style="position:absolute;top:20px;right:20px;z-index:2;display:flex;align-items:center;gap:7px;background:rgba(10,7,4,.4);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:5px 12px 5px 5px;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent">
-        <span id="dash-rank-medal" style="flex-shrink:0;display:flex;align-items:center;justify-content:center;width:22px;height:22px"></span>
+  <!-- OS-STRUCTURE PILOT — Dashboard rebuilt with OS's own page shell:
+       no photo hero (OS pages don't have one; direct ask for this pass
+       specifically: "no image or anything like no background thing"),
+       just a plain title, then every section as OS's real .card/
+       card-header/card-title component instead of Mass's old ad hoc
+       per-section headings. All the same functional ids/onclicks as
+       before — renderDashHeroLovable() etc still write into exactly the
+       same elements, only the surrounding markup/classes changed. Bottom
+       nav (not OS's sidebar) kept per direct earlier answer: Mass is
+       used one-handed mid-workout, a sidebar is a worse fit for that. -->
+  <div style="margin-bottom:4px">
+    <p class="lv-label-eyebrow lv-pulse-dot" id="dash-eyebrow-text">Session</p>
+    <h1 style="margin-top:4px;font-family:var(--lv-display);font-weight:400;font-size:1.9rem;line-height:1;letter-spacing:.01em;text-transform:uppercase;color:var(--lv-fg)"><span id="dash-greeting-word1">Good</span> <span id="dash-greeting-word2">morning</span></h1>
+    <div style="margin-top:4px;display:flex;align-items:center;gap:10px">
+      <div style="font-size:22px;font-weight:800;color:var(--lv-fg)" id="dash-greeting-name"></div>
+      <button type="button" onclick="showPage('profile');setTimeout(()=>{const el=document.getElementById('hall-of-statues');if(el)el.scrollIntoView({behavior:'smooth',block:'center'});},350)" style="display:flex;align-items:center;gap:6px;background:none;border:none;padding:0;cursor:pointer;font-family:inherit">
+        <span id="dash-rank-medal" style="flex-shrink:0;display:flex;align-items:center;justify-content:center;width:18px;height:18px"></span>
         <span style="text-align:left">
           <span id="dash-rank-name" style="display:block;font-size:8.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--lv-gold)">Unranked</span>
-          <span style="display:block;width:50px;height:3px;border-radius:2px;background:rgba(255,255,255,.18);overflow:hidden;margin-top:3px"><span id="dash-rank-fill" style="display:block;height:100%;width:0%;border-radius:2px;transition:width .5s cubic-bezier(.16,1,.3,1)"></span></span>
+          <span style="display:block;width:40px;height:3px;border-radius:2px;background:var(--lv-border);overflow:hidden;margin-top:3px"><span id="dash-rank-fill" style="display:block;height:100%;width:0%;border-radius:2px;transition:width .5s cubic-bezier(.16,1,.3,1)"></span></span>
         </span>
       </button>
-
-      <p class="lv-label-eyebrow lv-pulse-dot" style="margin-top:0;color:var(--lv-fg);opacity:.7" id="dash-eyebrow-text">Session</p>
-
-      <h1 style="margin-top:6px;color:var(--lv-fg);font-family:'Bebas Neue',sans-serif;font-weight:400;font-size:clamp(2.6rem,14vw,4rem);line-height:.9;letter-spacing:.01em;text-transform:uppercase"><span id="dash-greeting-word1">Good</span><br><span class="lv-serif-accent lv-gold-text" id="dash-greeting-word2" style="font-size:.8em">morning</span></h1>
-      <!-- Name deliberately kept OUT of the huge clamp'd headline above —
-           "Good evening, Alexandria" wraps to three lines on a real name at
-           that size. Sits directly underneath it instead, its own row,
-           enlarged — the next-session name/lifts/time/last row that used
-           to live here moved below, right-aligned. -->
-      <div style="margin-top:4px;font-family:var(--lv-sans);color:var(--lv-fg)">
-        <div style="font-size:38px;font-weight:800;line-height:1.05" id="dash-greeting-name"></div>
-        <div id="dash-title-badge" style="display:none;margin-top:3px;font-size:14px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--lv-gold)"></div>
-      </div>
-
-      <!-- v2 (direct ask): this used to be small right-aligned text with
-           a big empty gap above it (nothing to actually tap), and a
-           whole separate full-width "Start session" button lived below
-           the fold doing the real work. Folded into one real CTA that
-           fills the gap AND starts the session — same showPage('workout')
-           the old button used, same .lv-ember treatment, same
-           d-next-word1/word2/sub ids other code already writes real data
-           into (renderTodaySessionName, the exercise-count/time summary
-           below) — d-next-sub was already being kept updated, it just
-           had nowhere visible to show up before now. -->
-      <button type="button" class="lv-ember lv-grain" onclick="showPage('workout')" style="margin-top:14px;width:100%;display:flex;align-items:center;justify-content:space-between;gap:14px;border:none;border-radius:1.1rem;padding:14px 16px 14px 18px;cursor:pointer;font-family:inherit;text-align:left;-webkit-tap-highlight-color:transparent">
-        <span style="min-width:0;color:var(--lv-primary-fg)">
-          <span id="d-next-eyebrow" style="display:block;font-size:9px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;opacity:.62">Today's session</span>
-          <span style="display:block;margin-top:3px;font-size:21px;font-weight:800;line-height:1.05"><span id="d-next-word1">Push</span> <span id="d-next-word2">upper</span></span>
-          <span style="display:block;margin-top:3px;font-size:11px;font-weight:700;opacity:.62" id="d-next-sub"></span>
-        </span>
-        <span style="flex-shrink:0;width:44px;height:44px;border-radius:50%;background:rgba(0,0,0,.16);display:flex;align-items:center;justify-content:center">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="var(--lv-primary-fg)" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
-        </span>
-      </button>
-      <div id="d-next-full" style="display:none">Push Upper</div>
-      <div id="d-next-lifts" style="display:none">0 lifts</div>
-      <div id="d-next-time" style="display:none">~0 min</div>
-      <div id="d-next-last" style="display:none">last · —</div>
-
-      <div class="lv-meander-bold" style="margin-top:18px"></div>
     </div>
-  </header>
+    <div id="dash-title-badge" style="display:none;margin-top:3px;font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--lv-gold)"></div>
+  </div>
 
-  <!-- gap bumped from 12->16px here only (not the shared .lv-hero-main
-       pattern other pages use) — more breathing room between sections
-       now that there are fewer of them, per direct feedback that the
-       page felt cramped against how nice the hero art itself looks. -->
   <main class="lv-hero-main" style="margin-top:14px;display:flex;flex-direction:column;gap:16px">
 
-    <!-- WEEK STRIP — moved out of the hero (was crammed in above the
-         meander, making the header the busiest on the app) and given its
-         own light-weight, unboxed row instead — same #d-next-daypicker id
-         and renderWeeklyRecap() data, just relocated. -->
+    <button type="button" class="lv-ember" onclick="showPage('workout')" style="width:100%;display:flex;align-items:center;justify-content:space-between;gap:14px;border:none;border-radius:1.1rem;padding:14px 16px 14px 18px;cursor:pointer;font-family:inherit;text-align:left;-webkit-tap-highlight-color:transparent">
+      <span style="min-width:0;color:var(--lv-primary-fg)">
+        <span id="d-next-eyebrow" style="display:block;font-size:9px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;opacity:.62">Today's session</span>
+        <span style="display:block;margin-top:3px;font-size:21px;font-weight:800;line-height:1.05"><span id="d-next-word1">Push</span> <span id="d-next-word2">upper</span></span>
+        <span style="display:block;margin-top:3px;font-size:11px;font-weight:700;opacity:.62" id="d-next-sub"></span>
+      </span>
+      <span style="flex-shrink:0;width:44px;height:44px;border-radius:50%;background:rgba(0,0,0,.16);display:flex;align-items:center;justify-content:center">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="var(--lv-primary-fg)" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>
+      </span>
+    </button>
+    <div id="d-next-full" style="display:none">Push Upper</div>
+    <div id="d-next-lifts" style="display:none">0 lifts</div>
+    <div id="d-next-time" style="display:none">~0 min</div>
+    <div id="d-next-last" style="display:none">last · —</div>
+
     <div>
       <p class="lv-label-eyebrow" style="margin-bottom:8px">This week</p>
       <div id="d-next-daypicker" style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px"></div>
     </div>
 
-    <!-- START — the hero's own orange CTA (see the header above) is now
-         the real "start session" action, folded in right under the name
-         instead of a second identical button living down here too. -->
-
-    <!-- THE AREVIAX CHAMPIONSHIP — moved to a header icon button (see
-         #global-topbar) instead of a full-width bar here, per direct
-         ask ("move the areviax challenge to the top right"). -->
-
-    <!-- YOUR RANK — moved onto the hero photo itself (top-right badge,
-         see the header above) instead of its own boxed card here. -->
-
-    <!-- COACH SAM — was a hidden JS-only anchor (setCompanionMessage() wrote
-         real streak-stage copy into it, but nothing ever showed it). Same
-         content, same function, now with an actual face on it and a real
-         spot on the page — first thing under the hero, so it reads as
-         someone greeting you, not a stat widget. -->
-    <section class="lv-surface" id="daily-companion" style="padding:14px 16px;display:flex;gap:12px;align-items:center">
-      <img src="images/icons/coach-sam-portrait.png" alt="Coach Sam" style="width:50px;height:50px;border-radius:50%;object-fit:cover;object-position:50% 42%;flex-shrink:0;border:2px solid rgba(227,191,118,.55)">
-      <div style="min-width:0">
-        <div style="font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--lv-gold);margin-bottom:3px">Coach Sam <span id="quote-context" style="color:var(--lv-muted-fg);font-weight:700;text-transform:none;letter-spacing:0"></span></div>
-        <div id="companion-text" style="font-size:12.5px;line-height:1.5;color:var(--lv-fg)"></div>
+    <div class="card" id="daily-companion">
+      <div class="card-header">
+        <div class="card-title">Coach Sam</div>
       </div>
-    </section>
+      <div style="display:flex;gap:12px;align-items:center">
+        <img src="images/icons/coach-sam-portrait.png" alt="Coach Sam" style="width:44px;height:44px;border-radius:50%;object-fit:cover;object-position:50% 42%;flex-shrink:0;border:2px solid rgba(227,191,118,.55)">
+        <div style="min-width:0">
+          <div id="quote-context" style="font-size:10px;color:var(--lv-muted-fg);margin-bottom:3px"></div>
+          <div id="companion-text" style="font-size:12.5px;line-height:1.5;color:var(--lv-fg)"></div>
+        </div>
+      </div>
+    </div>
 
-    <!-- WEEKLY NUMBERS — volume, trend, and the three headline stats used
-         to be two separate back-to-back sections (the same "your numbers
-         this week" idea, just doubled up visually) — merged into one
-         card, three-stat row inside it separated by a plain rule instead
-         of its own bordered box, so the page reads as one clean summary
-         under Coach Sam rather than a second near-identical card right
-         below the first (direct ask: reorganise the top section, it's
-         "quite messy right now"). -->
-    <section class="lv-surface" style="padding:20px">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">This Week</div>
+      </div>
       <div>
         <div style="display:flex;align-items:baseline;justify-content:space-between">
           <span class="lv-label-eyebrow">Weekly volume</span>
@@ -5474,27 +5436,22 @@ body[data-goal-theme="cut"] .lv-page{
           <div class="lv-rail-track" style="height:3px"><div class="lv-rail-fill" id="d-protein-fill" style="background:var(--lv-fuel);width:0%"></div></div>
         </div>
       </div>
-    </section>
+    </div>
 
-    <!-- THE PLAN — real plannedSessionExs/prs/suggestNextWeight, see
-         renderDashPlanList(). -->
-    <section class="lv-surface dash-plan" style="padding:20px;display:none">
-      <div style="display:flex;align-items:baseline;justify-content:space-between">
-        <h2 class="lv-section-title" style="display:flex;align-items:baseline;gap:8px;font-size:1.4rem"><span class="lv-greek-numeral">Α</span>The plan</h2>
+    <div class="card dash-plan" style="display:none">
+      <div class="card-header">
+        <div class="card-title">The Plan</div>
         <span style="font-family:var(--lv-mono);font-size:11px;color:var(--lv-muted-fg)" id="d-plan-setcount"></span>
       </div>
-      <div class="lv-rule-gold" style="margin-top:8px"></div>
-      <div id="d-plan-list" style="margin-top:8px"></div>
-    </section>
+      <div id="d-plan-list"></div>
+    </div>
 
-    <!-- FUEL — real dayMacros vs profile targets; one-tap quick-add calls
-         the real logItem()/addXP() pipeline (see dashQuickAddFood()). -->
-    <section class="lv-surface" style="padding:20px">
-      <div style="display:flex;align-items:center;justify-content:space-between">
-        <h2 class="lv-section-title" style="font-size:1.4rem">Fuel</h2>
-        <button onclick="showPage('nutrition')" style="display:flex;align-items:center;gap:5px;border-radius:999px;border:1px solid var(--lv-border-strong);background:transparent;color:var(--lv-fg);padding:6px 12px;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;cursor:pointer;font-family:var(--lv-sans)">Log food <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"/></svg></button>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Fuel</div>
+        <button class="card-action" onclick="showPage('nutrition')" style="display:flex;align-items:center;gap:5px">Log food <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"/></svg></button>
       </div>
-      <div style="margin-top:18px;display:flex;flex-direction:column;gap:14px">
+      <div style="display:flex;flex-direction:column;gap:14px">
         <div>
           <div style="display:flex;align-items:baseline;justify-content:space-between"><span class="lv-label-eyebrow">Protein</span><span style="font-family:var(--lv-mono);font-size:12px;color:var(--lv-fg)" id="dash-protein-rail-val">0<span style="color:var(--lv-muted-fg)">/0g</span></span></div>
           <div class="lv-rail-track" style="margin-top:6px"><div class="lv-rail-fill" id="dash-protein-rail-fill" style="width:0%;background:var(--lv-fuel)"></div></div>
@@ -5515,39 +5472,34 @@ body[data-goal-theme="cut"] .lv-page{
         <button class="dash-qf-btn" onclick="dashQuickAddFood(2,this)" style="display:flex;align-items:center;gap:6px;border-radius:999px;border:1px solid var(--lv-border-strong);background:transparent;color:var(--lv-fg);padding:8px 12px;font-size:12px;font-weight:600;font-family:var(--lv-sans);cursor:pointer;white-space:nowrap"><span class="qf-ico" style="display:flex"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></span>Greek yogurt <span style="font-family:var(--lv-mono);font-size:10px;color:var(--lv-muted-fg)">20p</span></button>
         <button class="dash-qf-btn" onclick="dashQuickAddFood(3,this)" style="display:flex;align-items:center;gap:6px;border-radius:999px;border:1px solid var(--lv-border-strong);background:transparent;color:var(--lv-fg);padding:8px 12px;font-size:12px;font-weight:600;font-family:var(--lv-sans);cursor:pointer;white-space:nowrap"><span class="qf-ico" style="display:flex"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg></span>4 eggs <span style="font-family:var(--lv-mono);font-size:10px;color:var(--lv-muted-fg)">24p</span></button>
       </div>
-    </section>
+    </div>
 
-    <!-- QUOTE — real, individually-attributed QUOTES/day-index rotation
-         (see pickQuote(), mixed with the Word of the Day mythic pool too).
-         Back to its original solid-orange glow card (a later pass had
-         switched this to a small dark icon badge + italic serif display
-         font, matching Profile's card — reverted per direct ask: "the old
-         look, orange backdrop and different font"). Tapping it opens
-         Coach Sam's chat with the quote as the opener. -->
-    <section class="lv-surface" style="padding:0;cursor:pointer;overflow:hidden;border:none" onclick="openDashQuoteInChat()">
+    <!-- Quote keeps its own deliberate colored-panel treatment (content-
+         driven, not part of the "stacked undifferentiated cards"
+         problem) — just matched to .card's corner radius so it still
+         sits consistently among the OS-style cards around it. -->
+    <div style="border-radius:1.75rem;overflow:hidden;cursor:pointer" onclick="openDashQuoteInChat()">
       <div style="background:linear-gradient(135deg,#FF8A2E,#E85A00);padding:22px 20px;box-shadow:0 0 40px -8px rgba(255,122,46,.5)">
         <div style="font-family:var(--lv-sans);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:rgba(26,13,0,.6);margin-bottom:9px;font-weight:800">Word of the Day</div>
         <p style="font-family:var(--lv-sans);font-weight:800;font-size:15px;line-height:1.35;font-style:italic;color:#1A0D00" id="dash-quote-text">—</p>
         <p style="margin-top:10px;font-family:var(--lv-sans);font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:rgba(26,13,0,.6)" id="dash-quote-attrib">Areviax</p>
       </div>
-    </section>
+    </div>
 
-    <!-- RECOVERY + SLEEP — real sleepLog / computeMuscleReadiness data,
-         see renderDashHeroLovable(). -->
-    <section style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-      <div style="border:1px solid var(--lv-border);border-radius:1.75rem;padding:16px">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="stat-card" style="--stat-accent:var(--lv-fuel)">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--lv-fuel)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-        <p class="lv-label-eyebrow" style="margin-top:8px;color:var(--lv-fuel)">Sleep</p>
-        <p class="lv-stat-huge" style="margin-top:8px" id="dash-sleep-val">—</p>
-        <p style="margin-top:8px;font-size:11px;line-height:1.4;color:var(--lv-muted-fg)" id="dash-sleep-sub">Log tonight's sleep in Recovery.</p>
+        <div class="stat-label" style="margin-top:8px;color:var(--lv-fuel)">Sleep</div>
+        <div class="stat-val" id="dash-sleep-val">—</div>
+        <div style="margin-top:4px;font-size:11px;line-height:1.4;color:var(--lv-muted-fg)" id="dash-sleep-sub">Log tonight's sleep in Recovery.</div>
       </div>
-      <div style="border:1px solid var(--lv-border);border-radius:1.75rem;padding:16px">
+      <div class="stat-card" style="--stat-accent:var(--lv-primary)">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="var(--lv-primary)" aria-hidden="true"><circle cx="4" cy="12" r="3"/><circle cx="20" cy="12" r="3"/><rect x="7" y="11" width="10" height="2" rx="1"/></svg>
-        <p class="lv-label-eyebrow" style="margin-top:8px;color:var(--lv-primary)" id="dash-recovery-label">Recovery</p>
-        <p class="lv-stat-huge" style="margin-top:8px" id="dash-recovery-val">—</p>
-        <p style="margin-top:8px;font-size:11px;line-height:1.4;color:var(--lv-muted-fg)" id="dash-recovery-sub">Log a session to start tracking recovery.</p>
+        <div class="stat-label" style="margin-top:8px;color:var(--lv-primary)" id="dash-recovery-label">Recovery</div>
+        <div class="stat-val" id="dash-recovery-val">—</div>
+        <div style="margin-top:4px;font-size:11px;line-height:1.4;color:var(--lv-muted-fg)" id="dash-recovery-sub">Log a session to start tracking recovery.</div>
       </div>
-    </section>
+    </div>
 
   </main>
 
