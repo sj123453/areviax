@@ -286,7 +286,11 @@ input,input:focus,input:active,
    predates .lv-page and never had this third layer; --lv-ember1-rgb
    falls back to the default dark-theme orange since Dashboard doesn't
    also carry the .lv-page class that normally defines it. */
-.greek-page{position:relative;background-color:var(--lv-bg,#120C09);background-image:linear-gradient(100deg,transparent 0 46%,rgba(232,214,196,.035) 46% 47%,transparent 47% 100%),linear-gradient(72deg,transparent 0 22%,rgba(232,214,196,.025) 22% 23%,transparent 23% 100%),radial-gradient(140% 60% at 50% 0%,rgba(var(--lv-ember1-rgb,255,115,0),.1),transparent 70%);background-size:340px 100%,220px 100%,100% 100vh;background-repeat:repeat,repeat,no-repeat;counter-reset:greeknum}
+/* Background removed — same fix, same reason as .lv-page just below
+   (both painted the same opaque marble/glow fill independently, one
+   redundant layer of it each, stacked on top of one another on any
+   page carrying both classes). */
+.greek-page{position:relative;counter-reset:greeknum}
 .greek-page .ch{counter-increment:greeknum}
 .greek-page .ch>.ct{position:relative;padding-bottom:10px;font-family:'Cinzel',serif;letter-spacing:.1em}
 .greek-page .ch>.ct::before{content:counter(greeknum,lower-greek) ".";color:var(--gold);margin-right:6px;font-weight:700;opacity:1}
@@ -1730,7 +1734,14 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .achievement-icon{font-size:52px;margin-bottom:10px;filter:drop-shadow(0 4px 12px rgba(255,210,74,.4))}
 
     /* ── WARM-UP / COOL-DOWN FLOW MODAL ── */
-    .flow-modal{max-width:340px;text-align:left;padding:28px 24px 24px}
+    /* max-height+overflow-y — direct bug report: "both the cool down and
+       warmup don't fit on screen." .achievement-modal never had a height
+       cap (fine for a short achievement popup), but this variant can
+       hold up to 4 full stretch cards plus two buttons, easily taller
+       than the viewport on a short phone — the Done/Skip buttons were
+       simply pushed off-screen with no way to reach them. Now scrolls
+       internally instead. */
+    .flow-modal{max-width:340px;text-align:left;padding:28px 24px 24px;max-height:calc(100dvh - 32px);overflow-y:auto}
     .flow-modal .achievement-icon{text-align:center;width:100%}
     .flow-modal .achievement-title{text-align:center}
     .flow-modal .achievement-desc{text-align:center;margin-bottom:16px}
@@ -4398,20 +4409,16 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
   --lv-ember1:#FF7300;--lv-ember1-rgb:255,115,0;--lv-ember2:#E94024;
   --lv-cardg1:#2B1B13;--lv-cardg2:#19120F;
   --lv-display:'Bebas Neue',sans-serif;--lv-sans:'Barlow',sans-serif;--lv-mono:'JetBrains Mono',monospace;--lv-serif:'Cormorant Garamond',serif;
-  /* Same marble+ember-glow wash as .greek-page/.lv-marble instead of a
-     flat fill, so the page background continues the header's warm
-     wash all the way down rather than cutting to plain black right
-     under the meander line. */
-  background-color:var(--lv-bg);
-  background-image:linear-gradient(100deg,transparent 0 46%,rgba(232,232,222,.035) 46% 47%,transparent 47% 100%),linear-gradient(72deg,transparent 0 22%,rgba(232,232,222,.025) 22% 23%,transparent 23% 100%),radial-gradient(140% 60% at 50% 0%,rgba(var(--lv-ember1-rgb),.1),transparent 70%);
-  /* The glow layer is sized to the VIEWPORT (100vh), not 100% of the
-     page's own box — .page's box is the full scrollable content height,
-     so tying the glow to 100% of THAT made it fade out a fraction of the
-     way down and leave everything below flat black on any page with more
-     than about one screen's worth of cards. no-repeat + a fixed-ish
-     height keeps the glow's reach consistent regardless of page length. */
-  background-size:340px 100%,220px 100%,100% 100vh;
-  background-repeat:repeat,repeat,no-repeat;
+  /* No background here any more — direct ask: "that black box that sits
+     behind all of them... the os doesnt have that on its pages... should
+     probably match the colour of the rest of the background." This used
+     to paint an opaque marble+ember-glow fill that completely covered
+     .main's own soft drifting main-gradient-blob wash underneath (the
+     same mechanism OS's .content relies on for its ambient background —
+     OS never gives .content its own fill either). Confirmed by
+     inspecting computed styles, not guessed: with this removed, .page's
+     real background is .main-gradient-bg's blobs + body's own gradient,
+     same as every OS page. */
   color:var(--lv-fg);font-family:var(--lv-sans);-webkit-font-smoothing:antialiased
 }
 /* OLIVE GROVE — goal-driven theme swap. Same layout, same components,
@@ -4682,13 +4689,11 @@ body[data-goal-theme="cut"] .lv-page{
       <span class="lv-road-pill-top"><img src="images/icons/arete.png" alt="" class="lv-road-pill-icon"> <span class="lv-road-arete-num">0</span></span>
       <span class="lv-road-pill-track"><span class="lv-road-pill-fill" style="width:0%"></span></span>
     </button>
-    <!-- THE AREVIAX CHAMPIONSHIP — moved here from a full-width purple bar
-         on the Dashboard body (direct ask: "move the areviax challenge
-         to the top right") so it's reachable from every page the same
-         way Shop/Profile already are, not just scrolled past on the
-         Dashboard. Purple-tinted to keep its own identity next to the
-         neutral Shop/Profile icons either side of it. -->
-    <button type="button" class="lv-profile-btn" onclick="showPage('trials')" aria-label="The Areviax Championship" style="border-color:rgba(192,132,252,.4);background:rgba(192,132,252,.14)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#C084FC" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 14.5a2.5 2.5 0 002.5 2.5 2.5 2.5 0 002.5-2.5c0-1.38-.5-2-1-3-1.07-2.14-.22-4.05 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7.5 7.5 0 11-15 0c0-1.15.43-2.29 1-3a2.5 2.5 0 002.5 2.5z"/></svg></button>
+    <!-- THE AREVIAX CHAMPIONSHIP icon removed from here (direct ask:
+         "remove the challenge from there" — the topbar, right next to
+         the streak flame). Still reachable via its own card further
+         down the relevant page (see the other showPage('trials') call),
+         just no longer given equal billing with Shop/Profile up here. -->
     <button type="button" class="lv-profile-btn" onclick="showPage('shop')" aria-label="Marketplace"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F7F5F2" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2 3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 01-8 0"/></svg></button>
     <button type="button" class="lv-profile-btn" onclick="showPage('profile')" aria-label="Profile"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#F7F5F2" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="lv-profile-badge"></span></button>
   </div>
@@ -5340,30 +5345,36 @@ body[data-goal-theme="cut"] .lv-page{
        as before — only the containers around them changed. -->
   <div class="dash-grid lv-page">
 
-  <!-- OS-STRUCTURE PILOT — Dashboard rebuilt with OS's own page shell:
-       no photo hero (OS pages don't have one; direct ask for this pass
-       specifically: "no image or anything like no background thing"),
-       just a plain title, then every section as OS's real .card/
-       card-header/card-title component instead of Mass's old ad hoc
-       per-section headings. All the same functional ids/onclicks as
-       before — renderDashHeroLovable() etc still write into exactly the
-       same elements, only the surrounding markup/classes changed. Bottom
-       nav (not OS's sidebar) kept per direct earlier answer: Mass is
-       used one-handed mid-workout, a sidebar is a worse fit for that. -->
-  <div style="margin-bottom:4px">
-    <p class="lv-label-eyebrow lv-pulse-dot" id="dash-eyebrow-text">Session</p>
-    <h1 style="margin-top:4px;font-family:var(--lv-display);font-weight:400;font-size:1.9rem;line-height:1;letter-spacing:.01em;text-transform:uppercase;color:var(--lv-fg)"><span id="dash-greeting-word1">Good</span> <span id="dash-greeting-word2">morning</span></h1>
-    <div style="margin-top:4px;display:flex;align-items:center;gap:10px">
-      <div style="font-size:22px;font-weight:800;color:var(--lv-fg)" id="dash-greeting-name"></div>
-      <button type="button" onclick="showPage('profile');setTimeout(()=>{const el=document.getElementById('hall-of-statues');if(el)el.scrollIntoView({behavior:'smooth',block:'center'});},350)" style="display:flex;align-items:center;gap:6px;background:none;border:none;padding:0;cursor:pointer;font-family:inherit">
-        <span id="dash-rank-medal" style="flex-shrink:0;display:flex;align-items:center;justify-content:center;width:18px;height:18px"></span>
-        <span style="text-align:left">
-          <span id="dash-rank-name" style="display:block;font-size:8.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--lv-gold)">Unranked</span>
-          <span style="display:block;width:40px;height:3px;border-radius:2px;background:var(--lv-border);overflow:hidden;margin-top:3px"><span id="dash-rank-fill" style="display:block;height:100%;width:0%;border-radius:2px;transition:width .5s cubic-bezier(.16,1,.3,1)"></span></span>
-        </span>
-      </button>
+  <!-- OS-STRUCTURE PILOT, v2 — photo header back (direct ask: "add back
+       the photo for main page") but stripped to just the greeting + name,
+       nothing else — no eyebrow label, no rank pill, no CTA button in
+       here (that CTA card sits just below in <main> instead). Text color
+       is the same --lv-fg pin every other photo header on this app
+       already uses, plus a soft text-shadow so it stays legible against
+       whichever part of the photo sits behind it rather than needing a
+       heavier gradient that would darken the art itself — "blend with
+       the photo, not look odd" was the ask, and a same-tone flat fill
+       reading as a separate opaque box was exactly what looked odd
+       before. Sections below are still OS's real .card component (see
+       the v1 comment above, still accurate for everything past here) —
+       only this header changed in this pass. dash-rank-medal/name/fill
+       and dash-title-badge are gone from view entirely now; every
+       function that writes into them (renderDashRankPill etc.) already
+       no-ops safely when they're missing, same as any other page that
+       doesn't show them. -->
+  <header class="lv-grain" style="position:relative;overflow:hidden;margin:0 -20px;padding:22px 20px 24px;border-radius:0 0 24px 24px;background-image:linear-gradient(180deg,rgba(10,7,4,.35) 0%,rgba(10,7,4,.4) 50%,rgba(10,7,4,.7) 100%),url('images/roads/realm-mortal.jpg');background-size:cover;background-position:center 25%;--lv-fg:#F7F5F2">
+    <div style="position:relative;z-index:1;text-shadow:0 2px 10px rgba(0,0,0,.55)">
+      <h1 style="margin:0;color:var(--lv-fg);font-family:var(--lv-display);font-weight:400;font-size:2rem;line-height:1;letter-spacing:.01em;text-transform:uppercase"><span id="dash-greeting-word1">Good</span> <span id="dash-greeting-word2">morning</span></h1>
+      <div style="margin-top:4px;font-size:24px;font-weight:800;color:var(--lv-fg)" id="dash-greeting-name"></div>
     </div>
-    <div id="dash-title-badge" style="display:none;margin-top:3px;font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--lv-gold)"></div>
+  </header>
+  <div class="lv-meander-bold" style="margin:10px 0 16px"></div>
+  <!-- hidden anchors — renderDashRankPill()/renderRank() still write into
+       these ids on Dashboard (they're real, visible elements on other
+       pages, e.g. Profile), just not shown here any more. -->
+  <div style="display:none">
+    <span id="dash-rank-medal"></span><span id="dash-rank-name"></span><span id="dash-rank-fill"></span>
+    <div id="dash-title-badge"></div>
   </div>
 
   <main class="lv-hero-main" style="margin-top:14px;display:flex;flex-direction:column;gap:16px">
@@ -8893,18 +8904,22 @@ body[data-goal-theme="cut"] .lv-page{
          insignia on it." Flame paths/gradients untouched (they already
          taper to a single point at the bottom — 16,42/16,40 — which is
          exactly where a real torch's flame meets its cup, so nothing
-         about the flame itself needed to change). Added a bowl flaring
-         out from that same point, a handle below it, and the actual
-         compass-star mark from the brand emblem (same shape as the
-         #global-topbar logo, just scaled down) sitting on the handle —
-         big enough here (unlike the ~13px topbar torch) for the mark to
-         actually read as a mark, not a speck. -->
-    <svg width="44" height="86" viewBox="0 0 32 62" fill="none" style="margin:4px auto 8px">
+         about the flame itself needed to change). v3 (direct ask: "fix
+         the torch" — the v2 bowl/handle read as an indistinct dark blob
+         under the flame, not a torch): the bowl now flares WIDE at the
+         top to actually catch the flame (matching its base width)
+         instead of flaring the wrong way, the handle is proportionally
+         longer so the flame doesn't dominate the whole icon, and the
+         bowl/handle now use two visibly different tones (warm bronze
+         cup vs. dark wood handle) instead of two near-identical browns
+         that blurred into one shape. Compass-star mark re-centered on
+         the now-longer handle and sized up slightly for legibility. -->
+    <svg width="44" height="94" viewBox="0 0 32 68" fill="none" style="margin:4px auto 8px">
       <path d="M16 42 C6 42 2 34 2 28 C2 20 8 16 10 10 C11 7 11 4 10 2 C13 5 14 8 14 11 C16 8 17 4 15 0 C20 4 24 10 22 18 C24 15 25 11 24 8 C28 13 30 20 30 26 C30 34 26 42 16 42Z" fill="url(#sdFgD1)" opacity=".9"/>
       <path d="M16 40 C9 40 6 33 6 28 C6 23 9 19 11 15 C12 12 12 9 11 7 C14 10 15 13 14 16 C16 13 17 10 16 7 C19 11 21 16 20 21 C22 18 22 15 21 12 C24 17 26 22 26 28 C26 34 22 40 16 40Z" fill="url(#sdFgD2)"/>
-      <path d="M13 42 L19 42 L24 49 L8 49 Z" fill="#6B4423"/>
-      <rect x="11.5" y="49" width="9" height="13" rx="3" fill="#5A3820"/>
-      <path d="M0 -1 .14 -.14 1 0 .14 .14 0 1 -.14 .14 -1 0 -.14 -.14Z" fill="#FFD98A" stroke="#2A1206" stroke-width=".12" transform="translate(16,55.5) scale(3.8)"/>
+      <path d="M4 42 L28 42 L21 51 L11 51 Z" fill="#A56B34"/>
+      <rect x="10.5" y="51" width="11" height="17" rx="3" fill="#3E2712"/>
+      <path d="M0 -1 .16 -.16 1 0 .16 .16 0 1 -.16 .16 -1 0 -.16 -.16Z" fill="#FFD98A" stroke="#2A1206" stroke-width=".14" transform="translate(16,59.5) scale(4.2)"/>
       <defs>
         <linearGradient id="sdFgD1" x1="16" y1="42" x2="16" y2="0" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#FF8342" stop-opacity=".9"/><stop offset="100%" stop-color="#FFC98A" stop-opacity=".7"/></linearGradient>
         <linearGradient id="sdFgD2" x1="16" y1="40" x2="16" y2="7" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#E85F1A"/><stop offset="100%" stop-color="#FFD8A8" stop-opacity=".9"/></linearGradient>
@@ -15319,6 +15334,15 @@ function unrankedSVG(size){
     '<text x="20" y="44" text-anchor="middle" font-family="Outfit" font-size="18" font-weight="800" fill="#5a5a64">?</text>'+
   '</svg>';
 }
+// Small drawn SVG statue bust — replaces the old circle+ribbon+star medal
+// (direct ask: "instead of there being a medal we could have had it been
+// a bit statue" — this already has real statue art per tier for the big
+// Hall of Statues renders (TIERS[].mask/.photo), but that detailed
+// silhouette-mask technique only reads at 200px+; every call site here
+// is 14-44px, where that much detail would just blur into a blob. This
+// is a simpler bust-on-pedestal silhouette, same per-tier metal
+// coloring/sheen technique the medal already used, sized to actually
+// read as "a small statue" rather than "a medal" at icon scale.
 function medalSVG(tier,size){
   size=size||34;
   // Gradient id must be a valid XML id (no spaces) — a multi-word tier
@@ -15326,13 +15350,14 @@ function medalSVG(tier,size){
   // url() instead of the display name directly.
   const idSafe=(tier.name||'').replace(/[^a-zA-Z0-9]/g,'');
   return '<svg width="'+size+'" height="'+Math.round(size*1.5)+'" viewBox="0 0 40 60" xmlns="http://www.w3.org/2000/svg">'+
-    '<path d="M13 0 L20 17 L16 20 L9 3Z" fill="'+tier.dark+'"/>'+
-    '<path d="M27 0 L20 17 L24 20 L31 3Z" fill="'+tier.mid+'"/>'+
-    '<circle cx="20" cy="38" r="17" fill="'+tier.dark+'"/>'+
-    '<circle cx="20" cy="38" r="15" fill="'+tier.mid+'"/>'+
-    '<circle cx="20" cy="38" r="15" fill="url(#medalSheen'+idSafe+')"/>'+
-    '<circle cx="20" cy="38" r="10.5" fill="none" stroke="'+tier.dark+'" stroke-width="1"/>'+
-    '<path d="M20 30 L22.2 35.2 L28 35.6 L23.5 39.3 L25 45 L20 41.7 L15 45 L16.5 39.3 L12 35.6 L17.8 35.2Z" fill="'+tier.light+'"/>'+
+    '<path d="M8 58 L32 58 L28 48 L12 48Z" fill="'+tier.dark+'"/>'+
+    '<rect x="14" y="44" width="12" height="5" fill="'+tier.dark+'"/>'+
+    '<path d="M13 44 C13 33 15.5 27 20 27 C24.5 27 27 33 27 44Z" fill="'+tier.mid+'"/>'+
+    '<path d="M13 44 C13 33 15.5 27 20 27 C24.5 27 27 33 27 44Z" fill="url(#medalSheen'+idSafe+')"/>'+
+    '<path d="M13 44 C13 33 15.5 27 20 27 C24.5 27 27 33 27 44Z" fill="none" stroke="'+tier.dark+'" stroke-width="1"/>'+
+    '<circle cx="20" cy="20" r="9" fill="'+tier.mid+'"/>'+
+    '<circle cx="20" cy="20" r="9" fill="url(#medalSheen'+idSafe+')"/>'+
+    '<circle cx="20" cy="20" r="9" fill="none" stroke="'+tier.dark+'" stroke-width="1"/>'+
     '<defs><linearGradient id="medalSheen'+idSafe+'" x1="0" y1="0" x2="1" y2="1">'+
       '<stop offset="0%" stop-color="'+tier.light+'" stop-opacity=".55"/>'+
       '<stop offset="50%" stop-color="'+tier.light+'" stop-opacity="0"/>'+
