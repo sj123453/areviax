@@ -4507,7 +4507,7 @@ body[data-goal-theme="cut"] .lv-page{
 .lv-grain{position:relative}
 .lv-grain::after{content:'';position:absolute;inset:0;pointer-events:none;opacity:.05;background-image:radial-gradient(var(--lv-fg) .5px,transparent .5px);background-size:3px 3px}
 .lv-ember-wash{background:radial-gradient(120% 80% at 50% -10%,rgba(var(--lv-primary-rgb),.32) 0%,transparent 60%),var(--lv-bg)}
-.lv-display-hero{font-family:var(--lv-display);font-weight:400;font-size:clamp(2.6rem,14vw,4rem);line-height:.9;letter-spacing:.01em;text-transform:uppercase}
+.lv-display-hero{font-family:var(--lv-display);font-weight:400;font-size:clamp(2rem,10vw,2.6rem);line-height:.95;letter-spacing:.01em;text-transform:uppercase}
 /* color explicit rather than left to inherit from body's --white — inside
    a photo-hero header (Forge, Fuel) --lv-fg is pinned to its dark-mode
    value so the number stays legible against the photo regardless of
@@ -4545,6 +4545,22 @@ body[data-goal-theme="cut"] .lv-page{
 .lv-temple-glow::after{content:'';position:absolute;left:50%;top:-30%;width:22rem;height:22rem;translate:-50% 0;border-radius:999px;pointer-events:none;background:radial-gradient(circle,rgba(var(--lv-ember1-rgb),.35) 0%,transparent 65%)}
 .lv-pediment{position:relative}
 .lv-pediment::before{content:'';position:absolute;left:50%;top:-1px;width:132%;aspect-ratio:6/1;translate:-50% 0;pointer-events:none;border-top:1px solid var(--lv-gold-soft);background:linear-gradient(to bottom,rgba(var(--lv-gold-rgb),.14),transparent 70%);clip-path:polygon(50% 0,100% 100%,0 100%);opacity:.85}
+/* CURVED PHOTO HEADER — every page-top photo banner used to bleed edge-
+   to-edge (margin:0 -20px, only the bottom two corners rounded) and sat
+   below .content's normal 18px top padding, leaving a strip of bare page
+   background above it. Direct ask: turn these into a smaller, fully
+   rounded card like every other card on the page, flush against the very
+   top of the content area instead of floating below that gap — margin-top
+   here is exactly .content's 18px top padding cancelled out (same value
+   on mobile once you subtract the fixed topbar's own clearance term), not
+   a magic number. Also deliberately shorter than the old giant clamp()
+   headline scale — "shrinking and compressing" was the ask — so it reads
+   as a header, not a full hero. The dashboard/coach notification banners
+   are position:fixed (.dash-notif-fixed) and #toast is too, so neither
+   pushes this down when it drops in; nothing here needed to change for
+   that part, already true before this pass. */
+.lv-photo-header{position:relative;overflow:hidden;margin:-18px 0 16px;padding:16px 18px 18px;border-radius:22px;background-size:cover}
+.lv-photo-header-title{margin-top:4px;font-family:var(--lv-display);font-weight:400;font-size:clamp(1.7rem,7vw,2.15rem);line-height:1;letter-spacing:.01em;text-transform:uppercase}
 .lv-laurel-watermark{position:relative}
 .lv-laurel-watermark::after{content:'';position:absolute;right:-3.5rem;top:-2.5rem;width:18rem;height:18rem;pointer-events:none;opacity:.09;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='none' stroke='%23e9c98a' stroke-width='1.4'%3E%3Cpath d='M50 96C24 88 10 66 14 40 17 22 30 8 44 4'/%3E%3Cpath d='M50 96c26-8 40-30 36-56C83 22 70 8 56 4'/%3E%3Cg%3E%3Cellipse cx='20' cy='30' rx='7' ry='3' transform='rotate(-38 20 30)'/%3E%3Cellipse cx='17' cy='45' rx='7' ry='3' transform='rotate(-25 17 45)'/%3E%3Cellipse cx='19' cy='60' rx='7' ry='3' transform='rotate(-12 19 60)'/%3E%3Cellipse cx='26' cy='74' rx='7' ry='3' transform='rotate(8 26 74)'/%3E%3Cellipse cx='80' cy='30' rx='7' ry='3' transform='rotate(38 80 30)'/%3E%3Cellipse cx='83' cy='45' rx='7' ry='3' transform='rotate(25 83 45)'/%3E%3Cellipse cx='81' cy='60' rx='7' ry='3' transform='rotate(12 81 60)'/%3E%3Cellipse cx='74' cy='74' rx='7' ry='3' transform='rotate(-8 74 74)'/%3E%3C/g%3E%3C/svg%3E");background-repeat:no-repeat;background-size:contain}
 .lv-section-title{font-family:var(--lv-serif);font-style:normal;font-weight:600;font-size:1.75rem;line-height:1;letter-spacing:.06em;text-transform:uppercase;color:var(--lv-fg)}
@@ -5362,10 +5378,10 @@ body[data-goal-theme="cut"] .lv-page{
        function that writes into them (renderDashRankPill etc.) already
        no-ops safely when they're missing, same as any other page that
        doesn't show them. -->
-  <header class="lv-grain" style="position:relative;overflow:hidden;margin:0 -20px;padding:22px 20px 24px;border-radius:0 0 24px 24px;background-image:linear-gradient(180deg,rgba(10,7,4,.35) 0%,rgba(10,7,4,.4) 50%,rgba(10,7,4,.7) 100%),url('images/roads/realm-mortal.jpg');background-size:cover;background-position:center 25%;--lv-fg:#F7F5F2">
+  <header class="lv-grain lv-photo-header" style="background-image:linear-gradient(180deg,rgba(10,7,4,.35) 0%,rgba(10,7,4,.4) 50%,rgba(10,7,4,.7) 100%),url('images/roads/realm-mortal.jpg');background-size:140%;background-position:center 42%;--lv-fg:#F7F5F2">
     <div style="position:relative;z-index:1;text-shadow:0 2px 10px rgba(0,0,0,.55)">
-      <h1 style="margin:0;color:var(--lv-fg);font-family:var(--lv-display);font-weight:400;font-size:2rem;line-height:1;letter-spacing:.01em;text-transform:uppercase"><span id="dash-greeting-word1">Good</span> <span id="dash-greeting-word2">morning</span></h1>
-      <div style="margin-top:4px;font-size:24px;font-weight:800;color:var(--lv-fg)" id="dash-greeting-name"></div>
+      <h1 style="margin:0;color:var(--lv-fg);font-family:var(--lv-display);font-weight:400;font-size:1.9rem;line-height:1;letter-spacing:.01em;text-transform:uppercase"><span id="dash-greeting-word1">Good</span> <span id="dash-greeting-word2">morning</span></h1>
+      <div style="margin-top:4px;font-size:22px;font-weight:800;color:var(--lv-fg)" id="dash-greeting-name"></div>
     </div>
   </header>
   <div class="lv-meander-bold" style="margin:10px 0 16px"></div>
@@ -5609,23 +5625,23 @@ body[data-goal-theme="cut"] .lv-page{
   <!-- --lv-fg/--lv-border/--lv-gold etc pinned to their dark-mode values here since this
        header's background is always the same dark photo regardless of theme — without this,
        light mode flips --lv-fg to near-black and the hero text disappears into the art. -->
-  <header class="lv-grain lv-pediment" style="position:relative;overflow:hidden;margin:0 -20px;padding:20px 20px 26px;border-radius:0 0 28px 28px;background-image:linear-gradient(180deg,rgba(10,7,4,.5) 0%,rgba(10,7,4,.72) 45%,rgba(10,7,4,.95) 100%),url('images/roads/realm-underworld.jpg');background-size:cover;background-position:center 40%;--lv-fg:#F7F5F2;--lv-muted-fg:#9E9791;--lv-border:#342C28;--lv-border-strong:#56433A;--lv-gold:#E6BE6D">
+  <header class="lv-grain lv-pediment lv-photo-header" style="background-image:linear-gradient(180deg,rgba(10,7,4,.5) 0%,rgba(10,7,4,.72) 45%,rgba(10,7,4,.95) 100%),url('images/roads/realm-underworld.jpg');background-position:center 40%;--lv-fg:#F7F5F2;--lv-muted-fg:#9E9791;--lv-border:#342C28;--lv-border-strong:#56433A;--lv-gold:#E6BE6D">
     <span class="lv-ghost-numeral" style="right:-14px;top:38px">Ω</span>
     <div style="position:relative;z-index:1">
       <!-- The logo + streak/icon row that used to live here is now the
            single #global-topbar fixed above all pages. -->
       <p class="lv-label-eyebrow lv-pulse-dot" style="margin-top:0;color:var(--lv-fg);opacity:.7" id="wo-eyebrow-text">The Palaestra</p>
-      <h1 style="margin-top:6px;color:var(--lv-fg);font-family:'Bebas Neue',sans-serif;font-weight:400;font-size:clamp(2.6rem,14vw,4rem);line-height:.9;letter-spacing:.01em;text-transform:uppercase">Forge<br><span class="lv-serif-accent lv-gold-text" style="font-size:.8em">the session</span></h1>
+      <h1 class="lv-photo-header-title" style="color:var(--lv-fg)">Forge<br><span class="lv-serif-accent lv-gold-text" style="font-size:.8em">the session</span></h1>
 
-      <div style="margin-top:18px;display:flex;align-items:flex-end;justify-content:space-between">
+      <div style="margin-top:12px;display:flex;align-items:flex-end;justify-content:space-between">
         <div>
           <p class="lv-label-eyebrow">Today</p>
-          <p class="lv-stat-huge" style="margin-top:8px" id="wo-hero-count">0<span style="margin-left:4px;font-family:var(--lv-mono);font-size:11px;color:var(--lv-muted-fg)">lifts</span></p>
+          <p class="lv-stat-huge" style="margin-top:6px" id="wo-hero-count">0<span style="margin-left:4px;font-family:var(--lv-mono);font-size:11px;color:var(--lv-muted-fg)">lifts</span></p>
         </div>
         <p style="font-family:var(--lv-mono);font-size:11px;color:var(--lv-muted-fg);text-align:right;max-width:55%" id="wo-hero-summary">Choose a type and time to build a session.</p>
       </div>
 
-      <div class="lv-meander-bold" style="margin-top:18px"></div>
+      <div class="lv-meander-bold" style="margin-top:12px"></div>
     </div>
   </header>
 
@@ -6009,24 +6025,24 @@ body[data-goal-theme="cut"] .lv-page{
        "Eat to grow" directly. --lv-fg/--lv-border/--lv-gold etc pinned to dark-mode
        values since this header's background is always the same dark photo regardless
        of theme. -->
-  <header class="lv-grain lv-pediment" style="position:relative;overflow:hidden;margin:0 -20px;padding:20px 20px 26px;border-radius:0 0 28px 28px;background-image:linear-gradient(180deg,rgba(10,7,4,.5) 0%,rgba(10,7,4,.72) 45%,rgba(10,7,4,.95) 100%),url('images/roads/realm-grove.jpg');background-size:cover;background-position:center 40%;--lv-fg:#F7F5F2;--lv-muted-fg:#9E9791;--lv-border:#342C28;--lv-border-strong:#56433A;--lv-gold:#E6BE6D">
+  <header class="lv-grain lv-pediment lv-photo-header" style="background-image:linear-gradient(180deg,rgba(10,7,4,.5) 0%,rgba(10,7,4,.72) 45%,rgba(10,7,4,.95) 100%),url('images/roads/realm-grove.jpg');background-position:center 40%;--lv-fg:#F7F5F2;--lv-muted-fg:#9E9791;--lv-border:#342C28;--lv-border-strong:#56433A;--lv-gold:#E6BE6D">
     <span class="lv-ghost-numeral" style="right:-14px;top:38px">Θ</span>
     <div style="position:relative;z-index:1">
       <!-- The logo + streak/icon row that used to live here is now the
            single #global-topbar fixed above all pages. -->
       <p class="lv-label-eyebrow lv-pulse-dot" style="margin-top:0;color:var(--lv-fg);opacity:.7" id="nutr-eyebrow-text">Fuel</p>
-      <h1 style="margin-top:6px;color:var(--lv-fg);font-family:'Bebas Neue',sans-serif;font-weight:400;font-size:clamp(2.6rem,14vw,4rem);line-height:.9;letter-spacing:.01em;text-transform:uppercase">Eat<br><span class="lv-serif-accent lv-gold-text" style="font-size:.8em">to grow</span></h1>
+      <h1 class="lv-photo-header-title" style="color:var(--lv-fg)">Eat<br><span class="lv-serif-accent lv-gold-text" style="font-size:.8em">to grow</span></h1>
 
-      <div style="margin-top:18px;display:flex;align-items:flex-end;justify-content:space-between">
+      <div style="margin-top:12px;display:flex;align-items:flex-end;justify-content:space-between">
         <div>
           <p class="lv-label-eyebrow">Remaining today</p>
-          <p class="lv-stat-huge" style="margin-top:8px" id="nutr-remaining-num">0<span style="margin-left:4px;font-family:var(--lv-mono);font-size:11px;color:var(--lv-muted-fg)">kcal</span></p>
+          <p class="lv-stat-huge" style="margin-top:6px" id="nutr-remaining-num">0<span style="margin-left:4px;font-family:var(--lv-mono);font-size:11px;color:var(--lv-muted-fg)">kcal</span></p>
         </div>
         <p style="font-family:var(--lv-mono);font-size:11px;color:var(--lv-muted-fg)" id="nutr-pct-text">0% of 0</p>
       </div>
       <div class="lv-rail-track" style="margin-top:10px;height:3px"><div class="lv-rail-fill" id="nutr-hero-fill" style="width:0%;background:var(--lv-primary)"></div></div>
 
-      <div class="lv-meander-bold" style="margin-top:18px"></div>
+      <div class="lv-meander-bold" style="margin-top:12px"></div>
     </div>
   </header>
 
@@ -6707,7 +6723,7 @@ body[data-goal-theme="cut"] .lv-page{
        Greek temple fits Progress's "ascension" theme directly. --lv-fg/--lv-border/
        --lv-gold etc pinned to dark-mode values since this header's background is always
        the same dark photo regardless of theme. -->
-  <header class="lv-grain lv-pediment" style="position:relative;overflow:hidden;margin:0 -20px 16px;padding:20px 20px 26px;background-image:linear-gradient(180deg,rgba(10,7,4,.5) 0%,rgba(10,7,4,.72) 45%,rgba(10,7,4,.95) 100%),url('images/roads/realm-ascend.jpg');background-size:cover;background-position:center 35%;--lv-fg:#F7F5F2;--lv-muted-fg:#9E9791;--lv-border:#342C28;--lv-border-strong:#56433A;--lv-gold:#E6BE6D">
+  <header class="lv-grain lv-pediment lv-photo-header" style="background-image:linear-gradient(180deg,rgba(10,7,4,.5) 0%,rgba(10,7,4,.72) 45%,rgba(10,7,4,.95) 100%),url('images/roads/realm-ascend.jpg');background-position:center 35%;--lv-fg:#F7F5F2;--lv-muted-fg:#9E9791;--lv-border:#342C28;--lv-border-strong:#56433A;--lv-gold:#E6BE6D">
     <span class="lv-ghost-numeral" style="right:-14px;top:38px">Ω</span>
     <div style="position:relative;z-index:1">
       <!-- The logo + streak/icon row that used to live here is now the
@@ -6718,16 +6734,16 @@ body[data-goal-theme="cut"] .lv-page{
            Forge's "3 lifts" or Fuel's "3,345 kcal" sit below their own
            headlines rather than being the headline. -->
       <p class="lv-label-eyebrow" style="margin-top:0;color:var(--lv-fg);opacity:.7">Total volume · <span id="prog-hero-range-label">12W</span></p>
-      <h1 style="margin-top:6px;color:var(--lv-fg);font-family:'Bebas Neue',sans-serif;font-weight:400;font-size:clamp(2.6rem,14vw,4rem);line-height:.9;letter-spacing:.01em;text-transform:uppercase">Track<br><span class="lv-serif-accent lv-gold-text" style="font-size:.8em">your growth</span></h1>
-      <div style="margin-top:14px;display:flex;align-items:baseline;gap:8px;font-family:var(--lv-sans);font-size:15px;font-weight:800;color:var(--lv-fg)"><span id="prog-hero-num">0</span><span class="lv-serif-accent lv-gold-text" style="font-size:.75em">t lifted</span></div>
+      <h1 class="lv-photo-header-title" style="color:var(--lv-fg)">Track<br><span class="lv-serif-accent lv-gold-text" style="font-size:.8em">your growth</span></h1>
+      <div style="margin-top:10px;display:flex;align-items:baseline;gap:8px;font-family:var(--lv-sans);font-size:15px;font-weight:800;color:var(--lv-fg)"><span id="prog-hero-num">0</span><span class="lv-serif-accent lv-gold-text" style="font-size:.75em">t lifted</span></div>
       <div style="margin-top:6px;display:flex;align-items:center;gap:10px;font-family:var(--lv-mono);font-size:11px;color:var(--lv-muted-fg)" id="prog-hero-trend">Your first set writes the first line here.</div>
-      <div class="lv-rail-track" style="margin-top:12px;height:6px"><div class="lv-rail-fill" id="prog-hero-fill" style="width:0%;background:var(--lv-primary)"></div></div>
-      <div style="display:flex;gap:8px;margin-top:18px" id="prog-hero-range-pills">
+      <div class="lv-rail-track" style="margin-top:10px;height:6px"><div class="lv-rail-fill" id="prog-hero-fill" style="width:0%;background:var(--lv-primary)"></div></div>
+      <div style="display:flex;gap:8px;margin-top:12px" id="prog-hero-range-pills">
         <div class="prog-range-pill" data-weeks="4" onclick="setProgressRange(4)" style="flex:1;text-align:center;padding:9px;border-radius:.75rem;border:1.5px solid var(--lv-border);font-family:var(--lv-sans);font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--lv-muted-fg);cursor:pointer">4W</div>
         <div class="prog-range-pill active" data-weeks="12" onclick="setProgressRange(12)" style="flex:1;text-align:center;padding:9px;border-radius:.75rem;border:1.5px solid var(--lv-primary);background:rgba(var(--lv-primary-rgb),.2);font-family:var(--lv-sans);font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--lv-primary);cursor:pointer">12W</div>
         <div class="prog-range-pill" data-weeks="52" onclick="setProgressRange(52)" style="flex:1;text-align:center;padding:9px;border-radius:.75rem;border:1.5px solid var(--lv-border);font-family:var(--lv-sans);font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--lv-muted-fg);cursor:pointer">1Y</div>
       </div>
-      <div class="lv-meander-bold" style="margin-top:18px"></div>
+      <div class="lv-meander-bold" style="margin-top:12px"></div>
     </div>
   </header>
 
@@ -7178,19 +7194,19 @@ body[data-goal-theme="cut"] .lv-page{
        a trophy hall thematically, and it's the one realm-*.jpg asset not used elsewhere yet.
        --lv-fg/--lv-border/--lv-gold etc pinned to dark-mode values since this header's
        background is always the same dark photo regardless of theme. -->
-  <header class="lv-grain lv-pediment" style="position:relative;overflow:hidden;margin:0 -20px 16px;padding:20px 20px 26px;background-image:linear-gradient(180deg,rgba(10,7,4,.5) 0%,rgba(10,7,4,.72) 45%,rgba(10,7,4,.95) 100%),url('images/roads/realm-elysium.jpg');background-size:cover;background-position:center 35%;--lv-fg:#F7F5F2;--lv-muted-fg:#9E9791;--lv-border:#342C28;--lv-border-strong:#56433A;--lv-gold:#E6BE6D">
+  <header class="lv-grain lv-pediment lv-photo-header" style="background-image:linear-gradient(180deg,rgba(10,7,4,.5) 0%,rgba(10,7,4,.72) 45%,rgba(10,7,4,.95) 100%),url('images/roads/realm-elysium.jpg');background-position:center 35%;--lv-fg:#F7F5F2;--lv-muted-fg:#9E9791;--lv-border:#342C28;--lv-border-strong:#56433A;--lv-gold:#E6BE6D">
     <button onclick="showPage('progress')" aria-label="Back" style="position:absolute;left:16px;top:16px;z-index:2;width:32px;height:32px;border-radius:50%;background:rgba(0,0,0,.25);border:1px solid var(--lv-border-strong);display:flex;align-items:center;justify-content:center;cursor:pointer"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--lv-fg)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg></button>
     <button type="button" class="lv-profile-btn" onclick="showPage('profile')" aria-label="Profile" style="position:absolute;right:16px;top:16px;z-index:2"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--lv-fg)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="lv-profile-badge"></span></button>
     <span class="lv-ghost-numeral" style="right:-14px;top:38px">Θ</span>
     <div style="position:relative;z-index:1">
       <p class="lv-label-eyebrow" style="color:var(--lv-gold);margin-top:36px">Trophy room</p>
-      <h1 class="lv-display-hero" style="margin-top:8px;color:var(--lv-fg)"><span id="troph-earned-num">0</span><span class="lv-serif-accent lv-gold-text" style="font-size:.6em">/<span id="troph-total-num">0</span></span></h1>
-      <div style="margin-top:10px;display:flex;align-items:center;gap:10px;font-family:var(--lv-mono);font-size:11px;color:var(--lv-muted-fg)">
+      <h1 class="lv-display-hero" style="margin-top:6px;color:var(--lv-fg)"><span id="troph-earned-num">0</span><span class="lv-serif-accent lv-gold-text" style="font-size:.6em">/<span id="troph-total-num">0</span></span></h1>
+      <div style="margin-top:8px;display:flex;align-items:center;gap:10px;font-family:var(--lv-mono);font-size:11px;color:var(--lv-muted-fg)">
         <span style="display:flex;align-items:center;gap:5px;color:var(--lv-xp)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21h8M12 17v4M17 5h2a2 2 0 0 1 2 2v1a4 4 0 0 1-4 4M7 5H5a2 2 0 0 0-2 2v1a4 4 0 0 0 4 4"/><path d="M7 4h10v6a5 5 0 0 1-10 0z"/></svg> <span id="troph-gold-locked">0</span> legendary locked</span>
         <span>· <span id="troph-xp-banked">0</span> Arete banked</span>
       </div>
-      <div class="lv-rail-track" style="margin-top:18px"><div class="lv-rail-fill" id="troph-hero-fill" style="width:0%;background:var(--lv-primary)"></div></div>
-      <div class="lv-meander-bold" style="margin-top:18px"></div>
+      <div class="lv-rail-track" style="margin-top:12px"><div class="lv-rail-fill" id="troph-hero-fill" style="width:0%;background:var(--lv-primary)"></div></div>
+      <div class="lv-meander-bold" style="margin-top:12px"></div>
     </div>
   </header>
 
@@ -7275,16 +7291,16 @@ body[data-goal-theme="cut"] .lv-page{
        treatment as the other rebuilt heroes. A wild mountain pass fits "Trials of
        Heracles" directly. --lv-fg/--lv-border/--lv-gold etc pinned to dark-mode values
        since this header's background is always the same dark photo regardless of theme. -->
-  <header class="lv-grain lv-pediment" style="position:relative;overflow:hidden;margin:0 -20px 16px;padding:20px 20px 26px;background-image:linear-gradient(180deg,rgba(10,7,4,.5) 0%,rgba(10,7,4,.72) 45%,rgba(10,7,4,.95) 100%),url('images/roads/realm-trial.jpg');background-size:cover;background-position:center 50%;--lv-fg:#F7F5F2;--lv-muted-fg:#9E9791;--lv-border:#342C28;--lv-border-strong:#56433A;--lv-gold:#E6BE6D">
+  <header class="lv-grain lv-pediment lv-photo-header" style="background-image:linear-gradient(180deg,rgba(10,7,4,.5) 0%,rgba(10,7,4,.72) 45%,rgba(10,7,4,.95) 100%),url('images/roads/realm-trial.jpg');background-position:center 50%;--lv-fg:#F7F5F2;--lv-muted-fg:#9E9791;--lv-border:#342C28;--lv-border-strong:#56433A;--lv-gold:#E6BE6D">
     <button onclick="showPage('progress')" aria-label="Back" style="position:absolute;left:16px;top:16px;z-index:2;width:32px;height:32px;border-radius:50%;background:rgba(0,0,0,.25);border:1px solid var(--lv-border-strong);display:flex;align-items:center;justify-content:center;cursor:pointer"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--lv-fg)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg></button>
     <button type="button" class="lv-profile-btn" onclick="showPage('profile')" aria-label="Profile" style="position:absolute;right:16px;top:16px;z-index:2"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--lv-fg)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="lv-profile-badge"></span></button>
     <span class="lv-ghost-numeral" style="right:-14px;top:38px">Ξ</span>
     <div style="position:relative;z-index:1">
       <p class="lv-label-eyebrow" style="color:var(--lv-gold);margin-top:36px">Trials of Heracles</p>
-      <h1 class="lv-display-hero" style="margin-top:8px;color:var(--lv-fg)"><span id="labors-done-num">0</span><span class="lv-serif-accent lv-gold-text" style="font-size:.6em">/12</span></h1>
-      <p style="margin-top:10px;font-size:11px;line-height:1.5;color:var(--lv-muted-fg)">Twelve one-off trials, each checked against what you've actually done — no luck, no pulls.</p>
-      <div class="lv-rail-track" style="margin-top:18px"><div class="lv-rail-fill" id="labors-hero-fill" style="width:0%;background:var(--lv-primary)"></div></div>
-      <div class="lv-meander-bold" style="margin-top:18px"></div>
+      <h1 class="lv-display-hero" style="margin-top:6px;color:var(--lv-fg)"><span id="labors-done-num">0</span><span class="lv-serif-accent lv-gold-text" style="font-size:.6em">/12</span></h1>
+      <p style="margin-top:8px;font-size:11px;line-height:1.5;color:var(--lv-muted-fg)">Twelve one-off trials, each checked against what you've actually done — no luck, no pulls.</p>
+      <div class="lv-rail-track" style="margin-top:12px"><div class="lv-rail-fill" id="labors-hero-fill" style="width:0%;background:var(--lv-primary)"></div></div>
+      <div class="lv-meander-bold" style="margin-top:12px"></div>
     </div>
   </header>
 
@@ -7293,15 +7309,15 @@ body[data-goal-theme="cut"] .lv-page{
 
 <!-- RECOVERY — its own dedicated page. Sleep tracking, wind-down sounds, breathing, and the science of why this matters. -->
 <div class="page lv-page" id="page-recovery">
-  <header class="lv-grain lv-pediment" style="position:relative;overflow:hidden;margin:0 -20px 16px;padding:20px 20px 26px;border-radius:0 0 28px 28px;background-image:linear-gradient(180deg,rgba(10,7,4,.5) 0%,rgba(10,7,4,.72) 45%,rgba(10,7,4,.95) 100%),url('images/roads/realm-baths.jpg');background-size:cover;background-position:center 40%;--lv-fg:#F7F5F2;--lv-muted-fg:#9E9791;--lv-border:#342C28;--lv-border-strong:#56433A;--lv-gold:#E6BE6D">
+  <header class="lv-grain lv-pediment lv-photo-header" style="background-image:linear-gradient(180deg,rgba(10,7,4,.5) 0%,rgba(10,7,4,.72) 45%,rgba(10,7,4,.95) 100%),url('images/roads/realm-baths.jpg');background-position:center 40%;--lv-fg:#F7F5F2;--lv-muted-fg:#9E9791;--lv-border:#342C28;--lv-border-strong:#56433A;--lv-gold:#E6BE6D">
     <span class="lv-ghost-numeral" style="right:-14px;top:38px">Λ</span>
     <div style="position:relative;z-index:1">
       <!-- The logo + icon row that used to live here is now the single
            #global-topbar fixed above all pages. -->
       <p class="lv-label-eyebrow" style="margin-top:0;color:var(--lv-fg);opacity:.7">The Baths</p>
-      <h1 style="margin-top:6px;color:var(--lv-fg);font-family:'Bebas Neue',sans-serif;font-weight:400;font-size:clamp(2.6rem,14vw,4rem);line-height:.9;letter-spacing:.01em;text-transform:uppercase">Recover<br><span class="lv-serif-accent lv-gold-text" style="font-size:.8em">and grow</span></h1>
-      <div style="margin-top:14px;font-family:var(--lv-mono);font-size:11px;color:var(--lv-muted-fg)" id="recovery-hero-stat">Log a session to see readiness</div>
-      <div class="lv-meander-bold" style="margin-top:18px"></div>
+      <h1 class="lv-photo-header-title" style="color:var(--lv-fg)">Recover<br><span class="lv-serif-accent lv-gold-text" style="font-size:.8em">and grow</span></h1>
+      <div style="margin-top:10px;font-family:var(--lv-mono);font-size:11px;color:var(--lv-muted-fg)" id="recovery-hero-stat">Log a session to see readiness</div>
+      <div class="lv-meander-bold" style="margin-top:12px"></div>
     </div>
   </header>
   <div class="companion"><div class="companion-msg">Training breaks you down. This is where you actually grow.</div></div>
@@ -7673,15 +7689,15 @@ body[data-goal-theme="cut"] .lv-page{
        treatment as the other rebuilt heroes. A golden trophy hall fits "Rise through the
        ranks" directly. --lv-fg/--lv-border/--lv-gold etc pinned to dark-mode values since
        this header's background is always the same dark photo regardless of theme. -->
-  <header class="lv-grain lv-pediment" style="position:relative;overflow:hidden;margin:0 -20px 16px;padding:20px 20px 26px;border-radius:0 0 28px 28px;background-image:linear-gradient(180deg,rgba(10,7,4,.5) 0%,rgba(10,7,4,.72) 45%,rgba(10,7,4,.95) 100%),url('images/roads/realm-agora.jpg');background-size:cover;background-position:center 40%;--lv-fg:#F7F5F2;--lv-muted-fg:#9E9791;--lv-border:#342C28;--lv-border-strong:#56433A;--lv-gold:#E6BE6D">
+  <header class="lv-grain lv-pediment lv-photo-header" style="background-image:linear-gradient(180deg,rgba(10,7,4,.5) 0%,rgba(10,7,4,.72) 45%,rgba(10,7,4,.95) 100%),url('images/roads/realm-agora.jpg');background-position:center 40%;--lv-fg:#F7F5F2;--lv-muted-fg:#9E9791;--lv-border:#342C28;--lv-border-strong:#56433A;--lv-gold:#E6BE6D">
     <span class="lv-ghost-numeral" style="right:-14px;top:38px">Ρ</span>
     <div style="position:relative;z-index:1">
       <!-- The logo + icon row that used to live here is now the single
            #global-topbar fixed above all pages. -->
       <p class="lv-label-eyebrow" style="margin-top:0;color:var(--lv-fg);opacity:.7">The Agora</p>
-      <h1 style="margin-top:6px;color:var(--lv-fg);font-family:'Bebas Neue',sans-serif;font-weight:400;font-size:clamp(2.6rem,14vw,4rem);line-height:.9;letter-spacing:.01em;text-transform:uppercase">Rise<br><span class="lv-serif-accent lv-gold-text" style="font-size:.8em">through the ranks</span></h1>
-      <div style="margin-top:14px;font-family:var(--lv-mono);font-size:11px;color:var(--lv-muted-fg)" id="lb-hero-rank">Join below to see your rank</div>
-      <div class="lv-meander-bold" style="margin-top:18px"></div>
+      <h1 class="lv-photo-header-title" style="color:var(--lv-fg)">Rise<br><span class="lv-serif-accent lv-gold-text" style="font-size:.8em">through the ranks</span></h1>
+      <div style="margin-top:10px;font-family:var(--lv-mono);font-size:11px;color:var(--lv-muted-fg)" id="lb-hero-rank">Join below to see your rank</div>
+      <div class="lv-meander-bold" style="margin-top:12px"></div>
     </div>
   </header>
   <div class="companion"><div class="companion-msg">This board matches you against profiles at your <strong>exact stage</strong> — not people who started years ago — so the comparison is actually fair. (These are illustrative benchmarks, not live user data — real community rankings are coming.)</div></div>
