@@ -2355,13 +2355,16 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     /* Grid instead of a horizontal scroll row — every tier visible at once
        on load, same "Daily Deals" grid the mobile-game reference uses
        rather than making someone swipe to discover the rest of the shop. */
-    /* A 2-column grid now, not its own horizontal scroller — .crate-row
-       lives INSIDE a .shop-grid-card, which is itself one card in the
-       single outer .shop-scroll-row. Matches the real reference's Daily
-       Deals card: one section of the horizontal shelf holds a small
-       internal grid, rather than every section being its own full-width
-       swipeable row. */
-    .crate-row{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;min-width:0}
+    /* Direct ask: "make the Areviax Crates a sideways bar, not vertical" —
+       back to its own horizontal scroller after the 2-column-grid pass
+       above, but this time only for .crate-row itself; .shop-deal-grid
+       (Daily Deals, right above it in the same .shop-track-stack) keeps
+       its grid untouched since only the crate shelf was called out. Each
+       slot gets a fixed width instead of shrinking to fit a grid column,
+       so the row reads as a real horizontal shelf you swipe through
+       rather than 5 tiles trying to squeeze into one line. */
+    .crate-row{display:flex;gap:8px;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity;padding-bottom:2px}
+    .crate-row .crate-slot{flex:0 0 128px;scroll-snap-align:start}
     .crate-slot{
       position:relative;min-width:0;display:flex;flex-direction:column;align-items:center;gap:6px;
       border:3px solid var(--border2);border-radius:14px;
@@ -5378,7 +5381,7 @@ body[data-goal-theme="cut"] .lv-page{
        function that writes into them (renderDashRankPill etc.) already
        no-ops safely when they're missing, same as any other page that
        doesn't show them. -->
-  <header class="lv-grain lv-photo-header" style="background-image:linear-gradient(180deg,rgba(10,7,4,.35) 0%,rgba(10,7,4,.4) 50%,rgba(10,7,4,.7) 100%),url('images/roads/realm-mortal.jpg');background-size:140%;background-position:center 42%;--lv-fg:#F7F5F2">
+  <header class="lv-grain lv-photo-header" style="background-image:linear-gradient(180deg,rgba(10,7,4,.35) 0%,rgba(10,7,4,.4) 50%,rgba(10,7,4,.7) 100%),url('images/roads/realm-mortal.jpg');background-size:190%;background-position:center 44%;--lv-fg:#F7F5F2">
     <div style="position:relative;z-index:1;text-shadow:0 2px 10px rgba(0,0,0,.55)">
       <h1 style="margin:0;color:var(--lv-fg);font-family:var(--lv-display);font-weight:400;font-size:1.9rem;line-height:1;letter-spacing:.01em;text-transform:uppercase"><span id="dash-greeting-word1">Good</span> <span id="dash-greeting-word2">morning</span></h1>
       <div style="margin-top:4px;font-size:22px;font-weight:800;color:var(--lv-fg)" id="dash-greeting-name"></div>
@@ -8474,13 +8477,15 @@ body[data-goal-theme="cut"] .lv-page{
 
 <!-- LEGAL -->
 <div class="page lv-page" id="page-legal">
-  <div class="lv-topbar" style="margin:0 -20px 16px">
-    <span style="display:flex;align-items:center;gap:8px">
-      <svg width="18" height="18" viewBox="0 0 48 48" fill="none" stroke="var(--lv-gold)" aria-hidden="true"><path d="M24 5 26.6 21.4 43 24 26.6 26.6 24 43 21.4 26.6 5 24 21.4 21.4Z" fill="var(--lv-gold)" stroke="none" opacity=".95"/><path d="M24 12v24M12 24h24" stroke-width=".6" opacity=".5"/><circle cx="24" cy="24" r="11" stroke-width=".7" opacity=".45"/><path d="M15 9c-7 5-9 14-5 22 2.5 5 6.5 8.5 11 10" stroke-width="1.4" opacity=".8"/><path d="M33 9c7 5 9 14 5 22-2.5 5-6.5 8.5-11 10" stroke-width="1.4" opacity=".8"/><g opacity=".7"><ellipse cx="10.5" cy="13" rx="2.6" ry="1.2" transform="rotate(-35 10.5 13)" stroke-width=".9"/><ellipse cx="37.5" cy="13" rx="2.6" ry="1.2" transform="rotate(35 37.5 13)" stroke-width=".9"/></g><g opacity=".7"><ellipse cx="11.3" cy="19" rx="2.6" ry="1.2" transform="rotate(-35 11.3 19)" stroke-width=".9"/><ellipse cx="36.7" cy="19" rx="2.6" ry="1.2" transform="rotate(35 36.7 19)" stroke-width=".9"/></g><g opacity=".7"><ellipse cx="12.1" cy="25" rx="2.6" ry="1.2" transform="rotate(-35 12.1 25)" stroke-width=".9"/><ellipse cx="35.9" cy="25" rx="2.6" ry="1.2" transform="rotate(35 35.9 25)" stroke-width=".9"/></g><g opacity=".7"><ellipse cx="12.9" cy="31" rx="2.6" ry="1.2" transform="rotate(-35 12.9 31)" stroke-width=".9"/><ellipse cx="35.1" cy="31" rx="2.6" ry="1.2" transform="rotate(35 35.1 31)" stroke-width=".9"/></g></svg>
-      <span class="lv-wordmark" style="font-size:11px">Areviax</span><span style="font-size:10px;color:var(--lv-muted-fg);margin-left:7px;padding-left:7px;border-left:1px solid var(--lv-border-strong)">Legal</span>
-    </span>
-    <button type="button" class="lv-profile-btn" onclick="showPage('profile')" aria-label="Profile"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--lv-fg)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="lv-profile-badge"></span></button>
-  </div>
+  <!-- Direct bug report: this page's own .lv-topbar (logo/"Legal"/profile
+       row) was stacking directly under the shared .topbar on desktop —
+       syncPageChrome() only hides .topbar for this page at MOBILE widths
+       (where #global-topbar covers it instead), so on desktop both bars
+       rendered at once, reading as "two dashboards overlapping". .topbar
+       already shows this page's title (tb-title, set in showPage()) plus
+       streak/Arete/profile on every width, so this row was pure
+       duplication, not a fallback for missing chrome — removed rather
+       than reconciled. -->
 
   <div class="legal-disclaimer-banner">
     <strong>Not medical advice.</strong> Areviax provides general fitness and nutrition information for educational purposes. It is not a substitute for advice from a doctor, registered dietitian, or other qualified professional. Talk to a doctor before starting any new exercise or nutrition programme, especially if you have an existing health condition, injury, or take medication.
@@ -8575,13 +8580,15 @@ body[data-goal-theme="cut"] .lv-page{
 
 <!-- SETTINGS -->
 <div class="page lv-page" id="page-settings">
-  <div class="lv-topbar" style="margin:0 -20px 16px">
-    <span style="display:flex;align-items:center;gap:8px">
-      <svg width="18" height="18" viewBox="0 0 48 48" fill="none" stroke="var(--lv-gold)" aria-hidden="true"><path d="M24 5 26.6 21.4 43 24 26.6 26.6 24 43 21.4 26.6 5 24 21.4 21.4Z" fill="var(--lv-gold)" stroke="none" opacity=".95"/><path d="M24 12v24M12 24h24" stroke-width=".6" opacity=".5"/><circle cx="24" cy="24" r="11" stroke-width=".7" opacity=".45"/><path d="M15 9c-7 5-9 14-5 22 2.5 5 6.5 8.5 11 10" stroke-width="1.4" opacity=".8"/><path d="M33 9c7 5 9 14 5 22-2.5 5-6.5 8.5-11 10" stroke-width="1.4" opacity=".8"/><g opacity=".7"><ellipse cx="10.5" cy="13" rx="2.6" ry="1.2" transform="rotate(-35 10.5 13)" stroke-width=".9"/><ellipse cx="37.5" cy="13" rx="2.6" ry="1.2" transform="rotate(35 37.5 13)" stroke-width=".9"/></g><g opacity=".7"><ellipse cx="11.3" cy="19" rx="2.6" ry="1.2" transform="rotate(-35 11.3 19)" stroke-width=".9"/><ellipse cx="36.7" cy="19" rx="2.6" ry="1.2" transform="rotate(35 36.7 19)" stroke-width=".9"/></g><g opacity=".7"><ellipse cx="12.1" cy="25" rx="2.6" ry="1.2" transform="rotate(-35 12.1 25)" stroke-width=".9"/><ellipse cx="35.9" cy="25" rx="2.6" ry="1.2" transform="rotate(35 35.9 25)" stroke-width=".9"/></g><g opacity=".7"><ellipse cx="12.9" cy="31" rx="2.6" ry="1.2" transform="rotate(-35 12.9 31)" stroke-width=".9"/><ellipse cx="35.1" cy="31" rx="2.6" ry="1.2" transform="rotate(35 35.1 31)" stroke-width=".9"/></g></svg>
-      <span class="lv-wordmark" style="font-size:11px">Areviax</span><span style="font-size:10px;color:var(--lv-muted-fg);margin-left:7px;padding-left:7px;border-left:1px solid var(--lv-border-strong)">Settings</span>
-    </span>
-    <button type="button" class="lv-profile-btn" onclick="showPage('profile')" aria-label="Profile"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--lv-fg)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="lv-profile-badge"></span></button>
-  </div>
+  <!-- Direct bug report: this page's own .lv-topbar (logo/"Settings"/
+       profile row) was stacking directly under the shared .topbar on
+       desktop — syncPageChrome() only hides .topbar for this page at
+       MOBILE widths (where #global-topbar covers it instead), so on
+       desktop both bars rendered at once, reading as "two dashboards
+       overlapping". .topbar already shows this page's title (tb-title,
+       set in showPage()) plus streak/Arete/profile on every width, so
+       this row was pure duplication, not a fallback for missing chrome —
+       removed rather than reconciled. -->
 
   <div class="settings-grid">
   <div>
@@ -8732,20 +8739,16 @@ body[data-goal-theme="cut"] .lv-page{
      FAQ layer for now, with a clear escalation to a real human the
      moment it can't help, rather than pretending to be a full AI. -->
 <div class="page lv-page" id="page-aicoach">
-  <div class="lv-topbar" style="margin:0 -20px 16px">
-    <span style="display:flex;align-items:center;gap:8px">
-      <svg width="18" height="18" viewBox="0 0 48 48" fill="none" stroke="var(--lv-gold)" aria-hidden="true"><path d="M24 5 26.6 21.4 43 24 26.6 26.6 24 43 21.4 26.6 5 24 21.4 21.4Z" fill="var(--lv-gold)" stroke="none" opacity=".95"/><path d="M24 12v24M12 24h24" stroke-width=".6" opacity=".5"/><circle cx="24" cy="24" r="11" stroke-width=".7" opacity=".45"/></svg>
-      <span class="lv-wordmark" style="font-size:11px">Areviax</span><span style="font-size:10px;color:var(--lv-muted-fg);margin-left:7px;padding-left:7px;border-left:1px solid var(--lv-border-strong)">Coach Sam</span>
-    </span>
-    <div style="display:flex;align-items:center;gap:9px">
-      <span class="lv-pill" onclick="openStreakDetail()" style="padding:4px 8px;background:var(--lv-primary);color:var(--lv-primary-fg);font-size:10px;cursor:pointer"><svg width="11" height="15" viewBox="0 0 24 33" fill="currentColor" aria-hidden="true" class="lv-streak-flame"><path d="M12 22c4.4 0 7-2.9 7-6.8 0-3-1.7-5-3-7-.2 1.7-1 2.8-2 3.4.3-2.7-.7-5.6-3-7.6-.3 2.5-1.2 3.9-2.7 5.4C6.8 10.8 6 12.6 6 15c0 4 2.7 7 6 7z"/><path d="M7.6 22h8.8l-1.8 3.4H9.4z"/><rect x="10.3" y="25.4" width="3.4" height="7" rx="1.4"/></svg> <span class="lv-streak-badge">0</span></span>
-      <button type="button" class="lv-road-pill" onclick="showPage('trophyroad')" aria-label="The Way Home — Arete progress">
-        <span class="lv-road-pill-top"><img src="images/icons/arete.png" alt="" class="lv-road-pill-icon"> <span class="lv-road-arete-num">0</span></span>
-        <span class="lv-road-pill-track"><span class="lv-road-pill-fill" style="width:0%"></span></span>
-      </button>
-      <button type="button" class="lv-profile-btn" onclick="showPage('profile')" aria-label="Profile"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--lv-fg)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="lv-profile-badge"></span></button>
-    </div>
-  </div>
+  <!-- Direct bug report: this page's own .lv-topbar (logo/"Coach Sam"/
+       streak/Arete-road/profile row) was stacking directly under the
+       shared .topbar on desktop — syncPageChrome() only hides .topbar
+       for this page at MOBILE widths (where #global-topbar covers it
+       instead), so on desktop both bars rendered at once, reading as
+       "two dashboards overlapping". .topbar already shows this page's
+       title (tb-title, set in showPage()) plus streak/Arete/profile on
+       every width; the one thing unique to this row (the Arete road
+       progress pill, vs. just a number) is still one tap away on the
+       Way Home page itself. Removed rather than reconciled. -->
   <div class="aicoach-contact-bar">
     <img class="aicoach-contact-avatar" src="images/icons/coach-sam-portrait.png" alt="">
     <div>
@@ -8781,13 +8784,15 @@ body[data-goal-theme="cut"] .lv-page{
      a card. Free-tier limits shown are the current design's proposal,
      not something enforced elsewhere in the app yet. -->
 <div class="page lv-page" id="page-subscription">
-  <div class="lv-topbar" style="margin:0 -20px 16px">
-    <span style="display:flex;align-items:center;gap:8px">
-      <svg width="18" height="18" viewBox="0 0 48 48" fill="none" stroke="var(--lv-gold)" aria-hidden="true"><path d="M24 5 26.6 21.4 43 24 26.6 26.6 24 43 21.4 26.6 5 24 21.4 21.4Z" fill="var(--lv-gold)" stroke="none" opacity=".95"/><path d="M24 12v24M12 24h24" stroke-width=".6" opacity=".5"/><circle cx="24" cy="24" r="11" stroke-width=".7" opacity=".45"/><path d="M15 9c-7 5-9 14-5 22 2.5 5 6.5 8.5 11 10" stroke-width="1.4" opacity=".8"/><path d="M33 9c7 5 9 14 5 22-2.5 5-6.5 8.5-11 10" stroke-width="1.4" opacity=".8"/><g opacity=".7"><ellipse cx="10.5" cy="13" rx="2.6" ry="1.2" transform="rotate(-35 10.5 13)" stroke-width=".9"/><ellipse cx="37.5" cy="13" rx="2.6" ry="1.2" transform="rotate(35 37.5 13)" stroke-width=".9"/></g><g opacity=".7"><ellipse cx="11.3" cy="19" rx="2.6" ry="1.2" transform="rotate(-35 11.3 19)" stroke-width=".9"/><ellipse cx="36.7" cy="19" rx="2.6" ry="1.2" transform="rotate(35 36.7 19)" stroke-width=".9"/></g><g opacity=".7"><ellipse cx="12.1" cy="25" rx="2.6" ry="1.2" transform="rotate(-35 12.1 25)" stroke-width=".9"/><ellipse cx="35.9" cy="25" rx="2.6" ry="1.2" transform="rotate(35 35.9 25)" stroke-width=".9"/></g><g opacity=".7"><ellipse cx="12.9" cy="31" rx="2.6" ry="1.2" transform="rotate(-35 12.9 31)" stroke-width=".9"/><ellipse cx="35.1" cy="31" rx="2.6" ry="1.2" transform="rotate(35 35.1 31)" stroke-width=".9"/></g></svg>
-      <span class="lv-wordmark" style="font-size:11px">Areviax</span><span style="font-size:10px;color:var(--lv-muted-fg);margin-left:7px;padding-left:7px;border-left:1px solid var(--lv-border-strong)">Go Premium</span>
-    </span>
-    <button type="button" class="lv-profile-btn" onclick="showPage('profile')" aria-label="Profile"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--lv-fg)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="lv-profile-badge"></span></button>
-  </div>
+  <!-- Direct bug report: this page's own .lv-topbar (logo/"Go Premium"/
+       profile row) was stacking directly under the shared .topbar on
+       desktop — syncPageChrome() only hides .topbar for this page at
+       MOBILE widths (where #global-topbar covers it instead), so on
+       desktop both bars rendered at once, reading as "two dashboards
+       overlapping". .topbar already shows this page's title (tb-title,
+       set in showPage()) plus streak/Arete/profile on every width, so
+       this row was pure duplication, not a fallback for missing chrome —
+       removed rather than reconciled. -->
   <div class="companion" style="margin-bottom:14px"><div class="companion-msg">One plan for the training/nutrition core everyone gets for free — Premium adds the AI-powered layer on top.</div></div>
 
   <div style="position:relative;display:flex;gap:4px;background:var(--panel2);border:1.5px solid var(--border2);border-radius:999px;padding:4px;margin-bottom:22px">
@@ -8824,13 +8829,15 @@ body[data-goal-theme="cut"] .lv-page{
      ROADMAP_ITEMS/renderRoadmap() below; ETAs are our own soft internal
      targets, not guarantees — worded that way deliberately. -->
 <div class="page lv-page" id="page-roadmap">
-  <div class="lv-topbar" style="margin:0 -20px 16px">
-    <span style="display:flex;align-items:center;gap:8px">
-      <svg width="18" height="18" viewBox="0 0 48 48" fill="none" stroke="var(--lv-gold)" aria-hidden="true"><path d="M24 5 26.6 21.4 43 24 26.6 26.6 24 43 21.4 26.6 5 24 21.4 21.4Z" fill="var(--lv-gold)" stroke="none" opacity=".95"/><path d="M24 12v24M12 24h24" stroke-width=".6" opacity=".5"/><circle cx="24" cy="24" r="11" stroke-width=".7" opacity=".45"/></svg>
-      <span class="lv-wordmark" style="font-size:11px">Areviax</span><span style="font-size:10px;color:var(--lv-muted-fg);margin-left:7px;padding-left:7px;border-left:1px solid var(--lv-border-strong)">Roadmap</span>
-    </span>
-    <button type="button" class="lv-profile-btn" onclick="showPage('profile')" aria-label="Profile"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--lv-fg)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="lv-profile-badge"></span></button>
-  </div>
+  <!-- Direct bug report: this page's own .lv-topbar (logo/"Roadmap"/
+       profile row) was stacking directly under the shared .topbar on
+       desktop — syncPageChrome() only hides .topbar for this page at
+       MOBILE widths (where #global-topbar covers it instead), so on
+       desktop both bars rendered at once, reading as "two dashboards
+       overlapping". .topbar already shows this page's title (tb-title,
+       set in showPage()) plus streak/Arete/profile on every width, so
+       this row was pure duplication, not a fallback for missing chrome —
+       removed rather than reconciled. -->
   <div class="companion" style="margin-bottom:6px"><div class="companion-msg">Built in the open — exactly what's shipped, what's in progress, and what's next. No vague promises, no fake dates.</div></div>
   <div id="roadmap-list"></div>
   <div style="text-align:center;margin:22px 0 4px;font-size:10.5px;color:var(--muted);line-height:1.6">ETAs are our own internal targets, not guarantees — things can move. <a href="mailto:areviaxsupport@gmail.com" style="color:rgba(255,122,46,.85);text-decoration:underline">Tell us what to prioritise</a></div>
@@ -8931,26 +8938,21 @@ body[data-goal-theme="cut"] .lv-page{
     <button onclick="closeStreakDetail()" style="background:var(--border2);border:none;color:var(--muted);font-size:16px;cursor:pointer;line-height:1;padding:6px 10px;border-radius:50%">✕</button>
   </div>
   <div style="flex:1;min-height:0;overflow-y:auto;padding:0 24px 24px;text-align:center">
-    <!-- v2 (direct ask): "make the streak a torch with the Areviax
-         insignia on it." Flame paths/gradients untouched (they already
-         taper to a single point at the bottom — 16,42/16,40 — which is
-         exactly where a real torch's flame meets its cup, so nothing
-         about the flame itself needed to change). v3 (direct ask: "fix
-         the torch" — the v2 bowl/handle read as an indistinct dark blob
-         under the flame, not a torch): the bowl now flares WIDE at the
-         top to actually catch the flame (matching its base width)
-         instead of flaring the wrong way, the handle is proportionally
-         longer so the flame doesn't dominate the whole icon, and the
-         bowl/handle now use two visibly different tones (warm bronze
-         cup vs. dark wood handle) instead of two near-identical browns
-         that blurred into one shape. Compass-star mark re-centered on
-         the now-longer handle and sized up slightly for legibility. -->
-    <svg width="44" height="94" viewBox="0 0 32 68" fill="none" style="margin:4px auto 8px">
+    <!-- v2: "make the streak a torch with the Areviax insignia on it."
+         v3: "fix the torch" — reworked the bowl/handle proportions.
+         v4 (direct ask, with a screenshot: still doesn't read as a torch,
+         "either make it look better or just make it the flame at that
+         point"): a hand-drawn bowl+handle at this size kept reading as a
+         goblet, not a torch — a flat-topped cup under a stubby handle
+         doesn't have room to look like wood/metal at 44px wide. Took the
+         offered fallback: just the flame, at a size where it actually
+         reads clean, rather than a third attempt at bowl/handle shapes.
+         Paths/gradients themselves are untouched from v2/v3 — they
+         already looked right, it was only the hardware underneath them
+         that didn't. -->
+    <svg width="54" height="71" viewBox="0 0 32 42" fill="none" style="margin:4px auto 8px">
       <path d="M16 42 C6 42 2 34 2 28 C2 20 8 16 10 10 C11 7 11 4 10 2 C13 5 14 8 14 11 C16 8 17 4 15 0 C20 4 24 10 22 18 C24 15 25 11 24 8 C28 13 30 20 30 26 C30 34 26 42 16 42Z" fill="url(#sdFgD1)" opacity=".9"/>
       <path d="M16 40 C9 40 6 33 6 28 C6 23 9 19 11 15 C12 12 12 9 11 7 C14 10 15 13 14 16 C16 13 17 10 16 7 C19 11 21 16 20 21 C22 18 22 15 21 12 C24 17 26 22 26 28 C26 34 22 40 16 40Z" fill="url(#sdFgD2)"/>
-      <path d="M4 42 L28 42 L21 51 L11 51 Z" fill="#A56B34"/>
-      <rect x="10.5" y="51" width="11" height="17" rx="3" fill="#3E2712"/>
-      <path d="M0 -1 .16 -.16 1 0 .16 .16 0 1 -.16 .16 -1 0 -.16 -.16Z" fill="#FFD98A" stroke="#2A1206" stroke-width=".14" transform="translate(16,59.5) scale(4.2)"/>
       <defs>
         <linearGradient id="sdFgD1" x1="16" y1="42" x2="16" y2="0" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#FF8342" stop-opacity=".9"/><stop offset="100%" stop-color="#FFC98A" stop-opacity=".7"/></linearGradient>
         <linearGradient id="sdFgD2" x1="16" y1="40" x2="16" y2="7" gradientUnits="userSpaceOnUse"><stop offset="0%" stop-color="#E85F1A"/><stop offset="100%" stop-color="#FFD8A8" stop-opacity=".9"/></linearGradient>
@@ -13014,6 +13016,18 @@ const DRACHMA_OFFERS=[
   {id:'diamond1',label:'1 Diamond Crate',sub:'Instant',cost:60,tier:'diamond',render:()=>crateIconHTML('diamond'),grant:()=>{diamondDropBank+=1;}},
   {id:'streak_freeze1',label:'Streak Freeze',sub:'Auto-protects your next missed day',cost:35,tier:'diamond',badge:'new',render:()=>STREAK_FREEZE_ICON,grant:()=>{streakFreezes+=1;}},
   {id:'streak_saver1',label:'Streak Saver',sub:'Repairs a streak that already broke',cost:50,tier:'areviax',badge:'new',render:()=>STREAK_SAVER_ICON,grant:()=>{streakSavers+=1;}},
+  // BULK BUNDLES — direct ask: "add more special offers to fill the
+  // marketplace". Same grantable resources as the singles above (no new
+  // currencies or content types invented), priced at a discount off the
+  // per-unit rate of their same-tier single/3-pack so buying in bulk
+  // actually reads as a deal rather than just a bigger number.
+  {id:'starter_pack',label:'Starter Pack',sub:'2 Bronze + 1 Silver Crate + 1 Key',cost:45,tier:'bronze',badge:'new',render:()=>'🎁',grant:()=>{bronzeDropBank+=2;silverDropBank+=1;keyBank+=1;}},
+  {id:'bronze10',label:'10 Bronze Crates',sub:'Instant · bulk price',cost:45,tier:'bronze',badge:'new',render:()=>crateIconHTML('bronze'),grant:()=>{bronzeDropBank+=10;}},
+  {id:'silver10',label:'10 Silver Crates',sub:'Instant · bulk price',cost:90,tier:'silver',badge:'new',render:()=>crateIconHTML('silver'),grant:()=>{silverDropBank+=10;}},
+  {id:'key10',label:'10 Keys',sub:'Opens Gold Crates · bulk price',cost:120,tier:'gold',badge:'new',render:()=>'🗝️',grant:()=>{keyBank+=10;}},
+  {id:'diamond3',label:'3 Diamond Crates',sub:'Instant · bulk price',cost:165,tier:'diamond',badge:'new',render:()=>crateIconHTML('diamond'),grant:()=>{diamondDropBank+=3;}},
+  {id:'streak_freeze3',label:'3 Streak Freezes',sub:'Auto-protects your next 3 missed days',cost:95,tier:'diamond',badge:'new',render:()=>STREAK_FREEZE_ICON,grant:()=>{streakFreezes+=3;}},
+  {id:'streak_saver3',label:'3 Streak Savers',sub:'Repairs a streak that already broke',cost:140,tier:'areviax',badge:'new',render:()=>STREAK_SAVER_ICON,grant:()=>{streakSavers+=3;}},
   {id:'title_unbowed',label:'Title: The Unbowed',sub:'Equip on Profile',cost:120,tier:'areviax',type:'title',key:'unbowed',render:()=>'🏅'},
   {id:'title_disciplined',label:'Title: The Disciplined',sub:'Equip on Profile',cost:120,tier:'areviax',type:'title',key:'disciplined',render:()=>'🏅'},
   {id:'title_ascendant',label:'Title: The Ascendant',sub:'Equip on Profile',cost:120,tier:'areviax',type:'title',key:'ascendant',render:()=>'🏅'},
