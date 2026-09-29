@@ -7439,6 +7439,22 @@ body[data-goal-theme="cut"] .lv-page{
       <div style="flex:1"><label class="lbl" style="margin-top:0">Hours the night before</label><input type="number" step="0.5" id="log-sleep-yesterday" placeholder="e.g. 6.5"></div>
       <button class="btn btn-g btn-sm" style="flex-shrink:0" onclick="logSleep(getYesterdayDate())">Log</button>
     </div>
+    <!-- SLEEP QUALITY CHECK-IN — direct ask: "add more things like woke up
+         in the middle of the night, feel rested? etc, give a rating of
+         their sleep based on a questionnaire". Sits below the plain hours
+         logger as an optional deeper pass rather than replacing it — Log
+         above stays the 5-second path, this is for anyone who wants the
+         actual score. Mix of classic sleep-diary questions (latency,
+         wake-ups, how rested you feel, consistent schedule) and more
+         insightful ones the classic set skips (pre-bed screens, stress/
+         racing thoughts, caffeine or alcohol timing) — see
+         SLEEP_QUIZ_QUESTIONS/computeSleepQuality(). -->
+    <div onclick="toggleSleepQuiz()" style="font-size:10px;color:rgba(142,142,147,.6);cursor:pointer;margin-top:6px;text-decoration:underline;text-underline-offset:2px;display:inline-block">Rate last night's sleep — get a real score →</div>
+    <div id="sleep-quiz-wrap" style="display:none;margin-top:14px;padding-top:14px;border-top:1.5px dashed rgba(142,142,147,.18)">
+      <div id="sleep-quiz-questions"></div>
+      <button class="btn btn-g btn-sm" style="width:100%" onclick="saveSleepCheckin()">Save check-in &amp; see my score</button>
+      <div id="sleep-quiz-result" style="display:none;margin-top:14px;padding:14px;background:rgba(142,142,147,.05);border:1.5px solid rgba(142,142,147,.15);border-radius:10px"></div>
+    </div>
     <div id="sleep-history"></div>
     <div style="height:1px;background:rgba(142,142,147,.14);margin:18px 0"></div>
     <div style="font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:rgba(142,142,147,.6);margin-bottom:6px">Why it matters</div>
@@ -23745,6 +23761,173 @@ function logSleep(dateOverride){
   if(dateOverride){const yw=document.getElementById('yesterday-wrap');if(yw)yw.style.display='none';}
 }
 
+// ── SLEEP QUALITY CHECK-IN — an optional deeper pass on top of the plain
+// hours logger above. Mixes classic sleep-diary questions (how long to
+// fall asleep, did you wake up, how rested you feel, same schedule as
+// usual) with a few more insightful ones a bare "hours slept" number
+// misses entirely (screens right before bed, stress/racing thoughts,
+// caffeine or alcohol timing) — each answer carries a 0-100 sub-score,
+// combined with hours slept itself into one overall Sleep Score via
+// computeSleepQuality() below. Answering none of it is fine — the plain
+// Log button above still works standalone; this only computes a score
+// once at least hours + something else is filled in. ──
+const SLEEP_QUIZ_QUESTIONS=[
+  {id:'latency',label:'How long did it take to fall asleep?',options:[
+    {label:'Under 15 min',score:100},
+    {label:'15–30 min',score:75},
+    {label:'30–60 min',score:45},
+    {label:'Over an hour',score:15},
+  ]},
+  {id:'wakeups',label:'Wake up in the middle of the night?',options:[
+    {label:'Slept straight through',score:100},
+    {label:'Once, back to sleep fast',score:75},
+    {label:'2–3 times',score:45},
+    {label:'Up for long stretches',score:15},
+  ]},
+  {id:'rested',label:'Feel rested right now?',options:[
+    {label:'Exhausted',score:10},
+    {label:'Tired',score:35},
+    {label:'OK',score:60},
+    {label:'Rested',score:85},
+    {label:'Fully recharged',score:100},
+  ]},
+  {id:'consistency',label:'Same bed/wake time as usual?',options:[
+    {label:'Yes, on schedule',score:100},
+    {label:'A bit off',score:65},
+    {label:'Way off',score:30},
+  ]},
+  {id:'screens',label:'Screen time in the hour before bed?',options:[
+    {label:'None',score:100},
+    {label:'A little',score:65},
+    {label:'Most of the hour',score:30},
+  ]},
+  {id:'stress',label:'Racing thoughts or stress at bedtime?',options:[
+    {label:'Calm, no trouble',score:100},
+    {label:'Some',score:60},
+    {label:'A lot',score:25},
+  ]},
+  {id:'caffeine',label:'Caffeine or alcohol after 2pm?',options:[
+    {label:'Neither',score:100},
+    {label:'One of them',score:60},
+    {label:'Both',score:30},
+  ]},
+];
+// Relative weight of each factor in the overall score — reweighted at
+// calculation time over whichever ones were actually answered, so a
+// partial check-in (e.g. hours + "how rested" only) still produces a
+// sensible score instead of requiring every question. Hours slept is
+// the single biggest factor (matches the app's own "7-9h" framing
+// everywhere else); how rested you actually feel this morning is the
+// next biggest since it's the most direct read on sleep quality itself,
+// ahead of any individual habit question.
+const SLEEP_QUIZ_WEIGHTS={hours:.30,rested:.20,wakeups:.15,latency:.10,consistency:.10,stress:.08,screens:.05,caffeine:.02};
+let sleepQuizAnswers={};
+// 7–9h is the flat "good" band the rest of the app already recommends
+// (see the "Aim for 7–9 hours" line below the sleep chart) — score only
+// drops once you're actually outside it, rather than treating 8h as the
+// one correct number and marking 7h/9h down for not being exactly that.
+function sleepHoursScore(h){
+  if(h==null||isNaN(h))return null;
+  if(h>=7&&h<=9)return 100;
+  const dev=h<7?7-h:h-9;
+  return Math.max(0,Math.round(100-dev*18));
+}
+function toggleSleepQuiz(){
+  const wrap=document.getElementById('sleep-quiz-wrap');
+  if(!wrap)return;
+  const opening=wrap.style.display==='none'||!wrap.style.display;
+  wrap.style.display=opening?'block':'none';
+  if(opening){
+    const today=localDateKey(new Date());
+    const existing=sleepLog.find(e=>e.date===today);
+    sleepQuizAnswers=(existing&&existing.quiz)?{...existing.quiz}:{};
+    renderSleepQuizChips();
+    const resultEl=document.getElementById('sleep-quiz-result');
+    if(resultEl){resultEl.style.display='none';resultEl.innerHTML='';}
+  }
+}
+function selectSleepQuizAnswer(qid,idx){
+  sleepQuizAnswers[qid]=idx;
+  renderSleepQuizChips();
+}
+function renderSleepQuizChips(){
+  const cont=document.getElementById('sleep-quiz-questions');
+  if(!cont)return;
+  cont.innerHTML=SLEEP_QUIZ_QUESTIONS.map(q=>`
+    <div style="margin-bottom:14px">
+      <label class="lbl" style="margin-top:0">${q.label}</label>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">${q.options.map((o,i)=>`<span onclick="selectSleepQuizAnswer('${q.id}',${i})" class="equip-chip${sleepQuizAnswers[q.id]===i?' active':''}" style="cursor:pointer;font-size:11px;padding:6px 10px">${o.label}</span>`).join('')}</div>
+    </div>`).join('');
+}
+// Combines hours-slept + whichever quiz questions were answered into one
+// 0-100 score, reweighting SLEEP_QUIZ_WEIGHTS over just the answered
+// subset so a partial check-in doesn't get unfairly diluted toward the
+// middle by missing questions. Returns null if hours is the ONLY thing
+// known (nothing to weigh it against) — the plain hours logger already
+// covers that case without a score.
+function computeSleepQuality(hours){
+  const parts=[];
+  const hScore=sleepHoursScore(hours);
+  if(hScore!=null)parts.push({key:'hours',label:'Hours slept',score:hScore,weight:SLEEP_QUIZ_WEIGHTS.hours});
+  SLEEP_QUIZ_QUESTIONS.forEach(q=>{
+    const idx=sleepQuizAnswers[q.id];
+    if(idx==null)return;
+    parts.push({key:q.id,label:q.label,score:q.options[idx].score,weight:SLEEP_QUIZ_WEIGHTS[q.id]});
+  });
+  if(parts.length<2)return null;
+  const totalWeight=parts.reduce((a,p)=>a+p.weight,0);
+  const score=Math.round(parts.reduce((a,p)=>a+p.score*p.weight,0)/totalWeight);
+  const weakest=parts.reduce((min,p)=>p.score<min.score?p:min,parts[0]);
+  return {score,parts,weakest};
+}
+// Literal hex, not var(--green)/var(--orange) — this app's accent-theme
+// system repoints those CSS vars per equipped theme (and in the default
+// Bronze theme --green and --orange already resolve to the SAME colour),
+// so a 4-tier rating needs colours that stay distinct regardless of
+// theme. Also lets renderSleepLog() below append an alpha suffix
+// ('1a'/'55') to build the badge's tint/border, which only works on a
+// literal hex value, not a var() reference.
+function sleepRatingFor(score){
+  if(score>=85)return{label:'Excellent',color:'#4AE888'};
+  if(score>=70)return{label:'Good',color:'#2BBFE0'};
+  if(score>=50)return{label:'Fair',color:'#F0A84A'};
+  return{label:'Poor',color:'#E8314A'};
+}
+function renderSleepQuizResult(quality){
+  const cont=document.getElementById('sleep-quiz-result');
+  if(!cont)return;
+  if(!quality){cont.style.display='none';cont.innerHTML='';return;}
+  const rating=sleepRatingFor(quality.score);
+  cont.style.display='block';
+  cont.innerHTML=`<div style="display:flex;align-items:center;gap:14px">
+    <div style="width:56px;height:56px;border-radius:50%;border:3px solid ${rating.color};display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:'JetBrains Mono',monospace;font-weight:800;font-size:16px;color:${rating.color}">${quality.score}</div>
+    <div style="min-width:0">
+      <div style="font-size:13px;font-weight:800;color:${rating.color}">${rating.label} sleep</div>
+      <div style="font-size:11px;color:var(--muted);line-height:1.5;margin-top:2px">${quality.weakest.score<70?quality.weakest.label+' — biggest drag on tonight’s score.':'Nothing dragged your score down much — solid night.'}</div>
+    </div>
+  </div>`;
+}
+function saveSleepCheckin(){
+  const input=document.getElementById('log-sleep');
+  const hours=input?parseFloat(input.value):NaN;
+  if(!hours||hours<=0||hours>16){toast('⚠️','Enter your hours slept above first');return;}
+  const targetDate=localDateKey(new Date());
+  const quality=computeSleepQuality(hours);
+  const existingIdx=sleepLog.findIndex(e=>e.date===targetDate);
+  const entry={date:targetDate,hours,quiz:{...sleepQuizAnswers},qualityScore:quality?quality.score:null};
+  if(existingIdx>=0)sleepLog[existingIdx]={...sleepLog[existingIdx],...entry};
+  else sleepLog.push(entry);
+  input.value='';
+  renderSleepLog();
+  renderSleepQuizResult(quality);
+  renderRecoveryTilePreviews();
+  addXP(8,'Sleep check-in logged');
+  saveToStorage();
+  const rating=quality?sleepRatingFor(quality.score):null;
+  toast('😴',rating?`Sleep check-in saved — ${rating.label} (${quality.score}/100)`:'Sleep check-in saved');
+  if(quality&&quality.score>=70)celebrateBurst(['😴','🌙','✨'],14);
+}
+
 // Real SVG chart for sleep, matching the weight chart's style. Sleep has a
 // natural fixed scale (0–10h) that means the same thing for everyone, so
 // unlike weight this uses a fixed axis rather than a dynamic min/max — with
@@ -23795,9 +23978,13 @@ function renderSleepLog(){
     hist.innerHTML=recent.map((e)=>{
       const realIdx=sleepLog.indexOf(e);
       const col=e.hours>=7?'var(--green)':e.hours>=6?'var(--orange)':'#E8314A';
+      // Quality badge only shows up for nights that actually got the
+      // check-in (see saveSleepCheckin()) \u2014 a plain hours-only log has
+      // no qualityScore and just shows the hours, same as before.
+      const qBadge=(e.qualityScore!=null)?(()=>{const r=sleepRatingFor(e.qualityScore);return '<span style="font-family:\'JetBrains Mono\',monospace;font-size:9.5px;font-weight:800;color:'+r.color+';background:'+r.color+'1a;border:1px solid '+r.color+'55;border-radius:999px;padding:2px 7px;margin-right:6px" title="'+r.label+' sleep">'+e.qualityScore+'</span>';})():'';
       return '<div style="display:flex;justify-content:space-between;align-items:center;font-size:11px;padding:4px 0;border-bottom:1.5px solid var(--border2)">'+
         '<span style="color:var(--muted)">'+fmtPhotoDate(e.date)+'</span>'+
-        '<span style="font-family:\'JetBrains Mono\',monospace;font-weight:700;color:'+col+'">'+e.hours+'h</span>'+
+        '<span style="display:flex;align-items:center">'+qBadge+'<span style="font-family:\'JetBrains Mono\',monospace;font-weight:700;color:'+col+'">'+e.hours+'h</span></span>'+
         '<button onclick="deleteSleepEntry('+realIdx+')" style="background:none;border:none;color:rgba(var(--white-rgb),.3);font-size:14px;cursor:pointer;padding:0 2px">\u00d7</button>'+
       '</div>';
     }).join('');
@@ -23832,6 +24019,16 @@ function renderSleepLog(){
       if(avg>=7.5)msg='Averaging <strong style="color:var(--green)">'+avg.toFixed(1)+'h</strong> \u2014 right in the zone where most growth hormone release happens. Keep this up.';
       else if(avg>=6.5)msg='Averaging <strong style="color:var(--orange)">'+avg.toFixed(1)+'h</strong> \u2014 workable, but pushing toward 7\u20139h would meaningfully help recovery.';
       else msg='Averaging <strong style="color:#E8314A">'+avg.toFixed(1)+'h</strong> \u2014 this is the kind of gap that can quietly stall progress no matter how well training and eating go. Sleep is when the actual growth happens.';
+      // Layer in the average Sleep Score too, but only from nights that
+      // actually got a check-in (qualityScore!=null) \u2014 hours-only nights
+      // don't have one, and mixing them in would silently understate the
+      // average for nobody's benefit.
+      const scored=last7.filter(e=>e.qualityScore!=null);
+      if(scored.length>=2){
+        const avgScore=Math.round(scored.reduce((a,e)=>a+e.qualityScore,0)/scored.length);
+        const r=sleepRatingFor(avgScore);
+        msg+=' Your check-ins average a <strong style="color:'+r.color+'">'+avgScore+'/100 \u2014 '+r.label+'</strong> Sleep Score.';
+      }
       insight.innerHTML=msg;
     }else{
       insight.textContent='Log a few nights to see your average and how it lines up with recovery.';
