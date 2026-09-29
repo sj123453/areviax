@@ -5936,6 +5936,21 @@ body[data-goal-theme="cut"] .lv-page{
     </div>
   </div>
   <div id="sess-exercises"></div>
+  <!-- ADD TO SESSION — append another exercise to the end of today's plan
+       mid-workout. Same search-and-pick pattern as the per-exercise Swap
+       panel (renderSwapList/pickSwap) just searching the whole exercise
+       pool instead of muscle-matched substitutes, and pushing onto
+       plannedSessionExs instead of replacing an index. -->
+  <div class="card lv-surface" style="margin-bottom:14px">
+    <div onclick="toggleAddExercisePanel()" style="cursor:pointer;display:flex;align-items:center;gap:8px">
+      <span style="flex:1;font-size:13px;font-weight:800;color:var(--white)">➕ Add another exercise</span>
+      <span id="sess-add-ex-chev" style="color:var(--muted);font-size:11px;transition:transform .2s;display:inline-block">▼</span>
+    </div>
+    <div id="sess-add-ex-body" style="display:none;margin-top:12px">
+      <input type="text" id="sess-add-ex-search" placeholder="Search any exercise…" oninput="renderAddExerciseList(this.value)" style="width:100%;margin-bottom:8px;padding:8px 10px;background:rgba(232,214,196,.04);border:1.5px solid var(--border);border-radius:8px;color:var(--white);font-family:'Outfit',sans-serif;font-size:12.5px">
+      <div class="swap-list" id="sess-add-ex-list" style="max-height:260px;overflow-y:auto"></div>
+    </div>
+  </div>
   <div class="prog-prompt" id="prog-prompt" style="display:none">
     <div class="prog-q" id="prog-q">How did that feel?</div>
     <div class="prog-signal" id="prog-signal" style="display:none"></div>
@@ -20365,6 +20380,42 @@ function pickSwap(i,name){
   plannedSessionExs[i]=replacement;
   buildSession();
   toast('🔄','Swapped in '+replacement.name);
+}
+function toggleAddExercisePanel(){
+  const body=document.getElementById('sess-add-ex-body');if(!body)return;
+  const chev=document.getElementById('sess-add-ex-chev');
+  const opening=body.style.display==='none';
+  body.style.display=opening?'block':'none';
+  if(chev)chev.style.transform=opening?'rotate(180deg)':'';
+  if(opening){
+    const input=document.getElementById('sess-add-ex-search');if(input)input.value='';
+    renderAddExerciseList('');
+  }
+}
+function renderAddExerciseList(term){
+  const q=(term||'').trim().toLowerCase();
+  const already=plannedSessionExs||[];
+  const allEx=Object.values(EX).flat().filter((e,idx,arr)=>arr.findIndex(x=>x.name===e.name)===idx);
+  const pool=allEx.filter(e=>equipOk(e)&&!already.some(c=>c.name===e.name)&&(!q||e.name.toLowerCase().includes(q)));
+  const cont=document.getElementById('sess-add-ex-list');if(!cont)return;
+  if(!pool.length){cont.innerHTML=`<div class="ex-no-equip">No matching exercises with your current equipment.</div>`;return}
+  cont.innerHTML=pool.slice(0,40).map(e=>`
+    <div class="swap-item" onclick="addExerciseToSession('${e.name.replace(/'/g,"\\'")}')">
+      <div style="width:44px;height:44px;flex-shrink:0;background:rgb(var(--bg-rgb));border:1.5px solid var(--border);border-radius:4px;display:flex;align-items:center;justify-content:center">${getEquipIcon(e.equip)}</div>
+      <div style="flex:1;min-width:0"><div class="ex-name" style="font-size:12.5px">${e.name}</div><div class="ex-meta">${e.muscle} · ${e.sets}×${e.reps}</div></div>
+    </div>`).join('');
+}
+function addExerciseToSession(name){
+  const allEx=Object.values(EX).flat().filter((e,idx,arr)=>arr.findIndex(x=>x.name===e.name)===idx);
+  const ex=allEx.find(e=>e.name===name);
+  if(!ex)return;
+  if(!plannedSessionExs)plannedSessionExs=[];
+  plannedSessionExs.push(ex);
+  saveToStorage();
+  buildSession();
+  const body=document.getElementById('sess-add-ex-body');if(body)body.style.display='none';
+  const chev=document.getElementById('sess-add-ex-chev');if(chev)chev.style.transform='';
+  toast('➕','Added '+ex.name+' to your session');
 }
 
 // Counts today toward sessThisWeek/compassPts/totalSess/trainingCompletedDates
