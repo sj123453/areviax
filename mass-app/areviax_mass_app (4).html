@@ -186,6 +186,18 @@ input,input:focus,input:active,
   background:linear-gradient(180deg,#18130F 0%,#0A0807 100%);
   border-bottom:1px solid rgba(230,190,109,.16);
   z-index:960;
+  /* Direct bug find: the streak pill's background:var(--lv-primary),
+     the Arete road pill's number color:var(--lv-xp), and the profile
+     buttons' border-color:var(--lv-border-strong) were all resolving to
+     nothing here — every --lv-* token is declared only on .lv-page (see
+     that rule's own comment), and this bar sits OUTSIDE any .lv-page as
+     a single fixed element shared by every page, not nested inside one.
+     Confirmed by computed style: the Arete number rendered as literal
+     black-on-black, completely invisible. Pinned to the same dark-theme
+     values .lv-page uses, same reasoning as pinning --lv-fg on the photo
+     headers elsewhere — this bar's own background never changes with
+     the site theme, so neither should the tokens painted on top of it. */
+  --lv-primary:#F86111;--lv-primary-fg:#170C09;--lv-xp:#F7CD3A;--lv-border-strong:#56433A;
 }
 .topbar-inner{max-width:760px;margin:0 auto;height:100%;display:flex;align-items:center;justify-content:space-between;padding:0 20px;box-sizing:border-box}
 .tb-left{display:flex;align-items:center}
