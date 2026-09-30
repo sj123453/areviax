@@ -3156,7 +3156,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        instead of squashing/cropping every trophy into the same square. */
     .crate-reveal-stage .legend-reveal-icon{width:clamp(260px,62vw,420px)}
     .crate-reveal-stage .legend-reveal-icon img{width:clamp(220px,52vw,360px);height:auto}
-    .crate-reveal-stage .legend-mystery-icon .mystery-q{font-size:clamp(68px,12vw,100px)}
+    .crate-reveal-stage .mystery-silhouette{filter:brightness(0) opacity(.82) drop-shadow(0 8px 14px rgba(0,0,0,.4))}
     /* Fixed to the viewport instead of absolute (still inherits --ray-c
        normally — custom properties cascade through the DOM regardless of
        position), and sized in vmax so it always reaches every corner of
@@ -3385,7 +3385,15 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       100%{transform:rotate(360deg) scale(1);opacity:1}
     }
     .legend-reveal-icon.spin-in{animation:revealSpinIn .5s cubic-bezier(.22,1.4,.36,1) both}
-    .reveal-badge-wrap{position:relative;width:96px;margin:0 auto 14px;perspective:420px}
+    /* Direct report: the mystery badge and (at the wider crate-reveal-stage
+       sizing, where the badge is deliberately narrower than this wrap so it
+       doesn't crowd the disc's own rim) the real trophy afterward could both
+       land off-centre inside this box — a plain block child left-aligns
+       itself the moment it's narrower than its parent, so the spin-in
+       animation was visibly entering off to one side instead of dead
+       centre. flex centering here fixes both phases at once regardless of
+       which child's width happens to be smaller than the wrap's. */
+    .reveal-badge-wrap{position:relative;width:96px;margin:0 auto 14px;perspective:420px;display:flex;align-items:center;justify-content:center}
     /* Left (art) / right (text) split — the badge is the biggest single
        thing on screen and text reads beside it, left-aligned, instead of
        squeezed into a centred column underneath. width:100% capped by
@@ -3400,14 +3408,22 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .reveal-text-col{flex:1;min-width:0;text-align:left}
     .reveal-text-col .achievement-desc{max-width:none;margin-left:0;margin-right:0}
 
-    /* ── MYSTERY SPIN — Brawl-Stars-box-open style "?" badge that plays
-       before the real trophy icon: spins toward the viewer on entry, then
-       idles/tumbles on a real rotateY (not a flat 2D spin) so the player
-       can grab and spin it themselves before it locks in and flips over
-       to the rarity-coloured .legend-reveal-icon underneath. Circular
-       instead of the star clip-path — the star shape is what says "this
-       IS the prize", so keeping the mystery phase a plain coin/disc keeps
-       that reveal moment from being spoiled early. */
+    /* ── MYSTERY SPIN — Brawl-Stars-box-open style badge that plays before
+       the real trophy icon: spins toward the viewer on entry, then idles/
+       tumbles on a real rotateY (not a flat 2D spin) so the player can grab
+       and spin it themselves before it locks in and flips over to the
+       rarity-coloured .legend-reveal-icon underneath. Circular instead of
+       the star clip-path — the star shape is what says "this IS the
+       prize", so keeping the mystery phase a plain coin/disc keeps that
+       reveal moment from being spoiled early.
+       Direct ask: the flat "?" glyph read as generic — every pull looked
+       identical right up to the lock-in. Replaced with a blacked-out
+       silhouette of the actual trophy about to drop (reusing the exact
+       legendIconHTML() markup the real reveal uses a beat later, just
+       recoloured), so the SHAPE teases the prize while brightness(0) still
+       blacks out every colour/material cue that would give it away early —
+       no "?" needed once the silhouette itself reads as "something's about
+       to be revealed". */
     .legend-mystery-icon{
       width:96px;height:96px;border-radius:50%;
       background:radial-gradient(circle at 50% 30%,#4B505A,#1B1E24 72%);
@@ -3416,11 +3432,11 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       cursor:grab;touch-action:pan-y;
     }
     .legend-mystery-icon.dragging{cursor:grabbing}
-    .legend-mystery-icon .mystery-q{
-      font-family:'Cinzel',serif;font-weight:800;font-size:46px;line-height:1;
-      color:rgba(232,214,196,.92);text-shadow:0 3px 10px rgba(0,0,0,.55);
-      pointer-events:none;
+    .mystery-silhouette{
+      width:68%;height:68%;display:flex;align-items:center;justify-content:center;
+      filter:brightness(0) opacity(.8);pointer-events:none;
     }
+    .mystery-silhouette img,.mystery-silhouette svg{width:100%;height:100%;object-fit:contain;display:block}
     @keyframes mysterySpinToward{
       0%{transform:rotateY(-1080deg) scale(.2);opacity:0}
       55%{opacity:1}
@@ -14413,6 +14429,18 @@ function buildCrateReelHTML(finalCard){
 // walking you into a new Brawler's own screen the moment you unlock it.
 function closeCrateRevealAndShowcase(btn,key,isNew){
   const overlay=btn.closest('.achievement-overlay');
+  // Direct report, still reproducing after the race-condition fix below:
+  // tapping Continue while the lock-in celebration is still mid-flight left
+  // the falling unlock-glyph particles (and, briefly, the light-ray shards)
+  // behind — lightRayBurst/spawnUnlockGlyphs append straight to
+  // document.body with their own untracked lifetimes (650ms / up to
+  // 4600ms), not scoped to or cleaned up by this overlay, so closing the
+  // reveal early left them drifting on screen over whatever came next
+  // (the trophy showcase, or the crate row underneath) for up to several
+  // seconds — reading exactly like the app glitching. Both effect types
+  // only ever belong to the reveal that's being dismissed right now, so
+  // wipe any still on screen the instant Continue/Close is tapped.
+  document.querySelectorAll('.light-ray-shard,.unlock-glyph').forEach(el=>el.remove());
   if(!isNew){overlay.remove();return;}
   // Direct report: pressing Continue and opening another banked crate
   // right after "kinda crashes" the app. Root cause — this used to
@@ -14444,7 +14472,7 @@ function showLegendReveal(l,isNew,tier,count,keyWon,titleWon){
   const multiSlot=true;
 
   function trophySlotHTML(){
-    // Opens on the "?" mystery badge, not the real icon — runMysteryReveal
+    // Opens on the mystery badge, not the real icon — runMysteryReveal
     // (called from onShow) drives the spin-toward-viewer entrance, the
     // player-draggable idle spin, and the lock-in that swaps this markup
     // for the rarity-coloured .legend-reveal-icon. Name/rarity text stays
@@ -14456,10 +14484,15 @@ function showLegendReveal(l,isNew,tier,count,keyWon,titleWon){
     // way), but is positioned fixed to the viewport in CSS, so it paints
     // behind the whole screen instead of being confined to the badge's own
     // small box.
+    // Direct ask: don't make the pre-reveal badge a plain "?" circle —
+    // show a blacked-out/greyed-out SILHOUETTE of the actual trophy that's
+    // about to be won. legendIconHTML(l) is the exact same markup the real
+    // reveal uses a beat later; .mystery-silhouette's brightness(0) filter
+    // strips every colour/material cue so it stays a pure shape, no spoiler.
     return '<div class="reveal-split">'+
       '<div class="reveal-badge-wrap" id="reveal-badge-wrap" style="--ray-c:#9AA0A8">'+
         '<div class="reveal-ray-burst" id="reveal-ray-burst"></div>'+
-        '<div class="legend-mystery-icon" id="reveal-mystery-icon"><span class="mystery-q">?</span></div>'+
+        '<div class="legend-mystery-icon" id="reveal-mystery-icon"><div class="mystery-silhouette">'+legendIconHTML(l)+'</div></div>'+
       '</div>'+
       '<div class="reveal-text-col">'+
         '<div class="legend-reveal-rarity rarity-'+l.rarity+' mystery-hide" id="reveal-rarity-label">'+(l.rarity==='ultralegendary'?'ULTRA LEGENDARY':l.rarity.toUpperCase())+'</div>'+
