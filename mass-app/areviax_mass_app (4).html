@@ -1775,6 +1775,19 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        simply pushed off-screen with no way to reach them. Now scrolls
        internally instead. */
     .flow-modal{max-width:340px;text-align:left;padding:28px 24px 24px;max-height:calc(100dvh - 32px);overflow-y:auto}
+    /* Direct report: "I can't scroll on the warmup page for some reason".
+       Root cause — a LATER, equal-specificity .achievement-modal rule
+       (added for the crate-reveal glow/shine clipping) sets a plain
+       overflow:hidden shorthand, which zeroes out overflow-y too and
+       silently wins over this rule's overflow-y:auto since it comes
+       after it in the stylesheet. The max-height above still applied (so
+       the modal LOOKED capped/scrollable), but overflow-y:hidden blocked
+       every actual scroll gesture on it. Bumping specificity with the
+       compound selector — rather than moving this rule later, which
+       would just swap which section has to worry about source order —
+       makes the override unconditional regardless of what gets added
+       between them in the future. */
+    .achievement-modal.flow-modal{overflow-y:auto}
     .flow-modal .achievement-icon{text-align:center;width:100%}
     .flow-modal .achievement-title{text-align:center}
     .flow-modal .achievement-desc{text-align:center;margin-bottom:16px}
