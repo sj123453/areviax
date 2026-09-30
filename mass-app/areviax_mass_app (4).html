@@ -3356,12 +3356,10 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        icons this was originally built against) looked like a broken
        transparent background sweeping across the photo, not a shine. */
     .legend-reveal-icon.shine::after{
-      /* Same non-square-container problem as ::before above, sized the
-         same way (width % + aspect-ratio, not inset:0) and clipped to a
-         circle — inset:0 filled the whole ~230x190 box, so this one-shot
-         light sweep painted a visible rectangle past the circular trophy
-         art/glow underneath it, the other half of the "box" report. */
-      content:'';position:absolute;top:50%;left:50%;z-index:2;
+      /* Direct ask: "remove that weird circular shine on him" — the
+         one-shot diagonal light-sweep clipped to a circle over the
+         trophy is retired via content:none. */
+      content:none;position:absolute;top:50%;left:50%;z-index:2;
       width:92%;aspect-ratio:1/1;border-radius:50%;
       transform:translate(-50%,-50%);
       background:linear-gradient(115deg,transparent 35%,rgba(232,214,196,.85) 48%,transparent 60%);
