@@ -5885,7 +5885,7 @@ body[data-goal-theme="cut"] .lv-page{
 
   <!-- LOAD PREVIOUS SESSION -->
   <div class="card lv-surface" id="session-history-card" style="margin-bottom:14px;display:none">
-    <div class="ch"><span class="ct" style="font-size:13px;color:var(--white)"><span class="lv-greek-numeral">Δ</span> Past sessions</span></div>
+    <div class="ch"><span class="ct" style="font-size:13px;color:var(--white)"><span class="lv-greek-numeral">Δ</span> Past sessions</span><span class="ca" onclick="openBackdateSessionModal()">Forgot to log one? →</span></div>
     <div id="session-history-list" style="display:flex;flex-direction:column;gap:6px"></div>
   </div>
 
@@ -9054,6 +9054,28 @@ body[data-goal-theme="cut"] .lv-page{
   <div id="custom-equip-list"></div>
   <div style="font-size:11px;color:var(--muted);opacity:.75;margin-top:4px">Bodyweight exercises are always included, no need to tick anything for those.</div>
   <button class="btn btn-g" style="width:100%;margin-top:14px" onclick="closeCustomEquipChecklist()">Done</button>
+</div>
+
+<!-- BACKDATE SESSION MODAL — direct ask: "add a 'I logged this yesterday'
+     but for sessions so you can like log for previous days if you just
+     forgot to log". Mirrors the Nutrition page's own date-picker/backdate
+     pattern (pendingLogDate, relativeDayLabel), but deliberately stays a
+     lightweight name+duration record rather than replaying a full live
+     session — see logPastSession() for why (completeSession() is too
+     deeply wired into "today" — streak, weekly compass, schedule
+     reconciliation — to safely re-run against a past date). -->
+<div id="backdate-session-modal-backdrop" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9998" onclick="closeBackdateSessionModal()"></div>
+<div id="backdate-session-modal" class="bottom-sheet-modal" style="display:none;position:fixed;bottom:0;left:0;right:0;background:var(--panel);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-top:1px solid var(--border);border-radius:16px 16px 0 0;padding:22px;z-index:9999;max-width:480px;margin:0 auto;box-shadow:0 -20px 50px -20px rgba(0,0,0,.6);max-height:85vh;overflow-y:auto">
+  <div style="font-weight:800;font-size:14px;margin-bottom:4px">Log a session you forgot</div>
+  <div style="font-size:12px;color:var(--muted);margin-bottom:14px">Counts toward your total sessions, Arete, and the consistency heatmap for that day. Doesn't touch today's streak or weekly compass — those only move in real time.</div>
+  <label class="lbl" style="margin-top:0">Which day?</label>
+  <div id="backdate-session-days" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px"></div>
+  <label class="lbl">What did you train?</label>
+  <input type="text" id="backdate-session-name" placeholder="e.g. Push Day, Legs, Full Body" style="margin-bottom:12px">
+  <label class="lbl">About how long (minutes)?</label>
+  <input type="text" id="backdate-session-mins" inputmode="numeric" placeholder="e.g. 45" style="margin-bottom:16px">
+  <button class="btn btn-g" style="width:100%" onclick="logPastSession()">Log it</button>
+  <button class="btn btn-ghost" style="width:100%;margin-top:8px" onclick="closeBackdateSessionModal()">Cancel</button>
 </div>
 
 <!-- RESCHEDULE MODAL -->
@@ -20353,9 +20375,13 @@ function renderSessionHistory(){
   list.innerHTML=sessionHistory.slice(0,6).map((s,i)=>{
     const d=parseLocalDate(s.date);
     const dLabel=d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});
+    // Backdated entries (see logPastSession()) carry no real exercise
+    // list — "0 exercises" would read as broken, and there's nothing for
+    // Load to actually reload, so both are skipped for those specifically.
+    const exLabel=s.exs.length?s.exs.length+' exercises':(s.backdated?'logged after the fact':'');
     return `<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 12px;background:rgba(232,214,196,.03);border:1.5px solid var(--border2);border-radius:8px">
-      <div style="min-width:0"><div style="font-size:12px;font-weight:700;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${s.name}</div><div style="font-size:10px;color:var(--muted)">${dLabel} · ${s.exs.length} exercises${s.durationSec?' · '+Math.round(s.durationSec/60)+'min':''}${s.caloriesBurned?' · ~'+s.caloriesBurned+' cal':''}</div></div>
-      <button class="btn btn-out btn-sm" style="flex-shrink:0" onclick="loadSessionFromHistory(${i})">Load</button>
+      <div style="min-width:0"><div style="font-size:12px;font-weight:700;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${s.name}</div><div style="font-size:10px;color:var(--muted)">${dLabel}${exLabel?' · '+exLabel:''}${s.durationSec?' · '+Math.round(s.durationSec/60)+'min':''}${s.caloriesBurned?' · ~'+s.caloriesBurned+' cal':''}</div></div>
+      ${s.backdated?'':`<button class="btn btn-out btn-sm" style="flex-shrink:0" onclick="loadSessionFromHistory(${i})">Load</button>`}
     </div>`;
   }).join('');
 }
@@ -20365,6 +20391,65 @@ function loadSessionFromHistory(idx){
   customSessionExs=entry.exs.map(e=>({...e})); // copy, not reference — editing this session shouldn't rewrite history
   switchBuilderMode('custom');
   toast('📋','Loaded "'+entry.name+'" — edit or hit Start Session');
+}
+// ── BACKDATE A FORGOTTEN SESSION ── direct ask: "add a 'I logged this
+// yesterday' but for sessions... if you just forgot to log". Deliberately
+// NOT a re-run of completeSession() — that function is wired straight to
+// "today" throughout (lastSessionDate, the weekly compass, schedule
+// reconciliation, streak), and retroactively feeding it a past date would
+// mean either corrupting this week's real-time progress or reimplementing
+// half its branching just to skip it safely. This instead does the same
+// narrower thing the Nutrition page's own "tracked outside the app"
+// backfill does: record the day as trained (sessionHistory entry,
+// heatmap, total count, a smaller catch-up XP grant) without touching
+// anything that only makes sense as a live, same-day event.
+let backdateSessionDate=null;
+function openBackdateSessionModal(){
+  const today=localDateKey(new Date());
+  backdateSessionDate=null; // resolved to yesterday by default in renderBackdateSessionDays
+  const days=[];
+  for(let i=1;i<=7;i++){
+    const d=new Date();d.setDate(d.getDate()-i);
+    days.push(localDateKey(d));
+  }
+  backdateSessionDate=days[0];
+  const wrap=document.getElementById('backdate-session-days');
+  if(wrap){
+    wrap.innerHTML=days.map(d=>`<button type="button" class="log-date-pill${d===backdateSessionDate?' active':''}" onclick="setBackdateSessionDate('${d}')">${relativeDayLabel(d)}</button>`).join('');
+  }
+  document.getElementById('backdate-session-name').value='';
+  document.getElementById('backdate-session-mins').value='';
+  document.getElementById('backdate-session-modal-backdrop').style.display='block';
+  document.getElementById('backdate-session-modal').style.display='block';
+}
+function setBackdateSessionDate(dateStr){
+  backdateSessionDate=dateStr;
+  document.querySelectorAll('#backdate-session-days .log-date-pill').forEach(el=>{
+    el.classList.toggle('active',el.textContent===relativeDayLabel(dateStr));
+  });
+}
+function closeBackdateSessionModal(){
+  document.getElementById('backdate-session-modal-backdrop').style.display='none';
+  document.getElementById('backdate-session-modal').style.display='none';
+}
+function logPastSession(){
+  const name=document.getElementById('backdate-session-name').value.trim()||'Training session';
+  const mins=Math.max(0,parseInt(document.getElementById('backdate-session-mins').value)||0);
+  if(!backdateSessionDate){toast('⚠️','Pick a day first');return;}
+  const dateStr=backdateSessionDate;
+  const durationSec=mins*60;
+  const caloriesBurned=durationSec?estimateStrengthCalories(durationSec):null;
+  sessionHistory.unshift({date:dateStr,name,type:'custom',exs:[],durationSec,caloriesBurned,backdated:true});
+  if(sessionHistory.length>15)sessionHistory.length=15;
+  totalSess++;
+  if(!activeDates.includes(dateStr))activeDates.push(dateStr);
+  if(!trainingCompletedDates.includes(dateStr))trainingCompletedDates.push(dateStr);
+  addXP(20,'Backdated session');
+  closeBackdateSessionModal();
+  renderSessionHistory();
+  try{renderConsistencyHeatmap();}catch(e){}
+  saveToStorage();
+  toast('✅',name+' logged for '+relativeDayLabel(dateStr).toLowerCase());
 }
 function buildSession(){
   // Use whatever was actually configured in the Workout Builder — this used to
@@ -20466,11 +20551,14 @@ function buildSession(){
   }).join('');
   exs.forEach((e,i)=>{
     // Assist machines step in 0.25kg (a real pin often moves in quarter-
-    // plate increments) — everything else stays whole-kg. This used to be
-    // 0.25 across the board and regressed to a flat step:1 for every
-    // exercise type; direct report: "assisted is going up in whole
-    // numbers now."
-    mountScrollPicker(document.getElementById('sw-'+i),{min:0,max:400,step:isAssistedEquip(e.equip)?0.25:1,decimals:2,unit:'kg'});
+    // plate increments); everything else steps in 0.5kg — direct report:
+    // "make everything go up in 0.5 or 0.25 because it's not always a
+    // whole number" (e.g. a real 17.5kg dumbbell, a 62.5kg squat). This
+    // used to be 0.25 across the board, regressed to a flat step:1 for
+    // every exercise type (direct report at the time: "assisted is going
+    // up in whole numbers now"), and got assisted back to 0.25 without
+    // revisiting everything else, which is what this half is for.
+    mountScrollPicker(document.getElementById('sw-'+i),{min:0,max:400,step:isAssistedEquip(e.equip)?0.25:0.5,decimals:2,unit:'kg'});
     mountScrollPicker(document.getElementById('sr-'+i),{min:0,max:40,step:1,decimals:0,unit:'reps'});
   });
   renderCompassClaimStatus();
