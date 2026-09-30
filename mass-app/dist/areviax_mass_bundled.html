@@ -9122,6 +9122,25 @@ body[data-goal-theme="cut"] .lv-page{
   <button class="btn btn-ghost" style="width:100%;margin-top:8px" onclick="closeBackdateSessionModal()">Cancel</button>
 </div>
 
+<!-- VOICE/TYPE LOG MODAL — dictate or type a whole exercise's sets at once
+     ("60 for 8, full stop, 65 for 6") instead of tapping weight/reps per
+     set. Parses into a preview, then replays each entry through the same
+     sw-/sr-/logSet() path a manual tap would use, so PRs/tonnage/1RM all
+     still update exactly the same way. -->
+<div id="voicelog-modal-backdrop" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9998" onclick="closeVoiceLogModal()"></div>
+<div id="voicelog-modal" class="bottom-sheet-modal" style="display:none;position:fixed;bottom:0;left:0;right:0;background:var(--panel);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-top:1px solid var(--border);border-radius:16px 16px 0 0;padding:22px;z-index:9999;max-width:480px;margin:0 auto;box-shadow:0 -20px 50px -20px rgba(0,0,0,.6);max-height:85vh;overflow-y:auto">
+  <div style="font-weight:800;font-size:14px;margin-bottom:4px">Log sets for <span id="voicelog-ex-name">this exercise</span></div>
+  <div style="font-size:12px;color:var(--muted);margin-bottom:14px">Speak or type every set in one go — say "60 for 8, full stop, 65 for 6" and each "full stop" starts a new set. Say "stop recording" or tap the mic again when you're done.</div>
+  <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px">
+    <button class="btn btn-g" id="voicelog-mic-btn" style="flex-shrink:0;padding:10px 16px" onclick="toggleVoiceDictation()">🎤 Dictate</button>
+    <div style="font-size:11px;color:var(--muted)" id="voicelog-mic-status"></div>
+  </div>
+  <textarea id="voicelog-textarea" placeholder="e.g. 60 for 8, full stop, 65 for 6, full stop, 70 for 5" style="width:100%;min-height:70px;padding:10px 12px;background:rgba(232,214,196,.04);border:1.5px solid var(--border);border-radius:10px;color:var(--white);font-family:'Outfit',sans-serif;font-size:13px;resize:vertical" oninput="renderVoiceLogPreview()"></textarea>
+  <div id="voicelog-preview" style="margin-top:12px"></div>
+  <button class="btn btn-g" style="width:100%;margin-top:14px" id="voicelog-apply-btn" onclick="applyVoiceLogSets()" disabled>Apply to sets</button>
+  <button class="btn btn-ghost" style="width:100%;margin-top:8px" onclick="closeVoiceLogModal()">Cancel</button>
+</div>
+
 <!-- RESCHEDULE MODAL -->
 <div id="reschedule-modal-backdrop" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9998" onclick="closeReschedule()"></div>
 <div id="reschedule-modal" class="bottom-sheet-modal" style="display:none;position:fixed;bottom:0;left:0;right:0;background:var(--panel);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-top:1px solid var(--border);border-radius:16px 16px 0 0;padding:22px;z-index:9999;max-width:480px;margin:0 auto;box-shadow:0 -20px 50px -20px rgba(0,0,0,.6)">
@@ -20666,6 +20685,7 @@ function buildSession(){
         <button class="ex-action-btn ex-swap-btn" onclick="toggleSwapPanel(${i})" title="Swap this exercise">🔄 Swap</button>
         <button class="ex-action-btn ex-skip-btn" onclick="toggleSkipExercise(${i})" id="skip-btn-${i}" title="Not doing this one today — still counts toward your compass point">${isSkipped?'↩ Unskip':'⏭ Skip'}</button>
       </div>
+      <button class="ex-action-btn" style="width:100%;margin-top:6px" onclick="openVoiceLogModal(${i})" title="Speak or type all your sets at once">🎤 Log sets by voice or text</button>
       <div class="swap-panel" id="swap-panel-${i}">
         <div style="font-weight:800;font-size:12.5px;margin-bottom:3px">Swap this exercise</div>
         <div style="font-size:10.5px;color:var(--muted);margin-bottom:9px">Same muscle, fits your equipment. Search for something else.</div>
@@ -20888,6 +20908,180 @@ function howToNav(exIdx,dir){
   if(howToStep===2&&dir===1){closeHowTo();return}
   howToStep=Math.max(0,Math.min(2,howToStep+dir));
   renderHowToStep(exIdx);
+}
+
+// ── VOICE/TYPE SET LOGGING — dictate or type a whole exercise's sets in
+// one go instead of tapping weight/reps per set. Uses the browser's own
+// SpeechRecognition (Web Speech API) for dictation rather than any
+// custom/third-party STT. "Full stop" (or a period, or a line break) is
+// the spoken delimiter between sets; saying "stop recording" (or tapping
+// the mic button again) ends dictation. Applying the parsed sets replays
+// them through the exact same sw-/sr-/logSet() path a manual tap would
+// use, so PRs/tonnage/1RM/plateau detection all still work unchanged.
+let voiceLogExIndex=null;
+let voiceLogRecognition=null;
+let voiceLogListening=false;
+function openVoiceLogModal(i){
+  voiceLogExIndex=i;
+  const exs=plannedSessionExs&&plannedSessionExs.length?plannedSessionExs:[];
+  const e=exs[i];
+  document.getElementById('voicelog-ex-name').textContent=e?e.name:'this exercise';
+  const ta=document.getElementById('voicelog-textarea');
+  ta.value='';
+  document.getElementById('voicelog-mic-status').textContent='';
+  const micBtn=document.getElementById('voicelog-mic-btn');
+  const supported=!!(window.SpeechRecognition||window.webkitSpeechRecognition);
+  if(!supported){
+    micBtn.disabled=true;
+    micBtn.style.opacity='.5';
+    document.getElementById('voicelog-mic-status').textContent="Voice typing isn't supported here — you can still type below.";
+  }else{
+    micBtn.disabled=false;
+    micBtn.style.opacity='1';
+  }
+  renderVoiceLogPreview();
+  document.getElementById('voicelog-modal-backdrop').style.display='block';
+  document.getElementById('voicelog-modal').style.display='block';
+}
+function closeVoiceLogModal(){
+  stopVoiceDictation();
+  document.getElementById('voicelog-modal-backdrop').style.display='none';
+  document.getElementById('voicelog-modal').style.display='none';
+  voiceLogExIndex=null;
+}
+function toggleVoiceDictation(){
+  if(voiceLogListening){stopVoiceDictation();return;}
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR)return;
+  voiceLogRecognition=new SR();
+  voiceLogRecognition.continuous=true;
+  voiceLogRecognition.interimResults=true;
+  voiceLogRecognition.lang=(navigator.language||'en-US');
+  let finalText=document.getElementById('voicelog-textarea').value;
+  voiceLogRecognition.onresult=(ev)=>{
+    let interim='';
+    for(let ri=ev.resultIndex;ri<ev.results.length;ri++){
+      const transcript=ev.results[ri][0].transcript;
+      if(ev.results[ri].isFinal){
+        finalText+=(finalText?' ':'')+transcript.trim();
+        if(/stop recording/i.test(transcript)){
+          finalText=finalText.replace(/stop recording/gi,'').trim();
+          document.getElementById('voicelog-textarea').value=finalText;
+          renderVoiceLogPreview();
+          stopVoiceDictation();
+          return;
+        }
+      }else{
+        interim+=transcript;
+      }
+    }
+    document.getElementById('voicelog-textarea').value=finalText+(interim?' '+interim:'');
+    renderVoiceLogPreview();
+  };
+  voiceLogRecognition.onerror=()=>{stopVoiceDictation();};
+  voiceLogRecognition.onend=()=>{
+    // Some engines end the session on a silence gap even in continuous
+    // mode — restart automatically unless the user (or "stop recording")
+    // explicitly stopped it, so a natural pause mid-set doesn't cut
+    // dictation off early.
+    if(voiceLogListening){
+      try{voiceLogRecognition.start();}catch(e){voiceLogListening=false;updateVoiceMicUI();}
+    }
+  };
+  try{
+    voiceLogRecognition.start();
+    voiceLogListening=true;
+    updateVoiceMicUI();
+  }catch(e){
+    voiceLogListening=false;
+    updateVoiceMicUI();
+  }
+}
+function stopVoiceDictation(){
+  voiceLogListening=false;
+  if(voiceLogRecognition){
+    try{voiceLogRecognition.stop();}catch(e){}
+    voiceLogRecognition=null;
+  }
+  updateVoiceMicUI();
+}
+function updateVoiceMicUI(){
+  const micBtn=document.getElementById('voicelog-mic-btn');
+  if(!micBtn)return;
+  micBtn.textContent=voiceLogListening?'⏹ Stop':'🎤 Dictate';
+  const status=document.getElementById('voicelog-mic-status');
+  if(status)status.textContent=voiceLogListening?'Listening… say "full stop" between sets.':'';
+}
+function parseSetsFromText(text){
+  if(!text)return[];
+  const norm=text.toLowerCase().replace(/full\s*stop/g,'.').replace(/stop\s*recording/g,'.');
+  const segments=norm.split(/[.\n;]+/).map(s=>s.trim()).filter(Boolean);
+  return segments.map(seg=>{
+    let weight=null,reps=null;
+    const repMatch=seg.match(/(\d+(?:\.\d+)?)\s*reps?\b/);
+    if(repMatch)reps=parseFloat(repMatch[1]);
+    const wMatch=seg.match(/(\d+(?:\.\d+)?)\s*(?:kgs?|kilos?|lbs?|pounds?)\b/);
+    if(wMatch)weight=parseFloat(wMatch[1]);
+    const nums=(seg.match(/\d+(?:\.\d+)?/g)||[]).map(Number);
+    if(weight===null&&reps===null){
+      if(nums.length>=2){weight=nums[0];reps=nums[1];}
+      else if(nums.length===1){reps=nums[0];}
+    }else if(weight===null&&nums.length){
+      weight=nums.find(n=>n!==reps);
+      if(weight===undefined)weight=null;
+    }else if(reps===null&&nums.length){
+      reps=nums.find(n=>n!==weight);
+      if(reps===undefined)reps=null;
+    }
+    return {weight:weight||0,reps:reps||0,raw:seg};
+  }).filter(s=>s.reps>0||s.weight>0);
+}
+function renderVoiceLogPreview(){
+  const text=document.getElementById('voicelog-textarea').value;
+  const sets=parseSetsFromText(text);
+  const preview=document.getElementById('voicelog-preview');
+  const applyBtn=document.getElementById('voicelog-apply-btn');
+  if(!sets.length){
+    preview.innerHTML='<div style="font-size:11px;color:var(--muted)">Nothing parsed yet.</div>';
+    applyBtn.disabled=true;
+    applyBtn.textContent='Apply to sets';
+    return;
+  }
+  preview.innerHTML='<div style="font-size:9px;color:var(--muted);font-weight:800;letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px">Parsed sets</div>'+
+    '<div style="display:flex;flex-direction:column;gap:5px">'+sets.map((s,si)=>
+      `<div style="font-size:12.5px;background:rgba(232,214,196,.04);border:1px solid var(--border);border-radius:8px;padding:6px 10px">Set ${si+1}: ${s.weight>0?s.weight+'kg × ':''}${s.reps} reps</div>`
+    ).join('')+'</div>';
+  applyBtn.disabled=false;
+  applyBtn.textContent=`Apply ${sets.length} set${sets.length===1?'':'s'}`;
+}
+function applyVoiceLogSets(){
+  const ei=voiceLogExIndex;
+  if(ei===null)return;
+  const exs=plannedSessionExs&&plannedSessionExs.length?plannedSessionExs:[];
+  const e=exs[ei];
+  if(!e)return;
+  const sets=parseSetsFromText(document.getElementById('voicelog-textarea').value);
+  if(!sets.length)return;
+  const totalSlots=effectiveSets(e);
+  let applied=0;
+  for(const s of sets){
+    let si=-1;
+    for(let cand=0;cand<totalSlots;cand++){
+      const chip=document.getElementById('sc-'+ei+'-'+cand);
+      if(chip&&!chip.classList.contains('done')){si=cand;break;}
+    }
+    if(si===-1)break; // all sets already logged — nowhere left to put it
+    document.getElementById('sw-'+ei).value=s.weight||'';
+    document.getElementById('sr-'+ei).value=s.reps||'';
+    logSet(ei,si,e.name,e.muscle);
+    applied++;
+  }
+  closeVoiceLogModal();
+  if(applied<sets.length){
+    toast('🎤',`Logged ${applied} of ${sets.length} — that exercise is already full`);
+  }else{
+    toast('🎤',`Logged ${applied} set${applied===1?'':'s'} for ${e.name}`);
+  }
 }
 
 // ── EXERCISE SWAP — user picks their own replacement mid-workout ──
