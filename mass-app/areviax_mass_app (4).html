@@ -16808,6 +16808,26 @@ function calcStaticTDEE(p){
   const tdee=Math.round(bmr*(trainMult+lifestyleAdj));
   return {bmr,tdee};
 }
+// ── SESSION CALORIE TOP-UP ── direct ask: "predict... how much it
+// increases calories needed to be eaten" for a given workout. The daily
+// calorie target already has an average training burn baked in — trainMult
+// above is a flat multiplier applied to every single day (training or
+// not) based on days/week, not a per-session number — so this isn't
+// "add the whole session's burn on top" (that would double-count the
+// average this session was already assumed to represent). Instead it
+// compares THIS session's real estimated burn against that flat daily
+// assumption (bmr × (trainMult-1.2), 1.2 being the standard sedentary
+// baseline the multiplier scales up from) and only suggests eating back
+// the difference — i.e. how much heavier than your own average this
+// particular session was. A short/light session correctly returns 0
+// (the target already covers it); a brutal one returns a real number.
+function calcExtraCaloriesForSession(sessionCaloriesBurned){
+  if(!sessionCaloriesBurned||!profile.weight||!profile.height)return 0;
+  const {bmr,tdee}=calcStaticTDEE(profile);
+  const lifestyleAdj=profile.activity==='active'?0.125:profile.activity==='light'?0.05:0;
+  const assumedDailyTrainingBurn=Math.max(0,tdee-bmr*(1.2+lifestyleAdj));
+  return Math.max(0,Math.round(sessionCaloriesBurned-assumedDailyTrainingBurn));
+}
 
 // Adaptive TDEE — same idea MacroFactor built its name on: your real metabolic
 // rate is whatever the scale says it is once we have enough real intake +
@@ -19865,6 +19885,20 @@ function saveWorkoutChanges(){
 // place plannedSessionExs gets written from a builder preview, and it always
 // runs before persisting or navigating anywhere.
 function commitAndStartSession(){
+  // Direct ask: "make a thing where it says done your workout already?"
+  // completeSession() already had this exact "you already trained today"
+  // check, but only AFTER a full second session was finished — someone
+  // who'd forgotten they'd already trained could spend 20-40 minutes on a
+  // whole extra session before finding out it wouldn't add to their
+  // streak or weekly compass. Same question, asked up front instead,
+  // before any time gets sunk into it. Still fully optional — hitting
+  // Cancel here does nothing except let them decide with the facts.
+  const todayKey=localDateKey(new Date());
+  if(lastSessionDate===todayKey){
+    const already=lastSessionWorkoutName||'a session';
+    const proceed=confirm('You already completed "'+already+'" today.\n\nTraining again so soon adds fatigue without extra growth, and won\'t add to your streak or weekly compass (those only move once per day) — but it will still count toward your total sessions and Arete.\n\nStart another anyway?');
+    if(!proceed)return;
+  }
   let exs,type,name;
   if(builderMode==='custom'){
     exs=customSessionExs;type='custom';name='Custom Session';
@@ -21550,6 +21584,11 @@ function showSessionCompleteModal(durationSec,caloriesBurned){
   // at least one set actually had a number entered today.
   const todaysRpe=rpeLog.filter(e=>e.date===localDateKey(new Date()));
   const avgRpeLine=todaysRpe.length?`<div style="font-size:11px;color:var(--muted);margin-top:10px">Avg RPE today: <strong style="color:var(--white)">${(todaysRpe.reduce((s,e)=>s+e.rpe,0)/todaysRpe.length).toFixed(1)}</strong> across ${todaysRpe.length} set${todaysRpe.length===1?'':'s'}</div>`:'';
+  // Direct ask: predict how much extra to eat for a session like this one.
+  // Only worth showing when it's a real number — a short/light session
+  // already fits inside the daily target's built-in training assumption.
+  const extraCals=calcExtraCaloriesForSession(caloriesBurned);
+  const extraCalsLine=extraCals>=30?`<div style="font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5">🍽 Heavier than your average day — your daily target already assumes some training, but this one burned roughly <strong style="color:var(--white)">${extraCals} kcal</strong> more than that. Worth eating a bit extra today.</div>`:'';
   const overlay=document.createElement('div');
   overlay.className='achievement-overlay';
   overlay.innerHTML=`<div class="achievement-modal session-complete-modal">
@@ -21564,6 +21603,7 @@ function showSessionCompleteModal(durationSec,caloriesBurned){
       ${calStat}
     </div>
     ${avgRpeLine}
+    ${extraCalsLine}
     <button class="achievement-share-btn" onclick="completeSessionModalContinue(this)">Continue</button>
   </div>`;
   document.body.appendChild(overlay);
