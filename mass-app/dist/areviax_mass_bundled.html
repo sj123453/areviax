@@ -281,8 +281,14 @@ input,input:focus,input:active,
 .syn-row{display:flex;align-items:center;gap:10px;margin-bottom:7px}
 .syn-lbl{font-size:10.5px;color:var(--muted);width:108px;flex-shrink:0}
 .card:hover{border-color:rgba(243,103,23,.16);box-shadow:0 0 40px -18px rgba(243,103,23,.18)}
-.ch{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
-.ct{font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--white);opacity:.92}
+/* .ch/.ct/.ca are this app's original card-header/title/action idiom,
+   used everywhere (static markup and every JS render function alike).
+   Rather than hand-converting hundreds of individual instances to the
+   OS pilot's own .card-header/.card-title/.card-action names, the two
+   systems are merged below (see line ~4513) so every existing section
+   header app-wide picks up OS's serif-title look for free, with a
+   fallback to this file's own tokens for the modals and non-.lv-page
+   screens that never carry --lv-*. */
 .ct-gold{color:#FFD24D!important}
 .ct-purple{color:#A59D95!important}
 .ct-blue{color:#6FC3FF!important}
@@ -315,7 +321,6 @@ input,input:focus,input:active,
 .card-accent-gold{border-color:rgba(255,210,77,.22)!important;box-shadow:0 0 30px -16px rgba(255,210,77,.18)}
 .card-accent-purple{border-color:rgba(142,142,147,.22)!important;box-shadow:0 0 30px -16px rgba(142,142,147,.18)}
 .card-accent-blue{border-color:rgba(243,103,23,.22)!important;box-shadow:0 0 30px -16px rgba(243,103,23,.18)}
-.ca{font-size:11px;color:var(--green2);transition:color .2s}
 .ca:hover{color:var(--white)}
 
 /* STAT — full rule lives further down (search "Glassmorphism for stat
@@ -4510,9 +4515,14 @@ body[data-goal-theme="cut"] .lv-page{
    real, using Mass's own tokens throughout (--lv-*, not OS's hardcoded
    hex) so this stays theme-correct in light mode / every goal-theme. */
 .lv-surface,.card{position:relative;border-radius:1.75rem;padding:20px;background:linear-gradient(135deg,var(--lv-cardg1),var(--lv-cardg2));border:1.5px solid var(--lv-border);box-shadow:0 20px 40px -28px rgba(0,0,0,.35),0 1px 0 rgba(255,255,255,.04) inset}
-.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
-.card-title{font-family:var(--lv-serif);font-size:12px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--lv-fg)}
-.card-action{font-size:11px;font-weight:700;color:var(--lv-gold);cursor:pointer;background:none;border:none;padding:0;font-family:inherit}
+/* Merged with .ch/.ct/.ca (app-wide rollout — see the note by .ct-gold
+   above): every var() here has a fallback to this file's original,
+   always-defined token so a header sitting outside any .lv-page (a
+   modal, a road page) still renders correctly, just without the
+   serif/gold OS treatment those tokens only carry inside .lv-page. */
+.ch,.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.ct,.card-title{font-family:var(--lv-serif,inherit);font-size:11px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--lv-fg,var(--white));opacity:.92}
+.ca,.card-action{font-size:11px;font-weight:700;color:var(--lv-gold,var(--green2));cursor:pointer;background:none;border:none;padding:0;font-family:inherit;transition:color .2s}
 .stat-card{position:relative;overflow:hidden;background:linear-gradient(135deg,var(--lv-cardg1),var(--lv-cardg2));border:1.5px solid var(--lv-border);border-radius:1.75rem;padding:18px 20px;display:flex;flex-direction:column;gap:4px}
 .stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--stat-accent,var(--lv-primary))}
 .stat-val{font-family:var(--lv-mono);font-weight:800;font-size:28px;letter-spacing:-.02em;color:var(--lv-fg)}
@@ -7733,7 +7743,7 @@ body[data-goal-theme="cut"] .lv-page{
   </header>
   <div class="companion"><div class="companion-msg">This board matches you against profiles at your <strong>exact stage</strong> — not people who started years ago — so the comparison is actually fair. (These are illustrative benchmarks, not live user data — real community rankings are coming.)</div></div>
   <div class="card lv-surface" style="border-color:rgba(243,103,23,.15)">
-    <div style="font-weight:700;font-size:14px;margin-bottom:4px">Join the leaderboard</div>
+    <div class="ch" style="margin-bottom:4px"><span class="ct">Join the leaderboard</span></div>
     <div style="font-size:12px;color:var(--muted);margin-bottom:12px">Optional and anonymous by default. You only see people at the same stage as you.</div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
       <input type="text" id="lb-name" placeholder="Display name (optional)" style="max-width:180px">
