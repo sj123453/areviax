@@ -15614,6 +15614,42 @@ function medalSVG(tier,size){
     '</linearGradient></defs>'+
   '</svg>';
 }
+// Pre-cropped head/shoulders portrait per tier, cut straight from that
+// tier's own statue-*-real.jpg (see mass-app/images/misc/medal_crops/) —
+// trying to frame a tight head crop live via background-position/-size
+// percentages on the full body photo was unreliable (the percentage maths
+// for a circle this small landed on empty background as often as the
+// actual head) and there's no need to pay that cost at render time when
+// the six crops are fixed and known ahead of time anyway.
+const STATUE_MEDAL_PHOTO={
+  Mortal:'images/misc/medal_crops/mortal.jpg',
+  Soldier:'images/misc/medal_crops/soldier.jpg',
+  Hero:'images/misc/medal_crops/hero.jpg',
+  Demigod:'images/misc/medal_crops/demigod.jpg',
+  God:'images/misc/medal_crops/god.jpg',
+  'God of Gods':'images/misc/medal_crops/kingofgods.jpg',
+};
+// Direct ask: "a mini statue of like the actual tall one we have on the
+// main greeting... instead of that svg" — medalSVG() above is the same
+// flat bust silhouette for every tier, only recoloured; this instead
+// shows a small circular portrait cropped from that tier's own real
+// statue photo (the exact image the big Dashboard/Profile centrepiece
+// already uses), so the helmet, wreath, winged sandals and crown+eagle
+// each tier actually has read at a glance next to the name, not just a
+// colour change on an identical shape.
+function statueMedalHTML(tier,size){
+  size=size||34;
+  const photo=STATUE_MEDAL_PHOTO[tier.name]||STATUE_MEDAL_PHOTO.Mortal;
+  // All six source photos are lit dramatically (near-black backdrop,
+  // rim-lit metal) — reads great at full statue size, but a 26-44px
+  // circle this small has no room for that contrast to resolve, so a
+  // small brightness/contrast lift keeps the crop legible instead of
+  // reading as a dark smudge, worst on Mortal's dim bronze.
+  return '<div style="width:'+size+'px;height:'+size+'px;border-radius:50%;flex-shrink:0;'+
+    'background-image:url(\''+photo+'\');background-size:cover;background-position:center;'+
+    'filter:brightness(1.25) contrast(1.08) saturate(1.1);'+
+    'box-shadow:0 0 0 2px rgba(0,0,0,.4),inset 0 0 0 1.5px rgba(255,255,255,.22),0 2px 6px rgba(0,0,0,.5)"></div>';
+}
 const UNRANKED={name:'Unranked',col:'#5a5a64',dark:'#22222a',mid:'#3a3a44',light:'#6a6a74',
   metal:'linear-gradient(100deg,#1a1a20 0%,#2a2a32 30%,#3a3a44 50%,#2a2a32 70%,#1a1a20 100%)',
   mask:'images/misc/statue-1-commonfolk.svg', photo:'images/misc/statue-bronze-real.jpg'};
@@ -17895,7 +17931,7 @@ function renderDashHeroLovable(){
       nameEl.style.webkitTextFillColor='transparent';
       nameEl.style.color=r.col;
     }
-    if(medalEl)medalEl.innerHTML=unranked?'':medalSVG(r,26);
+    if(medalEl)medalEl.innerHTML=unranked?'':statueMedalHTML(r,26);
     if(rankLabelEl){
       rankLabelEl.textContent=unranked?'':r.name+' Lifter';
       rankLabelEl.style.color=unranked?'':r.col;
