@@ -3145,7 +3145,11 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        the item, you can clearly see its boxed." Hard-edged rays at this
        size and opacity were the actual cause; the blur is the fix, not
        hiding the effect entirely. */
-    .crate-reveal-stage .reveal-ray-burst{position:fixed;width:160vmax;height:160vmax;opacity:var(--ray-opacity,.4);filter:blur(28px)}
+    /* Direct ask: "just make it the trophy by itself no glow" — the
+       spinning sunburst behind the reveal badge is fully retired here
+       (crate-reveal-stage is the only context .reveal-ray-burst ever
+       renders in, so this is the one place that needs it gone). */
+    .crate-reveal-stage .reveal-ray-burst{display:none}
     .crate-reveal-stage .achievement-title{font-size:28px}
     .crate-reveal-stage .achievement-desc{font-size:15px;max-width:320px;margin-left:auto;margin-right:auto}
     /* Real gap above the button now (was margin:0 auto only, so it sat
@@ -3444,17 +3448,15 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       position:relative;display:flex;align-items:center;justify-content:center;font-size:40px;
     }
     .legend-reveal-icon::before{
-      /* Sized off its own width + aspect-ratio (not inset:6%, which
-         inherited whatever shape the PARENT box happened to be) so the
-         glow is always a true circle. The parent here is deliberately
-         non-square — width is capped by the crate-reveal-stage override
-         below but height auto-follows each trophy's own art (tall shield
-         vs wide lyre) — so squaring the container itself would squash
-         the art. border-radius:50% on a non-square box is an oval, not a
-         circle, and blurred 22px that read as a rectangular smear behind
-         the trophy ("stuck in a box" report). This keeps the glow round
-         regardless of the container's own shape. */
-      content:'';position:absolute;top:50%;left:50%;z-index:0;
+      /* Direct ask: "just make it the trophy by itself no glow" — this
+         rarity-coloured blurred disc (and every .rarity-* background
+         below that fed it) is retired via content:none, which drops the
+         pseudo-element's box entirely; the rules past this point are
+         dead but left in place since a future rarity-colour treatment
+         elsewhere may still want them. Rarity still reads from the
+         "LEGENDARY"/etc label and border glow beside it, just not as a
+         halo behind the art itself. */
+      content:none;position:absolute;top:50%;left:50%;z-index:0;
       width:92%;aspect-ratio:1/1;border-radius:50%;
       transform:translate(-50%,-50%);
       filter:blur(22px);opacity:.85;pointer-events:none;
@@ -11850,7 +11852,7 @@ const LEGEND_CARDS=[
   {key:'areviax_trophy', name:'The Areviax Trophy', title:'1-of-1 — the single rarest pull in the game', icon:'<svg class="lgi-brand-mark" viewBox="0 0 100 100" fill="none"><circle cx="50" cy="50" r="48" fill="#3D1F0A" stroke="#8A3010" stroke-width="1"/><path d="M50 14C50 14 45 42 18 50C45 58 50 86 50 86C50 86 55 58 82 50C55 42 50 14 50 14Z" fill="#F36717" opacity=".9"/><circle cx="50" cy="50" r="4" fill="#F8F5EF"/></svg>', img:'images/relics/ultra_trophy.png', imgThumb:'images/relics/ultra_trophy.png', rarity:'ultralegendary'},
   // The Main Four — the founding legendary set, each cast as its own
   // bronze trophy statue with its title on the plaque.
-  {key:'arnold', name:'Herakles', title:'The Twelve Labors — strength enough to reshape myth itself', icon:'🦁', img:'images/relics/lion.png', imgThumb:'images/relics/lion.png', rarity:'legendary'},
+  {key:'arnold', name:'Herakles', title:'"I\'ll be back" energy — the Twelve Labors were just his warm-up sets', icon:'🦁', img:'images/relics/lion.png', imgThumb:'images/relics/lion.png', rarity:'legendary'},
   {key:'coleman', name:'Zeus, King of Olympus', title:'"Yeah Buddy" energy — thunder that never apologizes', icon:'⚡', img:'images/relics/thunderbolt.png', imgThumb:'images/relics/thunderbolt.png', rarity:'legendary'},
   {key:'cutler', name:'Talos, the Bronze Guardian', title:'Mass that doesn\'t stop, forged rather than born', icon:'⚙️', img:'images/relics/talos.png', imgThumb:'images/relics/talos.png', rarity:'mythic'},
   {key:'goggins', name:'Atlas, Bearer of the Sky', title:'Refusing to set the weight down', icon:'🌍', img:'images/relics/globe.png', imgThumb:'images/relics/globe.png', rarity:'mythic'},
