@@ -1746,6 +1746,17 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       transform:scale(.7) translateY(20px);opacity:0;
       transition:transform .5s cubic-bezier(.34,1.56,.64,1),opacity .4s cubic-bezier(.16,1,.3,1);
       box-shadow:0 20px 60px rgba(0,0,0,.6),0 0 0 1px rgba(232,214,196,.04);
+      /* Same fix as .flow-modal below (direct report there: "both the cool
+         down and warmup don't fit on screen") — this base card has no
+         height cap either, and unlike flow-modal every trophy/achievement
+         popup built on it (including the crate reveal's own trophy
+         showcase) has no backdrop-tap-to-close, only its own Close/
+         Continue button. On a short viewport or a card with a longer
+         name/description, that button could get pushed below the fold
+         with no way to scroll to it — the popup would look stuck/broken
+         since nothing else on screen responds. max-height+scroll here is
+         a no-op for anything that already fits. */
+      max-height:calc(100dvh - 32px);overflow-y:auto;
     }
     .achievement-overlay.show .achievement-modal{transform:scale(1) translateY(0);opacity:1}
     .achievement-icon{font-size:52px;margin-bottom:10px;filter:drop-shadow(0 4px 12px rgba(255,210,74,.4))}
@@ -14324,8 +14335,23 @@ function buildCrateReelHTML(finalCard){
 // the "proper intro" a new pull deserves, same beat as Brawl Stars
 // walking you into a new Brawler's own screen the moment you unlock it.
 function closeCrateRevealAndShowcase(btn,key,isNew){
-  btn.closest('.achievement-overlay').remove();
-  if(isNew)setTimeout(()=>viewLegendCard(key),260);
+  const overlay=btn.closest('.achievement-overlay');
+  if(!isNew){overlay.remove();return;}
+  // Direct report: pressing Continue and opening another banked crate
+  // right after "kinda crashes" the app. Root cause — this used to
+  // .remove() the reveal overlay immediately, then wait 260ms before
+  // creating the trophy-showcase overlay for a new pull. openCompassDrop's
+  // whole "only one reveal at a time" guard is just
+  // `document.querySelector('.achievement-overlay')`, and for that whole
+  // 260ms gap there was genuinely none in the DOM — a second "Open" tap
+  // landing inside that window sailed past the guard and started a second
+  // full reveal sequence on top of the first, stacking two crate-reveal
+  // stages/trophy showcases. display:none (not .remove()) keeps this
+  // element around purely so the guard still sees an overlay present for
+  // the whole handoff; it's cleaned up the instant the real showcase
+  // overlay exists, same 260ms pacing as before.
+  overlay.style.display='none';
+  setTimeout(()=>{ viewLegendCard(key); overlay.remove(); },260);
 }
 function showLegendReveal(l,isNew,tier,count,keyWon,titleWon){
   const cfg=CRATE_OPEN_TIMING[tier]||CRATE_OPEN_TIMING.bronze;
