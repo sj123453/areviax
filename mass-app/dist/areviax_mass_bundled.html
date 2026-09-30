@@ -20178,16 +20178,37 @@ const RANK_FAMILY_CURVES={
   HIP_THRUST:       [0.65,0.98,1.5,1.95,2.41,2.93,3.38,3.9,4.42],  // hinge × 1.3 (short ROM, mechanically efficient, supported)
   HORIZONTAL_PRESS: [0.3,0.5,0.75,1.0,1.25,1.5,1.75,2.0,2.25],     // = Big 4 bench curve
   HORIZONTAL_PRESS_BW:[0.15,0.25,0.38,0.5,0.63,0.75,0.88,1.0,1.13],// bench × 0.5 — logged weight here is just ADDED weight beyond bodyweight (weighted dips/push-ups), not total load
-  DUMBBELL_CHEST_PRESS:[0.23,0.38,0.56,0.75,0.94,1.13,1.31,1.5,1.69],// bench × 0.75 (two independent dumbbells, more stabilization demand)
+  // DUMBBELL_CHEST_PRESS / DUMBBELL_SHOULDER_PRESS / DUMBBELL_ROW split into
+  // a bilateral (_BI, two implements moved together) and unilateral (_UNI,
+  // one implement/arm) pair each — direct report: "17.5kg per dumbbell is
+  // wood but 40kg on a barbell is silver". Root cause: estimate1RM() just
+  // runs on h.weight exactly as logged, and for a dumbbell exercise that's
+  // always the weight printed on ONE dumbbell — nothing anywhere doubles it.
+  // The bilateral curves below (two independent dumbbells moved at once,
+  // e.g. a standard Dumbbell Shoulder Press) were nonetheless derived as
+  // "barbell curve × 0.75 stabilization penalty" — a TOTAL-load comparison
+  // — so comparing that total-calibrated threshold against a per-hand
+  // number silently graded every bilateral dumbbell exercise on roughly
+  // double the real bar it needed to clear. Halved here so the per-hand
+  // number is compared against a per-hand threshold instead (÷2 on top of
+  // the existing 0.75 penalty = ×0.375 of the barbell curve).
+  // A genuinely unilateral exercise (one arm working, logged weight really
+  // IS the whole load) has no such mismatch — those keep the ORIGINAL
+  // un-halved values in the new _UNI curves below, moved out of the shared
+  // family rather than also getting cut in half.
+  DUMBBELL_CHEST_PRESS:[0.113,0.188,0.281,0.375,0.469,0.563,0.656,0.75,0.844],// bench × 0.375 (bilateral: two dumbbells together, halved from the old total-load curve to compare fairly against the PER-HAND number people actually log)
+  DUMBBELL_CHEST_PRESS_UNI:[0.23,0.38,0.56,0.75,0.94,1.13,1.31,1.5,1.69],// bench × 0.75 (unilateral: one dumbbell — logged weight already IS the full load, no halving needed)
   MACHINE_CHEST_PRESS:[0.27,0.45,0.68,0.9,1.13,1.35,1.58,1.8,2.03],// bench × 0.9 (supported, fixed path)
   CHEST_ISO:        [0.11,0.18,0.26,0.35,0.44,0.53,0.61,0.7,0.79],// bench × 0.35 (single-joint isolation)
   VERTICAL_PRESS:   [0.2,0.35,0.5,0.65,0.8,0.95,1.1,1.25,1.4],     // = Big 4 OHP curve
   VERTICAL_PRESS_LIGHT:[0.16,0.28,0.4,0.52,0.64,0.76,0.88,1.0,1.12],// OHP × 0.8 (landmine/thruster leverage or pre-fatigue)
   MACHINE_SHOULDER_PRESS:[0.18,0.32,0.45,0.59,0.72,0.86,0.99,1.13,1.26],// OHP × 0.9
-  DUMBBELL_SHOULDER_PRESS:[0.15,0.26,0.38,0.49,0.6,0.71,0.83,0.94,1.05],// OHP × 0.75
+  DUMBBELL_SHOULDER_PRESS:[0.075,0.13,0.19,0.245,0.3,0.355,0.415,0.47,0.525],// OHP × 0.375 (bilateral, see comment above — halved from OHP×0.75)
+  DUMBBELL_SHOULDER_PRESS_UNI:[0.15,0.26,0.38,0.49,0.6,0.71,0.83,0.94,1.05],// OHP × 0.75 (unilateral — one dumbbell/kettlebell/cable handle)
   BARBELL_ROW:      [0.26,0.43,0.64,0.85,1.06,1.28,1.49,1.7,1.91], // bench × 0.85 (heavy barbell compound, slightly lighter than a press)
   MACHINE_ROW:       [0.28,0.47,0.7,0.94,1.17,1.4,1.64,1.87,2.1],  // barbell row × 1.1 (supported, fixed path)
-  DUMBBELL_ROW:      [0.21,0.35,0.53,0.7,0.88,1.05,1.23,1.4,1.58], // bench × 0.7 (single-arm/dumbbell loading)
+  DUMBBELL_ROW:      [0.21,0.35,0.53,0.7,0.88,1.05,1.23,1.4,1.58], // bench × 0.7 (unilateral — this family's original "single-arm/dumbbell loading" calibration was already correct for one dumbbell; kept as-is, see DUMBBELL_ROW_BI for the two-dumbbell case)
+  DUMBBELL_ROW_BI:   [0.104,0.172,0.256,0.34,0.424,0.512,0.596,0.68,0.764],// barbell row × 0.4 (bilateral: two dumbbells rowed together, e.g. Chest-Supported Row — same total-load-halved-for-per-hand logic as the press families above)
   BODYWEIGHT_ROW:    [0.1,0.16,0.24,0.34,0.44,0.54,0.64,0.74,0.84],// bodyweight-lever row (inverted row, band row)
   VERTICAL_PULL:     [0.25,0.4,0.6,0.85,1.1,1.35,1.6,1.85,2.1],    // lat pulldown-family, machine-assisted big compound pull
   VERTICAL_PULL_BW:  [0.1,0.16,0.24,0.34,0.44,0.54,0.64,0.74,0.84],// pull-up/chin-up — logged weight is ADDED weight only, same caveat as HORIZONTAL_PRESS_BW
@@ -20203,9 +20224,9 @@ const EXERCISE_RANK_FAMILY={
   'Inverted Row':'BODYWEIGHT_ROW','Resistance Band Row':'BODYWEIGHT_ROW',
   'Calf Raises':'CALF','Deficit Calf Raise':'CALF','Donkey Calf Raise':'CALF','Leg Press Calf Raise':'CALF','Seated Calf Raise':'CALF','Single-Leg Calf Raise':'CALF','Standing Barbell Calf Raise':'CALF','Standing Calf Raise (Machine)':'CALF','Standing Calf Raise (machine)':'CALF',
   'Cable Chest Fly':'CHEST_ISO','Cable Crossover':'CHEST_ISO','Cable Fly (Low-to-High)':'CHEST_ISO','Flat Dumbbell Fly':'CHEST_ISO','Svend Press':'CHEST_ISO',
-  'Arnold Press':'DUMBBELL_CHEST_PRESS','Incline Dumbbell Press':'DUMBBELL_CHEST_PRESS','Single-Arm Dumbbell Press':'DUMBBELL_CHEST_PRESS',
-  'Chest-Supported Row':'DUMBBELL_ROW','Dumbbell Row':'DUMBBELL_ROW','Renegade Row':'DUMBBELL_ROW','Single-Arm Dumbbell Row':'DUMBBELL_ROW',
-  'Cuban Press':'DUMBBELL_SHOULDER_PRESS','Dumbbell Shoulder Press':'DUMBBELL_SHOULDER_PRESS','Kettlebell Overhead Press':'DUMBBELL_SHOULDER_PRESS','Single-Arm Cable Overhead Press':'DUMBBELL_SHOULDER_PRESS',
+  'Arnold Press':'DUMBBELL_CHEST_PRESS','Incline Dumbbell Press':'DUMBBELL_CHEST_PRESS','Single-Arm Dumbbell Press':'DUMBBELL_CHEST_PRESS_UNI',
+  'Chest-Supported Row':'DUMBBELL_ROW_BI','Dumbbell Row':'DUMBBELL_ROW','Renegade Row':'DUMBBELL_ROW','Single-Arm Dumbbell Row':'DUMBBELL_ROW',
+  'Cuban Press':'DUMBBELL_SHOULDER_PRESS','Dumbbell Shoulder Press':'DUMBBELL_SHOULDER_PRESS','Kettlebell Overhead Press':'DUMBBELL_SHOULDER_PRESS_UNI','Single-Arm Cable Overhead Press':'DUMBBELL_SHOULDER_PRESS_UNI',
   'Front Squat':'FRONT_SQUAT',
   'Conventional Deadlift':'HINGE','Sumo Deadlift':'HINGE','Trap Bar Deadlift':'HINGE',
   'Dumbbell RDL':'HINGE_LIGHT','Glute Ham Raise':'HINGE_LIGHT','Good Morning':'HINGE_LIGHT','Romanian Deadlift':'HINGE_LIGHT','Single-Leg Romanian Deadlift':'HINGE_LIGHT','Stiff-Leg Deadlift':'HINGE_LIGHT',
@@ -21467,6 +21488,9 @@ const FOODS_DB=[
   {name:'Spinach (raw)',cals:23,prot:2.9,carbs:3.6,fats:0.4},
   {name:'Carrots (raw)',cals:41,prot:0.9,carbs:10,fats:0.2,unitGrams:61,unitName:'carrot'},
   {name:'Mixed vegetables (cooked)',cals:65,prot:2.8,carbs:13,fats:0.4},
+  {name:'Lettuce',cals:15,prot:1.4,carbs:2.9,fats:0.2,unitGrams:10,unitName:'leaf'},
+  {name:'Aubergine (cooked)',cals:35,prot:0.8,carbs:8.6,fats:0.2},
+  {name:'Brussels sprouts (cooked)',cals:43,prot:3.4,carbs:8.9,fats:0.3},
   {name:'Peanut butter',cals:588,prot:25,carbs:20,fats:50},
   {name:'Almonds',cals:579,prot:21,carbs:22,fats:50},
   {name:'Mixed nuts',cals:607,prot:20,carbs:21,fats:54},
@@ -21482,8 +21506,8 @@ const FOODS_DB=[
   {name:'Olive oil',cals:884,prot:0,carbs:0,fats:100},
   {name:'Toasted sesame oil',cals:884,prot:0,carbs:0,fats:100},
   {name:'Butter',cals:717,prot:0.9,carbs:0.1,fats:81},
-  {name:'Maple syrup',cals:260,prot:0,carbs:67,fats:0.2},
-  {name:'Golden syrup',cals:295,prot:0.3,carbs:79,fats:0},
+  {name:'Maple syrup',cals:260,prot:0,carbs:67,fats:0.2,isSpoonable:true},
+  {name:'Golden syrup',cals:295,prot:0.3,carbs:79,fats:0,isSpoonable:true},
   {name:'Waffles',cals:291,prot:7.9,carbs:43,fats:9.9,unitGrams:35,unitName:'waffle'},
   {name:'Pancakes (plain)',cals:227,prot:6.4,carbs:28,fats:9.7,unitGrams:38,unitName:'pancake'},
   {name:'Wholemeal bread',cals:247,prot:13,carbs:41,fats:3.4,unitGrams:38,unitName:'slice'},
@@ -21494,13 +21518,13 @@ const FOODS_DB=[
   {name:'Orange',cals:47,prot:0.9,carbs:12,fats:0.1,unitGrams:131,unitName:'orange'},
   {name:'Quinoa (cooked)',cals:120,prot:4.4,carbs:21,fats:1.9},
   {name:'Baked beans',cals:75,prot:4.6,carbs:13,fats:0.4},
-  {name:'Hummus',cals:166,prot:8,carbs:14,fats:10},
-  {name:'Mustard',cals:66,prot:4,carbs:8,fats:3},
-  {name:'BBQ sauce',cals:172,prot:1,carbs:40,fats:0.5},
-  {name:'Soy sauce',cals:53,prot:8,carbs:5,fats:0},
-  {name:'Sriracha / hot sauce',cals:93,prot:1.9,carbs:18,fats:0.9},
-  {name:'Salsa',cals:36,prot:1.5,carbs:7,fats:0.2},
-  {name:'Salad dressing (oil-based)',cals:380,prot:0.5,carbs:12,fats:38},
+  {name:'Hummus',cals:166,prot:8,carbs:14,fats:10,isSpoonable:true},
+  {name:'Mustard',cals:66,prot:4,carbs:8,fats:3,isSpoonable:true},
+  {name:'BBQ sauce',cals:172,prot:1,carbs:40,fats:0.5,isSpoonable:true},
+  {name:'Soy sauce',cals:53,prot:8,carbs:5,fats:0,isSpoonable:true},
+  {name:'Sriracha / hot sauce',cals:93,prot:1.9,carbs:18,fats:0.9,isSpoonable:true},
+  {name:'Salsa',cals:36,prot:1.5,carbs:7,fats:0.2,isSpoonable:true},
+  {name:'Salad dressing (oil-based)',cals:380,prot:0.5,carbs:12,fats:38,isSpoonable:true},
   {name:'Whole milk',cals:61,prot:3.2,carbs:4.8,fats:3.3,isLiquid:true},
   {name:'Semi-skimmed milk',cals:46,prot:3.4,carbs:4.7,fats:1.7,isLiquid:true},
   {name:'Granola',cals:471,prot:10,carbs:64,fats:20},
@@ -21509,15 +21533,15 @@ const FOODS_DB=[
   {name:'Mixed berries',cals:50,prot:0.8,carbs:11,fats:0.3},
   {name:'Blueberries',cals:57,prot:0.7,carbs:14,fats:0.3},
   {name:'Strawberries',cals:32,prot:0.7,carbs:7.7,fats:0.3,unitGrams:12,unitName:'strawberry'},
-  {name:'Honey',cals:304,prot:0.3,carbs:82,fats:0},
-  {name:'Jam',cals:278,prot:0.4,carbs:69,fats:0.1},
+  {name:'Honey',cals:304,prot:0.3,carbs:82,fats:0,isSpoonable:true},
+  {name:'Jam',cals:278,prot:0.4,carbs:69,fats:0.1,isSpoonable:true},
   {name:'Cocoa powder (unsweetened)',cals:228,prot:19.6,carbs:57.9,fats:13.7},
   {name:'Cacao nibs',cals:479,prot:12,carbs:34,fats:41},
   {name:'Dark chocolate',cals:546,prot:7.8,carbs:46,fats:31,unitGrams:6,unitName:'piece'},
   {name:'Milk chocolate',cals:535,prot:7.7,carbs:59,fats:30,unitGrams:6,unitName:'piece'},
   {name:'White chocolate',cals:539,prot:5.9,carbs:59,fats:32,unitGrams:6,unitName:'piece'},
   {name:'Melted chocolate',cals:535,prot:7.6,carbs:57,fats:31},
-  {name:'Chocolate sauce',cals:305,prot:2.5,carbs:65,fats:4.5,isLiquid:true},
+  {name:'Chocolate sauce',cals:305,prot:2.5,carbs:65,fats:4.5,isLiquid:true,isSpoonable:true},
   {name:'Chocolate chip cookie',cals:488,prot:5.4,carbs:64,fats:24,unitGrams:16,unitName:'cookie'},
   {name:'Chocolate cake (frosted)',cals:371,prot:5,carbs:50,fats:17},
   {name:'Victoria sponge cake',cals:389,prot:4.8,carbs:52,fats:18},
@@ -21559,8 +21583,8 @@ const FOODS_DB=[
   {name:'Gatorade',cals:24,prot:0,carbs:6.1,fats:0,isLiquid:true,unitGrams:591,unitName:'bottle'},
   {name:'Burger (beef, with bun)',cals:295,prot:17,carbs:24,fats:14},
   {name:'Fries',cals:312,prot:3.4,carbs:41,fats:15},
-  {name:'Mayo',cals:680,prot:1,carbs:0.6,fats:75},
-  {name:'Ketchup',cals:101,prot:1.3,carbs:26,fats:0.1},
+  {name:'Mayo',cals:680,prot:1,carbs:0.6,fats:75,isSpoonable:true},
+  {name:'Ketchup',cals:101,prot:1.3,carbs:26,fats:0.1,isSpoonable:true},
   {name:'Sour cream',cals:198,prot:2.4,carbs:4.6,fats:20},
   // ── Cereals ──
   {name:'Weetabix',cals:362,prot:12,carbs:69,fats:2.7,unitGrams:18,unitName:'biscuit'},
@@ -23560,6 +23584,15 @@ function selectSmartLogFood(idx){
     if(amountLabel)amountLabel.textContent='How much '+smartLogFood.name.toLowerCase()+'?';
     if(amountInput)amountInput.placeholder='e.g. 2';
     if(amountHint)amountHint.textContent='Just the number is fine — we know how much one '+smartLogFood.unitName+' weighs. Words like "half" or "whole" work too, or an exact weight like "40g".';
+  }else if(smartLogFood.isSpoonable){
+    // Sauces/condiments/spreads — direct ask: these should offer a
+    // spoon-based quick amount, not "1 cup" of ketchup or "1 palm" of
+    // honey. Takes priority over isLiquid (a pourable sauce like
+    // chocolate sauce is both) since a spoon is still the natural unit
+    // people reach for over a volume measure.
+    if(amountLabel)amountLabel.textContent='How much '+smartLogFood.name.toLowerCase()+'?';
+    if(amountInput)amountInput.placeholder='e.g. 1 tbsp, 2 tsp';
+    if(amountHint)amountHint.textContent='Type an amount (15g) or a spoon measure: tsp, tbsp';
   }else if(smartLogFood.isLiquid){
     // Drinks are measured in ml, not grams — most people think in terms
     // of a glass/mug/can, not weight.
@@ -23612,6 +23645,9 @@ function smartLogQuickAmountsHTML(food){
     return chip('½ '+u,Math.round(food.unitGrams/2)+'g','half')+
            chip('1 '+u,food.unitGrams+'g','1')+
            chip('2 '+pluralizeUnit(u),(food.unitGrams*2)+'g','2');
+  }
+  if(food.isSpoonable){
+    return chip('1 tsp','5g','tsp')+chip('1 tbsp','15g','tbsp')+chip('2 tbsp','30g','2 tbsp');
   }
   if(food.isLiquid){
     return chip('Glass','250ml','250ml')+chip('Can','330ml','330ml')+chip('Bottle','500ml','500ml');
