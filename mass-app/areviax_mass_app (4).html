@@ -4509,6 +4509,15 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
 @media (orientation:landscape) and (max-height:500px) and (hover:none) and (pointer:coarse){
   #rotate-lock{display:flex}
 }
+/* Direct report: rotating to landscape shows a visible glitch first (the
+   meander/Greek-key border bars mid-reflow) before this lock screen
+   covers it — the CSS media query above only catches up once the browser
+   finishes recomputing layout for the new viewport, and on some phones
+   that lags a beat behind the physical rotation. .landscape-lock-force
+   (see the orientationchange/resize listener below) is set by JS the
+   instant a landscape+small-height+touch state is detected, so the cover
+   can win that race instead of waiting on the media query alone. */
+html.landscape-lock-force #rotate-lock{display:flex}
 
 /* ============================================================
    LOVABLE PORT — literal tokens/utilities from the website-refresh
@@ -4784,6 +4793,23 @@ body[data-goal-theme="cut"] .lv-page{
   }
   updateSafeTopVar();
   window.addEventListener('orientationchange',function(){setTimeout(updateSafeTopVar,50);});
+})();
+// ROTATE-LOCK RACE FIX — direct report: turning the phone sideways showed a
+// visible glitch (the meander/Greek-key border bars mid-reflow) before the
+// #rotate-lock cover appeared. The CSS media query alone only repaints once
+// the browser finishes recomputing layout for the new viewport size, which
+// on some phones lags a beat behind the physical rotation — this listener
+// runs a plain JS matchMedia check (same conditions as the CSS) on both
+// orientationchange AND resize (some browsers fire one but not the other
+// cleanly, especially right at the moment of rotation) and flips the cover
+// on/off through a class instead, so whichever signal lands first wins.
+(function(){
+  var mq=window.matchMedia('(orientation:landscape) and (max-height:500px) and (hover:none) and (pointer:coarse)');
+  function syncRotateLock(){document.documentElement.classList.toggle('landscape-lock-force',mq.matches);}
+  syncRotateLock();
+  window.addEventListener('orientationchange',syncRotateLock);
+  window.addEventListener('resize',syncRotateLock);
+  if(mq.addEventListener)mq.addEventListener('change',syncRotateLock);
 })();
 </script>
 <!-- STATUS-BAR BLACKOUT — always-on, permanently pure-black strip exactly
