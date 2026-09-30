@@ -5403,10 +5403,25 @@ body[data-goal-theme="cut"] .lv-page{
        function that writes into them (renderDashRankPill etc.) already
        no-ops safely when they're missing, same as any other page that
        doesn't show them. -->
-  <header class="lv-grain lv-photo-header" style="background-image:linear-gradient(180deg,rgba(10,7,4,.35) 0%,rgba(10,7,4,.4) 50%,rgba(10,7,4,.7) 100%),url('images/roads/realm-mortal.jpg');background-size:190%;background-position:center 44%;--lv-fg:#F7F5F2">
+  <header class="lv-grain lv-photo-header" style="background-image:linear-gradient(180deg,rgba(10,7,4,.35) 0%,rgba(10,7,4,.4) 50%,rgba(10,7,4,.7) 100%),url('images/roads/realm-mortal.jpg');background-position:center 44%;--lv-fg:#F7F5F2">
     <div style="position:relative;z-index:1;text-shadow:0 2px 10px rgba(0,0,0,.55)">
       <h1 style="margin:0;color:var(--lv-fg);font-family:var(--lv-display);font-weight:400;font-size:1.9rem;line-height:1;letter-spacing:.01em;text-transform:uppercase"><span id="dash-greeting-word1">Good</span> <span id="dash-greeting-word2">morning</span></h1>
-      <div style="margin-top:4px;font-size:22px;font-weight:800;color:var(--lv-fg)" id="dash-greeting-name"></div>
+      <!-- Name now carries the athlete's own rank (TIERS, the same Mortal→
+           God of Gods ladder as the Hall of Statues) instead of sitting
+           there as plain text — tier.metal is the identical metallic
+           gradient already used on the medal/statue renders, clipped to
+           the name text itself, plus the small statue-bust medal and rank
+           label alongside it. renderDashHeroLovable() fills all three;
+           genuinely unranked (zero sessions logged) falls back to plain
+           text so a brand-new athlete isn't shown a rank they haven't
+           earned yet. -->
+      <div style="margin-top:6px;display:flex;align-items:center;gap:9px">
+        <span id="dash-greeting-medal" style="flex-shrink:0;display:flex;filter:drop-shadow(0 2px 6px rgba(0,0,0,.5))"></span>
+        <div style="min-width:0">
+          <div style="font-size:22px;font-weight:800;line-height:1.15;color:var(--lv-fg)" id="dash-greeting-name"></div>
+          <div style="margin-top:1px;font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;opacity:.85" id="dash-greeting-rank"></div>
+        </div>
+      </div>
     </div>
   </header>
   <div class="lv-meander-bold" style="margin:10px 0 16px"></div>
@@ -17707,7 +17722,34 @@ function renderDashHeroLovable(){
     greetW2.textContent=w2;
   }
   const nameEl=document.getElementById('dash-greeting-name');
-  if(nameEl)nameEl.textContent=profile.name||'';
+  const medalEl=document.getElementById('dash-greeting-medal');
+  const rankLabelEl=document.getElementById('dash-greeting-rank');
+  if(nameEl){
+    nameEl.textContent=profile.name||'';
+    const r=getRank();
+    const unranked=(r===UNRANKED);
+    if(unranked){
+      nameEl.style.backgroundImage='';
+      nameEl.style.webkitBackgroundClip='';
+      nameEl.style.backgroundClip='';
+      nameEl.style.webkitTextFillColor='';
+      nameEl.style.color='var(--lv-fg)';
+    }else{
+      // Same metallic gradient technique as the medal/Hall-of-Statues
+      // renders (TIERS[].metal), clipped to the name's own text —
+      // the name literally takes on the athlete's current rank's metal.
+      nameEl.style.backgroundImage=r.metal;
+      nameEl.style.webkitBackgroundClip='text';
+      nameEl.style.backgroundClip='text';
+      nameEl.style.webkitTextFillColor='transparent';
+      nameEl.style.color=r.col;
+    }
+    if(medalEl)medalEl.innerHTML=unranked?'':medalSVG(r,26);
+    if(rankLabelEl){
+      rankLabelEl.textContent=unranked?'':r.name+' Lifter';
+      rankLabelEl.style.color=unranked?'':r.col;
+    }
+  }
   const eyebrowEl=document.getElementById('dash-eyebrow-text');
   if(eyebrowEl){
     const now=new Date();
