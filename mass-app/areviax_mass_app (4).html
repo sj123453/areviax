@@ -4777,6 +4777,24 @@ body[data-goal-theme="cut"] .lv-page{
 .exwalk-card-carousel{display:flex;width:100%;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;border-radius:12px;background:#000}
 .exwalk-card-carousel::-webkit-scrollbar{display:none}
 .exwalk-card{flex:0 0 100%;width:100%;aspect-ratio:16/9;object-fit:contain;scroll-snap-align:center}
+
+/* ── CALISTHENICS GUIDE — a vertical progression ladder per skill
+   category (see page-calisthenics/CALISTHENICS_LADDERS). Deliberately a
+   plain connecting-line-and-dot list rather than the Learn page's
+   bespoke hand-drawn SVG charts — a real "step 1 -> step 2 -> step 3"
+   chain reads perfectly clearly this way, and 4 ladders' worth of
+   custom illustration would be a lot of drawing for no real gain in
+   clarity over a simple numbered chain. */
+.cal-ladder-section{margin-bottom:28px}
+.cal-ladder-title{display:flex;align-items:baseline;gap:8px;font-family:'Bebas Neue',sans-serif;font-size:1.5rem;letter-spacing:.02em;color:var(--lv-fg,var(--white));margin-bottom:4px}
+.cal-ladder-sub{font-size:12px;color:var(--lv-muted-fg,var(--muted));line-height:1.6;margin-bottom:16px}
+.cal-ladder{position:relative;padding-left:28px}
+.cal-ladder::before{content:'';position:absolute;left:9px;top:8px;bottom:8px;width:2px;background:linear-gradient(180deg,var(--lv-gold,#E6BE6D),rgba(230,190,109,.15))}
+.cal-step{position:relative;margin-bottom:16px}
+.cal-step:last-child{margin-bottom:0}
+.cal-step::before{content:attr(data-step);position:absolute;left:-28px;top:0;width:20px;height:20px;border-radius:50%;background:var(--lv-card,#1E1613);border:2px solid var(--lv-gold,#E6BE6D);color:var(--lv-gold,#E6BE6D);font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.cal-step-name{font-size:13.5px;font-weight:800;color:var(--lv-fg,var(--white))}
+.cal-step-desc{font-size:11.5px;color:var(--lv-muted-fg,var(--muted));line-height:1.6;margin-top:3px}
 </style>
 </head>
 <body class="onboarding-active">
@@ -5369,6 +5387,7 @@ body[data-goal-theme="cut"] .lv-page{
       <!-- The Areviax Championship moved to its own header icon button
            (dashboard, next to Shop/Profile) — not duplicated into this list too. -->
       <div class="sb-more-item" onclick="showPage('learn');toggleSidebarMore()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg><span>The Science</span></div>
+      <div class="sb-more-item" onclick="showPage('calisthenics');toggleSidebarMore()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="4" r="2"/><path d="M12 6v7M9 9l3 1 3-1M8 20l4-7 4 7M9 13l-3 3M15 13l3 3"/></svg><span>Calisthenics</span></div>
       <div class="sb-more-item" onclick="showPage('aicoach');toggleSidebarMore()"><img src="images/icons/coach-sam-portrait.png" alt="" style="width:14px;height:14px;border-radius:50%;object-fit:cover;object-position:50% 42%;flex-shrink:0"><span>Coach Sam</span></div>
       <div class="sb-more-item" onclick="showPage('subscription');toggleSidebarMore()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3 7h7l-5.5 4.5L18.5 21 12 16.5 5.5 21l2-7.5L2 9h7z"/></svg><span>Go Premium</span></div>
       <div class="sb-more-item" onclick="showPage('roadmap');toggleSidebarMore()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="19" r="2.2"/><circle cx="18" cy="5" r="2.2"/><path d="M8 19h5a5 5 0 005-5V9"/></svg><span>Roadmap</span></div>
@@ -9012,6 +9031,31 @@ body[data-goal-theme="cut"] .lv-page{
   <div style="text-align:center;margin-top:14px;font-size:10.5px;color:var(--muted);line-height:1.6">Payments aren't switched on yet — this screen shows what Premium will unlock once billing is connected.</div>
 </div>
 
+<!-- CALISTHENICS GUIDE — direct ask: "add a full guide to calisthenics
+     and a full workout sets to get from beginner to expert". The actual
+     loggable exercises for every step below live in EX (search "CALISTHENICS
+     SKILL LADDER" — 19 new entries split across upper-push/upper-pull/
+     lower/full so they surface in Custom Session search and swap lists
+     like anything else); this page is the map that shows how they chain
+     together, since no single exercise card can show a whole ladder on
+     its own. CALISTHENICS_LADDERS/renderCalisthenicsGuide() below. -->
+<div class="page lv-page" id="page-calisthenics">
+  <header class="lv-ember-wash lv-grain lv-colonnade lv-temple-glow lv-pediment" style="position:relative;overflow:hidden;margin:0 -20px 16px;padding:20px 20px 26px;border-radius:0 0 28px 28px">
+    <span class="lv-ghost-numeral" style="right:-14px;top:38px">Κ</span>
+    <div style="position:relative;z-index:1">
+      <p class="lv-label-eyebrow" style="margin-top:0;color:var(--lv-fg);opacity:.7">The Gymnast's Path</p>
+      <h1 style="margin-top:6px;color:var(--lv-fg);font-family:'Bebas Neue',sans-serif;font-weight:400;font-size:clamp(2rem,10.5vw,3.2rem);line-height:.95;letter-spacing:.01em;text-transform:uppercase">Calisthenics<br><span class="lv-serif-accent lv-gold-text" style="font-size:.7em">bodyweight mastery</span></h1>
+      <div style="margin-top:14px;font-family:var(--lv-mono);font-size:11px;color:var(--lv-muted-fg)">4 skill ladders</div>
+      <div class="lv-meander-bold" style="margin-top:18px"></div>
+    </div>
+  </header>
+  <div class="companion" style="background:linear-gradient(135deg,rgba(243,103,23,.08),rgba(var(--bg-rgb),.9));border:1.5px solid rgba(243,103,23,.2);padding:14px 18px;border-radius:6px;margin-bottom:18px">
+    <div class="companion-msg" style="font-size:12px;color:rgba(var(--white-rgb),.8);line-height:1.7">No bar, no rack, no plates — just real progressive skills. Every step below is a real exercise you can add to a Custom Session (search its name in Workout Builder) and log sets against like anything else. Move to the next step only once the current one is solid — these ladders are ordered on purpose, and skipping ahead is how people get hurt.</div>
+  </div>
+  <div id="calisthenics-guide-body"></div>
+  <div style="height:24px"></div>
+</div>
+
 <!-- ROADMAP / TIMELINE — a genuine, honest status page for the features
      already referenced elsewhere as "coming soon" (AI Food Scan on the
      Nutrition page, the FAQ matcher's "not a real LLM yet" disclosure,
@@ -10109,6 +10153,23 @@ const EX={
         {feel:'Wrist of the straight arm', fix:'Make sure that arm\'s hand is flat and fingers spread for a stable base — it\'s bearing less load but still needs a solid platform.'},
         {feel:'Shoulder (working side)', fix:'This is a demanding progression — if your shoulder feels sharp rather than worked, reduce how far you shift toward the bending arm and build up gradually.'},
       ]},
+    // ── CALISTHENICS SKILL LADDER — direct ask: "add a full guide to
+    // calisthenics and a full workout sets to get from beginner to
+    // expert". Push-side progressions (Planche and the handstand
+    // push-up line) live here in upper-push; the matching Pull ladder
+    // (Front Lever, Muscle-up) is in upper-pull, Pistol Squat's missing
+    // early steps are in lower, and the static-hold core skills (L-sit,
+    // Human Flag) are in full — see CALISTHENICS_GUIDE below for how
+    // these chain together end to end, since no single exercise entry
+    // here can show the whole ladder on its own.
+    {name:'Pike Push-up',beginnerAlt:'Push-ups',muscle:'shoulders + triceps',sets:3,reps:'8–12',eff:82,syn:84,safe:92,equip:['home','bodyweight','full'],anim:'pushup',cue:'Hips piked up so your body forms an inverted V, hands and feet roughly shoulder-width apart. Bend your elbows to lower the top of your head toward the floor between your hands, then press back up. The first real step toward a handstand push-up — it starts loading your shoulders vertically instead of horizontally.'},
+    {name:'Wall Handstand Push-up',beginnerAlt:'Pike Push-up',muscle:'shoulders + triceps',sets:3,reps:'3–6',eff:90,syn:86,safe:74,equip:['home','bodyweight','full'],anim:'pushup',cue:'Kick up into a handstand against a wall, facing the wall (chest to wall, not back to wall — this keeps your form honest). Lower your head toward the floor under control, then press back up to full lockout. Build the hold first before adding reps — a shaky handstand makes this genuinely risky, not just hard.',
+      troubleshoot:[
+        {feel:'Can\'t hold the handstand long enough to even attempt a rep', fix:'Spend a few weeks just building the wall handstand hold itself (30-60s) before adding any pressing — there\'s no shortcut past this.'},
+      ]},
+    {name:'Tuck Planche',beginnerAlt:'Pike Push-up',muscle:'chest + shoulders + core',sets:3,reps:'10–20s hold',eff:88,syn:82,safe:80,equip:['home','bodyweight','full'],anim:'pushup',cue:'From a deep forward lean on parallettes or the floor, knees tucked tight to your chest, lift your feet off the ground so only your hands are in contact. Protract your shoulder blades (push the floor away) and keep your arms straight. The entry point to the whole planche line — most of the work here is learning to trust leaning that far forward.'},
+    {name:'Straddle Planche',beginnerAlt:'Tuck Planche',muscle:'chest + shoulders + core',sets:3,reps:'5–10s hold',eff:92,syn:83,safe:68,equip:['home','bodyweight','full'],anim:'pushup',cue:'Same straight-arm forward lean as the tuck, but legs extended straight and spread wide instead of tucked — the wide straddle shortens the effective lever arm compared to straight legs together, which is what makes this achievable before the full version. Genuinely advanced; most people spend months moving through the tuck progressions before this holds for real time.'},
+    {name:'Full Planche',beginnerAlt:'Straddle Planche',muscle:'chest + shoulders + core',sets:3,reps:'3–8s hold',eff:95,syn:80,safe:60,equip:['home','bodyweight','full'],anim:'pushup',cue:'Legs straight and together, fully horizontal, bodyweight supported entirely on straight arms. One of the hardest static holds in calisthenics — years of straddle work typically precede a real full planche. Train it because the straddle demands it, not because a program says you\'re "due" for it.'},
     {name:'Push-ups',beginnerAlt:'Incline Push-up',muscle:'chest + triceps',sets:4,reps:'12–20',eff:75,syn:88,safe:99,equip:['full','dumbbells','home','bodyweight'],anim:'pushup',cue:'Chest to the floor every rep, then push back up in a straight line — don\'t let your hips sag or pike up. Hands slightly wider than shoulder width, elbows tracking back at roughly 45°, not flared straight out to the sides. Elevate feet to make it harder.',
       troubleshoot:[
         {feel:'Shoulders, not chest', fix:'Your elbows are probably flaring out to a T-shape. Bring them in closer to your body, around 45°, and make sure your chest — not your face or chin — is what touches the floor each rep.'},
@@ -10431,6 +10492,19 @@ const EX={
         {feel:'Only forearms', fix:'Your grip might be too narrow or too wide. Shoulder width is usually the sweet spot — also check you\'re not over-gripping the bar, which fatigues your forearms before your back and biceps get worked properly.'},
         {feel:'Can\'t complete reps at all', fix:'Same fix as pull-ups — use a resistance band for assistance, or focus on slow negative reps (jump up, lower as slowly as possible) to build the strength.'},
       ]},
+    // ── CALISTHENICS SKILL LADDER (pull side) — see the matching comment
+    // in upper-push above; Front Lever and Muscle-up both build directly
+    // on a real dead-hang pull-up/chin-up, which is why they sit right
+    // after those two here.
+    {name:'Tuck Front Lever',beginnerAlt:'Pull-ups',muscle:'lats + core',sets:3,reps:'10–20s hold',eff:85,syn:83,safe:85,equip:['full','home','park'],anim:'lats',cue:'Hang from a bar, then pull your knees up to your chest and lean your whole body back until your torso is roughly horizontal, arms straight. Keep your shoulder blades pulled down and back the whole time rather than letting them ride up toward your ears. The starting point of the entire front lever line.'},
+    {name:'Advanced Tuck Front Lever',beginnerAlt:'Tuck Front Lever',muscle:'lats + core',sets:3,reps:'8–15s hold',eff:88,syn:83,safe:78,equip:['full','home','park'],anim:'lats',cue:'Same horizontal body position as the tuck, but hips opened up so your thighs point away from your chest instead of tucked tight — a longer lever arm than the basic tuck, a shorter one than straddle. The step most people spend the longest on, since the jump to straddle is a real one.'},
+    {name:'Straddle Front Lever',beginnerAlt:'Advanced Tuck Front Lever',muscle:'lats + core',sets:3,reps:'5–10s hold',eff:92,syn:82,safe:68,equip:['full','home','park'],anim:'lats',cue:'Legs straight and spread wide in a straddle, body fully horizontal, straight arms. The wide straddle shortens the lever compared to legs together, same logic as the straddle planche — it\'s what makes this achievable before the full version.'},
+    {name:'Full Front Lever',beginnerAlt:'Straddle Front Lever',muscle:'lats + core',sets:3,reps:'3–8s hold',eff:95,syn:80,safe:60,equip:['full','home','park'],anim:'lats',cue:'Legs straight and together, full horizontal hold, straight arms. One of the benchmark calisthenics skills — real straddle strength for months usually comes before this holds for real time. Train it because the straddle demands it, not on a fixed timeline.'},
+    {name:'Negative Muscle-up',beginnerAlt:'Pull-ups',muscle:'lats + chest + triceps',sets:3,reps:'3–6',eff:86,syn:84,safe:80,equip:['full','park'],anim:'lats',cue:'Start at the TOP of a muscle-up (arms locked out above the bar, like the top of a dip) and lower yourself as slowly as you can control through the transition and back down to a dead hang. Builds the specific transition strength a normal pull-up never touches — most people need this before their first real muscle-up, not more pull-up volume.',
+      troubleshoot:[
+        {feel:'Can\'t get to the top position to even start the negative', fix:'Use a resistance band, a slightly lower bar you can jump-assist from, or have a spotter help you to the top — the negative is the point, not how you got up there.'},
+      ]},
+    {name:'Muscle-up',beginnerAlt:'Negative Muscle-up',muscle:'lats + chest + triceps',sets:3,reps:'3–6',eff:94,syn:88,safe:72,equip:['full','park'],anim:'lats',cue:'A pull-up that transitions straight into a dip at the top, in one continuous motion — pull high and lean forward over the bar as your chest clears it, rather than pulling straight up and getting stuck. The signature calisthenics skill; negatives and a strong dip/pull-up base both need to be solid first.'},
     {name:'Concentration Curl',muscle:'biceps',sets:3,reps:'10–12 each',eff:79,syn:82,safe:97,equip:['full','dumbbells','home'],anim:'curl',cue:'Sit and brace the back of your upper arm against your inner thigh — this completely removes your shoulder and back from the movement, isolating the bicep entirely. Curl up slowly with no swinging at all, since your body has no other way to help lift the weight.',
       troubleshoot:[
         {feel:'Barely anything, very weak feeling', fix:'That\'s actually normal here — because nothing else can help you, the weight you can use is naturally much lower than other curl variations. Drop the weight rather than break form to compensate.'},
@@ -10804,7 +10878,14 @@ const EX={
         {feel:'Losing tension at the bottom', fix:'Stay braced through your core even while lightly touching the box — don\'t relax as if you\'re sitting down for a rest.'},
         {feel:'Lower back rounding', fix:'Check your box height — if it\'s too low for your current mobility, your back will round to reach it. Use a slightly higher box.'},
       ]},
-    {name:'Pistol Squat',beginnerAlt:'Bodyweight Squat',muscle:'quads + glutes',sets:3,reps:'5–8 each',eff:85,syn:80,safe:78,equip:['home','bodyweight'],anim:'squat',cue:'A full single-leg squat with the other leg extended straight out in front of you. Genuinely demanding on balance, strength, and ankle mobility — build up with an assisted version (holding something for balance, or squatting to a box) before attempting the full unsupported version.',
+    // ── CALISTHENICS SKILL LADDER (legs) — see the comment on Pike
+    // Push-up above; these two fill the actual missing steps between a
+    // normal bodyweight squat and the existing Pistol Squat entry below,
+    // which already told people to "build up with an assisted version"
+    // without those steps existing anywhere to pick.
+    {name:'Box Pistol Squat',beginnerAlt:'Bodyweight Squat',muscle:'quads + glutes',sets:3,reps:'6–10 each',eff:78,syn:76,safe:90,equip:['home','bodyweight','full'],anim:'squat',cue:'Sit a single-leg squat down onto a box or bench (start fairly high, lower the box over weeks as you get stronger) with the other leg extended out in front, then stand back up. Taking the bottom range out removes most of the balance demand so you can focus purely on the strength side first.'},
+    {name:'Assisted Pistol Squat',beginnerAlt:'Box Pistol Squat',muscle:'quads + glutes',sets:3,reps:'6–10 each',eff:82,syn:78,safe:85,equip:['home','bodyweight','full'],anim:'squat',cue:'A full-range single-leg squat, other leg extended out in front, holding a doorframe, pole, or TRX strap for light support. Use just enough assistance to control the movement — the goal is to lean on it less each week, not to make the rep easy.'},
+    {name:'Pistol Squat',beginnerAlt:'Assisted Pistol Squat',muscle:'quads + glutes',sets:3,reps:'5–8 each',eff:85,syn:80,safe:78,equip:['home','bodyweight'],anim:'squat',cue:'A full single-leg squat with the other leg extended straight out in front of you. Genuinely demanding on balance, strength, and ankle mobility — build up with an assisted version (holding something for balance, or squatting to a box) before attempting the full unsupported version.',
       troubleshoot:[
         {feel:'Losing balance constantly', fix:'This is one of the hardest bodyweight exercises to control — hold onto a doorframe or TRX strap for support while you build the strength and balance for the unsupported version.'},
         {feel:'Ankle (front, pinching)', fix:'Limited ankle mobility is a common blocker here — try placing a small wedge or plate under your heel to reduce the demand while you build mobility.'},
@@ -11003,6 +11084,15 @@ const EX={
         {feel:'Lower back, not abs', fix:'Your hips are sagging. Squeeze your glutes hard and tuck your pelvis slightly — this is usually the fastest fix for lower back discomfort in a plank.'},
         {feel:'Shoulders ache, not core', fix:'Check your hands or elbows are positioned directly under your shoulders, not too far forward, and that you\'re not letting your upper back round.'},
       ]},
+    // ── CALISTHENICS SKILL LADDER (static core) — see the comment on
+    // Pike Push-up above. L-sit and Human Flag both live here since
+    // they're core/compression skills rather than a specific push or
+    // pull pattern.
+    {name:'Tuck L-sit',beginnerAlt:'Plank',muscle:'core + hip flexors',sets:3,reps:'10–20s hold',eff:80,syn:78,safe:88,equip:['full','home','bodyweight'],anim:'core',cue:'Support yourself on parallettes or two blocks, arms straight, knees pulled tight to your chest with feet off the floor. Push the floor away through straight arms and keep your shoulders down, not hunched up toward your ears. The entry point for the whole L-sit line.'},
+    {name:'L-sit',beginnerAlt:'Tuck L-sit',muscle:'core + hip flexors',sets:3,reps:'8–15s hold',eff:88,syn:82,safe:75,equip:['full','home','bodyweight'],anim:'core',cue:'Same straight-arm support as the tuck, but both legs extended straight out in front, parallel to the floor, forming a genuine "L". Hip flexor and straight-arm strength both get exposed hard here — if the tuck felt easy, this is usually still a real jump.'},
+    {name:'V-sit',beginnerAlt:'L-sit',muscle:'core + hip flexors',sets:3,reps:'5–10s hold',eff:93,syn:80,safe:62,equip:['full','home','bodyweight'],anim:'core',cue:'From the L-sit position, raise your straight legs further until your body forms a V shape, toes above head height. Serious hip flexor and hamstring flexibility is as much a limiter here as raw strength — don\'t force this one before the L-sit holds comfortably for real time.'},
+    {name:'Tuck Human Flag',beginnerAlt:'Pull-ups',muscle:'core + obliques + lats',sets:3,reps:'5–10s hold',eff:84,syn:80,safe:78,equip:['full','park'],anim:'core',cue:'Grip a vertical pole with one hand high (pulling) and one hand low (pushing), then lift your tucked knees off the ground until your torso is roughly parallel to the pole. One of the more unusual strength patterns in calisthenics — the top arm pulls while the bottom arm pushes, simultaneously.'},
+    {name:'Human Flag',beginnerAlt:'Tuck Human Flag',muscle:'core + obliques + lats',sets:3,reps:'3–6s hold',eff:94,syn:78,safe:58,equip:['full','park'],anim:'core',cue:'Same grip as the tuck version, but body fully extended and straight, parallel to the ground, held entirely by the top (pulling) and bottom (pushing) arms. One of the most visually striking calisthenics skills there is — real tuck-flag strength for a good while usually comes before this holds for real time.'},
     {name:'Hanging Knee Raise',muscle:'core',sets:3,reps:'12–15',eff:84,syn:86,safe:92,equip:['full','home','park'],anim:'core',cue:'Hang from a bar with a still upper body, then bring your knees up toward your chest without swinging. If you\'re swinging, you\'re using momentum instead of your abs to move the weight — slow and controlled beats fast and sloppy here every time.',
       troubleshoot:[
         {feel:'Grip gives out before abs do', fix:'Use lifting straps or a thicker bar grip so your forearms aren\'t the limiting factor before your core gets properly worked.'},
@@ -16602,7 +16692,7 @@ function updateStreakFromActivity(){
 function syncPageChrome(id){
   const sharedTopbar=document.querySelector('.topbar');
   const isMobileWidth=window.innerWidth<=800;
-  const hasOwnMobileBar=(id==='dashboard'||id==='progress'||id==='shop'||id==='trophycabinet'||id==='labors'||id==='nutrition'||id==='workout'||id==='schedule'||id==='leaderboard'||id==='xproad'||id==='trophyroad'||id==='aicoach'||id==='session'||id==='recipes'||id==='legal'||id==='settings'||id==='profile'||id==='subscription'||id==='leagues'||id==='trials'||id==='recovery'||id==='learn'||id==='roadmap'||id==='reflection');
+  const hasOwnMobileBar=(id==='dashboard'||id==='progress'||id==='shop'||id==='trophycabinet'||id==='labors'||id==='nutrition'||id==='workout'||id==='schedule'||id==='leaderboard'||id==='xproad'||id==='trophyroad'||id==='aicoach'||id==='session'||id==='recipes'||id==='legal'||id==='settings'||id==='profile'||id==='subscription'||id==='leagues'||id==='trials'||id==='recovery'||id==='learn'||id==='roadmap'||id==='reflection'||id==='calisthenics');
   if(sharedTopbar)sharedTopbar.style.display=(hasOwnMobileBar&&isMobileWidth)?'none':'';
   const lvTopbars=document.querySelectorAll('.lv-page-topbar');
   lvTopbars.forEach(el=>{el.style.display=(el.dataset.page===id)?'flex':'none';});
@@ -16618,7 +16708,7 @@ function showPage(id){
   if(pg)pg.classList.add('active');
   document.querySelectorAll('.sb-item').forEach(i=>{if(i.getAttribute('onclick')?.includes(id))i.classList.add('active')});
   try{
-    const titles={dashboard:'Home',workout:'The Forge',session:'Session',nutrition:'Nutrition',recipes:'Recipes',progress:'Progress',shop:'Shop',trophycabinet:'Trophy Cabinet',labors:'The 12 Labors',xproad:'Arete Road',trophyroad:'The Way Home',recovery:'Recovery',schedule:'Schedule',leaderboard:'Leaderboard',leagues:'Leagues',trials:'The Areviax Championship',learn:'Science',profile:'Profile',legal:'Legal',settings:'Settings',aicoach:'Coach Sam',subscription:'Go Premium',roadmap:'Roadmap',reflection:'Daily Reflection'};
+    const titles={dashboard:'Home',workout:'The Forge',session:'Session',nutrition:'Nutrition',recipes:'Recipes',progress:'Progress',shop:'Shop',trophycabinet:'Trophy Cabinet',labors:'The 12 Labors',xproad:'Arete Road',trophyroad:'The Way Home',recovery:'Recovery',schedule:'Schedule',leaderboard:'Leaderboard',leagues:'Leagues',trials:'The Areviax Championship',learn:'Science',calisthenics:'Calisthenics',profile:'Profile',legal:'Legal',settings:'Settings',aicoach:'Coach Sam',subscription:'Go Premium',roadmap:'Roadmap',reflection:'Daily Reflection'};
     const t=titles[id]||id;
     const tte=document.getElementById('tb-title');
     if(tte){tte.textContent=t;tte.classList.toggle('tb-title-sm',id==='trophycabinet');}
@@ -16695,6 +16785,7 @@ function showPage(id){
   if(id==='subscription')safeRender(renderSubscriptionPage,'subscription');
   if(id==='roadmap')safeRender(renderRoadmap,'roadmap');
   if(id==='settings')safeRender(renderSettings,'settings');
+  if(id==='calisthenics')safeRender(renderCalisthenicsGuide,'calisthenics');
 }
 
 // ── ONBOARDING ──
@@ -23203,6 +23294,59 @@ const ROADMAP_ITEMS=[
   {status:'planned',title:'Premium billing',desc:'In-app subscriptions through the App Store/Play Store, so upgrading is one tap instead of a screen that explains it isn\'t connected yet.',eta:'Planned — targeting early 2027'},
 ];
 const ROADMAP_STATUS_LABEL={shipped:'✓ Shipped',progress:'⚙ In progress',planned:'○ Planned'};
+// ── CALISTHENICS GUIDE — direct ask: "add a full guide to calisthenics
+// and a full workout sets to get from beginner to expert". Each step
+// name matches a real EX entry 1:1 (see "CALISTHENICS SKILL LADDER" in
+// EX above) so "search this name in Workout Builder" in the page's own
+// intro text is literally true, not just a figure of speech.
+const CALISTHENICS_LADDERS=[
+  {title:'Push — Planche',sub:'The straight-arm push line. Everything here loads your shoulders and chest through a straight arm instead of a bend — patience matters more than anywhere else on this page.',
+    steps:[
+      {name:'Pike Push-up',desc:'Loads your shoulders vertically instead of horizontally — the actual first step, not push-ups themselves.'},
+      {name:'Wall Handstand Push-up',desc:'Real overhead pressing strength under a handstand. Build the hold itself first if it isn\'t solid yet.'},
+      {name:'Tuck Planche',desc:'Straight arms, knees tucked to chest, feet off the floor. The entry point to the planche line proper.'},
+      {name:'Straddle Planche',desc:'Legs straight and wide instead of tucked. A real jump — most people live here for months.'},
+      {name:'Full Planche',desc:'Legs straight and together, fully horizontal. One of the hardest static holds in calisthenics.'},
+    ]},
+  {title:'Pull — Front Lever & Muscle-up',sub:'Everything here builds on a real dead-hang pull-up/chin-up — get those solid before starting this ladder, not alongside it.',
+    steps:[
+      {name:'Tuck Front Lever',desc:'Hang, pull your knees to your chest, lean back to horizontal. The front lever line\'s starting point.'},
+      {name:'Advanced Tuck Front Lever',desc:'Hips opened up from the tuck. Usually the step people spend the longest on.'},
+      {name:'Straddle Front Lever',desc:'Legs straight and wide. The shortened lever is what makes this achievable before the full version.'},
+      {name:'Full Front Lever',desc:'Legs straight and together, fully horizontal. A genuine benchmark calisthenics skill.'},
+      {name:'Negative Muscle-up',desc:'Lower slowly from the top position down to a hang — builds the transition strength a pull-up never touches.'},
+      {name:'Muscle-up',desc:'Pull-up flowing straight into a dip in one motion. The signature calisthenics skill.'},
+    ]},
+  {title:'Legs — Pistol Squat',sub:'A single-leg squat looks simple and isn\'t — balance and ankle mobility get exposed here as much as raw strength.',
+    steps:[
+      {name:'Box Pistol Squat',desc:'Sit down onto a box or bench, other leg extended out front. Removes the balance demand so you can focus on strength first.'},
+      {name:'Assisted Pistol Squat',desc:'Full range, light hand support from a doorframe or strap. Lean on it less each week.'},
+      {name:'Pistol Squat',desc:'Full single-leg squat, unsupported, other leg extended straight out in front. Genuinely demanding — no shortcuts.'},
+    ]},
+  {title:'Core — L-sit & Human Flag',sub:'Compression and side-body strength most training never touches. Hip/hamstring flexibility matters as much as raw strength past the L-sit.',
+    steps:[
+      {name:'Tuck L-sit',desc:'Straight-arm support, knees tucked to chest, feet off the floor. The L-sit line\'s entry point.'},
+      {name:'L-sit',desc:'Both legs extended straight out, parallel to the floor. Still a real jump even if the tuck felt easy.'},
+      {name:'V-sit',desc:'Legs raised further into a V. Flexibility is as much a limiter here as strength.'},
+      {name:'Tuck Human Flag',desc:'One arm pulls, one arm pushes, on a vertical pole, knees tucked. An unusual strength pattern worth building on its own.'},
+      {name:'Human Flag',desc:'Body fully extended and straight, parallel to the ground. One of the most visually striking skills in calisthenics.'},
+    ]},
+];
+function renderCalisthenicsGuide(){
+  const wrap=document.getElementById('calisthenics-guide-body');
+  if(!wrap)return;
+  wrap.innerHTML=CALISTHENICS_LADDERS.map(l=>`
+    <div class="cal-ladder-section">
+      <div class="cal-ladder-title">${l.title}</div>
+      <div class="cal-ladder-sub">${l.sub}</div>
+      <div class="cal-ladder">
+        ${l.steps.map((s,i)=>`<div class="cal-step" data-step="${i+1}">
+          <div class="cal-step-name">${s.name}</div>
+          <div class="cal-step-desc">${s.desc}</div>
+        </div>`).join('')}
+      </div>
+    </div>`).join('');
+}
 function renderRoadmap(){
   const list=document.getElementById('roadmap-list');
   if(!list)return;
@@ -29588,6 +29732,10 @@ document.addEventListener('DOMContentLoaded', function(){
     <div class="more-sheet-item" onclick="showPage('learn');toggleMoreSheet()">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>
       <span>The Science</span>
+    </div>
+    <div class="more-sheet-item" onclick="showPage('calisthenics');toggleMoreSheet()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="4" r="2"/><path d="M12 6v7M9 9l3 1 3-1M8 20l4-7 4 7M9 13l-3 3M15 13l3 3"/></svg>
+      <span>Calisthenics</span>
     </div>
     <div class="more-sheet-item" onclick="showPage('aicoach');toggleMoreSheet()">
       <img src="images/icons/coach-sam-portrait.png" alt="" style="width:18px;height:18px;border-radius:50%;object-fit:cover;object-position:50% 42%">
