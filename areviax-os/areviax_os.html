@@ -74,7 +74,15 @@ body{background:linear-gradient(160deg,#120C09 0%,#0D0806 100%) fixed;background
 .os-page-header-sub{margin-top:8px;font-size:12.5px;color:rgba(247,245,242,.72);max-width:85%}
 
 /* ── LAYOUT ── */
-.app{display:flex;height:100vh;overflow:hidden}
+/* 100vh is the LARGE viewport height on mobile — it counts the space
+   still behind a not-yet-collapsed browser address bar, so it's taller
+   than what's actually visible. With overflow:hidden here, that gap
+   just pushes the bottom of the app (bottom nav, or whatever's at the
+   foot of a page) out past the real visible area rather than showing
+   it — "can't see the full thing" until the address bar happens to
+   hide itself. 100dvh (the real, dynamic visible height) fixes it;
+   100vh stays first as a fallback for browsers that predate dvh. */
+.app{display:flex;height:100vh;height:100dvh;overflow:hidden}
 
 /* SIDEBAR */
 .sidebar{
@@ -316,7 +324,7 @@ body{background:linear-gradient(160deg,#120C09 0%,#0D0806 100%) fixed;background
    everywhere. Ripples get a bigger max radius here so they still feel like
    they're filling the whole screen rather than looking small and lost. */
 .med-orb-stage.med-fullscreen{
-  position:fixed;inset:0;width:100vw;height:100vh;z-index:9999;
+  position:fixed;inset:0;width:100vw;height:100vh;height:100dvh;z-index:9999;
   margin:0;border-radius:0;background:#0B0B0B;
 }
 .med-fullscreen-exit{
