@@ -610,6 +610,11 @@ input,input:focus,input:active,
 .shake-glow{filter:drop-shadow(0 0 10px rgba(243,103,23,.65)) drop-shadow(0 0 22px rgba(243,103,23,.35))}
 .shake-type-card{background:var(--panel2);border:1.5px solid var(--border2);border-radius:10px;padding:10px;cursor:pointer;text-align:center;transition:all .18s}
 .shake-type-card:hover{border-color:rgba(243,103,23,.4);background:rgba(243,103,23,.05)}
+/* Wider than the default .achievement-modal (320px) — the 3-col type grid
+   reads cramped any narrower — and left-aligned since this is a picker
+   with a heading, not a centred single-message popup. */
+.shake-types-modal{max-width:360px;text-align:left}
+.shake-types-modal .shake-type-card{text-align:center}
 .emergency-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
 .em-item{background:var(--panel2);border:1.5px solid var(--border2);border-radius:10px;overflow:hidden;text-align:left;transition:border-color .15s}
 .em-item:hover{border-color:rgba(255,122,46,.4)}
@@ -3147,8 +3152,19 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .crate-reveal-stage .reveal-split .reveal-badge-wrap{margin-bottom:22px}
     .crate-reveal-stage .reveal-text-col{text-align:center}
     /* Bigger now that the stacked layout isn't splitting width with the
-       text column — direct ask: "make it larger". */
-    .crate-reveal-stage .reveal-badge-wrap{width:clamp(220px,52vw,340px);margin-bottom:20px}
+       text column — direct ask: "make it larger".
+       Direct follow-up report: the revealed trophy wasn't landing dead
+       centre over the name/description below it. Root cause — this wrap
+       used to be capped narrower (clamp 220-340px) than .legend-reveal-icon
+       itself (clamp 260-420px), so the real trophy's img could render
+       WIDER than the box centering it, throwing the whole thing off-axis
+       relative to the text column below (which centers against the full
+       680px .reveal-split, not this narrower wrap). width:100% here means
+       the wrap always spans the same box the text centers against, and the
+       flex centering on the base .reveal-badge-wrap rule centers whatever's
+       inside it (mystery badge or full-size reveal icon) against that same
+       reference width regardless of the child's own rendered size. */
+    .crate-reveal-stage .reveal-badge-wrap{width:100%;margin-bottom:20px}
     .crate-reveal-stage .legend-mystery-icon{width:clamp(170px,32vw,260px);height:clamp(170px,32vw,260px)}
     /* No forced height here on purpose — each trophy's own PNG has its own
        natural aspect ratio (a tall shield vs. a wide lyre), so only width
@@ -6401,7 +6417,6 @@ body[data-goal-theme="cut"] .lv-page{
     <div class="nutr-shake-sub" id="shake-hero-macros">113 kcal · 13g protein</div>
     <div onclick="event.stopPropagation();toggleShakeTypes()" style="font-size:10.5px;color:rgba(var(--white-rgb),.5);text-decoration:underline;cursor:pointer;margin-top:8px">Or pick a different type →</div>
   </div>
-  <div id="shake-types-panel" style="display:none" onclick="event.stopPropagation()"></div>
   </div>
 
   <div class="nutr-carousel-card">
@@ -21457,14 +21472,16 @@ const FOODS_DB=[
   {name:'Protein cereal',cals:370,prot:30,carbs:42,fats:6},
   {name:'Mixed berries',cals:50,prot:0.8,carbs:11,fats:0.3},
   {name:'Blueberries',cals:57,prot:0.7,carbs:14,fats:0.3},
-  {name:'Strawberries',cals:32,prot:0.7,carbs:7.7,fats:0.3},
+  {name:'Strawberries',cals:32,prot:0.7,carbs:7.7,fats:0.3,unitGrams:12,unitName:'strawberry'},
   {name:'Honey',cals:304,prot:0.3,carbs:82,fats:0},
   {name:'Jam',cals:278,prot:0.4,carbs:69,fats:0.1},
   {name:'Cocoa powder (unsweetened)',cals:228,prot:19.6,carbs:57.9,fats:13.7},
   {name:'Cacao nibs',cals:479,prot:12,carbs:34,fats:41},
-  {name:'Dark chocolate',cals:546,prot:7.8,carbs:46,fats:31},
-  {name:'Milk chocolate',cals:535,prot:7.7,carbs:59,fats:30},
-  {name:'White chocolate',cals:539,prot:5.9,carbs:59,fats:32},
+  {name:'Dark chocolate',cals:546,prot:7.8,carbs:46,fats:31,unitGrams:6,unitName:'piece'},
+  {name:'Milk chocolate',cals:535,prot:7.7,carbs:59,fats:30,unitGrams:6,unitName:'piece'},
+  {name:'White chocolate',cals:539,prot:5.9,carbs:59,fats:32,unitGrams:6,unitName:'piece'},
+  {name:'Melted chocolate',cals:535,prot:7.6,carbs:57,fats:31},
+  {name:'Chocolate sauce',cals:305,prot:2.5,carbs:65,fats:4.5,isLiquid:true},
   {name:'Chocolate chip cookie',cals:488,prot:5.4,carbs:64,fats:24,unitGrams:16,unitName:'cookie'},
   {name:'Chocolate cake (frosted)',cals:371,prot:5,carbs:50,fats:17},
   {name:'Victoria sponge cake',cals:389,prot:4.8,carbs:52,fats:18},
@@ -21566,6 +21583,7 @@ const FOODS_DB=[
   {name:'Onion',cals:40,prot:1.1,carbs:9.3,fats:0.1,unitGrams:110,unitName:'onion'},
   // ── Snacks / treats ──
   {name:'Crisps',cals:536,prot:6.6,carbs:50,fats:35},
+  {name:'Hand-cooked crisps (thick cut)',cals:499,prot:6.2,carbs:53,fats:29},
   {name:'Digestive biscuits',cals:471,prot:6.3,carbs:68,fats:20,unitGrams:15,unitName:'biscuit'},
   {name:'Flapjack',cals:441,prot:6,carbs:58,fats:21},
   {name:'Marmite',cals:230,prot:40,carbs:27,fats:0.1},
@@ -23533,6 +23551,14 @@ function selectSmartLogFood(idx){
 // apply to a donut/muffin/cookie/egg/tin — nobody sizes those against
 // their palm, the ½/1/2 fraction is the natural read there instead.
 const PALM_SIZED_UNITS=['breast','thigh','fillet','steak','chop'];
+// Every unitName pluralized here was a flat +'s' — fine for "breast"/
+// "cookie", wrong for anything ending in a consonant+y ("strawberry" ->
+// "strawberrys" instead of "strawberries"), both in the quick-amount
+// chip label and, more importantly, in what parseAmount() will actually
+// accept if someone types the correct plural back themselves.
+function pluralizeUnit(u){
+  return /[^aeiou]y$/i.test(u)?u.slice(0,-1)+'ies':u+'s';
+}
 // Three real, tappable options instead of a blank field asking someone to
 // do maths — chosen per food type so they're actually the ones someone
 // would reach for, not just the first three AMOUNT_WORDS entries. Every
@@ -23543,13 +23569,13 @@ function smartLogQuickAmountsHTML(food){
   if(food.unitName&&PALM_SIZED_UNITS.includes(food.unitName)){
     return chip('Small','palm · 85g','palm')+
            chip('1 '+food.unitName,food.unitGrams+'g','1')+
-           chip('2 '+food.unitName+'s',(food.unitGrams*2)+'g','2');
+           chip('2 '+pluralizeUnit(food.unitName),(food.unitGrams*2)+'g','2');
   }
   if(food.unitName){
     const u=food.unitName;
     return chip('½ '+u,Math.round(food.unitGrams/2)+'g','half')+
            chip('1 '+u,food.unitGrams+'g','1')+
-           chip('2 '+u+'s',(food.unitGrams*2)+'g','2');
+           chip('2 '+pluralizeUnit(u),(food.unitGrams*2)+'g','2');
   }
   if(food.isLiquid){
     return chip('Glass','250ml','250ml')+chip('Can','330ml','330ml')+chip('Bottle','500ml','500ml');
@@ -23661,7 +23687,7 @@ function parseAmount(text,food){
   if(m){
     const count=m[1]?parseFloat(m[1]):1;
     const word=m[2].trim().replace(/\s+/g,' ');
-    if(food&&food.unitName&&(word===food.unitName||word===food.unitName+'s'))return count*food.unitGrams;
+    if(food&&food.unitName&&(word===food.unitName||word===pluralizeUnit(food.unitName)))return count*food.unitGrams;
     if(AMOUNT_WORDS[word]!==undefined)return count*AMOUNT_WORDS[word];
   }
   return null;
@@ -23681,7 +23707,7 @@ function describeSmartLogAmount(raw,food){
     if(bareNum){
       const n=parseFloat(bareNum[1]);
       if(n===1)return '1 whole '+food.unitName;
-      return n+' '+food.unitName+(n===1?'':'s');
+      return n+' '+(n===1?food.unitName:pluralizeUnit(food.unitName));
     }
     if(/\b(whole|wholes|half|halves|quarters?|three quarters?|thirds?|two thirds?)\b/.test(text))return raw.trim();
   }
@@ -23813,6 +23839,7 @@ function renderNutrition(){
   checkNutritionDay();
   try{syncLvBadges();}catch(e){}
   renderCustomFoodsQuickAdd();
+  renderQuickRecipeSearch(document.getElementById('quick-recipe-search')?document.getElementById('quick-recipe-search').value:'');
   renderLogDatePicker();
   renderPastDayLog();
   renderSupplementsRow();
@@ -26597,11 +26624,27 @@ function renderQuickRecipeSearch(query){
   const wrap=document.getElementById('quick-recipe-results');
   if(!wrap)return;
   const q=query.trim().toLowerCase();
-  if(!q){wrap.innerHTML='';return;}
   const all=allRecipes();
-  const matches=all.filter(r=>r.name.toLowerCase().includes(q)).slice(0,6);
-  if(!matches.length){wrap.innerHTML='<div class="smartlog-noresult">No recipes match — try a simpler term.</div>';return;}
-  wrap.innerHTML=matches.map(r=>{
+  // Direct ask: "add recipes to the food logging" — this search already
+  // existed, but an empty input rendered nothing at all, so this whole
+  // card read as just a lone text box with no hint anything was behind
+  // it unless you already knew to type. Seeding it with a same-day
+  // rotating sample (date-seeded, not re-randomized every keystroke/
+  // render) means there's always something tappable here without typing
+  // a single character, same "never a dead empty state" rule the rest of
+  // the app's quick-add grids already follow.
+  let matches,label;
+  if(!q){
+    if(!all.length){wrap.innerHTML='';return;}
+    const seed=new Date().getDate();
+    matches=all.slice().sort((a,b)=>((a.name.charCodeAt(0)+seed)%97)-((b.name.charCodeAt(0)+seed)%97)).slice(0,4);
+    label='<div class="smartlog-recent-label" style="margin-bottom:6px">Today\'s picks — or search above</div>';
+  }else{
+    matches=all.filter(r=>r.name.toLowerCase().includes(q)).slice(0,6);
+    label='';
+    if(!matches.length){wrap.innerHTML='<div class="smartlog-noresult">No recipes match — try a simpler term.</div>';return;}
+  }
+  wrap.innerHTML=label+matches.map(r=>{
     const idx=all.indexOf(r);
     return `<div class="smartlog-result" onclick="logQuickRecipe(${idx})" style="display:flex;align-items:center;justify-content:space-between;gap:6px"><span style="flex:1;min-width:0">${r.name}</span><span>${r.cals} kcal · ${r.prot}g P</span></div>`;
   }).join('');
@@ -26676,14 +26719,46 @@ function getShakeGlassSVG(color,size){
     <ellipse cx="30" cy="20" rx="15" ry="3" fill="rgba(232,214,196,.2)"/>
   </svg>`;
 }
+// Direct report: opening this picker made the whole Nutrition carousel
+// row "stretch loads down" — it used to be a plain in-flow div living
+// inside the Shake Hero .nutr-carousel-card. .nutr-carousel is
+// display:flex with the default align-items:stretch, so every sibling
+// carousel card (14-day fuel, Feeder Quest, all of them) is stretched to
+// match whichever card is currently tallest; this panel's grid pushed the
+// Shake Hero card well past the other cards' shared 360px cap the moment
+// it opened, so EVERY card in the row grew to match — including the
+// 14-day fuel card sitting two swipes away, with no visible cause once
+// you'd swiped back to look at it. Retracting genuinely did shrink things
+// back (display:none removed the extra height), which is why it read as
+// "the extension itself is fine, something else is wrong".
+// Fixed by taking this out of the carousel's flow entirely — same
+// position:fixed-overlay technique already used for the carousel's own
+// fullscreen-card view, just a lighter achievement-overlay/modal instead
+// of moving the whole card. A fixed overlay's height can never feed back
+// into a flex sibling's stretch calculation, so no amount of content here
+// can ever touch the 14-day fuel card's height again.
 function toggleShakeTypes(){
-  const panel=document.getElementById('shake-types-panel');
-  if(!panel)return;
-  const opening=panel.style.display==='none';
+  if(document.getElementById('shake-types-overlay')){closeShakeTypesOverlay();return;}
+  const overlay=document.createElement('div');
+  overlay.className='achievement-overlay';
+  overlay.id='shake-types-overlay';
+  overlay.onclick=closeShakeTypesOverlay;
+  overlay.innerHTML='<div class="achievement-modal shake-types-modal" onclick="event.stopPropagation()">'+
+    '<div style="font-size:12px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--white);margin-bottom:14px">Pick a shake</div>'+
+    '<div id="shake-types-panel"></div>'+
+    '<button class="achievement-close-btn" style="margin-top:16px" onclick="closeShakeTypesOverlay()">Close</button>'+
+  '</div>';
+  document.body.appendChild(overlay);
+  requestAnimationFrame(()=>overlay.classList.add('show'));
   // Always rebuild rather than caching — a newly-saved custom template
   // needs to show up next time this panel opens.
-  if(opening)renderShakeTypesPanel();
-  panel.style.display=opening?'block':'none';
+  renderShakeTypesPanel();
+}
+function closeShakeTypesOverlay(){
+  const overlay=document.getElementById('shake-types-overlay');
+  if(!overlay)return;
+  overlay.classList.remove('show');
+  setTimeout(()=>overlay.remove(),420);
 }
 function renderShakeTypesPanel(){
   const panel=document.getElementById('shake-types-panel');
