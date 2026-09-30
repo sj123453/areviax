@@ -3082,6 +3082,16 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
                  linear-gradient(180deg,#0c0a08 0%,#050403 100%);
       border:none;border-radius:0;padding:0 24px;box-shadow:none;
     }
+    /* .achievement-modal.glow::before (base rule, up above) is an ambient
+       rarity-tinted wash across the ENTIRE card — on the full-screen
+       stage that's the whole visible screen, at the same warm hue as
+       this stage's own background above, so trophy/name/text all ended
+       up sitting in one indistinct same-toned wash with nothing reading
+       as separate from anything else. Toned down here specifically
+       (not removed — it's still doing real work signalling rarity on
+       the small boxed reveals elsewhere) so the stage's own background
+       stays receded and content stays legible against it. */
+    .achievement-modal.crate-reveal-stage.glow::before{opacity:.4}
     /* Sizes below were flat pixel values tuned for a ~400px-wide phone —
        looked "cut off"/small on anything wider (a tablet, a desktop
        browser window) since the content never grew past that same fixed
@@ -3123,14 +3133,25 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        screen — bigger than the mystery-phase disc that precedes it, not
        just recolored the same size, now that it's not fighting a star
        clip-path for usable space. */
-    .crate-reveal-stage .reveal-badge-wrap{width:clamp(190px,36vw,300px);margin-bottom:20px}
-    .crate-reveal-stage .legend-mystery-icon{width:clamp(150px,28vw,240px);height:clamp(150px,28vw,240px)}
+    /* LAYOUT — was a left(art)/right(text) row (.reveal-split's base
+       rule), cramped into half the screen's width each on a tall phone
+       screen that has plenty of unused vertical room below. Direct ask:
+       "use the length more than the width... more space to fit in the
+       writing" — stacked instead, trophy on top using the full width,
+       name/description below it centered, so both get real room. */
+    .crate-reveal-stage .reveal-split{flex-direction:column;text-align:center}
+    .crate-reveal-stage .reveal-split .reveal-badge-wrap{margin-bottom:22px}
+    .crate-reveal-stage .reveal-text-col{text-align:center}
+    /* Bigger now that the stacked layout isn't splitting width with the
+       text column — direct ask: "make it larger". */
+    .crate-reveal-stage .reveal-badge-wrap{width:clamp(220px,52vw,340px);margin-bottom:20px}
+    .crate-reveal-stage .legend-mystery-icon{width:clamp(170px,32vw,260px);height:clamp(170px,32vw,260px)}
     /* No forced height here on purpose — each trophy's own PNG has its own
        natural aspect ratio (a tall shield vs. a wide lyre), so only width
        is capped and height follows the image via img{height:auto} below,
        instead of squashing/cropping every trophy into the same square. */
-    .crate-reveal-stage .legend-reveal-icon{width:clamp(230px,46vw,380px)}
-    .crate-reveal-stage .legend-reveal-icon img{width:clamp(190px,38vw,320px);height:auto}
+    .crate-reveal-stage .legend-reveal-icon{width:clamp(260px,62vw,420px)}
+    .crate-reveal-stage .legend-reveal-icon img{width:clamp(220px,52vw,360px);height:auto}
     .crate-reveal-stage .legend-mystery-icon .mystery-q{font-size:clamp(68px,12vw,100px)}
     /* Fixed to the viewport instead of absolute (still inherits --ray-c
        normally — custom properties cascade through the DOM regardless of
@@ -3150,8 +3171,24 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        (crate-reveal-stage is the only context .reveal-ray-burst ever
        renders in, so this is the one place that needs it gone). */
     .crate-reveal-stage .reveal-ray-burst{display:none}
-    .crate-reveal-stage .achievement-title{font-size:28px}
-    .crate-reveal-stage .achievement-desc{font-size:15px;max-width:320px;margin-left:auto;margin-right:auto}
+    /* NAME — direct ask: "make it blend less into the background". Was
+       a thin (font-weight:300) italic serif at 28px with only a soft
+       drop-shadow; against this screen's own warm, similarly-toned
+       background that read as low-contrast/washed out. Heavier weight,
+       bigger, and a real dark shadow instead of a soft one gives it an
+       edge regardless of what's behind it. */
+    .crate-reveal-stage .achievement-title{font-size:34px;font-weight:500;text-shadow:0 3px 14px rgba(0,0,0,.7)}
+    /* DESCRIPTION — direct ask: "make the writing look more full". Was
+       15px at 65% white opacity in a 320px column; now bigger, closer
+       to full white, and free to use the whole stacked column's width
+       (capped for line-length readability, not to leave room for the
+       image beside it any more). */
+    /* .reveal-text-col .achievement-desc (base rule, below) sets
+       max-width:none at equal specificity and comes later in the
+       stylesheet, which would win the cascade and strip this back to
+       full-column width on a wide viewport — the extra .reveal-text-col
+       here isn't redundant, it's what actually makes max-width stick. */
+    .crate-reveal-stage .reveal-text-col .achievement-desc{font-size:17px;line-height:1.55;color:rgba(var(--white-rgb),.88);max-width:360px;margin-left:auto;margin-right:auto}
     /* Real gap above the button now (was margin:0 auto only, so it sat
        flush against the item card right above it) — direct report: "can
        we move the continue further down." */
@@ -3448,22 +3485,28 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       position:relative;display:flex;align-items:center;justify-content:center;font-size:40px;
     }
     .legend-reveal-icon::before{
-      /* Direct ask: "just make it the trophy by itself no glow" — this
-         rarity-coloured blurred disc (and every .rarity-* background
-         below that fed it) is retired via content:none, which drops the
-         pseudo-element's box entirely; the rules past this point are
-         dead but left in place since a future rarity-colour treatment
-         elsewhere may still want them. Rarity still reads from the
-         "LEGENDARY"/etc label and border glow beside it, just not as a
-         halo behind the art itself. */
-      content:none;position:absolute;top:50%;left:50%;z-index:0;
+      /* An earlier pass dropped the bright rarity-coloured pulsing halo
+         here entirely ("no glow") — direct follow-up: with nothing at
+         all behind it, a gold/bronze trophy sitting on this screen's
+         own warm background had no separation from it and just read as
+         part of the scene. This restores a little contrast, but as a
+         plain neutral dark contact-shadow disc (not a colour, not
+         rarity-coded, no pulse) — enough for the trophy to read as an
+         object in front of the background rather than a coloured glow. */
+      content:'';position:absolute;top:50%;left:50%;z-index:0;
       width:92%;aspect-ratio:1/1;border-radius:50%;
       transform:translate(-50%,-50%);
+      background:radial-gradient(circle,rgba(0,0,0,.4) 0%,transparent 72%);
       filter:blur(22px);opacity:.85;pointer-events:none;
     }
+    /* Rarity used to colour the disc above via one .rarity-* background
+       override per tier (bright fill + a pulse/shimmer animation each)
+       — retired along with the glow itself above; rarity still reads
+       from the "LEGENDARY"/etc label and the modal's own border, never
+       from a halo behind the art. */
     .legend-reveal-icon img{
       width:100%;height:auto;object-fit:contain;position:relative;z-index:1;
-      filter:drop-shadow(0 12px 20px rgba(0,0,0,.55));
+      filter:drop-shadow(0 0 16px rgba(0,0,0,.5)) drop-shadow(0 12px 20px rgba(0,0,0,.55));
     }
     /* RAY BURST — the glow-behind-a-clipped-shape rule (see design-dna)
        means this can never live on .legend-reveal-icon itself; it's a
@@ -3501,17 +3544,8 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       -webkit-mask:radial-gradient(circle,transparent 15%,#000 26%,#000 46%,transparent 62%);
     }
     @keyframes rayspin{to{transform:translate(-50%,-50%) rotate(360deg)}}
-    .legend-reveal-icon.rarity-common::before{background:linear-gradient(160deg,#C7CBD1,#5B5F66)}
-    .legend-reveal-icon.rarity-rare::before{background:linear-gradient(160deg,#8FF0B8,#16803D)}
-    .legend-reveal-icon.rarity-superrare::before{background:linear-gradient(160deg,#B8D9FF,#1D4ED8);animation:rarityPulseSoft 2.6s ease-in-out infinite}
-    .legend-reveal-icon.rarity-epic::before{background:linear-gradient(115deg,#F1DCFF,#D8A6FF,#F1DCFF,#B266FF);background-size:260% 100%;animation:rarityShimmerSweep 3s linear infinite}
-    .legend-reveal-icon.rarity-mythic::before{background:linear-gradient(160deg,#FFB3B9,#C81E3A);animation:rarityPulseStrong 2s ease-in-out infinite}
-    .legend-reveal-icon.rarity-legendary::before{background:linear-gradient(160deg,#FFEA9E,#E8B400);animation:rarityPulseStrong 1.6s ease-in-out infinite}
-    .legend-reveal-icon.rarity-ultralegendary::before{
-      background:linear-gradient(115deg,#00E676,#00B368,#004D26,#00B368,#00E676);
-      background-size:300% 100%;
-      animation:holoShift 3.6s linear infinite,rarityPulseStrong 1.4s ease-in-out infinite;
-    }
+    /* Per-rarity ::before backgrounds retired — see the comment on
+       .legend-reveal-icon::before above. */
     /* Bold outlined label above the badge, Brawl-Stars-mechanism style —
        stroke via -webkit-text-stroke with paint-order so the black
        outline never eats into the fill, works with any font weight. */
