@@ -5574,21 +5574,25 @@ body[data-goal-theme="cut"] .lv-page{
        doesn't show them. -->
   <header class="lv-grain lv-photo-header dash-hero-photo" style="background-image:linear-gradient(180deg,rgba(10,7,4,.35) 0%,rgba(10,7,4,.4) 50%,rgba(10,7,4,.7) 100%),url('images/roads/realm-mortal.jpg');background-position:center 44%;--lv-fg:#F7F5F2">
     <div style="position:relative;z-index:1;text-shadow:0 2px 10px rgba(0,0,0,.55)">
-      <h1 class="lv-photo-header-title" style="margin:0;color:var(--lv-fg)"><span id="dash-greeting-word1">Good</span><br><span id="dash-greeting-word2" class="lv-serif-accent lv-gold-text" style="font-size:.8em">morning</span></h1>
-      <!-- Name now carries the athlete's own rank (TIERS, the same Mortal→
-           God of Gods ladder as the Hall of Statues) instead of sitting
-           there as plain text — tier.metal is the identical metallic
-           gradient already used on the medal/statue renders, clipped to
-           the name text itself, plus the small statue-bust medal and rank
-           label alongside it. renderDashHeroLovable() fills all three;
-           genuinely unranked (zero sessions logged) falls back to plain
-           text so a brand-new athlete isn't shown a rank they haven't
-           earned yet. -->
-      <div style="margin-top:6px;display:flex;align-items:center;gap:9px">
-        <span id="dash-greeting-medal" style="flex-shrink:0;display:flex;filter:drop-shadow(0 2px 6px rgba(0,0,0,.5))"></span>
+      <!-- Direct ask: "make the greeting the icon of the stage, and the
+           name much larger" — the time-of-day headline is gone, the
+           rank's own statue portrait now stands in for "the greeting"
+           at a size big enough to actually read as a portrait rather
+           than a badge, and the name takes over as the hero's one big
+           display-font headline (same two-line hero-title treatment
+           every other photo header uses, just filled with the name
+           instead of a page label). Name still carries the athlete's
+           own rank (TIERS, the same Mortal→God of Gods ladder as the
+           Hall of Statues) via tier.metal clipped to the text itself.
+           renderDashHeroLovable() fills all three; genuinely unranked
+           (zero sessions logged) falls back to the plain "?" badge and
+           plain-coloured name so a brand-new athlete isn't shown a rank
+           they haven't earned yet. -->
+      <div style="display:flex;align-items:center;gap:14px">
+        <span id="dash-greeting-medal" style="flex-shrink:0;display:flex;filter:drop-shadow(0 3px 10px rgba(0,0,0,.6))"></span>
         <div style="min-width:0">
-          <div style="font-size:22px;font-weight:800;line-height:1.15;color:var(--lv-fg)" id="dash-greeting-name"></div>
-          <div style="margin-top:1px;font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;opacity:.85" id="dash-greeting-rank"></div>
+          <div class="lv-photo-header-title" style="margin:0;line-height:1.02" id="dash-greeting-name"></div>
+          <div style="margin-top:4px;font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;opacity:.85" id="dash-greeting-rank"></div>
         </div>
       </div>
     </div>
@@ -18095,22 +18099,6 @@ function syncLvBadges(){
 function renderDashHeroLovable(){
   syncLvBadges();
   renderDashTitleBadge();
-  const greetW1=document.getElementById('dash-greeting-word1');
-  const greetW2=document.getElementById('dash-greeting-word2');
-  if(greetW1&&greetW2){
-    // Name left out of the giant display-size headline on purpose — at
-    // this clamp size uppercase, "Good evening, Alexandria" wraps to
-    // three lines on real names. Keeps it to the greeting word alone.
-    // Split into two spans (bold word + italic gold word) to match the
-    // same two-line Bebas Neue + Cormorant-italic-gold treatment every
-    // other ported hero (Workout, Nutrition, Recovery, Session…) uses —
-    // this used to be a single Cinzel line, the one hero that predated
-    // that pattern and never got updated to match it.
-    const h=new Date().getHours();
-    const [w1,w2]=h<5?['Good','night']:h<12?['Good','morning']:h<18?['Good','afternoon']:['Good','evening'];
-    greetW1.textContent=w1;
-    greetW2.textContent=w2;
-  }
   const nameEl=document.getElementById('dash-greeting-name');
   const medalEl=document.getElementById('dash-greeting-medal');
   const rankLabelEl=document.getElementById('dash-greeting-rank');
@@ -18134,7 +18122,12 @@ function renderDashHeroLovable(){
       nameEl.style.webkitTextFillColor='transparent';
       nameEl.style.color=r.col;
     }
-    if(medalEl)medalEl.innerHTML=unranked?'':statueMedalHTML(r,26);
+    // Icon is now the greeting itself (no more "Good morning" headline),
+    // so it needs to actually read as a portrait rather than a badge —
+    // sized way up from the old inline-with-text 26px. An unranked
+    // athlete still gets a real icon in that spot (the same "?" badge
+    // used everywhere else unranked shows up) rather than an empty gap.
+    if(medalEl)medalEl.innerHTML=unranked?unrankedSVG(60):statueMedalHTML(r,60);
     if(rankLabelEl){
       rankLabelEl.textContent=unranked?'':r.name+' Lifter';
       rankLabelEl.style.color=unranked?'':r.col;
