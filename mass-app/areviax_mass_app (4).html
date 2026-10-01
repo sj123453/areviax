@@ -4707,6 +4707,18 @@ body[data-goal-theme="cut"] .lv-page{
    that part, already true before this pass. */
 .lv-photo-header{position:relative;overflow:hidden;margin:-18px 0 16px;padding:16px 18px 18px;border-radius:22px;background-size:cover}
 .lv-photo-header-title{margin-top:4px;font-family:var(--lv-display);font-weight:400;font-size:clamp(1.7rem,7vw,2.15rem);line-height:1;letter-spacing:.01em;text-transform:uppercase}
+/* Dashboard-only hero enlargement — direct ask: bring back more of the
+   bigger hero image size specifically here, while keeping the "stripped
+   to greeting + name only" content from the earlier shrink pass (see the
+   OS-STRUCTURE PILOT v2 comment above the Dashboard header in the HTML —
+   that content-reduction stands, this just gives the photo more room to
+   breathe). Text anchors to the bottom of the taller box instead of the
+   top, so the image reads as the subject rather than a sliver peeking
+   out behind a cramped strip. Scoped to the Dashboard alone, not
+   .lv-photo-header itself, so every other page keeps the shorter header
+   from that same shrink pass. */
+.dash-hero-photo{min-height:210px;display:flex;flex-direction:column;justify-content:flex-end}
+@media(min-width:900px){.dash-hero-photo{min-height:320px}}
 .lv-laurel-watermark{position:relative}
 .lv-laurel-watermark::after{content:'';position:absolute;right:-3.5rem;top:-2.5rem;width:18rem;height:18rem;pointer-events:none;opacity:.09;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='none' stroke='%23e9c98a' stroke-width='1.4'%3E%3Cpath d='M50 96C24 88 10 66 14 40 17 22 30 8 44 4'/%3E%3Cpath d='M50 96c26-8 40-30 36-56C83 22 70 8 56 4'/%3E%3Cg%3E%3Cellipse cx='20' cy='30' rx='7' ry='3' transform='rotate(-38 20 30)'/%3E%3Cellipse cx='17' cy='45' rx='7' ry='3' transform='rotate(-25 17 45)'/%3E%3Cellipse cx='19' cy='60' rx='7' ry='3' transform='rotate(-12 19 60)'/%3E%3Cellipse cx='26' cy='74' rx='7' ry='3' transform='rotate(8 26 74)'/%3E%3Cellipse cx='80' cy='30' rx='7' ry='3' transform='rotate(38 80 30)'/%3E%3Cellipse cx='83' cy='45' rx='7' ry='3' transform='rotate(25 83 45)'/%3E%3Cellipse cx='81' cy='60' rx='7' ry='3' transform='rotate(12 81 60)'/%3E%3Cellipse cx='74' cy='74' rx='7' ry='3' transform='rotate(-8 74 74)'/%3E%3C/g%3E%3C/svg%3E");background-repeat:no-repeat;background-size:contain}
 .lv-section-title{font-family:var(--lv-serif);font-style:normal;font-weight:600;font-size:1.75rem;line-height:1;letter-spacing:.06em;text-transform:uppercase;color:var(--lv-fg)}
@@ -5560,9 +5572,9 @@ body[data-goal-theme="cut"] .lv-page{
        function that writes into them (renderDashRankPill etc.) already
        no-ops safely when they're missing, same as any other page that
        doesn't show them. -->
-  <header class="lv-grain lv-photo-header" style="background-image:linear-gradient(180deg,rgba(10,7,4,.35) 0%,rgba(10,7,4,.4) 50%,rgba(10,7,4,.7) 100%),url('images/roads/realm-mortal.jpg');background-position:center 44%;--lv-fg:#F7F5F2">
+  <header class="lv-grain lv-photo-header dash-hero-photo" style="background-image:linear-gradient(180deg,rgba(10,7,4,.35) 0%,rgba(10,7,4,.4) 50%,rgba(10,7,4,.7) 100%),url('images/roads/realm-mortal.jpg');background-position:center 44%;--lv-fg:#F7F5F2">
     <div style="position:relative;z-index:1;text-shadow:0 2px 10px rgba(0,0,0,.55)">
-      <h1 style="margin:0;color:var(--lv-fg);font-family:var(--lv-display);font-weight:400;font-size:1.9rem;line-height:1;letter-spacing:.01em;text-transform:uppercase"><span id="dash-greeting-word1">Good</span> <span id="dash-greeting-word2">morning</span></h1>
+      <h1 class="lv-photo-header-title" style="margin:0;color:var(--lv-fg)"><span id="dash-greeting-word1">Good</span><br><span id="dash-greeting-word2" class="lv-serif-accent lv-gold-text" style="font-size:.8em">morning</span></h1>
       <!-- Name now carries the athlete's own rank (TIERS, the same Mortal→
            God of Gods ladder as the Hall of Statues) instead of sitting
            there as plain text — tier.metal is the identical metallic
