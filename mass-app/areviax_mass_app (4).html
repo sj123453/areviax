@@ -4807,6 +4807,35 @@ body[data-goal-theme="cut"] .lv-page{
 .cal-step::before{content:attr(data-step);position:absolute;left:-28px;top:0;width:20px;height:20px;border-radius:50%;background:var(--lv-card,#1E1613);border:2px solid var(--lv-gold,#E6BE6D);color:var(--lv-gold,#E6BE6D);font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center}
 .cal-step-name{font-size:13.5px;font-weight:800;color:var(--lv-fg,var(--white))}
 .cal-step-desc{font-size:11.5px;color:var(--lv-muted-fg,var(--muted));line-height:1.6;margin-top:3px}
+/* Steps are now tappable — tap one to mark it "where you are", which
+   drives both Today's Workout (which exercise shows up) and the
+   projection rail below (which steps count as already banked vs still
+   ahead). done = gold check, current = gold ring + glow, locked = dim,
+   same traffic-light logic as everywhere else progress is shown. */
+.cal-step{cursor:pointer}
+.cal-step.cs-locked{opacity:.45}
+.cal-step.cs-done::before{content:'✓';background:var(--lv-gold,#E6BE6D);color:var(--lv-card,#1E1613)}
+.cal-step.cs-current::before{box-shadow:0 0 0 5px rgba(230,190,109,.22)}
+.cal-step.cs-current .cal-step-name{color:var(--lv-gold,#E6BE6D)}
+.cal-today-card{background:linear-gradient(135deg,rgba(230,190,109,.1),rgba(var(--lv-bg-rgb,13,8,6),.4));border:1.5px solid rgba(230,190,109,.3);border-radius:16px;padding:16px 18px;margin-bottom:20px}
+.cal-today-eyebrow{font-size:9px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--lv-gold,#E6BE6D);opacity:.85}
+.cal-today-main{margin-top:6px;font-size:16px;font-weight:800;color:var(--lv-fg,var(--white))}
+.cal-today-sub{margin-top:3px;font-size:11.5px;color:var(--lv-muted-fg,var(--muted))}
+.cal-week-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-bottom:22px}
+.cal-week-cell{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 2px;border-radius:10px;background:var(--lv-card,#1E1613);border:1.5px solid var(--lv-border,#342C28)}
+.cal-week-cell.cwc-today{border-color:var(--lv-gold,#E6BE6D);background:rgba(230,190,109,.1)}
+.cal-week-day{font-size:9px;font-weight:800;letter-spacing:.06em;color:var(--lv-muted-fg,var(--muted));text-transform:uppercase}
+.cal-week-tag{font-size:8.5px;font-weight:700;text-align:center;line-height:1.3;color:var(--lv-fg,var(--white))}
+.cal-week-tag.cwt-rest{color:var(--lv-muted-fg,var(--muted));opacity:.6}
+.cal-projection-title{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:.02em;color:var(--lv-fg,var(--white));margin:4px 0 4px}
+.cal-projection-sub{font-size:12px;color:var(--lv-muted-fg,var(--muted));line-height:1.6;margin-bottom:14px}
+.cal-projection-rail{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;-webkit-overflow-scrolling:touch}
+.cal-projection-item{flex-shrink:0;width:112px;background:var(--lv-card,#1E1613);border:1.5px solid var(--lv-border,#342C28);border-radius:12px;padding:10px 11px}
+.cal-projection-item.cpi-done{border-color:rgba(230,190,109,.5);background:rgba(230,190,109,.06)}
+.cal-projection-item.cpi-current{border-color:var(--lv-gold,#E6BE6D);box-shadow:0 0 14px rgba(230,190,109,.2)}
+.cal-projection-name{font-size:11px;font-weight:800;color:var(--lv-fg,var(--white));line-height:1.3}
+.cal-projection-date{margin-top:6px;font-family:'JetBrains Mono',monospace;font-size:9.5px;color:var(--lv-gold,#E6BE6D)}
+.cal-projection-date.cpd-muted{color:var(--lv-muted-fg,var(--muted))}
 </style>
 </head>
 <body class="onboarding-active">
@@ -9066,7 +9095,7 @@ body[data-goal-theme="cut"] .lv-page{
     </div>
   </header>
   <div class="companion" style="background:linear-gradient(135deg,rgba(243,103,23,.08),rgba(var(--bg-rgb),.9));border:1.5px solid rgba(243,103,23,.2);padding:14px 18px;border-radius:6px;margin-bottom:18px">
-    <div class="companion-msg" style="font-size:12px;color:rgba(var(--white-rgb),.8);line-height:1.7">No bar, no rack, no plates — just real progressive skills. Every step below is a real exercise you can add to a Custom Session (search its name in Workout Builder) and log sets against like anything else. Move to the next step only once the current one is solid — these ladders are ordered on purpose, and skipping ahead is how people get hurt.</div>
+    <div class="companion-msg" style="font-size:12px;color:rgba(var(--white-rgb),.8);line-height:1.7">No bar, no rack, no plates — just real progressive skills. Every step below is a real exercise you can add to a Custom Session (search its name in Workout Builder) and log sets against like anything else. Tap a step to mark it as where you are — that drives Today's Workout and your projected path below. Move to the next step only once the current one is solid — these ladders are ordered on purpose, and skipping ahead is how people get hurt.</div>
   </div>
   <div id="calisthenics-guide-body"></div>
   <div style="height:24px"></div>
@@ -9782,6 +9811,7 @@ let lastMissedCheckinDate='';
 let lastBadDayCheckinDate='';
 let lastPerspectiveShownDate=''; // gates the once-per-day post-load "Today's Perspective" screen
 let lastActiveDate=''; // last calendar date any Arete was earned — drives the "showing up" streak
+let calisthenicsProgress=[0,0,0,0]; // per CALISTHENICS_LADDERS index — the step the athlete tapped as "I'm here", drives Today's Workout + the projection rail on page-calisthenics
 let bestStreak=0; // longest streak ever, separate from the current one — survives a streak breaking
 let roadIntroPending=false; // set true right before navigating to a Road page — makes renderRoadRealmStrip play its one-shot zoom-in the next time it runs, not on every later live Arete/PR update while already on the page
 let activeDates=[]; // unique dates any activity happened — powers the consistency heatmap
@@ -23499,7 +23529,11 @@ const ROADMAP_STATUS_LABEL={shipped:'✓ Shipped',progress:'⚙ In progress',pla
 // EX above) so "search this name in Workout Builder" in the page's own
 // intro text is literally true, not just a figure of speech.
 const CALISTHENICS_LADDERS=[
-  {title:'Push — Planche',sub:'The straight-arm push line. Everything here loads your shoulders and chest through a straight arm instead of a bend — patience matters more than anywhere else on this page.',
+  {title:'Push — Planche',short:'Push',sub:'The straight-arm push line. Everything here loads your shoulders and chest through a straight arm instead of a bend — patience matters more than anywhere else on this page.',
+    // weeksEstimate[i] = typical weeks spent ON step i before a step i+1
+    // is realistic — rough rule-of-thumb coaching numbers, not a
+    // measured model, and the projection below says so.
+    weeksEstimate:[3,5,10,16,24],
     steps:[
       {name:'Pike Push-up',desc:'Loads your shoulders vertically instead of horizontally — the actual first step, not push-ups themselves.'},
       {name:'Wall Handstand Push-up',desc:'Real overhead pressing strength under a handstand. Build the hold itself first if it isn\'t solid yet.'},
@@ -23507,7 +23541,8 @@ const CALISTHENICS_LADDERS=[
       {name:'Straddle Planche',desc:'Legs straight and wide instead of tucked. A real jump — most people live here for months.'},
       {name:'Full Planche',desc:'Legs straight and together, fully horizontal. One of the hardest static holds in calisthenics.'},
     ]},
-  {title:'Pull — Front Lever & Muscle-up',sub:'Everything here builds on a real dead-hang pull-up/chin-up — get those solid before starting this ladder, not alongside it.',
+  {title:'Pull — Front Lever & Muscle-up',short:'Pull',sub:'Everything here builds on a real dead-hang pull-up/chin-up — get those solid before starting this ladder, not alongside it.',
+    weeksEstimate:[3,8,10,14,4,6],
     steps:[
       {name:'Tuck Front Lever',desc:'Hang, pull your knees to your chest, lean back to horizontal. The front lever line\'s starting point.'},
       {name:'Advanced Tuck Front Lever',desc:'Hips opened up from the tuck. Usually the step people spend the longest on.'},
@@ -23516,13 +23551,15 @@ const CALISTHENICS_LADDERS=[
       {name:'Negative Muscle-up',desc:'Lower slowly from the top position down to a hang — builds the transition strength a pull-up never touches.'},
       {name:'Muscle-up',desc:'Pull-up flowing straight into a dip in one motion. The signature calisthenics skill.'},
     ]},
-  {title:'Legs — Pistol Squat',sub:'A single-leg squat looks simple and isn\'t — balance and ankle mobility get exposed here as much as raw strength.',
+  {title:'Legs — Pistol Squat',short:'Legs',sub:'A single-leg squat looks simple and isn\'t — balance and ankle mobility get exposed here as much as raw strength.',
+    weeksEstimate:[3,5,8],
     steps:[
       {name:'Box Pistol Squat',desc:'Sit down onto a box or bench, other leg extended out front. Removes the balance demand so you can focus on strength first.'},
       {name:'Assisted Pistol Squat',desc:'Full range, light hand support from a doorframe or strap. Lean on it less each week.'},
       {name:'Pistol Squat',desc:'Full single-leg squat, unsupported, other leg extended straight out in front. Genuinely demanding — no shortcuts.'},
     ]},
-  {title:'Core — L-sit & Human Flag',sub:'Compression and side-body strength most training never touches. Hip/hamstring flexibility matters as much as raw strength past the L-sit.',
+  {title:'Core — L-sit & Human Flag',short:'Core',sub:'Compression and side-body strength most training never touches. Hip/hamstring flexibility matters as much as raw strength past the L-sit.',
+    weeksEstimate:[3,5,7,8,14],
     steps:[
       {name:'Tuck L-sit',desc:'Straight-arm support, knees tucked to chest, feet off the floor. The L-sit line\'s entry point.'},
       {name:'L-sit',desc:'Both legs extended straight out, parallel to the floor. Still a real jump even if the tuck felt easy.'},
@@ -23531,20 +23568,108 @@ const CALISTHENICS_LADDERS=[
       {name:'Human Flag',desc:'Body fully extended and straight, parallel to the ground. One of the most visually striking skills in calisthenics.'},
     ]},
 ];
+// Fixed weekly split — direct ask: "a specific calisthenics page... with
+// daily workouts" and "a calendar". Push/Pull/Legs/Core spread across the
+// week so no two training days hit the same pattern back to back; Pull
+// gets a second exposure since its ladder (front lever + muscle-up) is
+// by far the longest, two rest days. ladder:null = rest day.
+const CALISTHENICS_WEEK_PLAN=[
+  {day:'Mon',ladder:0},{day:'Tue',ladder:1},{day:'Wed',ladder:null},
+  {day:'Thu',ladder:2},{day:'Fri',ladder:3},{day:'Sat',ladder:1},{day:'Sun',ladder:null},
+];
+function calisthenicsSessionsPerWeek(ladderIdx){
+  return CALISTHENICS_WEEK_PLAN.filter(d=>d.ladder===ladderIdx).length;
+}
+// calisthenicsProgress[ladderIdx] = the step index (0-based) the athlete
+// has tapped as "this is where I am" on that ladder — persisted, drives
+// Today's Workout and the projection rail. Declared with the other
+// progress state near skippedExercises; see loadFromStorage/saveToStorage.
+function setCalisthenicsStep(ladderIdx,stepIdx){
+  calisthenicsProgress[ladderIdx]=stepIdx;
+  saveToStorage();
+  renderCalisthenicsGuide();
+  toast('🤸','Marked as your current step');
+}
+// A rough map, not a promise — scales the step-by-step week estimates by
+// how often that ladder actually comes up in the fixed week plan above
+// (weeksEstimate assumes a 2x/week dedicated exposure; once a week takes
+// noticeably longer, twice a week a bit less, floored/capped so it never
+// claims something absurd either direction).
+function calisthenicsProjection(ladderIdx){
+  const ladder=CALISTHENICS_LADDERS[ladderIdx];
+  const cur=calisthenicsProgress[ladderIdx]||0;
+  const freq=calisthenicsSessionsPerWeek(ladderIdx)||1;
+  const freqFactor=Math.max(0.6,Math.min(1.8,2/freq));
+  let cumWeeks=0;
+  const today=new Date();
+  return ladder.steps.map((s,i)=>{
+    if(i<cur)return{name:s.name,status:'done',dateLabel:''};
+    if(i===cur)return{name:s.name,status:'current',dateLabel:'Now'};
+    cumWeeks+=Math.round((ladder.weeksEstimate[i-1]||6)*freqFactor);
+    const projDate=new Date(today.getTime()+cumWeeks*7*86400000);
+    return{name:s.name,status:'future',dateLabel:'~'+projDate.toLocaleDateString('en-US',{month:'short',year:'2-digit'})};
+  });
+}
 function renderCalisthenicsGuide(){
   const wrap=document.getElementById('calisthenics-guide-body');
   if(!wrap)return;
-  wrap.innerHTML=CALISTHENICS_LADDERS.map(l=>`
+  if(!calisthenicsProgress||calisthenicsProgress.length!==CALISTHENICS_LADDERS.length)calisthenicsProgress=CALISTHENICS_LADDERS.map(()=>0);
+  const dayNamesShort=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const todayName=dayNamesShort[new Date().getDay()];
+  const todayPlan=CALISTHENICS_WEEK_PLAN.find(d=>d.day===todayName);
+  const todayLadder=todayPlan&&todayPlan.ladder!==null?CALISTHENICS_LADDERS[todayPlan.ladder]:null;
+  const todayStep=todayLadder?todayLadder.steps[calisthenicsProgress[todayPlan.ladder]]:null;
+
+  const todayHTML=`<div class="cal-today-card">
+    <div class="cal-today-eyebrow">Today's Workout</div>
+    ${todayLadder?`
+      <div class="cal-today-main">${todayLadder.title.split(' — ')[0]} — ${todayStep.name}</div>
+      <div class="cal-today-sub">${todayStep.desc}</div>`:`
+      <div class="cal-today-main">Rest day</div>
+      <div class="cal-today-sub">Recovery is part of the program, not a day off from it — these skills are built as much by the rest as the reps.</div>`}
+  </div>`;
+
+  const weekHTML=`<div class="cal-week-grid">${CALISTHENICS_WEEK_PLAN.map(d=>{
+    const isToday=d.day===todayName;
+    const label=d.ladder!==null?CALISTHENICS_LADDERS[d.ladder].short:'Rest';
+    return `<div class="cal-week-cell${isToday?' cwc-today':''}">
+      <div class="cal-week-day">${d.day}</div>
+      <div class="cal-week-tag${d.ladder===null?' cwt-rest':''}">${label}</div>
+    </div>`;
+  }).join('')}</div>`;
+
+  const laddersHTML=CALISTHENICS_LADDERS.map((l,li)=>{
+    const cur=calisthenicsProgress[li]||0;
+    return `
     <div class="cal-ladder-section">
       <div class="cal-ladder-title">${l.title}</div>
       <div class="cal-ladder-sub">${l.sub}</div>
       <div class="cal-ladder">
-        ${l.steps.map((s,i)=>`<div class="cal-step" data-step="${i+1}">
-          <div class="cal-step-name">${s.name}</div>
-          <div class="cal-step-desc">${s.desc}</div>
-        </div>`).join('')}
+        ${l.steps.map((s,i)=>{
+          const st=i<cur?'cs-done':i===cur?'cs-current':'cs-locked';
+          return `<div class="cal-step ${st}" data-step="${i+1}" onclick="setCalisthenicsStep(${li},${i})">
+            <div class="cal-step-name">${s.name}</div>
+            <div class="cal-step-desc">${s.desc}</div>
+          </div>`;
+        }).join('')}
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
+
+  const projectionHTML=`
+    <div class="cal-projection-title">Your Projected Path</div>
+    <div class="cal-projection-sub">A rough map based on your current step and how often each ladder comes up in the week above — not a promise, everyone's timeline moves differently. Tap any step above to update it.</div>
+    ${CALISTHENICS_LADDERS.map((l,li)=>`
+      <div style="font-size:11px;font-weight:800;color:var(--lv-muted-fg,var(--muted));text-transform:uppercase;letter-spacing:.06em;margin:14px 0 8px">${l.short}</div>
+      <div class="cal-projection-rail">${calisthenicsProjection(li).map(p=>`
+        <div class="cal-projection-item ${p.status==='done'?'cpi-done':p.status==='current'?'cpi-current':''}">
+          <div class="cal-projection-name">${p.name}</div>
+          <div class="cal-projection-date${p.status==='done'?' cpd-muted':''}">${p.status==='done'?'✓ Done':p.dateLabel}</div>
+        </div>`).join('')}
+      </div>`).join('')}
+  `;
+
+  wrap.innerHTML=todayHTML+weekHTML+laddersHTML+'<div style="height:8px"></div>'+projectionHTML;
 }
 function renderRoadmap(){
   const list=document.getElementById('roadmap-list');
@@ -29481,6 +29606,7 @@ function saveToStorage(){
     localStorage.setItem('arx_plannedSessionType', plannedSessionType);
     localStorage.setItem('arx_plannedSessionName', plannedSessionName||'');
     localStorage.setItem('arx_skippedExercises', JSON.stringify([...skippedExercises]));
+    localStorage.setItem('arx_calisthenicsProgress', JSON.stringify(calisthenicsProgress));
     localStorage.setItem('arx_sessionEnteredAt', String(sessionEnteredAt||0));
     localStorage.setItem('arx_sessionStartXP', String(sessionStartXP||0));
     localStorage.setItem('arx_sessionStartVolume', String(sessionStartVolume||0));
@@ -29659,6 +29785,8 @@ function loadFromStorage(){
     plannedSessionName=localStorage.getItem('arx_plannedSessionName')||'';
     const skx=localStorage.getItem('arx_skippedExercises');
     if(skx){try{skippedExercises=new Set(JSON.parse(skx));}catch(e){skippedExercises=new Set();}}
+    const calp=localStorage.getItem('arx_calisthenicsProgress');
+    if(calp){try{calisthenicsProgress=JSON.parse(calp);}catch(e){calisthenicsProgress=[0,0,0,0];}}
     sessionEnteredAt=parseInt(localStorage.getItem('arx_sessionEnteredAt'))||0;
     sessionStartXP=parseInt(localStorage.getItem('arx_sessionStartXP'))||0;
     sessionStartVolume=parseFloat(localStorage.getItem('arx_sessionStartVolume'))||0;
