@@ -653,7 +653,7 @@ input,input:focus,input:active,
 @media(min-width:900px){.recipe-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 .recipe-card{background:var(--panel);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1.5px solid var(--border2);border-radius:14px;overflow:hidden;cursor:pointer;transition:border-color .2s}
 .recipe-card:hover{border-color:rgba(243,103,23,.3)}
-.recipe-card-visual{width:100%;height:92px;display:flex;align-items:center;justify-content:center;font-size:34px;background:linear-gradient(160deg,rgba(243,103,23,.14),rgba(232,214,196,.02));position:relative}
+.recipe-card-visual{width:100%;height:92px;display:flex;align-items:center;justify-content:center;font-size:34px;background:linear-gradient(160deg,rgba(243,103,23,.14),rgba(232,214,196,.02));position:relative;overflow:hidden}
 .recipe-card-body{padding:11px 12px}
 .recipe-card-name{font-size:12.5px;font-weight:700;color:var(--white);line-height:1.3;margin-bottom:6px;min-height:2.6em;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .recipe-card-macros{display:flex;gap:5px;flex-wrap:wrap;font-size:9px;color:var(--muted);font-weight:700}
@@ -22608,7 +22608,7 @@ const FOODS_DB=[
 // aren't a black box.
 const RECIPES_DB=[
   // — Breakfast —
-  {name:'Greek Yogurt Power Bowl',type:'breakfast',cals:420,prot:38,carbs:45,fats:10,effort:'no-cook',
+  {name:'Greek Yogurt Power Bowl',type:'breakfast',cals:420,prot:38,carbs:45,fats:10,effort:'no-cook',image:'images/recipes/greek-yogurt-power-bowl.jpg',
     ingredients:['300g Greek yogurt (0% or full-fat)','40g granola','1 banana, sliced','1 tbsp honey','15g mixed nuts'],
     steps:['Spoon the yogurt into a bowl.','Slice the banana and layer on top.','Sprinkle over the granola and nuts.','Drizzle with honey and eat straight away.'],
     why:'Greek yogurt is one of the highest-protein foods you can eat for its calories, and it needs zero cooking — good for a fast, consistent breakfast.',
@@ -23788,6 +23788,14 @@ function recipeThumb(r){
   for(const [re,emoji] of RECIPE_THUMB_RULES) if(re.test(name)) return emoji;
   return RECIPE_TYPE_ICON[r.type]||'🍴';
 }
+// Real photo when one's been generated for this recipe (r.image — see
+// images/recipes/), the emoji fallback everywhere else, so recipes fill
+// in with real photography gradually without any card ever looking
+// broken in the meantime.
+function recipeVisualHTML(r){
+  if(r.image)return `<img src="${r.image}" alt="${r.name.replace(/"/g,'&quot;')}" loading="lazy" style="width:100%;height:100%;object-fit:cover">`;
+  return recipeThumb(r);
+}
 // CUSTOM RECIPES — your own food/meal entries, shaped identically to a
 // RECIPES_DB entry (same fields renderRecipesPage/openRecipeDetail
 // already read) plus {custom:true, id}. Kept as a separate array rather
@@ -23940,7 +23948,7 @@ function renderRecipesPage(){
   grid.innerHTML=addCard+list.map((r)=>{
     const idx=all.indexOf(r);
     return `<div class="recipe-card" onclick="openRecipeDetail(${idx})">
-      <div class="recipe-card-visual">${recipeThumb(r)}${r.custom?'<span class="recipe-custom-tag">Yours</span>':''}</div>
+      <div class="recipe-card-visual">${recipeVisualHTML(r)}${r.custom?'<span class="recipe-custom-tag">Yours</span>':''}</div>
       <div class="recipe-card-body">
         <div class="recipe-card-name">${r.name}</div>
         <div class="recipe-card-macros"><span>${r.cals} kcal</span><span>·</span><span>${r.prot}g protein</span></div>
@@ -24016,7 +24024,7 @@ function openRecipeDetail(idx){
   const r=allRecipes()[idx];if(!r)return;
   currentRecipeDetailIdx=idx;
   recipeSwapChoices={};
-  const visEl=document.getElementById('recipe-detail-placeholder');if(visEl)visEl.textContent=recipeThumb(r);
+  const visEl=document.getElementById('recipe-detail-placeholder');if(visEl)visEl.innerHTML=recipeVisualHTML(r);
   const typeEl=document.getElementById('recipe-detail-type');if(typeEl)typeEl.textContent=r.type;
   const nameEl=document.getElementById('recipe-detail-name');if(nameEl)nameEl.textContent=r.name;
   renderRecipeDetailMacros(r);
