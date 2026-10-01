@@ -7070,6 +7070,20 @@ body[data-goal-theme="cut"] .lv-page{
     <div id="prog-balance-note" style="display:none;margin-top:16px;font-size:11px;line-height:1.5;color:var(--lv-muted-fg);display:flex;align-items:flex-start;gap:8px"></div>
   </div>
 
+  <!-- PROJECTION — direct ask: predicted progression/projection, "like we
+       do that on the calisthenics page and in general". Same honest
+       "rough map, not a promise" framing as that page's per-ladder
+       projection, applied to the Mortal→God of Gods rank ladder — but
+       using real tonnageLog/trainingCompletedDates trend data instead of
+       a fixed per-step estimate, since a rank (unlike a single
+       calisthenics skill) has no fixed "typical" pace — it's entirely a
+       function of how much and how often this particular athlete
+       actually trains. See renderProgressProjection(). -->
+  <div class="lv-surface" style="padding:20px;margin-bottom:12px">
+    <h2 class="lv-section-title" style="display:flex;align-items:baseline;gap:8px;font-size:1.4rem"><span class="lv-greek-numeral">Ε</span>Projection</h2>
+    <div id="prog-projection-body" style="margin-top:16px"></div>
+  </div>
+
   <!-- 3-STAT ROW — Training/Protein/Sleep this week, real renderConsistency() data. -->
   <div id="prog-stat-row" class="lv-hairline-grid" style="margin-bottom:12px"></div>
 
@@ -17425,6 +17439,66 @@ function renderProgressBalance(){
     }
   }
 }
+function renderProgressProjection(){
+  const body=document.getElementById('prog-projection-body');
+  if(!body)return;
+  const r=getRank();
+  const next=getNextTier();
+  if(r===UNRANKED){
+    body.innerHTML='<div style="font-size:12px;color:var(--lv-muted-fg);line-height:1.6">Log your first session and this fills in with a real projection toward your first rank.</div>';
+    return;
+  }
+  if(!next){
+    body.innerHTML='<div style="font-size:12px;color:var(--lv-muted-fg);line-height:1.6">God of Gods is the top of the ladder — there\'s no next rank to project toward. You\'re already there.</div>';
+    return;
+  }
+  // 8-week trend — average volume/week and sessions/week actually
+  // logged recently, not an idealized pace. If the last 8 weeks were
+  // quiet, the projection reflects that honestly instead of assuming
+  // an early, unsustained rate holds forever.
+  const weeks=weeklyTonnageBuckets(8);
+  const avgVolWeek=weeks.reduce((s,w)=>s+w.total,0)/8;
+  const eightWeeksAgo=new Date();eightWeeksAgo.setDate(eightWeeksAgo.getDate()-56);
+  const sessionsInRange=trainingCompletedDates.filter(d=>parseLocalDate(d)>=eightWeeksAgo).length;
+  const avgSessWeek=sessionsInRange/8;
+
+  const volNeeded=Math.max(0,next.volume-totalVolume);
+  const sessNeeded=Math.max(0,next.sessions-totalSess);
+  const weeksForVol=avgVolWeek>0?volNeeded/avgVolWeek:Infinity;
+  const weeksForSess=avgSessWeek>0?sessNeeded/avgSessWeek:Infinity;
+  const weeksOut=Math.max(weeksForVol,weeksForSess);
+
+  const volPct=Math.min(100,Math.round(totalVolume/next.volume*100));
+  const sessPct=Math.min(100,Math.round(totalSess/next.sessions*100));
+
+  let dateLine;
+  if(!isFinite(weeksOut)){
+    dateLine='Train a bit more consistently and a real date estimate appears here.';
+  }else{
+    const projDate=new Date();projDate.setDate(projDate.getDate()+Math.ceil(weeksOut)*7);
+    dateLine='At your last 8 weeks’ pace, ~'+projDate.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+  }
+
+  body.innerHTML=`
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+      ${statueMedalHTML(next,40)}
+      <div>
+        <div style="font-size:9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--lv-muted-fg)">Your path to</div>
+        <div style="font-size:16px;font-weight:800;color:${next.col}">${next.name} Lifter</div>
+      </div>
+    </div>
+    <div style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;font-size:10.5px;color:var(--lv-muted-fg);margin-bottom:4px"><span>Volume</span><span>${Math.round(totalVolume).toLocaleString()} / ${next.volume.toLocaleString()}kg</span></div>
+      <div class="lv-rail-track" style="height:6px"><div class="lv-rail-fill" style="width:${volPct}%;background:${next.col}"></div></div>
+    </div>
+    <div style="margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;font-size:10.5px;color:var(--lv-muted-fg);margin-bottom:4px"><span>Sessions</span><span>${totalSess} / ${next.sessions}</span></div>
+      <div class="lv-rail-track" style="height:6px"><div class="lv-rail-fill" style="width:${sessPct}%;background:${next.col}"></div></div>
+    </div>
+    <div style="font-size:12.5px;color:var(--lv-fg);line-height:1.6">${dateLine}</div>
+    <div style="margin-top:8px;font-size:10.5px;color:var(--lv-muted-fg);line-height:1.5">A rough map based on your last 8 weeks — not a promise. Train more often and this date moves closer, same as it would in real life.</div>
+  `;
+}
 function renderProgressTrophyBanner(){
   const el=document.getElementById('prog-trophy-sub');
   if(!el)return;
@@ -17474,6 +17548,7 @@ function renderProgressStack(){
   renderProgressBodyweight();
   renderProgressConsistencyGrid();
   renderProgressBalance();
+  renderProgressProjection();
   renderConsistency();
   renderProgressTrophyBanner();
 }
