@@ -5601,7 +5601,7 @@ body[data-goal-theme="cut"] .lv-page{
        function that writes into them (renderDashRankPill etc.) already
        no-ops safely when they're missing, same as any other page that
        doesn't show them. -->
-  <header class="lv-grain lv-photo-header dash-hero-photo" style="background-image:linear-gradient(180deg,rgba(10,7,4,.35) 0%,rgba(10,7,4,.4) 50%,rgba(10,7,4,.7) 100%),url('images/roads/realm-mortal.jpg');background-position:center 44%;--lv-fg:#F7F5F2">
+  <header id="dash-hero-header" class="lv-grain lv-photo-header dash-hero-photo" style="background-image:linear-gradient(180deg,rgba(10,7,4,.35) 0%,rgba(10,7,4,.4) 50%,rgba(10,7,4,.7) 100%),url('images/roads/realm-mortal.jpg');background-position:center 44%;--lv-fg:#F7F5F2">
     <div style="position:relative;z-index:1;text-shadow:0 2px 10px rgba(0,0,0,.55)">
       <!-- Direct ask: "make the greeting the icon of the stage, and the
            name much larger" — the time-of-day headline is gone, the
@@ -18243,9 +18243,29 @@ function syncLvBadges(){
   renderDashRankPill();
   syncProfileBadge();
 }
+// Direct ask: "an image generated for each time so for day night
+// afternoon morning, so we can change the background based on time" —
+// same hour bucketing the greeting text used to use before it was
+// replaced by the icon+name treatment, now driving which photo shows
+// instead of literal "Good morning" words. Night doesn't have its own
+// art yet (image-gen quota ran out mid-batch, see TaskList) —
+// temporarily reuses the original realm-mortal.jpg until that's made.
+const DASH_HERO_TIME_IMAGES={
+  night:'images/roads/realm-mortal.jpg',
+  morning:'images/roads/realm-mortal-morning.jpg',
+  afternoon:'images/roads/realm-mortal-afternoon.jpg',
+  evening:'images/roads/realm-mortal-evening.jpg',
+};
 function renderDashHeroLovable(){
   syncLvBadges();
   renderDashTitleBadge();
+  const heroHeader=document.getElementById('dash-hero-header');
+  if(heroHeader){
+    const h=new Date().getHours();
+    const bucket=h<5?'night':h<12?'morning':h<18?'afternoon':'evening';
+    const img=DASH_HERO_TIME_IMAGES[bucket];
+    heroHeader.style.backgroundImage="linear-gradient(180deg,rgba(10,7,4,.35) 0%,rgba(10,7,4,.4) 50%,rgba(10,7,4,.7) 100%),url('"+img+"')";
+  }
   const nameEl=document.getElementById('dash-greeting-name');
   const medalEl=document.getElementById('dash-greeting-medal');
   const rankLabelEl=document.getElementById('dash-greeting-rank');
