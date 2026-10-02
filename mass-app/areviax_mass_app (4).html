@@ -5418,7 +5418,7 @@ body[data-goal-theme="cut"] .lv-page{
     </div>
     <div class="sb-item active" onclick="showPage('dashboard')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><span class="sb-label">Dashboard</span></div>
     <div class="sb-item" onclick="showPage('workout')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20h7"/><path d="M6.5 20v-2.5a2 2 0 0 1 2-2H12"/><path d="M11 12.5 17.5 6"/><path d="M15 4l4.5 4.5"/><path d="M13.5 6.5l3.5 3.5"/></svg><span class="sb-label">The Forge</span></div>
-    <div class="sb-item" onclick="showPage('session')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polygon points="5,3 19,12 5,21 5,3"/></svg><span class="sb-label">Today's Session</span></div>
+    <div class="sb-item" data-page="session" onclick="handleSessionStartTap()"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polygon points="5,3 19,12 5,21 5,3"/></svg><span class="sb-label">Today's Session</span></div>
     <div class="sb-item" onclick="showPage('nutrition')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/></svg><span class="sb-label">Nutrition</span></div>
     <div class="sb-item" onclick="showPage('progress')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg><span class="sb-label">Progress</span></div>
     <div class="sb-div"></div>
@@ -5903,6 +5903,19 @@ body[data-goal-theme="cut"] .lv-page{
 
   <div id="injury-reminder" style="display:none;background:rgba(255,122,46,.07);border:1.5px solid rgba(255,122,46,.2);border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:11.5px;color:rgba(var(--white-rgb),.8)">
     <strong style="color:var(--orange)">Reminder:</strong> you noted <span id="injury-reminder-text"></span> at signup. Swap out anything that aggravates it, and stop if something feels wrong.
+  </div>
+
+  <!-- BUILD-AS-YOU-GO SHORTCUT — same path as the "Following my own" choice
+       on the Start button, surfaced here too for anyone who lands on the
+       Forge first and realizes they don't need to build anything — they
+       already have a plan from somewhere else. -->
+  <div class="card lv-surface" style="padding:14px 16px;display:flex;align-items:center;gap:12px;margin-bottom:16px;cursor:pointer" onclick="startBuildAsYouGoSession()">
+    <div style="width:38px;height:38px;border-radius:10px;background:rgba(243,103,23,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px">📝</div>
+    <div style="flex:1;min-width:0">
+      <div style="font-size:13px;font-weight:800;color:var(--white)">Following someone else's workout?</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:2px">Skip building one — add exercises as you go instead</div>
+    </div>
+    <span style="color:var(--muted);font-size:13px">→</span>
   </div>
 
   <!-- TODAY'S PLAN NUDGE — advises (doesn't block) doing the day's actual
@@ -9330,6 +9343,22 @@ body[data-goal-theme="cut"] .lv-page{
   <button class="btn btn-ghost" style="width:100%;margin-top:8px" onclick="closeSessionNotesModal()">Cancel</button>
 </div>
 
+<!-- SESSION START CHOICE — direct ask: tapping Start with nothing planned
+     used to silently hand back a generic upper-push session. If someone's
+     actually following a program from somewhere else, that's not their
+     plan at all — the only way to log it was retyping it into the Notes
+     tier after the fact. This asks up front instead: follow along live
+     (add each exercise right before you do it — see startBuildAsYouGoSession())
+     or go build a real plan in the Forge first. -->
+<div id="sess-start-choice-backdrop" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9998" onclick="closeSessionStartChoiceModal()"></div>
+<div id="sess-start-choice-modal" class="bottom-sheet-modal" style="display:none;position:fixed;bottom:0;left:0;right:0;background:var(--panel);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-top:1px solid var(--border);border-radius:16px 16px 0 0;padding:22px;z-index:9999;max-width:480px;margin:0 auto;box-shadow:0 -20px 50px -20px rgba(0,0,0,.6)">
+  <div style="font-weight:800;font-size:14px;margin-bottom:4px">No plan loaded yet</div>
+  <div style="font-size:12px;color:var(--muted);margin-bottom:18px;line-height:1.6">Following someone else's workout today, or just haven't built one yet?</div>
+  <button class="btn btn-g" style="width:100%;margin-bottom:8px" onclick="startBuildAsYouGoSession()">📝 Following my own — add exercises as I go</button>
+  <button class="btn btn-out" style="width:100%" onclick="closeSessionStartChoiceModal();showPage('workout')">🔨 Haven't built one — go to the Forge</button>
+  <button class="btn btn-ghost" style="width:100%;margin-top:8px" onclick="closeSessionStartChoiceModal()">Cancel</button>
+</div>
+
 <!-- RESCHEDULE MODAL -->
 <div id="reschedule-modal-backdrop" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9998" onclick="closeReschedule()"></div>
 <div id="reschedule-modal" class="bottom-sheet-modal" style="display:none;position:fixed;bottom:0;left:0;right:0;background:var(--panel);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-top:1px solid var(--border);border-radius:16px 16px 0 0;padding:22px;z-index:9999;max-width:480px;margin:0 auto;box-shadow:0 -20px 50px -20px rgba(0,0,0,.6)">
@@ -9946,6 +9975,13 @@ let trainingTimeLog=[]; // hour-of-day (0-23) for each completed session — pow
 let customWorkouts={};
 let customSessionExs=[];
 let plannedSessionExs=[],plannedSessionType='upper-push',plannedSessionName='',builderMode='auto';
+// Direct ask: someone following along with somebody else's workout (not
+// built in the Forge) has no plan to preview — they just want to log sets
+// as they go. True from the moment they pick that path (see
+// openSessionStartChoiceModal()) until a real Forge-built plan is
+// committed or the session completes; see buildSession()'s own comment
+// for why this has to exist separately from "plannedSessionExs is empty."
+let buildAsYouGoSession=false;
 // Auto-builder's live preview — same idea as customSessionExs for Custom
 // mode: the builder recomputes this on every dropdown/checkbox/search
 // change so the on-page preview stays current, but it's NOT what Start
@@ -17032,7 +17068,7 @@ function showPage(id){
   document.querySelectorAll('.sb-item').forEach(i=>i.classList.remove('active'));
   const pg=document.getElementById('page-'+id);
   if(pg)pg.classList.add('active');
-  document.querySelectorAll('.sb-item').forEach(i=>{if(i.getAttribute('onclick')?.includes(id))i.classList.add('active')});
+  document.querySelectorAll('.sb-item').forEach(i=>{if(i.getAttribute('onclick')?.includes(id)||i.dataset.page===id)i.classList.add('active')});
   try{
     const titles={dashboard:'Home',workout:'The Forge',session:'Session',nutrition:'Nutrition',recipes:'Recipes',progress:'Progress',shop:'Shop',trophycabinet:'Trophy Cabinet',labors:'The 12 Labors',xproad:'Arete Road',trophyroad:'The Way Home',recovery:'Recovery',schedule:'Schedule',leaderboard:'Leaderboard',leagues:'Leagues',trials:'The Areviax Championship',learn:'Science',calisthenics:'Calisthenics',profile:'Profile',legal:'Legal',settings:'Settings',aicoach:'Coach Sam',subscription:'Go Premium',roadmap:'Roadmap',reflection:'Daily Reflection'};
     const t=titles[id]||id;
@@ -20515,6 +20551,7 @@ function commitAndStartSession(){
     return;
   }
   plannedSessionExs=exs;plannedSessionType=type;plannedSessionName=name;
+  buildAsYouGoSession=false; // a real Forge-built plan just got committed
   skippedExercises=new Set();
   sessionEnteredAt=Date.now();sessionStartXP=xp;sessionStartVolume=totalVolume;
   saveToStorage();
@@ -21090,6 +21127,40 @@ function logPastSession(){
   saveToStorage();
   toast('✅',name+' logged for '+relativeDayLabel(dateStr).toLowerCase());
 }
+
+// ── START-SESSION ENTRY CHOICE ──
+// The bottom nav's Start button and the Forge shortcut both route through
+// this instead of calling showPage('session') directly. If there's
+// genuinely nothing to resume (no saved plan, no build-as-you-go session
+// with exercises already added), ask which path this is rather than
+// silently handing back a generic push session — see buildSession()'s own
+// comment for what happens once build-as-you-go is actually chosen.
+function handleSessionStartTap(){
+  if(sessionInProgress()||startingScheduledSession||(plannedSessionExs&&plannedSessionExs.length)){
+    showPage('session');
+    return;
+  }
+  document.getElementById('sess-start-choice-backdrop').style.display='block';
+  document.getElementById('sess-start-choice-modal').style.display='block';
+}
+function closeSessionStartChoiceModal(){
+  document.getElementById('sess-start-choice-backdrop').style.display='none';
+  document.getElementById('sess-start-choice-modal').style.display='none';
+}
+function startBuildAsYouGoSession(){
+  // Reachable both from the choice modal (nothing to lose there — that
+  // path only shows when there's truly no plan) and the Forge shortcut,
+  // which can be tapped any time — including with real sets already
+  // logged today. Only the latter case needs a guard.
+  if(sessionInProgress()&&!confirm('You already have sets logged for today\'s session. Starting fresh will replace it — continue?'))return;
+  closeSessionStartChoiceModal();
+  buildAsYouGoSession=true;
+  plannedSessionExs=[];plannedSessionType='custom';plannedSessionName='Your Session';
+  skippedExercises=new Set();
+  sessionEnteredAt=Date.now();sessionStartXP=xp;sessionStartVolume=totalVolume;
+  saveToStorage();
+  showPage('session');
+}
 function buildSession(){
   // Use whatever was actually configured in the Workout Builder — this used to
   // be hardcoded to always show Upper Push regardless of what was built, which
@@ -21101,12 +21172,17 @@ function buildSession(){
   // time cap) and never actually saved it to plannedSessionExs, which also
   // meant completing that session silently failed to save to history.
   let exs=plannedSessionExs;
-  if(!exs||!exs.length){
+  if((!exs||!exs.length)&&!buildAsYouGoSession){
     const pool=(EX['upper-push']||[]).filter(e=>equipOk(e));
     exs=applyBeginnerSubs(buildBalancedSession(pool,maxExForTime(weekSessionLength,pool.length),'upper-push'));
     plannedSessionExs=exs;plannedSessionType='upper-push';plannedSessionName=getSessionTypeLabel('upper-push');
     skippedExercises=new Set(); // genuinely new fallback plan just got created above
   }
+  // buildAsYouGoSession (see its own declaration comment) deliberately
+  // skips that fallback — an empty plan here means "following someone
+  // else's workout," not "nothing configured yet," so it stays empty
+  // rather than getting silently overwritten with a default push session.
+  if(!exs)exs=[];
   // skippedExercises is NOT reset here otherwise — buildSession() re-runs on
   // every visit to this page (including a resume), and used to wipe skip
   // state on each one. showPage('session')'s own new-vs-resume branching is
@@ -21117,7 +21193,20 @@ function buildSession(){
   const sessHeroName=document.getElementById('sess-hero-name');
   if(sessHeroName&&plannedSessionName)sessHeroName.innerHTML=plannedSessionName.split(' ')[0]+'<br><span class="lv-serif-accent lv-gold-text" style="font-size:.8em">'+plannedSessionName.split(' ').slice(1).join(' ')+'</span>';
   const sessHeroStat=document.getElementById('sess-hero-stat');
-  if(sessHeroStat)sessHeroStat.textContent=exs.length+(exs.length===1?' exercise':' exercises')+' planned';
+  if(sessHeroStat)sessHeroStat.textContent=exs.length?exs.length+(exs.length===1?' exercise':' exercises')+' planned':(buildAsYouGoSession?'Building as you go':'0 exercises planned');
+  if(buildAsYouGoSession&&!exs.length){
+    cont.innerHTML='<div class="lv-surface" style="padding:18px;text-align:center;margin-bottom:14px"><div style="font-size:13px;font-weight:700;color:var(--white);margin-bottom:4px">Nothing logged yet</div><div style="font-size:11.5px;color:var(--muted);line-height:1.6">Add exercises below as you go — log each one right after you do it.</div></div>';
+    const addBody=document.getElementById('sess-add-ex-body');
+    const addChev=document.getElementById('sess-add-ex-chev');
+    if(addBody&&addBody.style.display==='none'){
+      addBody.style.display='block';
+      if(addChev)addChev.style.transform='rotate(180deg)';
+      const input=document.getElementById('sess-add-ex-search');if(input)input.value='';
+      renderAddExerciseList('');
+    }
+    renderCompassClaimStatus();
+    return;
+  }
   cont.innerHTML=exs.map((e,i)=>{
     const sug=suggestNextWeight(e);
     const plateau=detectPlateau(e.name);
@@ -22508,6 +22597,7 @@ function completeSession(nameOverride){
   }
   const sessionDurationSec=currentElapsedSeconds();
   clearInterval(timerInt);timerOn=false;
+  buildAsYouGoSession=false; // this session (built-as-you-go or not) is done
 
   const today=localDateKey(new Date());
   const alreadyTrainedToday=(lastSessionDate===today);
@@ -30365,6 +30455,7 @@ function saveToStorage(){
     localStorage.setItem('arx_plannedSessionExs', JSON.stringify(plannedSessionExs));
     localStorage.setItem('arx_plannedSessionType', plannedSessionType);
     localStorage.setItem('arx_plannedSessionName', plannedSessionName||'');
+    localStorage.setItem('arx_buildAsYouGoSession', buildAsYouGoSession?'1':'');
     localStorage.setItem('arx_skippedExercises', JSON.stringify([...skippedExercises]));
     localStorage.setItem('arx_calisthenicsProgress', JSON.stringify(calisthenicsProgress));
     localStorage.setItem('arx_sessionEnteredAt', String(sessionEnteredAt||0));
@@ -30543,6 +30634,7 @@ function loadFromStorage(){
     if(pse){try{plannedSessionExs=JSON.parse(pse);}catch(e){plannedSessionExs=[];}}
     plannedSessionType=localStorage.getItem('arx_plannedSessionType')||'upper-push';
     plannedSessionName=localStorage.getItem('arx_plannedSessionName')||'';
+    buildAsYouGoSession=localStorage.getItem('arx_buildAsYouGoSession')==='1';
     const skx=localStorage.getItem('arx_skippedExercises');
     if(skx){try{skippedExercises=new Set(JSON.parse(skx));}catch(e){skippedExercises=new Set();}}
     const calp=localStorage.getItem('arx_calisthenicsProgress');
@@ -30772,7 +30864,7 @@ document.addEventListener('DOMContentLoaded', function(){
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20h7"/><path d="M6.5 20v-2.5a2 2 0 0 1 2-2H12"/><path d="M11 12.5 17.5 6"/><path d="M15 4l4.5 4.5"/><path d="M13.5 6.5l3.5 3.5"/></svg>
       Forge
     </button>
-    <button class="mn-btn mn-primary" id="mn-session" onclick="showPage('session')">
+    <button class="mn-btn mn-primary" id="mn-session" onclick="handleSessionStartTap()">
       <div class="mn-icon-wrap">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><polygon points="5,3 19,12 5,21 5,3"/></svg>
       </div>
