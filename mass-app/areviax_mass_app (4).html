@@ -4809,7 +4809,11 @@ body[data-goal-theme="cut"] .lv-page{
    cropped by scroll-snap-align. */
 .exwalk-card-carousel{display:flex;width:100%;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;border-radius:12px;background:#000}
 .exwalk-card-carousel::-webkit-scrollbar{display:none}
-.exwalk-card{flex:0 0 100%;width:100%;aspect-ratio:16/9;object-fit:contain;scroll-snap-align:center}
+/* aspect-ratio deliberately NOT set here — it varies per exercise (a
+   push-up's cards are landscape, a squat's are portrait) and is applied
+   inline per <img> in getInfoCardWalkthroughHTML() instead, via
+   EXERCISE_INFO_CARD_RATIO. */
+.exwalk-card{flex:0 0 100%;width:100%;object-fit:contain;scroll-snap-align:center}
 
 /* ── CALISTHENICS GUIDE — a vertical progression ladder per skill
    category (see page-calisthenics/CALISTHENICS_LADDERS). Deliberately a
@@ -11738,7 +11742,19 @@ const EXERCISE_INFO_CARDS={
     {src:'images/misc/exwalk-pushup-card3-bottom.jpg',alt:'Push-ups — 3. Bottom Position'},
     {src:'images/misc/exwalk-pushup-card4-return.jpg',alt:'Push-ups — 4. Push Up (Return to Start)'},
   ],
+  'Barbell Back Squat':[
+    {src:'images/misc/exwalk-squat-card1-start.jpg',alt:'Barbell Back Squat — 1. Starting Position'},
+    {src:'images/misc/exwalk-squat-card2-lowering.jpg',alt:'Barbell Back Squat — 2. Lowering'},
+    {src:'images/misc/exwalk-squat-card3-bottom.jpg',alt:'Barbell Back Squat — 3. Bottom Position'},
+    {src:'images/misc/exwalk-squat-card4-return.jpg',alt:'Barbell Back Squat — 4. Return to Start'},
+  ],
 };
+// Push-ups' cards are landscape (a horizontal body position); the squat's
+// are portrait (a standing/crouching body is naturally tall, not wide).
+// Per-exercise aspect ratio so getInfoCardWalkthroughHTML() can size each
+// set correctly instead of a single hardcoded ratio squashing one or the
+// other — see .exwalk-card's own comment for where this gets applied.
+const EXERCISE_INFO_CARD_RATIO={'Barbell Back Squat':'378/751'};
 // Auto-advancing, not swipe-only — first shipped as swipe-to-read, but
 // direct ask: "I don't love making them swipe... I want it to go to
 // each movement cleanly like a stop motion." Reuses the app's existing
@@ -11754,7 +11770,8 @@ const EXERCISE_INFO_CARDS={
 function getInfoCardWalkthroughHTML(name){
   const cards=EXERCISE_INFO_CARDS[name];
   if(!cards)return null;
-  const imgs=cards.map(c=>`<img src="${c.src}" alt="${c.alt}" class="exwalk-card">`).join('');
+  const ratio=EXERCISE_INFO_CARD_RATIO[name]||'16/9';
+  const imgs=cards.map(c=>`<img src="${c.src}" alt="${c.alt}" class="exwalk-card" style="aspect-ratio:${ratio}">`).join('');
   const dots=cards.map((_,i)=>`<div class="howto-dot${i===0?' active':''}"></div>`).join('');
   return `<div style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px">
     <div class="exwalk-card-carousel" onscroll="exwalkCardScroll(this)">${imgs}</div>
@@ -11952,23 +11969,28 @@ function openWatch(i){
   const panelId=!hasRig&&panelForExercise(e);
   const usePanel=panelId&&CARD_THUMB_V3_PANELS.has(panelId);
   // Real step-by-step info cards (see getInfoCardWalkthroughHTML) beat
-  // both the rig and the static panel when a set exists for this exact
-  // exercise — it's the only option that shows the body moving through
-  // the full rep AND explains each position, instead of one held pose.
-  const cards=!hasRig&&getInfoCardWalkthroughHTML(e.name);
+  // EVERYTHING else when a set exists for this exact exercise — including
+  // the animated rig. A rig is one generic pose shared by every exercise
+  // with that anim (every 'squat'-anim exercise reuses the same rig);
+  // these are real photos of THIS exercise with each position explained.
+  // Checked unconditionally rather than gated on !hasRig, so an exercise
+  // that happens to have both (Barbell Back Squat also carries
+  // anim:'squat') still gets the better of the two instead of the rig
+  // winning by default.
+  const cards=getInfoCardWalkthroughHTML(e.name);
   // max-width bumped from 320px — this near-fullscreen sheet has far
   // more room than that left a small diagram floating in a lot of blank
   // space (direct QA finding). min(90%, 90vh, 440px) lets it actually
   // fill the modal on a tall phone while still capping out sensibly on
   // a short one or on desktop, and object-fit:contain (getCardThumb's
   // own <img> already has it) keeps the square artwork from stretching.
-  document.getElementById('watch-body').innerHTML=hasRig?getWalkthroughSVG(e.anim)
-    :cards?cards
+  document.getElementById('watch-body').innerHTML=cards?cards
+    :hasRig?getWalkthroughSVG(e.anim)
     :usePanel?`<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center"><div style="width:min(90%,90vh,440px);aspect-ratio:1/1">${getCardThumb(e)}</div></div>`
     :getWalkthroughSVG(e.anim);
-  document.getElementById('watch-note').textContent=hasRig
-    ?'Overlay shows the rep path — the highlighted muscle is what should be doing the work.'
-    :cards?'Steps through each position of the movement on its own — swipe to jump ahead.'
+  document.getElementById('watch-note').textContent=cards
+    ?'Steps through each position of the movement on its own — swipe to jump ahead.'
+    :hasRig?'Overlay shows the rep path — the highlighted muscle is what should be doing the work.'
     :'No animated walkthrough built yet for this movement — showing the muscle it targets instead.';
   document.getElementById('watch-backdrop').style.display='block';
   document.getElementById('watch-modal').style.display='flex';
