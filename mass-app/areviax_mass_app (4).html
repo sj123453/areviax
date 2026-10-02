@@ -6193,6 +6193,13 @@ body[data-goal-theme="cut"] .lv-page{
       <input type="range" min="0" max="100" value="55" id="focus-sound-volume" oninput="setSleepVolume(this.value)" style="flex:1">
     </div>
   </div>
+  <!-- SIMPLEST LOGGING TIER — notes-app style whole-session entry, for
+       anyone who'd rather type/paste/dictate their whole workout at once
+       than tap through each exercise card. See openSessionNotesModal()/
+       parseFullSessionText() — reuses parseSetsFromText() (task #27's
+       per-exercise voice/text parser) as the per-set parser underneath,
+       just applied across multiple exercise blocks instead of one. -->
+  <button class="btn btn-out" style="width:100%;justify-content:center;margin-bottom:14px" onclick="openSessionNotesModal()" title="Type, paste, or dictate your whole session as free text">📝 Log your whole session by notes</button>
   <div id="sess-exercises"></div>
   <!-- ADD TO SESSION — append another exercise to the end of today's plan
        mid-workout. Same search-and-pick pattern as the per-exercise Swap
@@ -9240,6 +9247,34 @@ body[data-goal-theme="cut"] .lv-page{
   <div id="voicelog-preview" style="margin-top:12px"></div>
   <button class="btn btn-g" style="width:100%;margin-top:14px" id="voicelog-apply-btn" onclick="applyVoiceLogSets()" disabled>Apply to sets</button>
   <button class="btn btn-ghost" style="width:100%;margin-top:8px" onclick="closeVoiceLogModal()">Cancel</button>
+</div>
+
+<!-- SESSION NOTES MODAL — the "simplest" of the three logging tiers (the
+     others being this per-exercise card UI, and the future oval/focus
+     view): type, paste, or dictate the WHOLE session at once, notes-app
+     style, instead of opening a modal per exercise. Format is deliberately
+     forgiving — one exercise name per block, its sets dash-separated after
+     it — and reuses parseSetsFromText() as the actual per-set parser
+     underneath (see parseFullSessionText()), so the same "60 for 8" /
+     "60kg x 8" phrasing task #27 already understands works here too, just
+     spanning multiple exercises instead of one. -->
+<div id="sessnotes-modal-backdrop" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9998" onclick="closeSessionNotesModal()"></div>
+<div id="sessnotes-modal" class="bottom-sheet-modal" style="display:none;position:fixed;bottom:0;left:0;right:0;background:var(--panel);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-top:1px solid var(--border);border-radius:16px 16px 0 0;padding:22px;z-index:9999;max-width:480px;margin:0 auto;box-shadow:0 -20px 50px -20px rgba(0,0,0,.6);max-height:88vh;overflow-y:auto">
+  <div style="font-weight:800;font-size:14px;margin-bottom:4px">Log your whole session by notes</div>
+  <div style="font-size:11.5px;color:var(--muted);line-height:1.55;margin-bottom:12px">One exercise name per line, then its sets on the next line separated by dashes — like <span style="color:var(--white)">"Bench Press" then "60kg x 8 - 60kg x 8 - 65kg x 6"</span>. Paste straight from your Notes app and tap Auto-format if it's messy.</div>
+  <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">
+    <button class="equip-chip" onclick="insertSessionNotesTemplate('plan')">📋 Today's exercises</button>
+    <button class="equip-chip" onclick="insertSessionNotesTemplate('example')">✨ Example</button>
+    <button class="equip-chip" onclick="autoFormatSessionNotes()">🪄 Auto-format</button>
+  </div>
+  <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px">
+    <button class="btn btn-g" id="sessnotes-mic-btn" style="flex-shrink:0;padding:10px 16px" onclick="toggleSessionNotesDictation()">🎤 Dictate</button>
+    <div style="font-size:11px;color:var(--muted)" id="sessnotes-mic-status"></div>
+  </div>
+  <textarea id="sessnotes-textarea" placeholder="Bench Press&#10;60kg x 8 - 60kg x 8 - 65kg x 6&#10;&#10;Pull-ups&#10;8 - 7 - 6" style="width:100%;min-height:170px;padding:10px 12px;background:rgba(232,214,196,.04);border:1.5px solid var(--border);border-radius:10px;color:var(--white);font-family:'Outfit',sans-serif;font-size:13px;resize:vertical" oninput="renderSessionNotesPreview()"></textarea>
+  <div id="sessnotes-preview" style="margin-top:12px"></div>
+  <button class="btn btn-g" style="width:100%;margin-top:14px" id="sessnotes-apply-btn" onclick="applyFullSessionNotes()" disabled>Apply to session</button>
+  <button class="btn btn-ghost" style="width:100%;margin-top:8px" onclick="closeSessionNotesModal()">Cancel</button>
 </div>
 
 <!-- RESCHEDULE MODAL -->
@@ -21307,6 +21342,297 @@ function applyVoiceLogSets(){
     toast('🎤',`Logged ${applied} of ${sets.length} — that exercise is already full`);
   }else{
     toast('🎤',`Logged ${applied} set${applied===1?'':'s'} for ${e.name}`);
+  }
+}
+
+// ── SESSION NOTES — the simplest of the three logging tiers ──
+// Whole-session free text instead of one exercise at a time. The name pool
+// is today's planned exercises plus the full exercise database, so typing
+// something not currently in the plan still matches and gets added rather
+// than silently dropped.
+function sessionNotesNamePool(){
+  const allEx=Object.values(EX).flat().filter((e,idx,arr)=>arr.findIndex(x=>x.name===e.name)===idx);
+  return Array.from(new Set([...(plannedSessionExs||[]).map(e=>e.name),...allEx.map(e=>e.name)]));
+}
+// Equipment words people routinely drop when typing quickly — "Bench
+// Press" instead of "Barbell Bench Press". Longest first so "Smith
+// Machine" strips before a lone "Machine" would.
+const SESSNOTES_EQUIP_PREFIXES=['Smith Machine','Resistance Band','Plate-Loaded','Trap Bar','EZ Bar','Barbell','Dumbbell','Kettlebell','Cable','Machine','Bodyweight','Assisted','Weighted'];
+function sessionNotesStripEquip(name){
+  for(const p of SESSNOTES_EQUIP_PREFIXES){
+    if(name.startsWith(p+' '))return name.slice(p.length+1);
+  }
+  return null;
+}
+// Expands a plain exercise-name pool into {match,name} candidates that also
+// cover the equipment-dropped alias ("Bench Press" -> "Barbell Bench
+// Press"), so a casually typed name still resolves instead of silently
+// failing to match. When two different exercises collapse to the same
+// alias (Barbell vs. Dumbbell Bench Press both -> "Bench Press"), today's
+// actually-planned exercise wins the alias over one that isn't planned.
+function buildSessionNotesCandidates(namePool){
+  const planSet=new Set((plannedSessionExs||[]).map(e=>e.name));
+  const aliasOwner={};
+  namePool.forEach(n=>{
+    const alias=sessionNotesStripEquip(n);
+    if(!alias)return;
+    const key=alias.toLowerCase();
+    const existing=aliasOwner[key];
+    if(!existing||(!planSet.has(existing)&&planSet.has(n)))aliasOwner[key]=n;
+  });
+  const candidates=namePool.map(n=>({match:n,name:n}));
+  Object.values(aliasOwner).forEach(owner=>{
+    candidates.push({match:sessionNotesStripEquip(owner),name:owner});
+  });
+  candidates.sort((a,b)=>b.match.length-a.match.length);
+  return candidates;
+}
+// Splits free text into {name, sets} blocks: a line is read as a new
+// exercise header when it starts with (or exactly matches) a known name
+// or its equipment-dropped alias; every other line is appended as sets
+// text for whichever header came last. Longest matches are checked first
+// so "Incline Dumbbell Press" wins over a shorter name/alias that happens
+// to be a substring of it.
+function parseFullSessionText(text,namePool){
+  if(!text)return[];
+  const candidates=buildSessionNotesCandidates(namePool||[]);
+  const lines=text.split(/\n+/).map(l=>l.trim()).filter(Boolean);
+  const blocks=[];
+  let current=null;
+  const matchName=(line)=>{
+    const low=line.toLowerCase();
+    for(const c of candidates){
+      const ml=c.match.toLowerCase();
+      if(low===ml)return{name:c.name,rest:''};
+      if(low.startsWith(ml+':')||low.startsWith(ml+' -')||low.startsWith(ml+' –')){
+        return{name:c.name,rest:line.slice(c.match.length).replace(/^[:\-–\s]+/,'')};
+      }
+      if(low.startsWith(ml+' ')&&/\d/.test(line.slice(c.match.length))){
+        return{name:c.name,rest:line.slice(c.match.length).trim()};
+      }
+    }
+    return null;
+  };
+  lines.forEach(line=>{
+    const m=matchName(line);
+    if(m){
+      current={name:m.name,raw:[]};
+      blocks.push(current);
+      if(m.rest)current.raw.push(m.rest);
+    }else if(current){
+      current.raw.push(line);
+    }
+  });
+  // Dashes are this format's set separator (vs. voice's "full stop") —
+  // normalize to periods so parseSetsFromText's own segment splitter
+  // handles the rest exactly like it does for voice/typed per-exercise text.
+  return blocks.map(b=>({
+    name:b.name,
+    sets:parseSetsFromText(b.raw.join('.').replace(/\s[-–—]\s/g,'.'))
+  })).filter(b=>b.sets.length);
+}
+function renderSessionNotesPreview(){
+  const ta=document.getElementById('sessnotes-textarea');
+  const preview=document.getElementById('sessnotes-preview');
+  const applyBtn=document.getElementById('sessnotes-apply-btn');
+  if(!ta||!preview||!applyBtn)return;
+  const blocks=parseFullSessionText(ta.value,sessionNotesNamePool());
+  if(!blocks.length){
+    preview.innerHTML='<div style="font-size:11px;color:var(--muted)">Nothing parsed yet — start a line with an exercise name.</div>';
+    applyBtn.disabled=true;applyBtn.textContent='Apply to session';
+    return;
+  }
+  const planNames=(plannedSessionExs||[]).map(e=>e.name);
+  let totalSets=0;
+  preview.innerHTML='<div style="font-size:9px;color:var(--muted);font-weight:800;letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px">Parsed</div>'+
+    '<div style="display:flex;flex-direction:column;gap:6px">'+blocks.map(b=>{
+      totalSets+=b.sets.length;
+      const isNew=!planNames.includes(b.name);
+      return`<div style="font-size:12.5px;background:rgba(232,214,196,.04);border:1px solid var(--border);border-radius:8px;padding:8px 10px">
+        <div style="font-weight:700;display:flex;justify-content:space-between;gap:8px"><span>${b.name}</span>${isNew?'<span style="font-size:9px;color:var(--orange);white-space:nowrap">+ new</span>':''}</div>
+        <div style="color:var(--muted);margin-top:2px">${b.sets.map(s=>s.weight>0?s.weight+'kg×'+s.reps:s.reps+' reps').join(' · ')}</div>
+      </div>`;
+    }).join('')+'</div>';
+  applyBtn.disabled=false;
+  applyBtn.textContent=`Apply ${totalSets} set${totalSets===1?'':'s'} across ${blocks.length} exercise${blocks.length===1?'':'s'}`;
+}
+function insertSessionNotesTemplate(kind){
+  const ta=document.getElementById('sessnotes-textarea');
+  if(!ta)return;
+  if(kind==='plan'){
+    const exs=plannedSessionExs||[];
+    if(!exs.length){toast('📝','No planned exercises yet — add some first.');return;}
+    ta.value=exs.map(e=>{
+      const n=effectiveSets(e);
+      const blank=Array.from({length:n},()=>'_kg x _').join(' - ');
+      return e.name+'\n'+blank;
+    }).join('\n\n');
+  }else if(kind==='example'){
+    ta.value='Bench Press\n60kg x 8 - 60kg x 8 - 65kg x 6\n\nPull-ups\n8 - 7 - 6';
+  }
+  renderSessionNotesPreview();
+}
+// Scans the whole pasted blob for any known exercise name occurring
+// anywhere (not just at a line start) and rebuilds the canonical
+// name-then-dashes layout from what it finds — the "clean up my messy
+// paste" button. Longest-name-first + overlap check keeps a short name
+// from stealing a match that belongs to a longer one containing it.
+function autoFormatSessionText(text,pool){
+  if(!text)return'';
+  const low=text.toLowerCase();
+  const candidates=buildSessionNotesCandidates(pool);
+  const hits=[];
+  candidates.forEach(c=>{
+    const nl=c.match.toLowerCase();
+    let idx=0;
+    while((idx=low.indexOf(nl,idx))!==-1){
+      const overlaps=hits.some(h=>idx<h.end&&idx+nl.length>h.start);
+      if(!overlaps)hits.push({start:idx,end:idx+nl.length,name:c.name});
+      idx+=nl.length;
+    }
+  });
+  if(!hits.length)return text;
+  hits.sort((a,b)=>a.start-b.start);
+  const blocks=hits.map((h,hi)=>({
+    name:h.name,
+    raw:text.slice(h.end,hi+1<hits.length?hits[hi+1].start:text.length)
+  }));
+  return blocks.map(b=>{
+    const sets=parseSetsFromText(b.raw.replace(/\s[-–—]\s/g,'.').replace(/,/g,'.'));
+    const setsText=sets.map(s=>s.weight>0?`${s.weight}kg x ${s.reps}`:`${s.reps}`).join(' - ');
+    return b.name+'\n'+(setsText||'—');
+  }).join('\n\n');
+}
+function autoFormatSessionNotes(){
+  const ta=document.getElementById('sessnotes-textarea');
+  if(!ta)return;
+  const formatted=autoFormatSessionText(ta.value,sessionNotesNamePool());
+  if(formatted===ta.value){toast('🪄',"Didn't recognize any exercise names in there to clean up.");return;}
+  ta.value=formatted;
+  renderSessionNotesPreview();
+  toast('🪄','Cleaned up into the standard format');
+}
+function openSessionNotesModal(){
+  const ta=document.getElementById('sessnotes-textarea');if(ta)ta.value='';
+  const preview=document.getElementById('sessnotes-preview');if(preview)preview.innerHTML='';
+  const applyBtn=document.getElementById('sessnotes-apply-btn');if(applyBtn){applyBtn.disabled=true;applyBtn.textContent='Apply to session';}
+  document.getElementById('sessnotes-modal-backdrop').style.display='block';
+  document.getElementById('sessnotes-modal').style.display='block';
+}
+function closeSessionNotesModal(){
+  stopSessionNotesDictation();
+  document.getElementById('sessnotes-modal-backdrop').style.display='none';
+  document.getElementById('sessnotes-modal').style.display='none';
+}
+let sessNotesRecognition=null,sessNotesListening=false;
+function toggleSessionNotesDictation(){
+  if(sessNotesListening){stopSessionNotesDictation();return;}
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR)return;
+  sessNotesRecognition=new SR();
+  sessNotesRecognition.continuous=true;
+  sessNotesRecognition.interimResults=true;
+  sessNotesRecognition.lang=(navigator.language||'en-US');
+  let finalText=document.getElementById('sessnotes-textarea').value;
+  sessNotesRecognition.onresult=(ev)=>{
+    let interim='';
+    for(let ri=ev.resultIndex;ri<ev.results.length;ri++){
+      const transcript=ev.results[ri][0].transcript;
+      if(ev.results[ri].isFinal){
+        finalText+=(finalText?' ':'')+transcript.trim();
+        if(/stop recording/i.test(transcript)){
+          finalText=finalText.replace(/stop recording/gi,'').trim();
+          document.getElementById('sessnotes-textarea').value=finalText;
+          renderSessionNotesPreview();
+          stopSessionNotesDictation();
+          return;
+        }
+      }else{
+        interim+=transcript;
+      }
+    }
+    document.getElementById('sessnotes-textarea').value=finalText+(interim?' '+interim:'');
+    renderSessionNotesPreview();
+  };
+  sessNotesRecognition.onerror=()=>{stopSessionNotesDictation();};
+  sessNotesRecognition.onend=()=>{
+    if(sessNotesListening){
+      try{sessNotesRecognition.start();}catch(e){sessNotesListening=false;updateSessionNotesMicUI();}
+    }
+  };
+  try{
+    sessNotesRecognition.start();
+    sessNotesListening=true;
+    updateSessionNotesMicUI();
+  }catch(e){
+    sessNotesListening=false;
+    updateSessionNotesMicUI();
+  }
+}
+function stopSessionNotesDictation(){
+  sessNotesListening=false;
+  if(sessNotesRecognition){
+    try{sessNotesRecognition.stop();}catch(e){}
+    sessNotesRecognition=null;
+  }
+  updateSessionNotesMicUI();
+}
+function updateSessionNotesMicUI(){
+  const micBtn=document.getElementById('sessnotes-mic-btn');
+  if(!micBtn)return;
+  micBtn.textContent=sessNotesListening?'⏹ Stop':'🎤 Dictate';
+  const status=document.getElementById('sessnotes-mic-status');
+  if(status)status.textContent=sessNotesListening?'Listening… say an exercise name, then its sets.':'';
+}
+// Replays every parsed set through the same sw-/sr-/logSet() path a manual
+// tap would use (same pattern as applyVoiceLogSets), just looped across
+// every matched exercise block instead of one. Exercises the text named
+// that aren't in today's plan yet get pushed onto plannedSessionExs and
+// the page rebuilt once before any sets are applied, so their set chips
+// actually exist in the DOM by the time logSet() needs them.
+function applyFullSessionNotes(){
+  const ta=document.getElementById('sessnotes-textarea');
+  if(!ta)return;
+  if(!plannedSessionExs)plannedSessionExs=[];
+  const blocks=parseFullSessionText(ta.value,sessionNotesNamePool());
+  if(!blocks.length){toast('📝','Nothing recognized — check the format hint and try again');return;}
+  const allEx=Object.values(EX).flat().filter((e,idx,arr)=>arr.findIndex(x=>x.name===e.name)===idx);
+  let addedCount=0;
+  blocks.forEach(b=>{
+    if(!plannedSessionExs.some(e=>e.name===b.name)){
+      const full=allEx.find(e=>e.name===b.name);
+      if(full){plannedSessionExs.push(full);addedCount++;}
+    }
+  });
+  if(addedCount>0)buildSession();
+  let appliedSets=0,matchedExCount=0;
+  blocks.forEach(b=>{
+    const ei=plannedSessionExs.findIndex(e=>e.name===b.name);
+    if(ei===-1)return;
+    const e=plannedSessionExs[ei];
+    const totalSlots=effectiveSets(e);
+    const wEl=document.getElementById('sw-'+ei),rEl=document.getElementById('sr-'+ei);
+    if(!wEl||!rEl)return;
+    let appliedForThis=0;
+    for(const s of b.sets){
+      let si=-1;
+      for(let cand=0;cand<totalSlots;cand++){
+        const chip=document.getElementById('sc-'+ei+'-'+cand);
+        if(chip&&!chip.classList.contains('done')){si=cand;break;}
+      }
+      if(si===-1)break;
+      wEl.value=s.weight||'';
+      rEl.value=s.reps||'';
+      logSet(ei,si,e.name,e.muscle);
+      appliedSets++;appliedForThis++;
+    }
+    if(appliedForThis>0)matchedExCount++;
+  });
+  closeSessionNotesModal();
+  if(appliedSets===0){
+    toast('📝','Matched exercises but had nowhere to put sets — they may already be fully logged.');
+  }else{
+    toast('📝',`Logged ${appliedSets} set${appliedSets===1?'':'s'} across ${matchedExCount} exercise${matchedExCount===1?'':'s'}`+(addedCount?` (added ${addedCount} new)`:''));
   }
 }
 
