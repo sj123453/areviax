@@ -4376,6 +4376,11 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .photo-slider-label-left,.photo-slider-label-right{position:absolute;bottom:8px;font-size:9.5px;font-weight:700;color:#fff;background:rgba(0,0,0,.55);padding:3px 7px;border-radius:10px;pointer-events:none}
     .photo-slider-label-left{left:8px}
     .photo-slider-label-right{right:8px}
+    .pm-pin{position:absolute;transform:translate(-50%,-50%);cursor:pointer;z-index:2}
+    .pm-dot{width:14px;height:14px;border-radius:50%;border:2px solid rgba(255,255,255,.85);box-shadow:0 1px 4px rgba(0,0,0,.5);transition:transform .15s}
+    .pm-pin.active .pm-dot{transform:scale(1.25)}
+    .pm-label{display:none;position:absolute;top:18px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.85);color:#fff;font-size:9.5px;font-weight:700;padding:5px 9px;border-radius:7px;white-space:nowrap;text-align:center;line-height:1.5;z-index:3}
+    .pm-pin.active .pm-label{display:block}
 
     /* ── ITEMIZED DAILY LOG ── */
     .today-log-empty{font-size:11.5px;color:var(--muted);padding:8px 0}
@@ -7190,6 +7195,22 @@ body[data-goal-theme="cut"] .lv-page{
         <div class="photo-slider-label-left" id="photo-compare-before-label"></div>
         <div class="photo-slider-label-right" id="photo-compare-after-label"></div>
       </div>
+    </div>
+
+    <!-- MUSCLE MAP — tappable pins over the latest photo, fixed to the same
+         guide-relative positions the alignment grid above teaches you to
+         frame against. This is NOT image detection — the point in message
+         #12 was explicit that a real vision API is future/expensive work —
+         it's annotation by position, same as the alignment grid itself,
+         backed by real tonnageLog volume per muscle so it's an honest
+         "what have you actually trained" readout, not a cosmetic overlay. -->
+    <div id="photo-musclemap-section" style="display:none;margin-top:16px;padding-top:14px;border-top:1px solid var(--border2)">
+      <div onclick="togglePhotoMuscleMap()" style="cursor:pointer;display:flex;align-items:center;gap:8px">
+        <span style="flex:1;font-size:13px;font-weight:800;color:var(--white)">🔬 Muscle map</span>
+        <span id="photo-musclemap-chev" style="color:var(--muted);font-size:11px;transition:transform .2s;display:inline-block">▼</span>
+      </div>
+      <div style="font-size:10.5px;color:var(--muted);margin-top:4px;line-height:1.5">Tap a pin to see that muscle's recent training. Positions follow your alignment framing above, not the photo itself.</div>
+      <div id="photo-musclemap" style="display:none;margin-top:12px"></div>
     </div>
   </div>
   </div>
@@ -15484,6 +15505,7 @@ function renderPhotoGallery(){
   }
   renderPhotoComparison();
   renderPhotoAlignGuide();
+  renderPhotoMuscleMapSection();
 }
 
 // ── PHOTO ALIGN GUIDE — a live in-shot skeleton isn't feasible since
@@ -15492,13 +15514,29 @@ function renderPhotoGallery(){
 // faintly with a rule-of-thirds grid, to eyeball framing/distance against
 // before opening the camera for the next one — cuts down on progress
 // photos shot from noticeably different distances/angles making
-// side-by-side comparison harder to read.
+// side-by-side comparison harder to read. Before any photo exists there's
+// nothing to ghost yet, so a plain SVG stance outline (centerline,
+// shoulder line, hip line) stands in for the first shot — the same
+// standardized framing the muscle map below assumes everyone's lined up
+// to, rather than leaving first-time users with no guide at all.
 function renderPhotoAlignGuide(){
   const wrap=document.getElementById('photo-align-guide');
   if(!wrap)return;
-  if(!photoLog.length){wrap.style.display='none';return;}
-  const last=photoLog[photoLog.length-1];
   wrap.style.display='block';
+  if(!photoLog.length){
+    wrap.innerHTML=`<div style="max-width:160px;margin:0 auto 12px;text-align:center">
+      <svg viewBox="0 0 100 160" style="width:100%;max-width:110px;display:block;margin:0 auto">
+        <line x1="50" y1="5" x2="50" y2="155" stroke="rgba(232,214,196,.4)" stroke-dasharray="3,3"/>
+        <circle cx="50" cy="18" r="11" fill="none" stroke="rgba(232,214,196,.55)" stroke-width="1.5"/>
+        <path d="M34 40 Q29 68 31 98 L29 150 M66 40 Q71 68 69 98 L71 150" fill="none" stroke="rgba(232,214,196,.55)" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="24" y1="41" x2="76" y2="41" stroke="rgba(232,214,196,.35)" stroke-dasharray="3,3"/>
+        <line x1="29" y1="98" x2="71" y2="98" stroke="rgba(232,214,196,.35)" stroke-dasharray="3,3"/>
+      </svg>
+      <div style="font-size:9.5px;color:var(--muted);margin-top:6px;line-height:1.5">Center yourself like this — arms relaxed at your sides, feet about shoulder-width. Every future photo lines up against your first one.</div>
+    </div>`;
+    return;
+  }
+  const last=photoLog[photoLog.length-1];
   wrap.innerHTML=`<div style="position:relative;max-width:180px;margin:0 auto 12px;border-radius:8px;overflow:hidden;border:1.5px solid var(--border2)">
     <img src="${last.dataUrl}" style="width:100%;display:block;opacity:.4">
     <div style="position:absolute;inset:0;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1fr);grid-template-rows:1fr 1fr 1fr">
@@ -15506,6 +15544,83 @@ function renderPhotoAlignGuide(){
     </div>
     <div style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.6);color:#fff;font-size:9px;text-align:center;padding:3px 0">Match this framing (${fmtPhotoDate(last.date)})</div>
   </div>`;
+}
+
+// ── MUSCLE MAP — annotates the latest photo with real per-muscle training
+// data at fixed, guide-relative positions (percentages down/across a
+// standard front-facing standing frame, the same framing the alignment
+// grid above asks the user to hold). This is template-based positioning,
+// NOT image detection/computer vision — see message #12: a real vision API
+// was explicitly deferred as future/expensive work, so this annotates by
+// where a muscle SHOULD fall for someone framed per the guide, same as a
+// printed anatomy chart would, not by analyzing the actual pixels.
+const PHOTO_MUSCLE_MAP_POINTS=[
+  {key:'shoulders',label:'Shoulders',top:21,left:50},
+  {key:'chest',label:'Chest',top:31,left:50},
+  {key:'biceps',label:'Arms',top:39,left:19},
+  {key:'core',label:'Core',top:49,left:50},
+  {key:'quads',label:'Quads',top:69,left:38},
+  {key:'calves',label:'Calves',top:88,left:38},
+];
+function muscleMapTrendData(muscleKey){
+  const now=new Date();
+  const fourWeeksAgo=new Date(now);fourWeeksAgo.setDate(now.getDate()-28);
+  const eightWeeksAgo=new Date(now);eightWeeksAgo.setDate(now.getDate()-56);
+  const recent=tonnageLog.filter(e=>e.muscle===muscleKey&&parseLocalDate(e.date)>=fourWeeksAgo);
+  const prior=tonnageLog.filter(e=>e.muscle===muscleKey&&parseLocalDate(e.date)>=eightWeeksAgo&&parseLocalDate(e.date)<fourWeeksAgo);
+  let trend='none';
+  if(recent.length&&prior.length){
+    const pct=(recent.length-prior.length)/prior.length*100;
+    trend=pct>10?'up':pct<-10?'down':'steady';
+  }else if(recent.length){
+    trend='new';
+  }
+  return{sets:recent.length,trend};
+}
+function renderPhotoMuscleMapSection(){
+  const section=document.getElementById('photo-musclemap-section');
+  if(!section)return;
+  section.style.display=photoLog.length?'block':'none';
+}
+function togglePhotoMuscleMap(){
+  const body=document.getElementById('photo-musclemap');
+  const chev=document.getElementById('photo-musclemap-chev');
+  if(!body)return;
+  const opening=body.style.display==='none';
+  if(opening){renderPhotoMuscleMap();body.style.display='block';}
+  else{body.style.display='none';}
+  if(chev)chev.style.transform=opening?'rotate(180deg)':'';
+}
+function togglePhotoMuscleMapPin(el){
+  const wasActive=el.classList.contains('active');
+  document.querySelectorAll('.pm-pin.active').forEach(p=>p.classList.remove('active'));
+  if(!wasActive)el.classList.add('active');
+}
+function renderPhotoMuscleMap(){
+  const wrap=document.getElementById('photo-musclemap');
+  if(!wrap||!photoLog.length)return;
+  const last=photoLog[photoLog.length-1];
+  const trendMeta={
+    up:{icon:'↑',color:'#7BAE7F',word:'trending up'},
+    down:{icon:'↓',color:'#E8314A',word:'trending down'},
+    steady:{icon:'→',color:'var(--muted)',word:'holding steady'},
+    new:{icon:'✦',color:'var(--yellow)',word:'just started'},
+    none:{icon:'—',color:'var(--muted)',word:'no recent data'},
+  };
+  const pins=PHOTO_MUSCLE_MAP_POINTS.map(p=>{
+    const d=muscleMapTrendData(p.key);
+    const t=trendMeta[d.trend];
+    const sub=d.sets>0?d.sets+' set'+(d.sets===1?'':'s')+' · last 4wk · '+t.word:t.word;
+    return`<div class="pm-pin" style="top:${p.top}%;left:${p.left}%" onclick="togglePhotoMuscleMapPin(this)">
+      <div class="pm-dot" style="background:${t.color}"></div>
+      <div class="pm-label">${p.label}<br>${t.icon} ${sub}</div>
+    </div>`;
+  }).join('');
+  wrap.innerHTML=`<div style="position:relative;max-width:220px;margin:0 auto">
+    <img src="${last.dataUrl}" style="width:100%;display:block;border-radius:8px">
+    ${pins}
+  </div>
+  <div style="font-size:9.5px;color:var(--muted);text-align:center;margin-top:10px;line-height:1.5">Positions follow the standard framing guide, not the photo itself — keep your alignment consistent and these track your real training.</div>`;
 }
 
 function renderPhotoComparison(){
