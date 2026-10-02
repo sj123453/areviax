@@ -1448,6 +1448,15 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       z-index:200;align-items:stretch;
       padding-bottom:env(safe-area-inset-bottom,0px);
     }
+    /* #more-sheet sits at z-index:999, above the nav bar's 200 — while open
+       it paints directly over the More button's own screen position, so a
+       second tap there used to hit inert sheet padding instead of toggling
+       it shut. Scoped to .above-sheet (toggled only while the sheet is
+       open, see toggleMoreSheet()) rather than bumped globally, since a
+       blanket z-index raise would also wrongly float the nav above
+       #rest-overlay/#session-build-overlay/#onboarding (all comfortably
+       below 999 themselves, and meant to cover the nav completely). */
+    #mobile-nav.above-sheet{z-index:1000}
     .mn-btn{
       flex:1;display:flex;flex-direction:column;align-items:center;
       justify-content:center;gap:3px;background:none;border:none;
@@ -9438,10 +9447,16 @@ window.addEventListener('unhandledrejection',function(e){console.error('PROMISE:
 function toggleMoreSheet(){
   const sheet=document.getElementById('more-sheet');
   const backdrop=document.getElementById('more-sheet-backdrop');
+  const nav=document.getElementById('mobile-nav');
   if(!sheet||!backdrop)return;
   const opening=!sheet.classList.contains('show');
   sheet.classList.toggle('show',opening);
   backdrop.classList.toggle('show',opening);
+  // Lifts the nav bar above the sheet while it's open so the More button
+  // stays tappable at its own screen position to close it again — see the
+  // #mobile-nav.above-sheet comment in the stylesheet for why this is
+  // scoped to a class instead of a permanent z-index change.
+  if(nav)nav.classList.toggle('above-sheet',opening);
 }
 
 function toggleSidebarMore(){
