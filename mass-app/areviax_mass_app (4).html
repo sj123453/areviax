@@ -17466,18 +17466,68 @@ function renderProgressProjection(){
   const sessNeeded=Math.max(0,next.sessions-totalSess);
   const weeksForVol=avgVolWeek>0?volNeeded/avgVolWeek:Infinity;
   const weeksForSess=avgSessWeek>0?sessNeeded/avgSessWeek:Infinity;
-  const weeksOut=Math.max(weeksForVol,weeksForSess);
+  const weeksOutRaw=Math.max(weeksForVol,weeksForSess);
 
   const volPct=Math.min(100,Math.round(totalVolume/next.volume*100));
   const sessPct=Math.min(100,Math.round(totalSess/next.sessions*100));
+
+  // Recovery factor — average sleep over the last 14 nights. No sleep
+  // logged yet reads as "no data" rather than quietly punishing someone
+  // who just hasn't tried that feature.
+  const fourteenAgo=new Date();fourteenAgo.setDate(fourteenAgo.getDate()-14);
+  const recentSleep=sleepLog.filter(e=>parseLocalDate(e.date)>=fourteenAgo);
+  let recoveryScore=null;
+  if(recentSleep.length){
+    const avgHours=recentSleep.reduce((s,e)=>s+(e.hours||0),0)/recentSleep.length;
+    recoveryScore=avgHours>=9?100:avgHours>=8?90:avgHours>=7?75:avgHours>=6?55:avgHours>=5?35:20;
+  }
+
+  // Nutrition factor — % of logged days in the last 14 that hit target
+  // (calories and protein both, same bar the Caloric Shield uses).
+  const recentNutrition=nutritionDayLog.filter(e=>parseLocalDate(e.date)>=fourteenAgo);
+  let nutritionScore=null;
+  if(recentNutrition.length){
+    nutritionScore=Math.round(recentNutrition.filter(e=>e.hitTarget).length/recentNutrition.length*100);
+  }
+
+  const haveRecovery=recoveryScore!==null,haveNutrition=nutritionScore!==null;
+  const supportScore=((recoveryScore??70)+(nutritionScore??70))/2;
+  // 0.72–1.12x pace multiplier. Neutral input (no data logged, or exactly
+  // average sleep/nutrition) lands at 1.0x, so the date matches plain
+  // volume pace until real recovery/nutrition history pulls it either way —
+  // this is the actual "assuming you follow your food plan and recover"
+  // adjustment layered onto raw training volume.
+  const supportMult=0.72+supportScore*0.004;
+  const weeksOut=isFinite(weeksOutRaw)?weeksOutRaw/supportMult:Infinity;
 
   let dateLine;
   if(!isFinite(weeksOut)){
     dateLine='Train a bit more consistently and a real date estimate appears here.';
   }else{
     const projDate=new Date();projDate.setDate(projDate.getDate()+Math.ceil(weeksOut)*7);
-    dateLine='At your last 8 weeks’ pace, ~'+projDate.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+    dateLine='At your current pace, ~'+projDate.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
   }
+
+  // Say in plain words whether recovery/nutrition are currently helping or
+  // costing time, rather than folding it silently into one date — the
+  // whole point of a bad projection is to make the missing piece legible
+  // and motivating, not just a smaller number.
+  let supportLine;
+  const whichFactors=!haveRecovery&&!haveNutrition?'':!haveRecovery?'nutrition':!haveNutrition?'sleep':'sleep and nutrition';
+  if(haveRecovery||haveNutrition){
+    const deltaWeeks=isFinite(weeksOutRaw)?Math.round(weeksOut-weeksOutRaw):0;
+    if(deltaWeeks>0)supportLine=`Your ${whichFactors} consistency is adding about ${deltaWeeks} week${deltaWeeks===1?'':'s'} to this estimate — tighten that up and the date moves closer.`;
+    else if(deltaWeeks<0)supportLine=`Your ${whichFactors} consistency is pulling this date in by about ${Math.abs(deltaWeeks)} week${Math.abs(deltaWeeks)===1?'':'s'} — keep it up.`;
+    else supportLine='Your sleep and nutrition are tracking right around average, holding pace steady.';
+  }else{
+    supportLine='Log sleep and meals and this sharpens into a real recovery- and nutrition-adjusted projection.';
+  }
+
+  const miniStat=(label,score,have)=>`
+    <div style="flex:1;min-width:0">
+      <div style="font-size:9px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--lv-muted-fg);margin-bottom:4px">${label}</div>
+      <div style="font-size:14px;font-weight:800;color:${have?'var(--lv-fg)':'var(--lv-muted-fg)'}">${have?score+'%':'—'}</div>
+    </div>`;
 
   body.innerHTML=`
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
@@ -17495,8 +17545,12 @@ function renderProgressProjection(){
       <div style="display:flex;justify-content:space-between;font-size:10.5px;color:var(--lv-muted-fg);margin-bottom:4px"><span>Sessions</span><span>${totalSess} / ${next.sessions}</span></div>
       <div class="lv-rail-track" style="height:6px"><div class="lv-rail-fill" style="width:${sessPct}%;background:${next.col}"></div></div>
     </div>
+    <div style="display:flex;gap:16px;padding:12px 0;border-top:1px solid var(--lv-border);border-bottom:1px solid var(--lv-border);margin-bottom:12px">
+      ${miniStat('Recovery',recoveryScore,haveRecovery)}
+      ${miniStat('Nutrition',nutritionScore,haveNutrition)}
+    </div>
     <div style="font-size:12.5px;color:var(--lv-fg);line-height:1.6">${dateLine}</div>
-    <div style="margin-top:8px;font-size:10.5px;color:var(--lv-muted-fg);line-height:1.5">A rough map based on your last 8 weeks — not a promise. Train more often and this date moves closer, same as it would in real life.</div>
+    <div style="margin-top:8px;font-size:10.5px;color:var(--lv-muted-fg);line-height:1.5">${supportLine}</div>
   `;
 }
 function renderProgressTrophyBanner(){
