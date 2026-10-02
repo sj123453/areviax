@@ -9327,10 +9327,15 @@ body[data-goal-theme="cut"] .lv-page{
 <div id="sessnotes-modal-backdrop" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9998" onclick="closeSessionNotesModal()"></div>
 <div id="sessnotes-modal" class="bottom-sheet-modal" style="display:none;position:fixed;bottom:0;left:0;right:0;background:var(--panel);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-top:1px solid var(--border);border-radius:16px 16px 0 0;padding:22px;z-index:9999;max-width:480px;margin:0 auto;box-shadow:0 -20px 50px -20px rgba(0,0,0,.6);max-height:88vh;overflow-y:auto">
   <div style="font-weight:800;font-size:14px;margin-bottom:4px">Log your whole session by notes</div>
-  <div style="font-size:11.5px;color:var(--muted);line-height:1.55;margin-bottom:12px">One exercise name per line, then its sets on the next line separated by dashes — like <span style="color:var(--white)">"Bench Press" then "60kg x 8 - 60kg x 8 - 65kg x 6"</span>. Paste straight from your Notes app and tap Auto-format if it's messy.</div>
+  <div style="font-size:11.5px;color:var(--muted);line-height:1.65;margin-bottom:12px">
+    Write the exercise, then its sets underneath — a dash between each set:<br>
+    <span style="color:var(--white)">Bench Press<br>60kg x 8 - 60kg x 8 - 65kg x 6</span><br>
+    Prefer rows instead? Tap <strong style="color:var(--white)">Table</strong>. Pasted something messy? Tap <strong style="color:var(--white)">Auto-format</strong> to clean it up.
+  </div>
   <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">
     <button class="equip-chip" onclick="insertSessionNotesTemplate('plan')">📋 Today's exercises</button>
     <button class="equip-chip" onclick="insertSessionNotesTemplate('example')">✨ Example</button>
+    <button class="equip-chip" onclick="insertSessionNotesTemplate('table')">📊 Table</button>
     <button class="equip-chip" onclick="autoFormatSessionNotes()">🪄 Auto-format</button>
   </div>
   <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px">
@@ -9966,6 +9971,14 @@ let tonnageLog=[];
 let rpeLog=[];
 let feederQuestClaimedDate='';
 let liveSessionProgress={}; // {exerciseName: {weight, reps, doneSets:[0,2,...]}} — lets a mid-workout close/reopen resume exactly where you left off
+// Direct ask: "sometimes people log things by accident so let them
+// cancel by pressing the set button again." Keyed by 'ei-si', one entry
+// per currently-logged set, capturing exactly what that set changed so
+// cancelSet() can reverse it precisely instead of guessing — see its own
+// comment for what is and isn't reversed. Persisted so a cancel still
+// works correctly after closing and reopening the app, not just within
+// one live session.
+let loggedSetMeta={};
 let questWeekStart='';
 let questProgress={prs:0,proteinDays:0,sessions:0};
 let questClaimed={prs:false,protein:false,sessions:false};
@@ -21261,7 +21274,7 @@ function buildSession(){
       <div class="sets-row" id="srow-${i}">${Array.from({length:effectiveSets(e)},(_,si)=>{
         const isDone=saved&&saved.doneSets.includes(si);
         const label=isDone?(saved.weight>0?`✓ ${saved.weight}×${saved.reps}`:'✓'):`Set ${si+1}`;
-        return `<div class="set-chip${isDone?' done':''}" onclick="logSet(${i},${si},'${e.name.replace(/'/g,"\\'")}','${e.muscle.replace(/'/g,"\\'")}')" id="sc-${i}-${si}">${label}</div>`;
+        return `<div class="set-chip${isDone?' done':''}" onclick="logSet(${i},${si},'${e.name.replace(/'/g,"\\'")}','${e.muscle.replace(/'/g,"\\'")}')" id="sc-${i}-${si}" title="${isDone?'Logged by accident? Tap again to cancel it':'Tap to log this set'}">${label}</div>`;
       }).join('')}</div>
       <div style="display:flex;gap:6px;margin-top:9px">
         <button class="ex-action-btn" onclick="openHowTo(${i})" title="Step-by-step guide">▶ How to do it</button>
@@ -21716,6 +21729,28 @@ function buildSessionNotesCandidates(namePool){
 // text for whichever header came last. Longest matches are checked first
 // so "Incline Dumbbell Press" wins over a shorter name/alias that happens
 // to be a substring of it.
+// One-row-per-exercise alternative to the name-then-dashes format, for
+// anyone who'd rather fill in a table than write prose: "Exercise | Sets |
+// Weight | Reps", one exercise per row, same weight/reps repeated across
+// however many sets that row says. Skips the header row and any row whose
+// Sets/Reps columns aren't plain numbers, so a stray '|' elsewhere in the
+// text doesn't get misread as a table.
+function parseTableRow(line,candidates){
+  if(!line.includes('|'))return null;
+  const cells=line.split('|').map(c=>c.trim()).filter(c=>c.length);
+  if(cells.length<4)return null;
+  const[namePart,setsPart,weightPart,repsPart]=cells;
+  if(/^exercise$/i.test(namePart))return null; // header row
+  const setsNum=parseInt(setsPart);
+  const repsNum=parseInt(repsPart);
+  if(!setsNum||!repsNum)return null;
+  const wMatch=weightPart.match(/(\d+(?:\.\d+)?)/);
+  const weight=wMatch?parseFloat(wMatch[1]):0;
+  const low=namePart.toLowerCase();
+  const found=candidates.find(c=>c.match.toLowerCase()===low);
+  if(!found)return null;
+  return{name:found.name,sets:Array.from({length:setsNum},()=>({weight,reps:repsNum,raw:line}))};
+}
 function parseFullSessionText(text,namePool){
   if(!text)return[];
   const candidates=buildSessionNotesCandidates(namePool||[]);
@@ -21737,6 +21772,12 @@ function parseFullSessionText(text,namePool){
     return null;
   };
   lines.forEach(line=>{
+    const tableRow=parseTableRow(line,candidates);
+    if(tableRow){
+      blocks.push(tableRow);
+      current=null; // self-contained — a stray next line shouldn't attach to it
+      return;
+    }
     const m=matchName(line);
     if(m){
       current={name:m.name,raw:[]};
@@ -21749,7 +21790,9 @@ function parseFullSessionText(text,namePool){
   // Dashes are this format's set separator (vs. voice's "full stop") —
   // normalize to periods so parseSetsFromText's own segment splitter
   // handles the rest exactly like it does for voice/typed per-exercise text.
-  return blocks.map(b=>({
+  // Table rows already carry a finished `sets` array, so they skip straight
+  // through unchanged.
+  return blocks.map(b=>b.sets?b:({
     name:b.name,
     sets:parseSetsFromText(b.raw.join('.').replace(/\s[-–—]\s/g,'.'))
   })).filter(b=>b.sets.length);
@@ -21792,6 +21835,8 @@ function insertSessionNotesTemplate(kind){
     }).join('\n\n');
   }else if(kind==='example'){
     ta.value='Bench Press\n60kg x 8 - 60kg x 8 - 65kg x 6\n\nPull-ups\n8 - 7 - 6';
+  }else if(kind==='table'){
+    ta.value='Exercise | Sets | Weight | Reps\nBench Press | 3 | 60kg | 8\nPull-ups | 3 | BW | 8';
   }
   renderSessionNotesPreview();
 }
@@ -22160,20 +22205,27 @@ function logSet(ei,si,name,muscle){
   const w=bwKg>0?Math.max(0,Math.round((bwKg-wRaw)*10)/10):(isPureBW?Math.round((bodyweightKg()+wRaw)*10)/10:wRaw);
   const effW=DOUBLE_DUMBBELL_EXERCISES.has(name)?w*2:w;
   const chip=document.getElementById('sc-'+ei+'-'+si);
-  if(chip.classList.contains('done'))return;
+  if(chip.classList.contains('done')){cancelSet(ei,si,name);return;}
   chip.classList.add('done');
   chip.textContent=w>0?`✓ ${w}×${r}`:'✓';
+  chip.title='Logged by accident? Tap again to cancel it';
   markTrainedToday();
   totalVolume+=effW*r;
+  // Tags every row this one set writes (tonnageLog/rpeLog/prHistory) so
+  // cancelSet() can remove exactly those rows later, never a different
+  // set's — two sets of the same exercise on the same day would otherwise
+  // look identical to anything trying to find "the row this set added."
+  const setRef=ei+'_'+si+'_'+Date.now();
+  const meta={name,effW,r,w,setRef,hadRPE:rpe!==null};
   if(w>0&&muscle){
     const today=localDateKey(new Date());
     muscle.split('+').map(m=>m.trim()).filter(Boolean).forEach(m=>{
-      tonnageLog.push({date:today,muscle:m,tonnage:effW*r,ts:Date.now()});
+      tonnageLog.push({date:today,muscle:m,tonnage:effW*r,ts:Date.now(),setRef});
     });
     if(tonnageLog.length>2000)tonnageLog=tonnageLog.slice(-2000); // cap growth, keep it from growing forever
   }
   if(rpe!==null){
-    rpeLog.push({date:localDateKey(new Date()),exercise:name,muscle,rpe,ts:Date.now()});
+    rpeLog.push({date:localDateKey(new Date()),exercise:name,muscle,rpe,ts:Date.now(),setRef});
     if(rpeLog.length>2000)rpeLog=rpeLog.slice(-2000);
   }
   // Stores wRaw, not w — this only ever feeds the input's own value=""
@@ -22185,6 +22237,7 @@ function logSet(ei,si,name,muscle){
   liveSessionProgress[name].reps=r;
   liveSessionProgress[name].date=localDateKey(new Date());
   if(!liveSessionProgress[name].doneSets.includes(si))liveSessionProgress[name].doneSets.push(si);
+  meta.prevLastPerformance=lastPerformance[name]?{...lastPerformance[name]}:null;
   if(w>0){
     const today=localDateKey(new Date());
     const prevBest=lastPerformance[name];
@@ -22199,9 +22252,11 @@ function logSet(ei,si,name,muscle){
     const hist=liftHistory[name];
     const lastEntry=hist[hist.length-1];
     if(!lastEntry||lastEntry.date!==today){
+      meta.liftHistoryAction='pushed';
       hist.push({date:today,weight:w,reps:r});
       if(hist.length>50)liftHistory[name]=hist.slice(-50);
     } else if(w>=lastEntry.weight){
+      meta.liftHistoryAction='updated';meta.liftHistoryPrevEntry={weight:lastEntry.weight,reps:lastEntry.reps};
       lastEntry.weight=w;lastEntry.reps=r;
     }
   }
@@ -22209,8 +22264,9 @@ function logSet(ei,si,name,muscle){
   const isWeightPR=w>0&&(!prs[name]||w>prs[name]);
   const isRepPR=w>0&&!isWeightPR&&prs[name]&&w===prs[name]&&r>(prBestReps[name]||0);
   if(isWeightPR||isRepPR){
+    meta.wasPR=true;meta.prevPRWeight=prevPR;meta.prevPRReps=prBestReps[name];
     prs[name]=w;prBestReps[name]=r;chip.classList.add('pr');
-    prHistory.push({name,weight:w,reps:r,date:localDateKey(new Date())});
+    prHistory.push({name,weight:w,reps:r,date:localDateKey(new Date()),setRef});
     if(prHistory.length>500)prHistory=prHistory.slice(-500);
     chip.textContent=`🏆 ${w}×${r}`;
     const pd=document.getElementById('pr-d-'+ei);
@@ -22231,7 +22287,7 @@ function logSet(ei,si,name,muscle){
       toast('🏆','New PR on '+name+': '+w+'kg!','pr');
     }
     celebrateBurst(['🏆','⭐','💥'],14);
-    checkQuestWeek();questProgress.prs=(questProgress.prs||0)+1;renderQuests();checkAchievements();
+    checkQuestWeek();questProgress.prs=(questProgress.prs||0)+1;meta.questPRIncremented=true;renderQuests();checkAchievements();
   }
   if(w>0&&r>0){
     const e1d=document.getElementById('e1rm-d-'+ei);
@@ -22243,6 +22299,7 @@ function logSet(ei,si,name,muscle){
       }
     }
   }
+  loggedSetMeta[ei+'-'+si]=meta;
   const focusRest={strength:120,hypertrophy:90,pump:45}[sessionFocus]||90;
   startRest(focusRest);addXP(3,'Set logged');saveToStorage();
   renderCompassClaimStatus();
@@ -22269,6 +22326,77 @@ function logSet(ei,si,name,muscle){
       }
     }
   }
+}
+
+// ── CANCEL A LOGGED SET — tap an already-done chip again to undo it.
+// Direct ask: "sometimes people log things by accident so let them cancel
+// by pressing the set button again." Reverses exactly what that one set
+// added — volume, tonnage, RPE log, PR record, last performance, lift
+// history — using the setRef logSet() stamped on every row it wrote, so
+// this can never remove a different set's data even when two sets share
+// the same exercise/muscle/date.
+//
+// Deliberately does NOT reverse: the day's "trained today" credit
+// (streak/sessThisWeek/totalSess/trainingCompletedDates) — you still
+// trained today regardless of one mis-tap; the 3 XP awarded — XP has
+// cross-app side effects (heroLinkContribute, level-ups) that aren't
+// safely reversible from here, and 3 Arete isn't worth that risk; and any
+// achievement already unlocked — same reasoning games generally use for
+// not revoking a one-time unlock after the fact.
+function cancelSet(ei,si,name){
+  const chip=document.getElementById('sc-'+ei+'-'+si);
+  if(!chip)return;
+  const key=ei+'-'+si;
+  const meta=loggedSetMeta[key];
+  chip.classList.remove('done','pr');
+  chip.textContent='Set '+(si+1);
+  chip.title='Tap to log this set';
+  if(liveSessionProgress[name]&&liveSessionProgress[name].doneSets){
+    liveSessionProgress[name].doneSets=liveSessionProgress[name].doneSets.filter(x=>x!==si);
+  }
+  if(!meta){
+    // No record of exactly what this set added — most likely the app was
+    // closed and reopened since it was logged, before loggedSetMeta
+    // persistence covered this set. Still let the tap un-mark it, but be
+    // honest that the numbers already counted from it won't roll back.
+    saveToStorage();
+    renderCompassClaimStatus();
+    toast('↩️','Removed from today\'s log — volume/PRs already counted from it won\'t roll back since the app restarted.');
+    return;
+  }
+  totalVolume=Math.max(0,totalVolume-meta.effW*meta.r);
+  tonnageLog=tonnageLog.filter(e=>e.setRef!==meta.setRef);
+  if(meta.hadRPE)rpeLog=rpeLog.filter(e=>e.setRef!==meta.setRef);
+  if(meta.wasPR){
+    if(meta.prevPRWeight===undefined){delete prs[name];delete prBestReps[name];}
+    else{prs[name]=meta.prevPRWeight;prBestReps[name]=meta.prevPRReps;}
+    prHistory=prHistory.filter(e=>e.setRef!==meta.setRef);
+    if(meta.questPRIncremented){questProgress.prs=Math.max(0,(questProgress.prs||0)-1);try{renderQuests();}catch(e){}}
+    const pd=document.getElementById('pr-d-'+ei);
+    if(pd)pd.textContent='PR: '+(prs[name]!==undefined?prs[name]+'kg':'—');
+  }
+  if(meta.prevLastPerformance)lastPerformance[name]=meta.prevLastPerformance;
+  else delete lastPerformance[name];
+  if(liftHistory[name]){
+    if(meta.liftHistoryAction==='pushed'){
+      liftHistory[name].pop();
+    }else if(meta.liftHistoryAction==='updated'&&meta.liftHistoryPrevEntry){
+      const lastEntry=liftHistory[name][liftHistory[name].length-1];
+      if(lastEntry){lastEntry.weight=meta.liftHistoryPrevEntry.weight;lastEntry.reps=meta.liftHistoryPrevEntry.reps;}
+    }
+  }
+  const e1d=document.getElementById('e1rm-d-'+ei);
+  if(e1d){
+    try{
+      const e1=estimate1RM(name);
+      e1d.dataset.val=e1||0;
+      e1d.textContent=e1?'Est 1RM: '+e1+'kg':'';
+    }catch(e){}
+  }
+  delete loggedSetMeta[key];
+  saveToStorage();
+  renderCompassClaimStatus();
+  toast('↩️','Set cancelled');
 }
 
 function progResponse(dir){
@@ -30538,6 +30666,7 @@ function saveToStorage(){
     localStorage.setItem('arx_trainingCompletedDates', JSON.stringify(trainingCompletedDates));
     localStorage.setItem('arx_trainingTimeLog', JSON.stringify(trainingTimeLog));
     localStorage.setItem('arx_liveSessionProgress', JSON.stringify(liveSessionProgress));
+    localStorage.setItem('arx_loggedSetMeta', JSON.stringify(loggedSetMeta));
     localStorage.setItem('arx_winddownDate', winddownDate);
     localStorage.setItem('arx_winddownChecked', JSON.stringify(winddownChecked));
     localStorage.setItem('arx_winddownStreak', winddownStreak);
@@ -30759,6 +30888,8 @@ function loadFromStorage(){
     if(ttl){try{trainingTimeLog=JSON.parse(ttl);}catch(e){trainingTimeLog=[];}}
     const lsp=localStorage.getItem('arx_liveSessionProgress');
     if(lsp){try{liveSessionProgress=JSON.parse(lsp);}catch(e){liveSessionProgress={};}}
+    const lsm=localStorage.getItem('arx_loggedSetMeta');
+    if(lsm){try{loggedSetMeta=JSON.parse(lsm);}catch(e){loggedSetMeta={};}}
     winddownDate=localStorage.getItem('arx_winddownDate')||'';
     const wc=localStorage.getItem('arx_winddownChecked');
     if(wc){try{winddownChecked=JSON.parse(wc);}catch(e){winddownChecked={};}}
