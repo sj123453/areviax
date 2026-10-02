@@ -7675,6 +7675,29 @@ body[data-goal-theme="cut"] .lv-page{
        functionality) — the body just spans the full grid width when open
        via grid-column:1/-1 instead of living in a single-column list. -->
   <div class="rec-tile-grid">
+  <!-- INJURY CHECK-IN — direct ask: "I got an injury today and I realised
+       we don't have something like injured your back? that's alright here
+       is a set of muscles you can still work and exercises that avoid that
+       specifically". Builds on the existing injury-conflict system
+       (BODY_PART_RISK_MUSCLES/detectInjuredBodyParts/exerciseRisksInjury —
+       previously only a passive settings-field + warn-on-add-to-custom-
+       session check) with an active, supportive in-the-moment check-in:
+       tap what you hurt today, see what's still fair game immediately, and
+       optionally save it so the rest of the app picks it up too. Leads the
+       tile grid since "I'm hurt right now" is time-sensitive in a way the
+       other recovery tiles aren't. -->
+  <div class="acc-header tile" onclick="toggleAccordion('acc-injury',this)">
+    <div class="acc-tile-icon">🩹</div>
+    <div style="flex:1;min-width:0"><div class="acc-header-title">Injured Today?</div><div class="acc-header-sub" id="rec-injury-preview">Find out what you can still train</div></div>
+    <span class="acc-chev">▼</span>
+  </div>
+  <div id="acc-injury" class="card acc-body lv-surface" style="margin-bottom:16px">
+    <div class="ch"><span class="ct">Injury Check-in</span></div>
+    <div style="font-size:11.5px;color:var(--muted);line-height:1.6;margin-bottom:12px">Tap what's bothering you and we'll show you what's still safe to train. Not medical advice — stop immediately if anything feels wrong, and see a professional if pain persists.</div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px" id="injury-checkin-parts"></div>
+    <div id="injury-checkin-result"></div>
+  </div>
+
   <!-- CNS FRY SCORE — a 15-second tap-speed test as a rough, free proxy for
        neuromuscular/CNS fatigue, since not everyone has a $300 wearable that
        measures this properly. Scored against the user's OWN rolling
@@ -19175,6 +19198,72 @@ function renderInjuryReminder(){
     banner.style.display='none';
   }
 }
+
+// ── INJURY CHECK-IN — "that's alright, here's what you can still work" ──
+// Active counterpart to the passive injury-conflict system above: instead
+// of only warning when you happen to add a risky exercise, this lets you
+// tap what you hurt right now and immediately see the muscles/exercises
+// that are still fair game. Reuses BODY_PART_RISK_MUSCLES as the single
+// source of truth, so this and exerciseRisksInjury() can never disagree
+// about what counts as risky for a given body part.
+const BODY_PART_LABELS={knee:'Knee',shoulder:'Shoulder',back:'Back',wrist:'Wrist',elbow:'Elbow',hip:'Hip',ankle:'Ankle',neck:'Neck'};
+const ALL_TRAIN_MUSCLES=['chest','shoulders','triceps','back','biceps','lats','quads','hamstrings','glutes','calves','core'];
+function injurySafeExercises(part){
+  const risky=BODY_PART_RISK_MUSCLES[part]||[];
+  const allEx=Object.values(EX).flat().filter((e,idx,arr)=>arr.findIndex(x=>x.name===e.name)===idx);
+  return allEx.filter(e=>{
+    if(!equipOk(e))return false;
+    const m=(e.muscle||'').toLowerCase();
+    return !risky.some(rm=>m.includes(rm));
+  }).sort((a,b)=>(b.eff||0)-(a.eff||0));
+}
+function renderInjuryCheckinParts(){
+  const cont=document.getElementById('injury-checkin-parts');
+  if(!cont)return;
+  cont.innerHTML=Object.keys(BODY_PART_RISK_MUSCLES).map(p=>
+    `<button type="button" class="equip-chip" id="injchip-${p}" onclick="selectInjuryCheckin('${p}')">${BODY_PART_LABELS[p]||p}</button>`
+  ).join('');
+  // If there's already a saved injury, pick it back up so reopening this
+  // tile reads as "here's your current status" rather than losing context.
+  const existing=detectInjuredBodyParts(profile.injuries||'');
+  if(existing.length)selectInjuryCheckin(existing[0]);
+}
+function selectInjuryCheckin(part){
+  document.querySelectorAll('#injury-checkin-parts .equip-chip').forEach(c=>c.classList.toggle('active',c.id==='injchip-'+part));
+  const risky=BODY_PART_RISK_MUSCLES[part]||[];
+  const safeMuscles=ALL_TRAIN_MUSCLES.filter(m=>!risky.includes(m));
+  const safeExercises=injurySafeExercises(part).slice(0,8);
+  const result=document.getElementById('injury-checkin-result');
+  if(!result)return;
+  const label=(BODY_PART_LABELS[part]||part).toLowerCase();
+  const alreadySaved=detectInjuredBodyParts(profile.injuries||'').includes(part);
+  result.innerHTML=`
+    <div style="background:rgba(123,174,127,.08);border:1.5px solid rgba(123,174,127,.25);border-radius:10px;padding:14px;margin-bottom:14px">
+      <div style="font-weight:800;font-size:13px;color:#7BAE7F;margin-bottom:4px">That's alright — here's what you can still train.</div>
+      <div style="font-size:11.5px;color:rgba(var(--white-rgb),.75);line-height:1.6">We're steering clear of anything that stresses your ${label}. Still fair game: ${safeMuscles.map(m=>MUSCLE_GROUP_LABEL[m]||m).join(', ')}.</div>
+    </div>
+    <div style="font-size:9px;color:var(--muted);font-weight:800;letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px">Exercises that avoid your ${label}</div>
+    <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px">
+      ${safeExercises.length?safeExercises.map(e=>`
+        <div style="display:flex;align-items:center;gap:10px;background:rgba(232,214,196,.03);border:1px solid var(--border2);border-radius:8px;padding:8px 10px">
+          <div style="width:34px;height:34px;flex-shrink:0;background:rgb(var(--bg-rgb));border:1.5px solid var(--border);border-radius:6px;display:flex;align-items:center;justify-content:center">${getEquipIcon(e.equip)}</div>
+          <div style="flex:1;min-width:0"><div style="font-size:12.5px;font-weight:700;color:var(--white)">${e.name}</div><div style="font-size:10px;color:var(--muted)">${e.muscle} · ${e.sets}×${e.reps}</div></div>
+        </div>`).join(''):'<div style="font-size:11.5px;color:var(--muted)">No matching exercises for your current equipment — try adding more equipment in Settings.</div>'}
+    </div>
+    <button class="btn btn-out" style="width:100%" id="injury-checkin-save-btn" onclick="saveInjuryCheckin('${part}')" ${alreadySaved?'disabled':''}>${alreadySaved?'Saved as your current injury':'Save as my current injury'}</button>
+    <div style="font-size:10px;color:var(--muted);margin-top:8px;line-height:1.5">Saving this flags anything risky if you try to add it in the custom session builder, same as noting it in Settings.</div>
+  `;
+}
+function saveInjuryCheckin(part){
+  const label=(BODY_PART_LABELS[part]||part).toLowerCase();
+  const already=detectInjuredBodyParts(profile.injuries||'');
+  if(!already.includes(part))profile.injuries=(profile.injuries?profile.injuries+', ':'')+label;
+  saveToStorage();
+  renderInjuryReminder();
+  const saveBtn=document.getElementById('injury-checkin-save-btn');
+  if(saveBtn){saveBtn.disabled=true;saveBtn.textContent='Saved as your current injury';}
+  toast('🩹','Noted — we\'ll flag anything that risks your '+label);
+}
 // Picks exercises round-robin across distinct muscle groups, preserving each
 // group's original priority order, so a trimmed session still spreads across
 // push AND pull rather than only ever reaching the first couple of groups.
@@ -26636,6 +26725,7 @@ function renderRecoveryPage(){
   renderReadiness();
   renderRecoveryTilePreviews();
   renderMuscleReadiness();
+  renderInjuryCheckinParts();
 }
 // Populates the CNS/Sleep tile subtitles with the last real value (score,
 // hours) instead of a static description — an "at a glance" preview like
