@@ -4821,8 +4821,22 @@ body[data-goal-theme="cut"] .lv-page{
 /* aspect-ratio deliberately NOT set here — it varies per exercise (a
    push-up's cards are landscape, a squat's are portrait) and is applied
    inline per <img> in getInfoCardWalkthroughHTML() instead, via
-   EXERCISE_INFO_CARD_RATIO (or a per-card override). */
-.exwalk-card{flex:0 0 100%;width:100%;object-fit:contain;scroll-snap-align:center}
+   EXERCISE_INFO_CARD_RATIO (or a per-card override). object-fit:cover (not
+   contain) so the card always fills its frame edge-to-edge, full size, with
+   no letterbox bars — direct ask. The carousel's own height is already
+   synced to each card's own ratio (exwalkCardSyncHeight), so this normally
+   crops nothing; cover is what keeps the frame full on a shorter phone
+   where that height gets clamped below the card's natural ratio instead of
+   leaving dead space down the sides. */
+.exwalk-card{flex:0 0 100%;width:100%;height:100%;object-fit:cover;scroll-snap-align:center}
+/* Quick scale+fade "pop" on whichever card becomes active, restarted every
+   time by exwalkCardScroll()/exwalkCardAutoStart() removing then re-adding
+   this class — direct ask: keep the hard stop-motion cut (no sliding) but
+   "make it like an app", i.e. a snappy native-feeling polish on the cut
+   rather than a dead instant swap. Still a cut, not a crossfade — just a
+   fast one, not a raw jump. */
+@keyframes exwalkCardPop{from{opacity:.45;transform:scale(.97)}to{opacity:1;transform:scale(1)}}
+.exwalk-card.exwalk-card-pop{animation:exwalkCardPop .16s ease-out}
 /* Overview + pro-tip blocks shown as real HTML text around the carousel
    (see EXERCISE_WALKTHROUGH_INTRO / getInfoCardWalkthroughHTML) instead of
    baked into a wide raster strip inside the carousel — a 1536px-wide
@@ -11989,9 +12003,24 @@ function exwalkCardSyncHeight(el){
   if(parts.length!==2||!parts[0]||!parts[1])return;
   el.style.height=(el.clientWidth*parts[1]/parts[0])+'px';
 }
+// Restarts the pop animation on whichever card is now active by removing
+// the class, forcing a reflow (so the browser forgets it ever played), then
+// re-adding it — just setting the class again is a no-op if it's already
+// there from last time. Only fires when the active index actually changed,
+// so a plain height re-sync (e.g. a resize) doesn't replay it.
+function exwalkCardPlayPop(el,idx){
+  const img=el.children[idx];if(!img)return;
+  img.classList.remove('exwalk-card-pop');
+  void img.offsetWidth;
+  img.classList.add('exwalk-card-pop');
+}
 function exwalkCardScroll(el){
   const dots=el.nextElementSibling;if(!dots)return;
   const idx=Math.round(el.scrollLeft/el.clientWidth);
+  if(el.dataset.activeIdx!==String(idx)){
+    el.dataset.activeIdx=idx;
+    exwalkCardPlayPop(el,idx);
+  }
   dots.querySelectorAll('.howto-dot').forEach((d,i)=>d.classList.toggle('active',i===idx));
   exwalkCardSyncHeight(el);
 }
@@ -12004,6 +12033,7 @@ function exwalkCardAutoStart(el){
   exwalkCardAutoStop();
   if(!el)return;
   exwalkCardSyncHeight(el); // initial size, before any scroll event has fired
+  el.dataset.activeIdx='0';
   const n=el.children.length;if(n<2)return;
   exwalkAutoTimer=setInterval(()=>{
     const idx=Math.round(el.scrollLeft/el.clientWidth);
