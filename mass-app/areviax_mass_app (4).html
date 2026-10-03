@@ -4831,6 +4831,7 @@ body[data-goal-theme="cut"] .lv-page{
    readable at any width. */
 .exwalk-overview{width:100%;display:flex;flex-direction:column;gap:8px;flex:0 0 auto}
 .exwalk-risk{font-size:11px;font-weight:800;color:var(--red);letter-spacing:.3px}
+.exwalk-subtitle{font-size:11px;font-weight:800;color:var(--blue);letter-spacing:.3px}
 .exwalk-desc{font-size:11.5px;line-height:1.5;color:rgba(var(--white-rgb),.75)}
 .exwalk-mistakes{border:1px solid rgba(226,53,50,.4);background:rgba(226,53,50,.08);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:4px}
 .exwalk-mistakes-head{font-size:10.5px;font-weight:800;color:var(--red);letter-spacing:.3px;margin-bottom:2px}
@@ -4846,6 +4847,15 @@ body[data-goal-theme="cut"] .lv-page{
 .exwalk-protip-text{font-size:11px;line-height:1.45;color:rgba(var(--white-rgb),.85);flex:1}
 .exwalk-protip-text b{color:#FFB21D}
 .exwalk-protip-badge{font-size:9px;font-weight:800;letter-spacing:1px;color:#FFB21D;white-space:nowrap;flex:0 0 auto;text-align:right}
+/* Multi-item pro-tips list (an exercise with several separate tips rather
+   than one highlighted callout — see getInfoCardWalkthroughHTML()'s
+   proTip-vs-proTips branch). One bulb per tip rather than repeating the
+   bigger icon-illustration row from the source sheet, which doesn't carry
+   over to a single mobile column. */
+.exwalk-protips-list{width:100%;display:flex;flex-direction:column;gap:7px;background:rgba(255,178,29,.08);border:1px solid rgba(255,178,29,.3);border-radius:10px;padding:10px 12px;flex:0 0 auto}
+.exwalk-protips-head{font-size:10.5px;font-weight:800;color:#FFB21D;letter-spacing:.3px;margin-bottom:2px}
+.exwalk-protips-item{font-size:11px;color:rgba(var(--white-rgb),.85);line-height:1.4;padding-left:16px;position:relative}
+.exwalk-protips-item:before{content:'💡';position:absolute;left:0;top:0;font-size:9px}
 
 /* ── CALISTHENICS GUIDE — a vertical progression ladder per skill
    category (see page-calisthenics/CALISTHENICS_LADDERS). Deliberately a
@@ -10718,6 +10728,9 @@ const EX={
       troubleshoot:[
         {feel:'Biceps, not lats', fix:'You\'re likely pulling primarily with your arms. Think about driving your elbows down and back rather than bending them, and try gripping the bar slightly wider than shoulder width to put your lats in a better position to do the work.'},
         {feel:'Can\'t complete reps at all', fix:'That\'s normal while you build up — use a resistance band looped under your knee for assistance, or do negative reps (jump to the top, lower as slowly as you can) until you build the strength for full reps.'},
+        {feel:'Swinging your legs or kicking to get momentum', fix:'You\'re kipping instead of pulling strictly. Slow down and control every rep — if you need to swing to finish it, drop to an assisted variation until you can do it strict.'},
+        {feel:'Elbows flaring out to the sides', fix:'Keep your elbows driving down and in rather than out — flared elbows shift the load toward your shoulders instead of your lats.'},
+        {feel:'Stopping short at the top or bottom', fix:'That\'s a partial rep. Full range of motion means arms fully extended at the bottom and your chin clearing the bar at the top — a half rep trains about half as much.'},
       ]},
     {name:'Inverted Row',muscle:'back',sets:3,reps:'8–12',eff:76,syn:87,safe:96,equip:['full','home','bodyweight','park'],anim:'row',cue:'Body in a straight line like a plank, heels on the floor and hands gripping the bar above you. Pull your chest up to the bar, leading with your elbows, and keep your hips from sagging throughout. The more horizontal your body is to the floor, the harder this gets.',
       troubleshoot:[
@@ -10935,6 +10948,9 @@ const EX={
       troubleshoot:[
         {feel:'Biceps, not lats', fix:'Drive your elbows down and back rather than bending them, and try a slightly wider grip to put your lats in a better position.'},
         {feel:'Can\'t complete reps at all', fix:'Use a resistance band for assistance, or do slow negative reps until you build the strength for full reps.'},
+        {feel:'Swinging your legs or kicking to get momentum', fix:'You\'re kipping instead of pulling strictly. Slow down and control every rep — drop to an assisted variation until you can do it strict.'},
+        {feel:'Elbows flaring out to the sides', fix:'Keep your elbows driving down and in rather than out — flared elbows shift the load toward your shoulders instead of your lats.'},
+        {feel:'Stopping short at the top or bottom', fix:'That\'s a partial rep. Full range of motion means arms fully extended at the bottom and your chin clearing the bar at the top.'},
       ]},
     {name:'Face Pulls',muscle:'rear delts',sets:3,reps:'15–20',eff:87,syn:92,safe:98,equip:['cableMachine'],anim:'lateral',cue:'Pull to your forehead with external rotation, finishing with your hands either side of your head. Non-negotiable on a day with this much pressing — this is what keeps your shoulders healthy long-term.',
       troubleshoot:[
@@ -11804,6 +11820,13 @@ const EXERCISE_INFO_CARDS={
     {src:'images/misc/exwalk-deadlift-card4-lockout.jpg',alt:'Conventional Deadlift — 4. Lockout',ratio:'333/643'},
     {src:'images/misc/exwalk-deadlift-card5-lower.jpg',alt:'Conventional Deadlift — 5. Lower',ratio:'318/643'},
   ],
+  'Pull-ups':[
+    {src:'images/misc/exwalk-pullup-card1-start.jpg',alt:'Pull-ups — 1. Starting Position',ratio:'278/725'},
+    {src:'images/misc/exwalk-pullup-card2-pullup.jpg',alt:'Pull-ups — 2. Pull Up (Initial Phase)',ratio:'288/725'},
+    {src:'images/misc/exwalk-pullup-card3-midpull.jpg',alt:'Pull-ups — 3. Mid Pull',ratio:'289/725'},
+    {src:'images/misc/exwalk-pullup-card4-top.jpg',alt:'Pull-ups — 4. Top Position',ratio:'288/725'},
+    {src:'images/misc/exwalk-pullup-card5-lowering.jpg',alt:'Pull-ups — 5. Lowering',ratio:'273/725'},
+  ],
 };
 // Overview content (common mistakes, primary/secondary muscles, pro tip)
 // shown as real text around the Watch carousel, not inside it — see the
@@ -11820,6 +11843,15 @@ const EXERCISE_WALKTHROUGH_INTRO={
     secondary:'Quads, traps, forearms, core',
     proTip:'Film yourself or use a coach at first. If you feel your lower back rounding, the weight is too heavy or your technique needs work.',
     proTipBadge:'FORM OVER WEIGHT',
+  },
+  'Pull-ups':{
+    subtitle:'FOUNDATIONAL BODYWEIGHT COMPOUND',
+    desc:'A powerful upper body exercise that builds your lats, back, biceps and grip strength. It\'s a foundational movement that many people do with a partial range of motion without even realising it.',
+    mistakes:['Partial range of motion (not getting your chin over the bar)','Swinging or kipping the body','Flared elbows (keep them close)','Not engaging the lats (think: "pull with your back, not just your arms")'],
+    muscleImg:'images/misc/exwalk-pullup-muscles.jpg',
+    primary:'Lats, biceps, upper back',
+    secondary:'Forearms, rear delts, core',
+    proTips:['Focus on a full range of motion (chin over bar).','Keep your core tight and body straight.','Use a grip that feels comfortable (and can be progressed).','If you can\'t do a full rep yet, use assisted variations (band or negative reps).'],
   },
 };
 // Push-ups' cards are landscape (a horizontal body position); the squat's
@@ -11850,8 +11882,14 @@ function getInfoCardWalkthroughHTML(name){
   const imgs=cards.map(c=>`<img src="${c.src}" alt="${c.alt}" class="exwalk-card" style="aspect-ratio:${c.ratio||defaultRatio}">`).join('');
   const dots=cards.map((_,i)=>`<div class="howto-dot${i===0?' active':''}"></div>`).join('');
   const intro=EXERCISE_WALKTHROUGH_INTRO[name];
+  // `risk` (red, ⚠️-prefixed) is for a genuine injury-risk callout like the
+  // Deadlift's "HIGH RISK — LOWER BACK ROUNDING"; `subtitle` (plain accent
+  // color, no icon) is for a neutral descriptor like Pull-ups' "FOUNDATIONAL
+  // BODYWEIGHT COMPOUND" — same slot, different tone depending which the
+  // exercise actually needs.
   const overviewHTML=intro?`<div class="exwalk-overview">
     ${intro.risk?`<div class="exwalk-risk">⚠️ ${intro.risk}</div>`:''}
+    ${intro.subtitle?`<div class="exwalk-subtitle">${intro.subtitle}</div>`:''}
     ${intro.desc?`<div class="exwalk-desc">${intro.desc}</div>`:''}
     ${intro.mistakes&&intro.mistakes.length?`<div class="exwalk-mistakes">
       <div class="exwalk-mistakes-head">⚠️ COMMON MISTAKES</div>
@@ -11865,11 +11903,18 @@ function getInfoCardWalkthroughHTML(name){
       </div>
     </div>`:''}
   </div>`:'';
+  // Two pro-tip shapes: a single highlighted callout with a badge
+  // (Deadlift's "FORM OVER WEIGHT"), or a multi-item list, one bulb icon per
+  // tip (Pull-ups' 4 separate tips) — an exercise uses whichever fits its
+  // source content, never both.
   const protipHTML=intro&&intro.proTip?`<div class="exwalk-protip">
     <div class="exwalk-protip-icon">💡</div>
     <div class="exwalk-protip-text"><b>PRO TIP:</b> ${intro.proTip}</div>
     ${intro.proTipBadge?`<div class="exwalk-protip-badge">${intro.proTipBadge}</div>`:''}
-  </div>`:'';
+  </div>`:(intro&&intro.proTips&&intro.proTips.length?`<div class="exwalk-protips-list">
+    <div class="exwalk-protips-head">💡 PRO TIPS</div>
+    ${intro.proTips.map(t=>`<div class="exwalk-protips-item">${t}</div>`).join('')}
+  </div>`:'');
   return `<div style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;${intro?'justify-content:flex-start;overflow-y:auto':'justify-content:center'};gap:10px">
     ${overviewHTML}
     <div class="exwalk-card-carousel" onscroll="exwalkCardScroll(this)">${imgs}</div>
