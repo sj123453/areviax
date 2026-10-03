@@ -4807,12 +4807,22 @@ body[data-goal-theme="cut"] .lv-page{
    aspect-ratio matches the cards' own 16:9 source render; object-fit:
    contain guarantees the callout labels near the edges are never
    cropped by scroll-snap-align. */
-.exwalk-card-carousel{display:flex;width:100%;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;border-radius:12px;background:#000}
+/* align-items:flex-start (not the flex default of stretch) so a short
+   card (e.g. Conventional Deadlift's wide intro/outro strips) never gets
+   stretched tall to match a neighboring portrait step card sharing the
+   same row — each image sizes purely from its own aspect-ratio. The
+   carousel's own height is then kept in sync with whichever card is
+   actually active via exwalkCardSyncHeight(), not left to default
+   cross-size-from-tallest-child flex behavior (see that function's
+   comment) — height transitions smoothly as you swipe between a wide
+   intro and a tall step instead of jumping. */
+.exwalk-card-carousel{display:flex;align-items:flex-start;width:100%;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;border-radius:12px;background:#000;transition:height .25s ease}
 .exwalk-card-carousel::-webkit-scrollbar{display:none}
 /* aspect-ratio deliberately NOT set here — it varies per exercise (a
    push-up's cards are landscape, a squat's are portrait) and is applied
    inline per <img> in getInfoCardWalkthroughHTML() instead, via
-   EXERCISE_INFO_CARD_RATIO. */
+   EXERCISE_INFO_CARD_RATIO (or a per-card override — see Conventional
+   Deadlift's intro/outro strips). */
 .exwalk-card{flex:0 0 100%;width:100%;object-fit:contain;scroll-snap-align:center}
 
 /* ── CALISTHENICS GUIDE — a vertical progression ladder per skill
@@ -11067,6 +11077,9 @@ const EX={
         {feel:'Lower back rounding or aching', fix:'Stop the set immediately and reduce the weight. Reset your flat-back position before every single rep — if you can\'t maintain it even with lighter weight, work on hip mobility and hamstring flexibility before adding load back.'},
         {feel:'Only lower back, no glutes/hamstrings at all', fix:'You\'re probably bending your knees too much, turning it into a squat. Push your hips back further at the start, keeping your shins closer to vertical.'},
         {feel:'Bar drifts away from your shins', fix:'Keep the bar dragging up your shins and thighs the whole way — if there\'s a gap between the bar and your legs, your hips are rising too fast relative to the bar.'},
+        {feel:'Pulling with your arms instead of your legs', fix:'Your arms are just hooks holding the bar — the lift comes from driving through your legs and extending your hips, not from trying to curl or yank the bar up with your arms.'},
+        {feel:'Standing up before the bar leaves the floor', fix:'Let your hips and shoulders rise together at the same rate. If your hips shoot up first, the bar barely moves and you turn the pull into a stiff-leg deadlift that dumps the load straight onto your lower back.'},
+        {feel:'No brace — core feels loose through the pull', fix:'Take a real breath in and brace hard, like you\'re about to take a punch to the stomach, before you break the bar off the floor. An unbraced spine under a heavy pull is exactly how backs get hurt.'},
       ]},
     {name:'Romanian Deadlift',muscle:'hamstrings',sets:3,reps:'8–10',eff:95,syn:94,safe:86,equip:['full','barbell'],anim:'deadlift',cue:'Hinge at your hips, not your lower back — think about pushing your hips backward like closing a car door with them, while your knees stay only slightly bent. The bar stays close to your legs throughout. You should feel a deep stretch in your hamstrings at the bottom, then squeeze your glutes to stand back up.',
       troubleshoot:[
@@ -11748,12 +11761,32 @@ const EXERCISE_INFO_CARDS={
     {src:'images/misc/exwalk-squat-card3-bottom.jpg',alt:'Barbell Back Squat — 3. Bottom Position'},
     {src:'images/misc/exwalk-squat-card4-return.jpg',alt:'Barbell Back Squat — 4. Return to Start'},
   ],
+  // Direct ask after the Squat cards shipped: "remember to add the
+  // highlighting in the top right and add the common mistakes 100%" — this
+  // set leads with an intro card carrying the real muscle diagram
+  // (primary/secondary muscles) AND the common-mistakes callout together,
+  // exactly as supplied, rather than only the 5 numbered steps. Closes
+  // with the reference sheet's own pro-tip footer. ratio set per-card
+  // since the intro/outro are wide landscape strips but the 5 steps are
+  // portrait — see getInfoCardWalkthroughHTML()'s c.ratio||ratio fallback.
+  'Conventional Deadlift':[
+    {src:'images/misc/exwalk-deadlift-card0-intro.jpg',alt:'Conventional Deadlift — overview: primary/secondary muscles and common mistakes',ratio:'1536/278'},
+    {src:'images/misc/exwalk-deadlift-card1-setup.jpg',alt:'Conventional Deadlift — 1. Setup',ratio:'323/643'},
+    {src:'images/misc/exwalk-deadlift-card2-liftoff.jpg',alt:'Conventional Deadlift — 2. Lift Off',ratio:'333/643'},
+    {src:'images/misc/exwalk-deadlift-card3-midpull.jpg',alt:'Conventional Deadlift — 3. Mid Pull',ratio:'333/643'},
+    {src:'images/misc/exwalk-deadlift-card4-lockout.jpg',alt:'Conventional Deadlift — 4. Lockout',ratio:'333/643'},
+    {src:'images/misc/exwalk-deadlift-card5-lower.jpg',alt:'Conventional Deadlift — 5. Lower',ratio:'318/643'},
+    {src:'images/misc/exwalk-deadlift-card6-protip.jpg',alt:'Conventional Deadlift — pro tip: film yourself or use a coach at first',ratio:'1536/103'},
+  ],
 };
 // Push-ups' cards are landscape (a horizontal body position); the squat's
 // are portrait (a standing/crouching body is naturally tall, not wide).
 // Per-exercise aspect ratio so getInfoCardWalkthroughHTML() can size each
 // set correctly instead of a single hardcoded ratio squashing one or the
-// other — see .exwalk-card's own comment for where this gets applied.
+// other — see .exwalk-card's own comment for where this gets applied. A
+// card can override this with its own `ratio` (see Conventional Deadlift's
+// intro/outro strips above), for an exercise whose own cards aren't all
+// one consistent shape.
 const EXERCISE_INFO_CARD_RATIO={'Barbell Back Squat':'378/751'};
 // Auto-advancing, not swipe-only — first shipped as swipe-to-read, but
 // direct ask: "I don't love making them swipe... I want it to go to
@@ -11770,18 +11803,37 @@ const EXERCISE_INFO_CARD_RATIO={'Barbell Back Squat':'378/751'};
 function getInfoCardWalkthroughHTML(name){
   const cards=EXERCISE_INFO_CARDS[name];
   if(!cards)return null;
-  const ratio=EXERCISE_INFO_CARD_RATIO[name]||'16/9';
-  const imgs=cards.map(c=>`<img src="${c.src}" alt="${c.alt}" class="exwalk-card" style="aspect-ratio:${ratio}">`).join('');
+  const defaultRatio=EXERCISE_INFO_CARD_RATIO[name]||'16/9';
+  const imgs=cards.map(c=>`<img src="${c.src}" alt="${c.alt}" class="exwalk-card" style="aspect-ratio:${c.ratio||defaultRatio}">`).join('');
   const dots=cards.map((_,i)=>`<div class="howto-dot${i===0?' active':''}"></div>`).join('');
   return `<div style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px">
     <div class="exwalk-card-carousel" onscroll="exwalkCardScroll(this)">${imgs}</div>
     <div class="howto-dots" style="margin-bottom:0">${dots}</div>
   </div>`;
 }
+// A mixed-ratio card set (Conventional Deadlift's wide intro/outro
+// alongside its tall portrait steps) can't share one flex-row height —
+// the row would otherwise size to whichever sibling is tallest, leaving
+// the shorter cards stranded in a lot of empty space (direct QA finding
+// on the first version of this). Reads the ACTIVE card's own aspect-ratio
+// and sets the carousel's height to match it exactly, so swiping from a
+// short strip to a tall photo resizes the frame instead of leaving dead
+// space around whichever one happens to be short this swipe.
+function exwalkCardSyncHeight(el){
+  const imgs=el.querySelectorAll('.exwalk-card');
+  if(!imgs.length||!el.clientWidth)return;
+  const idx=Math.min(imgs.length-1,Math.max(0,Math.round(el.scrollLeft/el.clientWidth)));
+  const ratio=imgs[idx].style.aspectRatio;
+  if(!ratio)return;
+  const parts=ratio.split('/').map(s=>parseFloat(s.trim()));
+  if(parts.length!==2||!parts[0]||!parts[1])return;
+  el.style.height=(el.clientWidth*parts[1]/parts[0])+'px';
+}
 function exwalkCardScroll(el){
   const dots=el.nextElementSibling;if(!dots)return;
   const idx=Math.round(el.scrollLeft/el.clientWidth);
   dots.querySelectorAll('.howto-dot').forEach((d,i)=>d.classList.toggle('active',i===idx));
+  exwalkCardSyncHeight(el);
 }
 let exwalkAutoTimer=null;
 // Computes the next index from the carousel's OWN current scrollLeft
@@ -11791,6 +11843,7 @@ let exwalkAutoTimer=null;
 function exwalkCardAutoStart(el){
   exwalkCardAutoStop();
   if(!el)return;
+  exwalkCardSyncHeight(el); // initial size, before any scroll event has fired
   const n=el.children.length;if(n<2)return;
   exwalkAutoTimer=setInterval(()=>{
     const idx=Math.round(el.scrollLeft/el.clientWidth);
