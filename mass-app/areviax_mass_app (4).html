@@ -4816,14 +4816,36 @@ body[data-goal-theme="cut"] .lv-page{
    cross-size-from-tallest-child flex behavior (see that function's
    comment) — height transitions smoothly as you swipe between a wide
    intro and a tall step instead of jumping. */
-.exwalk-card-carousel{display:flex;align-items:flex-start;width:100%;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;border-radius:12px;background:#000;transition:height .25s ease}
+.exwalk-card-carousel{display:flex;align-items:flex-start;width:100%;flex:0 0 auto;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;border-radius:12px;background:#000;transition:height .25s ease}
 .exwalk-card-carousel::-webkit-scrollbar{display:none}
 /* aspect-ratio deliberately NOT set here — it varies per exercise (a
    push-up's cards are landscape, a squat's are portrait) and is applied
    inline per <img> in getInfoCardWalkthroughHTML() instead, via
-   EXERCISE_INFO_CARD_RATIO (or a per-card override — see Conventional
-   Deadlift's intro/outro strips). */
+   EXERCISE_INFO_CARD_RATIO (or a per-card override). */
 .exwalk-card{flex:0 0 100%;width:100%;object-fit:contain;scroll-snap-align:center}
+/* Overview + pro-tip blocks shown as real HTML text around the carousel
+   (see EXERCISE_WALKTHROUGH_INTRO / getInfoCardWalkthroughHTML) instead of
+   baked into a wide raster strip inside the carousel — a 1536px-wide
+   banner scaled to a ~330px phone card shrank its own text to a few
+   illegible pixels, so this content needs to be real text to stay
+   readable at any width. */
+.exwalk-overview{width:100%;display:flex;flex-direction:column;gap:8px;flex:0 0 auto}
+.exwalk-risk{font-size:11px;font-weight:800;color:var(--red);letter-spacing:.3px}
+.exwalk-desc{font-size:11.5px;line-height:1.5;color:rgba(var(--white-rgb),.75)}
+.exwalk-mistakes{border:1px solid rgba(226,53,50,.4);background:rgba(226,53,50,.08);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:4px}
+.exwalk-mistakes-head{font-size:10.5px;font-weight:800;color:var(--red);letter-spacing:.3px;margin-bottom:2px}
+.exwalk-mistakes-item{font-size:11px;color:rgba(var(--white-rgb),.85);line-height:1.4;padding-left:11px;position:relative}
+.exwalk-mistakes-item:before{content:'•';position:absolute;left:0;color:var(--red)}
+.exwalk-muscles-row{display:flex;gap:10px;align-items:center;width:100%}
+.exwalk-muscles-img{width:78px;height:78px;object-fit:contain;border-radius:8px;background:#000;flex:0 0 auto}
+.exwalk-muscles-text{display:flex;flex-direction:column;flex:1;min-width:0}
+.exwalk-muscles-label{font-size:10px;font-weight:800;color:rgba(var(--white-rgb),.55);letter-spacing:.3px;text-transform:uppercase}
+.exwalk-muscles-val{font-size:11.5px;color:var(--blue);line-height:1.4}
+.exwalk-protip{width:100%;display:flex;align-items:center;gap:8px;background:rgba(255,178,29,.08);border:1px solid rgba(255,178,29,.3);border-radius:10px;padding:9px 12px;flex:0 0 auto}
+.exwalk-protip-icon{font-size:16px;flex:0 0 auto}
+.exwalk-protip-text{font-size:11px;line-height:1.45;color:rgba(var(--white-rgb),.85);flex:1}
+.exwalk-protip-text b{color:#FFB21D}
+.exwalk-protip-badge{font-size:9px;font-weight:800;letter-spacing:1px;color:#FFB21D;white-space:nowrap;flex:0 0 auto;text-align:right}
 
 /* ── CALISTHENICS GUIDE — a vertical progression ladder per skill
    category (see page-calisthenics/CALISTHENICS_LADDERS). Deliberately a
@@ -11762,22 +11784,43 @@ const EXERCISE_INFO_CARDS={
     {src:'images/misc/exwalk-squat-card4-return.jpg',alt:'Barbell Back Squat — 4. Return to Start'},
   ],
   // Direct ask after the Squat cards shipped: "remember to add the
-  // highlighting in the top right and add the common mistakes 100%" — this
-  // set leads with an intro card carrying the real muscle diagram
-  // (primary/secondary muscles) AND the common-mistakes callout together,
-  // exactly as supplied, rather than only the 5 numbered steps. Closes
-  // with the reference sheet's own pro-tip footer. ratio set per-card
-  // since the intro/outro are wide landscape strips but the 5 steps are
-  // portrait — see getInfoCardWalkthroughHTML()'s c.ratio||ratio fallback.
+  // highlighting in the top right and add the common mistakes 100%". The
+  // reference sheet's intro/footer strips carried that (muscle diagram +
+  // common mistakes, pro tip) baked into wide 1536px-wide raster banners —
+  // fine on the original sheet, but scaled down to a ~330px phone-width
+  // carousel card they shrank to ~20-60px tall, which squashed the baked-in
+  // text to a few illegible pixels (confirmed by reading the rendered crop
+  // back at full size — text was all there, just unreadable once scaled).
+  // So only the 5 numbered step photos live here; the overview content
+  // (mistakes, muscles, pro tip) is real HTML text now — see
+  // EXERCISE_WALKTHROUGH_INTRO below — which stays legible at any width.
+  // Only the muscle-diagram graphic itself stays as an image (tightly
+  // cropped, see EXERCISE_WALKTHROUGH_INTRO.muscleImg), since redrawing
+  // an anatomical silhouette in HTML isn't practical.
   'Conventional Deadlift':[
-    {src:'images/misc/exwalk-deadlift-card0-intro.jpg',alt:'Conventional Deadlift — overview: primary/secondary muscles and common mistakes',ratio:'1536/278'},
     {src:'images/misc/exwalk-deadlift-card1-setup.jpg',alt:'Conventional Deadlift — 1. Setup',ratio:'323/643'},
     {src:'images/misc/exwalk-deadlift-card2-liftoff.jpg',alt:'Conventional Deadlift — 2. Lift Off',ratio:'333/643'},
     {src:'images/misc/exwalk-deadlift-card3-midpull.jpg',alt:'Conventional Deadlift — 3. Mid Pull',ratio:'333/643'},
     {src:'images/misc/exwalk-deadlift-card4-lockout.jpg',alt:'Conventional Deadlift — 4. Lockout',ratio:'333/643'},
     {src:'images/misc/exwalk-deadlift-card5-lower.jpg',alt:'Conventional Deadlift — 5. Lower',ratio:'318/643'},
-    {src:'images/misc/exwalk-deadlift-card6-protip.jpg',alt:'Conventional Deadlift — pro tip: film yourself or use a coach at first',ratio:'1536/103'},
   ],
+};
+// Overview content (common mistakes, primary/secondary muscles, pro tip)
+// shown as real text around the Watch carousel, not inside it — see the
+// comment above EXERCISE_INFO_CARDS['Conventional Deadlift']. Keyed by
+// exercise name; any exercise can opt in by adding an entry here, no new
+// generated art required beyond an optional small muscleImg crop.
+const EXERCISE_WALKTHROUGH_INTRO={
+  'Conventional Deadlift':{
+    risk:'HIGH RISK — LOWER BACK ROUNDING',
+    desc:'This is a complex lift with high injury stakes, especially if your back rounds. It\'s one of the most commonly learned incorrectly from videos, so focus on form, not ego. Keep a neutral spine, brace your core, and move with control.',
+    mistakes:['Rounding the lower back','Pulling with the arms instead of legs','Bar drifting away from the body','Standing up too early','Not bracing the core'],
+    muscleImg:'images/misc/exwalk-deadlift-muscles.jpg',
+    primary:'Glutes, hamstrings, lower back (erectors)',
+    secondary:'Quads, traps, forearms, core',
+    proTip:'Film yourself or use a coach at first. If you feel your lower back rounding, the weight is too heavy or your technique needs work.',
+    proTipBadge:'FORM OVER WEIGHT',
+  },
 };
 // Push-ups' cards are landscape (a horizontal body position); the squat's
 // are portrait (a standing/crouching body is naturally tall, not wide).
@@ -11806,9 +11849,32 @@ function getInfoCardWalkthroughHTML(name){
   const defaultRatio=EXERCISE_INFO_CARD_RATIO[name]||'16/9';
   const imgs=cards.map(c=>`<img src="${c.src}" alt="${c.alt}" class="exwalk-card" style="aspect-ratio:${c.ratio||defaultRatio}">`).join('');
   const dots=cards.map((_,i)=>`<div class="howto-dot${i===0?' active':''}"></div>`).join('');
-  return `<div style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px">
+  const intro=EXERCISE_WALKTHROUGH_INTRO[name];
+  const overviewHTML=intro?`<div class="exwalk-overview">
+    ${intro.risk?`<div class="exwalk-risk">⚠️ ${intro.risk}</div>`:''}
+    ${intro.desc?`<div class="exwalk-desc">${intro.desc}</div>`:''}
+    ${intro.mistakes&&intro.mistakes.length?`<div class="exwalk-mistakes">
+      <div class="exwalk-mistakes-head">⚠️ COMMON MISTAKES</div>
+      ${intro.mistakes.map(m=>`<div class="exwalk-mistakes-item">${m}</div>`).join('')}
+    </div>`:''}
+    ${(intro.primary||intro.secondary)?`<div class="exwalk-muscles-row">
+      ${intro.muscleImg?`<img src="${intro.muscleImg}" alt="${name} — primary and secondary muscles worked" class="exwalk-muscles-img">`:''}
+      <div class="exwalk-muscles-text">
+        ${intro.primary?`<div class="exwalk-muscles-label">Primary Muscles</div><div class="exwalk-muscles-val">${intro.primary}</div>`:''}
+        ${intro.secondary?`<div class="exwalk-muscles-label" style="margin-top:8px">Secondary Muscles</div><div class="exwalk-muscles-val">${intro.secondary}</div>`:''}
+      </div>
+    </div>`:''}
+  </div>`:'';
+  const protipHTML=intro&&intro.proTip?`<div class="exwalk-protip">
+    <div class="exwalk-protip-icon">💡</div>
+    <div class="exwalk-protip-text"><b>PRO TIP:</b> ${intro.proTip}</div>
+    ${intro.proTipBadge?`<div class="exwalk-protip-badge">${intro.proTipBadge}</div>`:''}
+  </div>`:'';
+  return `<div style="width:100%;height:100%;display:flex;flex-direction:column;align-items:center;${intro?'justify-content:flex-start;overflow-y:auto':'justify-content:center'};gap:10px">
+    ${overviewHTML}
     <div class="exwalk-card-carousel" onscroll="exwalkCardScroll(this)">${imgs}</div>
     <div class="howto-dots" style="margin-bottom:0">${dots}</div>
+    ${protipHTML}
   </div>`;
 }
 // A mixed-ratio card set (Conventional Deadlift's wide intro/outro
