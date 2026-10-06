@@ -14482,6 +14482,29 @@ function relicSpinKey(img){
   return m&&RELIC_SPIN_KEYS.has(m[1])?m[1]:null;
 }
 const RELIC_SPIN_FRAMES=12;
+// Shared by viewLegendCard (tapping an owned trophy from the Trophy
+// Cabinet grid) and closeCrateRevealAndShowcase (the crate-reveal's own
+// "Continue" step) \u2014 identical showcase content either way, with the
+// Close button's action passed in so the post-reveal path can morph an
+// EXISTING overlay/modal in place instead of stacking a brand new one on
+// top of it (see the comment on closeCrateRevealAndShowcase for why that
+// stacking read as the app freezing).
+function legendShowcaseModalHTML(l,count,closeBtnAction){
+  const spinKey=l.img?relicSpinKey(l.img):null;
+  return `<div class="achievement-modal trophy-showcase-modal" style="border-color:${RARITY_BORDER[l.rarity]}">
+    <div class="legend-reveal-rarity rarity-${l.rarity}">${l.rarity==='ultralegendary'?'ULTRA LEGENDARY':l.rarity.toUpperCase()}</div>
+    <div class="trophy-showcase-stage">
+      <div class="trophy-showcase-beam" style="--showcase-c:${RARITY_GLOW[l.rarity]}"></div>
+      <div class="trophy-showcase-pedestal"></div>
+      <div class="trophy-showcase-img-wrap${spinKey?' trophy-spin-wrap':''}" id="trophy-showcase-wrap">${spinKey?`<img id="trophy-spin-img" src="mass-app/images/relics_spin/${spinKey}/00.png" alt="${l.name}" draggable="false">`:(l.img?'<img src="'+l.img+'" alt="'+l.name+'">':l.icon)}</div>
+      ${spinKey?'<div class="trophy-spin-hint" id="trophy-spin-hint">drag to rotate</div>':''}
+    </div>
+    ${count>1?'<div style="font-size:10px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:rgba(var(--white-rgb),.4);margin-bottom:2px">\u00d7'+count+' owned</div>':''}
+    <div class="achievement-title reveal-name-serif">${l.name}</div>
+    <div class="achievement-desc">${l.title}</div>
+    <button class="achievement-close-btn" onclick="${closeBtnAction}">Close</button>
+  </div>`;
+}
 function viewLegendCard(key){
   const l=LEGEND_CARDS.find(x=>x.key===key);
   if(!l)return;
@@ -14494,19 +14517,7 @@ function viewLegendCard(key){
   const spinKey=l.img?relicSpinKey(l.img):null;
   const overlay=document.createElement('div');
   overlay.className='achievement-overlay';
-  overlay.innerHTML=`<div class="achievement-modal trophy-showcase-modal" style="border-color:${RARITY_BORDER[l.rarity]}">
-    <div class="legend-reveal-rarity rarity-${l.rarity}">${l.rarity==='ultralegendary'?'ULTRA LEGENDARY':l.rarity.toUpperCase()}</div>
-    <div class="trophy-showcase-stage">
-      <div class="trophy-showcase-beam" style="--showcase-c:${RARITY_GLOW[l.rarity]}"></div>
-      <div class="trophy-showcase-pedestal"></div>
-      <div class="trophy-showcase-img-wrap${spinKey?' trophy-spin-wrap':''}" id="trophy-showcase-wrap">${spinKey?`<img id="trophy-spin-img" src="mass-app/images/relics_spin/${spinKey}/00.png" alt="${l.name}" draggable="false">`:(l.img?'<img src="'+l.img+'" alt="'+l.name+'">':l.icon)}</div>
-      ${spinKey?'<div class="trophy-spin-hint" id="trophy-spin-hint">drag to rotate</div>':''}
-    </div>
-    ${count>1?'<div style="font-size:10px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:rgba(var(--white-rgb),.4);margin-bottom:2px">\u00d7'+count+' owned</div>':''}
-    <div class="achievement-title reveal-name-serif">${l.name}</div>
-    <div class="achievement-desc">${l.title}</div>
-    <button class="achievement-close-btn" onclick="this.closest('.achievement-overlay').remove()">Close</button>
-  </div>`;
+  overlay.innerHTML=legendShowcaseModalHTML(l,count,"this.closest('.achievement-overlay').remove()");
   document.body.appendChild(overlay);
   requestAnimationFrame(()=>overlay.classList.add('show'));
   if(spinKey)initTrophySpin(spinKey);
@@ -15539,31 +15550,32 @@ function closeCrateRevealAndShowcase(btn,key,isNew){
   // Direct report, still reproducing after the race-condition fix below:
   // tapping Continue while the lock-in celebration is still mid-flight left
   // the falling unlock-glyph particles (and, briefly, the light-ray shards)
-  // behind — lightRayBurst/spawnUnlockGlyphs append straight to
+  // behind \u2014 lightRayBurst/spawnUnlockGlyphs append straight to
   // document.body with their own untracked lifetimes (650ms / up to
   // 4600ms), not scoped to or cleaned up by this overlay, so closing the
   // reveal early left them drifting on screen over whatever came next
-  // (the trophy showcase, or the crate row underneath) for up to several
-  // seconds — reading exactly like the app glitching. Both effect types
-  // only ever belong to the reveal that's being dismissed right now, so
-  // wipe any still on screen the instant Continue/Close is tapped.
+  // for up to several seconds \u2014 reading exactly like the app
+  // glitching. Both effect types only ever belong to the reveal that's
+  // being dismissed right now, so wipe any still on screen the instant
+  // Continue is tapped.
   document.querySelectorAll('.light-ray-shard,.unlock-glyph').forEach(el=>el.remove());
-  if(!isNew){overlay.remove();return;}
-  // Direct report: pressing Continue and opening another banked crate
-  // right after "kinda crashes" the app. Root cause — this used to
-  // .remove() the reveal overlay immediately, then wait 260ms before
-  // creating the trophy-showcase overlay for a new pull. openCompassDrop's
-  // whole "only one reveal at a time" guard is just
-  // `document.querySelector('.achievement-overlay')`, and for that whole
-  // 260ms gap there was genuinely none in the DOM — a second "Open" tap
-  // landing inside that window sailed past the guard and started a second
-  // full reveal sequence on top of the first, stacking two crate-reveal
-  // stages/trophy showcases. display:none (not .remove()) keeps this
-  // element around purely so the guard still sees an overlay present for
-  // the whole handoff; it's cleaned up the instant the real showcase
-  // overlay exists, same 260ms pacing as before.
-  overlay.style.display='none';
-  setTimeout(()=>{ viewLegendCard(key); overlay.remove(); },260);
+  // Direct report: tapping Continue "freezes" the app, reproducing every
+  // time. Root cause \u2014 for a brand-new pull this used to chain
+  // straight into a SECOND full-screen "trophy showcase" overlay showing
+  // the exact same rarity/art/name/description the reveal's own last
+  // slot (trophySlotHTML, just above) had already shown seconds earlier.
+  // Both the reveal and the showcase worked individually, but tapping
+  // "Continue" silently swapping in a redundant second screen \u2014 with
+  // its own separate, easy-to-miss "Close" button \u2014 is exactly what
+  // reads as the app locking up to someone who tapped Continue expecting
+  // to be back in the app. The showcase (with its drag-to-rotate relic
+  // view) is still the real, correct experience for deliberately
+  // revisiting an ALREADY-OWNED trophy from the Trophy Cabinet grid \u2014
+  // see viewLegendCard, untouched \u2014 it just doesn't belong as a
+  // forced second step bolted onto the reveal itself, which already
+  // showed everything. Continue now does the same one thing either way:
+  // close and return to the app.
+  overlay.remove();
 }
 function showLegendReveal(l,isNew,tier,count,keyWon,titleWon){
   const cfg=CRATE_OPEN_TIMING[tier]||CRATE_OPEN_TIMING.bronze;
