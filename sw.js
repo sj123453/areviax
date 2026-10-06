@@ -30,7 +30,7 @@
 // see how mass-app/images/misc/exwalk-*.jpg are added), so they're safe
 // to cache aggressively: fetch once, keep forever, never re-check.
 const CACHE_NAME = 'areviax-mass-v4';
-const APP_SHELL = ['./', './index.html', './manifest.json', 'images/icons/favicon.png'];
+const APP_SHELL = ['./', './index.html', './manifest.json', 'mass-app/images/icons/favicon.png'];
 const ASSET_PATH = /\/(?:mass-app\/)?(?:images|audio)\//;
 
 self.addEventListener('install', (event) => {
