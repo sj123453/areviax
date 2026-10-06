@@ -1180,7 +1180,15 @@ input,input:focus,input:active,
 .league-ladder-node.current .league-ladder-emblem{animation:leagueNodeIn .45s cubic-bezier(.16,1,.3,1) both,leagueCurrentPulse 1.8s ease-in-out .45s infinite}
 .league-ladder-node.current .league-ladder-label{color:var(--orange);font-weight:800}
 .league-ladder-label{font-size:8px;color:var(--muted);margin-top:4px;white-space:nowrap}
-@media(prefers-reduced-motion:reduce){.league-ladder-node,.league-hero-emblem{animation:none!important}}
+/* Fixed per the improve-animations audit: this rule used to target
+   .league-ladder-node itself, which carries no animation property of
+   its own — the actual animated element is the descendant
+   .league-ladder-emblem (leagueNodeIn/leagueCurrentPulse, just above).
+   The override was silently doing nothing for the ladder; reduced
+   motion now actually reaches it. .league-hero-emblem is unchanged —
+   it does carry its own animation directly (the rarityPulse*/
+   rarityShimmerSweep/areviaxAura rules above) and was already correct. */
+@media(prefers-reduced-motion:reduce){.league-ladder-node .league-ladder-emblem,.league-hero-emblem{animation:none!important}}
 
 .league-countdown{text-align:center;font-size:11px;color:var(--muted);margin:2px 0 14px;font-family:'JetBrains Mono',monospace}
 .league-zone-legend{display:flex;justify-content:center;gap:18px;font-size:9.5px;color:var(--muted);margin-bottom:8px}
@@ -4314,9 +4322,27 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        and the divine ones instead of their sky zones. */
     .hall-path{position:relative;height:500px;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;padding:18px 0 10px;-webkit-overflow-scrolling:touch}
     .hall-path::-webkit-scrollbar{display:none}
-    .hall-path::before{content:'';position:absolute;top:0;bottom:0;left:50%;width:3px;transform:translateX(-50%);
-      background:repeating-linear-gradient(180deg,rgba(227,191,118,.3) 0 6px,transparent 6px 14px);z-index:0}
-    .hp-zone{position:relative;z-index:1;text-align:center;margin:8px 0 18px;font-family:var(--lv-serif,serif);font-size:11px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--lv-gold,#E6BE6D);opacity:.85}
+    /* Direct report: the old spine was a plain straight dotted line down
+       dead-center, completely disconnected from where the nodes actually
+       sit (they zig-zag out to ±14% margin) — it never touched a single
+       statue. Replaced with drawHallConnector() below: a real SVG <path>
+       whose points are the MEASURED center of every .hp-node, so the
+       line genuinely runs statue-to-statue. Because it only starts at
+       the first node's center, it also stops overlapping the "Olympus"
+       label by construction — that label sits above the top node, outside
+       the path's range entirely now. */
+    .hp-connector-svg{position:absolute;left:0;top:0;width:100%;pointer-events:none;z-index:0;overflow:visible}
+    .hp-connector-svg path{fill:none;stroke:rgba(227,191,118,.4);stroke-width:2.5;stroke-dasharray:1 9;stroke-linecap:round}
+    .hp-connector-draw{stroke-dasharray:1200;stroke-dashoffset:1200;animation:hpConnectorDraw 1.1s cubic-bezier(.22,1,.36,1) .3s forwards}
+    @keyframes hpConnectorDraw{to{stroke-dashoffset:0}}
+    @media(prefers-reduced-motion:reduce){.hp-connector-draw{animation:none;stroke-dashoffset:0}}
+    /* Waypoint label, not a transparent caption — the connector path runs
+       directly through "The Divine Threshold"'s position (it sits between
+       two nodes, unlike "Olympus" above the first one), so it needs an
+       opaque chip behind the text or the dashed line visibly cuts through
+       the letters, same complaint as before. */
+    .hp-zone{position:relative;z-index:1;text-align:center;margin:8px 0 18px;font-family:var(--lv-serif,serif);font-size:11px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--lv-gold,#E6BE6D);opacity:.95}
+    .hp-zone span{background:var(--lv-elevated,#2C221D);border:1px solid rgba(227,191,118,.25);border-radius:999px;padding:5px 16px;display:inline-block}
     .hp-row{position:relative;z-index:1;display:flex;margin-bottom:26px}
 /* find-animation-opportunities audit, item 2: this path narrates an
    ascent (see the comment on renderHallOfStatues() below) but all 6
@@ -4339,6 +4365,12 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     }
     .hp-node:active{transform:scale(.92)}
     .hp-node-img{position:absolute;inset:0;background-size:cover!important;background-position:top center!important;background-repeat:no-repeat!important}
+    /* Direct ask: give each statue something to actually stand on. A
+       small marble plinth, same for every tier (the material standing
+       under a God and a Mortal alike doesn't change) — only the statue
+       above it is tier-colored. Sits flush against the node so the
+       circle reads as resting on it, not floating above it. */
+    .hp-pedestal{width:58px;height:20px;margin-top:-10px;display:block;position:relative;z-index:-1}
     .hp-row:not(.done):not(.current) .hp-node{opacity:.72}
     .hp-lock{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--lv-display,serif);font-size:24px;font-weight:700;color:rgba(232,214,196,.3)}
     .hp-halo{position:absolute;inset:-7px;border-radius:50%;border:2px solid var(--lv-gold,#E6BE6D);opacity:.8;animation:hpHaloPulse 1.8s ease-in-out infinite}
@@ -12688,10 +12720,25 @@ function renderHallOfStatues(){
   // reads as climbing toward Olympus as you scroll up, same "ascend"
   // feel as the reference's tree-to-sky layout.
   const firstRender=!hall.dataset.built;
-  let rows='',stagger=0;
+  // Shared marble-plinth symbol \u2014 defined once, every node <use>s it
+  // rather than repeating the full path data six times. Rendered once
+  // per innerHTML swap since the whole container gets replaced each call.
+  let rows='<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>'+
+    '<linearGradient id="hpPedestalGrad" x1="0" y1="0" x2="0" y2="1">'+
+      '<stop offset="0%" stop-color="#847a68"/><stop offset="45%" stop-color="#5a5248"/><stop offset="100%" stop-color="#2a2419"/>'+
+    '</linearGradient>'+
+    '<symbol id="hpPedestalSym" viewBox="0 0 58 20">'+
+      '<ellipse cx="29" cy="18.5" rx="24" ry="2" fill="rgba(0,0,0,.5)"/>'+
+      '<rect x="10" y="13" width="38" height="6" rx="1.2" fill="url(#hpPedestalGrad)" stroke="rgba(227,191,118,.55)" stroke-width="1"/>'+
+      '<path d="M17 13 L41 13 L35 2 L23 2 Z" fill="url(#hpPedestalGrad)" stroke="rgba(227,191,118,.5)" stroke-width="1"/>'+
+      '<rect x="19" y="0" width="20" height="3" rx="1" fill="url(#hpPedestalGrad)" stroke="rgba(227,191,118,.65)" stroke-width="1"/>'+
+    '</symbol></defs>'+
+    '<path/></svg>'+
+    '<svg class="hp-connector-svg" aria-hidden="true"><path class="'+(firstRender?'hp-connector-draw':'')+'"/></svg>';
+  let stagger=0;
   for(let i=topIdx;i>=0;i--){
     if(i===topIdx)rows+='<div class="hp-zone">Olympus</div>';
-    if(i===TIERS.length-3)rows+='<div class="hp-zone">The Divine Threshold</div>';
+    if(i===TIERS.length-3)rows+='<div class="hp-zone"><span>The Divine Threshold</span></div>';
     const t=TIERS[i];
     const achieved=i<=myIdx, isCurrent=i===myIdx;
     const st=achieved?(isCurrent?'current':'done'):'lock';
@@ -12708,21 +12755,23 @@ function renderHallOfStatues(){
           (achieved?'<div class="hp-node-img" style="background-image:url(\''+t.photo+'\')"></div>':'<div class="hp-lock">?</div>')+
           (isCurrent?'<div class="hp-you">YOU</div>':'')+
         '</button>'+
+        '<svg class="hp-pedestal" viewBox="0 0 58 20"><use href="#hpPedestalSym"></use></svg>'+
         '<div class="hp-label"><b'+(rainbow?' class="rarity-rainbow-text"':'')+(achieved&&!rainbow?' style="color:'+t.col+'"':'')+'>'+t.name+'</b><span>'+reqText+'</span></div>'+
       '</div>'+
     '</div>';
   }
   hall.innerHTML=rows;
   hall.dataset.built='1';
-  // Auto-centre on the athlete's current tier the first time the path
-  // renders each time Profile opens \u2014 not on every subsequent refresh
-  // (e.g. a stat ticking up mid-view), which would yank the scroll
-  // position out from under someone mid-browse.
-  if(firstRender){
-    requestAnimationFrame(()=>{
+  requestAnimationFrame(()=>{
+    drawHallConnector(hall);
+    // Auto-centre on the athlete's current tier the first time the path
+    // renders each time Profile opens \u2014 not on every subsequent refresh
+    // (e.g. a stat ticking up mid-view), which would yank the scroll
+    // position out from under someone mid-browse.
+    if(firstRender){
       const cur=hall.querySelector('.hp-row.current')||hall.querySelector('.hp-row.done');
       // Plain scrollIntoView() walks every scrollable ancestor, not just
-      // this path's own inner scroller — on Profile that meant opening
+      // this path's own inner scroller \u2014 on Profile that meant opening
       // the page also yanked the OUTER page scroll down to wherever the
       // Hall of Statues card happened to sit, so "open Profile" landed
       // you mid-page instead of at the top. Computing the offset by hand
@@ -12731,8 +12780,34 @@ function renderHallOfStatues(){
         const hr=hall.getBoundingClientRect(),cr=cur.getBoundingClientRect();
         hall.scrollTop+=(cr.top-hr.top)-(hall.clientHeight/2)+(cr.height/2);
       }
-    });
-  }
+    }
+  });
+}
+// Direct report: the Hall of Statues spine was a straight line down
+// dead-center that never actually touched the zig-zagging nodes. This
+// measures every node's real center (relative to the path's own
+// scrollable content, independent of current scroll position) and draws
+// one continuous line through them, so the "road to Olympus" is an
+// actual road between the statues instead of a decorative stripe behind
+// them. Re-run on every render (not just firstRender) since a rank
+// change mid-visit moves which nodes are "achieved" but not their
+// positions \u2014 harmless either way, this is cheap for 6 points.
+function drawHallConnector(hall){
+  const svg=hall.querySelector('.hp-connector-svg');
+  const path=svg&&svg.querySelector('path');
+  const wraps=Array.from(hall.querySelectorAll('.hp-node-wrap'));
+  if(!svg||!path||wraps.length<2)return;
+  const hallRect=hall.getBoundingClientRect();
+  const pts=wraps.map(w=>{
+    const node=w.querySelector('.hp-node');
+    const r=node.getBoundingClientRect();
+    return {x:(r.left+r.width/2)-hallRect.left,y:(r.top+r.height/2)-hallRect.top+hall.scrollTop};
+  });
+  let d='M'+pts[0].x.toFixed(1)+','+pts[0].y.toFixed(1);
+  for(let i=1;i<pts.length;i++)d+=' L'+pts[i].x.toFixed(1)+','+pts[i].y.toFixed(1);
+  path.setAttribute('d',d);
+  svg.setAttribute('height',hall.scrollHeight);
+  svg.setAttribute('width',hall.clientWidth);
 }
 // Direct review of a reference app's own level-progression screen: its
 // tiles were tappable — EVERY one, locked tiers included — with a quick
