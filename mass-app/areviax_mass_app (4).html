@@ -233,6 +233,15 @@ input,input:focus,input:active,
 @keyframes pageIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 @media (prefers-reduced-motion: reduce){.page.active{animation:none}}
 /* page transition: instant, no animation — avoids cross-element animation-restart bugs */
+/* View Transitions API picks this back up where the comment above left
+   off — see the has-view-transitions toggle and doShowPage() wrapper in
+   the script. The live pageIn keyframe above would otherwise double up
+   with the browser's own snapshot crossfade, so it's switched off here
+   specifically (every other browser keeps pageIn exactly as-is). */
+.has-view-transitions .page.active{animation:none}
+::view-transition-old(root){animation-duration:.14s;animation-timing-function:cubic-bezier(.22,1,.36,1)}
+::view-transition-new(root){animation-duration:.22s;animation-timing-function:cubic-bezier(.22,1,.36,1)}
+
 
 /* GRIDS — minmax(0,1fr) alone isn't enough to stop a track growing to fit
    its content on narrow screens: grid items default to min-width:auto,
@@ -17631,7 +17640,35 @@ function syncPageChrome(id){
   lvTopbars.forEach(el=>{el.style.display=(el.dataset.page===id)?'flex':'none';});
   try{syncLvBadges();}catch(e){}
 }
+// find-animation-opportunities flagged page navigation as the single
+// highest-leverage animation gap: .page.active already fades/rises in
+// via @keyframes pageIn, but there was never a matching exit — the
+// comment a few lines above pageIn's definition ("avoids cross-element
+// animation-restart bugs") says a hand-rolled bidirectional CSS
+// transition was tried before and caused real problems. Rather than
+// re-attempt that exact approach, this uses the View Transitions API:
+// the browser snapshots the before/after DOM itself and crossfades
+// between static images, so there's no display:none-timing choreography
+// to get wrong, and unsupported browsers (feature-detected per call,
+// so toggling the OS-level motion setting takes effect immediately)
+// silently fall through to exactly today's behavior — zero regression
+// risk for anyone it doesn't apply to. doShowPage() is the entire
+// previous body of this function, untouched.
+// Lets CSS turn off the redundant .page.active pageIn keyframe on
+// browsers where showPage() above will drive the transition via
+// document.startViewTransition() instead — otherwise the live new page
+// would run its own fade+rise at the same time the browser's snapshot
+// crossfade plays over it, and the two wouldn't finish together.
+if(document.startViewTransition)document.documentElement.classList.add('has-view-transitions');
 function showPage(id){
+  const prefersReduced=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(document.startViewTransition&&!prefersReduced){
+    document.startViewTransition(()=>{doShowPage(id);});
+  }else{
+    doShowPage(id);
+  }
+}
+function doShowPage(id){
   try{updateMobileNav(id);}catch(e){}
   syncPageChrome(id);
   if(id==='profile')clearUnseenRewards();
