@@ -12,7 +12,7 @@
 <link rel="apple-touch-icon" href="images/icons/favicon.png">
 <link rel="icon" href="images/icons/favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;500;600;700;800&family=Cinzel:wght@500;600;700&family=Outfit:wght@300;400;500;600;700;800;900&family=Cormorant+Garamond:ital,wght@0,400;1,400;1,600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;500;600;700;800&family=Cinzel:wght@500;600;700&family=Outfit:wght@300;400;500;600;700;800;900&family=Cormorant+Garamond:ital,wght@0,400;1,400;1,600&family=JetBrains+Mono:wght@400;500&family=Onest:wght@400;500;600;700&family=Inter+Tight:wght@600;700;800&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -4802,6 +4802,40 @@ body[data-goal-theme="cut"] .lv-page{
    kept as-is, that part already matched their mechanic exactly. */
 #page-dashboard .card{border-width:2px}
 #page-dashboard .lv-ember{background-image:none;background-color:var(--lv-primary)}
+/* NIMBUS LOOK PASS — direct ask: stop adapting their system loosely and
+   apply it as literally as it fits Dashboard's own content. Nimbus's
+   actual chassis (reviewed from their raw CSS): squircle cards with a
+   soft dual-layer shadow that lifts on press rather than a flat static
+   box, Inter Tight for big numbers/headings (bold, tight letter-
+   spacing) over Onest for everything else, and a small decorative
+   corner-blob tint on stat tiles. Colors stay Areviax's own ember/gold
+   — Nimbus's green has nothing to do with this app's identity, the
+   shape/weight/motion language is what "the Nimbus look" actually is. */
+#page-dashboard{--lv-sans:'Onest','Barlow',sans-serif}
+#page-dashboard .card-title,#page-dashboard .lv-label-eyebrow{font-family:'Onest',sans-serif}
+#page-dashboard .lv-stat-huge,#page-dashboard .stat-val,#page-dashboard .lv-photo-header-title{
+  font-family:'Inter Tight','Onest',sans-serif;letter-spacing:-.02em;font-weight:700;
+}
+#page-dashboard .card{
+  border-radius:1.5rem;
+  box-shadow:0 1px 0 rgba(255,255,255,.04) inset,0 10px 26px -14px rgba(0,0,0,.55);
+  transition:transform .3s cubic-bezier(.3,1.5,.5,1),box-shadow .3s cubic-bezier(.3,1.5,.5,1);
+}
+@media(hover:hover){
+  #page-dashboard .card:hover{transform:translateY(-2px);box-shadow:0 1px 0 rgba(255,255,255,.04) inset,0 22px 40px -18px rgba(0,0,0,.65)}
+}
+#page-dashboard .stat-card{
+  border-radius:1.4rem;overflow:hidden;
+  transition:transform .3s cubic-bezier(.3,1.5,.5,1);
+}
+#page-dashboard .stat-card::before{
+  content:'';position:absolute;right:-22px;top:-22px;width:70px;height:70px;
+  border-radius:50%;background:var(--stat-accent);opacity:.14;pointer-events:none;
+}
+#page-dashboard .stat-card:active{transform:scale(.97)}
+#page-dashboard .lv-rail-track{height:8px}
+#page-dashboard .dash-qf-btn{transition:transform .25s cubic-bezier(.3,1.6,.5,1)}
+#page-dashboard .dash-qf-btn:active{transform:scale(.94)}
 .lv-laurel-watermark{position:relative}
 .lv-laurel-watermark::after{content:'';position:absolute;right:-3.5rem;top:-2.5rem;width:18rem;height:18rem;pointer-events:none;opacity:.09;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='none' stroke='%23e9c98a' stroke-width='1.4'%3E%3Cpath d='M50 96C24 88 10 66 14 40 17 22 30 8 44 4'/%3E%3Cpath d='M50 96c26-8 40-30 36-56C83 22 70 8 56 4'/%3E%3Cg%3E%3Cellipse cx='20' cy='30' rx='7' ry='3' transform='rotate(-38 20 30)'/%3E%3Cellipse cx='17' cy='45' rx='7' ry='3' transform='rotate(-25 17 45)'/%3E%3Cellipse cx='19' cy='60' rx='7' ry='3' transform='rotate(-12 19 60)'/%3E%3Cellipse cx='26' cy='74' rx='7' ry='3' transform='rotate(8 26 74)'/%3E%3Cellipse cx='80' cy='30' rx='7' ry='3' transform='rotate(38 80 30)'/%3E%3Cellipse cx='83' cy='45' rx='7' ry='3' transform='rotate(25 83 45)'/%3E%3Cellipse cx='81' cy='60' rx='7' ry='3' transform='rotate(12 81 60)'/%3E%3Cellipse cx='74' cy='74' rx='7' ry='3' transform='rotate(-8 74 74)'/%3E%3C/g%3E%3C/svg%3E");background-repeat:no-repeat;background-size:contain}
 .lv-section-title{font-family:var(--lv-serif);font-style:normal;font-weight:600;font-size:1.75rem;line-height:1;letter-spacing:.06em;text-transform:uppercase;color:var(--lv-fg)}
