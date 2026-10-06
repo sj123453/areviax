@@ -4853,6 +4853,33 @@ body[data-goal-theme="cut"] .lv-page{
 #page-dashboard .lv-rail-track{height:8px}
 #page-dashboard .dash-qf-btn{transition:transform .25s cubic-bezier(.3,1.6,.5,1)}
 #page-dashboard .dash-qf-btn:active{transform:scale(.94)}
+/* NIMBUS LOOK, continued — Profile. Same chassis as Dashboard (squircle
+   cards, soft lift-on-hover shadow, bold Inter Tight numbers), extended
+   to the page that already got the Hall of Statues path treatment so
+   the rest of it doesn't look like a different app glued on underneath.
+   Profile's "lifetime record" tiles were five near-identical inline-
+   styled divs repeating the same background/border/radius/padding —
+   promoted to one shared class instead of patching each one, picking up
+   the corner-blob accent the same way Dashboard's .stat-card did. */
+#page-profile .card{
+  border-radius:1.5rem;
+  box-shadow:0 1px 0 rgba(255,255,255,.04) inset,0 10px 26px -14px rgba(0,0,0,.55);
+  transition:transform .3s cubic-bezier(.3,1.5,.5,1),box-shadow .3s cubic-bezier(.3,1.5,.5,1);
+}
+@media(hover:hover){
+  #page-profile .card:hover{transform:translateY(-2px);box-shadow:0 1px 0 rgba(255,255,255,.04) inset,0 22px 40px -18px rgba(0,0,0,.65)}
+}
+.profile-stat-tile{
+  position:relative;overflow:hidden;
+  background:rgba(232,214,196,.025);border:1.5px solid rgba(232,214,196,.07);
+  border-radius:1rem;padding:14px;
+}
+.profile-stat-tile::before{
+  content:'';position:absolute;right:-18px;top:-18px;width:56px;height:56px;
+  border-radius:50%;background:var(--lv-gold,#E6BE6D);opacity:.1;pointer-events:none;
+}
+.profile-stat-tile-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;position:relative}
+.profile-stat-tile-val{font-family:'Inter Tight','Onest',sans-serif;font-weight:700;letter-spacing:-.02em;font-size:22px;color:var(--white);position:relative}
 .brand-watermark{position:fixed;width:26px;height:26px;z-index:2;pointer-events:none;animation:brandWatermarkDrift 12s ease-in-out infinite}
 .brand-watermark svg{width:100%;height:100%;opacity:.09;animation:brandWatermarkShine 8s ease-in-out infinite}
 .brand-watermark.tl{top:calc(env(safe-area-inset-top,0px) + 8px);left:8px}
@@ -8870,10 +8897,10 @@ body[data-goal-theme="cut"] .lv-page{
   <div class="card lv-surface" style="margin-bottom:14px">
     <div class="ch"><span class="ct">Training Patterns</span></div>
     <div style="display:flex;gap:10px;margin-bottom:14px">
-      <div style="flex:1;background:rgba(232,214,196,.025);border:1.5px solid rgba(232,214,196,.07);border-radius:8px;padding:12px">
-        <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">Perfect Days</div>
-        <div style="font-size:20px;font-weight:800;color:var(--white)" id="profile-perfect-days">0</div>
-        <div style="font-size:9.5px;color:var(--muted);margin-top:2px">Total days you've trained, lifetime</div>
+      <div class="profile-stat-tile" style="flex:1">
+        <div class="profile-stat-tile-label">Perfect Days</div>
+        <div class="profile-stat-tile-val" style="font-size:20px" id="profile-perfect-days">0</div>
+        <div style="font-size:9.5px;color:var(--muted);margin-top:2px;position:relative">Total days you've trained, lifetime</div>
       </div>
     </div>
     <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">When you train</div>
@@ -8885,21 +8912,21 @@ body[data-goal-theme="cut"] .lv-page{
   <div class="card lv-surface" style="margin-bottom:14px">
     <div class="ch"><span class="ct">Lifetime Record</span></div>
     <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px">
-      <div style="background:rgba(232,214,196,.025);border:1.5px solid rgba(232,214,196,.07);border-radius:8px;padding:14px">
-        <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">Total Volume</div>
-        <div style="font-size:22px;font-weight:800;color:var(--white)" id="profile-volume">0 kg</div>
+      <div class="profile-stat-tile">
+        <div class="profile-stat-tile-label">Total Volume</div>
+        <div class="profile-stat-tile-val" id="profile-volume">0 kg</div>
       </div>
-      <div style="background:rgba(232,214,196,.025);border:1.5px solid rgba(232,214,196,.07);border-radius:8px;padding:14px">
-        <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">Sessions Completed</div>
-        <div style="font-size:22px;font-weight:800;color:var(--white)" id="profile-sessions">0</div>
+      <div class="profile-stat-tile">
+        <div class="profile-stat-tile-label">Sessions Completed</div>
+        <div class="profile-stat-tile-val" id="profile-sessions">0</div>
       </div>
-      <div style="background:rgba(232,214,196,.025);border:1.5px solid rgba(232,214,196,.07);border-radius:8px;padding:14px">
-        <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">Current Streak</div>
-        <div style="font-size:22px;font-weight:800;color:var(--white)" id="profile-streak">0 days</div>
+      <div class="profile-stat-tile">
+        <div class="profile-stat-tile-label">Current Streak</div>
+        <div class="profile-stat-tile-val" id="profile-streak">0 days</div>
       </div>
-      <div style="background:rgba(232,214,196,.025);border:1.5px solid rgba(232,214,196,.07);border-radius:8px;padding:14px">
-        <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">PRs Held</div>
-        <div style="font-size:22px;font-weight:800;color:var(--white)" id="profile-prs">0</div>
+      <div class="profile-stat-tile">
+        <div class="profile-stat-tile-label">PRs Held</div>
+        <div class="profile-stat-tile-val" id="profile-prs">0</div>
       </div>
     </div>
   </div>
@@ -12667,7 +12694,16 @@ function renderHallOfStatues(){
   if(firstRender){
     requestAnimationFrame(()=>{
       const cur=hall.querySelector('.hp-row.current')||hall.querySelector('.hp-row.done');
-      if(cur)cur.scrollIntoView({block:'center'});
+      // Plain scrollIntoView() walks every scrollable ancestor, not just
+      // this path's own inner scroller — on Profile that meant opening
+      // the page also yanked the OUTER page scroll down to wherever the
+      // Hall of Statues card happened to sit, so "open Profile" landed
+      // you mid-page instead of at the top. Computing the offset by hand
+      // and setting hall.scrollTop directly touches only this element.
+      if(cur){
+        const hr=hall.getBoundingClientRect(),cr=cur.getBoundingClientRect();
+        hall.scrollTop+=(cr.top-hr.top)-(hall.clientHeight/2)+(cr.height/2);
+      }
     });
   }
 }
