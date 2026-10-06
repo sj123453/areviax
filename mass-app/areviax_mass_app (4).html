@@ -4286,7 +4286,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        there's genuinely enough space. */
     .hall-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px 8px}
     @media(min-width:640px){.hall-grid{grid-template-columns:repeat(6,minmax(0,1fr))}}
-    .hall-statue{text-align:center}
+    .hall-statue{text-align:center;cursor:pointer;-webkit-tap-highlight-color:transparent}
     .hall-statue-fig{
       position:relative;width:100%;aspect-ratio:391/749;
       background:#0D0806;border:1.5px solid var(--border);
@@ -12569,7 +12569,7 @@ function renderHallOfStatues(){
     // (synced, not the old flat silhouette) \u2014 locked ones show nothing of
     // it at all, just a flat dark tile with a "?" mark, same spoiler-safe
     // idea as unrankedSVG elsewhere.
-    return '<div class="hall-statue'+(achieved?' achieved':'')+(isCurrent?' current':'')+'">'+
+    return '<div class="hall-statue'+(achieved?' achieved':'')+(isCurrent?' current':'')+'" onclick="tapHallStatue('+i+',this)">'+
       '<div class="'+figClass+'" style="'+figStyle+'">'+
         (achieved?'<div class="hall-statue-img" style="background-image:url(\''+t.photo+'\')"></div>':'<div class="hall-lock">?</div>')+
       '</div>'+
@@ -12577,6 +12577,40 @@ function renderHallOfStatues(){
       (isCurrent?'<div class="hall-statue-tag">YOU ARE HERE</div>':achieved?'<div class="hall-statue-tag hall-statue-tag-done">PASSED</div>':'<div class="hall-statue-tag hall-statue-tag-locked">'+t.volume.toLocaleString()+'kg \u00b7 '+t.sessions+' sess</div>')+
     '</div>';
   }).join('');
+}
+// Direct review of a reference app's own level-progression screen: its
+// tiles were tappable — EVERY one, locked tiers included — with a quick
+// squash-and-settle animation and a toast giving exact progress toward
+// that tier, not just a static "X to unlock" label. Hall of Statues
+// already had the done/current/locked art states and a static
+// requirement label on locked tiles (arguably stronger groundwork —
+// real statue photography per tier, not generic line art) but nothing
+// responded to a tap at all. This is that same interaction brought over:
+// tap any statue (passed, current, or still locked) for the squash
+// feedback plus a toast — for the current tier, framed as exactly how
+// much volume and how many sessions stand between here and the next
+// one, same "you are here, X to go" framing the reference app uses,
+// written in Areviax's own mythic voice rather than theirs.
+function tapHallStatue(i,el){
+  el.animate([{transform:'scale(1)'},{transform:'scale(.94,.9)'},{transform:'scale(1)'}],{duration:260,easing:'cubic-bezier(.16,1,.3,1)'});
+  const t=TIERS[i];
+  const myIdx=getRankIndex();
+  if(i<myIdx){
+    toast('🏛️',t.name+' — a stage you\'ve already outgrown.');
+  }else if(i===myIdx){
+    const next=getNextTier();
+    if(!next){
+      toast('👑',t.name+' — the summit. There is no tier above this one.');
+    }else{
+      const volToGo=Math.max(0,next.volume-totalVolume);
+      const sessToGo=Math.max(0,next.sessions-totalSess);
+      toast('⚡','You stand here now. '+volToGo.toLocaleString()+'kg and '+sessToGo+' session'+(sessToGo===1?'':'s')+' to '+next.name+'.');
+    }
+  }else{
+    const volToGo=Math.max(0,t.volume-totalVolume);
+    const sessToGo=Math.max(0,t.sessions-totalSess);
+    toast('🔒',t.name+' awaits at '+t.volume.toLocaleString()+'kg · '+t.sessions+' session'+(t.sessions===1?'':'s')+' — '+volToGo.toLocaleString()+'kg and '+sessToGo+' session'+(sessToGo===1?'':'s')+' from where you stand.');
+  }
 }
 
 // ── ACHIEVEMENTS — unlock animation + share mechanic ──
