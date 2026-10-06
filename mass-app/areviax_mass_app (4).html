@@ -932,7 +932,14 @@ input,input:focus,input:active,
   .dash-today-label{font-size:10.5px!important;margin-bottom:5px!important}
   .dash-today-name{font-size:22px!important}
   .dash-start-btn{padding:13px 24px!important;font-size:12.5px!important;border-radius:10px!important}
-  #d-next-daypicker,#vol-daily-card,#vol-daily-empty{display:none!important}
+  /* #d-next-daypicker used to be swept into this hide-list alongside the
+     two genuinely-dead legacy ids below it, on the assumption the old
+     desktop-only .dash-greeting-weekstrip already covered this same data
+     — but that weekstrip belongs to a now-retired desktop layout and
+     isn't part of the current hero-photo-header + dash-grid structure.
+     With nothing left to duplicate it, hiding the real day-picker just
+     left desktop with no "this week" row under the CTA at all. */
+  #vol-daily-card,#vol-daily-empty{display:none!important}
   #acc-progress{padding:22px 26px!important;border-radius:18px!important}
   .dash-overview-label{font-size:11px!important;margin-bottom:16px!important}
   .dash-ring-grid{gap:14px!important;margin-bottom:18px!important}
@@ -5863,7 +5870,7 @@ body[data-goal-theme="cut"] .lv-page{
     <div id="d-next-last" style="display:none">last · —</div>
 
     <div>
-      <p class="lv-label-eyebrow" style="margin-bottom:8px">This week</p>
+      <p class="lv-label-eyebrow" style="margin-bottom:8px">Week so far</p>
       <div id="d-next-daypicker" style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px"></div>
     </div>
 
