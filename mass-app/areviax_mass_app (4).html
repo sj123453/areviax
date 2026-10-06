@@ -272,6 +272,7 @@ input,input:focus,input:active,
    regardless of what page it's on. */
 .equip-chip{display:flex;align-items:center;justify-content:center;gap:5px;padding:6px 11px;border-radius:20px;border:1.5px solid var(--border);background:linear-gradient(160deg,rgba(255,255,255,.09),rgba(255,255,255,.02));color:rgba(var(--white-rgb),.75);font-size:11px;font-weight:700;cursor:pointer;transition:all .18s;white-space:nowrap;box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}
 .equip-chip.active{background:linear-gradient(160deg,rgba(243,103,23,.4),rgba(243,103,23,.14));border-color:rgba(243,103,23,.85);color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.15),0 0 0 1px rgba(243,103,23,.25)}
+.equip-chip:active{transform:scale(.96)}
 
 /* Priority dials */
 .priority-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;margin-top:6px}
@@ -894,7 +895,8 @@ input,input:focus,input:active,
 }
 .dash-notif-fixed.dash-notif-in{transform:translateY(0);opacity:1;pointer-events:auto}
 @media(min-width:900px){.dash-notif-fixed{left:50%;right:auto;width:420px;transform:translate(-50%,-130%)}.dash-notif-fixed.dash-notif-in{transform:translate(-50%,0)}}
-.dnf-head{display:flex;align-items:flex-start;gap:10px;padding:12px 13px}
+.dnf-head{display:flex;align-items:flex-start;gap:10px;padding:12px 13px;transition:transform .12s ease-out}
+#daily-spin-banner .dnf-head:active{transform:scale(.97)}
 .dnf-icon{flex-shrink:0;width:20px;height:20px;border-radius:5.5px;display:flex;align-items:center;justify-content:center;font-size:12px;line-height:1;box-shadow:0 1px 2px rgba(0,0,0,.25)}
 .dnf-body{flex:1;min-width:0}
 .dnf-toprow{display:flex;align-items:baseline;gap:6px;margin-bottom:1px}
@@ -4316,6 +4318,15 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       background:repeating-linear-gradient(180deg,rgba(227,191,118,.3) 0 6px,transparent 6px 14px);z-index:0}
     .hp-zone{position:relative;z-index:1;text-align:center;margin:8px 0 18px;font-family:var(--lv-serif,serif);font-size:11px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--lv-gold,#E6BE6D);opacity:.85}
     .hp-row{position:relative;z-index:1;display:flex;margin-bottom:26px}
+/* find-animation-opportunities audit, item 2: this path narrates an
+   ascent (see the comment on renderHallOfStatues() below) but all 6
+   nodes used to appear at once via the innerHTML swap — a flat render
+   undercutting that framing on the one surface built to carry it.
+   Staggered only on the first render per Profile visit (.hp-row-enter
+   is added conditionally in JS), never on a later refresh. */
+.hp-row-enter{animation:hpRowEnter .22s cubic-bezier(.22,1,.36,1) backwards}
+@keyframes hpRowEnter{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@media(prefers-reduced-motion:reduce){.hp-row-enter{animation:none}}
     .hp-row:last-child{margin-bottom:6px}
     .hp-node-wrap{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;width:108px;transform:translateX(var(--x,0))}
     .hp-row.l .hp-node-wrap{margin-right:auto;margin-left:14%}
@@ -4862,6 +4873,12 @@ body[data-goal-theme="cut"] .lv-page{
 #page-dashboard .lv-rail-track{height:8px}
 #page-dashboard .dash-qf-btn{transition:transform .25s cubic-bezier(.3,1.6,.5,1)}
 #page-dashboard .dash-qf-btn:active{transform:scale(.94)}
+/* find-animation-opportunities audit, items 3-5: three tappable surfaces
+   had cursor:pointer + an onclick but no response to the tap itself —
+   Word of the Day, the daily-spin gift banner, and (just above, already
+   covered by .equip-chip:active) the Title picker chips. */
+#page-dashboard .dash-quote-card-press{transition:transform .14s ease-out}
+#page-dashboard .dash-quote-card-press:active{transform:scale(.98)}
 /* NIMBUS LOOK, continued — Profile. Same chassis as Dashboard (squircle
    cards, soft lift-on-hover shadow, bold Inter Tight numbers), extended
    to the page that already got the Hall of Statues path treatment so
@@ -6000,7 +6017,7 @@ body[data-goal-theme="cut"] .lv-page{
          driven, not part of the "stacked undifferentiated cards"
          problem) — just matched to .card's corner radius so it still
          sits consistently among the OS-style cards around it. -->
-    <div style="border-radius:1.75rem;overflow:hidden;cursor:pointer" onclick="openDashQuoteInChat()">
+    <div class="dash-quote-card-press" style="border-radius:1.75rem;overflow:hidden;cursor:pointer" onclick="openDashQuoteInChat()">
       <div style="background:linear-gradient(135deg,#FF8A2E,#E85A00);padding:22px 20px;box-shadow:0 0 40px -8px rgba(255,122,46,.5)">
         <div style="font-family:var(--lv-sans);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:rgba(26,13,0,.6);margin-bottom:9px;font-weight:800">Word of the Day</div>
         <p style="font-family:var(--lv-sans);font-weight:800;font-size:15px;line-height:1.35;font-style:italic;color:#1A0D00" id="dash-quote-text">—</p>
@@ -12671,7 +12688,7 @@ function renderHallOfStatues(){
   // reads as climbing toward Olympus as you scroll up, same "ascend"
   // feel as the reference's tree-to-sky layout.
   const firstRender=!hall.dataset.built;
-  let rows='';
+  let rows='',stagger=0;
   for(let i=topIdx;i>=0;i--){
     if(i===topIdx)rows+='<div class="hp-zone">Olympus</div>';
     if(i===TIERS.length-3)rows+='<div class="hp-zone">The Divine Threshold</div>';
@@ -12683,7 +12700,8 @@ function renderHallOfStatues(){
     const rainbow=achieved&&i===topIdx;
     const ringStyle=achieved?'border-color:'+t.col+';box-shadow:0 0 '+(isCurrent?'16px':'8px')+' '+t.col+(isCurrent?'AA':'55'):'';
     const reqText=isCurrent?(getNextTier()?'Next: '+getNextTier().name:'Peak reached'):(achieved?'Passed':t.volume.toLocaleString()+'kg \u00b7 '+t.sessions+' sess');
-    rows+='<div class="hp-row '+st+' '+side+'">'+
+    const enterStyle=firstRender?' style="animation-delay:'+(stagger++*55)+'ms"':'';
+    rows+='<div class="hp-row '+st+' '+side+(firstRender?' hp-row-enter':'')+'"'+enterStyle+'>'+
       '<div class="hp-node-wrap" style="--x:'+x+'px">'+
         (isCurrent?'<div class="hp-halo"></div>':'')+
         '<button class="hp-node'+(rainbow?' rarity-rainbow-frame':'')+'" style="'+ringStyle+'" onclick="tapHallStatue('+i+',this)" aria-label="'+t.name+'">'+
