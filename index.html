@@ -22791,7 +22791,7 @@ function skipRest(){
   const ro=document.getElementById('rest-overlay');if(ro)ro.classList.remove('show');
 }
 document.addEventListener('visibilitychange',()=>{
-  if(document.hidden)return;
+  if(document.hidden){flushBrainDumpSave();return;}
   if(restInt)updateRestDisplay();
   // Daily Spin's "come back tomorrow" state is only recomputed on
   // render, not on a timer — so if the app is left open (or just
@@ -22802,6 +22802,12 @@ document.addEventListener('visibilitychange',()=>{
   checkDailySpinBanner();
   if(document.getElementById('daily-spin-wheel'))renderDailySpin();
 });
+// pagehide as a belt-and-braces alongside visibilitychange above — mobile
+// Safari in particular doesn't reliably fire visibilitychange on every
+// real abandonment path (a hard swipe-away, not just backgrounding), and
+// losing an unsaved Brain Dump note because the debounce window hadn't
+// elapsed yet would be worse than the perf problem debouncing fixed.
+window.addEventListener('pagehide',flushBrainDumpSave);
 
 function checkCompassWeek(){
   const thisMonday=getMonday(new Date());
@@ -27540,10 +27546,29 @@ function renderBrainDump(){
   if(!el)return;
   el.value=brainDumpText;
 }
+// saveToStorage() is expensive — it serializes ~150 localStorage keys and
+// (via checkLabors()) re-scans up to-2000-entry logs every single call.
+// Wiring it straight to the Brain Dump textarea's oninput meant typing a
+// single sentence fired dozens of full flushes, one per keystroke — the
+// single biggest real performance bug found in a dedicated audit of user
+// reports that the app was "extremely slow." Debounce the actual write;
+// brainDumpText itself still updates on every keystroke below so nothing
+// else reading it mid-typing goes stale, only the expensive persistence
+// call is delayed. flushBrainDumpSave() (wired to visibilitychange/
+// pagehide further down) makes sure a save that's still pending when the
+// tab is backgrounded doesn't just get lost.
+let brainDumpSaveTimer=null;
 function saveBrainDump(){
   const el=document.getElementById('brain-dump');
   if(!el)return;
   brainDumpText=el.value;
+  clearTimeout(brainDumpSaveTimer);
+  brainDumpSaveTimer=setTimeout(()=>{brainDumpSaveTimer=null;saveToStorage();},700);
+}
+function flushBrainDumpSave(){
+  if(!brainDumpSaveTimer)return;
+  clearTimeout(brainDumpSaveTimer);
+  brainDumpSaveTimer=null;
   saveToStorage();
 }
 function clearBrainDump(){
@@ -30458,7 +30483,16 @@ async function renderLB(){
     checkLBRankChange('volume',byVolume);
     volumeList.innerHTML=byVolume.map((e,i)=>renderLBRow({...e,valLabel:(e.volume>=1000?(e.volume/1000).toFixed(1)+'k':e.volume)+' kg'},i)).join('');
   }
-  saveToStorage();
+  // The only thing this function actually needs to persist is the rank-
+  // tracking map checkLBRankChange() just updated above — getBotStats()
+  // is a pure computation (derived from each bot's join date + a daily
+  // hash seed), nothing else here mutates real state. A full
+  // saveToStorage() call (~150 keys serialized, plus a Labors re-scan
+  // over the whole tonnage/session logs) was firing here every single
+  // render — including from the 45-90s background tick below just for
+  // having the Leaderboard page open — for the sake of one small key.
+  // Write just that key directly instead.
+  try{localStorage.setItem('arx_lbLastRanks',JSON.stringify(lbLastRanks));}catch(e){}
 }
 
 // Light live-tick: every 45-90s while the leaderboard might be open, nudge
@@ -30828,6 +30862,13 @@ function switchLB(btn,id){document.querySelectorAll('.lb-tab').forEach(t=>t.clas
 async function joinLB(){
   const name=document.getElementById('lb-name').value.trim()||'Anonymous';
   profile.lbName=name;
+  // renderLB() below only persists its own small rank-tracking key now
+  // (see its own comment — a full saveToStorage() on every render/
+  // background tick was a real perf bug), so the profile.lbName change
+  // just above needs its own explicit save here. A one-time save on a
+  // deliberate "join the leaderboard" tap is exactly the kind of
+  // infrequent, real state change saveToStorage() is fine for.
+  saveToStorage();
   const g=weightLog.length>1?(weightLog[weightLog.length-1].w-weightLog[0].w):0;
   try{await window.storage.set('mlb:'+name+Date.now(),JSON.stringify({name,gained:parseFloat(g.toFixed(1)),streak,sess:totalSess,stage:'Week 1\u20138',xp,volume:totalVolume}),true)}catch(e){}
   renderLB();toast('🏆','You\'re on the leaderboard!');
