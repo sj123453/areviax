@@ -1182,6 +1182,29 @@ input,input:focus,input:active,
 .league-row-you{background:rgba(243,103,23,.09)!important;border-left-color:var(--orange)!important}
 .league-row-you .league-row-name{color:var(--white)}
 
+/* League medals strip — a small permanent record of every tier ever
+   reached, shown below the group list so "permanent" is visibly true
+   somewhere, not just a modal that flashes once and is gone. Reuses the
+   same .league-{key} gradient classes the hero/ladder emblems already
+   define (see their own block above) for an earned medal's color; an
+   unearned one just stays dim. */
+.league-medals-head{font-size:10.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin:16px 0 8px}
+.league-medals-strip{display:flex;flex-wrap:wrap;gap:8px}
+.league-medal{width:34px;height:34px;clip-path:polygon(50% 0%,93% 25%,93% 75%,50% 100%,7% 75%,7% 25%);display:flex;align-items:center;justify-content:center;background:rgba(232,214,196,.04);color:var(--muted);filter:grayscale(.7) brightness(.6);opacity:.45;font-size:13px}
+.league-medal.earned{filter:none;opacity:1}
+.league-medal svg{width:60%;height:60%}
+.league-medal.league-fallbadge{clip-path:none;border-radius:50%;background:rgba(255,107,122,.12)}
+.league-medal.league-areviax{clip-path:none;border-radius:10px;width:auto;padding:0 8px;font-size:11px;font-weight:800;color:#FFB347;background:rgba(255,179,71,.12)}
+
+/* Hall of Fame — real users only (see recordHallOfFameWin), one row per
+   person, re-sorted by win count on every load rather than one row per
+   win, so it reads as "who's done it" not a noisy event log. */
+.league-hof{background:rgba(232,214,196,.02);border:1.5px solid var(--border2);border-radius:12px;overflow:hidden;margin-top:16px}
+.league-hof-head{font-size:10.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);padding:11px 14px 8px}
+.league-hof-loading,.league-hof-empty{font-size:12px;color:var(--muted);padding:4px 14px 14px;line-height:1.5}
+.league-hof-row{display:flex;align-items:center;gap:12px;padding:10px 14px;border-bottom:1px solid var(--border2);font-size:12.5px}
+.league-hof-row:last-child{border-bottom:none}
+
 /* FORM */
 label.lbl{font-size:9px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--white);opacity:.55;display:block;margin-bottom:5px;margin-top:12px}
 input[type=text],input[type=number],select,textarea{width:100%;background:var(--panel2);border:1.5px solid var(--border);color:var(--white);font-family:'Outfit',sans-serif;font-size:13px;padding:9px 13px;border-radius:8px;transition:all .18s;text-overflow:ellipsis;white-space:nowrap;overflow:hidden}
@@ -10098,6 +10121,23 @@ let lbLastRanks={};
 let userLeagueTier=0; // index into LEAGUE_TIERS — starts at Bronze
 let leagueWeekStart='';
 let pendingLeagueResult=null;
+// ── LEAGUE MEDALS / HALL OF FAME — direct ask: reaching a new league for
+// the first time should earn a permanent medal (distinct from the
+// promotion crate above, which is a spendable reward — a medal is a
+// record, never consumed). Falling earns exactly one badge ever, the
+// first time it happens, not one per relegation ("but that's it, no
+// more" — repeat fails just use the existing plain 'relegated' reveal).
+// The one thing that DOES stay repeatable is winning your group while
+// already at the top league (Areviax, nothing left to promote into) —
+// every such week adds to areviaxChampionWins, and real (non-bot) users
+// who do it get written into a genuinely shared Hall of Fame via
+// window.storage, the same cross-device KV pool joinLB() already uses
+// for the plain leaderboard's real-user rows (see 'hof:' key below) —
+// not just a personal stat, since the whole point of a hall of fame is
+// other real people seeing your name in it.
+let leagueMedals={}; // {tierKey: true} — once a tier's medal is earned it stays earned even after a later relegation out of it
+let leagueFellBadgeEarned=false;
+let areviaxChampionWins=0;
 // ── SESSION COMPLETION SHARD GATE — a compass point (and, on the 7th of
 // the week, the shard it banks) now only counts once every exercise in
 // the session has either had all its sets logged or been explicitly
@@ -30619,6 +30659,14 @@ function grantLeaguePromotionCrate(tier){
   else if(tier==='diamond')diamondDropBank++;
   // areviax: not banked — showLeagueResultReveal's Continue button opens it directly.
 }
+// One stable key per person (not timestamp-suffixed like the plain
+// leaderboard's mlb: entries) so a repeat champion week UPDATES their
+// existing row instead of spawning a duplicate — a hall of fame lists
+// people once each, with their total win count, not one line per win.
+function hofKeyFor(name){return 'hof:'+name.toLowerCase().replace(/[^a-z0-9]+/g,'-').slice(0,60);}
+async function recordHallOfFameWin(name,wins){
+  try{await window.storage.set(hofKeyFor(name),JSON.stringify({name,wins,lastWin:localDateKey(new Date())}),true);}catch(e){}
+}
 function checkLeagueWeek(){
   const thisMonday=getMonday(new Date());
   if(leagueWeekStart&&leagueWeekStart!==thisMonday){
@@ -30627,15 +30675,29 @@ function checkLeagueWeek(){
     const rank=group.findIndex(m=>m.isYou);
     const promoCut=3,relegateCut=Math.max(promoCut,group.length-3);
     const fromLabel=LEAGUE_TIERS[userLeagueTier].label;
-    if(rank<promoCut&&userLeagueTier<LEAGUE_TIERS.length-1){
+    const atTopTier=userLeagueTier===LEAGUE_TIERS.length-1;
+    if(rank<promoCut&&atTopTier){
+      // Nothing left to promote into — this is what "winning" the top
+      // league means instead. The one repeatable medal: every such week
+      // adds to the count, and (being a real device user, never a bot —
+      // bots don't run this function) gets written into the shared Hall
+      // of Fame other real users can actually see.
+      areviaxChampionWins++;
+      recordHallOfFameWin(leagueUserName(),areviaxChampionWins);
+      pendingLeagueResult={outcome:'champion',from:fromLabel,rank:rank+1,groupSize:group.length,winCount:areviaxChampionWins};
+    }else if(rank<promoCut&&userLeagueTier<LEAGUE_TIERS.length-1){
       userLeagueTier++;
       const newLeague=LEAGUE_TIERS[userLeagueTier];
       const crateTier=LEAGUE_PROMOTION_CRATE[newLeague.key]||'bronze';
       grantLeaguePromotionCrate(crateTier);
-      pendingLeagueResult={outcome:'promoted',from:fromLabel,to:newLeague.label,rank:rank+1,groupSize:group.length,crateTier};
+      const isNewMedal=!leagueMedals[newLeague.key];
+      if(isNewMedal)leagueMedals[newLeague.key]=true;
+      pendingLeagueResult={outcome:'promoted',from:fromLabel,to:newLeague.label,rank:rank+1,groupSize:group.length,crateTier,isNewMedal};
     }else if(rank>=relegateCut&&group.length>3&&userLeagueTier>0){
       userLeagueTier--;
-      pendingLeagueResult={outcome:'relegated',from:fromLabel,to:LEAGUE_TIERS[userLeagueTier].label,rank:rank+1,groupSize:group.length};
+      const isFirstFall=!leagueFellBadgeEarned;
+      if(isFirstFall)leagueFellBadgeEarned=true;
+      pendingLeagueResult={outcome:'relegated',from:fromLabel,to:LEAGUE_TIERS[userLeagueTier].label,rank:rank+1,groupSize:group.length,isFirstFall};
     }else{
       pendingLeagueResult={outcome:'held',from:fromLabel,to:fromLabel,rank:rank+1,groupSize:group.length};
     }
@@ -30808,26 +30870,87 @@ function renderLeagues(){
     renderLeagueLadder()+
     '<div class="league-countdown">⏳ '+weekCountdownText()+'</div>'+
     '<div class="league-zone-legend"><span><i class="promo"></i>Promotion zone</span>'+(group.length>3?'<span><i class="relegate"></i>Relegation zone</span>':'')+'</div>'+
-    '<div class="league-group">'+rows+'</div>';
+    '<div class="league-group">'+rows+'</div>'+
+    renderLeagueMedalsStrip()+
+    '<div id="league-hof-body" class="league-hof"></div>';
+  renderHallOfFame();
   if(pendingLeagueResult){
     showLeagueResultReveal(pendingLeagueResult);
     pendingLeagueResult=null;
     saveToStorage();
   }
 }
+// Permanent record of every tier ever reached (leagueMedals) plus the
+// one-time fall badge — shown as a small strip under the group list
+// rather than only flashing once in the reveal modal and then being
+// gone, since "permanent" should mean visibly permanent somewhere.
+// Reuses leagueIconSVG()/the league-{key} color classes the ladder
+// already defines instead of drawing new medal art.
+function renderLeagueMedalsStrip(){
+  const items=LEAGUE_TIERS.slice(1).map(t=>{ // bronze is the starting tier, not something "earned"
+    const earned=!!leagueMedals[t.key];
+    return '<div class="league-medal'+(earned?' earned':'')+' league-'+t.key+'" title="'+t.label+(earned?' — earned':' — not yet earned')+'">'+leagueIconSVG(t.key)+'</div>';
+  }).join('');
+  const fallBadge=leagueFellBadgeEarned?
+    '<div class="league-medal earned league-fallbadge" title="First Fall — bounced back from your first relegation">🎖️</div>':'';
+  const championBadge=areviaxChampionWins>0?
+    '<div class="league-medal earned league-areviax" title="Areviax League champion '+areviaxChampionWins+'x">👑×'+areviaxChampionWins+'</div>':'';
+  return '<div class="league-medals-head">League medals</div><div class="league-medals-strip">'+items+fallBadge+championBadge+'</div>';
+}
+// Real (non-bot) users only — written by recordHallOfFameWin() the
+// moment someone wins a week already at the top league. One row per
+// person (their key is stable, see hofKeyFor), updated in place on each
+// new win rather than appended, so this reads as "people who've done it"
+// not "every time it happened."
+async function renderHallOfFame(){
+  const body=document.getElementById('league-hof-body');
+  if(!body)return;
+  body.innerHTML='<div class="league-hof-head">🏛️ Hall of Fame — Areviax League champions</div><div class="league-hof-loading">Loading…</div>';
+  let entries=[];
+  try{
+    const r=await window.storage.list('hof:',true);
+    for(const k of(r?.keys||[])){try{const d=await window.storage.get(k,true);if(d?.value)entries.push(JSON.parse(d.value));}catch(e){}}
+  }catch(e){}
+  if(!entries.length){
+    body.innerHTML='<div class="league-hof-head">🏛️ Hall of Fame — Areviax League champions</div><div class="league-hof-empty">No one\'s won the top league yet — be the first.</div>';
+    return;
+  }
+  entries.sort((a,b)=>(b.wins||0)-(a.wins||0));
+  const you=leagueUserName();
+  const rows=entries.slice(0,20).map((e,i)=>
+    '<div class="league-hof-row'+(e.name===you?' league-row-you':'')+'">'+
+      '<div class="league-row-rank">'+(i+1)+'</div>'+
+      '<div class="league-row-name">'+e.name+(e.name===you?' (you)':'')+'</div>'+
+      '<div class="league-row-pts">'+(e.wins||0)+'× 👑</div>'+
+    '</div>'
+  ).join('');
+  body.innerHTML='<div class="league-hof-head">🏛️ Hall of Fame — Areviax League champions</div>'+rows;
+}
 function showLeagueResultReveal(result){
   const overlay=document.createElement('div');
   overlay.className='achievement-overlay';
   const isPromo=result.outcome==='promoted';
   const isRelegate=result.outcome==='relegated';
+  const isChampion=result.outcome==='champion';
   const isAreviaxPromo=isPromo&&result.crateTier==='areviax';
-  const icon=isPromo?'⬆️':isRelegate?'⬇️':'🛡️';
-  const title=isPromo?'Promoted!':isRelegate?'Relegated':'Held your ground';
-  const desc=isPromo?
+  const icon=isChampion?'👑':isPromo?'⬆️':isRelegate?'⬇️':'🛡️';
+  const title=isChampion?'Champion!':isPromo?'Promoted!':isRelegate?'Relegated':'Held your ground';
+  const desc=isChampion?
+    'Finished #'+result.rank+' of '+result.groupSize+' in '+result.from+' — this week\'s champion. Win #'+result.winCount+' at the top.'
+    :isPromo?
     'Finished #'+result.rank+' of '+result.groupSize+' in '+result.from+' — you\'re moving up to '+result.to+'.'
     :isRelegate?
     'Finished #'+result.rank+' of '+result.groupSize+' in '+result.from+' — dropping to '+result.to+' this week. Come back stronger.'
     :'Finished #'+result.rank+' of '+result.groupSize+' in '+result.from+' — safely in the middle, staying put.';
+  // New-medal / first-fall-badge / hall-of-fame flourishes — the medal
+  // itself was already recorded in checkLeagueWeek(); this is just
+  // telling the person it happened, once, the time it actually does.
+  const medalLine=isPromo&&result.isNewMedal?
+    '<div style="font-size:11.5px;font-weight:700;color:#FFD66B;margin-top:10px">🏅 New medal earned — '+result.to+' is yours for good, even if you drop out of it later.</div>':'';
+  const fallBadgeLine=isRelegate&&result.isFirstFall?
+    '<div style="font-size:11.5px;font-weight:700;color:#FF9E9E;margin-top:10px">🎖️ Badge earned: First Fall — everyone drops a league eventually. Just the one of these; it won\'t show again.</div>':'';
+  const hofLine=isChampion?
+    '<div style="font-size:11.5px;font-weight:700;color:#FFD66B;margin-top:10px">🏛️ Recorded in the Hall of Fame — see it on the Leagues page.</div>':'';
   const crateLine=isPromo&&result.crateTier?(
     isAreviaxPromo
       ? '<div style="font-size:11.5px;font-weight:700;color:#FFB347;margin-top:10px">🔥 Reaching the top league unlocks the Areviax Crate — opening next.</div>'
@@ -30840,12 +30963,14 @@ function showLeagueResultReveal(result){
       '<div class="achievement-unlocked-label">LAST WEEK\'S LEAGUE</div>'+
       '<div class="achievement-title">'+title+'</div>'+
       '<div class="achievement-desc">'+desc+'</div>'+
+      medalLine+fallBadgeLine+hofLine+
       crateLine+
       '<button class="achievement-close-btn" onclick="'+closeAction+'">Continue</button>'+
     '</div>';
   document.body.appendChild(overlay);
   requestAnimationFrame(()=>overlay.classList.add('show'));
   if(isPromo)celebrateBurst(['⬆️','✨','🏆'],20);
+  if(isChampion)celebrateBurst(['👑','✨','🏆'],24);
 }
 function closeLeagueRevealThenOpenAreviax(btn){
   btn.closest('.achievement-overlay').remove();
@@ -30958,6 +31083,9 @@ function saveToStorage(){
     localStorage.setItem('arx_lbLastRanks', JSON.stringify(lbLastRanks));
     localStorage.setItem('arx_userLeagueTier', userLeagueTier);
     localStorage.setItem('arx_leagueWeekStart', leagueWeekStart);
+    localStorage.setItem('arx_leagueMedals', JSON.stringify(leagueMedals));
+    localStorage.setItem('arx_leagueFellBadgeEarned', leagueFellBadgeEarned);
+    localStorage.setItem('arx_areviaxChampionWins', areviaxChampionWins);
     localStorage.setItem('arx_compassPointDate', compassPointDate);
     localStorage.setItem('arx_perfectWeekShardBanked', perfectWeekShardBanked?'1':'');
     localStorage.setItem('arx_lastActiveDate', lastActiveDate);
@@ -31157,6 +31285,9 @@ function loadFromStorage(){
     if(lbr){try{lbLastRanks=JSON.parse(lbr);}catch(e){lbLastRanks={};}}
     userLeagueTier=parseInt(localStorage.getItem('arx_userLeagueTier')||'0');
     leagueWeekStart=localStorage.getItem('arx_leagueWeekStart')||'';
+    try{leagueMedals=JSON.parse(localStorage.getItem('arx_leagueMedals')||'{}');}catch(e){leagueMedals={};}
+    leagueFellBadgeEarned=localStorage.getItem('arx_leagueFellBadgeEarned')==='true';
+    areviaxChampionWins=parseInt(localStorage.getItem('arx_areviaxChampionWins')||'0');
     compassPointDate=localStorage.getItem('arx_compassPointDate')||'';
     perfectWeekShardBanked=localStorage.getItem('arx_perfectWeekShardBanked')==='1';
     lastActiveDate=localStorage.getItem('arx_lastActiveDate')||'';
