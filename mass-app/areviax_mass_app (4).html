@@ -4284,35 +4284,45 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        detailed — helmet/wings/crown etc. — and needs real width, unlike
        the old shared-silhouette version); a single row of 6 once
        there's genuinely enough space. */
-    .hall-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px 8px}
-    @media(min-width:640px){.hall-grid{grid-template-columns:repeat(6,minmax(0,1fr))}}
-    .hall-statue{text-align:center;cursor:pointer;-webkit-tap-highlight-color:transparent}
-    .hall-statue-fig{
-      position:relative;width:100%;aspect-ratio:391/749;
-      background:#0D0806;border:1.5px solid var(--border);
-      border-radius:6px;overflow:hidden;margin-bottom:8px;
+    /* HALL OF STATUES — PATH REBUILD. Direct review of a reference app's
+       level screen: a vertically scrolling column of circular nodes,
+       zig-zagging left/right off a center spine instead of sitting in a
+       static grid, with the current position auto-centred on open and
+       every node — passed, current, locked — tappable. Same structural
+       pattern, rebuilt fresh for Areviax's own data/CSS: nodes are real
+       statue photography instead of their tree/cloud art, the spine is
+       the "Road to Olympus" the app already names elsewhere, and the one
+       zone break reads "THE DIVINE THRESHOLD" between the mortal tiers
+       and the divine ones instead of their sky zones. */
+    .hall-path{position:relative;height:500px;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;padding:18px 0 10px;-webkit-overflow-scrolling:touch}
+    .hall-path::-webkit-scrollbar{display:none}
+    .hall-path::before{content:'';position:absolute;top:0;bottom:0;left:50%;width:3px;transform:translateX(-50%);
+      background:repeating-linear-gradient(180deg,rgba(227,191,118,.3) 0 6px,transparent 6px 14px);z-index:0}
+    .hp-zone{position:relative;z-index:1;text-align:center;margin:8px 0 18px;font-family:var(--lv-serif,serif);font-size:11px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--lv-gold,#E6BE6D);opacity:.85}
+    .hp-row{position:relative;z-index:1;display:flex;margin-bottom:26px}
+    .hp-row:last-child{margin-bottom:6px}
+    .hp-node-wrap{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;width:108px;transform:translateX(var(--x,0))}
+    .hp-row.l .hp-node-wrap{margin-right:auto;margin-left:14%}
+    .hp-row.r .hp-node-wrap{margin-left:auto;margin-right:14%}
+    .hp-node{
+      position:relative;width:72px;height:72px;border-radius:50%;flex-shrink:0;
+      background:#0D0806;border:2.5px solid var(--border);overflow:hidden;
+      padding:0;cursor:pointer;-webkit-tap-highlight-color:transparent;
+      transition:transform .25s cubic-bezier(.3,1.6,.5,1);
     }
-    /* Per-tier border/glow now comes from renderHallOfStatues() itself
-       (inline style using each tier's own t.col), not a fixed rule here —
-       every achieved tier reads as its own colour, current or not,
-       instead of every tile sharing one generic border regardless of
-       rarity. */
-    .hall-statue-img{
-      position:absolute;inset:0;
-      background-size:cover!important;background-position:top center!important;
-      background-repeat:no-repeat!important;
-    }
-    .hall-statue:not(.achieved) .hall-statue-fig{opacity:.7}
-    /* Locked tiles show no hint of the real photo underneath at all — a
-       flat dark blank instead of even a dimmed silhouette, so reaching a
-       tier is still a real reveal rather than something already spoiled
-       by the mini ladder above it. */
-    .hall-lock{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--lv-display,serif);font-size:clamp(22px,7vw,34px);font-weight:700;color:rgba(232,214,196,.3)}
-    .hall-statue-name{font-size:10.5px;font-weight:800;color:rgba(232,214,196,.4)}
-    .hall-statue.achieved .hall-statue-name{color:var(--white)}
-    .hall-statue-tag{font-size:8.5px;font-weight:700;letter-spacing:.06em;color:var(--green);margin-top:3px}
-    .hall-statue-tag-done{color:rgba(232,214,196,.35)}
-    .hall-statue-tag-locked{color:var(--muted);font-weight:600;letter-spacing:0}
+    .hp-node:active{transform:scale(.92)}
+    .hp-node-img{position:absolute;inset:0;background-size:cover!important;background-position:top center!important;background-repeat:no-repeat!important}
+    .hp-row:not(.done):not(.current) .hp-node{opacity:.72}
+    .hp-lock{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--lv-display,serif);font-size:24px;font-weight:700;color:rgba(232,214,196,.3)}
+    .hp-halo{position:absolute;inset:-7px;border-radius:50%;border:2px solid var(--lv-gold,#E6BE6D);opacity:.8;animation:hpHaloPulse 1.8s ease-in-out infinite}
+    @keyframes hpHaloPulse{0%,100%{transform:scale(1);opacity:.75}50%{transform:scale(1.12);opacity:.25}}
+    .hp-you{position:absolute;bottom:-5px;left:50%;transform:translateX(-50%);font-size:7.5px;font-weight:800;letter-spacing:.08em;color:#0D0806;background:var(--lv-gold,#E6BE6D);border-radius:999px;padding:2px 6px;white-space:nowrap}
+    .hp-label{text-align:center}
+    .hp-label b{display:block;font-size:11px;font-weight:800;color:rgba(232,214,196,.4)}
+    .hp-row.done .hp-label b,.hp-row.current .hp-label b{color:var(--white)}
+    .hp-label span{display:block;font-size:8.5px;font-weight:700;letter-spacing:.04em;color:var(--green);margin-top:2px}
+    .hp-row.done .hp-label span{color:rgba(232,214,196,.35)}
+    .hp-row:not(.done):not(.current) .hp-label span{color:var(--muted);font-weight:600;letter-spacing:0}
 
     /* ── RARITY RAINBOW — shared by the top tier of every rarity ladder
        in the app (Hall of Statues' God of Gods, Areviax Crates' Areviax
@@ -4836,6 +4846,17 @@ body[data-goal-theme="cut"] .lv-page{
 #page-dashboard .lv-rail-track{height:8px}
 #page-dashboard .dash-qf-btn{transition:transform .25s cubic-bezier(.3,1.6,.5,1)}
 #page-dashboard .dash-qf-btn:active{transform:scale(.94)}
+.brand-watermark{position:fixed;width:26px;height:26px;z-index:2;pointer-events:none;animation:brandWatermarkDrift 12s ease-in-out infinite}
+.brand-watermark svg{width:100%;height:100%;opacity:.09;animation:brandWatermarkShine 8s ease-in-out infinite}
+.brand-watermark.tl{top:calc(env(safe-area-inset-top,0px) + 8px);left:8px}
+.brand-watermark.tr{top:calc(env(safe-area-inset-top,0px) + 8px);right:8px;animation-delay:3s}
+.brand-watermark.bl{bottom:calc(env(safe-area-inset-bottom,0px) + 76px);left:8px;animation-delay:6s}
+.brand-watermark.br{bottom:calc(env(safe-area-inset-bottom,0px) + 76px);right:8px;animation-delay:9s}
+.brand-watermark.tr svg,.brand-watermark.bl svg{animation-delay:2.5s}
+.brand-watermark.br svg{animation-delay:5s}
+@keyframes brandWatermarkDrift{0%,100%{transform:translate(0,0) rotate(0deg)}50%{transform:translate(1px,-2px) rotate(5deg)}}
+@keyframes brandWatermarkShine{0%,80%{opacity:.09;filter:drop-shadow(0 0 0 transparent)}90%{opacity:.32;filter:drop-shadow(0 0 5px rgba(230,190,109,.85))}100%{opacity:.09;filter:drop-shadow(0 0 0 transparent)}}
+@media(prefers-reduced-motion:reduce){.brand-watermark,.brand-watermark svg{animation:none}}
 .lv-laurel-watermark{position:relative}
 .lv-laurel-watermark::after{content:'';position:absolute;right:-3.5rem;top:-2.5rem;width:18rem;height:18rem;pointer-events:none;opacity:.09;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='none' stroke='%23e9c98a' stroke-width='1.4'%3E%3Cpath d='M50 96C24 88 10 66 14 40 17 22 30 8 44 4'/%3E%3Cpath d='M50 96c26-8 40-30 36-56C83 22 70 8 56 4'/%3E%3Cg%3E%3Cellipse cx='20' cy='30' rx='7' ry='3' transform='rotate(-38 20 30)'/%3E%3Cellipse cx='17' cy='45' rx='7' ry='3' transform='rotate(-25 17 45)'/%3E%3Cellipse cx='19' cy='60' rx='7' ry='3' transform='rotate(-12 19 60)'/%3E%3Cellipse cx='26' cy='74' rx='7' ry='3' transform='rotate(8 26 74)'/%3E%3Cellipse cx='80' cy='30' rx='7' ry='3' transform='rotate(38 80 30)'/%3E%3Cellipse cx='83' cy='45' rx='7' ry='3' transform='rotate(25 83 45)'/%3E%3Cellipse cx='81' cy='60' rx='7' ry='3' transform='rotate(12 81 60)'/%3E%3Cellipse cx='74' cy='74' rx='7' ry='3' transform='rotate(-8 74 74)'/%3E%3C/g%3E%3C/svg%3E");background-repeat:no-repeat;background-size:contain}
 .lv-section-title{font-family:var(--lv-serif);font-style:normal;font-weight:600;font-size:1.75rem;line-height:1;letter-spacing:.06em;text-transform:uppercase;color:var(--lv-fg)}
@@ -5566,6 +5587,18 @@ body[data-goal-theme="cut"] .lv-page{
      without wrapping the app as a native shell. -->
 <audio id="sleep-bg-audio" loop playsinline style="display:none"></audio>
 <div class="app" id="main-app" style="display:none">
+  <!-- CORNER BRAND WATERMARK — the same 8-point compass-star emblem the
+       sidebar/dashboard/session headers already use, now faintly present
+       in all four viewport corners app-wide (lives here once, outside any
+       single page, so every page gets it for free). Never static: each
+       corner drifts a little on its own slow cycle and gets a brief
+       brighter "shine" pass once per cycle, offset per corner so they
+       don't all flash together. pointer-events:none + low z-index so it
+       never intercepts a tap. -->
+  <div class="brand-watermark tl" aria-hidden="true"><svg viewBox="0 0 48 48" fill="none" stroke="var(--lv-gold,#E6BE6D)"><path d="M24 5 26.6 21.4 43 24 26.6 26.6 24 43 21.4 26.6 5 24 21.4 21.4Z" fill="var(--lv-gold,#E6BE6D)" stroke="none"/><path d="M24 12v24M12 24h24" stroke-width=".6"/><circle cx="24" cy="24" r="11" stroke-width=".7"/></svg></div>
+  <div class="brand-watermark tr" aria-hidden="true"><svg viewBox="0 0 48 48" fill="none" stroke="var(--lv-gold,#E6BE6D)"><path d="M24 5 26.6 21.4 43 24 26.6 26.6 24 43 21.4 26.6 5 24 21.4 21.4Z" fill="var(--lv-gold,#E6BE6D)" stroke="none"/><path d="M24 12v24M12 24h24" stroke-width=".6"/><circle cx="24" cy="24" r="11" stroke-width=".7"/></svg></div>
+  <div class="brand-watermark bl" aria-hidden="true"><svg viewBox="0 0 48 48" fill="none" stroke="var(--lv-gold,#E6BE6D)"><path d="M24 5 26.6 21.4 43 24 26.6 26.6 24 43 21.4 26.6 5 24 21.4 21.4Z" fill="var(--lv-gold,#E6BE6D)" stroke="none"/><path d="M24 12v24M12 24h24" stroke-width=".6"/><circle cx="24" cy="24" r="11" stroke-width=".7"/></svg></div>
+  <div class="brand-watermark br" aria-hidden="true"><svg viewBox="0 0 48 48" fill="none" stroke="var(--lv-gold,#E6BE6D)"><path d="M24 5 26.6 21.4 43 24 26.6 26.6 24 43 21.4 26.6 5 24 21.4 21.4Z" fill="var(--lv-gold,#E6BE6D)" stroke="none"/><path d="M24 12v24M12 24h24" stroke-width=".6"/><circle cx="24" cy="24" r="11" stroke-width=".7"/></svg></div>
   <div class="sidebar expanded" id="sidebar">
     <button class="sb-toggle" onclick="document.getElementById('sidebar').classList.toggle('expanded')">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
@@ -8900,7 +8933,7 @@ body[data-goal-theme="cut"] .lv-page{
   <div class="card lv-surface" style="margin-bottom:14px">
     <div class="ch"><span class="ct">Hall of Statues</span></div>
     <div style="font-size:11px;color:var(--muted);margin-bottom:14px">Every tier you've passed stays lit. The rest are waiting.</div>
-    <div id="hall-of-statues" class="hall-grid"></div>
+    <div id="hall-of-statues" class="hall-path"></div>
   </div>
 
   <!-- WORD OF THE DAY — a rotating line from Socrates or an Olympian,
@@ -12588,29 +12621,48 @@ function renderHallOfStatues(){
   if(!hall)return;
   const myIdx=getRankIndex();
   const topIdx=TIERS.length-1;
-  hall.innerHTML=TIERS.map((t,i)=>{
-    const achieved=i<=myIdx;
-    const isCurrent=i===myIdx;
-    // Top tier gets the shared rainbow treatment once actually reached \u2014
-    // every tier below it keeps its own solid rarity colour (t.col),
-    // stronger/bolder now that it lives on the tile's own border+glow,
-    // not just the name text underneath.
+  // DIVINE THRESHOLD \u2014 the one zone break this app's 6-tier ladder earns
+  // (Nimbus's 20 levels can afford several; 6 can't without it feeling
+  // arbitrary): Mortal/Soldier/Hero are the mortal tiers, Demigod and up
+  // are divine. Rendered top(highest tier)-to-bottom(lowest) so the path
+  // reads as climbing toward Olympus as you scroll up, same "ascend"
+  // feel as the reference's tree-to-sky layout.
+  const firstRender=!hall.dataset.built;
+  let rows='';
+  for(let i=topIdx;i>=0;i--){
+    if(i===topIdx)rows+='<div class="hp-zone">Olympus</div>';
+    if(i===TIERS.length-3)rows+='<div class="hp-zone">The Divine Threshold</div>';
+    const t=TIERS[i];
+    const achieved=i<=myIdx, isCurrent=i===myIdx;
+    const st=achieved?(isCurrent?'current':'done'):'lock';
+    const side=i%2===0?'l':'r';
+    const x=side==='l'?(-10-(i%3)*6):(10+(i%3)*6);
     const rainbow=achieved&&i===topIdx;
-    const figClass='hall-statue-fig'+(rainbow?' rarity-rainbow-frame':'');
-    const figStyle=achieved&&!rainbow?'border-color:'+t.col+';box-shadow:0 0 '+(isCurrent?'18px':'10px')+' '+t.col+(isCurrent?'AA':'66'):'';
-    const nameClass='hall-statue-name'+(rainbow?' rarity-rainbow-text':'');
-    // Achieved tiles now show the same real photo as the big statue above
-    // (synced, not the old flat silhouette) \u2014 locked ones show nothing of
-    // it at all, just a flat dark tile with a "?" mark, same spoiler-safe
-    // idea as unrankedSVG elsewhere.
-    return '<div class="hall-statue'+(achieved?' achieved':'')+(isCurrent?' current':'')+'" onclick="tapHallStatue('+i+',this)">'+
-      '<div class="'+figClass+'" style="'+figStyle+'">'+
-        (achieved?'<div class="hall-statue-img" style="background-image:url(\''+t.photo+'\')"></div>':'<div class="hall-lock">?</div>')+
+    const ringStyle=achieved?'border-color:'+t.col+';box-shadow:0 0 '+(isCurrent?'16px':'8px')+' '+t.col+(isCurrent?'AA':'55'):'';
+    const reqText=isCurrent?(getNextTier()?'Next: '+getNextTier().name:'Peak reached'):(achieved?'Passed':t.volume.toLocaleString()+'kg \u00b7 '+t.sessions+' sess');
+    rows+='<div class="hp-row '+st+' '+side+'">'+
+      '<div class="hp-node-wrap" style="--x:'+x+'px">'+
+        (isCurrent?'<div class="hp-halo"></div>':'')+
+        '<button class="hp-node'+(rainbow?' rarity-rainbow-frame':'')+'" style="'+ringStyle+'" onclick="tapHallStatue('+i+',this)" aria-label="'+t.name+'">'+
+          (achieved?'<div class="hp-node-img" style="background-image:url(\''+t.photo+'\')"></div>':'<div class="hp-lock">?</div>')+
+          (isCurrent?'<div class="hp-you">YOU</div>':'')+
+        '</button>'+
+        '<div class="hp-label"><b'+(rainbow?' class="rarity-rainbow-text"':'')+(achieved&&!rainbow?' style="color:'+t.col+'"':'')+'>'+t.name+'</b><span>'+reqText+'</span></div>'+
       '</div>'+
-      '<div class="'+nameClass+'" style="'+(rainbow?'':achieved?'color:'+t.col:'')+'">'+t.name+'</div>'+
-      (isCurrent?'<div class="hall-statue-tag">YOU ARE HERE</div>':achieved?'<div class="hall-statue-tag hall-statue-tag-done">PASSED</div>':'<div class="hall-statue-tag hall-statue-tag-locked">'+t.volume.toLocaleString()+'kg \u00b7 '+t.sessions+' sess</div>')+
     '</div>';
-  }).join('');
+  }
+  hall.innerHTML=rows;
+  hall.dataset.built='1';
+  // Auto-centre on the athlete's current tier the first time the path
+  // renders each time Profile opens \u2014 not on every subsequent refresh
+  // (e.g. a stat ticking up mid-view), which would yank the scroll
+  // position out from under someone mid-browse.
+  if(firstRender){
+    requestAnimationFrame(()=>{
+      const cur=hall.querySelector('.hp-row.current')||hall.querySelector('.hp-row.done');
+      if(cur)cur.scrollIntoView({block:'center'});
+    });
+  }
 }
 // Direct review of a reference app's own level-progression screen: its
 // tiles were tappable — EVERY one, locked tiers included — with a quick
@@ -14975,6 +15027,50 @@ function playRarityIntroSting(rarity){
     });
   }
 }
+// ── UI TOUCH SOUND — procedurally synthesized (same Web Audio API
+// pattern as the crate/reveal sounds just above, no audio files), a
+// soft tactile tock on every real button/card/nav press across the
+// whole app. One delegated pointerdown listener on document instead of
+// wiring every single button by hand — every page picks it up for free,
+// including ones built after this.
+let uiAudioCtx=null;
+function getUiAudioCtx(){
+  if(!uiAudioCtx){
+    try{ uiAudioCtx=new (window.AudioContext||window.webkitAudioContext)(); }
+    catch(e){ return null; }
+  }
+  if(uiAudioCtx.state==='suspended')uiAudioCtx.resume().catch(()=>{});
+  try{
+    const buf=uiAudioCtx.createBuffer(1,1,22050);
+    const src=uiAudioCtx.createBufferSource();
+    src.buffer=buf; src.connect(uiAudioCtx.destination); src.start(0);
+  }catch(e){}
+  return uiAudioCtx;
+}
+function playUiTock(big){
+  const ctx=getUiAudioCtx();
+  if(!ctx)return;
+  const t=ctx.currentTime;
+  const osc=ctx.createOscillator();
+  osc.type='sine';
+  osc.frequency.setValueAtTime(big?560:720,t);
+  osc.frequency.exponentialRampToValueAtTime(big?260:360,t+0.055);
+  const g=ctx.createGain();
+  g.gain.setValueAtTime(0.0001,t);
+  g.gain.exponentialRampToValueAtTime(big?0.16:0.11,t+0.006);
+  g.gain.exponentialRampToValueAtTime(0.0001,t+(big?0.1:0.075));
+  osc.connect(g);g.connect(ctx.destination);
+  osc.start(t);osc.stop(t+0.12);
+}
+// Primary CTAs (.lv-ember/.btn-g — the ones with their own tactile press
+// shadow already) get the slightly deeper "big" tock; everything else
+// interactive gets the lighter one. Capture phase + passive so this
+// never interferes with the tap itself, just rides alongside it.
+document.addEventListener('pointerdown',function(e){
+  const big=e.target.closest('.lv-ember,.btn-g,.btn.btn-lg,#cbtn');
+  const el=big||e.target.closest('button,.btn,.hp-node,.sb-item,.sb-more-item,.tab-item,.dash-qf-btn,.chip,.stat-card,[onclick]');
+  if(el)playUiTock(!!big);
+},{passive:true,capture:true});
 // Thin light beams shot outward from the reveal badge the instant the
 // mystery "?" locks in — the physical "lights come out of it" beat.
 // Positioned at the same fixed 50%/38% viewport point celebrateBurst's
