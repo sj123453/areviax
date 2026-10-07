@@ -29,7 +29,18 @@
 // changed exercise photo gets a new filename, not a same-name update —
 // see how mass-app/images/misc/exwalk-*.jpg are added), so they're safe
 // to cache aggressively: fetch once, keep forever, never re-check.
-const CACHE_NAME = 'areviax-mass-v4';
+//
+// v5: that "stable filename never changes content" invariant just got
+// broken — the Dashboard hero photos (realm-mortal*.jpg) were replaced
+// in place (upscaled + regrained) under their existing filenames to fix
+// a quality bug, which means every device that had already cached v4's
+// bytes for those exact filenames kept serving the old grainy/blurry
+// version forever, same as if nothing had shipped at all. Bumping
+// CACHE_NAME forces the existing activate handler to delete the whole
+// v4 cache (not just these 5 files — there's no per-asset invalidation
+// here, only whole-cache), so every image gets re-fetched fresh once
+// and then goes back to being cached forever under v5.
+const CACHE_NAME = 'areviax-mass-v5';
 const APP_SHELL = ['./', './index.html', './manifest.json', 'images/icons/favicon.png'];
 const ASSET_PATH = /\/(?:mass-app\/)?(?:images|audio)\//;
 
