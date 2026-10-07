@@ -4353,6 +4353,17 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        and the divine ones instead of their sky zones. */
     .hall-path{position:relative;height:500px;overflow-y:auto;overflow-x:hidden;scrollbar-width:none;padding:18px 0 10px;-webkit-overflow-scrolling:touch}
     .hall-path::-webkit-scrollbar{display:none}
+    /* Direct ask: "use this road" — a generated stone-road-to-Olympus photo
+       (real perspective, vanishing point toward a divine light) standing
+       in for the flat dark background the path has had until now. Sized
+       to the path's full SCROLLABLE height in JS (see renderHallOfStatues),
+       not just the 500px visible window, so it doesn't run out partway
+       down on a long scroll. Sits at z-index:-1 — behind the connector
+       line, the pedestals, everything — same stacking spot the old plain
+       background colour occupied. */
+    .hp-road-wrap{position:absolute;left:0;top:0;width:100%;z-index:-1;pointer-events:none}
+    .hp-road-bg{position:absolute;inset:0;background-image:url('mass-app/images/roads/road-to-olympus.jpg');background-size:cover;background-position:center top}
+    .hp-road-fade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(13,8,6,.8) 0%,rgba(13,8,6,.3) 22%,rgba(13,8,6,.3) 78%,rgba(13,8,6,.88) 100%)}
     /* Direct report: the old spine was a plain straight dotted line down
        dead-center, completely disconnected from where the nodes actually
        sit (they zig-zag out to ±14% margin) — it never touched a single
@@ -12785,7 +12796,8 @@ function renderHallOfStatues(){
   // Shared marble-plinth symbol \u2014 defined once, every node <use>s it
   // rather than repeating the full path data six times. Rendered once
   // per innerHTML swap since the whole container gets replaced each call.
-  let rows='<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>'+
+  let rows='<div class="hp-road-wrap"><div class="hp-road-bg"></div><div class="hp-road-fade"></div></div>'+
+    '<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>'+
     '<linearGradient id="hpPedestalGrad" x1="0" y1="0" x2="0" y2="1">'+
       '<stop offset="0%" stop-color="#847a68"/><stop offset="45%" stop-color="#5a5248"/><stop offset="100%" stop-color="#2a2419"/>'+
     '</linearGradient>'+
@@ -12870,6 +12882,8 @@ function drawHallConnector(hall){
   path.setAttribute('d',d);
   svg.setAttribute('height',hall.scrollHeight);
   svg.setAttribute('width',hall.clientWidth);
+  const roadWrap=hall.querySelector('.hp-road-wrap');
+  if(roadWrap)roadWrap.style.height=hall.scrollHeight+'px';
 }
 // Direct review of a reference app's own level-progression screen: its
 // tiles were tappable — EVERY one, locked tiers included — with a quick
