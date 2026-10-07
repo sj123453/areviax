@@ -95,6 +95,13 @@ input,input:focus,input:active,
       caret-color:#A59D95;
     }
     button,.btn,.sb-item,[onclick]{cursor:pointer}
+    /* App-wide press fallback: any plain <button> without its own bespoke
+       :active rule gets a consistent bouncy press-down. Every class below
+       that already defines its own transform/:active (.btn, .mn-btn,
+       .sb-item, .equip-chip, .legend-card, etc.) wins over this on
+       specificity alone, so nothing already-tuned changes feel. */
+    button{transition:transform .2s cubic-bezier(.3,1.6,.5,1)}
+    button:active{transform:scale(.95)}
 
 /* LAYOUT */
 .app{display:flex;height:100vh;overflow:hidden}
@@ -107,13 +114,14 @@ input,input:focus,input:active,
 .sb-brand{display:flex;align-items:center;gap:9px;padding:0 12px;margin-bottom:14px;width:100%;white-space:nowrap;overflow:hidden}
 .sb-brand-text{font-weight:800;font-size:12px;letter-spacing:.08em;text-transform:uppercase;opacity:0;transition:opacity .2s}
 .sidebar.expanded .sb-brand-text{opacity:1}
-.sb-item{display:flex;align-items:center;gap:11px;width:100%;padding:9px 12px;color:var(--muted);transition:all .25s;border-left:2px solid transparent;white-space:nowrap;overflow:hidden}
+.sb-item{display:flex;align-items:center;gap:11px;width:100%;padding:9px 12px;color:var(--muted);transition:all .25s,transform .22s cubic-bezier(.3,1.6,.5,1);border-left:2px solid transparent;white-space:nowrap;overflow:hidden}
 .sb-item:hover{color:var(--white);background:rgba(243,103,23,.06)}
+.sb-item:active{transform:scale(.96)}
 .sb-item.active{
   color:var(--white);background:linear-gradient(90deg,rgba(142,142,147,.18),rgba(243,103,23,.05));
   border-left-color:var(--cyan);box-shadow:inset 0 0 20px -8px rgba(142,142,147,.35);
 }
-.sb-item.active svg{filter:drop-shadow(0 0 4px rgba(243,103,23,.5))}
+.sb-item.active svg{filter:drop-shadow(0 0 4px rgba(243,103,23,.5));animation:mnTabPop .5s cubic-bezier(.3,1.8,.5,1)}
 .sb-item svg{flex-shrink:0}
 .sb-label{font-size:12px;font-weight:500;opacity:0;transition:opacity .15s}
 .sidebar.expanded .sb-label{opacity:1}
@@ -1535,12 +1543,25 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       border-radius:14px;padding:6px 10px;margin-bottom:1px;
       box-shadow:0 0 16px -6px rgba(243,103,23,.4);
       animation:mnPrimaryBreathe 3.2s ease-in-out infinite;
+      transition:background .35s,border-color .35s;
     }
     @keyframes mnPrimaryBreathe{
       0%,100%{box-shadow:0 0 16px -6px rgba(243,103,23,.4),0 0 0 0 rgba(243,103,23,.35)}
       60%{box-shadow:0 0 16px -6px rgba(243,103,23,.4),0 0 0 7px rgba(243,103,23,0)}
     }
     @media(prefers-reduced-motion:reduce){.mn-btn.mn-primary .mn-icon-wrap{animation:none}}
+    /* Twirl: the Start icon crossfades to a close X while the start-choice
+       sheet is open, same rotate+scale handoff as the reference artifact's
+       center compass button swapping to its X icon. */
+    .mn-icon-stack{position:relative;width:24px;height:24px;display:block}
+    .mn-icon-stack svg{position:absolute;inset:0;display:grid;place-items:center;transition:all .5s cubic-bezier(.3,1.6,.5,1)}
+    .mn-icon-stack .mi-close{opacity:0;transform:rotate(-120deg) scale(.4)}
+    .mn-icon-wrap.open{animation:none;background:rgba(243,103,23,.22);border-color:rgba(243,103,23,.6)}
+    .mn-icon-wrap.open .mi-play{opacity:0;transform:rotate(120deg) scale(.4)}
+    .mn-icon-wrap.open .mi-close{opacity:1;transform:none}
+    #mn-session.squash{animation:mnSquash .65s cubic-bezier(.3,1.6,.5,1)}
+    @keyframes mnSquash{0%{transform:scale(1)}25%{transform:scale(.8)}55%{transform:scale(1.12)}100%{transform:scale(1)}}
+    @media(prefers-reduced-motion:reduce){.mn-icon-stack svg,#mn-session.squash{transition:none;animation:none}}
     .mn-btn.mn-primary svg{width:24px;height:24px;stroke-width:2}
     @media(max-width:800px){
       #mobile-nav{display:flex!important}
@@ -21891,16 +21912,22 @@ function logPastSession(){
 // silently handing back a generic push session — see buildSession()'s own
 // comment for what happens once build-as-you-go is actually chosen.
 function handleSessionStartTap(){
+  const btn=document.getElementById('mn-session');
+  if(btn){btn.classList.remove('squash');void btn.offsetWidth;btn.classList.add('squash');}
   if(sessionInProgress()||startingScheduledSession||(plannedSessionExs&&plannedSessionExs.length)){
     showPage('session');
     return;
   }
   document.getElementById('sess-start-choice-backdrop').style.display='block';
   document.getElementById('sess-start-choice-modal').style.display='block';
+  const wrap=document.getElementById('mn-session-iconwrap');
+  if(wrap)wrap.classList.add('open');
 }
 function closeSessionStartChoiceModal(){
   document.getElementById('sess-start-choice-backdrop').style.display='none';
   document.getElementById('sess-start-choice-modal').style.display='none';
+  const wrap=document.getElementById('mn-session-iconwrap');
+  if(wrap)wrap.classList.remove('open');
 }
 function startBuildAsYouGoSession(){
   // Reachable both from the choice modal (nothing to lose there — that
@@ -31888,8 +31915,11 @@ document.addEventListener('DOMContentLoaded', function(){
       Forge
     </button>
     <button class="mn-btn mn-primary" id="mn-session" onclick="handleSessionStartTap()">
-      <div class="mn-icon-wrap">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><polygon points="5,3 19,12 5,21 5,3"/></svg>
+      <div class="mn-icon-wrap" id="mn-session-iconwrap">
+        <span class="mn-icon-stack">
+          <svg class="mi-play" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><polygon points="5,3 19,12 5,21 5,3"/></svg>
+          <svg class="mi-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>
+        </span>
       </div>
       Start
     </button>
