@@ -4805,6 +4805,12 @@ body[data-goal-theme="cut"] .lv-page{
 .lv-label-eyebrow{font-size:.6875rem;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--lv-muted-fg)}
 .lv-grain{position:relative}
 .lv-grain::after{content:'';position:absolute;inset:0;pointer-events:none;opacity:.05;background-image:radial-gradient(var(--lv-fg) .5px,transparent .5px);background-size:3px 3px}
+/* A real photo already has its own detail/texture — stacking the synthetic
+   dot-grain on top of it just reads as noise on an already-soft image
+   instead of the intended paper-grain mood, which is what flat-color
+   .lv-ember-wash/.lv-colonnade headers actually want it for. Scoped off
+   here rather than removing .lv-grain itself. */
+.lv-photo-header.lv-grain::after{display:none}
 .lv-ember-wash{background:radial-gradient(120% 80% at 50% -10%,rgba(var(--lv-primary-rgb),.32) 0%,transparent 60%),var(--lv-bg)}
 .lv-display-hero{font-family:var(--lv-display);font-weight:400;font-size:clamp(2rem,10vw,2.6rem);line-height:.95;letter-spacing:.01em;text-transform:uppercase}
 /* color explicit rather than left to inherit from body's --white — inside
