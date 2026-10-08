@@ -17068,23 +17068,23 @@ function getRank(){const i=getRankIndex();return i<0?UNRANKED:TIERS[i];}
 // 3D Hall of Statues — desktop only (fine pointer, wide screen, WebGL).
 // The hall is its own page (images/hall/hall.html) shown in an iframe so
 // three.js and the baked statue art load only when someone opens it.
+function hall3DWide(){try{return matchMedia('(min-width:900px) and (pointer:fine)').matches;}catch(e){return false;}}
 function hall3DSupported(){
   try{
-    if(!matchMedia('(min-width:900px) and (pointer:fine)').matches)return false;
     const c=document.createElement('canvas');
     return !!(c.getContext('webgl2')||c.getContext('webgl'));
   }catch(e){return false;}
 }
 function syncHall3DButton(){
   const b=document.getElementById('hall3d-open');
-  if(b)b.hidden=!hall3DSupported();
+  if(b){b.hidden=!hall3DSupported();b.textContent=hall3DWide()?'Walk the 3D hall':'Climb the road to Olympus';}
 }
 function openHall3D(){
   if(document.getElementById('hall3d-overlay'))return;
   const o=document.createElement('div');o.id='hall3d-overlay';o.setAttribute('role','dialog');o.setAttribute('aria-label','Hall of Statues in 3D');
   const fr=document.createElement('iframe');
   fr.title='Hall of Statues';
-  fr.src='mass-app/images/hall/hall.html'+'?rank='+getRankIndex()+'&kg='+Math.round(totalVolume);
+  fr.src=(hall3DWide()?'mass-app/images/hall/hall.html':'mass-app/images/hall/road.html')+'?rank='+getRankIndex()+'&kg='+Math.round(totalVolume)+'&n='+encodeURIComponent((profile&&profile.name)||'');
   o.appendChild(fr);document.body.appendChild(o);
   requestAnimationFrame(()=>o.classList.add('on'));
 }
