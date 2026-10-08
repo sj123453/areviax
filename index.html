@@ -10195,7 +10195,7 @@ function computeMuscleReadiness(){
       if(ratio>1.3)windowHours*=1.25;
       else if(ratio<0.7)windowHours*=0.75;
     }
-    const daysSince=Math.floor((parseLocalDate(localDateKey(new Date()))-parseLocalDate(lastDate))/86400000);
+    const daysSince=Math.round((parseLocalDate(localDateKey(new Date()))-parseLocalDate(lastDate))/86400000);
     // Real timestamps (logged from this point forward) give hour-level
     // accuracy instead of rounding to whole calendar days — training at
     // 11pm and checking at 8am the next morning is 9 real hours, not the
@@ -16323,7 +16323,14 @@ function addProgressPhoto(input){
   if(!file)return;
   compressImage(file,560,0.72,function(dataUrl){
     photoLog.push({date:localDateKey(new Date()),dataUrl,weight:profile.weight||null});
-    saveToStorage();
+    if(!saveToStorage()&&_saveFailedKeys.includes('arx_photoLog')){
+      // Didn't fit — drop it again rather than show a photo that will be
+      // gone on the next reload.
+      photoLog.pop();
+      _saveFailureWarned=true;
+      toast('⚠️','Storage is full — this photo wasn\'t saved. Delete a few old progress photos and try again.');
+      return;
+    }
     renderPhotoGallery();
     toast('📸','Progress photo saved');
   });
@@ -16504,19 +16511,51 @@ function updatePhotoSlider(val){
 // ── BACKUP & RESTORE — everything lives in localStorage only, so this
 // is the one real safety net against losing it all to a cleared cache. ──
 // Single source of truth for what a backup snapshot contains — used by
-// manual export, manual import, AND the automatic cloud backup below,
-// so all three stay in sync with zero duplicated field lists.
-function buildBackupSnapshot(){
-  return {
-    version:1,exportDate:new Date().toISOString(),
-    profile,weightLog,measurementsLog,prs,streak,xp,compassPts,totalSess,sessThisWeek,
-    dayMacros,totalVolume,questWeekStart,questProgress,questClaimed,
-    proteinHitDates,customWorkouts,lastSessionDate,lastActiveDate,compassWeekStart,
-    joinDate,lastAnniversaryYear,unlockedAchievements,lastSessionWorkoutName,photoLog,
-    todayLog,nutritionLogDate,sleepLog
-  };
+// manual export, manual import, AND the automatic cloud backup below.
+//
+// Version 2 copies every saved key verbatim instead of a hand-picked list
+// of variables. The old v1 list had drifted to ~28 of the ~150 values the
+// app actually saves, so restoring onto a new phone silently lost drachma,
+// keys and crates, unlocked themes/titles/legends, lift and PR history,
+// the whole food log, custom recipes/foods, trials, leagues and more.
+// Copying the keys themselves means anything saveToStorage writes is
+// backed up automatically, with no second list to keep in sync.
+const BACKUP_EXTRA_KEYS=['areviax_hero_v1'];
+function isBackupKey(k){return k.startsWith('arx_')||BACKUP_EXTRA_KEYS.includes(k);}
+function buildBackupSnapshot(alreadySaved){
+  // autoCloudBackup runs from inside saveToStorage itself — saving again
+  // from there would recurse forever.
+  if(!alreadySaved)saveToStorage();
+  const keys={};
+  try{
+    for(let i=0;i<localStorage.length;i++){
+      const k=localStorage.key(i);
+      if(k&&isBackupKey(k))keys[k]=localStorage.getItem(k);
+    }
+  }catch(e){}
+  // profile/exportDate stay at the top level so the import check below
+  // (and anything reading an older backup by eye) still recognises it.
+  return {version:2,exportDate:new Date().toISOString(),profile,keys};
 }
 function applyBackupData(data){
+  if(data&&data.version>=2&&data.keys&&typeof data.keys==='object'){
+    // Replace, don't merge — a key that isn't in the backup shouldn't
+    // survive from the current device's data.
+    try{
+      const existing=[];
+      for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&isBackupKey(k))existing.push(k);}
+      existing.forEach(k=>localStorage.removeItem(k));
+      Object.keys(data.keys).forEach(k=>{if(isBackupKey(k)&&typeof data.keys[k]==='string')localStorage.setItem(k,data.keys[k]);});
+      localStorage.setItem('arx_lastBackupDate',localDateKey(new Date()));
+    }catch(e){
+      toast('\u26a0\ufe0f','Not enough storage space to restore this backup.');
+      return false;
+    }
+    // Callers reload straight after, and loadFromStorage reads everything
+    // back in — no need to mirror ~150 variables by hand here.
+    return true;
+  }
+  // Version 1 backups (older export files) — the original field list.
   profile=data.profile||profile;
   weightLog=data.weightLog||[];
   prs=data.prs||{};
@@ -16545,6 +16584,7 @@ function applyBackupData(data){
   sleepLog=data.sleepLog||[];
   lastBackupDate=localDateKey(new Date());
   saveToStorage();
+  return true;
 }
 
 function exportData(){
@@ -16575,7 +16615,7 @@ function importDataFile(input){
     if(!data||!data.profile){toast('⚠️','Doesn\'t look like an Areviax backup file.');input.value='';return;}
     const dateStr=data.exportDate?new Date(data.exportDate).toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'}):'an unknown date';
     if(!confirm('This will REPLACE all your current data with this backup from '+dateStr+'.\n\nThis cannot be undone. Continue?')){input.value='';return;}
-    applyBackupData(data);
+    if(!applyBackupData(data)){input.value='';return;}
     toast('✅','Backup restored — reloading...');
     setTimeout(()=>location.reload(),1200);
   };
@@ -16595,7 +16635,7 @@ async function autoCloudBackup(){
   try{
     if(cloudBackupConsent!==true)return; // belt-and-braces — never runs without explicit opt-in
     if(typeof window.storage==='undefined')return;
-    const snapshot=buildBackupSnapshot();
+    const snapshot=buildBackupSnapshot(true);
     await window.storage.set('arx_cloud_backup', JSON.stringify(snapshot), false);
   }catch(e){/* silently no-op — cloud storage isn't available in this context */}
 }
@@ -16665,7 +16705,7 @@ function restoreFromCloud(){
   if(!_cloudBackupData){toast('⚠️','No cloud backup found yet.');return;}
   const dateStr=new Date(_cloudBackupData.exportDate).toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
   if(!confirm('Restore from your automatic cloud backup ('+dateStr+')?\n\nThis replaces your current data and cannot be undone.'))return;
-  applyBackupData(_cloudBackupData);
+  if(!applyBackupData(_cloudBackupData))return;
   toast('✅','Restored from cloud — reloading...');
   setTimeout(()=>location.reload(),1200);
 }
@@ -16776,9 +16816,8 @@ function renderTemplateList(){
   if(!list)return;
   const names=Object.keys(customWorkouts);
   list.innerHTML=names.length?names.map(n=>{
-    const safe=n.replace(/'/g,"\\'");
-    return '<span class="template-chip" onclick="loadCustomTemplate(\''+safe+'\')">📂 '+n+
-      '<span onclick="event.stopPropagation();deleteCustomTemplate(\''+safe+'\')" title="Delete template" style="margin-left:7px;opacity:.6">×</span></span>';
+    return '<span class="template-chip" onclick="loadCustomTemplate('+jsArg(n)+')">📂 '+escHtml(n)+
+      '<span onclick="event.stopPropagation();deleteCustomTemplate('+jsArg(n)+')" title="Delete template" style="margin-left:7px;opacity:.6">×</span></span>';
   }).join(''):'<span style="color:var(--muted);font-size:11px">No saved templates yet — build a session and save it.</span>';
 }
 
@@ -19413,7 +19452,7 @@ function renderDashHeroLovable(){
     const todayKey=localDateKey(new Date());
     const prior=name&&sessionHistory.length?sessionHistory.filter(s=>s.name===name&&s.date!==todayKey).sort((a,b)=>b.date.localeCompare(a.date))[0]:null;
     if(prior){
-      const days=Math.floor((parseLocalDate(todayKey)-parseLocalDate(prior.date))/86400000);
+      const days=Math.round((parseLocalDate(todayKey)-parseLocalDate(prior.date))/86400000);
       lastEl.textContent='last · '+(days<=0?'today':days+'d ago');
     }else{
       lastEl.textContent='last · first time';
@@ -20714,7 +20753,7 @@ function toggleCustomMealPicker(type){
   const options=RECIPES_DB.filter(r=>r.type===type);
   panel.innerHTML=`<div class="swap-list" style="margin-top:10px">
     ${options.map(r=>`<div class="swap-item" onclick="pickCustomMeal('${type}','${r.name.replace(/'/g,"\\'")}')">
-      <div style="flex:1;min-width:0"><div class="ex-name" style="font-size:12.5px">${r.name}</div><div class="ex-meta">${r.cals} kcal · ${r.prot}g protein</div></div>
+      <div style="flex:1;min-width:0"><div class="ex-name" style="font-size:12.5px">${escHtml(r.name)}</div><div class="ex-meta">${r.cals} kcal · ${r.prot}g protein</div></div>
     </div>`).join('')}
   </div>`;
 }
@@ -20826,7 +20865,7 @@ function renderMealPlan(targetCals,targetProt){
           <div class="mealplan-card-head" onclick="toggleMealCard(${di},${mi})">
             <div>
               <div style="font-size:9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--nutri)">${m.type} ${m.effort?`· ${m.effort==='no-cook'?'No cook':m.effort==='quick'?'Quick':'Some effort'}`:''}</div>
-              <div style="font-size:13.5px;font-weight:700;margin-top:2px">${m.name}${m.portionScale&&m.portionScale!==1?` <span style="font-size:10px;font-weight:700;color:#44CFFF">${m.portionScale}×</span>`:''}</div>
+              <div style="font-size:13.5px;font-weight:700;margin-top:2px">${escHtml(m.name)}${m.portionScale&&m.portionScale!==1?` <span style="font-size:10px;font-weight:700;color:#44CFFF">${m.portionScale}×</span>`:''}</div>
             </div>
             <div style="text-align:right;flex-shrink:0">
               <div style="font-size:12px;font-weight:800">${m.cals} kcal</div>
@@ -20871,7 +20910,7 @@ function toggleAddMealPanel(di){
   panel.innerHTML=`<div style="font-size:10.5px;color:var(--muted);margin:10px 0 8px">Pick anything to add to this day:</div>
     <div class="swap-list">
       ${RECIPES_DB.map(r=>`<div class="swap-item" onclick="addMealToDay(${di},'${r.name.replace(/'/g,"\\'")}')">
-        <div style="flex:1;min-width:0"><div class="ex-name" style="font-size:12.5px">${r.name}</div><div class="ex-meta">${r.type} · ${r.cals} kcal · ${r.prot}g protein</div></div>
+        <div style="flex:1;min-width:0"><div class="ex-name" style="font-size:12.5px">${escHtml(r.name)}</div><div class="ex-meta">${escHtml(r.type)} · ${r.cals} kcal · ${r.prot}g protein</div></div>
       </div>`).join('')}
     </div>`;
 }
@@ -20918,7 +20957,7 @@ function toggleMealSwapPanel(di,mi){
   panel.innerHTML=`<div style="font-size:10.5px;color:var(--muted);margin:10px 0 8px">Swap for another ${type}:</div>
     <div class="swap-list">
       ${alts.map(r=>`<div class="swap-item" onclick="event.stopPropagation();swapMealPlanMeal(${di},${mi},'${r.name.replace(/'/g,"\\'")}')">
-        <div style="flex:1;min-width:0"><div class="ex-name" style="font-size:12.5px">${r.name}</div><div class="ex-meta">${r.cals} kcal · ${r.prot}g protein</div></div>
+        <div style="flex:1;min-width:0"><div class="ex-name" style="font-size:12.5px">${escHtml(r.name)}</div><div class="ex-meta">${r.cals} kcal · ${r.prot}g protein</div></div>
       </div>`).join('')}
     </div>`;
 }
@@ -21852,7 +21891,7 @@ function renderSessionHistory(){
     // Load to actually reload, so both are skipped for those specifically.
     const exLabel=s.exs.length?s.exs.length+' exercises':(s.backdated?'logged after the fact':'');
     return `<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 12px;background:rgba(232,214,196,.03);border:1.5px solid var(--border2);border-radius:8px">
-      <div style="min-width:0"><div style="font-size:12px;font-weight:700;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${s.name}</div><div style="font-size:10px;color:var(--muted)">${dLabel}${exLabel?' · '+exLabel:''}${s.durationSec?' · '+Math.round(s.durationSec/60)+'min':''}${s.caloriesBurned?' · ~'+s.caloriesBurned+' cal':''}</div></div>
+      <div style="min-width:0"><div style="font-size:12px;font-weight:700;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(s.name)}</div><div style="font-size:10px;color:var(--muted)">${dLabel}${exLabel?' · '+exLabel:''}${s.durationSec?' · '+Math.round(s.durationSec/60)+'min':''}${s.caloriesBurned?' · ~'+s.caloriesBurned+' cal':''}</div></div>
       ${s.backdated?'':`<button class="btn btn-out btn-sm" style="flex-shrink:0" onclick="loadSessionFromHistory(${i})">Load</button>`}
     </div>`;
   }).join('');
@@ -23380,9 +23419,15 @@ function tryAutoConsumeStreakFreeze(){
   const yesterday=new Date();yesterday.setDate(yesterday.getDate()-1);
   const yStr=localDateKey(yesterday);
   if(lastActiveDate===yStr)return false; // not actually broken yet
-  streakFreezes--;
+  // One freeze covers one missed day. This used to spend a single freeze
+  // on a gap of any length, so a month away still kept the whole streak.
+  // Math.round, not floor: across a DST change the gap between two local
+  // midnights is 23 or 25 hours, not an exact multiple of 24.
+  const missedDays=Math.round((parseLocalDate(today)-parseLocalDate(lastActiveDate))/86400000)-1;
+  if(!(missedDays>=1)||missedDays>streakFreezes)return false;
+  streakFreezes-=missedDays;
   lastActiveDate=yStr;
-  toast('❄️','Streak Freeze used — your '+streak+' day streak is safe','streak');
+  toast('❄️',(missedDays>1?missedDays+' Streak Freezes':'Streak Freeze')+' used — your '+streak+' day streak is safe','streak');
   saveToStorage();
   return true;
 }
@@ -23518,12 +23563,19 @@ function completeSession(nameOverride){
       return;
     }
   }
+  const today=localDateKey(new Date());
+  const alreadyTrainedToday=(lastSessionDate===today);
+  // Ask BEFORE touching anything — this used to run after the timer was
+  // stopped, the session pushed into history and the logged sets cleared,
+  // so tapping Cancel still threw away the in-progress workout and left a
+  // phantom history entry behind.
+  if(alreadyTrainedToday){
+    const already=lastSessionWorkoutName||'a session';
+    if(!confirm('You already logged "'+already+'" today.\n\nTraining again so soon adds fatigue without extra growth, and won\'t add to your streak or weekly compass (those only move once per day) — but it will still count toward your total sessions and Arete.\n\nLog it anyway?'))return;
+  }
   const sessionDurationSec=currentElapsedSeconds();
   clearInterval(timerInt);timerOn=false;
   buildAsYouGoSession=false; // this session (built-as-you-go or not) is done
-
-  const today=localDateKey(new Date());
-  const alreadyTrainedToday=(lastSessionDate===today);
   const todaysWorkoutName=nameOverride||document.getElementById('d-next-full')?.textContent||'a session';
 
   const sessionCaloriesBurned=estimateStrengthCalories(sessionDurationSec);
@@ -23536,9 +23588,6 @@ function completeSession(nameOverride){
   liveSessionProgress={};
 
   if(alreadyTrainedToday){
-    const already=lastSessionWorkoutName||'a session';
-    const proceed=confirm('You already logged "'+already+'" today.\n\nTraining again so soon adds fatigue without extra growth, and won\'t add to your streak or weekly compass (those only move once per day) — but it will still count toward your total sessions and Arete.\n\nLog it anyway?');
-    if(!proceed)return; // abort — no changes made, timer already cleared above is fine since they paused
     totalSess++; // an extra explicit completion same day still counts toward the lifetime total/Arete, matching the dialog text — sessThisWeek/compassPts don't move again since markTrainedToday() below is skipped
   }else{
     // Covers both: sets were already logged this session (markTrainedToday
@@ -25533,7 +25582,7 @@ function recipeThumb(r){
 // in with real photography gradually without any card ever looking
 // broken in the meantime.
 function recipeVisualHTML(r){
-  if(r.image)return `<img src="${r.image}" alt="${r.name.replace(/"/g,'&quot;')}" loading="lazy" style="width:100%;height:100%;object-fit:cover">`;
+  if(r.image)return `<img src="${escHtml(r.image)}" alt="${escHtml(r.name)}" loading="lazy" style="width:100%;height:100%;object-fit:cover">`;
   return recipeThumb(r);
 }
 // CUSTOM RECIPES — your own food/meal entries, shaped identically to a
@@ -25562,10 +25611,10 @@ function renderCustomFoodsQuickAdd(){
   wrap.style.display='block';
   grid.innerHTML=customFoods.map((f,i)=>`<div style="position:relative">
       <button onclick="logCustomFood(${i})" style="display:flex;flex-direction:column;align-items:flex-start;gap:4px;border:1px solid var(--lv-border-strong);border-radius:1rem;padding:12px;text-align:left;background:transparent;cursor:pointer;width:100%;box-sizing:border-box">
-        <span style="display:flex;width:100%;justify-content:space-between;gap:4px;font-family:var(--lv-sans);font-size:12px;font-weight:700;color:var(--lv-fg);line-height:1.2">${f.name}<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--lv-muted-fg)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span>
+        <span style="display:flex;width:100%;justify-content:space-between;gap:4px;font-family:var(--lv-sans);font-size:12px;font-weight:700;color:var(--lv-fg);line-height:1.2">${escHtml(f.name)}<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--lv-muted-fg)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span>
         <span style="font-family:var(--lv-mono);font-size:10px;color:var(--lv-muted-fg)">${f.cals} kcal · ${f.prot}g P</span>
       </button>
-      <span onclick="event.stopPropagation();deleteCustomFood(${i})" role="button" aria-label="Remove ${f.name}" style="position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:rgba(232,49,74,.85);color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center;cursor:pointer;line-height:1">✕</span>
+      <span onclick="event.stopPropagation();deleteCustomFood(${i})" role="button" aria-label="Remove ${escHtml(f.name)}" style="position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;background:rgba(232,49,74,.85);color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center;cursor:pointer;line-height:1">✕</span>
     </div>`).join('');
 }
 function logCustomFood(i){
@@ -25690,7 +25739,7 @@ function renderRecipesPage(){
     return `<div class="recipe-card" onclick="openRecipeDetail(${idx})">
       <div class="recipe-card-visual">${recipeVisualHTML(r)}${r.custom?'<span class="recipe-custom-tag">Yours</span>':''}</div>
       <div class="recipe-card-body">
-        <div class="recipe-card-name">${r.name}</div>
+        <div class="recipe-card-name">${escHtml(r.name)}</div>
         <div class="recipe-card-macros"><span>${r.cals} kcal</span><span>·</span><span>${r.prot}g protein</span></div>
       </div>
     </div>`;
@@ -25723,7 +25772,7 @@ function renderRecipeDetailIngredients(r){
     const opt=sw.options[recipeSwapChoices[i]||0];
     if(opt&&opt.text!=null&&sw.ingredientIndex!=null)lines[sw.ingredientIndex]=opt.text;
   });
-  ingEl.innerHTML=lines.map(i=>`<div style="display:flex;gap:8px;align-items:flex-start;font-size:12px;color:rgba(var(--white-rgb),.75);line-height:1.6;margin-bottom:4px"><span style="color:rgba(255,122,46,.7)">•</span>${i}</div>`).join('');
+  ingEl.innerHTML=lines.map(i=>`<div style="display:flex;gap:8px;align-items:flex-start;font-size:12px;color:rgba(var(--white-rgb),.75);line-height:1.6;margin-bottom:4px"><span style="color:rgba(255,122,46,.7)">•</span>${escHtml(i)}</div>`).join('');
 }
 // SWAP PICKER — "switch in ingredients" (e.g. 0% vs full-fat yogurt):
 // a pill row per swap group, tapping one re-renders the ingredient list
@@ -25772,7 +25821,7 @@ function openRecipeDetail(idx){
   renderRecipeSwaps(r);
   renderRecipeDetailIngredients(r);
   const stepsEl=document.getElementById('recipe-detail-steps');
-  if(stepsEl)stepsEl.innerHTML=r.steps.map((s,i)=>`<div style="display:flex;gap:10px;margin-bottom:12px"><div style="flex-shrink:0;width:20px;height:20px;border-radius:50%;background:rgba(243,103,23,.15);color:#FF9A5C;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center">${i+1}</div><div style="font-size:12.5px;color:rgba(var(--white-rgb),.8);line-height:1.55">${s}</div></div>`).join('');
+  if(stepsEl)stepsEl.innerHTML=r.steps.map((s,i)=>`<div style="display:flex;gap:10px;margin-bottom:12px"><div style="flex-shrink:0;width:20px;height:20px;border-radius:50%;background:rgba(243,103,23,.15);color:#FF9A5C;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center">${i+1}</div><div style="font-size:12.5px;color:rgba(var(--white-rgb),.8);line-height:1.55">${escHtml(s)}</div></div>`).join('');
   renderRecipeVariations(r);
   const customActions=document.getElementById('recipe-detail-custom-actions');
   if(customActions)customActions.style.display=r.custom?'flex':'none';
@@ -25845,11 +25894,17 @@ function importRecipeCode(){
   if(!raw.startsWith('ARX1-')){toast('⚠️','That doesn\'t look like an Areviax share code.');return;}
   try{
     const payload=JSON.parse(decodeURIComponent(escape(atob(raw.slice(5)))));
+    // A share code comes from someone else, so nothing in it is trusted:
+    // numbers must be numbers, the meal type must be one we know, and
+    // every text field is a plain string (it's escaped again on render).
+    const num=v=>{const x=Number(v);return isFinite(x)&&x>=0?Math.round(x*10)/10:0;};
+    const str=v=>String(v==null?'':v).slice(0,300);
+    const strList=v=>Array.isArray(v)?v.map(str).filter(Boolean).slice(0,40):[];
     const entry={
-      name:payload.n,type:payload.t||'lunch',cals:payload.c||0,prot:payload.p||0,carbs:payload.cb||0,fats:payload.f||0,
-      ingredients:payload.i&&payload.i.length?payload.i:['No ingredients listed.'],
-      steps:payload.s&&payload.s.length?payload.s:['No method listed — just the macros for a quick log.'],
-      why:payload.w||'Shared with you.',
+      name:str(payload.n).slice(0,80).trim(),type:RECIPE_TYPE_ICON[payload.t]?payload.t:'lunch',cals:num(payload.c),prot:num(payload.p),carbs:num(payload.cb),fats:num(payload.f),
+      ingredients:strList(payload.i).length?strList(payload.i):['No ingredients listed.'],
+      steps:strList(payload.s).length?strList(payload.s):['No method listed — just the macros for a quick log.'],
+      why:str(payload.w)||'Shared with you.',
       custom:true, id:'c'+Date.now()+Math.floor(Math.random()*1000),
     };
     if(!entry.name){toast('⚠️','That code looks corrupted.');return;}
@@ -26425,7 +26480,7 @@ function renderNutrition(){
       const scored=candidates.map(c=>({...c,fit:Math.abs(c.cals-gapCals)})).sort((a,b)=>a.fit-b.fit||b.prot-a.prot).slice(0,4);
       const cb=document.getElementById('catchup-body');
       if(cb)cb.innerHTML=`<div style="font-size:11px;color:var(--muted);margin-bottom:10px">Closest matches for the ${gapCals} kcal (and ${Math.round(gapProt)}g protein) you have left today:</div>`+
-        scored.map(s=>`<div class="meal-row"><div class="meal-info"><div class="meal-name">${s.name}</div><div class="meal-cals">${s.cals} kcal · ${s.prot}g protein</div></div><button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();addMeal(${s.cals},${s.prot},'${s.name.replace(/'/g,"\\'")}',${s.carbs||0},${s.fats||0})">Add</button></div>`).join('');
+        scored.map(s=>`<div class="meal-row"><div class="meal-info"><div class="meal-name">${escHtml(s.name)}</div><div class="meal-cals">${s.cals} kcal · ${s.prot}g protein</div></div><button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();addMeal(${s.cals},${s.prot},'${s.name.replace(/'/g,"\\'")}',${s.carbs||0},${s.fats||0})">Add</button></div>`).join('');
     }
   }
 }
@@ -28672,7 +28727,7 @@ function checkCoachNutritionCheckin(){
   if(!banner)return;
   const today=localDateKey(new Date());
   if(coachNutritionCheckinDismissedAt){
-    const daysSince=Math.floor((parseLocalDate(today)-parseLocalDate(coachNutritionCheckinDismissedAt))/86400000);
+    const daysSince=Math.round((parseLocalDate(today)-parseLocalDate(coachNutritionCheckinDismissedAt))/86400000);
     if(daysSince<10)return;
   }
   const recent=nutritionDayLog.slice(-5);
@@ -28969,11 +29024,11 @@ function checkCoachWorkoutCheckin(){
   if(!banner)return;
   const today=localDateKey(new Date());
   if(coachWorkoutCheckinDismissedAt){
-    const daysSince=Math.floor((parseLocalDate(today)-parseLocalDate(coachWorkoutCheckinDismissedAt))/86400000);
+    const daysSince=Math.round((parseLocalDate(today)-parseLocalDate(coachWorkoutCheckinDismissedAt))/86400000);
     if(daysSince<10)return;
   }
   if(!lastSessionDate||trainingCompletedDates.length<3)return; // not enough real history yet to call it a pattern
-  const daysSinceLastSession=Math.floor((parseLocalDate(today)-parseLocalDate(lastSessionDate))/86400000);
+  const daysSinceLastSession=Math.round((parseLocalDate(today)-parseLocalDate(lastSessionDate))/86400000);
   if(daysSinceLastSession<7)return;
   banner.style.display='';
 }
@@ -29163,7 +29218,7 @@ function renderQuickRecipeSearch(query){
   }
   wrap.innerHTML=label+matches.map(r=>{
     const idx=all.indexOf(r);
-    return `<div class="smartlog-result" onclick="logQuickRecipe(${idx})" style="display:flex;align-items:center;justify-content:space-between;gap:6px"><span style="flex:1;min-width:0">${r.name}</span><span>${r.cals} kcal · ${r.prot}g P</span></div>`;
+    return `<div class="smartlog-result" onclick="logQuickRecipe(${idx})" style="display:flex;align-items:center;justify-content:space-between;gap:6px"><span style="flex:1;min-width:0">${escHtml(r.name)}</span><span>${r.cals} kcal · ${r.prot}g P</span></div>`;
   }).join('');
 }
 function logQuickRecipe(idx){
@@ -29288,7 +29343,7 @@ function renderShakeTypesPanel(){
     </div>`).join('')}
     ${customShakeTemplates.map((s,i)=>`<div class="shake-type-card" onclick="toggleCustomShakeRecipe(${i})">
       ${getShakeGlassSVG(s.color,40)}
-      <div style="font-size:10px;font-weight:700;margin-top:4px">${s.name} <span style="color:#44CFFF">★</span></div>
+      <div style="font-size:10px;font-weight:700;margin-top:4px">${escHtml(s.name)} <span style="color:#44CFFF">★</span></div>
       <div style="font-size:9px;color:var(--muted)">${s.cals} kcal · ${s.prot}g</div>
     </div>`).join('')}
     <div class="shake-type-card" style="border-style:dashed" onclick="toggleShakeBuilder()">
@@ -29308,7 +29363,7 @@ function toggleShakeRecipe(i){
   detail.innerHTML=`<div style="background:var(--panel2);border:1.5px solid var(--border2);border-radius:10px;padding:12px;display:flex;gap:12px;align-items:center">
     ${getShakeGlassSVG(s.color,44)}
     <div style="flex:1">
-      <div style="font-size:12.5px;font-weight:800">${s.name}</div>
+      <div style="font-size:12.5px;font-weight:800">${escHtml(s.name)}</div>
       <div style="font-size:10px;color:var(--muted);margin-bottom:6px">${s.cals} kcal · ${s.prot}g protein · ${s.carbs}g carbs · ${s.fats}g fats</div>
       <div style="font-size:10.5px;color:rgba(var(--white-rgb),.75)">${s.ingredients.join(' · ')}</div>
     </div>
@@ -29331,7 +29386,7 @@ function toggleCustomShakeRecipe(i){
     <div style="display:flex;gap:12px;align-items:center">
       ${getShakeGlassSVG(s.color,44)}
       <div style="flex:1">
-        <div style="font-size:12.5px;font-weight:800">${s.name} <span style="color:#44CFFF;font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase">Custom</span></div>
+        <div style="font-size:12.5px;font-weight:800">${escHtml(s.name)} <span style="color:#44CFFF;font-size:9px;font-weight:700;letter-spacing:.06em;text-transform:uppercase">Custom</span></div>
         <div style="font-size:10px;color:var(--muted);margin-bottom:6px">${s.cals} kcal · ${s.prot}g protein · ${s.carbs}g carbs · ${s.fats}g fats</div>
         <div style="font-size:10.5px;color:rgba(var(--white-rgb),.75)">${s.ingredients.join(' · ')}</div>
       </div>
@@ -29554,8 +29609,8 @@ function renderTodayLog(){
   }
   list.innerHTML=todayLog.map((item,i)=>
     '<div class="today-log-row">'+
-      '<div class="today-log-time">'+item.time+'</div>'+
-      '<div class="today-log-info"><div class="today-log-name">'+item.name+'</div><div class="today-log-macros">'+item.cals+' kcal \u00b7 '+item.prot+'g protein'+(item.alcohol?' \u00b7 '+item.alcohol+'g alcohol':'')+'</div></div>'+
+      '<div class="today-log-time">'+escHtml(item.time)+'</div>'+
+      '<div class="today-log-info"><div class="today-log-name">'+escHtml(item.name)+'</div><div class="today-log-macros">'+item.cals+' kcal \u00b7 '+item.prot+'g protein'+(item.alcohol?' \u00b7 '+item.alcohol+'g alcohol':'')+'</div></div>'+
       '<button class="today-log-relog" onclick="relogLoggedItem('+i+')" title="Log this again">\u21bb Log again</button>'+
       '<button class="today-log-save" onclick="saveLoggedItemAsCustomFood('+i+')" title="Save as a reusable food">\u2605</button>'+
       '<button class="today-log-delete" onclick="deleteLoggedItem('+i+')" title="Remove">\u00d7</button>'+
@@ -29622,7 +29677,7 @@ function renderPastDayLog(){
   const items=foodLogByDate[pendingLogDate]||[];
   box.style.display='block';
   box.innerHTML='<div class="past-day-log-card"><div class="pdl-title">Already logged for '+relativeDayLabel(pendingLogDate)+'</div>'+
-    (items.length?items.map(it=>`<div class="pdl-item"><span>${it.name}</span><span>${it.cals} kcal</span></div>`).join(''):'<div class="pdl-item"><span>Nothing yet</span></div>')+
+    (items.length?items.map(it=>`<div class="pdl-item"><span>${escHtml(it.name)}</span><span>${it.cals} kcal</span></div>`).join(''):'<div class="pdl-item"><span>Nothing yet</span></div>')+
     (items.length?'':'<button type="button" class="btn btn-out" style="width:100%;margin-top:10px" onclick="markDayHitOutsideApp()">I hit my targets — tracked outside the app</button>')+
     '<button type="button" class="btn btn-g" style="width:100%;margin-top:8px" onclick="finishBackdatedLogging()">Finish logging — back to today</button>'+
     '</div>';
@@ -29754,7 +29809,7 @@ function renderSupplementsRow(){
   const pool=SUPPLEMENT_DEFAULTS.concat(customSupplements);
   wrap.innerHTML=pool.map(name=>{
     const logged=todaySupplementsLog.includes(name);
-    return `<button type="button" onclick="toggleSupplement('${name.replace(/'/g,"\\'")}')" style="display:flex;align-items:center;gap:6px;padding:8px 13px;border-radius:999px;font-size:11.5px;font-weight:700;cursor:pointer;border:1.5px solid ${logged?'var(--lv-fuel)':'var(--border2)'};background:${logged?'rgba(var(--lv-fuel-rgb),.15)':'rgba(232,214,196,.03)'};color:${logged?'var(--lv-fuel)':'rgba(var(--white-rgb),.75)'}">${logged?'✓':''} ${name}</button>`;
+    return `<button type="button" onclick="toggleSupplement(${jsArg(name)})" style="display:flex;align-items:center;gap:6px;padding:8px 13px;border-radius:999px;font-size:11.5px;font-weight:700;cursor:pointer;border:1.5px solid ${logged?'var(--lv-fuel)':'var(--border2)'};background:${logged?'rgba(var(--lv-fuel-rgb),.15)':'rgba(232,214,196,.03)'};color:${logged?'var(--lv-fuel)':'rgba(var(--white-rgb),.75)'}">${logged?'✓':''} ${escHtml(name)}</button>`;
   }).join('');
   const badge=document.getElementById('supplements-count-badge');
   if(badge)badge.textContent=todaySupplementsLog.length+' today';
@@ -29898,9 +29953,19 @@ async function handleBarcodeDetected(code){
   }
 }
 
-function bcEscapeHtml(s){
-  return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+// Anything a person typed, pasted (recipe share codes) or fetched from a
+// third party (Open Food Facts product names, which anyone can edit) must
+// go through escHtml before it lands in an innerHTML template — otherwise
+// a name like <img onerror=...> runs as code inside the app, with access
+// to everything in localStorage. jsArg is for the same values passed as an
+// argument inside an inline onclick="fn(...)": it makes a valid JS string
+// literal and then HTML-escapes it for the attribute, so quotes and
+// apostrophes ("Mom's Oats") can neither break the handler nor inject one.
+function escHtml(s){
+  return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
+function jsArg(s){return escHtml(JSON.stringify(String(s==null?'':s)));}
+function bcEscapeHtml(s){return escHtml(s);}
 
 function renderBarcodeResult(){
   if(!bcProduct)return;
@@ -30925,7 +30990,7 @@ function renderLBRow(e,i){
     '<div class="lb-rank '+(rk[i]||'lb-normal')+'">'+rankDisplay+'</div>'+
     '<div class="lb-avatar" style="background:'+tierObj.col+'22;color:'+tierObj.col+';border-color:'+tierObj.col+'44">'+initial+'</div>'+
     '<div style="flex:1;min-width:0">'+
-      '<div class="lb-name">'+e.name+(e.isYou?' (you)':'')+'</div>'+
+      '<div class="lb-name">'+escHtml(e.name)+(e.isYou?' (you)':'')+'</div>'+
       '<div class="lb-sub">'+e.stage+' \u00b7 '+e.sess+' sessions \u00b7 '+e.streak+'d streak</div>'+
     '</div>'+
     '<div class="lb-val">'+e.valLabel+'</div>'+
@@ -31326,7 +31391,7 @@ function renderLeagues(){
     const zone=i<promoCut?'promo':(i>=relegateCut&&group.length>3)?'relegate':'';
     return '<div class="league-row '+zone+(m.isYou?' league-row-you':'')+'">'+
       '<div class="league-row-rank">'+(i+1)+'</div>'+
-      '<div class="league-row-name">'+m.name+(m.isYou?' (you)':'')+'</div>'+
+      '<div class="league-row-name">'+escHtml(m.name)+(m.isYou?' (you)':'')+'</div>'+
       '<div class="league-row-pts">'+m.points+' pts</div>'+
     '</div>';
   }).join('');
@@ -31390,7 +31455,7 @@ async function renderHallOfFame(){
   const rows=entries.slice(0,20).map((e,i)=>
     '<div class="league-hof-row'+(e.name===you?' league-row-you':'')+'">'+
       '<div class="league-row-rank">'+(i+1)+'</div>'+
-      '<div class="league-row-name">'+e.name+(e.name===you?' (you)':'')+'</div>'+
+      '<div class="league-row-name">'+escHtml(e.name)+(e.name===you?' (you)':'')+'</div>'+
       '<div class="league-row-pts">'+(e.wins||0)+'× 👑</div>'+
     '</div>'
   ).join('');
@@ -31473,206 +31538,243 @@ async function joinLB(){
 setTimeout(()=>{drawCompass();renderCompass()},100);
 
 // ── LOCALSTORAGE PERSISTENCE ──
+// Each key is written on its own, so one failing write (almost always the
+// storage quota, filled by progress photos) can't silently abort every
+// key after it in saveToStorage — which is what one shared try/catch used
+// to do, with nothing shown to the user.
+let _saveFailedKeys=[],_saveFailureWarned=false;
+function _ss(key,value){
+  try{localStorage.setItem(key,value);}catch(e){_saveFailedKeys.push(key);}
+}
 function saveToStorage(){
   try{checkLabors();}catch(e){}
+  _saveFailedKeys=[];
   try{
-    localStorage.setItem('arx_profile', JSON.stringify(profile));
-    localStorage.setItem('arx_weightLog', JSON.stringify(weightLog));
-    localStorage.setItem('arx_measurementsLog', JSON.stringify(measurementsLog));
-    localStorage.setItem('arx_prs', JSON.stringify(prs));
-    localStorage.setItem('arx_prBestReps', JSON.stringify(prBestReps));
-    localStorage.setItem('arx_prHistory', JSON.stringify(prHistory));
-    localStorage.setItem('arx_laborsCompleted', JSON.stringify(laborsCompleted));
-    localStorage.setItem('arx_weekSessionLength', weekSessionLength);
-    localStorage.setItem('arx_appTheme', appTheme);
-    localStorage.setItem('arx_unlockedThemes', JSON.stringify(unlockedThemes));
-    localStorage.setItem('arx_equippedAccentTheme', equippedAccentTheme);
-    localStorage.setItem('arx_unlockedTitles', JSON.stringify(unlockedTitles));
-    localStorage.setItem('arx_equippedTitle', equippedTitle);
-    localStorage.setItem('arx_unseenRewardCount', unseenRewardCount);
-    localStorage.setItem('arx_deviationLog', JSON.stringify(deviationLog));
-    localStorage.setItem('arx_lowerBodyNudgeDismissedAt', lowerBodyNudgeDismissedAt||'');
-    localStorage.setItem('arx_muscleBalanceNudgeDismissedDate', muscleBalanceNudgeDismissedDate||'');
-    localStorage.setItem('arx_weeklyCoverageDismissedWeek', weeklyCoverageDismissedWeek||'');
-    localStorage.setItem('arx_reflectionLog', JSON.stringify(reflectionLog));
-    localStorage.setItem('arx_liftHistory', JSON.stringify(liftHistory));
-    localStorage.setItem('arx_lastPerformance', JSON.stringify(lastPerformance));
-    localStorage.setItem('arx_streak', streak);
-    localStorage.setItem('arx_xpLog', JSON.stringify(xpLog));
-    localStorage.setItem('arx_streakFreezes', streakFreezes);
-    localStorage.setItem('arx_streakSavers', streakSavers);
-    localStorage.setItem('arx_bronzeDropBank', bronzeDropBank);
-    localStorage.setItem('arx_silverDropBank', silverDropBank);
-    localStorage.setItem('arx_diamondDropBank', diamondDropBank);
-    localStorage.setItem('arx_keyBank', keyBank);
-    localStorage.setItem('arx_drachma', drachma);
-    localStorage.setItem('arx_favoriteExercises', JSON.stringify([...favoriteExercises]));
-    localStorage.setItem('arx_exercisePreference', exercisePreference);
-    localStorage.setItem('arx_dailySpinDate', dailySpinDate);
-    localStorage.setItem('arx_bronzeDropProgress', bronzeDropProgress);
-    localStorage.setItem('arx_streakRepairDismissedDate', streakRepairDismissedDate);
-    localStorage.setItem('arx_weightUnit', weightUnit);
-    localStorage.setItem('arx_heightUnit', heightUnit);
-    localStorage.setItem('arx_plannedSessionExs', JSON.stringify(plannedSessionExs));
-    localStorage.setItem('arx_plannedSessionType', plannedSessionType);
-    localStorage.setItem('arx_plannedSessionName', plannedSessionName||'');
-    localStorage.setItem('arx_buildAsYouGoSession', buildAsYouGoSession?'1':'');
-    localStorage.setItem('arx_skippedExercises', JSON.stringify([...skippedExercises]));
-    localStorage.setItem('arx_calisthenicsProgress', JSON.stringify(calisthenicsProgress));
-    localStorage.setItem('arx_sessionEnteredAt', String(sessionEnteredAt||0));
-    localStorage.setItem('arx_sessionStartXP', String(sessionStartXP||0));
-    localStorage.setItem('arx_sessionStartVolume', String(sessionStartVolume||0));
-    localStorage.setItem('arx_sessionHistory', JSON.stringify(sessionHistory));
-    localStorage.setItem('arx_cardioLog', JSON.stringify(cardioLog));
-    localStorage.setItem('arx_cardioDistanceUnit', cardioDistanceUnit);
-    localStorage.setItem('arx_injuryWarningsDisabled', injuryWarningsDisabled);
-    localStorage.setItem('arx_reducedSetsMode', reducedSetsMode);
-    localStorage.setItem('arx_voiceCoachEnabled', voiceCoachEnabled);
-    localStorage.setItem('arx_bestStreak', bestStreak);
-    localStorage.setItem('arx_activeDates', JSON.stringify(activeDates));
-    localStorage.setItem('arx_xp', xp);
-    localStorage.setItem('arx_compassPts', compassPts);
-    localStorage.setItem('arx_totalSess', totalSess);
-    localStorage.setItem('arx_dayMacros', JSON.stringify(dayMacros));
-    localStorage.setItem('arx_totalVolume', totalVolume);
-    localStorage.setItem('arx_nutritionDayLog', JSON.stringify(nutritionDayLog));
-    localStorage.setItem('arx_foodLogByDate', JSON.stringify(foodLogByDate));
-    localStorage.setItem('arx_waterDayLog', JSON.stringify(waterDayLog));
-    localStorage.setItem('arx_tonnageLog', JSON.stringify(tonnageLog));
-    localStorage.setItem('arx_rpeLog', JSON.stringify(rpeLog));
-    localStorage.setItem('arx_recentFoodIdxs', JSON.stringify(recentFoodIdxs));
-    localStorage.setItem('arx_feederQuestClaimedDate', feederQuestClaimedDate);
-    localStorage.setItem('arx_questWeekStart', questWeekStart);
-    localStorage.setItem('arx_questProgress', JSON.stringify(questProgress));
-    localStorage.setItem('arx_questClaimed', JSON.stringify(questClaimed));
-    localStorage.setItem('arx_proteinHitDates', JSON.stringify(proteinHitDates));
-    localStorage.setItem('arx_customWorkouts', JSON.stringify(customWorkouts));
-    localStorage.setItem('arx_customShakeTemplates', JSON.stringify(customShakeTemplates));
-    localStorage.setItem('arx_lastSessionDate', lastSessionDate);
-    localStorage.setItem('arx_autoCountedDate', autoCountedDate);
-    localStorage.setItem('arx_lbLastRanks', JSON.stringify(lbLastRanks));
-    localStorage.setItem('arx_userLeagueTier', userLeagueTier);
-    localStorage.setItem('arx_leagueWeekStart', leagueWeekStart);
-    localStorage.setItem('arx_leagueMedals', JSON.stringify(leagueMedals));
-    localStorage.setItem('arx_leagueFellBadgeEarned', leagueFellBadgeEarned);
-    localStorage.setItem('arx_areviaxChampionWins', areviaxChampionWins);
-    localStorage.setItem('arx_compassPointDate', compassPointDate);
-    localStorage.setItem('arx_perfectWeekShardBanked', perfectWeekShardBanked?'1':'');
-    localStorage.setItem('arx_lastActiveDate', lastActiveDate);
-    localStorage.setItem('arx_compassWeekStart', compassWeekStart);
-    localStorage.setItem('arx_lastEmergencyWorkoutDate', lastEmergencyWorkoutDate);
-    localStorage.setItem('arx_lastMissedCheckinDate', lastMissedCheckinDate);
-    localStorage.setItem('arx_lastBadDayCheckinDate', lastBadDayCheckinDate);
-    localStorage.setItem('arx_lastPerspectiveShownDate', lastPerspectiveShownDate);
-    localStorage.setItem('arx_sessThisWeek', sessThisWeek);
-    localStorage.setItem('arx_customExerciseOrder', JSON.stringify(customExerciseOrder));
-    localStorage.setItem('arx_scheduleWeekStart', scheduleWeekStart);
-    localStorage.setItem('arx_scheduleOverrides', JSON.stringify(scheduleOverrides));
-    localStorage.setItem('arx_weekCompletedDays', JSON.stringify(weekCompletedDays));
-    localStorage.setItem('arx_generatedWeek', JSON.stringify(generatedWeek));
-    localStorage.setItem('arx_autoReschedDates', JSON.stringify(autoReschedDates));
-    localStorage.setItem('arx_dayLengthOverrides', JSON.stringify(dayLengthOverrides));
-    localStorage.setItem('arx_joinDate', joinDate);
-    localStorage.setItem('arx_lastAnniversaryYear', lastAnniversaryYear);
-    localStorage.setItem('arx_unlockedAchievements', JSON.stringify(unlockedAchievements));
-    localStorage.setItem('arx_unlockedLegends', JSON.stringify(unlockedLegends));
-    localStorage.setItem('arx_legendCounts', JSON.stringify(legendCounts));
-    localStorage.setItem('arx_claimedXpRoad', JSON.stringify(claimedXpRoad));
-    localStorage.setItem('arx_xpRoadReady', JSON.stringify(xpRoadReady));
-    localStorage.setItem('arx_lastSessionWorkoutName', lastSessionWorkoutName);
-    localStorage.setItem('arx_lastBackupDate', lastBackupDate);
-    localStorage.setItem('arx_photoLog', JSON.stringify(photoLog));
-    localStorage.setItem('arx_todayLog', JSON.stringify(todayLog));
-    localStorage.setItem('arx_customSupplements', JSON.stringify(customSupplements));
-    localStorage.setItem('arx_todaySupplementsLog', JSON.stringify(todaySupplementsLog));
-    localStorage.setItem('arx_nutritionLogDate', nutritionLogDate);
-    localStorage.setItem('arx_shieldAtRiskToday', shieldAtRiskToday?'1':'0');
-    localStorage.setItem('arx_shieldGreatSaveAwardedToday', shieldGreatSaveAwardedToday?'1':'0');
-    localStorage.setItem('arx_shieldNotifStage', String(shieldNotifStage));
-    localStorage.setItem('arx_shieldNotifsEnabled', shieldNotifsEnabled?'1':'0');
-    localStorage.setItem('arx_coachNotifsEnabled', coachNotifsEnabled?'1':'0');
-    localStorage.setItem('arx_coachMorningNotifiedDate', coachMorningNotifiedDate);
-    localStorage.setItem('arx_coachEveningNotifiedDate', coachEveningNotifiedDate);
-    localStorage.setItem('arx_notifPrefs', JSON.stringify(notifPrefs));
-    localStorage.setItem('arx_customRecipes', JSON.stringify(customRecipes));
-    localStorage.setItem('arx_customFoods', JSON.stringify(customFoods));
-    localStorage.setItem('arx_favoriteFoods', JSON.stringify([...favoriteFoods]));
-    localStorage.setItem('arx_sleepLog', JSON.stringify(sleepLog));
-    localStorage.setItem('arx_cnsTapLog', JSON.stringify(cnsTapLog));
-    localStorage.setItem('arx_trainingCompletedDates', JSON.stringify(trainingCompletedDates));
-    localStorage.setItem('arx_trainingTimeLog', JSON.stringify(trainingTimeLog));
-    localStorage.setItem('arx_liveSessionProgress', JSON.stringify(liveSessionProgress));
-    localStorage.setItem('arx_loggedSetMeta', JSON.stringify(loggedSetMeta));
-    localStorage.setItem('arx_winddownDate', winddownDate);
-    localStorage.setItem('arx_winddownChecked', JSON.stringify(winddownChecked));
-    localStorage.setItem('arx_winddownStreak', winddownStreak);
-    localStorage.setItem('arx_winddownStreakLastDate', winddownStreakLastDate);
-    localStorage.setItem('arx_brainDumpText', brainDumpText);
-    localStorage.setItem('arx_assessmentWeekStart', assessmentWeekStart);
-    localStorage.setItem('arx_assessmentText', assessmentText);
-    localStorage.setItem('arx_assessmentViewed', JSON.stringify(assessmentViewed));
-    localStorage.setItem('arx_assessmentBannerDismissedWeek', assessmentBannerDismissedWeek);
-    localStorage.setItem('arx_lastMissedFoodDate', lastMissedFoodDate);
-    localStorage.setItem('arx_missedFoodDayDismissedDate', missedFoodDayDismissedDate);
-    localStorage.setItem('arx_missedFoodDayNotifiedDate', missedFoodDayNotifiedDate);
-    localStorage.setItem('arx_missedFoodDayShownDate', missedFoodDayShownDate);
-    localStorage.setItem('arx_lowFoodEveningNotifiedDate', lowFoodEveningNotifiedDate);
-    localStorage.setItem('arx_coachNutritionCheckinDismissedAt', coachNutritionCheckinDismissedAt||'');
-    localStorage.setItem('arx_coachWorkoutCheckinDismissedAt', coachWorkoutCheckinDismissedAt||'');
-    localStorage.setItem('arx_workoutFeedbackResponses', JSON.stringify(workoutFeedbackResponses));
-    localStorage.setItem('arx_nutritionFeedbackResponses', JSON.stringify(nutritionFeedbackResponses));
-    localStorage.setItem('arx_osBusyOfferShown', osBusyOfferShown?'1':'0');
-    localStorage.setItem('arx_cloudBackupConsent', JSON.stringify(cloudBackupConsent));
-    localStorage.setItem('arx_trialsEventStart', trialsEventStart);
-    localStorage.setItem('arx_trialsStageIdx', trialsStageIdx);
-    localStorage.setItem('arx_trialsLastEvaluatedDate', trialsLastEvaluatedDate);
-    localStorage.setItem('arx_trialsClearedStages', JSON.stringify(trialsClearedStages));
-  }catch(e){}
+    _ss('arx_profile', JSON.stringify(profile));
+    _ss('arx_weightLog', JSON.stringify(weightLog));
+    _ss('arx_measurementsLog', JSON.stringify(measurementsLog));
+    _ss('arx_prs', JSON.stringify(prs));
+    _ss('arx_prBestReps', JSON.stringify(prBestReps));
+    _ss('arx_prHistory', JSON.stringify(prHistory));
+    _ss('arx_laborsCompleted', JSON.stringify(laborsCompleted));
+    _ss('arx_weekSessionLength', weekSessionLength);
+    _ss('arx_appTheme', appTheme);
+    _ss('arx_unlockedThemes', JSON.stringify(unlockedThemes));
+    _ss('arx_equippedAccentTheme', equippedAccentTheme);
+    _ss('arx_unlockedTitles', JSON.stringify(unlockedTitles));
+    _ss('arx_equippedTitle', equippedTitle);
+    _ss('arx_unseenRewardCount', unseenRewardCount);
+    _ss('arx_deviationLog', JSON.stringify(deviationLog));
+    _ss('arx_lowerBodyNudgeDismissedAt', lowerBodyNudgeDismissedAt||'');
+    _ss('arx_muscleBalanceNudgeDismissedDate', muscleBalanceNudgeDismissedDate||'');
+    _ss('arx_weeklyCoverageDismissedWeek', weeklyCoverageDismissedWeek||'');
+    _ss('arx_reflectionLog', JSON.stringify(reflectionLog));
+    _ss('arx_liftHistory', JSON.stringify(liftHistory));
+    _ss('arx_lastPerformance', JSON.stringify(lastPerformance));
+    _ss('arx_streak', streak);
+    _ss('arx_xpLog', JSON.stringify(xpLog));
+    _ss('arx_streakFreezes', streakFreezes);
+    _ss('arx_streakSavers', streakSavers);
+    _ss('arx_bronzeDropBank', bronzeDropBank);
+    _ss('arx_silverDropBank', silverDropBank);
+    _ss('arx_diamondDropBank', diamondDropBank);
+    _ss('arx_keyBank', keyBank);
+    _ss('arx_drachma', drachma);
+    _ss('arx_favoriteExercises', JSON.stringify([...favoriteExercises]));
+    _ss('arx_exercisePreference', exercisePreference);
+    _ss('arx_dailySpinDate', dailySpinDate);
+    _ss('arx_bronzeDropProgress', bronzeDropProgress);
+    _ss('arx_streakRepairDismissedDate', streakRepairDismissedDate);
+    _ss('arx_weightUnit', weightUnit);
+    _ss('arx_heightUnit', heightUnit);
+    _ss('arx_plannedSessionExs', JSON.stringify(plannedSessionExs));
+    _ss('arx_plannedSessionType', plannedSessionType);
+    _ss('arx_plannedSessionName', plannedSessionName||'');
+    _ss('arx_buildAsYouGoSession', buildAsYouGoSession?'1':'');
+    _ss('arx_skippedExercises', JSON.stringify([...skippedExercises]));
+    _ss('arx_calisthenicsProgress', JSON.stringify(calisthenicsProgress));
+    _ss('arx_sessionEnteredAt', String(sessionEnteredAt||0));
+    _ss('arx_sessionStartXP', String(sessionStartXP||0));
+    _ss('arx_sessionStartVolume', String(sessionStartVolume||0));
+    _ss('arx_sessionHistory', JSON.stringify(sessionHistory));
+    _ss('arx_cardioLog', JSON.stringify(cardioLog));
+    _ss('arx_cardioDistanceUnit', cardioDistanceUnit);
+    _ss('arx_injuryWarningsDisabled', injuryWarningsDisabled);
+    _ss('arx_reducedSetsMode', reducedSetsMode);
+    _ss('arx_voiceCoachEnabled', voiceCoachEnabled);
+    _ss('arx_bestStreak', bestStreak);
+    _ss('arx_activeDates', JSON.stringify(activeDates));
+    _ss('arx_xp', xp);
+    _ss('arx_compassPts', compassPts);
+    _ss('arx_totalSess', totalSess);
+    _ss('arx_dayMacros', JSON.stringify(dayMacros));
+    _ss('arx_totalVolume', totalVolume);
+    _ss('arx_nutritionDayLog', JSON.stringify(nutritionDayLog));
+    _ss('arx_foodLogByDate', JSON.stringify(foodLogByDate));
+    _ss('arx_waterDayLog', JSON.stringify(waterDayLog));
+    _ss('arx_tonnageLog', JSON.stringify(tonnageLog));
+    _ss('arx_rpeLog', JSON.stringify(rpeLog));
+    _ss('arx_recentFoodIdxs', JSON.stringify(recentFoodIdxs));
+    _ss('arx_feederQuestClaimedDate', feederQuestClaimedDate);
+    _ss('arx_questWeekStart', questWeekStart);
+    _ss('arx_questProgress', JSON.stringify(questProgress));
+    _ss('arx_questClaimed', JSON.stringify(questClaimed));
+    _ss('arx_proteinHitDates', JSON.stringify(proteinHitDates));
+    _ss('arx_customWorkouts', JSON.stringify(customWorkouts));
+    _ss('arx_customShakeTemplates', JSON.stringify(customShakeTemplates));
+    _ss('arx_lastSessionDate', lastSessionDate);
+    _ss('arx_autoCountedDate', autoCountedDate);
+    _ss('arx_lbLastRanks', JSON.stringify(lbLastRanks));
+    _ss('arx_userLeagueTier', userLeagueTier);
+    _ss('arx_leagueWeekStart', leagueWeekStart);
+    _ss('arx_leagueMedals', JSON.stringify(leagueMedals));
+    _ss('arx_leagueFellBadgeEarned', leagueFellBadgeEarned);
+    _ss('arx_areviaxChampionWins', areviaxChampionWins);
+    _ss('arx_compassPointDate', compassPointDate);
+    _ss('arx_perfectWeekShardBanked', perfectWeekShardBanked?'1':'');
+    _ss('arx_lastActiveDate', lastActiveDate);
+    _ss('arx_compassWeekStart', compassWeekStart);
+    _ss('arx_lastEmergencyWorkoutDate', lastEmergencyWorkoutDate);
+    _ss('arx_lastMissedCheckinDate', lastMissedCheckinDate);
+    _ss('arx_lastBadDayCheckinDate', lastBadDayCheckinDate);
+    _ss('arx_lastPerspectiveShownDate', lastPerspectiveShownDate);
+    _ss('arx_sessThisWeek', sessThisWeek);
+    _ss('arx_customExerciseOrder', JSON.stringify(customExerciseOrder));
+    _ss('arx_scheduleWeekStart', scheduleWeekStart);
+    _ss('arx_scheduleOverrides', JSON.stringify(scheduleOverrides));
+    _ss('arx_weekCompletedDays', JSON.stringify(weekCompletedDays));
+    _ss('arx_generatedWeek', JSON.stringify(generatedWeek));
+    _ss('arx_autoReschedDates', JSON.stringify(autoReschedDates));
+    _ss('arx_dayLengthOverrides', JSON.stringify(dayLengthOverrides));
+    _ss('arx_joinDate', joinDate);
+    _ss('arx_lastAnniversaryYear', lastAnniversaryYear);
+    _ss('arx_unlockedAchievements', JSON.stringify(unlockedAchievements));
+    _ss('arx_unlockedLegends', JSON.stringify(unlockedLegends));
+    _ss('arx_legendCounts', JSON.stringify(legendCounts));
+    _ss('arx_claimedXpRoad', JSON.stringify(claimedXpRoad));
+    _ss('arx_xpRoadReady', JSON.stringify(xpRoadReady));
+    _ss('arx_lastSessionWorkoutName', lastSessionWorkoutName);
+    _ss('arx_lastBackupDate', lastBackupDate);
+    _ss('arx_todayLog', JSON.stringify(todayLog));
+    _ss('arx_customSupplements', JSON.stringify(customSupplements));
+    _ss('arx_todaySupplementsLog', JSON.stringify(todaySupplementsLog));
+    _ss('arx_nutritionLogDate', nutritionLogDate);
+    _ss('arx_shieldAtRiskToday', shieldAtRiskToday?'1':'0');
+    _ss('arx_shieldGreatSaveAwardedToday', shieldGreatSaveAwardedToday?'1':'0');
+    _ss('arx_shieldNotifStage', String(shieldNotifStage));
+    _ss('arx_shieldNotifsEnabled', shieldNotifsEnabled?'1':'0');
+    _ss('arx_coachNotifsEnabled', coachNotifsEnabled?'1':'0');
+    _ss('arx_coachMorningNotifiedDate', coachMorningNotifiedDate);
+    _ss('arx_coachEveningNotifiedDate', coachEveningNotifiedDate);
+    _ss('arx_notifPrefs', JSON.stringify(notifPrefs));
+    _ss('arx_customRecipes', JSON.stringify(customRecipes));
+    _ss('arx_customFoods', JSON.stringify(customFoods));
+    _ss('arx_favoriteFoods', JSON.stringify([...favoriteFoods]));
+    _ss('arx_sleepLog', JSON.stringify(sleepLog));
+    _ss('arx_cnsTapLog', JSON.stringify(cnsTapLog));
+    _ss('arx_trainingCompletedDates', JSON.stringify(trainingCompletedDates));
+    _ss('arx_trainingTimeLog', JSON.stringify(trainingTimeLog));
+    _ss('arx_liveSessionProgress', JSON.stringify(liveSessionProgress));
+    _ss('arx_loggedSetMeta', JSON.stringify(loggedSetMeta));
+    _ss('arx_winddownDate', winddownDate);
+    _ss('arx_winddownChecked', JSON.stringify(winddownChecked));
+    _ss('arx_winddownStreak', winddownStreak);
+    _ss('arx_winddownStreakLastDate', winddownStreakLastDate);
+    _ss('arx_brainDumpText', brainDumpText);
+    _ss('arx_assessmentWeekStart', assessmentWeekStart);
+    _ss('arx_assessmentText', assessmentText);
+    _ss('arx_assessmentViewed', JSON.stringify(assessmentViewed));
+    _ss('arx_assessmentBannerDismissedWeek', assessmentBannerDismissedWeek);
+    _ss('arx_lastMissedFoodDate', lastMissedFoodDate);
+    _ss('arx_missedFoodDayDismissedDate', missedFoodDayDismissedDate);
+    _ss('arx_missedFoodDayNotifiedDate', missedFoodDayNotifiedDate);
+    _ss('arx_missedFoodDayShownDate', missedFoodDayShownDate);
+    _ss('arx_lowFoodEveningNotifiedDate', lowFoodEveningNotifiedDate);
+    _ss('arx_coachNutritionCheckinDismissedAt', coachNutritionCheckinDismissedAt||'');
+    _ss('arx_coachWorkoutCheckinDismissedAt', coachWorkoutCheckinDismissedAt||'');
+    _ss('arx_workoutFeedbackResponses', JSON.stringify(workoutFeedbackResponses));
+    _ss('arx_nutritionFeedbackResponses', JSON.stringify(nutritionFeedbackResponses));
+    _ss('arx_osBusyOfferShown', osBusyOfferShown?'1':'0');
+    _ss('arx_cloudBackupConsent', JSON.stringify(cloudBackupConsent));
+    _ss('arx_trialsEventStart', trialsEventStart);
+    _ss('arx_trialsStageIdx', trialsStageIdx);
+    _ss('arx_trialsLastEvaluatedDate', trialsLastEvaluatedDate);
+    _ss('arx_trialsClearedStages', JSON.stringify(trialsClearedStages));
+    // Last on purpose: progress photos are by far the biggest value here,
+    // so if anything hits the storage quota it's them, after everything
+    // else has already been written.
+    _ss('arx_photoLog', JSON.stringify(photoLog));
+  }catch(e){console.error('saveToStorage:',e);}
   if(cloudBackupConsent===true)autoCloudBackup(); // only ever runs with explicit opt-in
+  if(_saveFailedKeys.length){
+    console.warn('Could not save:',_saveFailedKeys.join(', '));
+    if(!_saveFailureWarned){
+      _saveFailureWarned=true;
+      try{toast('\u26a0\ufe0f',_saveFailedKeys.includes('arx_photoLog')&&_saveFailedKeys.length===1?'Storage is full \u2014 delete a few old progress photos so new ones can be kept.':'Storage is full \u2014 some changes couldn\'t be saved. Download a backup from Settings, then delete a few old progress photos.');}catch(e){}
+    }
+    return false;
+  }
+  return true;
+}
+// Every stored value is parsed through this, never a bare JSON.parse —
+// loadFromStorage is one long sequence, and a single corrupt or
+// wrong-shaped key used to throw out of the whole thing, leaving every
+// later value (XP, streak, drachma...) at its zero default. The next
+// saveToStorage then wrote those zeros back over the real data. A bad key
+// now just falls back to its own default and everything else still loads.
+// Also rejects a value whose shape doesn't match the default (an object
+// where a list is expected, etc.) — that parses fine but throws later on
+// .includes()/.push(), with the same whole-load-aborting effect.
+function _jp(raw,fallback){
+  let v;
+  try{v=JSON.parse(raw);}catch(e){console.warn('Ignoring unreadable saved value:',String(raw).slice(0,60));return fallback;}
+  if(Array.isArray(fallback)&&!Array.isArray(v))return fallback;
+  if(fallback&&typeof fallback==='object'&&!Array.isArray(fallback)&&(!v||typeof v!=='object'||Array.isArray(v)))return fallback;
+  return v;
 }
 function loadFromStorage(){
   try{
     const p=localStorage.getItem('arx_profile');
-    if(p){profile=JSON.parse(p)}
+    if(p){profile=_jp(p,profile)}
     const w=localStorage.getItem('arx_weightLog');
-    if(w){weightLog=JSON.parse(w)}
+    if(w){weightLog=_jp(w,weightLog)}
     const ml=localStorage.getItem('arx_measurementsLog');
-    if(ml){measurementsLog=JSON.parse(ml)}
+    if(ml){measurementsLog=_jp(ml,measurementsLog)}
     const pr=localStorage.getItem('arx_prs');
-    if(pr){prs=JSON.parse(pr)}
+    if(pr){prs=_jp(pr,prs)}
     const prr=localStorage.getItem('arx_prBestReps');
-    if(prr){try{prBestReps=JSON.parse(prr);}catch(e){prBestReps={};}}
+    if(prr){try{prBestReps=_jp(prr,prBestReps);}catch(e){prBestReps={};}}
     const prh=localStorage.getItem('arx_prHistory');
-    if(prh){try{prHistory=JSON.parse(prh);}catch(e){prHistory=[];}}
+    if(prh){try{prHistory=_jp(prh,prHistory);}catch(e){prHistory=[];}}
     const lbc=localStorage.getItem('arx_laborsCompleted');
-    if(lbc){try{laborsCompleted=JSON.parse(lbc);}catch(e){laborsCompleted={};}}
+    if(lbc){try{laborsCompleted=_jp(lbc,laborsCompleted);}catch(e){laborsCompleted={};}}
     const wsl=localStorage.getItem('arx_weekSessionLength');
     if(wsl)weekSessionLength=wsl;
     const th=localStorage.getItem('arx_appTheme');
     appTheme=th==='light'?'light':'dark';
     document.documentElement.setAttribute('data-theme',appTheme);
-    { const ut=localStorage.getItem('arx_unlockedThemes'); if(ut){try{unlockedThemes=JSON.parse(ut);}catch(e){unlockedThemes=['bronze'];}} }
+    { const ut=localStorage.getItem('arx_unlockedThemes'); if(ut){try{unlockedThemes=_jp(ut,unlockedThemes);}catch(e){unlockedThemes=['bronze'];}} }
     if(!unlockedThemes.includes('bronze'))unlockedThemes.unshift('bronze');
     equippedAccentTheme=localStorage.getItem('arx_equippedAccentTheme')||'bronze';
     if(!unlockedThemes.includes(equippedAccentTheme))equippedAccentTheme='bronze';
     document.documentElement.setAttribute('data-accent-theme',equippedAccentTheme);
-    { const ut2=localStorage.getItem('arx_unlockedTitles'); if(ut2){try{unlockedTitles=JSON.parse(ut2);}catch(e){unlockedTitles=[];}} }
+    { const ut2=localStorage.getItem('arx_unlockedTitles'); if(ut2){try{unlockedTitles=_jp(ut2,unlockedTitles);}catch(e){unlockedTitles=[];}} }
     equippedTitle=localStorage.getItem('arx_equippedTitle')||'';
     if(equippedTitle&&!unlockedTitles.includes(equippedTitle))equippedTitle='';
     unseenRewardCount=parseInt(localStorage.getItem('arx_unseenRewardCount'))||0;
     const dl=localStorage.getItem('arx_deviationLog');
-    if(dl){try{deviationLog=JSON.parse(dl);}catch(e){deviationLog=[];}}
+    if(dl){try{deviationLog=_jp(dl,deviationLog);}catch(e){deviationLog=[];}}
     lowerBodyNudgeDismissedAt=localStorage.getItem('arx_lowerBodyNudgeDismissedAt')||null;
     muscleBalanceNudgeDismissedDate=localStorage.getItem('arx_muscleBalanceNudgeDismissedDate')||'';
     weeklyCoverageDismissedWeek=localStorage.getItem('arx_weeklyCoverageDismissedWeek')||'';
     const rl=localStorage.getItem('arx_reflectionLog');
-    if(rl){try{reflectionLog=JSON.parse(rl);}catch(e){reflectionLog=[];}}
+    if(rl){try{reflectionLog=_jp(rl,reflectionLog);}catch(e){reflectionLog=[];}}
     const lh=localStorage.getItem('arx_liftHistory');
-    if(lh){try{liftHistory=JSON.parse(lh);}catch(e){liftHistory={};}}
+    if(lh){try{liftHistory=_jp(lh,liftHistory);}catch(e){liftHistory={};}}
     const lp=localStorage.getItem('arx_lastPerformance');
-    if(lp){lastPerformance=JSON.parse(lp)}
+    if(lp){lastPerformance=_jp(lp,lastPerformance)}
     streak=parseInt(localStorage.getItem('arx_streak')||'0');
-    { const xl=localStorage.getItem('arx_xpLog'); if(xl){try{xpLog=JSON.parse(xl);}catch(e){xpLog=[];}} }
+    { const xl=localStorage.getItem('arx_xpLog'); if(xl){try{xpLog=_jp(xl,xpLog);}catch(e){xpLog=[];}} }
     streakFreezes=parseInt(localStorage.getItem('arx_streakFreezes')||'0');
     streakSavers=parseInt(localStorage.getItem('arx_streakSavers')||'0');
     bronzeDropBank=parseInt(localStorage.getItem('arx_bronzeDropBank')||'0');
@@ -31696,21 +31798,21 @@ function loadFromStorage(){
     weightUnit=localStorage.getItem('arx_weightUnit')||'lbs';
     heightUnit=localStorage.getItem('arx_heightUnit')||'cm';
     const pse=localStorage.getItem('arx_plannedSessionExs');
-    if(pse){try{plannedSessionExs=JSON.parse(pse);}catch(e){plannedSessionExs=[];}}
+    if(pse){try{plannedSessionExs=_jp(pse,plannedSessionExs);}catch(e){plannedSessionExs=[];}}
     plannedSessionType=localStorage.getItem('arx_plannedSessionType')||'upper-push';
     plannedSessionName=localStorage.getItem('arx_plannedSessionName')||'';
     buildAsYouGoSession=localStorage.getItem('arx_buildAsYouGoSession')==='1';
     const skx=localStorage.getItem('arx_skippedExercises');
     if(skx){try{skippedExercises=new Set(JSON.parse(skx));}catch(e){skippedExercises=new Set();}}
     const calp=localStorage.getItem('arx_calisthenicsProgress');
-    if(calp){try{calisthenicsProgress=JSON.parse(calp);}catch(e){calisthenicsProgress=[0,0,0,0];}}
+    if(calp){try{calisthenicsProgress=_jp(calp,calisthenicsProgress);}catch(e){calisthenicsProgress=[0,0,0,0];}}
     sessionEnteredAt=parseInt(localStorage.getItem('arx_sessionEnteredAt'))||0;
     sessionStartXP=parseInt(localStorage.getItem('arx_sessionStartXP'))||0;
     sessionStartVolume=parseFloat(localStorage.getItem('arx_sessionStartVolume'))||0;
     const sh=localStorage.getItem('arx_sessionHistory');
-    if(sh){try{sessionHistory=JSON.parse(sh);}catch(e){sessionHistory=[];}}
+    if(sh){try{sessionHistory=_jp(sh,sessionHistory);}catch(e){sessionHistory=[];}}
     const cl=localStorage.getItem('arx_cardioLog');
-    if(cl){try{cardioLog=JSON.parse(cl);}catch(e){cardioLog=[];}}
+    if(cl){try{cardioLog=_jp(cl,cardioLog);}catch(e){cardioLog=[];}}
     cardioDistanceUnit=localStorage.getItem('arx_cardioDistanceUnit')||'km';
     injuryWarningsDisabled=localStorage.getItem('arx_injuryWarningsDisabled')==='true';
     reducedSetsMode=localStorage.getItem('arx_reducedSetsMode')==='true';
@@ -31718,41 +31820,41 @@ function loadFromStorage(){
     const vct=document.getElementById('voice-coach-toggle');if(vct)vct.checked=voiceCoachEnabled;
     bestStreak=parseInt(localStorage.getItem('arx_bestStreak')||'0');
     const ad=localStorage.getItem('arx_activeDates');
-    if(ad){try{activeDates=JSON.parse(ad);}catch(e){activeDates=[];}}
+    if(ad){try{activeDates=_jp(ad,activeDates);}catch(e){activeDates=[];}}
     xp=parseInt(localStorage.getItem('arx_xp')||'0');
     compassPts=parseInt(localStorage.getItem('arx_compassPts')||'0');
     totalSess=parseInt(localStorage.getItem('arx_totalSess')||'0');
     const dm=localStorage.getItem('arx_dayMacros');
-    if(dm){dayMacros=JSON.parse(dm)}
+    if(dm){dayMacros=_jp(dm,dayMacros)}
     totalVolume=parseFloat(localStorage.getItem('arx_totalVolume')||'0');
     const ndl=localStorage.getItem('arx_nutritionDayLog');
-    if(ndl){try{nutritionDayLog=JSON.parse(ndl);}catch(e){nutritionDayLog=[];}}
+    if(ndl){try{nutritionDayLog=_jp(ndl,nutritionDayLog);}catch(e){nutritionDayLog=[];}}
     const fld=localStorage.getItem('arx_foodLogByDate');
-    if(fld){try{foodLogByDate=JSON.parse(fld);}catch(e){foodLogByDate={};}}
+    if(fld){try{foodLogByDate=_jp(fld,foodLogByDate);}catch(e){foodLogByDate={};}}
     const wdl=localStorage.getItem('arx_waterDayLog');
-    if(wdl){try{waterDayLog=JSON.parse(wdl);}catch(e){waterDayLog=[];}}
+    if(wdl){try{waterDayLog=_jp(wdl,waterDayLog);}catch(e){waterDayLog=[];}}
     const tnl=localStorage.getItem('arx_tonnageLog');
-    if(tnl){try{tonnageLog=JSON.parse(tnl);}catch(e){tonnageLog=[];}}
+    if(tnl){try{tonnageLog=_jp(tnl,tonnageLog);}catch(e){tonnageLog=[];}}
     const rpl=localStorage.getItem('arx_rpeLog');
-    if(rpl){try{rpeLog=JSON.parse(rpl);}catch(e){rpeLog=[];}}
+    if(rpl){try{rpeLog=_jp(rpl,rpeLog);}catch(e){rpeLog=[];}}
     const rfi=localStorage.getItem('arx_recentFoodIdxs');
-    if(rfi){try{recentFoodIdxs=JSON.parse(rfi);}catch(e){recentFoodIdxs=[];}}
+    if(rfi){try{recentFoodIdxs=_jp(rfi,recentFoodIdxs);}catch(e){recentFoodIdxs=[];}}
     feederQuestClaimedDate=localStorage.getItem('arx_feederQuestClaimedDate')||'';
     questWeekStart=localStorage.getItem('arx_questWeekStart')||'';
     const qp=localStorage.getItem('arx_questProgress');
-    if(qp){questProgress=JSON.parse(qp)}
+    if(qp){questProgress=_jp(qp,questProgress)}
     const qc=localStorage.getItem('arx_questClaimed');
-    if(qc){questClaimed=JSON.parse(qc)}
+    if(qc){questClaimed=_jp(qc,questClaimed)}
     const phd=localStorage.getItem('arx_proteinHitDates');
-    if(phd){proteinHitDates=JSON.parse(phd)}
+    if(phd){proteinHitDates=_jp(phd,proteinHitDates)}
     const cw=localStorage.getItem('arx_customWorkouts');
-    if(cw){customWorkouts=JSON.parse(cw)}
+    if(cw){customWorkouts=_jp(cw,customWorkouts)}
     const cst=localStorage.getItem('arx_customShakeTemplates');
-    if(cst){try{customShakeTemplates=JSON.parse(cst);}catch(e){customShakeTemplates=[];}}
+    if(cst){try{customShakeTemplates=_jp(cst,customShakeTemplates);}catch(e){customShakeTemplates=[];}}
     lastSessionDate=localStorage.getItem('arx_lastSessionDate')||'';
     autoCountedDate=localStorage.getItem('arx_autoCountedDate')||'';
     const lbr=localStorage.getItem('arx_lbLastRanks');
-    if(lbr){try{lbLastRanks=JSON.parse(lbr);}catch(e){lbLastRanks={};}}
+    if(lbr){try{lbLastRanks=_jp(lbr,lbLastRanks);}catch(e){lbLastRanks={};}}
     userLeagueTier=parseInt(localStorage.getItem('arx_userLeagueTier')||'0');
     leagueWeekStart=localStorage.getItem('arx_leagueWeekStart')||'';
     try{leagueMedals=JSON.parse(localStorage.getItem('arx_leagueMedals')||'{}');}catch(e){leagueMedals={};}
@@ -31768,40 +31870,40 @@ function loadFromStorage(){
     lastPerspectiveShownDate=localStorage.getItem('arx_lastPerspectiveShownDate')||'';
     sessThisWeek=parseInt(localStorage.getItem('arx_sessThisWeek')||'0');
     const ceo=localStorage.getItem('arx_customExerciseOrder');
-    if(ceo){try{customExerciseOrder=JSON.parse(ceo);}catch(e){customExerciseOrder={};}}
+    if(ceo){try{customExerciseOrder=_jp(ceo,customExerciseOrder);}catch(e){customExerciseOrder={};}}
     scheduleWeekStart=localStorage.getItem('arx_scheduleWeekStart')||'';
     const so=localStorage.getItem('arx_scheduleOverrides');
-    if(so){try{scheduleOverrides=JSON.parse(so);}catch(e){scheduleOverrides={};}}
+    if(so){try{scheduleOverrides=_jp(so,scheduleOverrides);}catch(e){scheduleOverrides={};}}
     const wcd=localStorage.getItem('arx_weekCompletedDays');
-    if(wcd){try{weekCompletedDays=JSON.parse(wcd);}catch(e){weekCompletedDays={};}}
+    if(wcd){try{weekCompletedDays=_jp(wcd,weekCompletedDays);}catch(e){weekCompletedDays={};}}
     const gw=localStorage.getItem('arx_generatedWeek');
-    if(gw){try{generatedWeek=JSON.parse(gw);}catch(e){generatedWeek=null;}}
+    if(gw){try{generatedWeek=_jp(gw,generatedWeek);}catch(e){generatedWeek=null;}}
     const ard=localStorage.getItem('arx_autoReschedDates');
-    if(ard){try{autoReschedDates=JSON.parse(ard);}catch(e){autoReschedDates={};}}
+    if(ard){try{autoReschedDates=_jp(ard,autoReschedDates);}catch(e){autoReschedDates={};}}
     const dlo=localStorage.getItem('arx_dayLengthOverrides');
-    if(dlo){try{dayLengthOverrides=JSON.parse(dlo);}catch(e){dayLengthOverrides={};}}
+    if(dlo){try{dayLengthOverrides=_jp(dlo,dayLengthOverrides);}catch(e){dayLengthOverrides={};}}
     joinDate=localStorage.getItem('arx_joinDate')||'';
     lastAnniversaryYear=parseInt(localStorage.getItem('arx_lastAnniversaryYear')||'0');
     const ua=localStorage.getItem('arx_unlockedAchievements');
-    if(ua){unlockedAchievements=JSON.parse(ua)}
+    if(ua){unlockedAchievements=_jp(ua,unlockedAchievements)}
     const ul=localStorage.getItem('arx_unlockedLegends');
-    if(ul){try{unlockedLegends=JSON.parse(ul);}catch(e){unlockedLegends=[];}}
+    if(ul){try{unlockedLegends=_jp(ul,unlockedLegends);}catch(e){unlockedLegends=[];}}
     const lc=localStorage.getItem('arx_legendCounts');
-    if(lc){try{legendCounts=JSON.parse(lc);}catch(e){legendCounts={};}}
+    if(lc){try{legendCounts=_jp(lc,legendCounts);}catch(e){legendCounts={};}}
     const cxr=localStorage.getItem('arx_claimedXpRoad');
-    if(cxr){try{claimedXpRoad=JSON.parse(cxr);}catch(e){claimedXpRoad=[];}}
+    if(cxr){try{claimedXpRoad=_jp(cxr,claimedXpRoad);}catch(e){claimedXpRoad=[];}}
     const xrr=localStorage.getItem('arx_xpRoadReady');
-    if(xrr){try{xpRoadReady=JSON.parse(xrr);}catch(e){xpRoadReady=[];}}
+    if(xrr){try{xpRoadReady=_jp(xrr,xpRoadReady);}catch(e){xpRoadReady=[];}}
     lastSessionWorkoutName=localStorage.getItem('arx_lastSessionWorkoutName')||'';
     lastBackupDate=localStorage.getItem('arx_lastBackupDate')||'';
     const pl=localStorage.getItem('arx_photoLog');
-    if(pl){try{photoLog=JSON.parse(pl);}catch(e){photoLog=[];}}
+    if(pl){try{photoLog=_jp(pl,photoLog);}catch(e){photoLog=[];}}
     const tl=localStorage.getItem('arx_todayLog');
-    if(tl){try{todayLog=JSON.parse(tl);}catch(e){todayLog=[];}}
+    if(tl){try{todayLog=_jp(tl,todayLog);}catch(e){todayLog=[];}}
     const cs=localStorage.getItem('arx_customSupplements');
-    if(cs){try{customSupplements=JSON.parse(cs);}catch(e){customSupplements=[];}}
+    if(cs){try{customSupplements=_jp(cs,customSupplements);}catch(e){customSupplements=[];}}
     const tsl=localStorage.getItem('arx_todaySupplementsLog');
-    if(tsl){try{todaySupplementsLog=JSON.parse(tsl);}catch(e){todaySupplementsLog=[];}}
+    if(tsl){try{todaySupplementsLog=_jp(tsl,todaySupplementsLog);}catch(e){todaySupplementsLog=[];}}
     nutritionLogDate=localStorage.getItem('arx_nutritionLogDate')||'';
     shieldAtRiskToday=localStorage.getItem('arx_shieldAtRiskToday')==='1';
     shieldGreatSaveAwardedToday=localStorage.getItem('arx_shieldGreatSaveAwardedToday')==='1';
@@ -31813,31 +31915,31 @@ function loadFromStorage(){
     const np=localStorage.getItem('arx_notifPrefs');
     if(np){try{Object.assign(notifPrefs,JSON.parse(np));}catch(e){}}
     const cr=localStorage.getItem('arx_customRecipes');
-    if(cr){try{customRecipes=JSON.parse(cr);}catch(e){customRecipes=[];}}
+    if(cr){try{customRecipes=_jp(cr,customRecipes);}catch(e){customRecipes=[];}}
     const cf=localStorage.getItem('arx_customFoods');
-    if(cf){try{customFoods=JSON.parse(cf);}catch(e){customFoods=[];}}
+    if(cf){try{customFoods=_jp(cf,customFoods);}catch(e){customFoods=[];}}
     { const ff=localStorage.getItem('arx_favoriteFoods'); if(ff){try{favoriteFoods=new Set(JSON.parse(ff));}catch(e){favoriteFoods=new Set();}} }
     const sl=localStorage.getItem('arx_sleepLog');
-    if(sl){try{sleepLog=JSON.parse(sl);}catch(e){sleepLog=[];}}
+    if(sl){try{sleepLog=_jp(sl,sleepLog);}catch(e){sleepLog=[];}}
     const ctl=localStorage.getItem('arx_cnsTapLog');
-    if(ctl){try{cnsTapLog=JSON.parse(ctl);}catch(e){cnsTapLog=[];}}
+    if(ctl){try{cnsTapLog=_jp(ctl,cnsTapLog);}catch(e){cnsTapLog=[];}}
     const tcd=localStorage.getItem('arx_trainingCompletedDates');
-    if(tcd){try{trainingCompletedDates=JSON.parse(tcd);}catch(e){trainingCompletedDates=[];}}
+    if(tcd){try{trainingCompletedDates=_jp(tcd,trainingCompletedDates);}catch(e){trainingCompletedDates=[];}}
     const ttl=localStorage.getItem('arx_trainingTimeLog');
-    if(ttl){try{trainingTimeLog=JSON.parse(ttl);}catch(e){trainingTimeLog=[];}}
+    if(ttl){try{trainingTimeLog=_jp(ttl,trainingTimeLog);}catch(e){trainingTimeLog=[];}}
     const lsp=localStorage.getItem('arx_liveSessionProgress');
-    if(lsp){try{liveSessionProgress=JSON.parse(lsp);}catch(e){liveSessionProgress={};}}
+    if(lsp){try{liveSessionProgress=_jp(lsp,liveSessionProgress);}catch(e){liveSessionProgress={};}}
     const lsm=localStorage.getItem('arx_loggedSetMeta');
-    if(lsm){try{loggedSetMeta=JSON.parse(lsm);}catch(e){loggedSetMeta={};}}
+    if(lsm){try{loggedSetMeta=_jp(lsm,loggedSetMeta);}catch(e){loggedSetMeta={};}}
     winddownDate=localStorage.getItem('arx_winddownDate')||'';
     const wc=localStorage.getItem('arx_winddownChecked');
-    if(wc){try{winddownChecked=JSON.parse(wc);}catch(e){winddownChecked={};}}
+    if(wc){try{winddownChecked=_jp(wc,winddownChecked);}catch(e){winddownChecked={};}}
     winddownStreak=parseInt(localStorage.getItem('arx_winddownStreak')||'0');
     winddownStreakLastDate=localStorage.getItem('arx_winddownStreakLastDate')||'';
     brainDumpText=localStorage.getItem('arx_brainDumpText')||'';
     assessmentWeekStart=localStorage.getItem('arx_assessmentWeekStart')||'';
     assessmentText=localStorage.getItem('arx_assessmentText')||'';
-    assessmentViewed=JSON.parse(localStorage.getItem('arx_assessmentViewed')||'false');
+    assessmentViewed=_jp(localStorage.getItem('arx_assessmentViewed')||'false',false)===true;
     assessmentBannerDismissedWeek=localStorage.getItem('arx_assessmentBannerDismissedWeek')||'';
     lastMissedFoodDate=localStorage.getItem('arx_lastMissedFoodDate')||'';
     missedFoodDayDismissedDate=localStorage.getItem('arx_missedFoodDayDismissedDate')||'';
@@ -31846,16 +31948,17 @@ function loadFromStorage(){
     lowFoodEveningNotifiedDate=localStorage.getItem('arx_lowFoodEveningNotifiedDate')||'';
     coachNutritionCheckinDismissedAt=localStorage.getItem('arx_coachNutritionCheckinDismissedAt')||null;
     coachWorkoutCheckinDismissedAt=localStorage.getItem('arx_coachWorkoutCheckinDismissedAt')||'';
-    { const wfr=localStorage.getItem('arx_workoutFeedbackResponses'); if(wfr){try{workoutFeedbackResponses=JSON.parse(wfr);}catch(e){workoutFeedbackResponses=[];}} }
-    { const nfr=localStorage.getItem('arx_nutritionFeedbackResponses'); if(nfr){try{nutritionFeedbackResponses=JSON.parse(nfr);}catch(e){nutritionFeedbackResponses=[];}} }
+    { const wfr=localStorage.getItem('arx_workoutFeedbackResponses'); if(wfr){try{workoutFeedbackResponses=_jp(wfr,workoutFeedbackResponses);}catch(e){workoutFeedbackResponses=[];}} }
+    { const nfr=localStorage.getItem('arx_nutritionFeedbackResponses'); if(nfr){try{nutritionFeedbackResponses=_jp(nfr,nutritionFeedbackResponses);}catch(e){nutritionFeedbackResponses=[];}} }
     osBusyOfferShown=localStorage.getItem('arx_osBusyOfferShown')==='1';
     const cbc=localStorage.getItem('arx_cloudBackupConsent');
-    cloudBackupConsent=cbc!==null?JSON.parse(cbc):null;
+    cloudBackupConsent=cbc!==null?_jp(cbc,null):null;
+    if(cloudBackupConsent!==true&&cloudBackupConsent!==false)cloudBackupConsent=null;
     trialsEventStart=localStorage.getItem('arx_trialsEventStart')||'';
     trialsStageIdx=parseInt(localStorage.getItem('arx_trialsStageIdx'))||0;
     trialsLastEvaluatedDate=localStorage.getItem('arx_trialsLastEvaluatedDate')||'';
-    { const tcs=localStorage.getItem('arx_trialsClearedStages'); if(tcs){try{trialsClearedStages=JSON.parse(tcs);}catch(e){trialsClearedStages=[];}} }
-  }catch(e){}
+    { const tcs=localStorage.getItem('arx_trialsClearedStages'); if(tcs){try{trialsClearedStages=_jp(tcs,trialsClearedStages);}catch(e){trialsClearedStages=[];}} }
+  }catch(e){console.error('loadFromStorage:',e);}
 }
 
 // Auto-save after key actions
