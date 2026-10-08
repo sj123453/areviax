@@ -17081,11 +17081,24 @@ function syncHall3DButton(){
 }
 function openHall3D(){
   if(document.getElementById('hall3d-overlay'))return;
-  if(navigator.onLine===false){toast('📡',"You're offline — the 3D hall needs a connection to load.");return;}
+  // Once opened online the service worker keeps the hall's files, so it
+  // also opens offline. Offline and never opened → say so, not a blank frame.
+  const page=hall3DWide()?'mass-app/images/hall/hall.html':'mass-app/images/hall/road.html';
+  if(navigator.onLine===false&&window.caches){
+    caches.match(page,{ignoreSearch:true}).then(hit=>{
+      if(hit)mountHall3D(page);
+      else toast('📡',"You're offline — open the 3D hall once while connected and it will work offline after that.");
+    }).catch(()=>mountHall3D(page));
+    return;
+  }
+  mountHall3D(page);
+}
+function mountHall3D(page){
+  if(document.getElementById('hall3d-overlay'))return;
   const o=document.createElement('div');o.id='hall3d-overlay';o.setAttribute('role','dialog');o.setAttribute('aria-label','Hall of Statues in 3D');
   const fr=document.createElement('iframe');
   fr.title='Hall of Statues';
-  fr.src=(hall3DWide()?'mass-app/images/hall/hall.html':'mass-app/images/hall/road.html')+'?rank='+getRankIndex()+'&kg='+Math.round(totalVolume)+'&n='+encodeURIComponent((profile&&profile.name)||'');
+  fr.src=page+'?rank='+getRankIndex()+'&kg='+Math.round(totalVolume)+'&n='+encodeURIComponent((profile&&profile.name)||'');
   o.appendChild(fr);document.body.appendChild(o);
   requestAnimationFrame(()=>o.classList.add('on'));
 }
