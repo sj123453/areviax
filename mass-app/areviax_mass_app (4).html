@@ -12761,7 +12761,7 @@ function renderProfile(){
   const joinedToday=joinDate&&Math.floor((new Date()-parseLocalDate(joinDate))/86400000)<1;
   if(pjd)pjd.textContent=(joinDate&&!joinedToday)?('Joined '+parseLocalDate(joinDate).toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'})):'';
   const pr=document.getElementById('profile-plaque-rank');
-  if(pr){pr.textContent=unranked?'UNRANKED':r.name+' LIFTER';pr.style.color=unranked?'#8a8a94':r.col;}
+  if(pr){pr.textContent=unranked?'UNRANKED':r.name+' LIFTER'+(rankStepLabel()?' '+rankStepLabel():'');pr.style.color=unranked?'#8a8a94':r.col;}
   const pct2=document.getElementById('profile-pct');
   if(pct2){
     pct2.textContent=unranked?'Complete your first session to begin':pct+'% toward next tier — '+r.name+' Lifter';
@@ -17059,6 +17059,19 @@ function getRankIndex(){
   return idx;
 }
 function getRank(){const i=getRankIndex();return i<0?UNRANKED:TIERS[i];}
+// Each tier is split into three steps (I, II, III) by how far the athlete
+// is toward the next tier — the slower of volume and sessions, so both
+// have to keep moving. Purely a display layer: getRankIndex() is unchanged.
+function getRankStep(){
+  const idx=getRankIndex();
+  if(idx<0||idx>=TIERS.length-1)return 0;
+  const c=TIERS[idx],n=TIERS[idx+1];
+  const fv=n.volume>c.volume?(totalVolume-c.volume)/(n.volume-c.volume):1;
+  const fs=n.sessions>c.sessions?(totalSess-c.sessions)/(n.sessions-c.sessions):1;
+  const f=Math.max(0,Math.min(0.999,Math.min(fv,fs)));
+  return Math.floor(f*3)+1;
+}
+function rankStepLabel(){const k=getRankStep();return k?['','I','II','III'][k]:'';}
 function getNextTier(){
   const idx=getRankIndex();
   return idx<TIERS.length-1?TIERS[idx+1]:null;
@@ -17068,7 +17081,7 @@ function renderRank(){
   const unranked=(r===UNRANKED);
   const badge=document.getElementById('rank-badge');
   if(badge){
-    badge.innerHTML=unranked?unrankedSVG(14)+' Unranked':medalSVG(r,14)+' '+r.name+' Lifter';
+    badge.innerHTML=unranked?unrankedSVG(14)+' Unranked':medalSVG(r,14)+' '+r.name+' Lifter'+(rankStepLabel()?' '+rankStepLabel():'');
     badge.style.display='inline-flex';badge.style.alignItems='center';badge.style.gap='5px';
     badge.style.color=r.col;
     badge.style.borderColor=r.col+'55';
@@ -19529,7 +19542,7 @@ function renderDashHeroLovable(){
     // used everywhere else unranked shows up) rather than an empty gap.
     if(medalEl)renderDashRankHeroStatue(medalEl,r,unranked);
     if(rankLabelEl){
-      rankLabelEl.textContent=unranked?'':r.name+' Lifter';
+      rankLabelEl.textContent=unranked?'':r.name+' Lifter'+(rankStepLabel()?' '+rankStepLabel():'');
       rankLabelEl.style.color=unranked?'':r.col;
     }
   }
