@@ -14,6 +14,12 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;500;600;700;800&family=Cinzel:wght@500;600;700&family=Outfit:wght@300;400;500;600;700;800;900&family=Cormorant+Garamond:ital,wght@0,400;1,400;1,600&family=JetBrains+Mono:wght@400;500&family=Onest:wght@400;500;600;700&family=Inter+Tight:wght@600;700;800&display=swap" rel="stylesheet">
 <style>
+/* Motion tokens — one shared set of curves and durations for the whole
+   app (strong ease-out for entrances/exits, ease-in-out for on-screen
+   movement, iOS-style drawer curve). New motion should use these rather
+   than inventing another cubic-bezier. */
+:root{--ease-out:cubic-bezier(0.23,1,0.32,1);--ease-in-out:cubic-bezier(0.77,0,0.175,1);--ease-drawer:cubic-bezier(0.32,0.72,0,1);--dur-fast:150ms;--dur-base:220ms;--dur-slow:320ms}
+
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
   --bg:#0D0806;--bg2:#150D0A;--panel:rgba(24,15,11,.8);--panel2:rgba(21,13,10,.7);
@@ -391,6 +397,7 @@ input,input:focus,input:active,
    Olympian's c1/c2 are url(#lgi-holo-grad) (valid in background, not
    as a plain color), so this only ever sets background, never color —
    text stays a fixed dark shade that reads on every tier's material. */
+.ex-rank-badge img{width:12px;height:12px;vertical-align:-2px;margin-right:4px}
 .ex-rank-badge{display:inline-block;margin-bottom:4px;padding:2px 8px;border-radius:999px;font-size:8.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#2B1300;background:linear-gradient(135deg,var(--rk-c1),var(--rk-c2))}
 .ex-top{display:flex;flex-direction:row;gap:10px;align-items:flex-start}
 /* Fades to transparent at the edges instead of a flat-filled rectangle
@@ -2977,6 +2984,26 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        no separate unclipped sibling needed for the ring itself. The
        wreath still gets its own glow sibling since the wreath is a
        big transparent-background SVG, not a clipped shape. */
+    .lrk-medal{position:absolute;inset:0;margin:auto;z-index:2;width:88px;height:88px;filter:drop-shadow(0 5px 9px rgba(0,0,0,.5))}
+    .lrk-badge-wrap .lrk-numeral{bottom:-2px}
+    /* Rank Tiers list — medallions, gradient names, the user's best tier
+       marked, and a short staggered settle when the sheet opens */
+    .rt-row{position:relative;display:flex;align-items:center;gap:14px;padding:12px 14px;margin-bottom:8px;border-radius:14px;
+      background:linear-gradient(100deg,color-mix(in srgb,var(--rt2) 14%,transparent),transparent 60%),var(--panel2);
+      border:1px solid color-mix(in srgb,var(--rt1) 35%,var(--border2));
+      animation:rt-in .32s var(--ease-out) both;animation-delay:calc(var(--i) * 40ms)}
+    .rt-medal{flex:none;width:52px;height:52px;filter:drop-shadow(0 4px 8px rgba(0,0,0,.45))}
+    .rt-body{flex:1;min-width:0}
+    .rt-eyebrow{font-size:9.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:1px}
+    .rt-name{font-family:'Cinzel',Georgia,serif;font-size:17px;font-weight:700;letter-spacing:.03em;line-height:1.2;
+      background:linear-gradient(90deg,var(--rt1),var(--rt2));-webkit-background-clip:text;background-clip:text;color:transparent}
+    .rt-flavor{font-size:11px;color:var(--muted);line-height:1.5;margin-top:2px}
+    .rt-ahead .rt-medal{filter:grayscale(.75) brightness(.8) drop-shadow(0 4px 8px rgba(0,0,0,.4))}
+    .rt-ahead .rt-name{opacity:.6}
+    .rt-best{border-color:var(--rt1);box-shadow:0 0 0 1px var(--rt1),0 8px 24px -10px var(--rt2)}
+    .rt-you{flex:none;align-self:flex-start;padding:3px 8px;border-radius:999px;font-size:9.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#1c1006;background:linear-gradient(90deg,var(--rt1),var(--rt2))}
+    @keyframes rt-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+    @media (prefers-reduced-motion: reduce){.rt-row{animation:rt-fade .2s ease both}@keyframes rt-fade{from{opacity:0}to{opacity:1}}}
     .lift-rank-card{flex:0 0 auto;width:120px;text-align:center;background:rgba(232,214,196,.025);border:1.5px solid var(--border2);border-radius:14px;padding:13px 8px 11px}
     .lrk-name{font-size:10px;font-weight:800;color:rgba(var(--white-rgb),.55);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px}
     .lrk-badge-wrap{position:relative;width:100px;height:104px;margin:0 auto 8px}
@@ -14754,8 +14781,8 @@ function renderLiftRanks(){
       <div class="lrk-name">${name}</div>
       <div class="lrk-badge-wrap">
         <div class="lrk-badge-glow"></div>
-        <div class="lrk-wreath">${LGR_WREATH_SVG}</div>
-        <div class="lrk-badge">${LRK_BARBELL_SVG}<div class="lrk-numeral">${r.sub}</div></div>
+        <img class="lrk-medal" src="${t.img}" alt="${t.name} medallion" width="88" height="88">
+        <div class="lrk-numeral">${r.sub}</div>
       </div>
       <div class="lrk-tier-label">${t.name} ${r.sub}</div>
       <div class="lrk-percentile">${t.pct}</div>
@@ -16835,13 +16862,17 @@ function closeRankTiers(){
 function renderRankTiers(){
   const listEl=document.getElementById('rank-tiers-list');
   if(!listEl)return;
-  listEl.innerHTML=LIFT_RANK_TIERS.map(t=>`
-    <div style="display:flex;gap:12px;padding:12px;background:var(--panel2);border:1.5px solid var(--border2);border-top-color:${t.ring1};border-top-width:2px;border-radius:10px;margin-bottom:8px">
-      <div style="flex-shrink:0;width:34px;height:34px;border-radius:50%;background:linear-gradient(160deg,${t.ring1},${t.ring2});box-shadow:0 0 0 1.5px rgba(0,0,0,.2) inset"></div>
-      <div style="flex:1;min-width:0">
-        <div style="font-size:12.5px;font-weight:800;color:var(--white);margin-bottom:3px">${t.name}</div>
-        <div style="font-size:11px;color:var(--muted);line-height:1.55">${t.flavor}</div>
+  // the best tier any of the user's lifts has reached, so the list can say "you are here"
+  let best=-1;try{getTopLiftRanks().forEach(({r})=>{best=Math.max(best,LIFT_RANK_TIERS.indexOf(r.tier));});}catch(e){}
+  listEl.innerHTML=LIFT_RANK_TIERS.map((t,i)=>`
+    <div class="rt-row${i===best?' rt-best':''}${best>=0&&i>best?' rt-ahead':''}" style="--i:${i};--rt1:${t.ring1};--rt2:${t.ring2}">
+      <img class="rt-medal" src="${t.img}" alt="" width="52" height="52">
+      <div class="rt-body">
+        <div class="rt-eyebrow">${t.pct}</div>
+        <div class="rt-name">${t.name}</div>
+        <div class="rt-flavor">${t.flavor}</div>
       </div>
+      ${i===best?'<span class="rt-you">Your best</span>':''}
     </div>`).join('');
 }
 
@@ -21663,23 +21694,23 @@ function estimate1RM(name){
 // Rank Tiers explainer sheet — every tier reads as one continuous story
 // of a build getting more ambitious, not a random flavour line each.
 const LIFT_RANK_TIERS=[
-  {name:'Wood',    c1:'#C9A377', c2:'#6B4226', ring1:'#C9A377', ring2:'#6B4226', pct:'Laying the foundations',
+  {name:'Wood', img:'mass-app/images/ranks/lift-wood.png',    c1:'#C9A377', c2:'#6B4226', ring1:'#C9A377', ring2:'#6B4226', pct:'Laying the foundations',
    flavor:"You're building foundations to build fantastic things on."},
-  {name:'Bronze',  c1:'#F0C08E', c2:'#9A5522', ring1:'#F0C08E', ring2:'#9A5522', pct:'The first blocks are down',
+  {name:'Bronze', img:'mass-app/images/ranks/lift-bronze.png',  c1:'#F0C08E', c2:'#9A5522', ring1:'#F0C08E', ring2:'#9A5522', pct:'The first blocks are down',
    flavor:"You're starting to build — laying out the first blocks toward something beautiful."},
-  {name:'Silver',  c1:'#E4E7EC', c2:'#A59D95', ring1:'#E4E7EC', ring2:'#A59D95', pct:"The frame's going up",
+  {name:'Silver', img:'mass-app/images/ranks/lift-silver.png',  c1:'#E4E7EC', c2:'#A59D95', ring1:'#E4E7EC', ring2:'#A59D95', pct:"The frame's going up",
    flavor:"The frame is going up. What you're building is starting to take real shape."},
-  {name:'Gold',    c1:'#FFEB99', c2:'#E8B400', ring1:'#FFEB99', ring2:'#E8B400', pct:'Solid, built to last',
+  {name:'Gold', img:'mass-app/images/ranks/lift-gold.png',    c1:'#FFEB99', c2:'#E8B400', ring1:'#FFEB99', ring2:'#E8B400', pct:'Solid, built to last',
    flavor:"Solid and dependable — this is built to last, not just to look good."},
-  {name:'Platinum',c1:'#EAF6FF', c2:'#6E9BC2', ring1:'#EAF6FF', ring2:'#6E9BC2', pct:'Fewer build this far',
+  {name:'Platinum', img:'mass-app/images/ranks/lift-platinum.png',c1:'#EAF6FF', c2:'#6E9BC2', ring1:'#EAF6FF', ring2:'#6E9BC2', pct:'Fewer build this far',
    flavor:"Most people stop long before this floor. You kept building anyway."},
-  {name:'Elite',   c1:'#B8FFE0', c2:'#16A37A', ring1:'#B8FFE0', ring2:'#16A37A', pct:'Rare craftsmanship',
+  {name:'Elite', img:'mass-app/images/ranks/lift-elite.png',   c1:'#B8FFE0', c2:'#16A37A', ring1:'#B8FFE0', ring2:'#16A37A', pct:'Rare craftsmanship',
    flavor:"This is rare craftsmanship now — built better than almost anyone attempts."},
-  {name:'Champion',c1:'#FFAEB5', c2:'#E23B4E', ring1:'#FFAEB5', ring2:'#E23B4E', pct:'A structure people notice',
+  {name:'Champion', img:'mass-app/images/ranks/lift-champion.png',c1:'#FFAEB5', c2:'#E23B4E', ring1:'#FFAEB5', ring2:'#E23B4E', pct:'A structure people notice',
    flavor:"A structure people stop and notice. What you've built speaks for itself."},
-  {name:'Titan',   c1:'#E4C4FF', c2:'#A855F7', ring1:'#E4C4FF', ring2:'#A855F7', pct:'Among the strongest built',
+  {name:'Titan', img:'mass-app/images/ranks/lift-titan.png',   c1:'#E4C4FF', c2:'#A855F7', ring1:'#E4C4FF', ring2:'#A855F7', pct:'Among the strongest built',
    flavor:"Among the strongest things ever built here — the top 1.5%."},
-  {name:'Olympian',c1:'url(#lgi-holo-grad)', c2:'url(#lgi-holo-grad)', ring1:'#FFD9A8', ring2:'#FF9A3D', pct:'The finished monument',
+  {name:'Olympian', img:'mass-app/images/ranks/lift-olympian.png',c1:'url(#lgi-holo-grad)', c2:'url(#lgi-holo-grad)', ring1:'#FFD9A8', ring2:'#FF9A3D', pct:'The finished monument',
    flavor:"The finished monument. You're building at the very top of what's possible."},
 ];
 // Ratio curves are estimated-1RM ÷ bodyweight(kg) at the START of each
@@ -21838,7 +21869,7 @@ function getExerciseRank(exName){
 function liftRankBadgeHTML(exName){
   const r=getExerciseRank(exName);
   if(!r)return '';
-  return `<div class="ex-rank-badge" style="--rk-c1:${r.tier.c1};--rk-c2:${r.tier.c2}" title="${r.tier.name} ${r.sub} — estimated ${r.e1rm}kg 1RM">${r.tier.name} ${r.sub}</div>`;
+  return `<div class="ex-rank-badge" style="--rk-c1:${r.tier.c1};--rk-c2:${r.tier.c2}" title="${r.tier.name} ${r.sub} — estimated ${r.e1rm}kg 1RM"><img src="${r.tier.img}" alt="" width="12" height="12">${r.tier.name} ${r.sub}</div>`;
 }
 function renderTonnageBreakdown(){
   const wrap=document.getElementById('tonnage-breakdown');
