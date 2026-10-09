@@ -4555,6 +4555,29 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .today-log-empty{font-size:11.5px;color:var(--muted);padding:8px 0}
 .photo-empty::before,.today-log-empty::before,.custom-empty::before,#muscle-readiness-empty::before{content:'';display:block;width:44px;height:44px;margin:0 auto 10px;background:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48' fill='none' stroke='%23E6BE6D' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M19 6h10M21 6v5c-6 2-9 8-9 14 0 8 5 14 12 14s12-6 12-14c0-6-3-12-9-14V6'/><path d='M12 22c-5 0-6 6-2 8 1 .5 2 .5 2 .5M36 22c5 0 6 6 2 8-1 .5-2 .5-2 .5'/><path d='M16 28h16M17 33h14' opacity='.55'/><path d='M20 43h8' /></svg>") center/contain no-repeat;opacity:.75}
 .today-log-empty{text-align:center;padding:14px 0}
+/* BRAWL-STYLE CRATE ENTRANCE + REWARD POP */
+@keyframes crateDropIn{0%{transform:translateY(-120vh) rotate(-14deg) scale(.7);opacity:1}50%{transform:translateY(0) rotate(0) scale(1.02,.98)}58%{transform:translateY(0) scale(1.16,.8)}74%{transform:translateY(-42px) scale(.94,1.08)}88%{transform:translateY(0) scale(1.06,.94)}100%{transform:none}}
+.crate-icon-wrap.drop-in{animation:crateDropIn .95s cubic-bezier(.45,0,.55,1) both}
+.crate-tap-prompt.late{opacity:0;animation:rwFade .35s ease-out 1s forwards}
+@keyframes rwFade{to{opacity:1}}
+.crate-slot-pop{position:relative;animation:none}
+.crate-slot-pop::before{content:'';position:absolute;left:50%;top:38%;width:min(120vw,620px);height:min(120vw,620px);margin:calc(min(120vw,620px)/-2) 0 0 calc(min(120vw,620px)/-2);z-index:-1;pointer-events:none;opacity:.42;
+  background:repeating-conic-gradient(from 0deg,rgba(255,214,120,.55) 0 7deg,transparent 7deg 24deg);
+  -webkit-mask-image:radial-gradient(circle,#000 6%,transparent 62%);mask-image:radial-gradient(circle,#000 6%,transparent 62%);
+  animation:rwSpin 14s linear infinite,rwFade .4s ease-out both}
+@keyframes rwSpin{to{transform:rotate(360deg)}}
+.crate-slot-pop .crate-xp-slot-icon{animation:rwFly .62s cubic-bezier(.2,1.1,.3,1) both}
+@keyframes rwFly{0%{transform:translateY(130px) scale(.15) rotate(-30deg);opacity:0}45%{opacity:1}68%{transform:translateY(-14px) scale(1.28) rotate(7deg)}85%{transform:translateY(3px) scale(.95) rotate(-2deg)}100%{transform:none}}
+.crate-slot-pop .crate-xp-slot-label{animation:rwLabel .5s cubic-bezier(.22,1.2,.36,1) .18s both}
+.crate-slot-pop .crate-xp-slot-sub{animation:rwFade .4s ease-out .4s both;opacity:0}
+@keyframes rwLabel{0%{transform:translateX(-60px) scaleX(1.3);opacity:0}100%{transform:none;opacity:1}}
+.crate-xp-slot-icon.rw-img{padding:10%}
+.crate-xp-slot-icon.rw-img img{width:100%;height:100%;object-fit:contain;display:block;filter:drop-shadow(0 4px 8px rgba(0,0,0,.45))}
+.reveal-also{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:12px;max-width:340px}
+.reveal-also span{display:inline-flex;align-items:center;gap:5px;padding:3px 9px 3px 4px;border-radius:99px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);font-size:11px;font-weight:700;color:rgba(var(--white-rgb),.85);animation:rwChip .4s cubic-bezier(.34,1.56,.64,1) both}
+.reveal-also img{width:20px;height:20px;object-fit:contain;display:block}
+@keyframes rwChip{from{transform:scale(.4);opacity:0}}
+@media(prefers-reduced-motion:reduce){.crate-icon-wrap.drop-in,.crate-slot-pop::before,.crate-slot-pop .crate-xp-slot-icon,.crate-slot-pop .crate-xp-slot-label{animation:none}.crate-slot-pop .crate-xp-slot-sub,.crate-tap-prompt.late{opacity:1;animation:none}}
 .compass-crate .crate-icon.crate-open{position:absolute;inset:0;opacity:0;transform:scale(.7);transition:opacity .1s linear,transform .42s cubic-bezier(.34,1.56,.64,1)}
 .compass-crate.crack-out .crate-icon.crate-open{opacity:1;transform:scale(1.12)}
 .compass-crate .crate-icon.crate-closed{transition:opacity .08s linear,transform .3s cubic-bezier(.23,1,.32,1)}
@@ -15086,6 +15109,55 @@ function grantTestCrates(){
   renderAchievements();
   toast('🎁','Test crates granted — check Areviax Crates','drops');
 }
+// ── CRATE REWARD COUNT & EXTRAS ─────────────────────────────────────────────
+// Every crate always gives its Arete bonus and a trophy; on top of that it can
+// carry extra rewards, 2-8 rewards in total. The chance of N rewards falls
+// geometrically as N rises (each extra reward is rarer than the last), and
+// better crates keep a fatter tail: ratio per extra reward is bronze .55,
+// silver .60, gold .66, diamond .72, Areviax .80.
+const CRATE_REWARD_RATIO={bronze:.55,silver:.6,gold:.66,diamond:.72,areviax:.8};
+function rollCrateRewardCount(tier){
+  const r=CRATE_REWARD_RATIO[tier]||.55;
+  const w=[];for(let k=0;k<7;k++)w.push(Math.pow(r,k));      // N = 2..8
+  const sum=w.reduce((a,b)=>a+b,0);let x=Math.random()*sum;
+  for(let k=0;k<7;k++){x-=w[k];if(x<=0)return k+2;}
+  return 2;
+}
+const CRATE_EXTRA_ART={
+  drachma:'images/icons/tetradrachm.png',
+  key:'images/icons/key.png',
+  freeze:'images/icons/streak-freeze.png',
+  saver:'images/icons/streak-saver.png',
+  title:'images/icons/title-medal.png',
+  starter:'images/icons/starter-pack.png',
+};
+// kind -> {weight by tier, grant() returns descriptor or null if unavailable}
+function crateExtraPool(tier){
+  const dr={bronze:10,silver:20,gold:35,diamond:60,areviax:100}[tier]||10;
+  const hi=['gold','diamond','areviax'].includes(tier),top=['diamond','areviax'].includes(tier);
+  return [
+    {w:10,make:()=>{const n=dr+Math.floor(Math.random()*dr);drachma+=n;return {kind:'drachma',art:CRATE_EXTRA_ART.drachma,label:'+'+n+' Drachma',sub:'Spend it in the Shop',grad:'linear-gradient(160deg,#FFE066,#C9971E)'};}},
+    {w:8,make:()=>{const n=15+Math.floor(Math.random()*(hi?60:25));return {kind:'xp',emoji:'⚡',label:'+'+n+' bonus Arete',sub:'Crate surge',grad:'linear-gradient(160deg,#FFB347,#FF6B1A)',xp:n};}},
+    {w:6,make:()=>{keyBank++;return {kind:'key',art:CRATE_EXTRA_ART.key,label:'+1 Key',sub:'Spend keys to upgrade a crate',grad:'linear-gradient(160deg,#E8E0D0,#8A98A8)'};}},
+    {w:6,make:()=>{bronzeDropBank++;return {kind:'bronze',art:CRATE_ICON_IMG.bronze,label:'+1 Bronze Crate',sub:'Ready in your crates',grad:'linear-gradient(160deg,#C8864E,#6a3f1c)'};}},
+    {w:hi?4:2,make:()=>{silverDropBank++;return {kind:'silver',art:CRATE_ICON_IMG.silver,label:'+1 Silver Crate',sub:'Ready in your crates',grad:'linear-gradient(160deg,#DDE3EC,#7f8896)'};}},
+    {w:3,make:()=>{streakFreezes++;return {kind:'freeze',art:CRATE_EXTRA_ART.freeze,label:'+1 Streak Freeze',sub:'Protects a missed day',grad:'linear-gradient(160deg,#8fe6ff,#2b7fa6)'};}},
+    {w:2,make:()=>{streakSavers++;return {kind:'saver',art:CRATE_EXTRA_ART.saver,label:'+1 Streak Saver',sub:'Repairs a broken streak',grad:'linear-gradient(160deg,#FFD24A,#c26a00)'};}},
+    {w:top?1.6:.4,make:()=>{diamondDropBank++;return {kind:'diamond',art:CRATE_ICON_IMG.diamond,label:'+1 Diamond Crate',sub:'Ready in your crates',grad:'linear-gradient(160deg,#9be8ff,#1c7fa8)'};}},
+    {w:1.4,make:()=>{const t=randomLockedTitle();if(!t)return null;unlockTitle(t,false);return {kind:'title',art:CRATE_EXTRA_ART.title,label:'New Title',sub:'"'+TITLES[t].name+'" — equip it on your Profile',grad:'linear-gradient(160deg,#FFE066,#C9971E)'};}},
+  ];
+}
+function rollCrateExtras(tier){
+  const want=rollCrateRewardCount(tier)-2,out=[];
+  let pool=crateExtraPool(tier);
+  while(out.length<want&&pool.length){
+    const sum=pool.reduce((a,p)=>a+p.w,0);let x=Math.random()*sum,i=0;
+    for(;i<pool.length-1;i++){x-=pool[i].w;if(x<=0)break;}
+    const entry=pool.splice(i,1)[0],d=entry.make();
+    if(d)out.push(d);
+  }
+  return out;
+}
 function openCompassDrop(tier){
   const cfg=CRATE_TIERS[tier];
   if(!cfg)return;
@@ -15128,18 +15200,10 @@ function openCompassDrop(tier){
   if(tier==='areviax')keyBank+=2; // the best drop in the app pays a bonus on top of the guaranteed card
   if(tier==='diamond')unlockAccentTheme('silver',true);
   if(tier==='areviax')unlockAccentTheme('gold',true);
-  // A real bank crate has a modest chance to also drop a Key — the
-  // "add other rewards in there" ask, as its own slot in the reveal
-  // sequence below rather than a silent background grant. Areviax skips
-  // this too (free/instant path, single reward, unchanged).
-  const keyWon=tier!=='areviax'&&Math.random()<0.18;
-  if(keyWon)keyBank++;
-  // Titles are crate-only, never a milestone freebie — same small-
-  // chance-per-real-open pattern as Keys, its own slot in the reveal
-  // when it lands. randomLockedTitle() returns null once all 3 are
-  // owned, so this naturally stops rolling once there's nothing left.
-  const titleWon=tier!=='areviax'&&Math.random()<0.07?randomLockedTitle():null;
-  if(titleWon)unlockTitle(titleWon,false);
+  // 2-8 rewards per crate (see rollCrateRewardCount): the extras are granted
+  // right here, the reveal below only shows them.
+  const extras=rollCrateExtras(tier);
+  const keyWon=false,titleWon=null;
   saveToStorage();
   // Anticipation beat on the actual crate tile — a real chest/crystal
   // render can now sell "about to open" (shake + glow build) before the
@@ -15155,10 +15219,10 @@ function openCompassDrop(tier){
     crateEl.classList.add('opening');
     setTimeout(()=>{
       crateEl.classList.remove('opening');
-      showLegendReveal(pick,isNew,tier,legendCounts[pick.key],keyWon,titleWon);
+      showLegendReveal(pick,isNew,tier,legendCounts[pick.key],keyWon,titleWon,extras);
     },500);
   }else{
-    showLegendReveal(pick,isNew,tier,legendCounts[pick.key],keyWon,titleWon);
+    showLegendReveal(pick,isNew,tier,legendCounts[pick.key],keyWon,titleWon,extras);
   }
 }
 // \u2500\u2500 CRATE SOUND \u2014 procedurally synthesized (no audio files), same
@@ -15999,7 +16063,8 @@ function closeCrateRevealAndShowcase(btn,key,isNew){
   // close and return to the app.
   overlay.remove();
 }
-function showLegendReveal(l,isNew,tier,count,keyWon,titleWon){
+function showLegendReveal(l,isNew,tier,count,keyWon,titleWon,extras){
+  extras=extras||[];
   const cfg=CRATE_OPEN_TIMING[tier]||CRATE_OPEN_TIMING.bronze;
   if(l.img){const _preload=new Image();_preload.src=l.img;}
   const xpAmount=isNew?25:10;
@@ -16041,6 +16106,7 @@ function showLegendReveal(l,isNew,tier,count,keyWon,titleWon){
         '<div class="achievement-title reveal-name-serif mystery-hide">'+l.name+'</div>'+
         '<div class="achievement-desc mystery-hide">'+l.title+'</div>'+
         (tier==='areviax'?'<div style="font-size:11px;font-weight:700;color:#FFB347;margin-top:8px" class="mystery-hide">🔥 The Areviax Crate — +2 bonus Keys</div>':'')+
+        (extras.length?'<div class="reveal-also mystery-hide">'+extras.map((d,i)=>'<span style="animation-delay:'+(i*70)+'ms">'+(d.art?'<img src="'+d.art+'" alt="">':'<b>'+d.emoji+'</b>')+d.label+'</span>').join('')+'</div>':'')+
       '</div>'+
     '</div>';
   }
@@ -16066,6 +16132,14 @@ function showLegendReveal(l,isNew,tier,count,keyWon,titleWon){
         '<div class="crate-xp-slot-sub">"'+t.name+'" — equip it on your Profile</div>'+
       '</div>';
   }
+  function extraSlotHTML(d){
+    const icon=d.art?'<img src="'+d.art+'" alt="" width="120" height="120">':d.emoji;
+    return '<div class="crate-xp-slot crate-slot-pop rw-pop">'+
+        '<div class="crate-xp-slot-icon'+(d.art?' rw-img':'')+'" style="background:'+d.grad+'">'+icon+'</div>'+
+        '<div class="crate-xp-slot-label">'+d.label+'</div>'+
+        '<div class="crate-xp-slot-sub">'+d.sub+'</div>'+
+      '</div>';
+  }
   // Order matters for pacing (small beats first, big prize last) — not
   // for economy, every slot always grants exactly what would've been
   // granted with no reveal sequence at all. Key/Title slots only appear
@@ -16078,6 +16152,7 @@ function showLegendReveal(l,isNew,tier,count,keyWon,titleWon){
   // visibly arrives rather than just popping into place.
   const slots=multiSlot?[
     {render:xpSlotHTML,onShow:(m)=>{addXP(xpAmount,isNew?'New trophy':'Areviax Crate');lightRayBurst('#FFB347',4);try{ArxFX.coins(m.querySelector('.crate-xp-slot-icon'),Math.min(40,12+Math.round(xpAmount/6)));}catch(e){}}},
+    ...extras.map(d=>({render:()=>extraSlotHTML(d),onShow:(m)=>{if(d.xp)addXP(d.xp,'Crate surge');lightRayBurst('#FFD24A',4);try{ArxFX[d.kind==='drachma'?'coins':'shine'](m.querySelector('.crate-xp-slot-icon'),d.kind==='drachma'?Math.min(40,10+Math.round(parseInt(d.label.replace(/\D/g,''))/4)):'#FFD24A',16);}catch(e){}}})),
     ...(keyWon?[{render:keySlotHTML,onShow:(m)=>{lightRayBurst('#B9C4CE',4);try{ArxFX.shine(m.querySelector('.crate-xp-slot-icon'),'#DDE6F0',16);}catch(e){}}}]:[]),
     ...(titleWon?[{render:titleSlotHTML,onShow:(m)=>{lightRayBurst('#FFD24A',4);try{ArxFX.shine(m.querySelector('.crate-xp-slot-icon'),'#FFD24A',22);}catch(e){}}}]:[]),
     {render:trophySlotHTML,onShow:(modal)=>runMysteryReveal(modal,l,isNew,cfg)},
@@ -16095,12 +16170,12 @@ function showLegendReveal(l,isNew,tier,count,keyWon,titleWon){
   overlay.className='achievement-overlay';
   overlay.innerHTML=
     '<div class="achievement-modal crate-reveal-stage">'+
-      '<div class="crate-icon-wrap '+tier+' ready" id="reveal-crate-wrap" style="cursor:pointer">'+
+      '<div class="crate-icon-wrap '+tier+' ready drop-in" id="reveal-crate-wrap" style="cursor:pointer">'+
         '<div class="crate-icon-burst" id="reveal-crate-burst"></div>'+
         '<div class="compass-crate '+tier+'" id="reveal-crate-icon">'+crackOutIconHTML(tier)+'</div>'+
         (multiSlot?counterBadgeHTML(slots.length):'')+
       '</div>'+
-      '<div class="crate-tap-prompt" id="reveal-tap-prompt">Tap-tap!</div>'+
+      '<div class="crate-tap-prompt late" id="reveal-tap-prompt">Tap-tap!</div>'+
     '</div>';
   document.body.appendChild(overlay);
   requestAnimationFrame(()=>overlay.classList.add('show'));
@@ -16163,7 +16238,7 @@ function showLegendReveal(l,isNew,tier,count,keyWon,titleWon){
       modal.addEventListener('advance',()=>{ clearTimeout(autoAdvanceTimer); slotIdx++; showSlot(); },{once:true});
       // Same "don't gate the reward behind a tap" rule as the box open
       // itself — advances on its own if the player doesn't tap.
-      autoAdvanceTimer=setTimeout(()=>{ if(overlay.isConnected&&modal.querySelector('.crate-tap-prompt')){ slotIdx++; showSlot(); } },1800);
+      autoAdvanceTimer=setTimeout(()=>{ if(overlay.isConnected&&modal.querySelector('.crate-tap-prompt')){ slotIdx++; showSlot(); } },slots.length>=5?1350:1800);
     }
   }
 
@@ -16173,8 +16248,16 @@ function showLegendReveal(l,isNew,tier,count,keyWon,titleWon){
   // instead, the anticipation without the extra friction that got the
   // wider version pulled. Still never gates the reward — autoOpenTimer
   // fires explode() on its own if the player doesn't tap (enough).
-  let exploding=false,autoOpenTimer=null,taps=0;
+  let exploding=false,autoOpenTimer=null,taps=0,landed=false;
   const TAPS_NEEDED=2;
+  // Brawl-style entrance: the crate drops in from above and slams down;
+  // the impact throws a ring and a puff of sparks and shakes the screen.
+  setTimeout(()=>{
+    if(!overlay.isConnected)return;
+    try{ArxFX.ring(innerWidth/2,innerHeight*.6,'rgba(255,214,150,.9)',Math.min(innerWidth,innerHeight)*.5,8);ArxFX.tap(icon,tier);ArxFX.shake(overlay.querySelector('.achievement-modal'),9,.4);}catch(e){}
+    try{const a=getCrateAudioCtx();if(a)playCrateTick(a,1);}catch(e){}
+  },520);
+  setTimeout(()=>{landed=true;wrap.classList.remove('drop-in');},980);
 
   // Synced to crateFloat's ~58% jolt point (3.4s cycle → ~1970ms in).
   // Cleared the moment explode() fires so it can never fire a thump
@@ -16186,7 +16269,7 @@ function showLegendReveal(l,isNew,tier,count,keyWon,titleWon){
   setTimeout(()=>{ if(!exploding&&overlay.isConnected)playCrateIdleThump(getCrateAudioCtx()); },1970);
 
   function onTap(){
-    if(exploding)return;
+    if(exploding||!landed)return;
     taps++;
     // A kick + tick on every tap, before the bigger shake/crack
     // sequence in explode() once the count is met.
@@ -16243,7 +16326,7 @@ function showLegendReveal(l,isNew,tier,count,keyWon,titleWon){
   // not a gate. Auto-triggers a little after the prompt fades in so a
   // real tap (which fires first) always wins the race — widened from
   // 1400ms for the single-tap version to give room for a real 2-tap.
-  autoOpenTimer=setTimeout(explode,2000);
+  autoOpenTimer=setTimeout(explode,3000);
 }
 
 // ── GIFT FROM THE GODS — one free daily login reward, weighted heavily
