@@ -17552,11 +17552,21 @@ function mountRankUp(btn){
   const fr=document.createElement('iframe');fr.title='Road to Olympus';
   fr.src='mass-app/images/hall/road.html'+'?rank='+getRankIndex()+'&kg='+Math.round(totalVolume)+'&n='+encodeURIComponent((profile&&profile.name)||'');
   o.appendChild(fr);
+  // if the climb never reports ready (or reports failure) fall back to the Arete Road page
+  clearTimeout(window.__rankUpGuard);
+  window.__rankUpGuard=setTimeout(()=>{if(rankUpOpen()&&!window.__rankUpReady)rankUpFail();},30000);
+  window.__rankUpReady=false;
   btn.classList.add('open','squash');btn.setAttribute('aria-expanded','true');setTimeout(()=>btn.classList.remove('squash'),700);
   rankUpBurst(x,y);
   requestAnimationFrame(()=>requestAnimationFrame(()=>o.classList.add('open')));
 }
+function rankUpFail(){
+  closeRankUp();
+  try{toast('🏛️','The island climb could not load here — opening the Arete Road instead.');}catch(e){}
+  showPage('xproad');
+}
 function closeRankUp(){
+  clearTimeout(window.__rankUpGuard);
   const o=document.getElementById('rankup-overlay'),btn=document.getElementById('mn-xproad');
   if(btn){btn.classList.remove('open');btn.setAttribute('aria-expanded','false');}
   if(!o)return;
@@ -17590,7 +17600,9 @@ function closeHall3D(){
   const o=document.getElementById('hall3d-overlay');if(!o)return;
   o.classList.remove('on');setTimeout(()=>o.remove(),240);
 }
-window.addEventListener('message',e=>{if(e.data&&e.data.type==='arx-hall-close'){closeHall3D();closeRankUp();}});
+window.addEventListener('message',e=>{if(e.data&&e.data.type==='arx-hall-close'){closeHall3D();closeRankUp();}
+  else if(e.data&&e.data.type==='arx-road-ready'){window.__rankUpReady=true;clearTimeout(window.__rankUpGuard);}
+  else if(e.data&&e.data.type==='arx-road-failed'&&rankUpOpen()){rankUpFail();}});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeHall3D();closeRankUp();}});
 // Each tier is split into three steps (I, II, III) by how far the athlete
 // is toward the next tier — the slower of volume and sessions, so both
