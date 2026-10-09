@@ -4556,6 +4556,14 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .today-log-empty{font-size:11.5px;color:var(--muted);padding:8px 0}
 .photo-empty::before,.today-log-empty::before,.custom-empty::before,#muscle-readiness-empty::before{content:'';display:block;width:44px;height:44px;margin:0 auto 10px;background:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48' fill='none' stroke='%23E6BE6D' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M19 6h10M21 6v5c-6 2-9 8-9 14 0 8 5 14 12 14s12-6 12-14c0-6-3-12-9-14V6'/><path d='M12 22c-5 0-6 6-2 8 1 .5 2 .5 2 .5M36 22c5 0 6 6 2 8-1 .5-2 .5-2 .5'/><path d='M16 28h16M17 33h14' opacity='.55'/><path d='M20 43h8' /></svg>") center/contain no-repeat;opacity:.75}
 .today-log-empty{text-align:center;padding:14px 0}
+.bestiary-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:10px}
+.bestiary-card{position:relative;border:1px solid var(--border2);border-radius:14px;padding:8px 6px 10px;text-align:center;background:rgba(255,255,255,.03);transition:transform var(--dur-base) var(--ease-out),border-color var(--dur-base) var(--ease-out)}
+.bestiary-card img{width:72px;height:72px;object-fit:contain;display:block;margin:0 auto 6px;filter:drop-shadow(0 4px 8px rgba(0,0,0,.5))}
+.bestiary-card.locked img{filter:brightness(0) opacity(.45)}
+.bestiary-card b{display:block;font-size:12px;line-height:1.2}
+.bestiary-card small{display:block;font-size:11px;color:var(--muted);margin-top:2px;line-height:1.3}
+.bestiary-card.earned{border-color:var(--bc)}
+@media(hover:hover){.bestiary-card.earned:hover{transform:translateY(-2px)}}
 .shop-art-img{width:100%;height:100%;object-fit:contain;display:block;filter:drop-shadow(0 4px 8px rgba(0,0,0,.45))}
 .hall3d-open{width:100%;margin:0 0 12px}
 #hall3d-overlay{position:fixed;inset:0;z-index:9500;background:#120b07;opacity:0;transition:opacity var(--dur-slow) var(--ease-out)}
@@ -9184,6 +9192,13 @@ body[data-goal-theme="cut"] .lv-page{
     <div id="hall-of-statues" class="hall-path"></div>
   </div>
 
+  <!-- BESTIARY — one beast of Greek myth per rank tier -->
+  <div class="card lv-surface" style="margin-bottom:14px">
+    <div class="ch"><span class="ct">Bestiary</span></div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:14px">Each rank you earn, a beast of the old myths comes to your side.</div>
+    <div id="bestiary-grid" class="bestiary-grid"></div>
+  </div>
+
   <!-- WORD OF THE DAY — a rotating line from Socrates or an Olympian,
        same one all day for everyone (deterministic by date), new again
        tomorrow. A small dose of the app's mythic voice living somewhere
@@ -12864,13 +12879,34 @@ function renderDailyQuote(){
     '<div class="daily-quote-text">“'+q.text+'”</div>'+
     '<div class="daily-quote-author">'+q.author+'</div>';
 }
+// Bestiary — a beast of Greek myth for each rank tier, in ladder order.
+const BEASTS=[
+  {name:'Harpy',img:'images/beasts/harpy.png',tier:0,blurb:'Storm-winged scavenger'},
+  {name:'Minotaur',img:'images/beasts/minotaur.png',tier:1,blurb:'Bull of the Labyrinth'},
+  {name:'Nemean Lion',img:'images/beasts/nemean-lion.png',tier:2,blurb:'Hide no blade could pierce'},
+  {name:'Chimera',img:'images/beasts/chimera.png',tier:3,blurb:'Lion, goat and serpent'},
+  {name:'Hydra',img:'images/beasts/hydra.png',tier:4,blurb:'Cut one head, two return'},
+  {name:'Cerberus',img:'images/beasts/cerberus.png',tier:5,blurb:'Hound of Hades, jailer of Titans'},
+  {name:'Pegasus',img:'images/beasts/pegasus.png',tier:6,blurb:'Bearer of Zeus\'s thunder'}
+];
+function renderBestiary(){
+  const el=document.getElementById('bestiary-grid');if(!el)return;
+  const my=getRankIndex();
+  el.innerHTML=BEASTS.map(b=>{
+    const earned=b.tier<=my,t=TIERS[b.tier];
+    return '<div class="bestiary-card '+(earned?'earned':'locked')+'" style="--bc:'+t.col+'66" title="'+escHtml(earned?b.blurb:'Reach '+t.name+' to meet this beast')+'">'+
+      '<img src="'+b.img+'" alt="'+(earned?escHtml(b.name):'Locked beast')+'" width="72" height="72" loading="lazy">'+
+      '<b>'+(earned?escHtml(b.name):'???')+'</b><small>'+(earned?escHtml(b.blurb):escHtml(t.name))+'</small></div>';
+  }).join('');
+}
 function renderHallOfStatues(){
   syncHall3DButton();
+  renderBestiary();
   const hall=document.getElementById('hall-of-statues');
   if(!hall)return;
   const myIdx=getRankIndex();
   const topIdx=TIERS.length-1;
-  // DIVINE THRESHOLD \u2014 the one zone break this app's 6-tier ladder earns
+  // DIVINE THRESHOLD \u2014 the one zone break this app's 7-tier ladder earns
   // (Nimbus's 20 levels can afford several; 6 can't without it feeling
   // arbitrary): Mortal/Soldier/Hero are the mortal tiers, Demigod and up
   // are divine. Rendered top(highest tier)-to-bottom(lowest) so the path
@@ -12896,7 +12932,7 @@ function renderHallOfStatues(){
   let stagger=0;
   for(let i=topIdx;i>=0;i--){
     if(i===topIdx)rows+='<div class="hp-zone">Olympus</div>';
-    if(i===TIERS.length-3)rows+='<div class="hp-zone"><span>The Divine Threshold</span></div>';
+    if(i===3)rows+='<div class="hp-zone"><span>The Divine Threshold</span></div>';
     const t=TIERS[i];
     const achieved=i<=myIdx, isCurrent=i===myIdx;
     const st=achieved?(isCurrent?'current':'done'):'lock';
@@ -13028,7 +13064,8 @@ const ACHIEVEMENTS=[
   {key:'hero_tier',      label:'Reached Hero',       desc:'Real, celebrated consistency now.',                    icon:'\ud83c\udfc6', order:7.5, test:()=>getRankIndex()>=2},
   {key:'demigod_tier',   label:'Reached Demigod',    desc:'Genuinely rare volume and consistency.',               icon:'\u2728', order:9,   test:()=>getRankIndex()>=3},
   {key:'god_tier',       label:'Reached God',        desc:'Top-tier consistency and volume.',                     icon:'\ud83d\udc8e', order:10.5, test:()=>getRankIndex()>=4},
-  {key:'king_tier',      label:'Reached God of Gods',desc:'The highest tier. Elite company.',                     icon:'\ud83d\udc51', order:12,  test:()=>getRankIndex()>=5},
+  {key:'titan_tier',      label:'Reached Titan',      desc:'Older than the gods. Primordial strength.',            icon:'\ud83c\udf0b', order:11.2, test:()=>getRankIndex()>=5},
+  {key:'king_tier',      label:'Reached God of Gods',desc:'The highest tier. Elite company.',                     icon:'\ud83d\udc51', order:12,  test:()=>getRankIndex()>=6},
   // Volume
   {key:'volume_5k',      label:'5,000kg Lifted',     desc:'Five tonnes moved. Lifetime total.',                   icon:'\ud83e\uddf2', order:5,  test:()=>totalVolume>=5000},
   {key:'volume_10k',     label:'10,000kg Lifted',    desc:'Ten tonnes moved. Lifetime total.',                    icon:'\ud83e\uddf2', order:8,  test:()=>totalVolume>=10000},
@@ -16970,6 +17007,10 @@ const TIERS=[
    metal:'linear-gradient(105deg,#3d1f5c 0%,#6b3fa0 15%,#9b5fd9 35%,#c79ef0 48%,#e8d4ff 52%,#c79ef0 56%,#9b5fd9 70%,#6b3fa0 85%,#3d1f5c 100%)',
    mask:'images/misc/statue-5-god.svg', photo:'images/misc/statue-5-god-real.jpg',
    volume:28000, sessions:40},
+  {name:'Titan', cut:'images/ranks/statue-titan.png', col:'#E5594F', dark:'#4a0f12', mid:'#9c2a2e', light:'#ffb9ac',
+   metal:'linear-gradient(105deg,#4a0f12 0%,#9c2a2e 15%,#d6453b 35%,#f08a78 48%,#ffb9ac 52%,#f08a78 56%,#d6453b 70%,#9c2a2e 85%,#4a0f12 100%)',
+   mask:'images/misc/statue-5-god.svg', photo:'images/misc/statue-7-titan-real.jpg',
+   volume:38000, sessions:52},
   {name:'God of Gods', cut:'images/ranks/statue-zeus.png', col:'#FFB347', dark:'#6b2b00', mid:'#b8500e', light:'#ffe8a3',
    metal:'linear-gradient(105deg,#6b2b00 0%,#b8500e 15%,#ff8c1a 35%,#ffc670 48%,#ffe8a3 52%,#ffc670 56%,#ff8c1a 70%,#b8500e 85%,#6b2b00 100%)',
    mask:'images/misc/statue-6-kingofgods.svg', photo:'images/misc/statue-6-kingofgods-real.jpg',
@@ -17149,7 +17190,7 @@ function renderTierProgress(){
   const box=document.getElementById('tier-progress');
   if(!box)return;
   if(!next){
-    box.innerHTML='<div class="tier-maxed">'+medalSVG(TIERS[5],22)+'<br>You\'ve reached God of Gods \u2014 the highest tier. Keep stacking volume to stay there.</div>';
+    box.innerHTML='<div class="tier-maxed">'+medalSVG(TIERS[TIERS.length-1],22)+'<br>You\'ve reached God of Gods \u2014 the highest tier. Keep stacking volume to stay there.</div>';
     return;
   }
   const volNeed=Math.max(0,next.volume-totalVolume);
