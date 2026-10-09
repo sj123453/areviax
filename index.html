@@ -1521,7 +1521,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        blanket z-index raise would also wrongly float the nav above
        #rest-overlay/#session-build-overlay/#onboarding (all comfortably
        below 999 themselves, and meant to cover the nav completely). */
-    #mobile-nav.above-sheet{z-index:1000}
+    #mobile-nav.above-sheet{z-index:1000;-webkit-backdrop-filter:none;backdrop-filter:none;background:#0D0806}
     .mn-btn{
       flex:1;display:flex;flex-direction:column;align-items:center;
       justify-content:center;gap:3px;background:none;border:none;
@@ -4496,17 +4496,19 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     #more-sheet{
       position:fixed;left:0;right:0;bottom:0;z-index:999;
       background:#10131F;border-radius:16px 16px 0 0;
-      padding:10px 16px calc(env(safe-area-inset-bottom,0px) + 16px);
-      transform:translateY(100%);transition:transform .3s cubic-bezier(.32,.72,0,1);
+      padding:10px 16px calc(env(safe-area-inset-bottom,0px) + 76px);
+      max-height:calc(100dvh - 72px);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;
+      transform:translate3d(0,100%,0);transition:transform .22s cubic-bezier(.4,0,1,1),visibility 0s linear .22s;visibility:hidden;will-change:transform;
       box-shadow:0 -10px 40px rgba(0,0,0,.5);
     }
-    #more-sheet.show{transform:translateY(0)}
-    .more-sheet-handle{width:36px;height:4px;background:rgba(232,214,196,.15);border-radius:2px;margin:4px auto 14px}
+    #more-sheet.show{transform:translate3d(0,0,0);visibility:visible;transition:transform .3s cubic-bezier(.32,.72,0,1),visibility 0s}
+    .more-sheet-handle{position:relative;cursor:pointer;width:36px;height:4px;background:rgba(232,214,196,.15);border-radius:2px;margin:4px auto 14px}
     .more-sheet-item{
       display:flex;align-items:center;gap:14px;padding:14px 6px;
       color:rgba(var(--white-rgb),.85);font-size:14px;font-weight:600;
       border-bottom:1.5px solid var(--border2);
     }
+    .more-sheet-handle::after{content:'';position:absolute;inset:-14px -40px}
     .more-sheet-item:last-child{border-bottom:none}
     .more-sheet-item svg{color:var(--green);flex-shrink:0}
 
@@ -4646,11 +4648,15 @@ body.overlay-open .crate-icon-wrap.ready::before{animation-play-state:paused}
 @media(prefers-reduced-motion:reduce){.crate-icon-wrap.ready::before{animation:none;opacity:.35}.arx-shake{animation:none}}
 /* RANK UP — centre nav button: temple art, breathing glow, squash + spark burst
    + ripple rings on press, and a circular reveal of the climb from the button. */
-.mn-btn.mn-primary .ru-orb{position:relative;display:grid;place-items:center;width:52px;height:52px;margin-top:-18px;border-radius:50%;background:radial-gradient(circle at 50% 30%,#3a2112,#1a0f09);border:2px solid rgba(243,103,23,.7);box-shadow:0 8px 18px -6px rgba(243,103,23,.6),inset 0 1px 0 rgba(255,255,255,.18);animation:ruBreathe 3.2s ease-in-out infinite;transition:background-color .35s var(--ease-out),border-color .35s var(--ease-out)}
+.mn-btn.mn-primary .ru-orb{position:relative;display:grid;place-items:center;width:52px;height:52px;margin-top:-18px;border-radius:50%;background:radial-gradient(circle at 50% 30%,#3a2112,#1a0f09);border:2px solid rgba(243,103,23,.7);box-shadow:0 8px 18px -6px rgba(243,103,23,.6),inset 0 1px 0 rgba(255,255,255,.18);transition:background-color .35s var(--ease-out),border-color .35s var(--ease-out)}
+.mn-btn.mn-primary .ru-orb::after{content:'';position:absolute;inset:-2px;border-radius:50%;box-shadow:0 0 0 7px rgba(243,103,23,.45);opacity:0;pointer-events:none;animation:ruPulse 3.2s ease-out infinite}
+@keyframes ruPulse{0%,100%{opacity:0;transform:scale(.88)}55%{opacity:.85;transform:scale(1)}85%{opacity:0;transform:scale(1.22)}}
+#mobile-nav.above-sheet .ru-orb::after{animation:none;opacity:0}
 @keyframes ruBreathe{0%,100%{box-shadow:0 8px 18px -6px rgba(243,103,23,.6),0 0 0 0 rgba(243,103,23,.42)}60%{box-shadow:0 8px 18px -6px rgba(243,103,23,.6),0 0 0 12px rgba(243,103,23,0)}}
 .ru-temple{width:40px;height:40px;object-fit:contain;display:block;filter:drop-shadow(0 2px 4px rgba(0,0,0,.5));transition:transform .5s cubic-bezier(.3,1.6,.5,1),opacity .3s var(--ease-out)}
 .ru-x{position:absolute;width:26px;height:26px;opacity:0;transform:rotate(-120deg) scale(.4);transition:transform .5s cubic-bezier(.3,1.6,.5,1),opacity .3s var(--ease-out)}
-.mn-btn.mn-primary.open .ru-orb{background:#8f2e08;border-color:#ff8a45;animation:none}
+.mn-btn.mn-primary.open .ru-orb{background:#8f2e08;border-color:#ff8a45}
+.mn-btn.mn-primary.open .ru-orb::after{animation:none;opacity:0}
 .mn-btn.mn-primary.open .ru-temple{opacity:0;transform:rotate(120deg) scale(.4)}
 .mn-btn.mn-primary.open .ru-x{opacity:1;transform:none}
 .mn-btn.mn-primary .ru-label{font-size:11px;margin-top:2px;color:var(--white);font-weight:700}
@@ -4663,7 +4669,7 @@ body.overlay-open .crate-icon-wrap.ready::before{animation-play-state:paused}
 #rankup-overlay{position:fixed;left:0;right:0;top:0;bottom:calc(60px + env(safe-area-inset-bottom,0px));z-index:150;background:#120b07;clip-path:circle(0px at var(--cx,50%) var(--cy,92%));transition:clip-path .9s cubic-bezier(.7,0,.25,1);pointer-events:none}
 #rankup-overlay.open{clip-path:circle(170vmax at var(--cx,50%) var(--cy,92%));pointer-events:auto}
 #rankup-overlay iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:block}
-@media(prefers-reduced-motion:reduce){.mn-btn.mn-primary .ru-orb,#mn-xproad.squash .ru-orb{animation:none}#rankup-overlay{clip-path:none;opacity:0;visibility:hidden;transition:opacity .3s ease,visibility 0s linear .3s}#rankup-overlay.open{opacity:1;visibility:visible;transition:opacity .3s ease}}
+@media(prefers-reduced-motion:reduce){.mn-btn.mn-primary .ru-orb::after{animation:none}#mn-xproad.squash .ru-orb{animation:none}#rankup-overlay{clip-path:none;opacity:0;visibility:hidden;transition:opacity .3s ease,visibility 0s linear .3s}#rankup-overlay.open{opacity:1;visibility:visible;transition:opacity .3s ease}}
 .rh-beast{margin-top:8px;font-size:12px;color:var(--muted);line-height:1.4}
 .rh-beast b{color:var(--white)}
 .bestiary-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:10px}
@@ -17552,11 +17558,21 @@ function mountRankUp(btn){
   const fr=document.createElement('iframe');fr.title='Road to Olympus';
   fr.src='mass-app/images/hall/road.html'+'?rank='+getRankIndex()+'&kg='+Math.round(totalVolume)+'&n='+encodeURIComponent((profile&&profile.name)||'');
   o.appendChild(fr);
+  // if the climb never reports ready (or reports failure) fall back to the Arete Road page
+  clearTimeout(window.__rankUpGuard);
+  window.__rankUpGuard=setTimeout(()=>{if(rankUpOpen()&&!window.__rankUpReady)rankUpFail();},30000);
+  window.__rankUpReady=false;
   btn.classList.add('open','squash');btn.setAttribute('aria-expanded','true');setTimeout(()=>btn.classList.remove('squash'),700);
   rankUpBurst(x,y);
   requestAnimationFrame(()=>requestAnimationFrame(()=>o.classList.add('open')));
 }
+function rankUpFail(){
+  closeRankUp();
+  try{toast('🏛️','The island climb could not load here — opening the Arete Road instead.');}catch(e){}
+  showPage('xproad');
+}
 function closeRankUp(){
+  clearTimeout(window.__rankUpGuard);
   const o=document.getElementById('rankup-overlay'),btn=document.getElementById('mn-xproad');
   if(btn){btn.classList.remove('open');btn.setAttribute('aria-expanded','false');}
   if(!o)return;
@@ -17590,7 +17606,9 @@ function closeHall3D(){
   const o=document.getElementById('hall3d-overlay');if(!o)return;
   o.classList.remove('on');setTimeout(()=>o.remove(),240);
 }
-window.addEventListener('message',e=>{if(e.data&&e.data.type==='arx-hall-close'){closeHall3D();closeRankUp();}});
+window.addEventListener('message',e=>{if(e.data&&e.data.type==='arx-hall-close'){closeHall3D();closeRankUp();}
+  else if(e.data&&e.data.type==='arx-road-ready'){window.__rankUpReady=true;clearTimeout(window.__rankUpGuard);}
+  else if(e.data&&e.data.type==='arx-road-failed'&&rankUpOpen()){rankUpFail();}});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeHall3D();closeRankUp();}});
 // Each tier is split into three steps (I, II, III) by how far the athlete
 // is toward the next tier — the slower of volume and sessions, so both
@@ -32725,7 +32743,7 @@ document.addEventListener('DOMContentLoaded', function(){
   <!-- MOBILE "MORE" SHEET — gives access to pages the bottom nav can't fit -->
   <div id="more-sheet-backdrop" onclick="toggleMoreSheet()"></div>
   <div id="more-sheet">
-    <div class="more-sheet-handle"></div>
+    <div class="more-sheet-handle" onclick="toggleMoreSheet()" role="button" aria-label="Close menu"></div>
     <div class="more-sheet-item" onclick="showPage('schedule');toggleMoreSheet()">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
       <span>Schedule</span>

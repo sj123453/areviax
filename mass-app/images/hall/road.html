@@ -75,6 +75,7 @@
 <div class="loading" id="loading">Raising the statues…</div>
 <script type="importmap">{"imports":{"three":"./three.module.min.js"}}</script>
 <script type="module">
+addEventListener("error",()=>{try{parent.postMessage({type:"arx-road-failed"},"*")}catch(e){}});
 import * as THREE from 'three';
 // ---------- off-screen renderer: each island + statue is rendered once into an image ----------
 const W=520,H=860,IH=560;   // island render is IH tall, at the bottom of an H-tall frame
@@ -594,12 +595,29 @@ document.getElementById('how').addEventListener('click',()=>{
   document.getElementById('sFill').style.width=document.getElementById('barFill').style.width;sheet.classList.add('open');
 });
 // build all island images, then start at your current tier
-const imgs=await Promise.all(TIER_DATA.map(t=>loadImg(STATUE_IMG[t.key].src)));
-TIER_DATA.forEach((t,i)=>{t._img=shoot(i,t,i<=userRank,imgs[i]);});
-const HARBOUR_IMG=shootHarbour();
-renderer.dispose();
-render();
-requestAnimationFrame(()=>{const el=climb.querySelector('.stop.current');if(el)el.scrollIntoView({block:'center'});onScroll();document.getElementById('loading').classList.add('gone');});
-window.__ready=true;
+let HARBOUR_IMG='';
+const loadingEl=document.getElementById('loading');
+const tick=()=>new Promise(r=>setTimeout(r,0));
+const tell=(t)=>{try{parent.postMessage({type:t},'*');}catch(e){}};
+try{
+  const imgs=await Promise.all(TIER_DATA.map(t=>loadImg(STATUE_IMG[t.key].src)));
+  // build each island on its own turn so the page stays responsive and shows progress
+  for(let i=0;i<TIER_DATA.length;i++){
+    loadingEl.textContent='Raising the statues… '+(i+1)+'/'+TIER_DATA.length;
+    await tick();
+    TIER_DATA[i]._img=shoot(i,TIER_DATA[i],i<=userRank,imgs[i]);
+  }
+  loadingEl.textContent='Laying the harbour…';await tick();
+  HARBOUR_IMG=shootHarbour();
+  renderer.dispose();
+  render();
+  requestAnimationFrame(()=>{const el=climb.querySelector('.stop.current');if(el)el.scrollIntoView({block:'center'});onScroll();loadingEl.classList.add('gone');});
+  window.__ready=true;
+  tell('arx-road-ready');
+}catch(err){
+  console.error('road failed',err);
+  loadingEl.textContent='Could not build the climb on this device';
+  tell('arx-road-failed');
+}
 </script>
 </body></html>
