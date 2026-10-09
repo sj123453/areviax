@@ -1566,9 +1566,9 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .mn-icon-wrap.open{animation:none;background:rgba(243,103,23,.22);border-color:rgba(243,103,23,.6)}
     .mn-icon-wrap.open .mi-play{opacity:0;transform:rotate(120deg) scale(.4)}
     .mn-icon-wrap.open .mi-close{opacity:1;transform:none}
-    #mn-session.squash{animation:mnSquash .65s cubic-bezier(.3,1.6,.5,1)}
+    #mn-xproad.squash{animation:mnSquash .65s cubic-bezier(.3,1.6,.5,1)}
     @keyframes mnSquash{0%{transform:scale(1)}25%{transform:scale(.8)}55%{transform:scale(1.12)}100%{transform:scale(1)}}
-    @media(prefers-reduced-motion:reduce){.mn-icon-stack svg,#mn-session.squash{transition:none;animation:none}}
+    @media(prefers-reduced-motion:reduce){.mn-icon-stack svg,#mn-xproad.squash{transition:none;animation:none}}
     .mn-btn.mn-primary svg{width:24px;height:24px;stroke-width:2}
     @media(max-width:800px){
       #mobile-nav{display:flex!important}
@@ -9986,11 +9986,11 @@ function toggleSidebarMore(){
 
 // ── MOBILE NAV ACTIVE STATE ──
 function updateMobileNav(page){
-  ['home','workout','session','nutrition','progress'].forEach(id=>{
+  ['home','workout','xproad','nutrition','progress'].forEach(id=>{
     const btn=document.getElementById('mn-'+id);
     if(btn)btn.classList.remove('active');
   });
-  const map={dashboard:'home',workout:'workout',session:'session',nutrition:'nutrition',progress:'progress'};
+  const map={dashboard:'home',workout:'workout',session:'workout',xproad:'xproad',trophyroad:'xproad',nutrition:'nutrition',progress:'progress'};
   const active=map[page];
   if(active){const b=document.getElementById('mn-'+active);if(b)b.classList.add('active');}
 }
@@ -32246,14 +32246,13 @@ document.addEventListener('DOMContentLoaded', function(){
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20h7"/><path d="M6.5 20v-2.5a2 2 0 0 1 2-2H12"/><path d="M11 12.5 17.5 6"/><path d="M15 4l4.5 4.5"/><path d="M13.5 6.5l3.5 3.5"/></svg>
       Forge
     </button>
-    <button class="mn-btn mn-primary" id="mn-session" onclick="handleSessionStartTap()">
-      <div class="mn-icon-wrap" id="mn-session-iconwrap">
+    <button class="mn-btn mn-primary" id="mn-xproad" onclick="showPage('xproad')" aria-label="Road of progression">
+      <div class="mn-icon-wrap" id="mn-road-iconwrap">
         <span class="mn-icon-stack">
-          <svg class="mi-play" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><polygon points="5,3 19,12 5,21 5,3"/></svg>
-          <svg class="mi-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>
+          <svg class="mi-play" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21 9 3h6l5 18"/><path d="M12 5v2.5M12 11v2.5M12 17v2.5" stroke-width="2.2"/></svg>
         </span>
       </div>
-      Start
+      Road
     </button>
     <button class="mn-btn" id="mn-nutrition" onclick="showPage('nutrition')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
