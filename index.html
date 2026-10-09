@@ -4683,9 +4683,9 @@ body.overlay-open .crate-icon-wrap.ready::before{animation-play-state:paused}
 @media(hover:hover){.bestiary-card.earned:hover{transform:translateY(-2px)}}
 .shop-art-img{width:100%;height:100%;object-fit:contain;display:block;filter:drop-shadow(0 4px 8px rgba(0,0,0,.45))}
 .hall3d-open{width:100%;margin:0 0 12px}
-#hall3d-overlay{position:fixed;inset:0;z-index:9500;background:#120b07;opacity:0;transition:opacity var(--dur-slow) var(--ease-out)}
-#hall3d-overlay.on{opacity:1}
-#hall3d-overlay iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:block}
+#hall3d-overlay,#trail3d-overlay{position:fixed;inset:0;z-index:9500;background:#120b07;opacity:0;transition:opacity var(--dur-slow) var(--ease-out)}
+#hall3d-overlay.on,#trail3d-overlay.on{opacity:1}
+#hall3d-overlay iframe,#trail3d-overlay iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:block}
     .today-log-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1.5px solid rgba(232,214,196,.05)}
     .today-log-row:last-child{border-bottom:none}
     .today-log-time{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;flex-shrink:0;width:42px}
@@ -7954,6 +7954,7 @@ body[data-goal-theme="cut"] .lv-page{
         </div>
       </div>
     </div>
+    <div id="shop-event"></div>
     <div class="shop-dual-track">
       <div class="shop-track-tall" id="shop-hero-offer"></div>
       <div class="shop-track-stack">
@@ -8055,6 +8056,7 @@ body[data-goal-theme="cut"] .lv-page{
       <div class="road-reward-qty" id="trophy-reward-then-qty">—</div>
     </div>
   </div>
+  <button type="button" class="btn-g hall3d-open" id="trail3d-open" onclick="openTrail3D()" hidden>Walk the road in 3D</button>
   <div class="road-scenery theme-trophy">
     <div class="road-ember" style="left:9%;bottom:65%;animation-delay:.2s;animation-duration:3.4s"></div>
     <div class="road-ember" style="left:22%;bottom:20%;animation-delay:1.6s;animation-duration:2.8s"></div>
@@ -10740,6 +10742,12 @@ const TITLES={
   ascendant:{name:'The Ascendant',hint:'A rare pull from any crate'},
   trials_iron:{name:'The Unbroken',hint:'Clear Trial 10 — The Unbroken — in an Areviax Championship'},
   trials_champion:{name:'Areviax Champion',hint:'Clear every trial in one Areviax Championship'},
+  ev_heracles:{name:'The Atoned',hint:'Only from the Atonement of Heracles event crate',event:true},
+  ev_theseus:{name:'Thread-Bearer',hint:'Only from the Thread of Theseus event crate',event:true},
+  ev_perseus:{name:'Gorgon-Slayer',hint:'Only from the Head of the Gorgon event crate',event:true},
+  ev_jason:{name:'Argonaut',hint:'Only from the Quest of the Golden Fleece event crate',event:true},
+  ev_bellerophon:{name:'Skyrider',hint:'Only from the Bridle of Pegasus event crate',event:true},
+  ev_achilles:{name:'Swift-Footed',hint:'Only from the Wrath of Achilles event crate',event:true},
 };
 let unlockedTitles=[];
 let equippedTitle='';
@@ -10753,7 +10761,7 @@ function unlockTitle(key,announce){
 // Picks a random still-locked title, or null once every title is
 // owned — callers must check for null (see openCompassDrop).
 function randomLockedTitle(){
-  const locked=Object.keys(TITLES).filter(k=>!unlockedTitles.includes(k));
+  const locked=Object.keys(TITLES).filter(k=>!unlockedTitles.includes(k)&&!TITLES[k].event);
   if(!locked.length)return null;
   return locked[Math.floor(Math.random()*locked.length)];
 }
@@ -14113,7 +14121,7 @@ function drawRoadTrail(cont){
   // scroll-invariant content-local space the SVG's own coordinates need.
   const pts=hexes.map(h=>{
     const r=h.getBoundingClientRect();
-    return {x:r.left+r.width/2-contRect.left+cont.scrollLeft,y:r.top+r.height/2-contRect.top+cont.scrollTop};
+    return {x:r.left+r.width/2-contRect.left+cont.scrollLeft,y:r.bottom-contRect.top+cont.scrollTop+6};
   });
   function buildPath(from,to){
     if(to<=from)return '';
@@ -14153,10 +14161,13 @@ function drawRoadTrail(cont){
   // color change.
   const tickPt=splitIdx>=0?pts[splitIdx]:null;
   const tickD=tickPt?'M'+tickPt.x.toFixed(1)+','+(tickPt.y-11).toFixed(1)+' L'+tickPt.x.toFixed(1)+','+(tickPt.y+11).toFixed(1):'';
-  svg.innerHTML=
-    (remainD?'<path d="'+remainD+'" fill="none" stroke="rgba(232,214,196,.13)" stroke-width="13" stroke-linecap="round"/>':'')+
-    (passedD?'<path d="'+passedD+'" fill="none" stroke="'+passedColor+'" stroke-width="13" stroke-linecap="round" style="filter:drop-shadow(0 0 7px '+passedGlow+')"/>':'')+
-    (tickD?'<path d="'+tickD+'" stroke="rgba(232,214,196,.9)" stroke-width="2.5" stroke-linecap="round"/>':'');
+  const gy=pts[0].y,flat='transform="translate(0,'+gy.toFixed(1)+') scale(1,.36) translate(0,'+(-gy).toFixed(1)+')"';
+  const ribbon=(d,fill,edge)=>'<path d="'+d+'" fill="none" stroke="'+edge+'" stroke-width="40" stroke-linecap="round"/><path d="'+d+'" fill="none" stroke="'+fill+'" stroke-width="34" stroke-linecap="round"/>';
+  svg.innerHTML='<g '+flat+'>'+
+    (remainD?ribbon(remainD,'rgba(190,172,136,.5)','rgba(30,22,14,.55)')+'<path d="'+remainD+'" fill="none" stroke="rgba(255,244,214,.38)" stroke-width="3" stroke-dasharray="12 14"/>':'')+
+    (passedD?ribbon(passedD,passedColor+'88','rgba(30,22,14,.55)')+'<path d="'+passedD+'" fill="none" stroke="'+passedColor+'" stroke-width="4" style="filter:drop-shadow(0 0 6px '+passedGlow+')"/>':'')+
+    '</g>'+
+    (tickD?'<path d="'+tickD+'" stroke="rgba(255,244,214,.95)" stroke-width="2.5" stroke-linecap="round"/>':'');
 }
 // \u2500\u2500 ROAD PATH RENDERER \u2014 shared by the Arete/Trophy Road pages.
 // Each road's own function below only computes WHAT the nodes are
@@ -14716,6 +14727,67 @@ function renderShopGiftTimer(){
   if(!el)return;
   el.textContent=isDailySpinReady()?'Ready now':formatResetCountdown();
 }
+
+// ── HEROES' TRIALS — limited-time event crates ──
+// Every so often (a 6-day window, then a 16–24 day gap that varies) the
+// Shop offers one crate themed on a hero's or demigod's adventure. Each one
+// carries an exclusive title that cannot drop anywhere else. The schedule is
+// derived from the date alone, so there is no server and no drift.
+const ARX_EVENTS=[
+  {id:'heracles',name:'The Atonement of Heracles',crate:'Atonement Crate',emblem:'paw-print',hue:185,title:'ev_heracles',
+   story:'Driven mad by Hera, Heracles lost everything he loved. The oracle gave him one road to atone for the blood-guilt: serve Eurystheus through twelve Labours. Finish them, and the stain is lifted.'},
+  {id:'theseus',name:'The Thread of Theseus',crate:'Labyrinth Crate',emblem:'route',hue:60,title:'ev_theseus',
+   story:'Into the Labyrinth of Crete with nothing but a thread from Ariadne. The Minotaur waits at the centre — and the only way out is the way you came.'},
+  {id:'perseus',name:'The Head of the Gorgon',crate:'Gorgon Crate',emblem:'shield',hue:95,title:'ev_perseus',
+   story:'Perseus crossed the world with a polished shield, winged sandals and one rule: never look Medusa in the eye.'},
+  {id:'jason',name:'The Quest of the Golden Fleece',crate:'Argo Crate',emblem:'waves',hue:330,title:'ev_jason',
+   story:'Fifty heroes, one ship, and a fleece guarded by a sleepless dragon at the edge of the known world.'},
+  {id:'bellerophon',name:'The Bridle of Pegasus',crate:'Pegasus Crate',emblem:'bird',hue:250,title:'ev_bellerophon',
+   story:'Bellerophon tamed the winged horse with a golden bridle, then rode it against the Chimera. Pride nearly cost him everything.'},
+  {id:'achilles',name:'The Wrath of Achilles',crate:'Myrmidon Crate',emblem:'swords',hue:20,title:'ev_achilles',
+   story:'The swiftest of the Greeks, sulking in his tent until the war could not be won without him.'},
+];
+const ARX_EVENT_COST=140,ARX_EVENT_DAY=864e5,ARX_EVENT_LEN=6*ARX_EVENT_DAY;
+function arxEventHash(n){n=Math.imul(n^61,0x45d9f3b);n^=n>>>16;n=Math.imul(n,0x45d9f3b);return n>>>0;}
+function arxEventSchedule(nowMs){
+  let start=Date.UTC(2026,0,5),k=0;
+  while(start+ARX_EVENT_LEN<nowMs&&k<2000){start+=(16+arxEventHash(k+1)%9)*ARX_EVENT_DAY;k++;}
+  const ev=ARX_EVENTS[k%ARX_EVENTS.length];
+  if(nowMs>=start)return {active:{ev,start,end:start+ARX_EVENT_LEN,key:ev.id+':'+start}};
+  return {next:{ev,start}};
+}
+function arxEventBought(){try{return JSON.parse(localStorage.getItem('arx_eventBought')||'[]');}catch(e){return [];}}
+function arxEventLeft(ms){const d=Math.floor(ms/ARX_EVENT_DAY),h=Math.floor(ms%ARX_EVENT_DAY/36e5),m=Math.floor(ms%36e5/6e4);return d?d+'d '+h+'h':h+'h '+m+'m';}
+function renderShopEvent(){
+  const el=document.getElementById('shop-event');if(!el)return;
+  const now=Date.now(),sch=arxEventSchedule(now);
+  if(sch.next){
+    el.innerHTML='<div class="ev-teaser"><span class="ev-teaser-ico"><span class="ico" style="--i:url(\'images/icons/ui/lock.png\')"><i class="ico-t">🔒</i></span></span><div><b>A new adventure is on its way</b><small>Heroes\' Trial crate arrives in '+arxEventLeft(sch.next.start-now)+'</small></div></div>';
+    return;
+  }
+  const {ev,end,key}=sch.active,bought=arxEventBought().includes(key),afford=drachma>=ARX_EVENT_COST;
+  el.innerHTML=`<div class="ev-card" style="--ev-hue:${ev.hue}deg">
+    <div class="ev-ribbon">LIMITED EVENT · ends in ${arxEventLeft(end-now)}</div>
+    <div class="ev-art"><div class="ev-crate" style="filter:hue-rotate(${ev.hue}deg) saturate(1.15)">${crateIconHTML('diamond')}</div><span class="ev-emblem"><img src="mass-app/images/icons/ui/${ev.emblem}.png" alt=""></span></div>
+    <div class="ev-body">
+      <div class="ev-kicker">Heroes' Trial</div>
+      <div class="ev-title">${ev.name}</div>
+      <div class="ev-story">${ev.story}</div>
+      <div class="ev-chips"><span>${ev.crate} · Diamond tier</span><span>2 Keys</span><span>Title: ${TITLES[ev.title].name}</span></div>
+      <button class="offer-card-buy ev-buy" ${bought||!afford?'disabled':''} onclick="buyEventCrate()">${bought?'Claimed':'<img src="mass-app/images/icons/tetradrachm.png" alt="" style="width:14px;height:14px;vertical-align:-3px;border-radius:50%;margin-right:3px">'+ARX_EVENT_COST}</button>
+    </div></div>`;
+}
+function buyEventCrate(){
+  const sch=arxEventSchedule(Date.now());if(!sch.active)return;
+  const {ev,key}=sch.active,bought=arxEventBought();
+  if(bought.includes(key)||drachma<ARX_EVENT_COST)return;
+  drachma-=ARX_EVENT_COST;diamondDropBank+=1;keyBank+=2;
+  unlockTitle(ev.title,true);
+  try{bought.push(key);localStorage.setItem('arx_eventBought',JSON.stringify(bought));}catch(e){}
+  toast('🏺','Claimed — '+ev.crate+' (1 Diamond Crate, 2 Keys, title "'+TITLES[ev.title].name+'")');
+  try{celebrateBurst(['✨','⭐'],12);}catch(e){}
+  saveToStorage();renderAchievements();
+}
 function renderShopOffers(){
   const row=document.getElementById('shop-offers-row');
   if(!row)return;
@@ -14726,6 +14798,7 @@ function renderShopOffers(){
   });
   const heroId=renderShopHeroOffer(visible);
   renderShopGiftTimer();
+  try{renderShopEvent();}catch(e){}
   const gridItems=visible.filter(o=>o.id!==heroId);
   row.innerHTML=gridItems.map(o=>{
     const afford=drachma>=o.cost;
@@ -14794,6 +14867,7 @@ function renderTrophyRoad(){
   // below) is unreachable dead code, kept only so its still-real
   // underlying data (claimedXpRoad) needs no changes; this is the one
   // path a user can actually navigate to.
+  const t3=document.getElementById('trail3d-open');if(t3)t3.hidden=!hall3DSupported();
   const nodes=olympusRoadNodes();
   renderRoadPath('trophy-road-h',nodes);
   renderRewardRow('trophy',nodes);
@@ -17659,6 +17733,43 @@ function closeRankUp(){
   o.classList.remove('open');
   setTimeout(()=>{if(!o.classList.contains('open'))o.innerHTML='';},950);
 }
+
+// ── ARETE ROAD IN 3D ──
+// The same road, walked in three.js (images/hall/trail.html). Data goes in by
+// postMessage so the page stays in sync; tapping a ready stop closes the
+// view and runs the normal claim flow (crate reveal etc.).
+function areteTrailPayload(){
+  const asc=[...XP_ROAD].sort((a,b)=>a.xp-b.xp);
+  const nextN=asc.find(n=>!claimedXpRoad.includes(n.xp)&&!xpRoadReady.includes(n.xp));
+  return {type:'arx-trail-data',xp:xp,initial:((profile&&profile.name)||'Y').trim().charAt(0).toUpperCase()||'Y',
+    nodes:asc.map((n,i)=>{
+      const claimed=claimedXpRoad.includes(n.xp),ready=!claimed&&xpRoadReady.includes(n.xp),isNext=!claimed&&!ready&&n===nextN;
+      const prev=i?asc[i-1].xp:0;
+      return {xp:n.xp,type:n.type==='legend'?'legend':n.type,rarity:n.rarity||'',name:n.name,desc:n.myth||'',label:xpRoadRewardLabel(n),
+        state:claimed?'claimed':ready?'ready':isNext?'next':'locked',pct:isNext?Math.max(0,Math.min(100,Math.round((xp-prev)/(n.xp-prev)*100))):0};
+    })};
+}
+function openTrail3D(){
+  if(document.getElementById('trail3d-overlay'))return;
+  const mount=()=>{
+    const o=document.createElement('div');o.id='trail3d-overlay';o.setAttribute('role','dialog');o.setAttribute('aria-label','Arete Road in 3D');
+    const fr=document.createElement('iframe');fr.title='Arete Road in 3D';fr.src='mass-app/images/hall/trail.html';
+    o.appendChild(fr);document.body.appendChild(o);
+    window.__trailReady=false;clearTimeout(window.__trailGuard);
+    window.__trailGuard=setTimeout(()=>{if(document.getElementById('trail3d-overlay')&&!window.__trailReady){closeTrail3D();try{toast('🏛️','The 3D road could not load here.');}catch(e){}}},30000);
+    requestAnimationFrame(()=>o.classList.add('on'));
+  };
+  if(navigator.onLine===false&&window.caches){
+    caches.match('mass-app/images/hall/trail.html',{ignoreSearch:true}).then(hit=>{if(hit)mount();else toast('📡',"You're offline — open the 3D road once while connected and it will work offline after that.");}).catch(mount);
+    return;
+  }
+  mount();
+}
+function closeTrail3D(){
+  clearTimeout(window.__trailGuard);
+  const o=document.getElementById('trail3d-overlay');if(!o)return;
+  o.classList.remove('on');setTimeout(()=>o.remove(),240);
+}
 function openHall3D(){
   if(document.getElementById('hall3d-overlay'))return;
   // Once opened online the service worker keeps the hall's files, so it
@@ -17686,11 +17797,15 @@ function closeHall3D(){
   const o=document.getElementById('hall3d-overlay');if(!o)return;
   o.classList.remove('on');setTimeout(()=>o.remove(),240);
 }
-window.addEventListener('message',e=>{if(e.data&&e.data.type==='arx-open-hall'){mountHall3D('mass-app/images/hall/hall.html');}
-  else if(e.data&&e.data.type==='arx-hall-close'){if(document.getElementById('hall3d-overlay'))closeHall3D();else closeRankUp();}
+window.addEventListener('message',e=>{if(e.data&&e.data.type==='arx-trail-hello'){try{e.source.postMessage(areteTrailPayload(),'*');}catch(_){}return;}
+  if(e.data&&e.data.type==='arx-trail-ready'){window.__trailReady=true;clearTimeout(window.__trailGuard);return;}
+  if(e.data&&e.data.type==='arx-trail-failed'){closeTrail3D();try{toast('🏛️','The 3D road could not load here.');}catch(_){}return;}
+  if(e.data&&e.data.type==='arx-trail-claim'){closeTrail3D();claimXpRoadReward(+e.data.xp);return;}
+  if(e.data&&e.data.type==='arx-open-hall'){mountHall3D('mass-app/images/hall/hall.html');}
+  else if(e.data&&e.data.type==='arx-hall-close'){if(document.getElementById('trail3d-overlay'))closeTrail3D();else if(document.getElementById('hall3d-overlay'))closeHall3D();else closeRankUp();}
   else if(e.data&&e.data.type==='arx-road-ready'){window.__rankUpReady=true;clearTimeout(window.__rankUpGuard);}
   else if(e.data&&e.data.type==='arx-road-failed'&&rankUpOpen()){rankUpFail();}});
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(document.getElementById('hall3d-overlay'))closeHall3D();else closeRankUp();}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(document.getElementById('trail3d-overlay'))closeTrail3D();else if(document.getElementById('hall3d-overlay'))closeHall3D();else closeRankUp();}});
 // Each tier is split into three steps (I, II, III) by how far the athlete
 // is toward the next tier — the slower of volume and sessions, so both
 // have to keep moving. Purely a display layer: getRankIndex() is unchanged.
@@ -33167,6 +33282,48 @@ window.arxIcons=scan;
 .road-world-banner b{display:block;font-family:var(--lv-display,serif);font-size:26px;white-space:nowrap}
 @keyframes rwBanner{0%{opacity:0;transform:translate(-50%,-30%) scale(.8)}20%{opacity:1;transform:translate(-50%,-50%) scale(1)}75%{opacity:1}100%{opacity:0;transform:translate(-50%,-60%) scale(1.05)}}
 @media(prefers-reduced-motion:reduce){.rg-rays,.rg-flame,.road-world-chip i{animation:none}}
+</style>
+<style>
+/* Road items stand on stone platforms set into the painted ground, all on one baseline */
+.road-scenery .xp-road-track.horizontal{--gy:196px;height:310px;padding:0 20px;align-items:flex-start;gap:26px}
+.road-scenery .xp-road-track.horizontal .xp-node{height:310px;overflow:visible}
+.road-scenery .xp-road-track.horizontal .xp-node-hexwrap{position:absolute;left:0;right:0;top:auto;bottom:calc(310px - var(--gy) + 8px);margin:0 auto}
+.road-scenery .xp-road-track.horizontal .xp-node-hexwrap::after{content:'';position:absolute;left:10%;right:10%;bottom:-7px;height:14px;border-radius:50%;background:radial-gradient(ellipse,rgba(0,0,0,.6),transparent 70%);z-index:-1}
+.road-scenery .xp-road-track.horizontal .xp-node::before{content:'';position:absolute;left:50%;top:calc(var(--gy) - 15px);width:98px;height:30px;transform:translateX(-50%);border-radius:50%;z-index:1;
+  background:radial-gradient(ellipse at 50% 30%,#d8c8a4 0%,#a99a76 55%,#665a46 100%);
+  box-shadow:0 5px 0 #4a3e2c,0 8px 0 #2b231a,0 16px 18px rgba(0,0,0,.5)}
+.road-scenery .xp-road-track.horizontal .xp-node.claimed::before{box-shadow:inset 0 0 0 2px rgba(230,190,109,.85),0 5px 0 #6b4a17,0 8px 0 #2b231a,0 16px 18px rgba(0,0,0,.5)}
+.road-scenery .xp-road-track.horizontal .xp-node.next::before,.road-scenery .xp-road-track.horizontal .xp-node.ready::before{box-shadow:inset 0 0 0 2px rgba(255,160,70,.95),0 0 18px 4px rgba(255,150,60,.55),0 5px 0 #6b3a17,0 8px 0 #2b231a,0 16px 18px rgba(0,0,0,.5)}
+.road-scenery .xp-road-track.horizontal .xp-node:not(.claimed):not(.next):not(.ready)::before{filter:brightness(.62)}
+.road-scenery .xp-road-track.horizontal .xp-node-hexwrap{z-index:2}
+.road-scenery .xp-road-track.horizontal .xp-node-xp{top:calc(var(--gy) + 22px);bottom:auto}
+.road-scenery .xp-road-track.horizontal .xp-node-body{position:absolute;left:0;right:0;top:calc(var(--gy) + 52px);margin:0}
+.road-scenery .xp-node-desc{text-shadow:0 1px 5px #000,0 0 10px rgba(0,0,0,.8);color:rgba(255,248,232,.92)}
+.road-scenery .xp-node:not(.claimed):not(.next):not(.ready) .xp-node-desc{color:rgba(232,214,196,.6)}
+.road-realm-band::after{background:linear-gradient(180deg,rgba(8,6,5,.0) 0%,rgba(8,6,5,.12) 55%,rgba(8,6,5,.55) 100%)}
+.road-scenery.has-realm-art::after{content:'';position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 60px rgba(8,6,5,.55);border-radius:inherit}
+@media(max-width:480px){.road-scenery .xp-road-track.horizontal .xp-node::before{width:84px;height:26px}}
+</style>
+<style>
+.ev-card{position:relative;margin:0 0 16px;border-radius:18px;overflow:hidden;border:2px solid #e6be6d;background:linear-gradient(165deg,#3a2414,#150d08);box-shadow:0 3px 0 #6b4a17,0 12px 28px rgba(0,0,0,.5);display:grid;grid-template-columns:128px 1fr;gap:6px;padding:34px 14px 14px}
+.ev-ribbon{position:absolute;left:0;right:0;top:0;padding:6px 12px;font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#1a1204;background:linear-gradient(90deg,#e6be6d,#ffe9a8,#e6be6d);text-align:center}
+.ev-art{position:relative;display:grid;place-items:center}
+.ev-crate{width:112px;height:112px;display:grid;place-items:center}
+.ev-crate img,.ev-crate svg{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 6px 8px rgba(0,0,0,.55))}
+.ev-emblem{position:absolute;right:-2px;bottom:2px;width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:#150d08;border:2px solid #e6be6d}
+.ev-emblem img{width:20px;height:20px}
+.ev-kicker{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#e6be6d;font-weight:800}
+.ev-title{font-family:var(--lv-display,serif);font-size:19px;font-weight:700;line-height:1.15;margin:2px 0 6px;color:#fff}
+.ev-story{font-size:12px;line-height:1.45;color:#d8c9a8}
+.ev-chips{display:flex;flex-wrap:wrap;gap:5px;margin:9px 0}
+.ev-chips span{font-size:11px;font-weight:700;padding:3px 8px;border-radius:999px;background:rgba(230,190,109,.14);border:1px solid rgba(230,190,109,.4);color:#ffe9a8}
+.ev-buy{width:auto!important;min-width:110px;margin:0!important}
+.ev-teaser{display:flex;align-items:center;gap:12px;margin:0 0 14px;padding:11px 14px;border-radius:14px;border:1.5px dashed rgba(230,190,109,.5);background:rgba(230,190,109,.06)}
+.ev-teaser-ico{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:#150d08;border:2px solid rgba(230,190,109,.6);font-size:18px}
+.ev-teaser b{display:block;font-size:13px}.ev-teaser small{color:#cdbf9f;font-size:12px}
+@media(max-width:420px){.ev-card{grid-template-columns:1fr;justify-items:center;text-align:center}.ev-chips{justify-content:center}}
+#trail3d-open{width:auto;margin:0 auto 12px;display:flex;align-items:center;justify-content:center;gap:8px;padding:9px 18px;border-radius:999px;border:2px solid #e6be6d;background:linear-gradient(180deg,#2a1b12,#150d08);color:#fff;font-weight:800;font-size:13px;box-shadow:0 2px 0 #6b4a17;cursor:pointer}
+#trail3d-open[hidden]{display:none}
 </style>
 </body>
 </html>
