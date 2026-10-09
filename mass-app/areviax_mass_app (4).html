@@ -15687,7 +15687,7 @@ const ArxFX=(function(){
     }
     cx.globalAlpha=1;cx.globalCompositeOperation='source-over';
     if(parts.length)raf=requestAnimationFrame(tick);
-    else{raf=0;cx.setTransform(1,0,0,1,0,0);cx.clearRect(0,0,cv.width,cv.height);}
+    else{raf=0;cx.setTransform(1,0,0,1,0,0);cx.clearRect(0,0,cv.width,cv.height);if(cv&&cv.parentNode){cv.remove();cv=null;cx=null;}}   // no idle full-screen canvas left on the page
   }
   const rnd=(a,b)=>a+Math.random()*(b-a);
   const pick=a=>a[Math.floor(Math.random()*a.length)];
@@ -15699,6 +15699,7 @@ const ArxFX=(function(){
   const TIER_COL={bronze:['#CD7F32','#f4c896','#ffd9a8'],silver:['#C7CCD9','#ffffff','#e3e8f2'],gold:['#FFB347','#ffe8a3','#fff3c4'],diamond:['#44CFFF','#c5f0ff','#ffffff'],areviax:['#ff6b1a','#e6be6d','#ffd77a','#fff1c8']};
   const RAR_COL={common:['#9AA0A8','#d5dae0'],rare:['#3DBE6F','#9af0b6'],superrare:['#4E8FE0','#a8cdff'],epic:['#B266FF','#e0c2ff'],mythic:['#E0455A','#ffb0ba'],legendary:['#E8B400','#fff0a0','#ffffff'],ultralegendary:['#00E676','#ffd54f','#ff6b9a','#7ec8ff','#d68bff']};
   const api={
+    clear(){parts.length=0;if(raf){cancelAnimationFrame(raf);raf=0;}if(cv&&cv.parentNode)cv.remove();cv=null;cx=null;},
     shake(el,px,dur){
       if(!el||reduce())return;
       el.style.setProperty('--sk',px+'px');el.style.setProperty('--skd',dur+'s');
@@ -16094,7 +16095,8 @@ function closeCrateRevealAndShowcase(btn,key,isNew){
   // glitching. Both effect types only ever belong to the reveal that's
   // being dismissed right now, so wipe any still on screen the instant
   // Continue is tapped.
-  document.querySelectorAll('.light-ray-shard,.unlock-glyph').forEach(el=>el.remove());
+  document.querySelectorAll('.light-ray-shard,.unlock-glyph,.crate-flash').forEach(el=>el.remove());
+  try{ArxFX.clear();}catch(e){}
   // Direct report: tapping Continue "freezes" the app, reproducing every
   // time. Root cause \u2014 for a brand-new pull this used to chain
   // straight into a SECOND full-screen "trophy showcase" overlay showing
@@ -16111,7 +16113,9 @@ function closeCrateRevealAndShowcase(btn,key,isNew){
   // forced second step bolted onto the reveal itself, which already
   // showed everything. Continue now does the same one thing either way:
   // close and return to the app.
-  overlay.remove();
+  try{overlay.querySelectorAll('.arx-shake').forEach(el=>el.classList.remove('arx-shake'));}catch(e){}
+  if(overlay)overlay.remove();
+  document.body.classList.remove('overlay-open');
 }
 function showLegendReveal(l,isNew,tier,count,keyWon,titleWon,extras){
   extras=extras||[];

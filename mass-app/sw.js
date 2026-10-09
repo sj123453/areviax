@@ -40,7 +40,7 @@
 // v4 cache (not just these 5 files — there's no per-asset invalidation
 // here, only whole-cache), so every image gets re-fetched fresh once
 // and then goes back to being cached forever under v5.
-const CACHE_NAME = 'areviax-mass-v5';
+const CACHE_NAME = 'areviax-mass-v6';
 const APP_SHELL = ['./', './index.html', './manifest.json', 'images/icons/favicon.png'];
 const ASSET_PATH = /\/(?:mass-app\/)?(?:images|audio)\//;
 
