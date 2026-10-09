@@ -4555,6 +4555,45 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .today-log-empty{font-size:11.5px;color:var(--muted);padding:8px 0}
 .photo-empty::before,.today-log-empty::before,.custom-empty::before,#muscle-readiness-empty::before{content:'';display:block;width:44px;height:44px;margin:0 auto 10px;background:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48' fill='none' stroke='%23E6BE6D' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M19 6h10M21 6v5c-6 2-9 8-9 14 0 8 5 14 12 14s12-6 12-14c0-6-3-12-9-14V6'/><path d='M12 22c-5 0-6 6-2 8 1 .5 2 .5 2 .5M36 22c5 0 6 6 2 8-1 .5-2 .5-2 .5'/><path d='M16 28h16M17 33h14' opacity='.55'/><path d='M20 43h8' /></svg>") center/contain no-repeat;opacity:.75}
 .today-log-empty{text-align:center;padding:14px 0}
+/* BRAWL-BOX SEQUENCE (see runBoxSequence comment in showLegendReveal) */
+.box-mode .compass-crate,.box-mode .compass-crate.ready{animation:none}
+.box-mode .crate-icon-wrap{margin-top:24vh}
+.box-mode .compass-crate{width:clamp(240px,72vw,340px)!important;height:clamp(240px,72vw,340px)!important}
+.box-mode .compass-crate .crate-icon img{width:100%;height:100%}
+.box-mode .crate-icon-wrap::before{display:none}
+.box-in{animation:boxIn .45s cubic-bezier(.22,1.2,.36,1) both}
+@keyframes boxIn{from{opacity:0;transform:scale(.8)}to{opacity:1;transform:none}}
+.rw-card-layer{position:absolute;inset:0;pointer-events:none;z-index:6;overflow:hidden}
+.rw-card{position:absolute;left:0;right:0;top:34%;margin-top:-92px;display:flex;justify-content:center;will-change:transform,opacity}
+.rw-card .crate-slot-pop::before{display:none}
+.rw-card .crate-slot-pop,.rw-card .crate-slot-pop *{animation:none!important}
+.rw-card .crate-xp-slot-sub{opacity:1}
+.rw-card .crate-xp-slot-icon{width:clamp(100px,30vw,150px);height:clamp(100px,30vw,150px);font-size:clamp(46px,13vw,70px)}
+.rw-card .crate-xp-slot-label{font-size:clamp(24px,7vw,34px)}
+.bx-beamfx{position:absolute;left:50%;bottom:62%;width:46%;height:60vh;transform:translateX(-50%);background:linear-gradient(to top,rgba(255,226,140,.85),rgba(255,226,140,0));-webkit-mask-image:linear-gradient(to right,transparent,#000 30%,#000 70%,transparent);mask-image:linear-gradient(to right,transparent,#000 30%,#000 70%,transparent);filter:blur(6px);opacity:0;pointer-events:none;z-index:0;transform-origin:50% 100%}
+.bx-beam-on .bx-beamfx{animation:bxBeam 1s ease-out forwards}
+@keyframes bxBeam{0%{opacity:0;transform:translateX(-50%) scaleY(.2)}30%{opacity:1;transform:translateX(-50%) scaleY(1)}100%{opacity:.3;transform:translateX(-50%) scaleY(1)}}
+.compass-crate.bx-squish{transform:scale(1.14,.82);transition:transform .15s ease-out}
+.compass-crate.bx-jump{animation:bxJump .56s cubic-bezier(.3,.7,.4,1) forwards}
+@keyframes bxJump{0%{transform:scale(1.14,.82)}48%{transform:translateY(-130px) scale(.95,1.08)}100%{transform:translateY(0) scale(1.08,.9)}}
+.compass-crate.bx-hover{animation:bxHover 1.7s ease-in-out infinite}
+@keyframes bxHover{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-12px) rotate(1deg)}}
+.compass-crate.bx-shake{animation:bxShake .3s linear}
+@keyframes bxShake{0%,100%{transform:translateX(0) rotate(0)}15%{transform:translateX(-12px) rotate(-5deg)}35%{transform:translateX(11px) rotate(4deg)}55%{transform:translateX(-8px) rotate(-3deg)}75%{transform:translateX(5px) rotate(2deg)}}
+.compass-crate.bx-peek .crate-icon.crate-open{opacity:1;transform:scale(1.05)}
+.compass-crate.bx-peek .crate-icon.crate-closed{opacity:0}
+.compass-crate.bx-charge{animation:bxVibe .08s linear infinite}
+@keyframes bxVibe{0%{transform:translate(-4px,2px) rotate(-1.5deg) scale(1.06)}25%{transform:translate(4px,-3px) rotate(1.5deg) scale(1.08)}50%{transform:translate(-3px,-2px) rotate(-1deg) scale(1.06)}75%{transform:translate(3px,3px) rotate(1deg) scale(1.08)}100%{transform:translate(-4px,2px) rotate(-1.5deg) scale(1.06)}}
+.crate-icon-wrap.bx-charging::after{content:'';position:absolute;left:50%;top:50%;width:190%;height:190%;margin:-95% 0 0 -95%;border-radius:50%;pointer-events:none;z-index:3;mix-blend-mode:screen;background:radial-gradient(circle,rgba(255,255,255,.75),rgba(255,214,150,.25) 40%,transparent 65%);animation:bxFlash .2s steps(2,end) infinite}
+@keyframes bxFlash{0%{opacity:.15}100%{opacity:.9}}
+.bx-charging .crate-icon-burst{opacity:.6!important;animation:none!important;-webkit-mask-image:radial-gradient(circle,transparent 10%,#000 18%,#000 34%,transparent 52%)!important;mask-image:radial-gradient(circle,transparent 10%,#000 18%,#000 34%,transparent 52%)!important;background:repeating-conic-gradient(from 0deg,rgba(255,236,190,.55) 0 2deg,transparent 2deg 12deg)!important;transform:translate(-50%,-50%);animation:bxLines .5s linear infinite!important}
+@keyframes bxLines{to{transform:translate(-50%,-50%) rotate(360deg)}}
+.box-mode .crate-slot-counter{display:flex;align-items:center;justify-content:center;min-width:44px;height:44px;border-radius:12px;font-size:26px;font-weight:900;top:auto!important;bottom:4px!important;left:auto!important;right:-14px!important;transform:none!important}
+.crate-slot-counter.bx-count-pop{animation:bxCountPop .32s cubic-bezier(.34,1.56,.64,1)}
+@keyframes bxCountPop{0%{transform:scale(.4)}100%{transform:scale(1)}}
+.crate-slot-counter.bx-final{background:#ff2d3d!important;color:#fff;animation:bxFinalPulse .45s ease-in-out infinite alternate!important;box-shadow:0 0 18px 6px rgba(255,45,61,.8)}
+@keyframes bxFinalPulse{from{box-shadow:0 0 10px 2px rgba(255,45,61,.6)}to{box-shadow:0 0 26px 10px rgba(255,45,61,.95)}}
+@media(prefers-reduced-motion:reduce){.compass-crate.bx-jump,.compass-crate.bx-hover,.compass-crate.bx-shake,.compass-crate.bx-charge,.crate-icon-wrap.bx-charging::after,.bx-charging .crate-icon-burst,.box-in{animation:none!important}.bx-beam-on .bx-beamfx{animation:none;opacity:.4}}
 /* BRAWL-STYLE CRATE ENTRANCE + REWARD POP */
 @keyframes crateDropIn{0%{transform:translateY(-120vh) rotate(-14deg) scale(.7);opacity:1}50%{transform:translateY(0) rotate(0) scale(1.02,.98)}58%{transform:translateY(0) scale(1.16,.8)}74%{transform:translateY(-42px) scale(.94,1.08)}88%{transform:translateY(0) scale(1.06,.94)}100%{transform:none}}
 .crate-icon-wrap.drop-in{animation:crateDropIn .95s cubic-bezier(.45,0,.55,1) both}
@@ -7846,7 +7885,7 @@ body[data-goal-theme="cut"] .lv-page{
           <p class="lv-label-eyebrow">Treasury</p>
           <p class="lv-stat-huge" style="margin-top:8px;display:flex;align-items:baseline;gap:7px"><img src="images/icons/tetradrachm.png" alt="" style="width:26px;height:26px;border-radius:50%"> <span id="shop-drachma-badge">0</span></p>
         </div>
-        <div style="display:flex;align-items:center;gap:6px;font-family:var(--lv-mono);font-size:13px;color:var(--lv-fg)">🗝️ <span id="shop-key-badge">0</span></div>
+        <div style="display:flex;align-items:center;gap:6px;font-family:var(--lv-mono);font-size:13px;color:var(--lv-fg)"><img src="images/icons/key-gold.png" alt="" width="16" height="16" style="object-fit:contain"> <span id="shop-key-badge">0</span></div>
       </div>
 
       <div class="lv-meander-bold" style="margin-top:18px"></div>
@@ -7888,7 +7927,7 @@ body[data-goal-theme="cut"] .lv-page{
         <div class="shop-grid-card">
           <div class="shop-grid-card-head">
             <span class="shop-grid-card-title">Areviax Crates</span>
-            <span class="key-bank-badge" title="Spend Keys to upgrade a banked crate to the next tier">🗝️ <span id="key-bank-count">0</span></span>
+            <span class="key-bank-badge" title="Spend Keys to upgrade a banked crate to the next tier"><img src="images/icons/key-gold.png" alt="" width="16" height="16" style="object-fit:contain;vertical-align:-3px"> <span id="key-bank-count">0</span></span>
           </div>
           <div class="crate-row" id="crate-row"></div>
         </div>
@@ -14357,13 +14396,18 @@ const KEY_ICON_PATHS={
   diamond:'<path d="M0-9 3.6-5 0-1 -3.6-5Z"/><path d="M0-1V7.2M0.4 3H3.4M0.4 6H2.7"/>',
   areviax:'<circle cx="0" cy="-5" r="4.4"/><path d="M0-9.4v1.2M0-1.6v1.2M-4.4-5h1.2M3.2-5h1.2"/><path d="M0-7.6c1.6 1.3 2.4 2.7 2.1 4.3-.2 1.3-1.2 2.2-2.1 2.4-.9-.2-1.9-1.1-2.1-2.4-.3-1.6.5-3 2.1-4.3z"/><path d="M0-1V7.8M0.4 3.2H3.6M0.4 5.5H3.3M0.4 7.5H2.5"/>',
 };
+function keyGlyph(px){return '<img src="images/icons/key-gold.png" alt="" width="'+(px||16)+'" height="'+(px||16)+'" style="object-fit:contain;vertical-align:-3px">';}
+const KEY_ICON_IMG={
+  bronze:'images/icons/key-bronze.png',
+  silver:'images/icons/key-silver.png',
+  gold:'images/icons/key-gold.png',
+  diamond:'images/icons/key-diamond.png',
+  areviax:'images/icons/key-areviax.png',
+};
+// Real painted key PNGs per crate tier (was a drawn SVG).
 function keyIconSVG(tier,size){
-  const paths=KEY_ICON_PATHS[tier]||KEY_ICON_PATHS.bronze;
-  const stroke=tier==='areviax'?'url(#giftAreviaxGrad)':'currentColor';
   const px=size||44;
-  return '<svg width="'+px+'" height="'+px+'" viewBox="-12 -12 24 24" fill="none" stroke="'+stroke+'" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="gift-key-tier-'+tier+'">'+
-    (tier==='areviax'?'<defs><linearGradient id="giftAreviaxGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#FFD24A"/><stop offset="100%" stop-color="#FF8342"/></linearGradient></defs>':'')+
-    paths+'</svg>';
+  return '<img class="gift-key-tier-'+tier+'" src="'+(KEY_ICON_IMG[tier]||KEY_ICON_IMG.bronze)+'" alt="'+tier+' key" width="'+px+'" height="'+px+'" style="object-fit:contain;display:block">';
 }
 // areviax reuses the Areviax League's own 8-point nova/compass mark
 // (see LEAGUE_ICON_SVG) instead of its old busy photographic emblem —
@@ -14475,7 +14519,7 @@ function renderAchievements(){
           // Just the tier name, not the full "Diamond Crate" label — this
           // tile is already labelled "Bronze"/"Silver"/etc. above, and the
           // full label was the longest-case overflow culprit on a phone.
-          ? `<div class="crate-upgrade-btn" onclick="event.stopPropagation();upgradeCrateWithKeys('${tier}')">🗝️ ${KEY_UPGRADE_COST[tier]} → ${KEY_UPGRADE_PATH[tier][0].toUpperCase()+KEY_UPGRADE_PATH[tier].slice(1)}</div>`
+          ? `<div class="crate-upgrade-btn" onclick="event.stopPropagation();upgradeCrateWithKeys('${tier}')">${keyGlyph(14)} ${KEY_UPGRADE_COST[tier]} → ${KEY_UPGRADE_PATH[tier][0].toUpperCase()+KEY_UPGRADE_PATH[tier].slice(1)}</div>`
           : ''}
       </div>`;
     }).join('');
@@ -16119,7 +16163,7 @@ function showLegendReveal(l,isNew,tier,count,keyWon,titleWon,extras){
   }
   function keySlotHTML(){
     return '<div class="crate-xp-slot crate-slot-pop">'+
-        '<div class="crate-xp-slot-icon" style="background:linear-gradient(160deg,#E8E0D0,#8A98A8)">🗝️</div>'+
+        '<div class="crate-xp-slot-icon rw-img" style="background:linear-gradient(160deg,#E8E0D0,#8A98A8)"><img src="images/icons/key-silver.png" alt="" width="120" height="120"></div>'+
         '<div class="crate-xp-slot-label">+1 Key</div>'+
         '<div class="crate-xp-slot-sub">Spend keys to upgrade a crate</div>'+
       '</div>';
@@ -16169,13 +16213,15 @@ function showLegendReveal(l,isNew,tier,count,keyWon,titleWon,extras){
   const overlay=document.createElement('div');
   overlay.className='achievement-overlay';
   overlay.innerHTML=
-    '<div class="achievement-modal crate-reveal-stage">'+
-      '<div class="crate-icon-wrap '+tier+' ready drop-in" id="reveal-crate-wrap" style="cursor:pointer">'+
+    '<div class="achievement-modal crate-reveal-stage box-mode">'+
+      '<div id="rw-card-layer" class="rw-card-layer"></div>'+
+      '<div class="crate-icon-wrap '+tier+' ready box-in" id="reveal-crate-wrap" style="cursor:pointer">'+
+        '<div class="bx-beamfx" id="bx-beamfx"></div>'+
         '<div class="crate-icon-burst" id="reveal-crate-burst"></div>'+
         '<div class="compass-crate '+tier+'" id="reveal-crate-icon">'+crackOutIconHTML(tier)+'</div>'+
-        (multiSlot?counterBadgeHTML(slots.length):'')+
+        '<div class="crate-slot-counter'+(isSpecialPull?' glow-alert':'')+'" id="reveal-slot-counter" style="display:none">'+slots.length+'</div>'+
       '</div>'+
-      '<div class="crate-tap-prompt late" id="reveal-tap-prompt">Tap-tap!</div>'+
+      '<div class="crate-tap-prompt" id="reveal-tap-prompt">Tap the box!</div>'+
     '</div>';
   document.body.appendChild(overlay);
   requestAnimationFrame(()=>overlay.classList.add('show'));
@@ -16242,91 +16288,116 @@ function showLegendReveal(l,isNew,tier,count,keyWon,titleWon,extras){
     }
   }
 
-  // "Tap-tap!" is now a literal two-tap requirement — a wider version
-  // of this (2-6 taps, scaled by tier) was tried earlier and reverted
-  // back to single-tap; this is a flat 2-tap beat across every tier
-  // instead, the anticipation without the extra friction that got the
-  // wider version pulled. Still never gates the reward — autoOpenTimer
-  // fires explode() on its own if the player doesn't tap (enough).
-  let exploding=false,autoOpenTimer=null,taps=0,landed=false;
-  const TAPS_NEEDED=2;
-  // Brawl-style entrance: the crate drops in from above and slams down;
-  // the impact throws a ring and a puff of sparks and shakes the screen.
-  setTimeout(()=>{
-    if(!overlay.isConnected)return;
-    try{ArxFX.ring(innerWidth/2,innerHeight*.6,'rgba(255,214,150,.9)',Math.min(innerWidth,innerHeight)*.5,8);ArxFX.tap(icon,tier);ArxFX.shake(overlay.querySelector('.achievement-modal'),9,.4);}catch(e){}
-    try{const a=getCrateAudioCtx();if(a)playCrateTick(a,1);}catch(e){}
-  },520);
-  setTimeout(()=>{landed=true;wrap.classList.remove('drop-in');},980);
-
-  // Synced to crateFloat's ~58% jolt point (3.4s cycle → ~1970ms in).
-  // Cleared the moment explode() fires so it can never fire a thump
-  // over the actual crack sound or a closed/gone overlay.
-  const idleThumpInterval=setInterval(()=>{
-    if(exploding||!overlay.isConnected)return;
-    playCrateIdleThump(getCrateAudioCtx());
-  },3400);
-  setTimeout(()=>{ if(!exploding&&overlay.isConnected)playCrateIdleThump(getCrateAudioCtx()); },1970);
-
-  function onTap(){
-    if(exploding||!landed)return;
-    taps++;
-    // A kick + tick on every tap, before the bigger shake/crack
-    // sequence in explode() once the count is met.
-    icon.classList.remove('crate-tap-pulse');
-    void icon.offsetWidth;
-    icon.classList.add('crate-tap-pulse');
-    const actx=getCrateAudioCtx();
-    if(actx)playCrateTick(actx,0.6+0.3*(taps/TAPS_NEEDED));
-    try{ArxFX.tap(icon,tier);}catch(e){}
-    if(taps<TAPS_NEEDED){ if(prompt)prompt.textContent='Tap again!'; return; }
-    explode();
+  // ── BRAWL-BOX SEQUENCE ──────────────────────────────────────────────────
+  // 1 closed crate sits still · 2 first tap: squish, bound into the air, latches
+  // snap, a golden beam leaks from the lid · 3 it lands and hovers weightlessly,
+  // a counter appears bottom-right · 4 every tap: the box trembles, throws the
+  // next reward out of its lid to the centre of the screen, snaps shut, bobs
+  // while the counter drops · 5 on the last tap (red glowing 1) the box
+  // vibrates with energy lines and flashing light, then bursts open and the
+  // screen cuts to the trophy.
+  // Never gates the reward: idle taps fire on their own after a beat.
+  const reduceMotion=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const layer=overlay.querySelector('#rw-card-layer');
+  const counter=overlay.querySelector('#reveal-slot-counter');
+  let phase='closed',remaining=slots.length,itemIdx=0,busy=false,idleTimer=null,idleThumpInterval=null,curCard=null;
+  const modalEl=overlay.querySelector('.achievement-modal');
+  function setCounter(n){
+    if(!counter)return;
+    counter.textContent=n;
+    counter.classList.remove('bx-count-pop');void counter.offsetWidth;counter.classList.add('bx-count-pop');
+    counter.classList.toggle('bx-final',n===1);
   }
-
-  function explode(){
-    if(exploding)return; exploding=true;
-    clearTimeout(autoOpenTimer);
+  function armIdle(ms){clearTimeout(idleTimer);idleTimer=setTimeout(()=>{if(overlay.isConnected)onTap();},ms);}
+  function lidPeek(ms){icon.classList.add('bx-peek');setTimeout(()=>icon.classList.remove('bx-peek'),ms||160);}
+  function firstTap(){
+    phase='opening';busy=true;
     clearInterval(idleThumpInterval);
-    wrap.removeEventListener('click',onTap);
-    if(prompt)prompt.textContent='Opening…';
-    prompt.style.opacity='0';
-    wrap.style.cursor='default';
-    playCrateSpinTicks(cfg.windupMs);
-    icon.classList.add('crate-shake');
+    if(prompt){prompt.style.transition='opacity .2s';prompt.style.opacity='0';}
+    icon.classList.add('bx-squish');
+    try{const a=getCrateAudioCtx();if(a)playCrateTick(a,.9);}catch(e){}
     setTimeout(()=>{
-      // crate-shake (3-class tier rules like .compass-crate.gold.crate-
-      // shake) and crate-tap-pulse (tied specificity with crack-out,
-      // but declared later in the stylesheet, so it wins the tie) both
-      // have to actually come OFF, not just be out-added — either one
-      // left in place silently keeps its own animation-name and the
-      // crack-out one never visibly plays.
-      icon.classList.remove('crate-shake','crate-tap-pulse');
-      icon.classList.add('crack-out');
-      burst.classList.add('flare');
-      playCrateCrackSound(tier);
-      try{ArxFX.crack(icon,tier);ArxFX.shake(overlay.querySelector('.achievement-modal'),{bronze:4,silver:6,gold:8,diamond:11,areviax:14}[tier]||6,{bronze:.3,silver:.38,gold:.45,diamond:.55,areviax:.7}[tier]||.4);}catch(e){}
-      if(cfg.flash){
-        const flash=document.createElement('div');
-        flash.className='crate-flash'+(tier==='diamond'?' diamond':tier==='areviax'?' areviax':'');
-        document.body.appendChild(flash);
-        setTimeout(()=>flash.remove(),550);
-      }
-    },cfg.windupMs);
+      icon.classList.remove('bx-squish');icon.classList.add('bx-jump');
+      try{playCrateSpinTicks(300);}catch(e){}
+      setTimeout(()=>{            // apex: latches snap, beam escapes
+        modalEl.classList.add('bx-beam-on');lidPeek(200);
+        try{ArxFX.shine(icon,'#FFD77A',14);ArxFX.ring(innerWidth/2,innerHeight*.62,'rgba(255,214,120,.9)',200,5);}catch(e){}
+        try{playCrateRevealChime('common');}catch(e){}
+      },300);
+      setTimeout(()=>{
+        icon.classList.remove('bx-jump');icon.classList.add('bx-hover');
+        phase='ready';busy=false;
+        if(counter){counter.style.display='flex';setCounter(remaining);}
+        if(prompt){prompt.textContent='Tap!';prompt.style.opacity='1';}
+        armIdle(1600);
+      },720);
+    },150);
+  }
+  function ejectCard(slot){
+    const old=curCard;
+    if(old){old.animate([{transform:'none',opacity:1},{transform:'translateY(-60px) scale(.85)',opacity:0}],{duration:reduceMotion?1:260,easing:'ease-in',fill:'forwards'}).onfinish=()=>old.remove();}
+    const card=document.createElement('div');card.className='rw-card';
+    card.innerHTML=slot.render();layer.appendChild(card);curCard=card;
+    const cr=wrap.getBoundingClientRect(),lr=layer.getBoundingClientRect();
+    const fromX=cr.left+cr.width/2-(lr.left+lr.width/2),fromY=cr.top+cr.height*.25-(lr.top+lr.height*.34);
+    card.animate([
+      {transform:'translate('+fromX+'px,'+fromY+'px) scale(.2) rotate(-24deg)',opacity:0,offset:0},
+      {transform:'translate('+fromX*.35+'px,'+(fromY*.4-70)+'px) scale(1.15) rotate(8deg)',opacity:1,offset:.55},
+      {transform:'translate(0,6px) scale(.96) rotate(-2deg)',opacity:1,offset:.82},
+      {transform:'none',opacity:1,offset:1}
+    ],{duration:reduceMotion?1:620,easing:'cubic-bezier(.22,.9,.3,1)',fill:'forwards'});
+    try{slot.onShow&&slot.onShow(card);}catch(e){}
+  }
+  function itemTap(){
+    busy=true;remaining--;setCounter(remaining);
+    try{const a=getCrateAudioCtx();if(a)playCrateTick(a,.8);}catch(e){}
+    icon.classList.remove('bx-hover','bx-shake');void icon.offsetWidth;icon.classList.add('bx-shake');
+    lidPeek(190);
+    try{ArxFX.tap(icon,tier);}catch(e){}
     setTimeout(()=>{
-      // Stays on the full-screen .crate-reveal-stage look for the whole
-      // reward sequence — every slot (Arete, Key, Title, the trophy
-      // itself) gets its own full-screen moment instead of shrinking
-      // down into a small boxed card once the chest actually cracks.
-      showSlot();
-    },cfg.windupMs+cfg.crackMs);
+      icon.classList.remove('bx-shake');icon.classList.add('bx-hover');
+      ejectCard(slots[itemIdx]);itemIdx++;
+      try{playCrateRevealChime('common');}catch(e){}
+      busy=false;
+      if(remaining===1){chargeFinal();}
+      else armIdle(1500);
+    },300);
+  }
+  function chargeFinal(){
+    phase='final';
+    icon.classList.remove('bx-hover');icon.classList.add('bx-charge');
+    wrap.classList.add('bx-charging');
+    if(prompt){prompt.textContent='Last tap!';prompt.style.opacity='1';}
+    try{playCrateSpinTicks(cfg.windupMs);}catch(e){}
+    const spark=setInterval(()=>{if(!overlay.isConnected||phase!=='final'){clearInterval(spark);return;}try{ArxFX.tap(icon,tier);}catch(e){}},260);
+    armIdle(2600);
+  }
+  function finalTap(){
+    phase='burst';busy=true;clearTimeout(idleTimer);
+    if(prompt)prompt.style.opacity='0';
+    icon.classList.remove('bx-charge');wrap.classList.remove('bx-charging');
+    icon.classList.add('crack-out');burst.classList.add('flare');
+    playCrateCrackSound(tier);
+    try{ArxFX.crack(icon,tier);ArxFX.shake(modalEl,{bronze:6,silver:8,gold:10,diamond:13,areviax:16}[tier]||8,.55);}catch(e){}
+    const fl=document.createElement('div');fl.className='crate-flash'+(tier==='diamond'?' diamond':tier==='areviax'?' areviax':'');
+    document.body.appendChild(fl);setTimeout(()=>fl.remove(),550);
+    setTimeout(()=>{
+      remaining=0;
+      if(curCard){curCard.remove();curCard=null;}
+      slotIdx=slots.length-1;showSlot();   // cut to the trophy showcase
+    },cfg.windupMs?Math.min(520,cfg.crackMs+200):520);
+  }
+  function onTap(){
+    if(busy)return;
+    clearTimeout(idleTimer);
+    if(phase==='closed')return firstTap();
+    if(phase==='ready'){return itemTap();}
+    if(phase==='final')return finalTap();
   }
   wrap.addEventListener('click',onTap);
-
-  // A player who never taps still gets their reward — the tap is a beat,
-  // not a gate. Auto-triggers a little after the prompt fades in so a
-  // real tap (which fires first) always wins the race — widened from
-  // 1400ms for the single-tap version to give room for a real 2-tap.
-  autoOpenTimer=setTimeout(explode,3000);
+  // the idle "thump" while the closed box waits
+  idleThumpInterval=setInterval(()=>{if(phase!=='closed'||!overlay.isConnected)return;playCrateIdleThump(getCrateAudioCtx());},3400);
+  armIdle(2600);
 }
 
 // ── GIFT FROM THE GODS — one free daily login reward, weighted heavily
@@ -20340,7 +20411,7 @@ function renderCompass(){
   // which is why the canvas never refreshed when a new key was earned.
   drawCompass();
   const sbi=document.getElementById('key-bank-indicator');
-  if(sbi)sbi.textContent=keyBank>0?'🗝️ '+keyBank+' key'+(keyBank===1?'':'s'):'';
+  if(sbi)sbi.innerHTML=keyBank>0?keyGlyph(14)+' '+keyBank+' key'+(keyBank===1?'':'s'):'';
 }
 
 // Sweep-ring gauge + 8-point compass-rose needle -- the design that came out
