@@ -5219,7 +5219,7 @@ body[data-goal-theme="cut"] .lv-page{
    next to a separate unrelated icon button. */
 .lv-road-pill{
   position:relative;display:flex;align-items:center;gap:0;flex-shrink:0;min-width:112px;
-  padding:3px 12px 3px 30px;margin-left:14px;border-radius:12px;cursor:pointer;
+  padding:3px 24px 3px 30px;margin-left:14px;margin-right:12px;border-radius:12px;cursor:pointer;
   background:linear-gradient(180deg,#2a1b12,#150d08);border:2px solid #e6be6d;
   box-shadow:0 2px 0 #6b4a17,inset 0 1px 0 rgba(255,236,190,.25);
   -webkit-tap-highlight-color:transparent;transition:transform .15s var(--ease-out,ease)
@@ -5232,10 +5232,17 @@ body[data-goal-theme="cut"] .lv-page{
 .lv-road-pill-top{display:flex;align-items:center;font-size:15px;font-weight:900;color:#fff;white-space:nowrap;font-family:var(--lv-display,serif);letter-spacing:.02em;text-shadow:0 1px 0 rgba(0,0,0,.6);line-height:1.1}
 .lv-road-pill-track{width:100%;min-width:56px;height:7px;border-radius:4px;background:rgba(0,0,0,.55);border:1px solid rgba(255,255,255,.12);overflow:hidden}
 .lv-road-pill-fill{display:block;height:100%;border-radius:4px;background:linear-gradient(180deg,#8bf0a8,#2fb85f 55%,#1d8a45);box-shadow:inset 0 1px 0 rgba(255,255,255,.5);transition:width .5s cubic-bezier(.16,1,.3,1)}
-.lv-road-alert{position:absolute;top:-8px;right:-8px;width:18px;height:18px;border-radius:50%;background:#e23532;color:#fff;font-size:12px;font-weight:900;display:none;place-items:center;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.5)}
+.lv-road-next{position:absolute;right:-12px;top:50%;margin-top:-15px;width:30px;height:30px;border-radius:9px;display:grid;place-items:center;overflow:hidden;font-size:18px;line-height:1;
+  background:linear-gradient(180deg,#3a2515,#1b100a);border:2px solid #e6be6d;box-shadow:0 2px 4px rgba(0,0,0,.55)}
+.lv-road-next img,.lv-road-next svg{width:22px;height:22px;object-fit:contain;display:block}
+.lv-road-pill.ready .lv-road-next{animation:lvNextBob 1.1s ease-in-out infinite}
+@keyframes lvNextBob{50%{transform:translateY(-2px)}}
+@media(prefers-reduced-motion:reduce){.lv-road-pill.ready .lv-road-next{animation:none}}
+.lv-road-alert{position:absolute;top:-9px;right:-19px;width:18px;height:18px;border-radius:50%;background:#e23532;color:#fff;font-size:12px;font-weight:900;display:none;place-items:center;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.5)}
 .lv-road-pill.ready .lv-road-alert{display:grid}
 .lv-road-pill.ready .lv-road-pill-fill{background:linear-gradient(180deg,#ffe9a8,#e6be6d)}
-.tb-right .lv-road-pill{margin-left:16px}
+@media(max-width:380px){#global-topbar>span:first-child>span{display:none}#global-topbar .lv-road-pill{min-width:84px}}
+.tb-right .lv-road-pill{margin-left:16px;margin-right:14px}
 .lv-profile-badge{
   position:absolute;top:-4px;right:-4px;min-width:16px;height:16px;padding:0 3px;
   border-radius:999px;background:#E23532;color:#fff;font-size:11px;font-weight:900;
@@ -5505,6 +5512,7 @@ body[data-goal-theme="cut"] .lv-page{
       <span class="lv-road-medal"><img src="images/icons/arete.png" alt=""></span>
       <span class="lv-road-pill-body"><span class="lv-road-pill-top"><span class="lv-road-arete-num">0</span></span>
       <span class="lv-road-pill-track"><span class="lv-road-pill-fill" style="width:0%"></span></span></span>
+      <span class="lv-road-next" aria-hidden="true"></span>
       <span class="lv-road-alert" aria-hidden="true">!</span>
     </button>
     <!-- THE AREVIAX CHAMPIONSHIP icon removed from here (direct ask:
@@ -6049,7 +6057,8 @@ body[data-goal-theme="cut"] .lv-page{
             <span class="lv-road-medal"><img src="images/icons/arete.png" alt=""></span>
             <span class="lv-road-pill-body"><span class="lv-road-pill-top"><span class="lv-road-arete-num" id="xp-val">0</span></span>
             <span class="lv-road-pill-track"><span class="lv-road-pill-fill" style="width:0%"></span></span></span>
-            <span class="lv-road-alert" aria-hidden="true">!</span>
+            <span class="lv-road-next" aria-hidden="true"></span>
+      <span class="lv-road-alert" aria-hidden="true">!</span>
           </button>
           <div class="tb-pill tp-rank" onclick="openRankUp(event)" title="Rank" style="cursor:pointer;background:rgba(230,190,109,.12);border:1.5px solid rgba(230,190,109,.35);color:#E6BE6D"><img src="images/icons/rank-temple.png" alt="" style="width:16px;height:16px;vertical-align:-3px"> Rank</div>
           <div class="tb-profile-btn" onclick="showPage('shop')" title="Marketplace" aria-label="Marketplace"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 01-8 0"/></svg></div>
@@ -20050,7 +20059,8 @@ function syncLvBadges(){
     const sum=getXpRoadSummary();
     document.querySelectorAll('.lv-road-arete-num').forEach(el=>el.textContent=formatCompactNum(xp));
     document.querySelectorAll('.lv-road-pill .lv-road-pill-fill').forEach(el=>el.style.width=sum.pct+'%');
-    document.querySelectorAll('.lv-road-pill').forEach(el=>el.classList.toggle('ready',xpRoadReady.length>0));
+    document.querySelectorAll('.lv-road-pill').forEach(el=>{el.classList.toggle('ready',xpRoadReady.length>0);el.title=sum.text;});
+    document.querySelectorAll('.lv-road-next').forEach(el=>{if(el.dataset.k!==sum.icon){el.dataset.k=sum.icon;el.innerHTML=sum.icon;}});
   }
   renderDashRankPill();
   syncProfileBadge();
