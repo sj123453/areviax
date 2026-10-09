@@ -4556,6 +4556,8 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .today-log-empty{font-size:11.5px;color:var(--muted);padding:8px 0}
 .photo-empty::before,.today-log-empty::before,.custom-empty::before,#muscle-readiness-empty::before{content:'';display:block;width:44px;height:44px;margin:0 auto 10px;background:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48' fill='none' stroke='%23E6BE6D' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M19 6h10M21 6v5c-6 2-9 8-9 14 0 8 5 14 12 14s12-6 12-14c0-6-3-12-9-14V6'/><path d='M12 22c-5 0-6 6-2 8 1 .5 2 .5 2 .5M36 22c5 0 6 6 2 8-1 .5-2 .5-2 .5'/><path d='M16 28h16M17 33h14' opacity='.55'/><path d='M20 43h8' /></svg>") center/contain no-repeat;opacity:.75}
 .today-log-empty{text-align:center;padding:14px 0}
+.rh-beast{margin-top:8px;font-size:12px;color:var(--muted);line-height:1.4}
+.rh-beast b{color:var(--white)}
 .bestiary-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:10px}
 .bestiary-card{position:relative;border:1px solid var(--border2);border-radius:14px;padding:8px 6px 10px;text-align:center;background:rgba(255,255,255,.03);transition:transform var(--dur-base) var(--ease-out),border-color var(--dur-base) var(--ease-out)}
 .bestiary-card img{width:72px;height:72px;object-fit:contain;display:block;margin:0 auto 6px;filter:drop-shadow(0 4px 8px rgba(0,0,0,.5))}
@@ -9195,7 +9197,7 @@ body[data-goal-theme="cut"] .lv-page{
   <!-- BESTIARY — one beast of Greek myth per rank tier -->
   <div class="card lv-surface" style="margin-bottom:14px">
     <div class="ch"><span class="ct">Bestiary</span></div>
-    <div style="font-size:12px;color:var(--muted);margin-bottom:14px">Each rank you earn, a beast of the old myths comes to your side.</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:14px">A beast of the old myths guards the middle of every climb between ranks. Reach the halfway mark and it joins your side.</div>
     <div id="bestiary-grid" class="bestiary-grid"></div>
   </div>
 
@@ -12881,22 +12883,44 @@ function renderDailyQuote(){
 }
 // Bestiary — a beast of Greek myth for each rank tier, in ladder order.
 const BEASTS=[
-  {name:'Harpy',img:'images/beasts/harpy.png',tier:0,blurb:'Storm-winged scavenger'},
-  {name:'Minotaur',img:'images/beasts/minotaur.png',tier:1,blurb:'Bull of the Labyrinth'},
-  {name:'Nemean Lion',img:'images/beasts/nemean-lion.png',tier:2,blurb:'Hide no blade could pierce'},
-  {name:'Chimera',img:'images/beasts/chimera.png',tier:3,blurb:'Lion, goat and serpent'},
-  {name:'Hydra',img:'images/beasts/hydra.png',tier:4,blurb:'Cut one head, two return'},
-  {name:'Cerberus',img:'images/beasts/cerberus.png',tier:5,blurb:'Hound of Hades, jailer of Titans'},
-  {name:'Pegasus',img:'images/beasts/pegasus.png',tier:6,blurb:'Bearer of Zeus\'s thunder'}
+  {name:'Harpy',img:'images/beasts/harpy.png',gate:0,blurb:'Storm-winged scavenger'},
+  {name:'Minotaur',img:'images/beasts/minotaur.png',gate:1,blurb:'Bull of the Labyrinth'},
+  {name:'Nemean Lion',img:'images/beasts/nemean-lion.png',gate:2,blurb:'Hide no blade could pierce'},
+  {name:'Chimera',img:'images/beasts/chimera.png',gate:3,blurb:'Lion, goat and serpent'},
+  {name:'Hydra',img:'images/beasts/hydra.png',gate:4,blurb:'Cut one head, two return'},
+  {name:'Cerberus',img:'images/beasts/cerberus.png',gate:5,blurb:'Hound of Hades, jailer of Titans'},
+  {name:'Pegasus',img:'images/beasts/pegasus.png',gate:6,summit:true,blurb:'Bearer of Zeus\'s thunder'}
 ];
+// A gatekeeper beast waits at the middle of each climb between two tiers
+// (halfway from tier `gate` to the next); Pegasus is the summit reward.
+function beastMet(b){
+  const idx=getRankIndex();
+  if(idx<0)return false;
+  if(b.summit)return idx>=b.gate;
+  return idx>b.gate||(idx===b.gate&&getTierFraction()>=0.5);
+}
+function beastHint(b){
+  return b.summit?'Reach '+TIERS[b.gate].name:'Halfway from '+TIERS[b.gate].name+' to '+TIERS[b.gate+1].name;
+}
+function nextBeast(){return BEASTS.find(b=>!beastMet(b))||null;}
+function checkBeastsMet(){
+  let seen;
+  try{seen=_jp(localStorage.getItem('arx_beastsSeen'),null);}catch(e){seen=null;}
+  const met=BEASTS.filter(beastMet).map(b=>b.name);
+  if(!Array.isArray(seen)){try{_ss('arx_beastsSeen',JSON.stringify(met));}catch(e){}return;}   // first run: record quietly
+  const fresh=BEASTS.filter(b=>beastMet(b)&&seen.indexOf(b.name)<0);
+  if(!fresh.length)return;
+  try{_ss('arx_beastsSeen',JSON.stringify(met));}catch(e){}
+  const b=fresh[fresh.length-1];
+  toast('🐉','The '+b.name+' joins your side \u2014 '+b.blurb.toLowerCase());
+}
 function renderBestiary(){
   const el=document.getElementById('bestiary-grid');if(!el)return;
-  const my=getRankIndex();
   el.innerHTML=BEASTS.map(b=>{
-    const earned=b.tier<=my,t=TIERS[b.tier];
-    return '<div class="bestiary-card '+(earned?'earned':'locked')+'" style="--bc:'+t.col+'66" title="'+escHtml(earned?b.blurb:'Reach '+t.name+' to meet this beast')+'">'+
+    const earned=beastMet(b),t=TIERS[b.summit?b.gate:b.gate+1];
+    return '<div class="bestiary-card '+(earned?'earned':'locked')+'" style="--bc:'+t.col+'66" title="'+escHtml(earned?b.blurb:beastHint(b))+'">'+
       '<img src="'+b.img+'" alt="'+(earned?escHtml(b.name):'Locked beast')+'" width="72" height="72" loading="lazy">'+
-      '<b>'+(earned?escHtml(b.name):'???')+'</b><small>'+(earned?escHtml(b.blurb):escHtml(t.name))+'</small></div>';
+      '<b>'+(earned?escHtml(b.name):'???')+'</b><small>'+(earned?escHtml(b.blurb):escHtml(beastHint(b)))+'</small></div>';
   }).join('');
 }
 function renderHallOfStatues(){
@@ -17153,14 +17177,18 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')closeHall3D();});
 // Each tier is split into three steps (I, II, III) by how far the athlete
 // is toward the next tier — the slower of volume and sessions, so both
 // have to keep moving. Purely a display layer: getRankIndex() is unchanged.
-function getRankStep(){
+function getTierFraction(){
   const idx=getRankIndex();
   if(idx<0||idx>=TIERS.length-1)return 0;
   const c=TIERS[idx],n=TIERS[idx+1];
   const fv=n.volume>c.volume?(totalVolume-c.volume)/(n.volume-c.volume):1;
   const fs=n.sessions>c.sessions?(totalSess-c.sessions)/(n.sessions-c.sessions):1;
-  const f=Math.max(0,Math.min(0.999,Math.min(fv,fs)));
-  return Math.floor(f*3)+1;
+  return Math.max(0,Math.min(0.999,Math.min(fv,fs)));
+}
+function getRankStep(){
+  const idx=getRankIndex();
+  if(idx<0||idx>=TIERS.length-1)return 0;
+  return Math.floor(getTierFraction()*3)+1;
 }
 function rankStepLabel(){const k=getRankStep();return k?['','I','II','III'][k]:'';}
 function getNextTier(){
@@ -17183,6 +17211,13 @@ function renderRank(){
   const pr=document.getElementById('plaque-rank');
   if(pr){pr.textContent=unranked?'UNRANKED':r.name+' LIFTER';pr.style.color=r.col;}
   renderTierProgress();
+  try{checkBeastsMet();}catch(e){}
+}
+
+function beastLine(){
+  const b=nextBeast();
+  if(!b||getRankIndex()<0)return '';
+  return '<img src="'+b.img+'" alt="" width="18" height="18" style="vertical-align:-4px;margin-right:6px;filter:drop-shadow(0 1px 2px rgba(0,0,0,.5))">Beast ahead: <b>'+escHtml(b.name)+'</b> \u2014 '+escHtml(beastHint(b));
 }
 
 function renderTierProgress(){
@@ -17203,6 +17238,7 @@ function renderTierProgress(){
     '<div class="tier-req-bar"><div class="tier-req-fill" style="width:'+volPct+'%;background:'+next.col+'"></div></div>'+
     '<div class="tier-req-row" style="margin-top:6px"><span>Sessions completed</span><span>'+totalSess+' / '+next.sessions+'</span></div>'+
     '<div class="tier-req-bar"><div class="tier-req-fill" style="width:'+sessPct+'%;background:'+next.col+'"></div></div>'+
+    (beastLine()?'<div class="tier-need" style="margin-bottom:4px">'+beastLine()+'</div>':'')+
     '<div class="tier-need">Need '+Math.round(volNeed).toLocaleString()+'kg more volume and '+sessNeed+' more session'+(sessNeed===1?'':'s')+' to rank up.</div>';
 }
 
@@ -19589,7 +19625,7 @@ function renderDashRankHeroStatue(el,r,unranked){
     return '<div class="rh-bar'+(done?' rh-done':'')+'"><div class="rh-bar-top"><span>'+label+'</span><em>'+Math.round(Math.min(have,to)).toLocaleString()+' / '+to.toLocaleString()+unit+'</em></div><div class="rh-track"><div class="rh-fill" style="--f:'+frac.toFixed(3)+'"></div></div></div>';
   };
   const head=unranked?'Log your first session to be cast in bronze':'Next: <b>'+target.name+'</b>';
-  prog.innerHTML='<div class="rh-prog-next">'+head+'</div>'+(unranked?'':bar('Lifted',totalVolume,cur.volume,target.volume,' kg')+bar('Sessions',totalSess,cur.sessions,target.sessions,''));
+  prog.innerHTML='<div class="rh-prog-next">'+head+'</div>'+(unranked?'':bar('Lifted',totalVolume,cur.volume,target.volume,' kg')+bar('Sessions',totalSess,cur.sessions,target.sessions,'')+(beastLine()?'<div class="rh-beast">'+beastLine()+'</div>':''));
 }
 function renderDashHeroLovable(){
   syncLvBadges();
