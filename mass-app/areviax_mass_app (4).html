@@ -14007,6 +14007,42 @@ const ROAD_REALMS=[
   {key:'elysium',   img:'images/roads/realm-elysium.jpg'},
   {key:'olympus',   img:'images/roads/realm-olympus.jpg'},
 ];
+const ROAD_GATE_SVG='<svg class="rg-svg" viewBox="0 0 96 260" preserveAspectRatio="xMidYMax meet" aria-hidden="true"><defs>'+
+'<linearGradient id="rgStone" x1="0" x2="1"><stop offset="0" stop-color="#8f8068"/><stop offset=".35" stop-color="#f1e4c8"/><stop offset=".7" stop-color="#cdbb97"/><stop offset="1" stop-color="#6e604c"/></linearGradient>'+
+'<linearGradient id="rgBeam" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff3cf" stop-opacity=".95"/><stop offset=".55" stop-color="#ffd77a" stop-opacity=".45"/><stop offset="1" stop-color="#ff9a3d" stop-opacity=".12"/></linearGradient>'+
+'<radialGradient id="rgFlame" cx=".5" cy=".7" r=".6"><stop offset="0" stop-color="#fff6c8"/><stop offset=".5" stop-color="#ffb347"/><stop offset="1" stop-color="#e8541a" stop-opacity="0"/></radialGradient>'+
+'</defs>'+
+'<rect class="rg-portal" x="24" y="34" width="48" height="210" fill="url(#rgBeam)"/>'+
+'<polygon class="rg-rays" points="48,34 20,244 44,244 48,34 52,244 76,244" fill="#fff3cf" opacity=".22"/>'+
+'<g fill="url(#rgStone)" stroke="#2b2116" stroke-width=".8">'+
+'<rect x="8" y="42" width="16" height="190"/><rect x="72" y="42" width="16" height="190"/>'+
+'<rect x="4" y="32" width="24" height="10" rx="1.5"/><rect x="68" y="32" width="24" height="10" rx="1.5"/>'+
+'<rect x="4" y="232" width="24" height="12" rx="1.5"/><rect x="68" y="232" width="24" height="12" rx="1.5"/>'+
+'<rect x="0" y="18" width="96" height="14" rx="2"/><polygon points="3,18 48,1 93,18"/>'+
+'<rect x="0" y="244" width="96" height="10" rx="2"/></g>'+
+'<g stroke="#2b2116" stroke-opacity=".35" stroke-width="1"><path d="M13 44V230M18 44V230M77 44V230M82 44V230"/></g>'+
+'<circle cx="48" cy="12" r="4.5" fill="#e6be6d" stroke="#6b4a17" stroke-width="1"/>'+
+'<ellipse class="rg-flame" cx="16" cy="222" rx="5" ry="9" fill="url(#rgFlame)"/><ellipse class="rg-flame f2" cx="80" cy="222" rx="5" ry="9" fill="url(#rgFlame)"/>'+
+'</svg>';
+const WORLD_NAMES=['The Underworld','The Mortal Realm','Elysium','Olympus'];
+function worldIndex(track){const n=ROAD_REALMS.length,w=Math.max(track.scrollWidth,track.clientWidth)/n;return Math.min(n-1,Math.max(0,Math.floor((track.scrollLeft+track.clientWidth/2)/w)));}
+function goNextWorld(track){
+  const n=ROAD_REALMS.length,w=Math.max(track.scrollWidth,track.clientWidth)/n,cur=worldIndex(track),to=Math.min(n-1,cur+1);
+  if(to===cur){track.scrollTo({left:0,behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});return;}
+  track.scrollTo({left:Math.max(0,to*w-24),behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
+}
+function playWorldChange(scenery,idx){
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  scenery.querySelectorAll('.road-world-flash,.road-world-banner').forEach(e=>e.remove());
+  const f=document.createElement('div');f.className='road-world-flash';scenery.appendChild(f);
+  const b=document.createElement('div');b.className='road-world-banner';b.innerHTML='<span>Entering</span><b>'+WORLD_NAMES[idx]+'</b>';scenery.appendChild(b);
+  setTimeout(()=>{f.remove();b.remove();},2100);
+}
+function syncWorldChip(scenery,track){
+  const chip=scenery.querySelector('.road-world-chip');if(!chip)return;
+  const n=ROAD_REALMS.length,cur=worldIndex(track);
+  chip.innerHTML=cur<n-1?'<small>Next world</small><b>'+WORLD_NAMES[cur+1]+'</b><i aria-hidden="true">\u203a</i>':'<small>You are at the summit</small><b>Back to the start</b><i aria-hidden="true">\u2039</i>';
+}
 function renderRoadRealmStrip(scenery,track){
   if(!scenery||!track)return;
   let strip=scenery.querySelector('.road-realm-strip');
@@ -14018,7 +14054,7 @@ function renderRoadRealmStrip(scenery,track){
     // pass "through" at either open end of the road).
     strip.innerHTML='<div class="road-realm-strip-inner">'+ROAD_REALMS.map((r,i)=>
       `<div class="road-realm-band" style="background-image:url('${r.img}')">`+
-        (i<ROAD_REALMS.length-1?'<div class="road-realm-gate" style="left:100%"><div class="road-realm-gate-glow"></div><div class="road-realm-gate-lintel"></div><div class="road-realm-gate-post"></div><div class="road-realm-gate-post"></div></div>':'')+
+        (i<ROAD_REALMS.length-1?'<div class="road-realm-gate" style="left:100%">'+ROAD_GATE_SVG+'</div>':'')+
       '</div>'
     ).join('')+'</div>';
     scenery.insertBefore(strip,scenery.firstChild);
@@ -14037,6 +14073,20 @@ function renderRoadRealmStrip(scenery,track){
   if(!track._realmSyncBound){
     track.addEventListener('scroll',sync,{passive:true});
     track._realmSyncBound=true;
+  }
+  track._worldMute=performance.now()+1500;
+  let chip=scenery.querySelector('.road-world-chip');
+  if(!chip){chip=document.createElement('button');chip.type='button';chip.className='road-world-chip';chip.addEventListener('click',()=>goNextWorld(track));scenery.appendChild(chip);}
+  if(track._world==null)track._world=worldIndex(track);
+  syncWorldChip(scenery,track);
+  if(!track._worldBound){
+    track._worldBound=true;
+    track.addEventListener('scroll',()=>{
+      const w=worldIndex(track);
+      if(w===track._world)return;
+      track._world=w;syncWorldChip(scenery,track);
+      if(performance.now()>track._worldMute)playWorldChange(scenery,w);
+    },{passive:true});
   }
   // One-shot zoom-in, played once per Road-page visit (see roadIntroPending,
   // set in showPage) rather than every time this function re-runs from a
@@ -14070,8 +14120,7 @@ function drawRoadTrail(cont){
     let d='M'+pts[from].x.toFixed(1)+','+pts[from].y.toFixed(1);
     for(let i=from+1;i<=to;i++){
       const p0=pts[i-1],p1=pts[i];
-      const midY=((p0.y+p1.y)/2).toFixed(1);
-      d+=' C'+p0.x.toFixed(1)+','+midY+' '+p1.x.toFixed(1)+','+midY+' '+p1.x.toFixed(1)+','+p1.y.toFixed(1);
+      d+=' L'+p1.x.toFixed(1)+','+pts[from].y.toFixed(1);
     }
     return d;
   }
@@ -14138,7 +14187,7 @@ function renderRoadPath(containerId,nodes){
   cont.className='xp-road-track horizontal'+(anyClaimed?' has-progress':'');
   cont.innerHTML=nodes.map((n,i)=>{
     const state=n.claimed?' claimed':n.ready?' ready':n.isNext?' next':'';
-    const wind=Math.round(Math.sin(i*0.85)*22);
+    const wind=0;
     // Hex size scales with how big a deal the reward actually is (n.weight,
     // 0..1 \u2014 see xpRoadNodeWeight/trophyRoadNodeWeight),
     // not just claimed-vs-next: a locked Mega-Box-tier reward should still
@@ -32828,5 +32877,296 @@ document.addEventListener('DOMContentLoaded', function(){
       <span>Areviax OS</span>
     </div>
   </div>
+<style>
+.ico{display:inline-block;position:relative;width:1.15em;height:1.15em;vertical-align:-.2em;line-height:1;flex-shrink:0}
+.ico::before{content:'';position:absolute;inset:0;background:var(--c,currentColor);-webkit-mask:var(--i) center/contain no-repeat;mask:var(--i) center/contain no-repeat}
+.ico-t{position:absolute;inset:0;font-size:0;opacity:0;overflow:hidden;pointer-events:none}
+</style>
+<script>
+/* Emoji -> icon. Every emoji that reaches the page as text (static markup, toasts,
+   innerHTML) is swapped for a matching icon PNG tinted by the surrounding colour.
+   The original character stays in a hidden child so textContent/copy still work. */
+(function(){
+const MAP={
+'⚠️':'images/icons/ui/triangle-alert.png',
+'⚠':'images/icons/ui/triangle-alert.png',
+'🔥':'images/icons/ui/flame.png',
+'⚡':'images/icons/ui/zap.png',
+'🏆':'images/icons/ui/trophy.png',
+'✅':'images/icons/ui/circle-check.png',
+'🏗️':'images/icons/ui/construction.png',
+'🏗':'images/icons/ui/construction.png',
+'⭐':'images/icons/ui/star.png',
+'🔒':'images/icons/ui/lock.png',
+'🔓':'images/icons/ui/lock-open.png',
+'🍽️':'images/icons/ui/utensils.png',
+'🍽':'images/icons/ui/utensils.png',
+'🍴':'images/icons/ui/utensils.png',
+'🔕':'images/icons/ui/bell-off.png',
+'🔔':'images/icons/ui/bell.png',
+'💪':'images/icons/ui/biceps-flexed.png',
+'🦾':'images/icons/ui/biceps-flexed.png',
+'😴':'images/icons/ui/bed.png',
+'✨':'images/icons/ui/sparkles.png',
+'🏋️':'images/icons/ui/dumbbell.png',
+'🏋':'images/icons/ui/dumbbell.png',
+'🔄':'images/icons/ui/refresh-cw.png',
+'🔁':'images/icons/ui/refresh-cw.png',
+'💾':'images/icons/ui/save.png',
+'🎯':'images/icons/ui/target.png',
+'🛡️':'images/icons/ui/shield.png',
+'🛡':'images/icons/ui/shield.png',
+'🗝️':'images/icons/ui/key-round.png',
+'🗝':'images/icons/ui/key-round.png',
+'📝':'images/icons/ui/square-pen.png',
+'🎤':'images/icons/ui/mic.png',
+'⏱️':'images/icons/ui/timer.png',
+'⏱':'images/icons/ui/timer.png',
+'📅':'images/icons/ui/calendar.png',
+'⚖️':'images/icons/ui/scale.png',
+'⚖':'images/icons/ui/scale.png',
+'🎁':'images/icons/ui/gift.png',
+'🌙':'images/icons/ui/moon.png',
+'🏛️':'images/icons/ui/landmark.png',
+'🏛':'images/icons/ui/landmark.png',
+'🧭':'images/icons/ui/compass.png',
+'➕':'images/icons/ui/plus.png',
+'🥗':'images/icons/ui/salad.png',
+'📋':'images/icons/ui/clipboard-list.png',
+'👑':'images/icons/ui/crown.png',
+'🗑️':'images/icons/ui/trash-2.png',
+'🗑':'images/icons/ui/trash-2.png',
+'🥤':'images/icons/ui/cup-soda.png',
+'💡':'images/icons/ui/lightbulb.png',
+'📈':'images/icons/ui/trending-up.png',
+'📉':'images/icons/ui/trending-down.png',
+'🚶':'images/icons/ui/footprints.png',
+'🏃':'images/icons/ui/person-standing.png',
+'🍳':'images/icons/ui/egg-fried.png',
+'🍎':'images/icons/ui/apple.png',
+'🔗':'images/icons/ui/link.png',
+'🏅':'images/icons/ui/medal.png',
+'🎖️':'images/icons/ui/medal.png',
+'🎖':'images/icons/ui/medal.png',
+'🪑':'images/icons/ui/armchair.png',
+'➰':'images/icons/ui/infinity.png',
+'🌳':'images/icons/ui/tree-deciduous.png',
+'🛠️':'images/icons/ui/wrench.png',
+'🛠':'images/icons/ui/wrench.png',
+'🏊':'images/icons/ui/waves.png',
+'🌊':'images/icons/ui/waves.png',
+'🚣':'images/icons/ui/waves.png',
+'🧠':'images/icons/ui/brain.png',
+'📖':'images/icons/ui/book-open.png',
+'📔':'images/icons/ui/book-open.png',
+'🪄':'images/icons/ui/wand-sparkles.png',
+'⏳':'images/icons/ui/hourglass.png',
+'🦵':'images/icons/ui/activity.png',
+'🚴':'images/icons/ui/bike.png',
+'🍕':'images/icons/ui/pizza.png',
+'👤':'images/icons/ui/user.png',
+'🫒':'images/icons/ui/leaf.png',
+'🌿':'images/icons/ui/leaf.png',
+'🥑':'images/icons/ui/leaf.png',
+'🌱':'images/icons/ui/leaf.png',
+'🔩':'images/icons/ui/settings.png',
+'⚙️':'images/icons/ui/settings.png',
+'⚙':'images/icons/ui/settings.png',
+'🏠':'images/icons/ui/house.png',
+'🤸':'images/icons/ui/move.png',
+'📊':'images/icons/ui/chart-column.png',
+'🧩':'images/icons/ui/puzzle.png',
+'🎲':'images/icons/ui/dices.png',
+'🌧️':'images/icons/ui/cloud-rain.png',
+'🌧':'images/icons/ui/cloud-rain.png',
+'🟤':'images/icons/ui/circle.png',
+'⚪':'images/icons/ui/circle.png',
+'⚫':'images/icons/ui/circle.png',
+'📷':'images/icons/ui/camera.png',
+'📸':'images/icons/ui/camera.png',
+'🔢':'images/icons/ui/hash.png',
+'🩹':'images/icons/ui/bandage.png',
+'🎵':'images/icons/ui/music.png',
+'🧘':'images/icons/ui/flower-2.png',
+'🌸':'images/icons/ui/flower-2.png',
+'🎨':'images/icons/ui/palette.png',
+'🐉':'images/icons/ui/flame.png',
+'🔱':'images/icons/ui/anchor.png',
+'📂':'images/icons/ui/folder-open.png',
+'📡':'images/icons/ui/radio-tower.png',
+'💥':'images/icons/ui/bomb.png',
+'⚽':'images/icons/ui/goal.png',
+'🏀':'images/icons/ui/circle-dot.png',
+'🎾':'images/icons/ui/circle-dot.png',
+'🎱':'images/icons/ui/circle-dot.png',
+'🥊':'images/icons/ui/hand-fist.png',
+'🪢':'images/icons/ui/cable.png',
+'⏭️':'images/icons/ui/skip-forward.png',
+'⏭':'images/icons/ui/skip-forward.png',
+'⏮️':'images/icons/ui/skip-back.png',
+'⏮':'images/icons/ui/skip-back.png',
+'⏹️':'images/icons/ui/square.png',
+'⏹':'images/icons/ui/square.png',
+'⏸️':'images/icons/ui/pause.png',
+'⏸':'images/icons/ui/pause.png',
+'🥩':'images/icons/ui/beef.png',
+'🍖':'images/icons/ui/beef.png',
+'🍗':'images/icons/ui/beef.png',
+'📣':'images/icons/ui/megaphone.png',
+'💬':'images/icons/ui/message-circle.png',
+'😅':'images/icons/ui/smile.png',
+'😌':'images/icons/ui/smile.png',
+'⬆️':'images/icons/ui/arrow-up.png',
+'⬇️':'images/icons/ui/arrow-down.png',
+'📱':'images/icons/ui/smartphone.png',
+'📲':'images/icons/ui/smartphone.png',
+'📏':'images/icons/ui/ruler.png',
+'📐':'images/icons/ui/ruler.png',
+'🎂':'images/icons/ui/cake-slice.png',
+'🧁':'images/icons/ui/cake-slice.png',
+'🍮':'images/icons/ui/cake-slice.png',
+'🥧':'images/icons/ui/cake-slice.png',
+'💻':'images/icons/ui/laptop.png',
+'🛒':'images/icons/ui/shopping-cart.png',
+'🍷':'images/icons/ui/wine.png',
+'🗺️':'images/icons/ui/map.png',
+'🗺':'images/icons/ui/map.png',
+'🔬':'images/icons/ui/microscope.png',
+'🛤️':'images/icons/ui/route.png',
+'🛤':'images/icons/ui/route.png',
+'⚔️':'images/icons/ui/swords.png',
+'⚔':'images/icons/ui/swords.png',
+'🫁':'images/icons/ui/wind.png',
+'🧾':'images/icons/ui/receipt.png',
+'☀️':'images/icons/ui/sun.png',
+'☀':'images/icons/ui/sun.png',
+'🔊':'images/icons/ui/volume-2.png',
+'🔨':'images/icons/ui/hammer.png',
+'🦁':'images/icons/ui/paw-print.png',
+'🐂':'images/icons/ui/paw-print.png',
+'🐎':'images/icons/ui/paw-print.png',
+'🌍':'images/icons/ui/globe.png',
+'🌌':'images/icons/ui/orbit.png',
+'🏹':'images/icons/ui/crosshair.png',
+'🐍':'images/icons/ui/worm.png',
+'🗿':'images/icons/ui/drama.png',
+'🦉':'images/icons/ui/bird.png',
+'🏺':'images/icons/ui/vault.png',
+'🥏':'images/icons/ui/disc.png',
+'🌽':'images/icons/ui/wheat.png',
+'🫓':'images/icons/ui/wheat.png',
+'🍚':'images/icons/ui/wheat.png',
+'🌾':'images/icons/ui/wheat.png',
+'⚕️':'images/icons/ui/stethoscope.png',
+'⚕':'images/icons/ui/stethoscope.png',
+'🛍️':'images/icons/ui/shopping-bag.png',
+'🛍':'images/icons/ui/shopping-bag.png',
+'☁️':'images/icons/ui/cloud.png',
+'☁':'images/icons/ui/cloud.png',
+'👍':'images/icons/ui/thumbs-up.png',
+'🛷':'images/icons/ui/snowflake.png',
+'❄️':'images/icons/ui/snowflake.png',
+'❄':'images/icons/ui/snowflake.png',
+'🎬':'images/icons/ui/clapperboard.png',
+'📍':'images/icons/ui/map-pin.png',
+'🚀':'images/icons/ui/rocket.png',
+'⏰':'images/icons/ui/alarm-clock.png',
+'🪙':'images/icons/ui/coins.png',
+'🍘':'images/icons/ui/cookie.png',
+'🥞':'images/icons/ui/layers.png',
+'🧇':'images/icons/ui/layers.png',
+'🥣':'images/icons/ui/soup.png',
+'🍲':'images/icons/ui/soup.png',
+'🍛':'images/icons/ui/soup.png',
+'🍨':'images/icons/ui/ice-cream-cone.png',
+'🍝':'images/icons/ui/utensils-crossed.png',
+'🌯':'images/icons/ui/sandwich.png',
+'🌮':'images/icons/ui/sandwich.png',
+'🥪':'images/icons/ui/sandwich.png',
+'🍤':'images/icons/ui/fish.png',
+'🐟':'images/icons/ui/fish.png',
+'🥓':'images/icons/ui/drumstick.png',
+'🫛':'images/icons/ui/bean.png',
+'🥜':'images/icons/ui/nut.png',
+'🍫':'images/icons/ui/candy.png',
+'🍌':'images/icons/ui/banana.png',
+'🫐':'images/icons/ui/grape.png',
+'🍍':'images/icons/ui/citrus.png',
+'🧹':'images/icons/ui/brush-cleaning.png',
+'🛟':'images/icons/ui/life-buoy.png',
+'🏷️':'images/icons/ui/tag.png',
+'🏷':'images/icons/ui/tag.png',
+'💎':'images/icons/ui/gem.png'
+};
+const COL={'flame':'#FF8A3D','triangle-alert':'#F5B93A','circle-check':'#3DBE6F','zap':'#FFD25A','trophy':'#E6BE6D','crown':'#E6BE6D','medal':'#E6BE6D','star':'#F5C84B','coins':'#E6BE6D','gem':'#6FD3F5','gift':'#FF8A6B','heart':'#E8506A','bell-off':'#B9B1A9'};
+const keys=Object.keys(MAP).sort((a,b)=>b.length-a.length);
+const RE=new RegExp(keys.map(k=>k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|'),'g');
+const SKIP={SCRIPT:1,STYLE:1,TEXTAREA:1,OPTION:1,SELECT:1,TITLE:1,INPUT:1,NOSCRIPT:1,CANVAS:1};
+function iconFor(e){const path=MAP[e];const name=path.split('/').pop().replace('.png','');
+  const s=document.createElement('span');s.className='ico';s.setAttribute('aria-hidden','true');
+  s.style.setProperty('--i','url("'+path+'")');if(COL[name])s.style.setProperty('--c',COL[name]);
+  const t=document.createElement('i');t.className='ico-t';t.textContent=e;s.appendChild(t);return s;}
+function fix(tn){
+  const p=tn.parentNode;if(!p||p.nodeType!==1||SKIP[p.nodeName]||p instanceof SVGElement)return;
+  if(p.closest&&(p.closest('.ico')||p.closest('[contenteditable=true]')))return;
+  const txt=tn.nodeValue;RE.lastIndex=0;if(!RE.test(txt))return;RE.lastIndex=0;
+  const frag=document.createDocumentFragment();let last=0,m;
+  while((m=RE.exec(txt))){if(m.index>last)frag.appendChild(document.createTextNode(txt.slice(last,m.index)));frag.appendChild(iconFor(m[0]));last=m.index+m[0].length;}
+  if(last<txt.length)frag.appendChild(document.createTextNode(txt.slice(last)));
+  p.replaceChild(frag,tn);
+}
+function scan(root){
+  if(!root)return;
+  if(root.nodeType===3){fix(root);return;}
+  if(root.nodeType!==1||SKIP[root.nodeName]||root instanceof SVGElement)return;
+  const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{acceptNode:n=>n.parentNode&&!SKIP[n.parentNode.nodeName]?NodeFilter.FILTER_ACCEPT:NodeFilter.FILTER_REJECT});
+  const list=[];let n;while((n=w.nextNode()))list.push(n);list.forEach(fix);
+}
+let queue=[],raf=0;
+function flush(){raf=0;const q=queue;queue=[];q.forEach(scan);}
+new MutationObserver(ms=>{
+  for(const m of ms){
+    if(m.type==='characterData')queue.push(m.target);
+    else m.addedNodes.forEach(n=>queue.push(n));
+  }
+  if(queue.length&&!raf)raf=requestAnimationFrame(flush);
+}).observe(document.documentElement,{childList:true,subtree:true,characterData:true});
+scan(document.body);
+window.arxIcons=scan;
+})();
+</script>
+<style>
+/* Road nodes: no hexagon, just the reward art on its own, all on one straight line */
+.xp-node-hex,.xp-node.claimed .xp-node-hex,.xp-node.next .xp-node-hex,.xp-node.ready .xp-node-hex{clip-path:none;background:none;box-shadow:none;border:0;border-radius:0}
+.xp-node-hex{filter:grayscale(1) opacity(.5)}
+.xp-node.claimed .xp-node-hex,.xp-node.next .xp-node-hex,.xp-node.ready .xp-node-hex{filter:drop-shadow(0 4px 6px rgba(0,0,0,.55))}
+.xp-node-hex img,.xp-node-hex svg{width:100%;height:100%}
+.xp-node-hex .ico{width:62%;height:62%}
+.xp-node-hex-glow{border-radius:50%}
+</style>
+<style>
+.road-realm-gate{width:96px!important;margin-left:-48px!important;justify-content:center!important}
+.rg-svg{width:96px;height:100%;display:block;filter:drop-shadow(0 6px 10px rgba(0,0,0,.6)) drop-shadow(0 0 14px rgba(255,200,110,.35))}
+.rg-rays{animation:rgRays 3.4s ease-in-out infinite}
+@keyframes rgRays{50%{opacity:.4}}
+.rg-flame{transform-origin:center bottom;transform-box:fill-box;animation:rgFlick .5s ease-in-out infinite alternate}
+.rg-flame.f2{animation-delay:.23s}
+@keyframes rgFlick{from{transform:scale(1,.88) rotate(-3deg)}to{transform:scale(1.1,1.12) rotate(3deg)}}
+.road-world-chip{position:absolute;z-index:6;top:10px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:8px;max-width:calc(100% - 24px);
+  padding:5px 10px 5px 12px;border-radius:999px;border:2px solid #e6be6d;background:linear-gradient(180deg,#2a1b12,#150d08);color:#fff;cursor:pointer;
+  box-shadow:0 2px 0 #6b4a17,0 6px 14px rgba(0,0,0,.45);font:inherit;-webkit-tap-highlight-color:transparent}
+.road-world-chip:active{transform:translateX(-50%) scale(.95)}
+.road-world-chip small{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#d8c9a8}
+.road-world-chip b{font-family:var(--lv-display,serif);font-size:13px;white-space:nowrap}
+.road-world-chip i{font-style:normal;font-size:20px;line-height:1;color:#e6be6d;animation:rwNudge 1.3s ease-in-out infinite}
+@keyframes rwNudge{50%{transform:translateX(3px)}}
+.road-world-flash{position:absolute;inset:0;z-index:7;pointer-events:none;background:radial-gradient(circle at 50% 55%,rgba(255,243,207,.95),rgba(255,200,110,.45) 45%,transparent 75%);animation:rwFlash 1.1s ease-out forwards}
+@keyframes rwFlash{0%{opacity:0}18%{opacity:1}100%{opacity:0}}
+.road-world-banner{position:absolute;z-index:8;left:50%;top:42%;transform:translate(-50%,-50%);text-align:center;pointer-events:none;color:#fff;text-shadow:0 2px 12px rgba(0,0,0,.8);animation:rwBanner 2.1s cubic-bezier(.16,1,.3,1) forwards}
+.road-world-banner span{display:block;font-size:11px;letter-spacing:.3em;text-transform:uppercase;color:#ffd77a}
+.road-world-banner b{display:block;font-family:var(--lv-display,serif);font-size:26px;white-space:nowrap}
+@keyframes rwBanner{0%{opacity:0;transform:translate(-50%,-30%) scale(.8)}20%{opacity:1;transform:translate(-50%,-50%) scale(1)}75%{opacity:1}100%{opacity:0;transform:translate(-50%,-60%) scale(1.05)}}
+@media(prefers-reduced-motion:reduce){.rg-rays,.rg-flame,.road-world-chip i{animation:none}}
+</style>
 </body>
 </html>
