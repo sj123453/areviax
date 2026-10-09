@@ -4683,9 +4683,9 @@ body.overlay-open .crate-icon-wrap.ready::before{animation-play-state:paused}
 @media(hover:hover){.bestiary-card.earned:hover{transform:translateY(-2px)}}
 .shop-art-img{width:100%;height:100%;object-fit:contain;display:block;filter:drop-shadow(0 4px 8px rgba(0,0,0,.45))}
 .hall3d-open{width:100%;margin:0 0 12px}
-#hall3d-overlay{position:fixed;inset:0;z-index:9500;background:#120b07;opacity:0;transition:opacity var(--dur-slow) var(--ease-out)}
-#hall3d-overlay.on{opacity:1}
-#hall3d-overlay iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:block}
+#hall3d-overlay,#trail3d-overlay{position:fixed;inset:0;z-index:9500;background:#120b07;opacity:0;transition:opacity var(--dur-slow) var(--ease-out)}
+#hall3d-overlay.on,#trail3d-overlay.on{opacity:1}
+#hall3d-overlay iframe,#trail3d-overlay iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:block}
     .today-log-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1.5px solid rgba(232,214,196,.05)}
     .today-log-row:last-child{border-bottom:none}
     .today-log-time{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;flex-shrink:0;width:42px}
@@ -8055,6 +8055,7 @@ body[data-goal-theme="cut"] .lv-page{
       <div class="road-reward-qty" id="trophy-reward-then-qty">—</div>
     </div>
   </div>
+  <button type="button" class="btn-g hall3d-open" id="trail3d-open" onclick="openTrail3D()" hidden>Walk the road in 3D</button>
   <div class="road-scenery theme-trophy">
     <div class="road-ember" style="left:9%;bottom:65%;animation-delay:.2s;animation-duration:3.4s"></div>
     <div class="road-ember" style="left:22%;bottom:20%;animation-delay:1.6s;animation-duration:2.8s"></div>
@@ -14794,6 +14795,7 @@ function renderTrophyRoad(){
   // below) is unreachable dead code, kept only so its still-real
   // underlying data (claimedXpRoad) needs no changes; this is the one
   // path a user can actually navigate to.
+  const t3=document.getElementById('trail3d-open');if(t3)t3.hidden=!hall3DSupported();
   const nodes=olympusRoadNodes();
   renderRoadPath('trophy-road-h',nodes);
   renderRewardRow('trophy',nodes);
@@ -17659,6 +17661,43 @@ function closeRankUp(){
   o.classList.remove('open');
   setTimeout(()=>{if(!o.classList.contains('open'))o.innerHTML='';},950);
 }
+
+// ── ARETE ROAD IN 3D ──
+// The same road, walked in three.js (images/hall/trail.html). Data goes in by
+// postMessage so the page stays in sync; tapping a ready stop closes the
+// view and runs the normal claim flow (crate reveal etc.).
+function areteTrailPayload(){
+  const asc=[...XP_ROAD].sort((a,b)=>a.xp-b.xp);
+  const nextN=asc.find(n=>!claimedXpRoad.includes(n.xp)&&!xpRoadReady.includes(n.xp));
+  return {type:'arx-trail-data',xp:xp,initial:((profile&&profile.name)||'Y').trim().charAt(0).toUpperCase()||'Y',
+    nodes:asc.map((n,i)=>{
+      const claimed=claimedXpRoad.includes(n.xp),ready=!claimed&&xpRoadReady.includes(n.xp),isNext=!claimed&&!ready&&n===nextN;
+      const prev=i?asc[i-1].xp:0;
+      return {xp:n.xp,type:n.type==='legend'?'legend':n.type,rarity:n.rarity||'',name:n.name,desc:n.myth||'',label:xpRoadRewardLabel(n),
+        state:claimed?'claimed':ready?'ready':isNext?'next':'locked',pct:isNext?Math.max(0,Math.min(100,Math.round((xp-prev)/(n.xp-prev)*100))):0};
+    })};
+}
+function openTrail3D(){
+  if(document.getElementById('trail3d-overlay'))return;
+  const mount=()=>{
+    const o=document.createElement('div');o.id='trail3d-overlay';o.setAttribute('role','dialog');o.setAttribute('aria-label','Arete Road in 3D');
+    const fr=document.createElement('iframe');fr.title='Arete Road in 3D';fr.src='images/hall/trail.html';
+    o.appendChild(fr);document.body.appendChild(o);
+    window.__trailReady=false;clearTimeout(window.__trailGuard);
+    window.__trailGuard=setTimeout(()=>{if(document.getElementById('trail3d-overlay')&&!window.__trailReady){closeTrail3D();try{toast('🏛️','The 3D road could not load here.');}catch(e){}}},30000);
+    requestAnimationFrame(()=>o.classList.add('on'));
+  };
+  if(navigator.onLine===false&&window.caches){
+    caches.match('images/hall/trail.html',{ignoreSearch:true}).then(hit=>{if(hit)mount();else toast('📡',"You're offline — open the 3D road once while connected and it will work offline after that.");}).catch(mount);
+    return;
+  }
+  mount();
+}
+function closeTrail3D(){
+  clearTimeout(window.__trailGuard);
+  const o=document.getElementById('trail3d-overlay');if(!o)return;
+  o.classList.remove('on');setTimeout(()=>o.remove(),240);
+}
 function openHall3D(){
   if(document.getElementById('hall3d-overlay'))return;
   // Once opened online the service worker keeps the hall's files, so it
@@ -17686,11 +17725,15 @@ function closeHall3D(){
   const o=document.getElementById('hall3d-overlay');if(!o)return;
   o.classList.remove('on');setTimeout(()=>o.remove(),240);
 }
-window.addEventListener('message',e=>{if(e.data&&e.data.type==='arx-open-hall'){mountHall3D('images/hall/hall.html');}
-  else if(e.data&&e.data.type==='arx-hall-close'){if(document.getElementById('hall3d-overlay'))closeHall3D();else closeRankUp();}
+window.addEventListener('message',e=>{if(e.data&&e.data.type==='arx-trail-hello'){try{e.source.postMessage(areteTrailPayload(),'*');}catch(_){}return;}
+  if(e.data&&e.data.type==='arx-trail-ready'){window.__trailReady=true;clearTimeout(window.__trailGuard);return;}
+  if(e.data&&e.data.type==='arx-trail-failed'){closeTrail3D();try{toast('🏛️','The 3D road could not load here.');}catch(_){}return;}
+  if(e.data&&e.data.type==='arx-trail-claim'){closeTrail3D();claimXpRoadReward(+e.data.xp);return;}
+  if(e.data&&e.data.type==='arx-open-hall'){mountHall3D('images/hall/hall.html');}
+  else if(e.data&&e.data.type==='arx-hall-close'){if(document.getElementById('trail3d-overlay'))closeTrail3D();else if(document.getElementById('hall3d-overlay'))closeHall3D();else closeRankUp();}
   else if(e.data&&e.data.type==='arx-road-ready'){window.__rankUpReady=true;clearTimeout(window.__rankUpGuard);}
   else if(e.data&&e.data.type==='arx-road-failed'&&rankUpOpen()){rankUpFail();}});
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(document.getElementById('hall3d-overlay'))closeHall3D();else closeRankUp();}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(document.getElementById('trail3d-overlay'))closeTrail3D();else if(document.getElementById('hall3d-overlay'))closeHall3D();else closeRankUp();}});
 // Each tier is split into three steps (I, II, III) by how far the athlete
 // is toward the next tier — the slower of volume and sessions, so both
 // have to keep moving. Purely a display layer: getRankIndex() is unchanged.
