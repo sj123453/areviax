@@ -4117,7 +4117,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       display:inline-block;max-width:100%;box-sizing:border-box;
       overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
       font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;
-      letter-spacing:.03em;color:rgba(232,214,196,.4);background:rgba(232,214,196,.04);
+      letter-spacing:.03em;color:rgba(232,214,196,.66);background:rgba(232,214,196,.04);
       border:1px solid rgba(232,214,196,.07);border-radius:20px;padding:1px 8px;margin-bottom:3px;
     }
     /* Fixed light colors, not var(--white)/var(--border2) — .road-scenery's
@@ -4169,6 +4169,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
       position:absolute;left:50%;bottom:-9px;transform:translateX(-50%);z-index:2;
       background:#0D0806;margin-bottom:0;max-width:none;
     }
+    .xp-road-track.horizontal .xp-node.ready .xp-node-xp{background:#FFE9A8;color:#1A1204;border-color:rgba(255,193,7,.5)}
     .xp-road-track.horizontal .xp-node-body{position:relative;top:auto;left:auto;right:auto;width:100%;margin:16px 0 0;text-align:center}
     @media(max-width:480px){
       .xp-road-track.horizontal .xp-node{width:86px}
@@ -4555,6 +4556,11 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .today-log-empty{font-size:11.5px;color:var(--muted);padding:8px 0}
 .photo-empty::before,.today-log-empty::before,.custom-empty::before,#muscle-readiness-empty::before{content:'';display:block;width:44px;height:44px;margin:0 auto 10px;background:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48' fill='none' stroke='%23E6BE6D' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M19 6h10M21 6v5c-6 2-9 8-9 14 0 8 5 14 12 14s12-6 12-14c0-6-3-12-9-14V6'/><path d='M12 22c-5 0-6 6-2 8 1 .5 2 .5 2 .5M36 22c5 0 6 6 2 8-1 .5-2 .5-2 .5'/><path d='M16 28h16M17 33h14' opacity='.55'/><path d='M20 43h8' /></svg>") center/contain no-repeat;opacity:.75}
 .today-log-empty{text-align:center;padding:14px 0}
+/* TAP TARGETS — small controls keep their look but get a larger invisible hit area */
+.set-chip,.ex-fav-btn,.ex-order-btn,.log-date-pill,.equip-chip,.ex-action-btn,.card-action{position:relative}
+.set-chip::after,.ex-fav-btn::after,.ex-order-btn::after,.log-date-pill::after,.equip-chip::after,.ex-action-btn::after,.card-action::after,.carousel-fs-btn::after,.legend-info-btn::after,.crate-info-btn::after{content:'';position:absolute;inset:-7px}
+.set-chip.rpe-chip::after{inset:-6px -4px}
+.carousel-fs-btn::after,.legend-info-btn::after,.crate-info-btn::after{inset:-10px}
 /* BRAWL-BOX SEQUENCE (see runBoxSequence comment in showLegendReveal) */
 .box-mode .compass-crate,.box-mode .compass-crate.ready{animation:none}
 .box-mode .crate-icon-wrap{margin-top:24vh}
@@ -4836,7 +4842,7 @@ html.landscape-lock-force #rotate-lock{display:flex}
 .lv-page{
   --lv-bg:#120C09;--lv-fg:#F7F5F2;--lv-card:#1E1613;--lv-elevated:#2C221D;
   --lv-primary:#FF6B1A;--lv-primary-rgb:255,107,26;--lv-primary-fg:#170C09;--lv-primary-soft:#4C2819;
-  --lv-muted:#2A221E;--lv-muted-fg:#9E9791;
+  --lv-muted:#2A221E;--lv-muted-fg:#B9B1A9;
   --lv-fuel:#44CFFF;--lv-fuel-rgb:68,207,255;
   --lv-xp:#F7CD3A;--lv-xp-rgb:247,205,58;
   --lv-border:#342C28;--lv-border-rgb:52,44,40;--lv-border-strong:#56433A;--lv-border-strong-rgb:86,67,58;
@@ -6436,7 +6442,7 @@ body[data-goal-theme="cut"] .lv-page{
   <!-- --lv-fg/--lv-border/--lv-gold etc pinned to their dark-mode values here since this
        header's background is always the same dark photo regardless of theme — without this,
        light mode flips --lv-fg to near-black and the hero text disappears into the art. -->
-  <header class="lv-grain lv-pediment lv-photo-header" style="background-image:linear-gradient(180deg,rgba(10,7,4,.5) 0%,rgba(10,7,4,.72) 45%,rgba(10,7,4,.95) 100%),url('images/roads/realm-underworld.jpg');background-position:center 40%;--lv-fg:#F7F5F2;--lv-muted-fg:#9E9791;--lv-border:#342C28;--lv-border-strong:#56433A;--lv-gold:#E6BE6D">
+  <header class="lv-grain lv-pediment lv-photo-header" style="background-image:linear-gradient(180deg,rgba(10,7,4,.5) 0%,rgba(10,7,4,.72) 45%,rgba(10,7,4,.95) 100%),url('images/roads/realm-underworld.jpg');background-position:center 40%;--lv-fg:#F7F5F2;--lv-muted-fg:#B9B1A9;--lv-border:#342C28;--lv-border-strong:#56433A;--lv-gold:#E6BE6D">
     <span class="lv-ghost-numeral" style="right:-14px;top:38px">Ω</span>
     <div style="position:relative;z-index:1">
       <!-- The logo + streak/icon row that used to live here is now the
@@ -6856,7 +6862,7 @@ body[data-goal-theme="cut"] .lv-page{
        "Eat to grow" directly. --lv-fg/--lv-border/--lv-gold etc pinned to dark-mode
        values since this header's background is always the same dark photo regardless
        of theme. -->
-  <header class="lv-grain lv-pediment lv-photo-header" style="background-image:linear-gradient(180deg,rgba(10,7,4,.5) 0%,rgba(10,7,4,.72) 45%,rgba(10,7,4,.95) 100%),url('images/roads/realm-grove.jpg');background-position:center 40%;--lv-fg:#F7F5F2;--lv-muted-fg:#9E9791;--lv-border:#342C28;--lv-border-strong:#56433A;--lv-gold:#E6BE6D">
+  <header class="lv-grain lv-pediment lv-photo-header" style="background-image:linear-gradient(180deg,rgba(10,7,4,.5) 0%,rgba(10,7,4,.72) 45%,rgba(10,7,4,.95) 100%),url('images/roads/realm-grove.jpg');background-position:center 40%;--lv-fg:#F7F5F2;--lv-muted-fg:#B9B1A9;--lv-border:#342C28;--lv-border-strong:#56433A;--lv-gold:#E6BE6D">
     <span class="lv-ghost-numeral" style="right:-14px;top:38px">Θ</span>
     <div style="position:relative;z-index:1">
       <!-- The logo + streak/icon row that used to live here is now the
@@ -7553,7 +7559,7 @@ body[data-goal-theme="cut"] .lv-page{
        Greek temple fits Progress's "ascension" theme directly. --lv-fg/--lv-border/
        --lv-gold etc pinned to dark-mode values since this header's background is always
        the same dark photo regardless of theme. -->
-  <header class="lv-grain lv-pediment lv-photo-header" style="background-image:linear-gradient(180deg,rgba(10,7,4,.5) 0%,rgba(10,7,4,.72) 45%,rgba(10,7,4,.95) 100%),url('images/roads/realm-ascend.jpg');background-position:center 35%;--lv-fg:#F7F5F2;--lv-muted-fg:#9E9791;--lv-border:#342C28;--lv-border-strong:#56433A;--lv-gold:#E6BE6D">
+  <header class="lv-grain lv-pediment lv-photo-header" style="background-image:linear-gradient(180deg,rgba(10,7,4,.5) 0%,rgba(10,7,4,.72) 45%,rgba(10,7,4,.95) 100%),url('images/roads/realm-ascend.jpg');background-position:center 35%;--lv-fg:#F7F5F2;--lv-muted-fg:#B9B1A9;--lv-border:#342C28;--lv-border-strong:#56433A;--lv-gold:#E6BE6D">
     <span class="lv-ghost-numeral" style="right:-14px;top:38px">Ω</span>
     <div style="position:relative;z-index:1">
       <!-- The logo + streak/icon row that used to live here is now the
@@ -7763,9 +7769,9 @@ body[data-goal-theme="cut"] .lv-page{
     <div id="photo-compare-section" style="display:none;margin-top:16px;padding-top:14px;border-top:1px solid var(--border2)">
       <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">Day 1 vs Now</div>
       <div class="photo-slider-wrap">
-        <img id="photo-slider-before" class="photo-slider-img">
+        <img id="photo-slider-before" class="photo-slider-img" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" alt="">
         <div id="photo-slider-after-wrap" class="photo-slider-after-wrap">
-          <img id="photo-slider-after" class="photo-slider-img">
+          <img id="photo-slider-after" class="photo-slider-img" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" alt="">
         </div>
         <div class="photo-slider-handle" id="photo-slider-handle"></div>
         <input type="range" id="photo-slider-range" min="0" max="100" value="50" class="photo-slider-range" oninput="updatePhotoSlider(this.value)">
@@ -7872,7 +7878,7 @@ body[data-goal-theme="cut"] .lv-page{
        it's not a shop currency, it lives on the Road to Olympus pill in
        the icon row instead. The Gift from the Gods card below keeps its
        own original realm-olympus.jpg look, independent of this header. -->
-  <header class="lv-grain lv-pediment" style="position:relative;overflow:hidden;margin:0 -20px 16px;padding:20px 20px 26px;border-radius:0 0 28px 28px;background-image:linear-gradient(180deg,rgba(10,7,4,.5) 0%,rgba(10,7,4,.72) 45%,rgba(10,7,4,.95) 100%),url('images/shop/greek-marketplace-real.jpg');background-size:cover;background-position:center 30%;--lv-fg:#F7F5F2;--lv-muted-fg:#9E9791;--lv-border:#342C28;--lv-border-strong:#56433A;--lv-gold:#E6BE6D">
+  <header class="lv-grain lv-pediment" style="position:relative;overflow:hidden;margin:0 -20px 16px;padding:20px 20px 26px;border-radius:0 0 28px 28px;background-image:linear-gradient(180deg,rgba(10,7,4,.5) 0%,rgba(10,7,4,.72) 45%,rgba(10,7,4,.95) 100%),url('images/shop/greek-marketplace-real.jpg');background-size:cover;background-position:center 30%;--lv-fg:#F7F5F2;--lv-muted-fg:#B9B1A9;--lv-border:#342C28;--lv-border-strong:#56433A;--lv-gold:#E6BE6D">
     <span class="lv-ghost-numeral" style="right:-14px;top:38px">Π</span>
     <div style="position:relative;z-index:1">
       <!-- The logo + streak/icon row that used to live here is now the
@@ -8054,13 +8060,13 @@ body[data-goal-theme="cut"] .lv-page{
        a trophy hall thematically, and it's the one realm-*.jpg asset not used elsewhere yet.
        --lv-fg/--lv-border/--lv-gold etc pinned to dark-mode values since this header's
        background is always the same dark photo regardless of theme. -->
-  <header class="lv-grain lv-pediment lv-photo-header" style="background-image:linear-gradient(180deg,rgba(10,7,4,.5) 0%,rgba(10,7,4,.72) 45%,rgba(10,7,4,.95) 100%),url('images/roads/realm-elysium.jpg');background-position:center 35%;--lv-fg:#F7F5F2;--lv-muted-fg:#9E9791;--lv-border:#342C28;--lv-border-strong:#56433A;--lv-gold:#E6BE6D">
+  <header class="lv-grain lv-pediment lv-photo-header" style="background-image:linear-gradient(180deg,rgba(10,7,4,.5) 0%,rgba(10,7,4,.72) 45%,rgba(10,7,4,.95) 100%),url('images/roads/realm-elysium.jpg');background-position:center 35%;--lv-fg:#F7F5F2;--lv-muted-fg:#B9B1A9;--lv-border:#342C28;--lv-border-strong:#56433A;--lv-gold:#E6BE6D">
     <button onclick="showPage('progress')" aria-label="Back" style="position:absolute;left:16px;top:16px;z-index:2;width:32px;height:32px;border-radius:50%;background:rgba(0,0,0,.25);border:1px solid var(--lv-border-strong);display:flex;align-items:center;justify-content:center;cursor:pointer"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--lv-fg)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg></button>
     <button type="button" class="lv-profile-btn" onclick="showPage('profile')" aria-label="Profile" style="position:absolute;right:16px;top:16px;z-index:2"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--lv-fg)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="lv-profile-badge"></span></button>
     <span class="lv-ghost-numeral" style="right:-14px;top:38px">Θ</span>
     <div style="position:relative;z-index:1">
       <p class="lv-label-eyebrow" style="color:var(--lv-gold);margin-top:36px">Trophy room</p>
-      <h1 class="lv-display-hero" style="margin-top:6px;color:var(--lv-fg)"><span id="troph-earned-num">0</span><span class="lv-serif-accent lv-gold-text" style="font-size:.6em">/<span id="troph-total-num">0</span></span></h1>
+      <h1 class="lv-display-hero" style="margin-top:6px;color:var(--lv-fg)"><span id="troph-earned-num">0</span><span class="lv-serif-accent lv-gold-text" style="font-size:.74em">/<span id="troph-total-num">0</span></span></h1>
       <div style="margin-top:8px;display:flex;align-items:center;gap:10px;font-family:var(--lv-mono);font-size:11px;color:var(--lv-muted-fg)">
         <span style="display:flex;align-items:center;gap:5px;color:var(--lv-xp)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 21h8M12 17v4M17 5h2a2 2 0 0 1 2 2v1a4 4 0 0 1-4 4M7 5H5a2 2 0 0 0-2 2v1a4 4 0 0 0 4 4"/><path d="M7 4h10v6a5 5 0 0 1-10 0z"/></svg> <span id="troph-gold-locked">0</span> legendary locked</span>
         <span>· <span id="troph-xp-banked">0</span> Arete banked</span>
@@ -8151,13 +8157,13 @@ body[data-goal-theme="cut"] .lv-page{
        treatment as the other rebuilt heroes. A wild mountain pass fits "Trials of
        Heracles" directly. --lv-fg/--lv-border/--lv-gold etc pinned to dark-mode values
        since this header's background is always the same dark photo regardless of theme. -->
-  <header class="lv-grain lv-pediment lv-photo-header" style="background-image:linear-gradient(180deg,rgba(10,7,4,.5) 0%,rgba(10,7,4,.72) 45%,rgba(10,7,4,.95) 100%),url('images/roads/realm-trial.jpg');background-position:center 50%;--lv-fg:#F7F5F2;--lv-muted-fg:#9E9791;--lv-border:#342C28;--lv-border-strong:#56433A;--lv-gold:#E6BE6D">
+  <header class="lv-grain lv-pediment lv-photo-header" style="background-image:linear-gradient(180deg,rgba(10,7,4,.5) 0%,rgba(10,7,4,.72) 45%,rgba(10,7,4,.95) 100%),url('images/roads/realm-trial.jpg');background-position:center 50%;--lv-fg:#F7F5F2;--lv-muted-fg:#B9B1A9;--lv-border:#342C28;--lv-border-strong:#56433A;--lv-gold:#E6BE6D">
     <button onclick="showPage('progress')" aria-label="Back" style="position:absolute;left:16px;top:16px;z-index:2;width:32px;height:32px;border-radius:50%;background:rgba(0,0,0,.25);border:1px solid var(--lv-border-strong);display:flex;align-items:center;justify-content:center;cursor:pointer"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--lv-fg)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg></button>
     <button type="button" class="lv-profile-btn" onclick="showPage('profile')" aria-label="Profile" style="position:absolute;right:16px;top:16px;z-index:2"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--lv-fg)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span class="lv-profile-badge"></span></button>
     <span class="lv-ghost-numeral" style="right:-14px;top:38px">Ξ</span>
     <div style="position:relative;z-index:1">
       <p class="lv-label-eyebrow" style="color:var(--lv-gold);margin-top:36px">Trials of Heracles</p>
-      <h1 class="lv-display-hero" style="margin-top:6px;color:var(--lv-fg)"><span id="labors-done-num">0</span><span class="lv-serif-accent lv-gold-text" style="font-size:.6em">/12</span></h1>
+      <h1 class="lv-display-hero" style="margin-top:6px;color:var(--lv-fg)"><span id="labors-done-num">0</span><span class="lv-serif-accent lv-gold-text" style="font-size:.74em">/12</span></h1>
       <p style="margin-top:8px;font-size:12px;line-height:1.5;color:var(--lv-muted-fg)">Twelve one-off trials, each checked against what you've actually done — no luck, no pulls.</p>
       <div class="lv-rail-track" style="margin-top:12px"><div class="lv-rail-fill" id="labors-hero-fill" style="width:0%;background:var(--lv-primary)"></div></div>
       <div class="lv-meander-bold" style="margin-top:12px"></div>
@@ -8169,7 +8175,7 @@ body[data-goal-theme="cut"] .lv-page{
 
 <!-- RECOVERY — its own dedicated page. Sleep tracking, wind-down sounds, breathing, and the science of why this matters. -->
 <div class="page lv-page" id="page-recovery">
-  <header class="lv-grain lv-pediment lv-photo-header" style="background-image:linear-gradient(180deg,rgba(10,7,4,.5) 0%,rgba(10,7,4,.72) 45%,rgba(10,7,4,.95) 100%),url('images/roads/realm-baths.jpg');background-position:center 40%;--lv-fg:#F7F5F2;--lv-muted-fg:#9E9791;--lv-border:#342C28;--lv-border-strong:#56433A;--lv-gold:#E6BE6D">
+  <header class="lv-grain lv-pediment lv-photo-header" style="background-image:linear-gradient(180deg,rgba(10,7,4,.5) 0%,rgba(10,7,4,.72) 45%,rgba(10,7,4,.95) 100%),url('images/roads/realm-baths.jpg');background-position:center 40%;--lv-fg:#F7F5F2;--lv-muted-fg:#B9B1A9;--lv-border:#342C28;--lv-border-strong:#56433A;--lv-gold:#E6BE6D">
     <span class="lv-ghost-numeral" style="right:-14px;top:38px">Λ</span>
     <div style="position:relative;z-index:1">
       <!-- The logo + icon row that used to live here is now the single
@@ -8588,7 +8594,7 @@ body[data-goal-theme="cut"] .lv-page{
        treatment as the other rebuilt heroes. A golden trophy hall fits "Rise through the
        ranks" directly. --lv-fg/--lv-border/--lv-gold etc pinned to dark-mode values since
        this header's background is always the same dark photo regardless of theme. -->
-  <header class="lv-grain lv-pediment lv-photo-header" style="background-image:linear-gradient(180deg,rgba(10,7,4,.5) 0%,rgba(10,7,4,.72) 45%,rgba(10,7,4,.95) 100%),url('images/roads/realm-agora.jpg');background-position:center 40%;--lv-fg:#F7F5F2;--lv-muted-fg:#9E9791;--lv-border:#342C28;--lv-border-strong:#56433A;--lv-gold:#E6BE6D">
+  <header class="lv-grain lv-pediment lv-photo-header" style="background-image:linear-gradient(180deg,rgba(10,7,4,.5) 0%,rgba(10,7,4,.72) 45%,rgba(10,7,4,.95) 100%),url('images/roads/realm-agora.jpg');background-position:center 40%;--lv-fg:#F7F5F2;--lv-muted-fg:#B9B1A9;--lv-border:#342C28;--lv-border-strong:#56433A;--lv-gold:#E6BE6D">
     <span class="lv-ghost-numeral" style="right:-14px;top:38px">Ρ</span>
     <div style="position:relative;z-index:1">
       <!-- The logo + icon row that used to live here is now the single
