@@ -1566,7 +1566,6 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .mn-icon-wrap.open{animation:none;background:rgba(243,103,23,.22);border-color:rgba(243,103,23,.6)}
     .mn-icon-wrap.open .mi-play{opacity:0;transform:rotate(120deg) scale(.4)}
     .mn-icon-wrap.open .mi-close{opacity:1;transform:none}
-    #mn-xproad.squash{animation:mnSquash .65s cubic-bezier(.3,1.6,.5,1)}
     @keyframes mnSquash{0%{transform:scale(1)}25%{transform:scale(.8)}55%{transform:scale(1.12)}100%{transform:scale(1)}}
     @media(prefers-reduced-motion:reduce){.mn-icon-stack svg,#mn-xproad.squash{transition:none;animation:none}}
     .mn-btn.mn-primary svg{width:24px;height:24px;stroke-width:2}
@@ -4556,6 +4555,26 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .today-log-empty{font-size:11.5px;color:var(--muted);padding:8px 0}
 .photo-empty::before,.today-log-empty::before,.custom-empty::before,#muscle-readiness-empty::before{content:'';display:block;width:44px;height:44px;margin:0 auto 10px;background:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48' fill='none' stroke='%23E6BE6D' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M19 6h10M21 6v5c-6 2-9 8-9 14 0 8 5 14 12 14s12-6 12-14c0-6-3-12-9-14V6'/><path d='M12 22c-5 0-6 6-2 8 1 .5 2 .5 2 .5M36 22c5 0 6 6 2 8-1 .5-2 .5-2 .5'/><path d='M16 28h16M17 33h14' opacity='.55'/><path d='M20 43h8' /></svg>") center/contain no-repeat;opacity:.75}
 .today-log-empty{text-align:center;padding:14px 0}
+/* RANK UP — centre nav button: temple art, breathing glow, squash + spark burst
+   + ripple rings on press, and a circular reveal of the climb from the button. */
+.mn-btn.mn-primary .ru-orb{position:relative;display:grid;place-items:center;width:52px;height:52px;margin-top:-18px;border-radius:50%;background:radial-gradient(circle at 50% 30%,#3a2112,#1a0f09);border:2px solid rgba(243,103,23,.7);box-shadow:0 8px 18px -6px rgba(243,103,23,.6),inset 0 1px 0 rgba(255,255,255,.18);animation:ruBreathe 3.2s ease-in-out infinite;transition:background-color .35s var(--ease-out),border-color .35s var(--ease-out)}
+@keyframes ruBreathe{0%,100%{box-shadow:0 8px 18px -6px rgba(243,103,23,.6),0 0 0 0 rgba(243,103,23,.42)}60%{box-shadow:0 8px 18px -6px rgba(243,103,23,.6),0 0 0 12px rgba(243,103,23,0)}}
+.ru-temple{width:40px;height:40px;object-fit:contain;display:block;filter:drop-shadow(0 2px 4px rgba(0,0,0,.5));transition:transform .5s cubic-bezier(.3,1.6,.5,1),opacity .3s var(--ease-out)}
+.ru-x{position:absolute;width:26px;height:26px;opacity:0;transform:rotate(-120deg) scale(.4);transition:transform .5s cubic-bezier(.3,1.6,.5,1),opacity .3s var(--ease-out)}
+.mn-btn.mn-primary.open .ru-orb{background:#8f2e08;border-color:#ff8a45;animation:none}
+.mn-btn.mn-primary.open .ru-temple{opacity:0;transform:rotate(120deg) scale(.4)}
+.mn-btn.mn-primary.open .ru-x{opacity:1;transform:none}
+.mn-btn.mn-primary .ru-label{font-size:11px;margin-top:2px;color:var(--white);font-weight:700}
+#mn-xproad.squash .ru-orb{animation:mnSquash .65s cubic-bezier(.3,1.6,.5,1)}
+.ru-ripple{position:fixed;width:52px;height:52px;border-radius:50%;border:3px solid rgba(255,107,26,.85);pointer-events:none;z-index:210;animation:ruRip 1s ease-out forwards;transform:translate(-50%,-50%)}
+.ru-ripple.r2{animation-delay:.15s;border-color:rgba(230,190,109,.8)}
+@keyframes ruRip{from{width:52px;height:52px;opacity:1}to{width:420px;height:420px;opacity:0;border-width:1px}}
+.ru-spark{position:fixed;width:8px;height:8px;border-radius:50%;pointer-events:none;z-index:210;background:var(--c);box-shadow:0 0 10px var(--c);animation:ruSp .9s cubic-bezier(.2,.8,.3,1) forwards}
+@keyframes ruSp{from{transform:translate(-50%,-50%) scale(1)}to{transform:translate(calc(-50% + var(--x)),calc(-50% + var(--y))) scale(0);opacity:.2}}
+#rankup-overlay{position:fixed;left:0;right:0;top:0;bottom:calc(60px + env(safe-area-inset-bottom,0px));z-index:150;background:#120b07;clip-path:circle(0px at var(--cx,50%) var(--cy,92%));transition:clip-path .9s cubic-bezier(.7,0,.25,1);pointer-events:none}
+#rankup-overlay.open{clip-path:circle(170vmax at var(--cx,50%) var(--cy,92%));pointer-events:auto}
+#rankup-overlay iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:block}
+@media(prefers-reduced-motion:reduce){.mn-btn.mn-primary .ru-orb,#mn-xproad.squash .ru-orb{animation:none}#rankup-overlay{clip-path:none;opacity:0;visibility:hidden;transition:opacity .3s ease,visibility 0s linear .3s}#rankup-overlay.open{opacity:1;visibility:visible;transition:opacity .3s ease}}
 .rh-beast{margin-top:8px;font-size:12px;color:var(--muted);line-height:1.4}
 .rh-beast b{color:var(--white)}
 .bestiary-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:10px}
@@ -17018,27 +17037,27 @@ const TIERS=[
   {name:'Soldier', cut:'images/ranks/statue-soldier.png', col:'#C7CCD9', dark:'#5c5f66', mid:'#9a9da5', light:'#ffffff',
    metal:'linear-gradient(105deg,#5c5f66 0%,#9a9da5 15%,#c7ccd9 35%,#e8ebf0 48%,#ffffff 52%,#e8ebf0 56%,#c7ccd9 70%,#9a9da5 85%,#5c5f66 100%)',
    mask:'images/misc/statue-2-soldier.svg', photo:'images/misc/statue-2-soldier-real.jpg',
-   volume:2500,  sessions:6},
+   volume:5000,  sessions:12},
   {name:'Hero', cut:'images/ranks/statue-hero.png', col:'#E3BF76', dark:'#7a5a0e', mid:'#b8860b', light:'#fff3a0',
    metal:'linear-gradient(105deg,#7a5a0e 0%,#b8860b 15%,#ffd700 35%,#fff3a0 48%,#ffffff 52%,#fff3a0 56%,#ffd700 70%,#b8860b 85%,#7a5a0e 100%)',
    mask:'images/misc/statue-3-hero.svg', photo:'images/misc/statue-3-hero-real.jpg',
-   volume:7000,  sessions:14},
+   volume:14000, sessions:28},
   {name:'Demigod', cut:'images/ranks/statue-demigod.png', col:'#B6E3FF', dark:'#3f5b68', mid:'#7ba8c2', light:'#ffffff',
    metal:'linear-gradient(105deg,#3f5b68 0%,#7ba8c2 15%,#b6e3ff 30%,#d4f1ff 42%,#ffffff 50%,#d4f1ff 58%,#b6e3ff 70%,#7ba8c2 85%,#3f5b68 100%)',
    mask:'images/misc/statue-4-demigod.svg', photo:'images/misc/statue-4-demigod-real.jpg',
-   volume:15000, sessions:25},
+   volume:30000, sessions:50},
   {name:'God', cut:'images/ranks/statue-god.png', col:'#B586F5', dark:'#3d1f5c', mid:'#6b3fa0', light:'#e8d4ff',
    metal:'linear-gradient(105deg,#3d1f5c 0%,#6b3fa0 15%,#9b5fd9 35%,#c79ef0 48%,#e8d4ff 52%,#c79ef0 56%,#9b5fd9 70%,#6b3fa0 85%,#3d1f5c 100%)',
    mask:'images/misc/statue-5-god.svg', photo:'images/misc/statue-5-god-real.jpg',
-   volume:28000, sessions:40},
+   volume:55000, sessions:80},
   {name:'Titan', cut:'images/ranks/statue-titan.png', col:'#E5594F', dark:'#4a0f12', mid:'#9c2a2e', light:'#ffb9ac',
    metal:'linear-gradient(105deg,#4a0f12 0%,#9c2a2e 15%,#d6453b 35%,#f08a78 48%,#ffb9ac 52%,#f08a78 56%,#d6453b 70%,#9c2a2e 85%,#4a0f12 100%)',
    mask:'images/misc/statue-5-god.svg', photo:'images/misc/statue-7-titan-real.jpg',
-   volume:38000, sessions:52},
+   volume:85000, sessions:115},
   {name:'God of Gods', cut:'images/ranks/statue-zeus.png', col:'#FFB347', dark:'#6b2b00', mid:'#b8500e', light:'#ffe8a3',
    metal:'linear-gradient(105deg,#6b2b00 0%,#b8500e 15%,#ff8c1a 35%,#ffc670 48%,#ffe8a3 52%,#ffc670 56%,#ff8c1a 70%,#b8500e 85%,#6b2b00 100%)',
    mask:'images/misc/statue-6-kingofgods.svg', photo:'images/misc/statue-6-kingofgods-real.jpg',
-   volume:50000, sessions:65},
+   volume:125000, sessions:160},
 ];
 // Small drawn SVG medal — circle + ribbon + star, coloured per tier. Replaces
 // emoji medals entirely (no system-font dependency, no fallback-text bug).
@@ -17145,6 +17164,57 @@ function syncHall3DButton(){
   const b=document.getElementById('hall3d-open');
   if(b){b.hidden=!hall3DSupported();b.textContent=hall3DWide()?'Walk the 3D hall':'Climb the road to Olympus';}
 }
+// ── RANK UP (centre nav button) ──
+// Press effect borrowed from the reference artifact's centre button: squash,
+// a ring of sparks plus two ripples, and the climb opening as a circle that
+// grows from the button. The climb is the Road to Olympus page; without
+// WebGL it falls back to the Arete Road page.
+function rankUpBurst(x,y){
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  const cols=['#ff6b1a','#ff9a5c','#e6be6d','#ffd77a','#ff8a45','#fff1c8'];
+  for(let i=0;i<14;i++){
+    const e=document.createElement('i'),a=i/14*Math.PI*2,r=60+Math.random()*60;
+    e.className='ru-spark';e.style.cssText='left:'+x+'px;top:'+y+'px;--x:'+Math.cos(a)*r+'px;--y:'+Math.sin(a)*r+'px;--c:'+cols[i%cols.length];
+    document.body.appendChild(e);setTimeout(()=>e.remove(),950);
+  }
+  ['','r2'].forEach(c=>{const r=document.createElement('div');r.className='ru-ripple '+c;r.style.left=x+'px';r.style.top=y+'px';document.body.appendChild(r);setTimeout(()=>r.remove(),1200);});
+}
+function rankUpOpen(){return !!(document.getElementById('rankup-overlay')&&document.getElementById('rankup-overlay').classList.contains('open'));}
+function openRankUp(){
+  const btn=document.getElementById('mn-xproad');
+  if(rankUpOpen()){closeRankUp();return;}
+  if(!hall3DSupported()){showPage('xproad');return;}
+  if(navigator.onLine===false&&window.caches){
+    caches.match('images/hall/road.html',{ignoreSearch:true}).then(hit=>{if(hit)mountRankUp(btn);else{toast('📡',"You're offline — open the climb once while connected and it will work offline after that.");showPage('xproad');}}).catch(()=>mountRankUp(btn));
+    return;
+  }
+  mountRankUp(btn);
+}
+function mountRankUp(btn){
+  const r=btn.getBoundingClientRect(),x=r.left+r.width/2,y=r.top+r.height/2;
+  let o=document.getElementById('rankup-overlay');
+  if(!o){
+    o=document.createElement('div');o.id='rankup-overlay';o.setAttribute('role','dialog');o.setAttribute('aria-label','Your climb to Olympus');
+    document.body.appendChild(o);
+  }
+  const tb=document.getElementById('global-topbar');
+  o.style.top=(tb?Math.round(tb.getBoundingClientRect().bottom):0)+'px';
+  o.style.setProperty('--cx',x+'px');o.style.setProperty('--cy',(y-(tb?Math.round(tb.getBoundingClientRect().bottom):0))+'px');
+  o.innerHTML='';
+  const fr=document.createElement('iframe');fr.title='Road to Olympus';
+  fr.src='images/hall/road.html'+'?rank='+getRankIndex()+'&kg='+Math.round(totalVolume)+'&n='+encodeURIComponent((profile&&profile.name)||'');
+  o.appendChild(fr);
+  btn.classList.add('open','squash');btn.setAttribute('aria-expanded','true');setTimeout(()=>btn.classList.remove('squash'),700);
+  rankUpBurst(x,y);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>o.classList.add('open')));
+}
+function closeRankUp(){
+  const o=document.getElementById('rankup-overlay'),btn=document.getElementById('mn-xproad');
+  if(btn){btn.classList.remove('open');btn.setAttribute('aria-expanded','false');}
+  if(!o)return;
+  o.classList.remove('open');
+  setTimeout(()=>{if(!o.classList.contains('open'))o.innerHTML='';},950);
+}
 function openHall3D(){
   if(document.getElementById('hall3d-overlay'))return;
   // Once opened online the service worker keeps the hall's files, so it
@@ -17172,8 +17242,8 @@ function closeHall3D(){
   const o=document.getElementById('hall3d-overlay');if(!o)return;
   o.classList.remove('on');setTimeout(()=>o.remove(),240);
 }
-window.addEventListener('message',e=>{if(e.data&&e.data.type==='arx-hall-close')closeHall3D();});
-document.addEventListener('keydown',e=>{if(e.key==='Escape')closeHall3D();});
+window.addEventListener('message',e=>{if(e.data&&e.data.type==='arx-hall-close'){closeHall3D();closeRankUp();}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeHall3D();closeRankUp();}});
 // Each tier is split into three steps (I, II, III) by how far the athlete
 // is toward the next tier — the slower of volume and sessions, so both
 // have to keep moving. Purely a display layer: getRankIndex() is unchanged.
@@ -18102,6 +18172,7 @@ function syncPageChrome(id){
 // crossfade plays over it, and the two wouldn't finish together.
 if(document.startViewTransition)document.documentElement.classList.add('has-view-transitions');
 function showPage(id){
+  try{if(typeof closeRankUp==='function')closeRankUp();}catch(e){}
   const prefersReduced=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   if(document.startViewTransition&&!prefersReduced){
     document.startViewTransition(()=>{doShowPage(id);});
@@ -32282,13 +32353,12 @@ document.addEventListener('DOMContentLoaded', function(){
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20h7"/><path d="M6.5 20v-2.5a2 2 0 0 1 2-2H12"/><path d="M11 12.5 17.5 6"/><path d="M15 4l4.5 4.5"/><path d="M13.5 6.5l3.5 3.5"/></svg>
       Forge
     </button>
-    <button class="mn-btn mn-primary" id="mn-xproad" onclick="showPage('xproad')" aria-label="Road of progression">
-      <div class="mn-icon-wrap" id="mn-road-iconwrap">
-        <span class="mn-icon-stack">
-          <svg class="mi-play" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21 9 3h6l5 18"/><path d="M12 5v2.5M12 11v2.5M12 17v2.5" stroke-width="2.2"/></svg>
-        </span>
-      </div>
-      Road
+    <button class="mn-btn mn-primary" id="mn-xproad" onclick="openRankUp()" aria-label="Rank up — your climb to Olympus" aria-expanded="false">
+      <span class="ru-orb" id="mn-road-iconwrap">
+        <img class="ru-temple" src="images/icons/rank-temple.png" alt="" width="40" height="40">
+        <svg class="ru-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+      </span>
+      <span class="ru-label">Rank up</span>
     </button>
     <button class="mn-btn" id="mn-nutrition" onclick="showPage('nutrition')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
