@@ -4555,6 +4555,27 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .today-log-empty{font-size:11.5px;color:var(--muted);padding:8px 0}
 .photo-empty::before,.today-log-empty::before,.custom-empty::before,#muscle-readiness-empty::before{content:'';display:block;width:44px;height:44px;margin:0 auto 10px;background:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48' fill='none' stroke='%23E6BE6D' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><path d='M19 6h10M21 6v5c-6 2-9 8-9 14 0 8 5 14 12 14s12-6 12-14c0-6-3-12-9-14V6'/><path d='M12 22c-5 0-6 6-2 8 1 .5 2 .5 2 .5M36 22c5 0 6 6 2 8-1 .5-2 .5-2 .5'/><path d='M16 28h16M17 33h14' opacity='.55'/><path d='M20 43h8' /></svg>") center/contain no-repeat;opacity:.75}
 .today-log-empty{text-align:center;padding:14px 0}
+.compass-crate .crate-icon.crate-open{position:absolute;inset:0;opacity:0;transform:scale(.7);transition:opacity .1s linear,transform .42s cubic-bezier(.34,1.56,.64,1)}
+.compass-crate.crack-out .crate-icon.crate-open{opacity:1;transform:scale(1.12)}
+.compass-crate .crate-icon.crate-closed{transition:opacity .08s linear,transform .3s cubic-bezier(.23,1,.32,1)}
+.compass-crate.crack-out .crate-icon.crate-closed{opacity:0;transform:scale(1.2)}
+.compass-crate.crack-out:has(.crate-open){animation:crateCrackPop .5s cubic-bezier(.22,.61,.36,1) forwards}
+@keyframes crateCrackPop{0%{transform:scale(1.05);filter:brightness(1)}30%{transform:scale(1.22);filter:brightness(1.5)}100%{transform:scale(1.12);filter:brightness(1.1)}}
+.crate-art-img{width:100%;height:100%;object-fit:contain;display:block}
+/* CRATE FX — canvas particle layer + screen shake + ready-crate auras.
+   Transform/opacity only; the canvas is skipped entirely under reduced motion. */
+#arx-fx{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:5200}
+@keyframes arxShake{0%,100%{transform:translate(0,0)}15%{transform:translate(calc(var(--sk,6px)*-1),calc(var(--sk,6px)*.5))}30%{transform:translate(var(--sk,6px),calc(var(--sk,6px)*-.6))}45%{transform:translate(calc(var(--sk,6px)*-.7),calc(var(--sk,6px)*-.4))}60%{transform:translate(calc(var(--sk,6px)*.6),calc(var(--sk,6px)*.5))}80%{transform:translate(calc(var(--sk,6px)*-.3),calc(var(--sk,6px)*.2))}}
+.arx-shake{animation:arxShake var(--skd,.45s) cubic-bezier(.36,.07,.19,.97) both}
+.crate-icon-wrap.ready::before{content:'';position:absolute;left:50%;top:50%;width:150%;height:150%;margin:-75% 0 0 -75%;border-radius:50%;pointer-events:none;z-index:0;background:radial-gradient(circle,var(--aura,rgba(255,179,71,.35)) 0%,transparent 62%);opacity:.0;animation:crateAura 3.4s ease-in-out infinite}
+@keyframes crateAura{0%,100%{opacity:.28;transform:scale(.92)}50%{opacity:.75;transform:scale(1.06)}}
+.crate-icon-wrap.bronze{--aura:rgba(205,127,50,.4)}
+.crate-icon-wrap.silver{--aura:rgba(220,228,240,.4)}
+.crate-icon-wrap.gold{--aura:rgba(255,200,70,.5)}
+.crate-icon-wrap.diamond{--aura:rgba(68,207,255,.5)}
+.crate-icon-wrap.areviax{--aura:rgba(255,107,26,.6)}
+body.overlay-open .crate-icon-wrap.ready::before{animation-play-state:paused}
+@media(prefers-reduced-motion:reduce){.crate-icon-wrap.ready::before{animation:none;opacity:.35}.arx-shake{animation:none}}
 /* RANK UP — centre nav button: temple art, breathing glow, squash + spark burst
    + ripple rings on press, and a circular reveal of the climb from the button. */
 .mn-btn.mn-primary .ru-orb{position:relative;display:grid;place-items:center;width:52px;height:52px;margin-top:-18px;border-radius:50%;background:radial-gradient(circle at 50% 30%,#3a2112,#1a0f09);border:2px solid rgba(243,103,23,.7);box-shadow:0 8px 18px -6px rgba(243,103,23,.6),inset 0 1px 0 rgba(255,255,255,.18);animation:ruBreathe 3.2s ease-in-out infinite;transition:background-color .35s var(--ease-out),border-color .35s var(--ease-out)}
@@ -14332,11 +14353,18 @@ function keyIconSVG(tier,size){
 // embed them directly inside ANOTHER svg (the daily-spin wheel segments,
 // crate-reel emoji fallback), where an <img> tag can't be nested.
 const CRATE_ICON_IMG={
-  bronze:'mass-app/images/icons/crate-bronze.png',
-  silver:'mass-app/images/icons/crate-silver.png',
-  gold:'mass-app/images/icons/crate-gold.png',
-  diamond:'mass-app/images/icons/crate-diamond.png',
-  areviax:'mass-app/images/icons/crate-areviax.png', // was leagueIconSVG('areviax') — a generic league glyph standing in where every other tier has a real chest render
+  bronze:'mass-app/images/crates/bronze.png',
+  silver:'mass-app/images/crates/silver.png',
+  gold:'mass-app/images/crates/gold.png',
+  diamond:'mass-app/images/crates/diamond.png',
+  areviax:'mass-app/images/crates/areviax.png', // was leagueIconSVG('areviax') — a generic league glyph standing in where every other tier has a real chest render
+};
+const CRATE_OPEN_IMG={
+  bronze:'mass-app/images/crates/bronze-open.png',
+  silver:'mass-app/images/crates/silver-open.png',
+  gold:'mass-app/images/crates/gold-open.png',
+  diamond:'mass-app/images/crates/diamond-open.png',
+  areviax:'mass-app/images/crates/areviax-open.png',
 };
 function crateIconHTML(tier){
   if(CRATE_ICON_IMG[tier])return '<img src="'+CRATE_ICON_IMG[tier]+'" alt="'+tier+' crate" style="width:100%;height:100%;object-fit:contain">';
@@ -14358,6 +14386,12 @@ function crateIconHTML(tier){
 const CRATE_BASE_IMG={};
 const CRATE_LID_IMG={};
 function crackOutIconHTML(tier){
+  // Painted closed chest that swaps to its open twin on crack-out (see
+  // .crate-open / .crack-out CSS): the open art carries its own light beams.
+  if(CRATE_ICON_IMG[tier]){
+    return '<span class="crate-icon crate-closed"><img src="'+CRATE_ICON_IMG[tier]+'" alt="'+tier+' crate" style="width:100%;height:100%;object-fit:contain"></span>'+
+      '<span class="crate-icon crate-open" aria-hidden="true"><img src="'+CRATE_OPEN_IMG[tier]+'" alt="" style="width:100%;height:100%;object-fit:contain"></span>';
+  }
   if(CRATE_BASE_IMG[tier]&&CRATE_LID_IMG[tier]){
     return '<span class="crate-icon"><img src="'+CRATE_BASE_IMG[tier]+'" alt="'+tier+' crate" style="width:100%;height:100%;object-fit:contain"></span>'+
       '<span class="crate-icon crate-lid-layer" aria-hidden="true"><img src="'+CRATE_LID_IMG[tier]+'" alt="" style="width:100%;height:100%;object-fit:contain"></span>';
@@ -15472,6 +15506,153 @@ document.addEventListener('pointerdown',function(e){
 // Positioned at the same fixed 50%/38% viewport point celebrateBurst's
 // .burst-emoji already uses for this exact modal, so both bursts read as
 // coming from the same spot the badge sits at.
+// ── ARX FX — one shared canvas for crate/reward particle effects ──────────
+// Spark streaks, rising embers, tumbling confetti, falling coins, expanding
+// rings and soft screen flashes. Counts scale with rarity/tier and are capped
+// (and thinned on low-core devices) so even the best pull stays smooth.
+const ArxFX=(function(){
+  let cv=null,cx=null,parts=[],raf=0,last=0,dpr=1;
+  const reduce=()=>{try{return matchMedia('(prefers-reduced-motion: reduce)').matches;}catch(e){return false;}};
+  const thin=(navigator.hardwareConcurrency&&navigator.hardwareConcurrency<=4)?0.6:1;
+  const MAX=320;
+  function ensure(){
+    if(cv&&cv.isConnected)return true;
+    cv=document.createElement('canvas');cv.id='arx-fx';cv.setAttribute('aria-hidden','true');
+    document.body.appendChild(cv);cx=cv.getContext('2d');
+    if(!cx){cv.remove();cv=null;return false;}
+    size();return true;
+  }
+  function size(){
+    if(!cv)return;
+    dpr=Math.min(window.devicePixelRatio||1,2);
+    cv.width=Math.round(innerWidth*dpr);cv.height=Math.round(innerHeight*dpr);
+  }
+  addEventListener('resize',size);
+  function add(p){if(parts.length<MAX)parts.push(p);}
+  function n(c){return Math.max(1,Math.round(c*thin));}
+  function start(){if(!raf){last=performance.now();raf=requestAnimationFrame(tick);}}
+  function tick(t){
+    try{frame(t);}catch(e){parts.length=0;raf=0;if(cx){cx.setTransform(1,0,0,1,0,0);cx.clearRect(0,0,cv.width,cv.height);}}
+  }
+  function frame(t){
+    const dt=Math.min(.05,(t-last)/1000);last=t;
+    cx.setTransform(1,0,0,1,0,0);cx.clearRect(0,0,cv.width,cv.height);cx.scale(dpr,dpr);
+    for(let i=parts.length-1;i>=0;i--){
+      const p=parts[i];p.age+=dt;
+      if(p.age<0)continue;           // delayed particle: not born yet
+      if(p.age>=p.life){parts.splice(i,1);continue;}
+      const k=p.age/p.life;
+      cx.globalAlpha=Math.max(0,1-Math.pow(k,p.fade||2));
+      if(p.type==='ring'){
+        cx.globalCompositeOperation='lighter';cx.strokeStyle=p.color;cx.lineWidth=Math.max(1,p.w*(1-k));
+        cx.beginPath();cx.arc(p.x,p.y,p.r0+(p.r1-p.r0)*(1-Math.pow(1-k,3)),0,Math.PI*2);cx.stroke();
+      }else if(p.type==='glow'){
+        cx.globalCompositeOperation='lighter';
+        const r=p.r0+(p.r1-p.r0)*k,g=cx.createRadialGradient(p.x,p.y,0,p.x,p.y,r);
+        g.addColorStop(0,p.color);g.addColorStop(1,'rgba(0,0,0,0)');cx.fillStyle=g;cx.fillRect(p.x-r,p.y-r,r*2,r*2);
+      }else{
+        p.vx*=1-(p.drag||0)*dt;p.vy=p.vy*(1-(p.drag||0)*dt)+(p.g||0)*dt;
+        p.x+=p.vx*dt;p.y+=p.vy*dt;p.rot+=(p.vr||0)*dt;
+        if(p.type==='spark'){
+          cx.globalCompositeOperation='lighter';cx.strokeStyle=p.color;cx.lineWidth=p.s;cx.lineCap='round';
+          cx.beginPath();cx.moveTo(p.x,p.y);cx.lineTo(p.x-p.vx*.04,p.y-p.vy*.04);cx.stroke();
+        }else if(p.type==='ember'){
+          cx.globalCompositeOperation='lighter';cx.globalAlpha*=.6+.4*Math.sin(p.age*18+p.ph);
+          cx.fillStyle=p.color;cx.beginPath();cx.arc(p.x,p.y,p.s*(1-k*.5),0,Math.PI*2);cx.fill();
+        }else if(p.type==='confetti'){
+          cx.globalCompositeOperation='source-over';cx.save();cx.translate(p.x,p.y);cx.rotate(p.rot);
+          cx.scale(1,Math.cos(p.age*p.flip));cx.fillStyle=p.color;cx.fillRect(-p.s,-p.s*.5,p.s*2,p.s);cx.restore();
+        }else if(p.type==='coin'){
+          cx.globalCompositeOperation='source-over';cx.save();cx.translate(p.x,p.y);
+          const sx=Math.abs(Math.cos(p.age*p.flip))+.12;cx.scale(sx,1);
+          cx.fillStyle=p.color;cx.beginPath();cx.arc(0,0,p.s,0,Math.PI*2);cx.fill();
+          cx.strokeStyle='rgba(120,70,0,.7)';cx.lineWidth=1.2;cx.stroke();
+          cx.fillStyle='rgba(255,255,255,.55)';cx.beginPath();cx.arc(-p.s*.3,-p.s*.3,p.s*.28,0,Math.PI*2);cx.fill();cx.restore();
+        }
+      }
+    }
+    cx.globalAlpha=1;cx.globalCompositeOperation='source-over';
+    if(parts.length)raf=requestAnimationFrame(tick);
+    else{raf=0;cx.setTransform(1,0,0,1,0,0);cx.clearRect(0,0,cv.width,cv.height);}
+  }
+  const rnd=(a,b)=>a+Math.random()*(b-a);
+  const pick=a=>a[Math.floor(Math.random()*a.length)];
+  function center(el){
+    if(el&&el.getBoundingClientRect){const r=el.getBoundingClientRect();if(r.width)return {x:r.left+r.width/2,y:r.top+r.height/2};}
+    return {x:innerWidth/2,y:innerHeight*.42};
+  }
+  // palettes
+  const TIER_COL={bronze:['#CD7F32','#f4c896','#ffd9a8'],silver:['#C7CCD9','#ffffff','#e3e8f2'],gold:['#FFB347','#ffe8a3','#fff3c4'],diamond:['#44CFFF','#c5f0ff','#ffffff'],areviax:['#ff6b1a','#e6be6d','#ffd77a','#fff1c8']};
+  const RAR_COL={common:['#9AA0A8','#d5dae0'],rare:['#3DBE6F','#9af0b6'],superrare:['#4E8FE0','#a8cdff'],epic:['#B266FF','#e0c2ff'],mythic:['#E0455A','#ffb0ba'],legendary:['#E8B400','#fff0a0','#ffffff'],ultralegendary:['#00E676','#ffd54f','#ff6b9a','#7ec8ff','#d68bff']};
+  const api={
+    shake(el,px,dur){
+      if(!el||reduce())return;
+      el.style.setProperty('--sk',px+'px');el.style.setProperty('--skd',dur+'s');
+      el.classList.remove('arx-shake');void el.offsetWidth;el.classList.add('arx-shake');
+      setTimeout(()=>el&&el.classList.remove('arx-shake'),dur*1000+50);
+    },
+    ring(x,y,color,r1,w,delay){
+      if(reduce()||!ensure())return;
+      const p={type:'ring',x,y,color,r0:20,r1,w:w||6,life:.8,age:-(delay||0),fade:1.5};add(p);start();
+    },
+    flash(color,r1,life){
+      if(reduce()||!ensure())return;
+      add({type:'glow',x:innerWidth/2,y:innerHeight*.42,color,r0:40,r1:r1||Math.max(innerWidth,innerHeight)*.8,life:life||.55,age:0,fade:1.2});start();
+    },
+    tap(el,tier){
+      if(reduce()||!ensure())return;
+      const c=center(el),cols=TIER_COL[tier]||TIER_COL.bronze;
+      for(let i=0;i<n(10);i++){const a=rnd(-Math.PI,0),v=rnd(120,260);
+        add({type:'spark',x:c.x,y:c.y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,g:380,drag:1.2,s:2.2,color:pick(cols),life:rnd(.35,.6),age:0,rot:0});}
+      start();
+    },
+    crack(el,tier){
+      if(reduce()||!ensure())return;
+      const c=center(el),cols=TIER_COL[tier]||TIER_COL.bronze;
+      const big={bronze:.7,silver:.9,gold:1.1,diamond:1.35,areviax:1.7}[tier]||1;
+      this.ring(c.x,c.y,cols[0],Math.min(innerWidth,innerHeight)*.55*big,8*big);
+      this.ring(c.x,c.y,cols[1],Math.min(innerWidth,innerHeight)*.38*big,4,.1);
+      this.flash(cols[0]+'99',null,.45);
+      for(let i=0;i<n(28*big);i++){const a=rnd(0,Math.PI*2),v=rnd(160,520)*big;
+        add({type:'spark',x:c.x,y:c.y,vx:Math.cos(a)*v,vy:Math.sin(a)*v-80,g:300,drag:1.6,s:rnd(1.6,3.2),color:pick(cols),life:rnd(.5,1),age:0,rot:0});}
+      for(let i=0;i<n(16*big);i++){
+        add({type:'ember',x:c.x+rnd(-40,40),y:c.y+rnd(-10,20),vx:rnd(-50,50),vy:rnd(-220,-60),g:-20,drag:.4,s:rnd(2,4.5),color:pick(cols),life:rnd(.9,1.8),age:0,ph:rnd(0,6),rot:0});}
+      start();
+    },
+    coins(el,count){
+      if(reduce()||!ensure())return;
+      const c=center(el),cols=['#FFD24A','#FFC21A','#FFE680'];
+      for(let i=0;i<n(count||18);i++){const a=rnd(-Math.PI*.92,-Math.PI*.08),v=rnd(280,620);
+        add({type:'coin',x:c.x,y:c.y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,g:900,drag:.5,s:rnd(6,10),flip:rnd(7,13),color:pick(cols),life:rnd(1.1,1.7),age:-i*.018,rot:0,fade:3});}
+      this.ring(c.x,c.y,'#FFD24A',150,4);start();
+    },
+    shine(el,color,count){
+      if(reduce()||!ensure())return;
+      const c=center(el);
+      this.ring(c.x,c.y,color,170,4);
+      for(let i=0;i<n(count||14);i++){const a=rnd(0,Math.PI*2),v=rnd(120,330);
+        add({type:'spark',x:c.x,y:c.y,vx:Math.cos(a)*v,vy:Math.sin(a)*v,g:120,drag:1.8,s:2.2,color:color,life:rnd(.4,.8),age:0,rot:0});}
+      start();
+    },
+    // the big one: rarity-scaled burst when the trophy locks in
+    rarity(el,rarity){
+      if(reduce()||!ensure())return;
+      const rank=RARITY_RANK[rarity]||0,c=center(el),cols=RAR_COL[rarity]||RAR_COL.common;
+      this.ring(c.x,c.y,cols[0],Math.min(innerWidth,innerHeight)*(.45+rank*.07),5+rank);
+      if(rank>=2)this.ring(c.x,c.y,cols[1]||cols[0],Math.min(innerWidth,innerHeight)*(.3+rank*.05),3,.12);
+      if(rank>=4)this.flash(cols[0]+'88',null,.6);
+      if(rank>=6)this.ring(c.x,c.y,cols[3]||cols[0],Math.min(innerWidth,innerHeight)*.8,6,.25);
+      const sparks=n(14+rank*10);
+      for(let i=0;i<sparks;i++){const a=rnd(0,Math.PI*2),v=rnd(140,420+rank*60);
+        add({type:'spark',x:c.x,y:c.y,vx:Math.cos(a)*v,vy:Math.sin(a)*v-60,g:260,drag:1.5,s:rnd(1.6,3),color:pick(cols),life:rnd(.6,1.2),age:0,rot:0});}
+      const conf=rank>=2?n(10+rank*9):0;
+      for(let i=0;i<conf;i++){
+        add({type:'confetti',x:rnd(0,innerWidth),y:rnd(-40,-10),vx:rnd(-40,40),vy:rnd(60,180),g:120,drag:.3,s:rnd(3,6),flip:rnd(4,9),vr:rnd(-5,5),rot:rnd(0,6),color:pick(cols),life:rnd(1.8,3),age:-rnd(0,.5),fade:4});}
+      start();
+    },
+  };
+  return api;
+})();
 function lightRayBurst(color,count){
   count=count||10;
   for(let i=0;i<count;i++){
@@ -15616,6 +15797,7 @@ function runMysteryReveal(modal,l,isNew,cfg){
         trophySparkleHTML();
       modal.querySelectorAll('.mystery-hide').forEach(el=>el.classList.remove('mystery-hide'));
       lightRayBurst(RARITY_RAY[l.rarity],5+Math.round((cfg.burstCount||8)/2));
+      try{ArxFX.rarity(wrap.querySelector('.legend-reveal-icon')||wrap,l.rarity);const rk=RARITY_RANK[l.rarity]||0;if(rk>=3)ArxFX.shake(modal,3+rk*1.6,.4+rk*.04);if(rk>=5)setTimeout(()=>{if(modal.isConnected)ArxFX.rarity(wrap.querySelector('.legend-reveal-icon')||wrap,l.rarity);},700);}catch(e){}
       spawnUnlockGlyphs(l.rarity);
       // Every rarity now gets a real landing chime — Common used to land
       // silent ("normal to nothing"), which read as less of a reward
@@ -15895,9 +16077,9 @@ function showLegendReveal(l,isNew,tier,count,keyWon,titleWon){
   // full mystery-spin treatment, but each beat in the sequence now
   // visibly arrives rather than just popping into place.
   const slots=multiSlot?[
-    {render:xpSlotHTML,onShow:()=>{addXP(xpAmount,isNew?'New trophy':'Areviax Crate');lightRayBurst('#FFB347',4);}},
-    ...(keyWon?[{render:keySlotHTML,onShow:()=>lightRayBurst('#B9C4CE',4)}]:[]),
-    ...(titleWon?[{render:titleSlotHTML,onShow:()=>lightRayBurst('#FFD24A',4)}]:[]),
+    {render:xpSlotHTML,onShow:(m)=>{addXP(xpAmount,isNew?'New trophy':'Areviax Crate');lightRayBurst('#FFB347',4);try{ArxFX.coins(m.querySelector('.crate-xp-slot-icon'),Math.min(40,12+Math.round(xpAmount/6)));}catch(e){}}},
+    ...(keyWon?[{render:keySlotHTML,onShow:(m)=>{lightRayBurst('#B9C4CE',4);try{ArxFX.shine(m.querySelector('.crate-xp-slot-icon'),'#DDE6F0',16);}catch(e){}}}]:[]),
+    ...(titleWon?[{render:titleSlotHTML,onShow:(m)=>{lightRayBurst('#FFD24A',4);try{ArxFX.shine(m.querySelector('.crate-xp-slot-icon'),'#FFD24A',22);}catch(e){}}}]:[]),
     {render:trophySlotHTML,onShow:(modal)=>runMysteryReveal(modal,l,isNew,cfg)},
   ]:[];
   // Anything above common counts as "a special item is coming out" for the
@@ -16013,6 +16195,7 @@ function showLegendReveal(l,isNew,tier,count,keyWon,titleWon){
     icon.classList.add('crate-tap-pulse');
     const actx=getCrateAudioCtx();
     if(actx)playCrateTick(actx,0.6+0.3*(taps/TAPS_NEEDED));
+    try{ArxFX.tap(icon,tier);}catch(e){}
     if(taps<TAPS_NEEDED){ if(prompt)prompt.textContent='Tap again!'; return; }
     explode();
   }
@@ -16038,6 +16221,7 @@ function showLegendReveal(l,isNew,tier,count,keyWon,titleWon){
       icon.classList.add('crack-out');
       burst.classList.add('flare');
       playCrateCrackSound(tier);
+      try{ArxFX.crack(icon,tier);ArxFX.shake(overlay.querySelector('.achievement-modal'),{bronze:4,silver:6,gold:8,diamond:11,areviax:14}[tier]||6,{bronze:.3,silver:.38,gold:.45,diamond:.55,areviax:.7}[tier]||.4);}catch(e){}
       if(cfg.flash){
         const flash=document.createElement('div');
         flash.className='crate-flash'+(tier==='diamond'?' diamond':tier==='areviax'?' areviax':'');
