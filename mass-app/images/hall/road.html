@@ -437,9 +437,7 @@ function island(i,tier,unlocked){
     heaven(g);
     for(let c=0;c<12;c++){const a=c/12*Math.PI*2;const cl=M(new THREE.IcosahedronGeometry(.42+(c%3)*.14,1),toon(0xffffff,{roughness:1}));cl.position.set(Math.cos(a)*1.7,-.15+(c%2)*.08,Math.sin(a)*1.7);cl.userData.fg=Math.sin(a)>.35;g.add(cl);}
   }
-  // plinth for the statue
-  addTo(g,M(new THREE.BoxGeometry(.9,.42,.9),toon(0xe9e0d2,{roughness:.45})),0,.21,0);
-  addTo(g,M(new THREE.BoxGeometry(1,.08,1),MAT.gold),0,.46,0);
+  // (no separate plinth: every statue image already carries its own base, so it stands directly on the island)
   g.rotation.y=-.35+(i%2)*.7;
   return g;
 }
@@ -524,11 +522,13 @@ function shoot(i,tier,unlocked,im){
   const back=renderLayer(g,false),front=renderLayer(g,true);
   const out=document.createElement('canvas');out.width=W;out.height=H;const x=out.getContext('2d');
   const top=H-IH;x.drawImage(back,0,top);
-  const p=new THREE.Vector3(0,.5,0).applyMatrix4(g.matrixWorld).project(cam);
+  const p=new THREE.Vector3(0,.02,0).applyMatrix4(g.matrixWorld).project(cam);
+  const pe=new THREE.Vector3(1.75,.02,0).applyMatrix4(g.matrixWorld).project(cam);
+  const islandPx=Math.abs(pe.x-p.x)/2*W*2;   // projected island width
   const px=(p.x+1)/2*W,py=top+(1-p.y)/2*IH;
-  let h=H*SIZE[tier.key],w=h*im.width/im.height;if(w>W*.92){w=W*.92;h=w*im.height/im.width;}
-  x.save();x.fillStyle='rgba(30,18,8,.45)';x.filter='blur(7px)';x.beginPath();x.ellipse(px,py+5,w*.38,13,0,0,Math.PI*2);x.fill();x.restore();
-  x.drawImage(gradeStatue(unlocked?im:toStone(im),tier.key),px-w/2,py-h+h*.02,w,h);
+  let h=H*SIZE[tier.key],w=h*im.width/im.height;const wMax=Math.min(W*.92,islandPx*.8);if(w>wMax){w=wMax;h=w*im.height/im.width;}
+  x.save();x.fillStyle='rgba(30,18,8,.45)';x.filter='blur(7px)';x.beginPath();x.ellipse(px,py+2,w*.34,11,0,0,Math.PI*2);x.fill();x.restore();
+  x.drawImage(gradeStatue(unlocked?im:toStone(im),tier.key),px-w/2,py-h+h*.03,w,h);
   x.drawImage(front,0,top);           // crowds, columns, fences and clouds in front of the statue
   scene.remove(g);return out.toDataURL('image/png');
 }
