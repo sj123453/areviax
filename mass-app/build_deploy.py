@@ -35,7 +35,7 @@ def rewrite_asset_paths(text):
     """Re-point every quoted 'images/...' / 'audio/...' reference at
     mass-app/images/... / mass-app/audio/... — the root-published
     index.html lives one directory up from where those files actually are."""
-    pattern = re.compile(r"(['\"])((?:images|audio)/[^'\"]+\.(?:png|mp3|jpg|jpeg|svg))\1")
+    pattern = re.compile(r"(['\"])((?:images|audio)/[^'\"]+\.(?:png|mp3|jpg|jpeg|svg|html))\1")
     return pattern.sub(lambda m: m.group(1) + "mass-app/" + m.group(2) + m.group(1), text)
 
 
@@ -53,7 +53,7 @@ def build():
     # otherwise this false-positives on the tail of every already-correct
     # "mass-app/images/..." path (a bare, unanchored search finds that
     # substring too, which isn't actually a problem).
-    remaining = re.findall(r"(['\"])((?:images|audio)/[^'\"]+\.(?:png|mp3|jpg|jpeg|svg))\1", data)
+    remaining = re.findall(r"(['\"])((?:images|audio)/[^'\"]+\.(?:png|mp3|jpg|jpeg|svg|html))\1", data)
     if remaining:
         print("WARNING: unresolved asset references left in output:", {r[1] for r in remaining})
 
