@@ -75,10 +75,10 @@
   <div class="row"><button class="ghost" id="sClose" type="button">Close</button></div>
 </div>
 <div class="loading" id="loading">Raising the statues…</div>
-<script type="importmap">{"imports":{"three":"./three.module.min.js"}}</script>
 <script type="module">
-addEventListener("error",()=>{try{parent.postMessage({type:"arx-road-failed"},"*")}catch(e){}});
-import * as THREE from 'three';
+addEventListener("error",e=>{try{parent.postMessage({type:"arx-road-failed",msg:String((e&&e.message)||"script error")},"*")}catch(_){}});
+addEventListener("unhandledrejection",e=>{try{parent.postMessage({type:"arx-road-failed",msg:String((e&&e.reason&&e.reason.message)||e.reason||"rejected")},"*")}catch(_){}});
+import * as THREE from './three.module.min.js';
 // ---------- off-screen renderer: each island + statue is rendered once into an image ----------
 const W=520,H=860,IH=560;   // island render is IH tall, at the bottom of an H-tall frame
 // The statues themselves are the detailed sculpture photographs the app
@@ -611,10 +611,10 @@ try{
   for(let i=0;i<TIER_DATA.length;i++){
     loadingEl.textContent='Raising the statues… '+(i+1)+'/'+TIER_DATA.length;
     await tick();
-    TIER_DATA[i]._img=shoot(i,TIER_DATA[i],i<=userRank,imgs[i]);
+    try{TIER_DATA[i]._img=shoot(i,TIER_DATA[i],i<=userRank,imgs[i]);}catch(e1){console.error('island',i,e1);TIER_DATA[i]._img=STATUE_IMG[TIER_DATA[i].key].src;}
   }
   loadingEl.textContent='Laying the harbour…';await tick();
-  HARBOUR_IMG=shootHarbour();
+  try{HARBOUR_IMG=shootHarbour();}catch(e2){console.error('harbour',e2);HARBOUR_IMG='data:image/gif;base64,R0lGODlhAQABAAAAACw=';}
   renderer.dispose();
   render();
   requestAnimationFrame(()=>{const el=climb.querySelector('.stop.current');if(el)el.scrollIntoView({block:'center'});onScroll();loadingEl.classList.add('gone');});
@@ -623,7 +623,7 @@ try{
 }catch(err){
   console.error('road failed',err);
   loadingEl.textContent='Could not build the climb on this device';
-  tell('arx-road-failed');
+  try{parent.postMessage({type:'arx-road-failed',msg:String((err&&err.message)||err)},'*');}catch(_){}
 }
 </script>
 </body></html>
