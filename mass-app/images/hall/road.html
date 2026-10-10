@@ -42,8 +42,10 @@
   .stop.on-light .label h3{color:var(--ink)}.stop.on-light .label p{color:var(--muted)}
   .stop.on-dark .label h3{color:#fff8ec}.stop.on-dark .label p{color:#c9c3e6}
   .heavens{height:200px;display:grid;place-items:center;text-align:center;font:600 12px var(--body);letter-spacing:.18em;text-transform:uppercase;color:#c9c3e6}
-  .hills{position:relative;margin-inline:-16px;margin-top:-40px}
-  .hills img{display:block;width:100%;height:auto;-webkit-mask-image:linear-gradient(transparent,#000 18%);mask-image:linear-gradient(transparent,#000 18%)}
+  /* the harbour spans the whole page width: sea colour sampled from the picture's own edges continues out to both sides and down past the end */
+  .hills{position:relative;width:100vw;margin-left:calc(50% - 50vw);margin-top:-40px;background:linear-gradient(180deg,transparent 0,transparent 70px,var(--sea-top,#8ec5cf) 140px,var(--sea-bot,#79c3d3) 100%)}
+  .hills img{display:block;width:min(100%,520px);height:auto;margin:0 auto;-webkit-mask-image:linear-gradient(transparent,#000 18%),linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent);mask-image:linear-gradient(transparent,#000 18%),linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent);-webkit-mask-composite:source-in;mask-composite:intersect}
+  .hills::after{content:'';display:block;height:55vh;background:var(--sea-bot,#79c3d3)}
   .sheet{position:fixed;z-index:6;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));max-width:500px;margin:0 auto;padding:16px 18px 18px;border-radius:22px;background:var(--glass);border:1px solid var(--glass-line);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);transform:translateY(130%);transition:transform .35s cubic-bezier(.2,.9,.3,1.15)}
   .sheet.open{transform:none}
   .sheet small{font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);font-weight:700}
@@ -73,10 +75,10 @@
   <div class="row"><button class="ghost" id="sClose" type="button">Close</button></div>
 </div>
 <div class="loading" id="loading">Raising the statues…</div>
-<script type="importmap">{"imports":{"three":"./three.module.min.js"}}</script>
 <script type="module">
-addEventListener("error",()=>{try{parent.postMessage({type:"arx-road-failed"},"*")}catch(e){}});
-import * as THREE from 'three';
+addEventListener("error",e=>{try{parent.postMessage({type:"arx-road-failed",msg:String((e&&e.message)||"script error")},"*")}catch(_){}});
+addEventListener("unhandledrejection",e=>{try{parent.postMessage({type:"arx-road-failed",msg:String((e&&e.reason&&e.reason.message)||e.reason||"rejected")},"*")}catch(_){}});
+import * as THREE from './three.module.min.js';
 // ---------- off-screen renderer: each island + statue is rendered once into an image ----------
 const W=520,H=860,IH=560;   // island render is IH tall, at the bottom of an H-tall frame
 // The statues themselves are the detailed sculpture photographs the app
@@ -556,6 +558,9 @@ function render(){
   }
   const hills=document.createElement('div');hills.className='hills';hills.innerHTML=`<img alt="A Greek harbour town beneath Mount Olympus" src="${HARBOUR_IMG}">`;
   climb.appendChild(hills);
+  try{const im=new Image();im.onload=()=>{const c=document.createElement('canvas');c.width=im.naturalWidth;c.height=im.naturalHeight;const x=c.getContext('2d');x.drawImage(im,0,0);
+    const px=(fx,fy)=>{const d=x.getImageData(Math.max(0,Math.min(c.width-1,Math.round(fx*c.width))),Math.max(0,Math.min(c.height-1,Math.round(fy*c.height))),1,1).data;return 'rgb('+d[0]+','+d[1]+','+d[2]+')';};
+    hills.style.setProperty('--sea-top',px(.02,.93));hills.style.setProperty('--sea-bot',px(.02,.97));};im.src=HARBOUR_IMG;}catch(e){}
   // header
   const cur=TIER_DATA[curIdx],next=TIER_DATA[curIdx+1];
   document.getElementById('barLvl').textContent=curIdx+1;document.getElementById('barName').textContent=cur.name;
@@ -606,10 +611,10 @@ try{
   for(let i=0;i<TIER_DATA.length;i++){
     loadingEl.textContent='Raising the statues… '+(i+1)+'/'+TIER_DATA.length;
     await tick();
-    TIER_DATA[i]._img=shoot(i,TIER_DATA[i],i<=userRank,imgs[i]);
+    try{TIER_DATA[i]._img=shoot(i,TIER_DATA[i],i<=userRank,imgs[i]);}catch(e1){console.error('island',i,e1);TIER_DATA[i]._img=STATUE_IMG[TIER_DATA[i].key].src;}
   }
   loadingEl.textContent='Laying the harbour…';await tick();
-  HARBOUR_IMG=shootHarbour();
+  try{HARBOUR_IMG=shootHarbour();}catch(e2){console.error('harbour',e2);HARBOUR_IMG='data:image/gif;base64,R0lGODlhAQABAAAAACw=';}
   renderer.dispose();
   render();
   requestAnimationFrame(()=>{const el=climb.querySelector('.stop.current');if(el)el.scrollIntoView({block:'center'});onScroll();loadingEl.classList.add('gone');});
@@ -618,7 +623,7 @@ try{
 }catch(err){
   console.error('road failed',err);
   loadingEl.textContent='Could not build the climb on this device';
-  tell('arx-road-failed');
+  try{parent.postMessage({type:'arx-road-failed',msg:String((err&&err.message)||err)},'*');}catch(_){}
 }
 </script>
 </body></html>

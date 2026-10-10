@@ -38,7 +38,7 @@ canvas{position:fixed;inset:0;width:100%;height:100%;display:block}
 <div id="banner"><span>Entering</span><b id="bName"></b></div>
 <div id="tip"></div>
 <div class="bar"><button class="pill" id="next" type="button"></button></div>
-<div class="hint">Drag or scroll to travel the road · tap a reward</div>
+<div class="hint">Drag sideways to travel the road · tap a reward</div>
 <div id="loading">Paving the road…</div>
 <script type="importmap">{"imports":{"three":"./three.module.min.js","three/addons/":"./jsm/"}}</script>
 <script type="module">
@@ -54,7 +54,7 @@ const WORLDS=[
   {name:'The Mortal Realm',sky:0x8fc0e6,fog:0xd9e2d0,ground:0x8aa05a,tree:0x4f7a3a,glow:0xffc060},
   {name:'Elysium',sky:0x9fd0e8,fog:0xcfe6e0,ground:0x6fb86a,tree:0x3f9a5a,glow:0xfff0b0},
   {name:'Olympus',sky:0xf6ecd8,fog:0xf4ead6,ground:0xe9e2d4,tree:0xcfc7b4,glow:0xffe9a8}];
-const SP=15;            // distance between reward stops
+const SP=9;             // distance between reward stops
 const PER=5;            // stops per world
 const ROAD_W=7.2;
 const q=new URLSearchParams(location.search);
@@ -228,7 +228,7 @@ function textSprite(lines,{w=7,h=1.7,color='#fff',sub}={}){
   const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=4;
   const s=new THREE.Sprite(new THREE.SpriteMaterial({map:t,transparent:true,depthWrite:false}));s.scale.set(w,h,1);return s;
 }
-const ICON={bronze:'../icons/crate-bronze.png',silver:'../icons/crate-silver.png',diamond:'../icons/crate-diamond.png',gold:'../icons/crate-gold.png',key:'../icons/key-gold.png',legend:'../icons/title-medal.png'};
+const ICON={bronze:'../crates/bronze.png',silver:'../crates/silver.png',diamond:'../crates/diamond.png',gold:'../crates/gold.png',key:'../icons/key-gold.png',legend:'../icons/title-medal.png'};
 const loader=new THREE.TextureLoader();
 function fmt(n){return n>=10000?Math.round(n/1000)+'K':n>=1000?(n%1000===0?n/1000:(n/1000).toFixed(1))+'K':String(n);}
 function buildNodes(){
@@ -237,13 +237,13 @@ function buildNodes(){
     const z=-(i+1)*SP,grp=new THREE.Group();grp.position.set(0,0,z);scene.add(grp);
     const open=n.state==='claimed'||i<=nextIdx+1;           // beyond the next two stops are mystery silhouettes
     // pedestal
-    const ped=new THREE.Mesh(new THREE.CylinderGeometry(1.7,2.0,.5,8),MARBLE);ped.position.y=.25;grp.add(ped);
-    const ped2=new THREE.Mesh(new THREE.CylinderGeometry(1.15,1.4,.45,8),MARBLE_D);ped2.position.y=.72;grp.add(ped2);
-    const ring=new THREE.Mesh(new THREE.TorusGeometry(1.75,.07,8,40),GOLD);ring.rotation.x=Math.PI/2;ring.position.y=.52;grp.add(ring);
+    const ped=new THREE.Mesh(new THREE.CylinderGeometry(1.9,1.9,.16,8),MARBLE_D);ped.position.y=.08;grp.add(ped);
+    const ped2=new THREE.Mesh(new THREE.CylinderGeometry(1.45,1.55,.28,8),MARBLE);ped2.position.y=.2;grp.add(ped2);
+    const ring=new THREE.Mesh(new THREE.TorusGeometry(1.5,.06,8,40),GOLD);ring.rotation.x=Math.PI/2;ring.position.y=.35;grp.add(ring);
     // reward art, billboarded
     const tex=loader.load(ICON[n.type]||ICON.legend);tex.colorSpace=THREE.SRGBColorSpace;
     const mat=new THREE.SpriteMaterial({map:tex,transparent:true,depthWrite:false,color:open?0xffffff:0x120c08,opacity:open?(n.state==='claimed'?1:1):.9});
-    const spr=new THREE.Sprite(mat);const big=n.type==='diamond'||n.rarity==='mythic'||n.rarity==='legendary';const S=big?3.3:2.7;spr.scale.set(S,S,1);spr.position.y=1.0+S*.55;grp.add(spr);
+    const spr=new THREE.Sprite(mat);const big=n.type==='diamond'||n.rarity==='mythic'||n.rarity==='legendary';const S=big?3.0:2.5;spr.scale.set(S,S,1);spr.position.y=.3+S*.5;grp.add(spr);
     const halo=new THREE.Sprite(new THREE.SpriteMaterial({map:whiteGlow,color:n.state==='ready'?0xffd36a:n.state==='next'?0xffa04a:n.state==='claimed'?0x7fcf95:0x6a5a48,transparent:true,opacity:open?.3:.1,blending:THREE.AdditiveBlending,depthWrite:false}));
     halo.scale.set(S*1.5,S*1.5,1);halo.position.copy(spr.position);grp.add(halo);
     // beam on the stop you can collect
@@ -252,17 +252,17 @@ function buildNodes(){
     let prog=null;if(n.state==='next'){const pr=Math.max(.02,Math.min(1,n.pct/100));prog=new THREE.Mesh(new THREE.RingGeometry(2.25,2.5,48,1,Math.PI/2,-Math.PI*2*pr),new THREE.MeshBasicMaterial({color:0x5ae08a,side:THREE.DoubleSide,transparent:true,opacity:.95}));prog.rotation.x=-Math.PI/2;prog.position.y=.06;grp.add(prog);
       const track=new THREE.Mesh(new THREE.RingGeometry(2.25,2.5,48),new THREE.MeshBasicMaterial({color:0x000000,side:THREE.DoubleSide,transparent:true,opacity:.35}));track.rotation.x=-Math.PI/2;track.position.y=.055;grp.add(track);}
     if(n.state==='claimed'){const ck=textSprite('✓',{w:1.6,h:.4,color:'#7be59a'});ck.position.set(S*.5,1.2,0);ck.scale.set(1.1,.3,1);}
-    const label=textSprite(open?n.name:'? ? ?',{w:5.4,h:1.34,sub:fmt(n.xp)+' Arete',color:open?'#fff':'#a89a80'});label.position.set(0,1.0+S+1.2,0);grp.add(label);
+    const label=textSprite(open?n.name:'? ? ?',{w:5.4,h:1.34,sub:fmt(n.xp)+' Arete',color:open?'#fff':'#a89a80'});label.position.set(0,.3+S+.9,0);grp.add(label);
     nodeObjs.push({grp,spr,halo,beam,prog,n,i,baseY:spr.position.y,S,open});
   });
 }
 function buildGates(nNodes){
   const worlds=Math.ceil(nNodes/PER);
   for(let w=1;w<worlds;w++){
-    const z=-(w*PER)*SP-SP/2-.5,g=makeGate(WORLDS[Math.min(w,3)].name,WORLDS[Math.min(w,3)].glow);g.position.set(0,0,z);scene.add(g);gates.push({g,z,w});
+    const z=-(w*PER)*SP-SP/2-.5,g=makeGate(WORLDS[Math.min(w,3)].name,WORLDS[Math.min(w,3)].glow);g.position.set(0,0,z);g.scale.setScalar(.8);scene.add(g);gates.push({g,z,w});
   }
   // start gate
-  const g0=makeGate('The Road Home',WORLDS[1].glow);g0.position.set(0,0,SP*.45);g0.rotation.y=0;scene.add(g0);gates.push({g:g0,z:SP*.45,w:0});
+  const g0=makeGate('The Road Home',WORLDS[1].glow);g0.position.set(0,0,SP*.45);g0.scale.setScalar(.8);scene.add(g0);gates.push({g:g0,z:SP*.45,w:0});
 }
 // marker: a gold pawn with the hero's initial
 let marker;
@@ -306,9 +306,9 @@ addEventListener('keydown',e=>{if(e.key==='Escape')$('close').click();if(e.key==
 // input: drag / wheel along the road, tap a reward
 let down=null,moved=0;
 canvas.addEventListener('pointerdown',e=>{down={y:e.clientY,x:e.clientX,t:performance.now()};moved=0;canvas.setPointerCapture(e.pointerId);vel=0;});
-canvas.addEventListener('pointermove',e=>{if(!down)return;const dy=e.clientY-down.y;moved+=Math.abs(dy)+Math.abs(e.clientX-down.x);down.y=e.clientY;down.x=e.clientX;camTarget=Math.max(-(TOTAL-SP*1.5),Math.min(SP*.3,camTarget+dy*.09));camZ=camTarget;});
+canvas.addEventListener('pointermove',e=>{if(!down)return;const dx=e.clientX-down.x;moved+=Math.abs(dx)+Math.abs(e.clientY-down.y);down.y=e.clientY;down.x=e.clientX;camTarget=Math.max(-(TOTAL-SP*1.5),Math.min(SP*.3,camTarget+dx*.045));camZ=camTarget;});
 canvas.addEventListener('pointerup',e=>{const was=down;down=null;if(was&&moved<8)pick(e.clientX,e.clientY);});
-canvas.addEventListener('wheel',e=>{e.preventDefault();goTo(camTarget-e.deltaY*.04);},{passive:false});
+canvas.addEventListener('wheel',e=>{e.preventDefault();goTo(camTarget-(Math.abs(e.deltaX)>Math.abs(e.deltaY)?-e.deltaX:e.deltaY)*.04);},{passive:false});
 const ray=new THREE.Raycaster(),ndc=new THREE.Vector2();let tipT=0;
 function pick(x,y){
   ndc.set(x/innerWidth*2-1,-(y/innerHeight)*2+1);ray.setFromCamera(ndc,camera);
@@ -329,7 +329,7 @@ function frame(){
   const dt=Math.min(.05,clock.getDelta()),t=clock.elapsedTime;
   camZ+=(camTarget-camZ)*Math.min(1,dt*(down?30:3.2));
   const cz=camZ,aspect=camera.aspect<1;
-  camera.position.set(0,aspect?10.5:9,cz+(aspect?13:12));camera.lookAt(0,1.6,cz-5);
+  camera.position.set(aspect?17:12.5,aspect?6.8:5.2,cz+(aspect?5:4.5));camera.lookAt(0,1.7,cz-.5);
   // world atmosphere follows the camera
   const wf=(-cz)/(PER*SP)+.5,w0=Math.max(0,Math.min(3,Math.floor(wf))),w1=Math.min(3,w0+1),k=Math.max(0,Math.min(1,(wf-w0-.62)/.38));
   tmpC.set(WORLDS[w0].sky).lerp(tmpF.set(WORLDS[w1].sky),k);scene.background.copy(tmpC);
