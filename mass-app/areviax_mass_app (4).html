@@ -33382,5 +33382,25 @@ window.arxIcons=scan;
   #page-rank.active{display:block;position:fixed;left:210px;right:0;top:61px;bottom:0;z-index:20;max-width:none!important;padding:0!important;margin:0!important}
 }
 </style>
+<style>
+/* PHONE / LOW-POWER MODE — the three blurred background blobs and two side glows were each a full-screen
+   composited layer expanded by their blur radius (≈110 MB of GPU memory at 3x density) and re-rasterised
+   every frame by their drift animations; together with the decorative infinite animations that is what
+   makes iOS kill the tab. On phones/tablets: no blur filters, no drifting, no decorative infinite loops. */
+@media(max-width:1024px),(hover:none){
+  .main-gradient-blob{filter:none!important;animation:none!important}
+  .main-gradient-bg .side-glow{display:none!important}
+  .brand-watermark,.brand-watermark *{animation:none!important}
+  .lv-rail-fill,.lv-rail-fill::after,.lv-rail-fill::before{animation:none!important}
+  .rh-statue{animation:none!important}
+  #more-sheet-backdrop:not(.show){visibility:hidden}
+  /* backdrop blurs re-sample everything behind them every frame; panels are already dark, so drop them on phones */
+  *,*::before,*::after{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+  /* decorative loops that keep the GPU busy while nothing is happening */
+  .road-ember,.rg-rays,.rg-flame,.glow-title,.lv-pulse-dot,.crate-slot,.crate-slot-label,.crate-icon-burst,.road-world-chip i{animation:none!important}
+  .road-ember{display:none!important}
+}
+@media(prefers-reduced-motion:reduce){.main-gradient-blob{animation:none!important}}
+</style>
 </body>
 </html>
