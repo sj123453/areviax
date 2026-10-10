@@ -6011,7 +6011,7 @@ body[data-goal-theme="cut"] .lv-page{
     </div>
     <div class="sb-item active" onclick="showPage('dashboard')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg><span class="sb-label">Dashboard</span></div>
     <div class="sb-item" onclick="showPage('workout')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20h7"/><path d="M6.5 20v-2.5a2 2 0 0 1 2-2H12"/><path d="M11 12.5 17.5 6"/><path d="M15 4l4.5 4.5"/><path d="M13.5 6.5l3.5 3.5"/></svg><span class="sb-label">The Forge</span></div>
-    <div class="sb-item" data-page="trophyroad" onclick="openRankUp(event)"><img src="images/icons/rank-temple.png" alt="" width="15" height="15" style="flex-shrink:0"><span class="sb-label">Rank</span></div>
+    <div class="sb-item" data-page="rank" onclick="openRankUp(event)"><img src="images/icons/rank-temple.png" alt="" width="15" height="15" style="flex-shrink:0"><span class="sb-label">Rank</span></div>
     <div class="sb-item" onclick="showPage('nutrition')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/></svg><span class="sb-label">Nutrition</span></div>
     <div class="sb-item" onclick="showPage('progress')"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg><span class="sb-label">Progress</span></div>
     <div class="sb-div"></div>
@@ -6483,7 +6483,7 @@ body[data-goal-theme="cut"] .lv-page{
   <!-- --lv-fg/--lv-border/--lv-gold etc pinned to their dark-mode values here since this
        header's background is always the same dark photo regardless of theme — without this,
        light mode flips --lv-fg to near-black and the hero text disappears into the art. -->
-  <header class="lv-grain lv-pediment lv-photo-header" style="background-image:linear-gradient(180deg,rgba(10,7,4,.5) 0%,rgba(10,7,4,.72) 45%,rgba(10,7,4,.95) 100%),url('images/roads/realm-underworld.jpg');background-position:center 40%;--lv-fg:#F7F5F2;--lv-muted-fg:#B9B1A9;--lv-border:#342C28;--lv-border-strong:#56433A;--lv-gold:#E6BE6D">
+  <header class="lv-grain lv-pediment lv-photo-header" style="background-image:linear-gradient(180deg,rgba(10,7,4,.5) 0%,rgba(10,7,4,.72) 45%,rgba(10,7,4,.95) 100%),url('images/roads/realm-underworld-v2.jpg');background-position:center 40%;--lv-fg:#F7F5F2;--lv-muted-fg:#B9B1A9;--lv-border:#342C28;--lv-border-strong:#56433A;--lv-gold:#E6BE6D">
     <span class="lv-ghost-numeral" style="right:-14px;top:38px">Ω</span>
     <div style="position:relative;z-index:1">
       <!-- The logo + streak/icon row that used to live here is now the
@@ -8037,6 +8037,8 @@ body[data-goal-theme="cut"] .lv-page{
      Arete/Achievement/Weight checkpoints into the one path rendered
      here). Reached from the Road icon in the Dashboard header's
      top-right corner. -->
+<!-- RANK (desktop): the island climb as its own page instead of an overlay on whatever you were looking at -->
+<div class="page" id="page-rank"><iframe id="rank-page-frame" title="Rank — your climb to Olympus"></iframe></div>
 <div class="page" id="page-trophyroad">
   <div class="road-page-head">
     <button class="btn btn-out btn-sm" onclick="showPage('dashboard')">← Home</button>
@@ -13040,13 +13042,13 @@ function renderDailyQuote(){
 }
 // Bestiary — a beast of Greek myth for each rank tier, in ladder order.
 const BEASTS=[
-  {name:'Harpy',img:'images/beasts/harpy.png',gate:0,blurb:'Storm-winged scavenger'},
-  {name:'Minotaur',img:'images/beasts/minotaur.png',gate:1,blurb:'Bull of the Labyrinth'},
-  {name:'Nemean Lion',img:'images/beasts/nemean-lion.png',gate:2,blurb:'Hide no blade could pierce'},
-  {name:'Chimera',img:'images/beasts/chimera.png',gate:3,blurb:'Lion, goat and serpent'},
-  {name:'Hydra',img:'images/beasts/hydra.png',gate:4,blurb:'Cut one head, two return'},
-  {name:'Cerberus',img:'images/beasts/cerberus.png',gate:5,blurb:'Hound of Hades, jailer of Titans'},
-  {name:'Pegasus',img:'images/beasts/pegasus.png',gate:6,summit:true,blurb:'Bearer of Zeus\'s thunder'}
+  {name:'Harpy',img:'images/beasts/harpy.png',gate:3,blurb:'Storm-winged scavenger'},
+  {name:'Minotaur',img:'images/beasts/minotaur.png',gate:4,blurb:'Bull of the Labyrinth'},
+  {name:'Nemean Lion',img:'images/beasts/nemean-lion.png',gate:5,blurb:'Hide no blade could pierce'},
+  {name:'Chimera',img:'images/beasts/chimera.png',gate:6,blurb:'Lion, goat and serpent'},
+  {name:'Hydra',img:'images/beasts/hydra.png',gate:7,blurb:'Cut one head, two return'},
+  {name:'Cerberus',img:'images/beasts/cerberus.png',gate:8,blurb:'Hound of Hades, jailer of Titans'},
+  {name:'Pegasus',img:'images/beasts/pegasus.png',gate:9,summit:true,blurb:'Bearer of Zeus\'s thunder'}
 ];
 // A gatekeeper beast waits at the middle of each climb between two tiers
 // (halfway from tier `gate` to the next); Pegasus is the summit reward.
@@ -13241,12 +13243,15 @@ const ACHIEVEMENTS=[
   {key:'sessions_50',    label:'50 Sessions',        desc:'Half a hundred. Serious commitment.',                  icon:'\ud83d\udcaa', order:10, test:()=>totalSess>=50},
   {key:'sessions_100',   label:'100 Sessions',       desc:'A century of training. Remarkable.',                   icon:'\ud83d\udcaa', order:13, test:()=>totalSess>=100},
   // Tiers
-  {key:'soldier_tier',   label:'Reached Soldier',    desc:'Mortal is behind you now.',                            icon:'\ud83e\udd48', order:6,   test:()=>getRankIndex()>=1},
-  {key:'hero_tier',      label:'Reached Hero',       desc:'Real, celebrated consistency now.',                    icon:'\ud83c\udfc6', order:7.5, test:()=>getRankIndex()>=2},
-  {key:'demigod_tier',   label:'Reached Demigod',    desc:'Genuinely rare volume and consistency.',               icon:'\u2728', order:9,   test:()=>getRankIndex()>=3},
-  {key:'god_tier',       label:'Reached God',        desc:'Top-tier consistency and volume.',                     icon:'\ud83d\udc8e', order:10.5, test:()=>getRankIndex()>=4},
-  {key:'titan_tier',      label:'Reached Titan',      desc:'Older than the gods. Primordial strength.',            icon:'\ud83c\udf0b', order:11.2, test:()=>getRankIndex()>=5},
-  {key:'king_tier',      label:'Reached God of Gods',desc:'The highest tier. Elite company.',                     icon:'\ud83d\udc51', order:12,  test:()=>getRankIndex()>=6},
+  {key:'ferried_tier',   label:'Reached Ferried Soul',desc:'Charon took your coin. The river is crossed.',        icon:'\u26f5', order:2.2, test:()=>getRankIndex()>=1},
+  {key:'pardoned_tier',  label:'Reached Pardoned',   desc:'Hades let you go. Do not look back.',                  icon:'\ud83d\udddd\ufe0f', order:3.4, test:()=>getRankIndex()>=2},
+  {key:'mortal_tier',    label:'Back Among the Living',desc:'You walked out of the Underworld. Now climb.',       icon:'\ud83c\udf05', order:4.6, test:()=>getRankIndex()>=3},
+  {key:'soldier_tier',   label:'Reached Soldier',    desc:'Mortal is behind you now.',                            icon:'\ud83e\udd48', order:6,   test:()=>getRankIndex()>=4},
+  {key:'hero_tier',      label:'Reached Hero',       desc:'Real, celebrated consistency now.',                    icon:'\ud83c\udfc6', order:7.5, test:()=>getRankIndex()>=5},
+  {key:'demigod_tier',   label:'Reached Demigod',    desc:'Genuinely rare volume and consistency.',               icon:'\u2728', order:9,   test:()=>getRankIndex()>=6},
+  {key:'god_tier',       label:'Reached God',        desc:'Top-tier consistency and volume.',                     icon:'\ud83d\udc8e', order:10.5, test:()=>getRankIndex()>=7},
+  {key:'titan_tier',      label:'Reached Titan',      desc:'Older than the gods. Primordial strength.',            icon:'\ud83c\udf0b', order:11.2, test:()=>getRankIndex()>=8},
+  {key:'king_tier',      label:'Reached God of Gods',desc:'The highest tier. Elite company.',                     icon:'\ud83d\udc51', order:12,  test:()=>getRankIndex()>=9},
   // Volume
   {key:'volume_5k',      label:'5,000kg Lifted',     desc:'Five tonnes moved. Lifetime total.',                   icon:'\ud83e\uddf2', order:5,  test:()=>totalVolume>=5000},
   {key:'volume_10k',     label:'10,000kg Lifted',    desc:'Ten tonnes moved. Lifetime total.',                    icon:'\ud83e\uddf2', order:8,  test:()=>totalVolume>=10000},
@@ -14017,7 +14022,7 @@ function formatCompactNum(n){
 // road's reward curve is): Tartarus at the start, a mortal training
 // ground, the Elysian Fields, then Mount Olympus at the very end.
 const ROAD_REALMS=[
-  {key:'underworld',img:'images/roads/realm-underworld.jpg'},
+  {key:'underworld',img:'images/roads/realm-underworld-v2.jpg'},
   {key:'mortal',    img:'images/roads/realm-mortal.jpg'},
   {key:'elysium',   img:'images/roads/realm-elysium.jpg'},
   {key:'olympus',   img:'images/roads/realm-olympus.jpg'},
@@ -17558,10 +17563,22 @@ function renderRankTiers(){
 // rank badge elsewhere) still uses them, only the big statue render
 // itself (updateAvatar + its Profile counterpart) switched to photo.
 const TIERS=[
+  {name:'Shade', cut:'images/ranks/statue-shade.png', col:'#A9B1C6', dark:'#2b2f3a', mid:'#5f6678', light:'#e3e8f5',
+   metal:'linear-gradient(105deg,#2b2f3a 0%,#5f6678 15%,#A9B1C6 35%,#e3e8f5 48%,#ffffff 52%,#e3e8f5 56%,#A9B1C6 70%,#5f6678 85%,#2b2f3a 100%)',
+   mask:'images/misc/statue-1-commonfolk.svg', photo:'images/ranks/statue-shade.png',
+   volume:0,     sessions:1},
+  {name:'Ferried Soul', cut:'images/ranks/statue-ferried.png', col:'#7FB7A0', dark:'#1f3f37', mid:'#4c7f6c', light:'#d3f0e2',
+   metal:'linear-gradient(105deg,#1f3f37 0%,#4c7f6c 15%,#7FB7A0 35%,#d3f0e2 48%,#ffffff 52%,#d3f0e2 56%,#7FB7A0 70%,#4c7f6c 85%,#1f3f37 100%)',
+   mask:'images/misc/statue-1-commonfolk.svg', photo:'images/ranks/statue-ferried.png',
+   volume:800,     sessions:3},
+  {name:'Pardoned', cut:'images/ranks/statue-pardoned.png', col:'#9CC4A8', dark:'#22402d', mid:'#55805f', light:'#e0f5e6',
+   metal:'linear-gradient(105deg,#22402d 0%,#55805f 15%,#9CC4A8 35%,#e0f5e6 48%,#ffffff 52%,#e0f5e6 56%,#9CC4A8 70%,#55805f 85%,#22402d 100%)',
+   mask:'images/misc/statue-1-commonfolk.svg', photo:'images/ranks/statue-pardoned.png',
+   volume:2000,     sessions:6},
   {name:'Mortal', cut:'images/ranks/statue-mortal.png', col:'#CD7F32', dark:'#5c3a1e', mid:'#8b5a2b', light:'#f4c896',
    metal:'linear-gradient(105deg,#5c3a1e 0%,#8b5a2b 15%,#cd7f32 35%,#e8a868 48%,#f4c896 52%,#e8a868 56%,#cd7f32 70%,#8b5a2b 85%,#5c3a1e 100%)',
    mask:'images/misc/statue-1-commonfolk.svg', photo:'images/misc/statue-bronze-real.jpg',
-   volume:0,     sessions:1},
+   volume:3500,  sessions:9},
   {name:'Soldier', cut:'images/ranks/statue-soldier.png', col:'#C7CCD9', dark:'#5c5f66', mid:'#9a9da5', light:'#ffffff',
    metal:'linear-gradient(105deg,#5c5f66 0%,#9a9da5 15%,#c7ccd9 35%,#e8ebf0 48%,#ffffff 52%,#e8ebf0 56%,#c7ccd9 70%,#9a9da5 85%,#5c5f66 100%)',
    mask:'images/misc/statue-2-soldier.svg', photo:'images/misc/statue-2-soldier-real.jpg',
@@ -17708,7 +17725,15 @@ function rankUpBurst(x,y){
   ['','r2'].forEach(c=>{const r=document.createElement('div');r.className='ru-ripple '+c;r.style.left=x+'px';r.style.top=y+'px';document.body.appendChild(r);setTimeout(()=>r.remove(),1200);});
 }
 function rankUpOpen(){return !!(document.getElementById('rankup-overlay')&&document.getElementById('rankup-overlay').classList.contains('open'));}
+function rankAsPage(){try{return matchMedia('(min-width:900px) and (pointer:fine)').matches;}catch(e){return false;}}
+function loadRankPage(){
+  const fr=document.getElementById('rank-page-frame');if(!fr)return;
+  window.__rankUpReady=false;clearTimeout(window.__rankUpGuard);
+  fr.src='images/hall/road.html'+'?embed=1&rank='+getRankIndex()+'&kg='+Math.round(totalVolume)+'&n='+encodeURIComponent((profile&&profile.name)||'');
+  window.__rankUpGuard=setTimeout(()=>{const pg=document.getElementById('page-rank');if(pg&&pg.classList.contains('active')&&!window.__rankUpReady){try{toast('🏛️','The island climb could not load here — opening the Arete Road instead.');}catch(e){}showPage('xproad');}},30000);
+}
 function openRankUp(ev){
+  if(rankAsPage()&&hall3DSupported()){showPage('rank');return;}
   let btn=document.getElementById('mn-xproad');
   // desktop: the phone's centre button is hidden, so grow the climb from whatever was clicked
   if(!btn||!btn.getBoundingClientRect().width){const src=ev&&ev.currentTarget;if(src&&src.getBoundingClientRect)btn=src;}
@@ -17812,7 +17837,7 @@ function mountHall3D(page){
   const o=document.createElement('div');o.id='hall3d-overlay';o.setAttribute('role','dialog');o.setAttribute('aria-label','Hall of Statues in 3D');
   const fr=document.createElement('iframe');
   fr.title='Hall of Statues';
-  fr.src=page+'?rank='+getRankIndex()+'&kg='+Math.round(totalVolume)+'&n='+encodeURIComponent((profile&&profile.name)||'');
+  fr.src=page+'?rank='+(page.indexOf('/hall.html')>0?Math.max(0,getRankIndex()-3):getRankIndex())+'&kg='+Math.round(totalVolume)+'&n='+encodeURIComponent((profile&&profile.name)||'');
   o.appendChild(fr);document.body.appendChild(o);
   requestAnimationFrame(()=>o.classList.add('on'));
 }
@@ -17825,9 +17850,9 @@ window.addEventListener('message',e=>{if(e.data&&e.data.type==='arx-trail-hello'
   if(e.data&&e.data.type==='arx-trail-failed'){closeTrail3D();try{toast('🏛️','The 3D road could not load here.');}catch(_){}return;}
   if(e.data&&e.data.type==='arx-trail-claim'){closeTrail3D();claimXpRoadReward(+e.data.xp);return;}
   if(e.data&&e.data.type==='arx-open-hall'){mountHall3D('images/hall/hall.html');}
-  else if(e.data&&e.data.type==='arx-hall-close'){if(document.getElementById('trail3d-overlay'))closeTrail3D();else if(document.getElementById('hall3d-overlay'))closeHall3D();else closeRankUp();}
+  else if(e.data&&e.data.type==='arx-hall-close'){if(document.getElementById('hall3d-overlay'))closeHall3D();else if(document.getElementById('page-rank')&&document.getElementById('page-rank').classList.contains('active'))showPage('dashboard');else if(document.getElementById('trail3d-overlay'))closeTrail3D();else if(document.getElementById('hall3d-overlay'))closeHall3D();else closeRankUp();}
   else if(e.data&&e.data.type==='arx-road-ready'){window.__rankUpReady=true;clearTimeout(window.__rankUpGuard);}
-  else if(e.data&&e.data.type==='arx-road-failed'&&rankUpOpen()){rankUpFail(e.data.msg);}});
+  else if(e.data&&e.data.type==='arx-road-failed'&&(rankUpOpen()||(document.getElementById('page-rank')&&document.getElementById('page-rank').classList.contains('active')))){rankUpFail(e.data.msg);}});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(document.getElementById('trail3d-overlay'))closeTrail3D();else if(document.getElementById('hall3d-overlay'))closeHall3D();else closeRankUp();}});
 // Each tier is split into three steps (I, II, III) by how far the athlete
 // is toward the next tier — the slower of volume and sessions, so both
@@ -18768,6 +18793,8 @@ function showPage(id){
 function doShowPage(id){
   try{updateMobileNav(id);}catch(e){}
   syncPageChrome(id);
+  if(id==='rank')loadRankPage();
+  else{const rf=document.getElementById('rank-page-frame');if(rf&&rf.getAttribute('src')&&rf.getAttribute('src')!=='about:blank'){rf.src='about:blank';clearTimeout(window.__rankUpGuard);}}
   if(id==='profile')clearUnseenRewards();
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.sb-item').forEach(i=>i.classList.remove('active'));
@@ -18775,7 +18802,7 @@ function doShowPage(id){
   if(pg)pg.classList.add('active');
   document.querySelectorAll('.sb-item').forEach(i=>{if(i.getAttribute('onclick')?.includes(id)||i.dataset.page===id)i.classList.add('active')});
   try{
-    const titles={dashboard:'Home',workout:'The Forge',session:'Session',nutrition:'Nutrition',recipes:'Recipes',progress:'Progress',shop:'Shop',trophycabinet:'Trophy Cabinet',labors:'The 12 Labors',xproad:'Arete Road',trophyroad:'Trophy Road',recovery:'Recovery',schedule:'Schedule',leaderboard:'Leaderboard',leagues:'Leagues',trials:'The Areviax Championship',learn:'Science',calisthenics:'Calisthenics',profile:'Profile',legal:'Legal',settings:'Settings',aicoach:'Coach Sam',subscription:'Go Premium',roadmap:'Roadmap',reflection:'Daily Reflection'};
+    const titles={rank:'Rank',dashboard:'Home',workout:'The Forge',session:'Session',nutrition:'Nutrition',recipes:'Recipes',progress:'Progress',shop:'Shop',trophycabinet:'Trophy Cabinet',labors:'The 12 Labors',xproad:'Arete Road',trophyroad:'Trophy Road',recovery:'Recovery',schedule:'Schedule',leaderboard:'Leaderboard',leagues:'Leagues',trials:'The Areviax Championship',learn:'Science',calisthenics:'Calisthenics',profile:'Profile',legal:'Legal',settings:'Settings',aicoach:'Coach Sam',subscription:'Go Premium',roadmap:'Roadmap',reflection:'Daily Reflection'};
     const t=titles[id]||id;
     const tte=document.getElementById('tb-title');
     if(tte){tte.textContent=t;tte.classList.toggle('tb-title-sm',id==='trophycabinet');}
@@ -20258,10 +20285,10 @@ function syncLvBadges(){
 // replaced by the icon+name treatment, now driving which photo shows
 // instead of literal "Good morning" words.
 const DASH_HERO_TIME_IMAGES={
-  night:'images/roads/realm-mortal-night.jpg',
+  night:'images/roads/realm-mortal-night-v2.jpg',
   morning:'images/roads/realm-mortal-dawn.jpg',
   afternoon:'images/roads/realm-mortal-midday.jpg',
-  evening:'images/roads/realm-mortal-evening.jpg',
+  evening:'images/roads/realm-mortal-evening-v2.jpg',
 };
 // The athlete's own statue, large, lit by their tier colour. Unranked
 // athletes see the first statue as a dark silhouette with a "?" instead,
@@ -31937,7 +31964,7 @@ async function renderLB(){
   const entries=[];
   BOT_ROSTER_FULL.forEach(bot=>{
     const s=getBotStats(bot);
-    entries.push({name:bot.name,xp:s.xp,volume:s.volume,streak:s.streak,sess:s.sess,stage:'Week 1\u20138',tier:bot.tier,isBot:true});
+    entries.push({name:bot.name,xp:s.xp,volume:s.volume,streak:s.streak,sess:s.sess,stage:'Week 1\u20138',tier:bot.tier+3,isBot:true});
   });
   stored.forEach(s=>entries.push({...s,xp:s.xp||0,volume:s.volume||0}));
   if(profile.lbName){
@@ -33347,6 +33374,13 @@ window.arxIcons=scan;
 @media(max-width:420px){.ev-card{grid-template-columns:1fr;justify-items:center;text-align:center}.ev-chips{justify-content:center}}
 #trail3d-open{width:auto;margin:0 auto 12px;display:flex;align-items:center;justify-content:center;gap:8px;padding:9px 18px;border-radius:999px;border:2px solid #e6be6d;background:linear-gradient(180deg,#2a1b12,#150d08);color:#fff;font-weight:800;font-size:13px;box-shadow:0 2px 0 #6b4a17;cursor:pointer}
 #trail3d-open[hidden]{display:none}
+</style>
+<style>
+#page-rank{display:none}
+#page-rank iframe{border:0;width:100%;height:100%;display:block;background:#f3e2c0}
+@media(min-width:900px){
+  #page-rank.active{display:block;position:fixed;left:210px;right:0;top:61px;bottom:0;z-index:20;max-width:none!important;padding:0!important;margin:0!important}
+}
 </style>
 </body>
 </html>
