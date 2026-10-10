@@ -15348,9 +15348,9 @@ function grantTestCrates(){
 const CRATE_REWARD_RATIO={bronze:.55,silver:.6,gold:.66,diamond:.72,areviax:.8};
 function rollCrateRewardCount(tier){
   const r=CRATE_REWARD_RATIO[tier]||.55;
-  const w=[];for(let k=0;k<7;k++)w.push(Math.pow(r,k));      // N = 2..8
+  const w=[];for(let k=0;k<13;k++)w.push(Math.pow(r,k));     // N = 2..14, each step less likely than the last
   const sum=w.reduce((a,b)=>a+b,0);let x=Math.random()*sum;
-  for(let k=0;k<7;k++){x-=w[k];if(x<=0)return k+2;}
+  for(let k=0;k<13;k++){x-=w[k];if(x<=0)return k+2;}
   return 2;
 }
 const CRATE_EXTRA_ART={
@@ -15377,16 +15377,44 @@ function crateExtraPool(tier){
     {w:1.4,make:()=>{const t=randomLockedTitle();if(!t)return null;unlockTitle(t,false);return {kind:'title',art:CRATE_EXTRA_ART.title,label:'New Title',sub:'"'+TITLES[t].name+'" — equip it on your Profile',grad:'linear-gradient(160deg,#FFE066,#C9971E)'};}},
   ];
 }
+// Chance that any one bonus slot is another trophy instead of a bonus item, so a big haul can unlock several at once.
+const CRATE_EXTRA_TROPHY_P={bronze:.1,silver:.14,gold:.18,diamond:.24,areviax:.32};
+// Picks a trophy the same way the main drop does (rarity from the tier's odds, falling toward commoner ones if a pool is empty).
+function pickCrateTrophy(tier){
+  const cfg=CRATE_TIERS[tier];if(!cfg)return null;
+  const rarity=rollRarity(cfg.odds);
+  const startIdx=RARITY_ORDER.indexOf(rarity);
+  let pool=[];
+  for(let i=Math.max(startIdx,0);i<RARITY_ORDER.length&&!pool.length;i++){pool=LEGEND_CARDS.filter(l=>l.rarity===RARITY_ORDER[i]);}
+  return pool.length?pool[Math.floor(Math.random()*pool.length)]:null;
+}
+function rollExtraTrophy(tier){
+  const pick=pickCrateTrophy(tier);if(!pick)return null;
+  const isNew=!unlockedLegends.includes(pick.key);
+  if(isNew){unlockedLegends.push(pick.key);try{bumpUnseenReward();}catch(e){}}
+  legendCounts[pick.key]=(legendCounts[pick.key]||0)+1;
+  const n=legendCounts[pick.key];
+  const rc=(typeof RARITY_RAY!=='undefined'&&RARITY_RAY[pick.rarity])||'#9AA0A8';
+  return {kind:'trophy',card:pick,rarity:pick.rarity,isNew,
+    art:pick.img||'',emoji:pick.img?'':legendIconHTML(pick),
+    label:pick.name,sub:(pick.rarity==='ultralegendary'?'ULTRA LEGENDARY':pick.rarity.toUpperCase())+' · '+(isNew?'NEW':'DUPLICATE'+(n>1?' ×'+n:'')),
+    grad:'linear-gradient(160deg,'+rc+',#1a1a2a)',xp:isNew?25:10};
+}
 function rollCrateExtras(tier){
-  const want=rollCrateRewardCount(tier)-2,out=[];
+  const want=rollCrateRewardCount(tier)-2,out=[];       // the Arete slot and the main trophy are always there
+  const pT=CRATE_EXTRA_TROPHY_P[tier]||.1;
   let pool=crateExtraPool(tier);
-  while(out.length<want&&pool.length){
+  for(let n=0;n<want;n++){
+    if(Math.random()<pT){const t=rollExtraTrophy(tier);if(t){out.push(t);continue;}}
+    if(!pool.length)pool=crateExtraPool(tier);           // big hauls (up to 14) never run out of bonus kinds
     const sum=pool.reduce((a,p)=>a+p.w,0);let x=Math.random()*sum,i=0;
     for(;i<pool.length-1;i++){x-=pool[i].w;if(x<=0)break;}
     const entry=pool.splice(i,1)[0],d=entry.make();
     if(d)out.push(d);
   }
-  return out;
+  // small beats first, trophies last (rarest of them closest to the main reveal)
+  const rank=d=>d.kind==='trophy'?10+(RARITY_ORDER.length-RARITY_ORDER.indexOf(d.rarity)):0;
+  return out.sort((a,b)=>rank(a)-rank(b));
 }
 function openCompassDrop(tier){
   const cfg=CRATE_TIERS[tier];
@@ -15430,7 +15458,7 @@ function openCompassDrop(tier){
   if(tier==='areviax')keyBank+=2; // the best drop in the app pays a bonus on top of the guaranteed card
   if(tier==='diamond')unlockAccentTheme('silver',true);
   if(tier==='areviax')unlockAccentTheme('gold',true);
-  // 2-8 rewards per crate (see rollCrateRewardCount): the extras are granted
+  // 2-14 rewards per crate, any of the bonus slots can be another trophy (see rollCrateRewardCount): the extras are granted
   // right here, the reveal below only shows them.
   const extras=rollCrateExtras(tier);
   const keyWon=false,titleWon=null;
@@ -18828,6 +18856,7 @@ function doShowPage(id){
     try{refreshDashNextSession();}catch(e){console.error('refreshDashNextSession:',e.message);}
     try{checkStreakAtRisk();}catch(e){}
     try{checkStreakBroken();}catch(e){}
+    try{setTimeout(maybeShowStreakEnded,900);}catch(e){}
     try{checkSleepReminder();}catch(e){}
     try{checkSittingJobTip();}catch(e){}
     try{checkDailySpinBanner();}catch(e){}
@@ -24316,6 +24345,52 @@ function checkCompassWeek(){
 // out once the gap is confirmed and no repair is currently offered —
 // same-day if there are no shards to spend, or the day after a
 // dismissed repair banner.
+
+// ── STREAK ENDED — the torch goes out, then a line to rise on. Stored as "pending" so it shows the next time the dashboard is seen, even if the break was detected on a quiet load.
+const STREAK_QUOTES=[
+  ['The harder the fall, the greater the rise.',''],
+  ['Every great streak begins with a single day.','A new beginning'],
+  ['Fall seven times, stand up eight.','Japanese proverb'],
+  ['The phoenix needs the ashes.',''],
+  ['Heracles fell too, and earned twelve Labours from it.','Greek myth'],
+  ['A torch can always be relit.',''],
+  ['Today is day one of your next streak.',''],
+  ['It was never the streak. It was who you became while building it.','']
+];
+function noteStreakEnded(n){
+  if(n<2)return;
+  try{localStorage.setItem('arx_streakEnded',JSON.stringify({n:n,best:Math.max(bestStreak||0,n),d:localDateKey(new Date())}));}catch(e){}
+}
+function maybeShowStreakEnded(){
+  let pend=null;try{pend=JSON.parse(localStorage.getItem('arx_streakEnded')||'null');}catch(e){}
+  if(!pend)return;
+  showStreakEnded(pend);
+}
+function showStreakEnded(pend){
+  if(document.querySelector('.streak-end-overlay,.achievement-overlay'))return;
+  const q=STREAK_QUOTES[Math.floor(Math.random()*STREAK_QUOTES.length)];
+  const o=document.createElement('div');o.className='streak-end-overlay';o.setAttribute('role','dialog');o.setAttribute('aria-label','Your streak ended');
+  const puffs=[0,1,2,3].map(i=>'<circle class="se-puff" cx="'+(52+i*7)+'" cy="64" r="'+(9+i*2)+'" style="animation-delay:'+(1.45+i*.18)+'s"/>').join('');
+  const sparks=[0,1,2,3,4,5].map(i=>'<circle class="se-spark" cx="'+(40+i*8)+'" cy="118" r="1.8" style="--dx:'+((i%2?1:-1)*(6+i*3))+'px;animation-delay:'+(1.2+i*.12)+'s"/>').join('');
+  o.innerHTML='<div class="se-stage">'+
+    '<svg class="se-torch" viewBox="0 0 120 200" aria-hidden="true"><defs>'+
+      '<linearGradient id="seFlame" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#ff5a1a"/><stop offset=".55" stop-color="#ffa63d"/><stop offset="1" stop-color="#ffe9a8"/></linearGradient>'+
+      '<linearGradient id="seBowl" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#8a5a1f"/><stop offset=".5" stop-color="#e0a94a"/><stop offset="1" stop-color="#7a4a18"/></linearGradient></defs>'+
+      '<g class="se-smoke">'+puffs+'</g>'+
+      '<g class="se-flame"><path d="M60 14C82 44 94 60 94 86c0 26-16 40-34 40S26 112 26 86c0-24 14-38 34-72z" fill="url(#seFlame)"/><path d="M60 54c12 16 18 26 18 38 0 14-8 22-18 22s-18-8-18-22c0-12 6-22 18-38z" fill="#fff3c8" opacity=".8"/></g>'+
+      '<path class="se-ember" d="M34 126h52" stroke="#ff7a2a" stroke-width="6" stroke-linecap="round"/>'+
+      sparks+
+      '<path d="M28 126h64l-10 30H38z" fill="url(#seBowl)" stroke="#3a2410" stroke-width="2"/><rect x="52" y="156" width="16" height="40" rx="6" fill="#6b4a2a" stroke="#3a2410" stroke-width="2"/></svg>'+
+    '<div class="se-title">Your <b>'+pend.n+'-day streak</b> has ended</div>'+
+    '<div class="se-sub">Your best is '+pend.best+' days</div>'+
+    '<div class="se-quote">\u201c'+q[0]+'\u201d'+(q[1]?'<small>'+q[1]+'</small>':'')+'</div>'+
+    '<button type="button" class="se-btn">Begin again</button>'+
+  '</div>';
+  document.body.appendChild(o);document.body.classList.add('overlay-open');
+  const close=()=>{try{localStorage.removeItem('arx_streakEnded');}catch(e){}o.classList.add('out');setTimeout(()=>{o.remove();document.body.classList.remove('overlay-open');},260);};
+  o.querySelector('.se-btn').addEventListener('click',close);
+  requestAnimationFrame(()=>o.classList.add('on'));
+}
 function applyStreakBreak(){
   if(!lastActiveDate||streak<=0)return;
   const today=localDateKey(new Date());
@@ -24326,7 +24401,9 @@ function applyStreakBreak(){
   if(tryAutoConsumeStreakFreeze())return; // a banked freeze absorbs the miss silently, no break at all
   const repairStillLive=streakSavers>0&&streakRepairDismissedDate!==today;
   if(repairStillLive)return; // give them the chance to see/use the repair banner first
+  const lostStreak=streak;
   streak=0;
+  try{noteStreakEnded(lostStreak);}catch(e){}
   const sv=document.getElementById('streak-val');if(sv)sv.textContent=streak;
   const dgsn=document.getElementById('dash-greeting-streak-num');if(dgsn)dgsn.textContent=streak;
   const dsw=document.getElementById('dash-streak-watermark');if(dsw)dsw.textContent=streak;
@@ -33410,6 +33487,29 @@ window.arxIcons=scan;
 .achievement-close-btn,.crate-open-btn,.crate-tap-prompt,.crate-upgrade-btn,.crate-slot,.mystery-silhouette,#reveal-mystery-icon{touch-action:manipulation;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .achievement-overlay.show{pointer-events:auto}
 .achievement-close-btn{position:relative;z-index:3}
+</style>
+<style>
+.streak-end-overlay{position:fixed;inset:0;z-index:5200;display:grid;place-items:center;padding:24px;background:radial-gradient(ellipse at 50% 38%,rgba(40,18,10,.96),rgba(6,3,2,.98) 70%);opacity:0;transition:opacity .5s ease}
+.streak-end-overlay.on{opacity:1}.streak-end-overlay.out{opacity:0;transition:opacity .25s ease}
+.se-stage{width:min(360px,100%);text-align:center;color:#fff}
+.se-torch{width:150px;height:250px;display:block;margin:0 auto 10px;overflow:visible}
+.se-flame{transform-box:fill-box;transform-origin:50% 100%;animation:seFlicker .45s ease-in-out 3,seOut 1.5s ease-in 1.0s forwards}
+@keyframes seFlicker{0%,100%{transform:scale(1,1)}50%{transform:scale(.94,1.07)}}
+@keyframes seOut{0%{transform:scale(1,1);opacity:1}40%{transform:scale(.8,.6);opacity:.9}100%{transform:scale(.05,.02);opacity:0}}
+.se-ember{opacity:0;animation:seEmber 3.2s ease-out 1.1s forwards}
+@keyframes seEmber{0%{opacity:.9}100%{opacity:.25}}
+.se-puff{fill:#bbb;opacity:0;transform-box:fill-box;transform-origin:center;animation:sePuff 2.2s ease-out forwards}
+@keyframes sePuff{0%{opacity:0;transform:translateY(0) scale(.4)}30%{opacity:.55}100%{opacity:0;transform:translateY(-70px) scale(2.4)}}
+.se-spark{fill:#ff9a3d;opacity:0;animation:seSpark 1.4s ease-in forwards}
+@keyframes seSpark{0%{opacity:1;transform:translate(0,0)}100%{opacity:0;transform:translate(var(--dx),70px)}}
+.se-title{font-family:var(--lv-display,serif);font-size:24px;line-height:1.2;opacity:0;animation:seIn .8s ease 2.4s forwards}
+.se-title b{color:#ffb347}
+.se-sub{margin-top:6px;font-size:13px;color:#cdbf9f;opacity:0;animation:seIn .8s ease 2.7s forwards}
+.se-quote{margin:22px auto 0;max-width:300px;font-family:var(--lv-display,serif);font-style:italic;font-size:19px;line-height:1.35;color:#ffe7bf;opacity:0;animation:seIn 1s ease 3.3s forwards}
+.se-quote small{display:block;margin-top:6px;font-size:12px;font-style:normal;letter-spacing:.12em;text-transform:uppercase;color:#cdbf9f}
+.se-btn{margin-top:26px;padding:13px 30px;border-radius:999px;border:2px solid #e6be6d;background:linear-gradient(180deg,#ff8a3d,#f36717);color:#1a0d00;font-weight:800;font-size:15px;box-shadow:0 3px 0 #6b3a17;opacity:0;animation:seIn .7s ease 4.3s forwards;touch-action:manipulation}
+@keyframes seIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.se-flame{display:none}.se-title,.se-sub,.se-quote,.se-btn{animation:none;opacity:1}.se-puff,.se-spark{display:none}.se-ember{animation:none;opacity:.25}}
 </style>
 </body>
 </html>
