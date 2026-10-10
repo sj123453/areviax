@@ -9339,12 +9339,14 @@ body[data-goal-theme="cut"] .lv-page{
     <div id="profile-title-toggle" style="display:flex;gap:6px;flex-wrap:wrap"></div>
   </div>
 
-  <!-- HALL OF STATUES -->
+  <!-- RANK / TEMPLE links (the old statue ladder lived here) -->
   <div class="card lv-surface" style="margin-bottom:14px">
-    <div class="ch"><span class="ct">Hall of Statues</span></div>
-    <div style="font-size:12px;color:var(--muted);margin-bottom:14px">Every tier you've passed stays lit. The rest are waiting.</div>
-    <button type="button" class="btn-g hall3d-open" id="hall3d-open" onclick="openHall3D()" hidden>Walk the 3D hall</button>
-    <div id="hall-of-statues" class="hall-path"></div>
+    <div class="ch"><span class="ct">Your Rank</span></div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:14px">See where you stand on the climb to Olympus, or step into your temple.</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button type="button" class="btn-g" onclick="openRankUp(event)">See your rank</button>
+      <button type="button" class="btn-g hall3d-open" id="hall3d-open" onclick="openHall3D()" hidden>Visit your temple</button>
+    </div>
   </div>
 
   <!-- BESTIARY — one beast of Greek myth per rank tier -->
@@ -17735,7 +17737,7 @@ function hall3DSupported(){
 }
 function syncHall3DButton(){
   const b=document.getElementById('hall3d-open');
-  if(b){b.hidden=!hall3DSupported();b.textContent=hall3DWide()?'Walk the 3D hall':'Climb the road to Olympus';}
+  if(b){b.hidden=!hall3DSupported();b.textContent=hall3DWide()?'Visit your temple':'Climb the road to Olympus';}
 }
 // ── RANK UP (centre nav button) ──
 // Press effect borrowed from the reference artifact's centre button: squash,
