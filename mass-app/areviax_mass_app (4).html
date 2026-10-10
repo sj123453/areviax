@@ -14785,7 +14785,7 @@ function renderShopEvent(){
   const el=document.getElementById('shop-event');if(!el)return;
   const now=Date.now(),sch=arxEventSchedule(now);
   if(sch.next){
-    el.innerHTML='<div class="ev-teaser"><span class="ev-teaser-ico"><span class="ico" style="--i:url(\'images/icons/ui/lock.png\')"><i class="ico-t">🔒</i></span></span><div><b>A new adventure is on its way</b><small>Heroes\' Trial crate arrives in '+arxEventLeft(sch.next.start-now)+'</small></div></div>';
+    const lockPng='images/icons/ui/lock.png';el.innerHTML='<div class="ev-teaser"><span class="ev-teaser-ico"><span class="ico" style="--i:url(\''+lockPng+'\')"><i class="ico-t">🔒</i></span></span><div><b>A new adventure is on its way</b><small>Heroes\' Trial crate arrives in '+arxEventLeft(sch.next.start-now)+'</small></div></div>';
     return;
   }
   const {ev,end,key}=sch.active,bought=arxEventBought().includes(key),afford=drachma>=ARX_EVENT_COST;
@@ -33273,7 +33273,8 @@ function iconFor(e){const path=MAP[e];const name=path.split('/').pop().replace('
   const t=document.createElement('i');t.className='ico-t';t.textContent=e;s.appendChild(t);return s;}
 function fix(tn){
   const p=tn.parentNode;if(!p||p.nodeType!==1||SKIP[p.nodeName]||p instanceof SVGElement)return;
-  if(p.closest&&(p.closest('.ico')||p.closest('[contenteditable=true]')))return;
+  // never inside the crate reveal / its confetti: those nodes are rebuilt and animated constantly, and swapping them mid-tap makes iOS drop the tap
+  if(p.closest&&(p.closest('.ico')||p.closest('[contenteditable=true]')||p.closest('.achievement-overlay,.burst-emoji,.unlock-glyph,.crate-reveal-stage,.reveal-sparkle,[data-noico]')))return;
   const txt=tn.nodeValue;RE.lastIndex=0;if(!RE.test(txt))return;RE.lastIndex=0;
   const frag=document.createDocumentFragment();let last=0,m;
   while((m=RE.exec(txt))){if(m.index>last)frag.appendChild(document.createTextNode(txt.slice(last,m.index)));frag.appendChild(iconFor(m[0]));last=m.index+m[0].length;}
@@ -33284,6 +33285,8 @@ function scan(root){
   if(!root)return;
   if(root.nodeType===3){fix(root);return;}
   if(root.nodeType!==1||SKIP[root.nodeName]||root instanceof SVGElement)return;
+  if(root.closest&&root.closest('.achievement-overlay,.burst-emoji,.unlock-glyph,.crate-reveal-stage'))return;
+  if(root.classList&&(root.classList.contains('burst-emoji')||root.classList.contains('unlock-glyph')||root.classList.contains('achievement-overlay')))return;
   const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT,{acceptNode:n=>n.parentNode&&!SKIP[n.parentNode.nodeName]?NodeFilter.FILTER_ACCEPT:NodeFilter.FILTER_REJECT});
   const list=[];let n;while((n=w.nextNode()))list.push(n);list.forEach(fix);
 }
@@ -33381,6 +33384,32 @@ window.arxIcons=scan;
 @media(min-width:900px){
   #page-rank.active{display:block;position:fixed;left:210px;right:0;top:61px;bottom:0;z-index:20;max-width:none!important;padding:0!important;margin:0!important}
 }
+</style>
+<style>
+/* PHONE / LOW-POWER MODE — the three blurred background blobs and two side glows were each a full-screen
+   composited layer expanded by their blur radius (≈110 MB of GPU memory at 3x density) and re-rasterised
+   every frame by their drift animations; together with the decorative infinite animations that is what
+   makes iOS kill the tab. On phones/tablets: no blur filters, no drifting, no decorative infinite loops. */
+@media(max-width:1024px),(hover:none){
+  .main-gradient-blob{filter:none!important;animation:none!important}
+  .main-gradient-bg .side-glow{display:none!important}
+  .brand-watermark,.brand-watermark *{animation:none!important}
+  .lv-rail-fill,.lv-rail-fill::after,.lv-rail-fill::before{animation:none!important}
+  .rh-statue{animation:none!important}
+  #more-sheet-backdrop:not(.show){visibility:hidden}
+  /* backdrop blurs re-sample everything behind them every frame; panels are already dark, so drop them on phones */
+  *,*::before,*::after{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+  /* decorative loops that keep the GPU busy while nothing is happening */
+  .road-ember,.rg-rays,.rg-flame,.glow-title,.lv-pulse-dot,.crate-slot,.crate-slot-label,.crate-icon-burst,.road-world-chip i{animation:none!important}
+  .road-ember{display:none!important}
+}
+@media(prefers-reduced-motion:reduce){.main-gradient-blob{animation:none!important}}
+</style>
+<style>
+/* make every reveal/crate control respond to the first tap on iOS */
+.achievement-close-btn,.crate-open-btn,.crate-tap-prompt,.crate-upgrade-btn,.crate-slot,.mystery-silhouette,#reveal-mystery-icon{touch-action:manipulation;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.achievement-overlay.show{pointer-events:auto}
+.achievement-close-btn{position:relative;z-index:3}
 </style>
 </body>
 </html>
