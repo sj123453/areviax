@@ -4681,6 +4681,7 @@ body.overlay-open .crate-icon-wrap.ready::before{animation-play-state:paused}
 @keyframes ruSp{from{transform:translate(-50%,-50%) scale(1)}to{transform:translate(calc(-50% + var(--x)),calc(-50% + var(--y))) scale(0);opacity:.2}}
 #rankup-overlay{position:fixed;left:0;right:0;top:0;bottom:calc(60px + env(safe-area-inset-bottom,0px));z-index:150;background:#120b07;clip-path:circle(0px at var(--cx,50%) var(--cy,92%));transition:clip-path .9s cubic-bezier(.7,0,.25,1);pointer-events:none}
 @media(min-width:900px){#rankup-overlay{left:210px!important;bottom:0!important;top:61px!important}}
+#rankup-overlay,#rankup-overlay iframe,#page-rank,#page-rank iframe{touch-action:pan-y;overscroll-behavior-x:none;overflow-x:hidden}
 #rankup-overlay.open{clip-path:circle(170vmax at var(--cx,50%) var(--cy,92%));pointer-events:auto}
 #rankup-overlay iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:block}
 @media(prefers-reduced-motion:reduce){.mn-btn.mn-primary .ru-orb::after{animation:none}#mn-xproad.squash .ru-orb{animation:none}#rankup-overlay{clip-path:none;opacity:0;visibility:hidden;transition:opacity .3s ease,visibility 0s linear .3s}#rankup-overlay.open{opacity:1;visibility:visible;transition:opacity .3s ease}}
@@ -5449,8 +5450,80 @@ body[data-goal-theme="cut"] .lv-page{
 .cs-item small{font:800 10.5px/1.1 'Outfit',system-ui,sans-serif;letter-spacing:.04em;color:#ffd84a;-webkit-text-stroke:2px #3a2a00;paint-order:stroke fill}
 .cs-item.hot .cs-tile{border-color:#ffd84a;box-shadow:0 0 18px 4px rgba(255,216,74,.7),0 4px 0 rgba(0,0,0,.35)}
 .cs-btn{position:relative;margin-top:20px}
+/* the trophy in the gold PR pill was gold-on-gold: draw it black */
+.pr-pill .ico{--c:#000!important}
+
+.flv-tip{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;padding:8px 10px;margin-bottom:6px;border-radius:10px;background:rgba(255,122,46,.07);border:1px solid rgba(255,122,46,.2);font-size:12px;line-height:1.4}
+.flv-tip b{color:var(--white);font-weight:800}
+.flv-tip span{flex:1;min-width:120px;color:rgba(var(--white-rgb),.7)}
+.flv-tip em{font-style:normal;font-weight:800;font-size:11px;color:#FF9A45;white-space:nowrap}
+
+/* crate rewards: art with no circle; new trophies start as a silhouette then light up */
+.crate-xp-slot.rw-raw .crate-xp-slot-icon{background:none!important;box-shadow:none!important;border-radius:0!important}
+.crate-xp-slot.rw-raw .crate-xp-slot-icon img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 6px 10px rgba(0,0,0,.45))}
+.crate-xp-slot.rw-sil .crate-xp-slot-icon img,.crate-xp-slot.rw-sil .crate-xp-slot-icon svg{filter:brightness(0) contrast(1.1) drop-shadow(0 0 14px rgba(255,255,255,.25))!important;opacity:.92}
+.crate-xp-slot.rw-lit .crate-xp-slot-icon{animation:rwUnlock .9s cubic-bezier(.2,.9,.3,1.3)}
+.crate-xp-slot.rw-lit .crate-xp-slot-icon img{filter:drop-shadow(0 0 22px rgba(255,220,120,.85))!important}
+@keyframes rwUnlock{0%{transform:scale(.8);filter:brightness(4) saturate(0)}45%{transform:scale(1.25);filter:brightness(2.2)}100%{transform:scale(1);filter:none}}
+.cs-tile.raw{background:none!important;border:none!important;box-shadow:none!important}
+.cs-tile.raw img{width:76px;height:76px;filter:drop-shadow(0 4px 8px rgba(0,0,0,.45))}
+.cs-item.hot .cs-tile.raw{box-shadow:none!important}
+.cs-item.hot .cs-tile.raw img{filter:drop-shadow(0 0 14px rgba(255,216,74,.85))}
+.sd-item{min-width:74px;padding:8px 10px 7px;border-radius:12px;background:var(--border2);border:1px solid var(--border);display:flex;flex-direction:column;align-items:center;gap:1px}
+.sd-item img{display:block;object-fit:contain}
+.sd-item b{font-size:17px;font-weight:900;color:var(--white);line-height:1.1}
+.sd-item span{font-size:10.5px;color:var(--muted);letter-spacing:.03em}
+/* crate reveal + YOU GOT: no sideways panning/scrolling (vertical only; horizontal drags still reach the badge-spin JS) */
+.achievement-overlay{touch-action:pan-y;overscroll-behavior-x:none;overflow-x:hidden}
+.achievement-modal.crate-summary,.achievement-modal.crate-reveal-stage{touch-action:pan-y;overscroll-behavior-x:none;overflow-x:hidden}
+.cs-grid,.cs-item{touch-action:pan-y}
 @keyframes csPop{0%{opacity:0;transform:scale(.4) translateY(16px)}100%{opacity:1;transform:none}}
 @media(prefers-reduced-motion:reduce){.cs-item{animation:none;opacity:1}}
+</style>
+
+<style>
+/* BRAWL-STYLE ROAD (renderRoadPath): reward cards over one thick progress bar, ticks + numbers, numbered medals */
+.xp-road-track.rd{display:flex;align-items:flex-start;gap:0;padding:64px 28px 40px;-webkit-mask-image:linear-gradient(to right,transparent,#000 26px,#000 calc(100% - 26px),transparent);mask-image:linear-gradient(to right,transparent,#000 26px,#000 calc(100% - 26px),transparent)}
+.rd-node{position:relative;flex:0 0 118px;width:118px;animation:xpNodeEntrance .5s cubic-bezier(.16,1,.3,1) both;animation-delay:var(--stagger,0ms)}
+.rd-card{position:relative;margin:0 9px;height:142px;border-radius:14px;padding:12px 6px 0;text-align:center;display:flex;flex-direction:column;align-items:center;
+  background:linear-gradient(170deg,rgba(255,255,255,.1),rgba(255,255,255,.02) 40%),linear-gradient(180deg,#2c2a3c,#171521);
+  box-shadow:inset 0 0 0 2px var(--rc,#8a7a5a),inset 0 0 0 4px rgba(0,0,0,.45),0 8px 14px rgba(0,0,0,.45);overflow:visible}
+.rd-card.bronze{--rc:#b07a45}.rd-card.silver{--rc:#c9d2de}.rd-card.gold{--rc:#ffcf4d;background:linear-gradient(170deg,rgba(255,220,120,.22),rgba(255,255,255,.02) 45%),linear-gradient(180deg,#3a3020,#1b1610)}
+.rd-card::after{content:"";position:absolute;left:6px;right:6px;top:4px;height:34%;border-radius:10px 10px 40% 40%;background:linear-gradient(180deg,rgba(255,255,255,.14),transparent);pointer-events:none}
+.rd-icon{width:68px;height:68px;display:flex;align-items:center;justify-content:center;font-size:44px;filter:drop-shadow(0 5px 6px rgba(0,0,0,.6));position:relative;z-index:1}
+.rd-icon img,.rd-icon svg{width:100%;height:100%;object-fit:contain}
+.rd-name{margin-top:4px;font-size:10px;font-weight:700;letter-spacing:.2px;color:rgba(255,244,224,.85);line-height:1.15;max-width:100%;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;position:relative;z-index:1}
+.rd-pill{position:absolute;left:50%;bottom:-11px;transform:translateX(-50%);max-width:112px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:3px 9px;border-radius:999px;font-size:10px;font-weight:800;color:#fff;background:linear-gradient(180deg,#3b3a52,#1f1e2d);border:1.5px solid rgba(255,255,255,.28);box-shadow:0 3px 5px rgba(0,0,0,.5);z-index:2}
+.rd-check{position:absolute;left:-7px;top:-7px;width:26px;height:26px;border-radius:50%;background:linear-gradient(180deg,#5fd35a,#2e9a38);border:2px solid #fff;display:flex;align-items:center;justify-content:center;z-index:3;box-shadow:0 3px 6px rgba(0,0,0,.5)}
+.rd-check svg{width:14px;height:14px}
+.rd-lock{position:absolute;right:5px;top:4px;font-size:12px;opacity:.85;z-index:3}
+.rd-flag{position:absolute;left:50%;top:-12px;transform:translateX(-50%);padding:2px 9px;border-radius:999px;background:linear-gradient(180deg,#ffe27a,#f0a81c);color:#2a1a00;font-size:10px;font-weight:900;letter-spacing:.5px;z-index:3;box-shadow:0 3px 6px rgba(0,0,0,.5)}
+.rd-node.locked .rd-icon{opacity:.8;filter:grayscale(.35) drop-shadow(0 5px 6px rgba(0,0,0,.6))}
+.rd-node.claimed .rd-card{filter:brightness(.78) saturate(.9)}
+.rd-node.next .rd-card{--rc:#ff9a3c;background:linear-gradient(170deg,rgba(255,170,80,.28),rgba(255,255,255,.02) 45%),linear-gradient(180deg,#3d2a1d,#1c1410);box-shadow:inset 0 0 0 2px #ff9a3c,inset 0 0 0 4px rgba(0,0,0,.45),0 0 22px rgba(255,140,50,.45),0 8px 14px rgba(0,0,0,.45);transform:translateY(-6px)}
+.rd-node.ready .rd-card{--rc:#ffe27a;animation:rdReady 1.3s ease-in-out infinite;cursor:pointer;background:linear-gradient(170deg,rgba(255,226,122,.35),rgba(255,255,255,.02) 45%),linear-gradient(180deg,#4a3a18,#1d160a)}
+@keyframes rdReady{0%,100%{box-shadow:inset 0 0 0 2px #ffe27a,inset 0 0 0 4px rgba(0,0,0,.45),0 0 14px rgba(255,220,90,.5),0 8px 14px rgba(0,0,0,.45);transform:translateY(-4px)}50%{box-shadow:inset 0 0 0 2px #fff3b0,inset 0 0 0 4px rgba(0,0,0,.45),0 0 30px rgba(255,220,90,.9),0 8px 14px rgba(0,0,0,.45);transform:translateY(-8px)}}
+.rd-bar{position:relative;height:22px;margin-top:26px;background:linear-gradient(180deg,#3a2a3e,#241a2a);box-shadow:inset 0 3px 5px rgba(0,0,0,.6),inset 0 -2px 0 rgba(255,255,255,.08),0 0 0 2px #120c16}
+.rd-node:first-child .rd-bar{border-radius:11px 0 0 11px}.rd-node:last-child .rd-bar{border-radius:0 11px 11px 0}
+.rd-fill{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(180deg,#ffb25a,#f06a14 55%,#c24a08);box-shadow:inset 0 2px 0 rgba(255,255,255,.35)}
+.rd-node.claimed .rd-fill{background:linear-gradient(180deg,#ffc860,#f08a1c 55%,#c9650a)}
+.road-scenery.theme-trophy .rd-fill{background:linear-gradient(180deg,#ffe07a,#f5b520 55%,#c98a08)}
+.rd-dot{position:absolute;right:-6px;top:50%;width:12px;height:12px;margin-top:-6px;border-radius:50%;background:#e8dcc4;box-shadow:0 0 0 2px #120c16,inset 0 -2px 0 rgba(0,0,0,.25);z-index:2}
+.rd-node.claimed .rd-dot{background:#ffd27a}
+.rd-medal{position:absolute;right:-19px;top:50%;width:38px;height:38px;margin-top:-19px;border-radius:50%;z-index:3;display:flex;align-items:center;justify-content:center;
+  background:conic-gradient(from 210deg,#fff0b0,#c98a1c,#fff0b0,#9a6410,#fff0b0);box-shadow:0 0 0 2px #120c16,0 5px 8px rgba(0,0,0,.6)}
+.rd-medal.silver{background:conic-gradient(from 210deg,#fff,#8e9aab,#fff,#667182,#fff)}.rd-medal.bronze{background:conic-gradient(from 210deg,#ffd9b0,#a8672a,#ffd9b0,#7a4518,#ffd9b0)}
+.rd-medal::before{content:"";position:absolute;inset:4px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#4a3d68,#1b1426);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.35)}
+.rd-medal b{position:relative;font-family:'Cinzel',Georgia,serif;font-size:13px;font-weight:800;color:#ffe9a8;text-shadow:0 1px 2px #000;letter-spacing:.3px}
+.rd-node.locked .rd-medal{filter:saturate(.45) brightness(.8)}
+.rd-num{position:absolute;right:0;transform:translateX(50%);margin-top:14px;font-size:11px;font-weight:700;color:rgba(255,236,205,.55);font-family:'JetBrains Mono',ui-monospace,monospace;white-space:nowrap}
+.rd-node.claimed .rd-num,.rd-node.next .rd-num{color:#ffe2a0}
+.rd-you{position:absolute;top:100%;transform:translateX(-50%);margin-top:36px;z-index:4}
+.rd-you::before{content:"";position:absolute;left:50%;top:-12px;transform:translateX(-50%);border:6px solid transparent;border-bottom-color:#ff7a1c}
+.rd-you em{font-style:normal;display:block;padding:4px 14px;border-radius:7px;background:linear-gradient(180deg,#ff9a3c,#e2610e);color:#fff;font-weight:900;font-size:12px;letter-spacing:.8px;box-shadow:0 3px 8px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.4)}
+.road-scenery.has-realm-art .road-realm-strip::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(8,6,12,.55),rgba(8,6,12,.78))}
+body .road-scenery .xp-road-track.horizontal.rd{height:auto;min-height:330px;padding:64px 28px 56px;gap:0;align-items:flex-start}
+@media(prefers-reduced-motion:reduce){.rd-node,.rd-node.ready .rd-card{animation:none!important}}
 </style>
 </head>
 <body class="onboarding-active">
@@ -7443,6 +7516,7 @@ body[data-goal-theme="cut"] .lv-page{
     <div id="recipe-detail-swaps" style="display:none;margin-bottom:18px"></div>
     <div class="ex-cue-label" style="margin-bottom:8px">Ingredients</div>
     <div id="recipe-detail-ingredients" style="margin-bottom:18px"></div>
+    <div id="recipe-detail-flavour" style="display:none;margin-bottom:18px"></div>
     <div class="ex-cue-label" style="margin-bottom:8px">Method</div>
     <div id="recipe-detail-steps"></div>
     <div id="recipe-detail-variations" style="display:none;margin-top:18px"></div>
@@ -10098,6 +10172,13 @@ body[data-goal-theme="cut"] .lv-page{
     <div id="sd-streak-num" style="font-size:52px;font-weight:900;color:var(--white);letter-spacing:-.03em;line-height:1">0</div>
     <div style="font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,122,46,.7);margin-top:2px">Day Streak</div>
     <div id="sd-best-sub" style="font-size:11.5px;color:var(--muted);margin-top:4px"></div>
+    <!-- what you are holding that protects or powers the streak -->
+    <div id="sd-items" style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:14px 0 4px">
+      <div class="sd-item" title="A Freeze quietly covers a missed day"><img src="images/icons/streak-freeze.png" alt="" width="26" height="26"><b id="sd-n-freeze">0</b><span>Freezes</span></div>
+      <div class="sd-item" title="A Saver repairs a streak that already broke"><img src="images/icons/streak-saver.png" alt="" width="26" height="26"><b id="sd-n-saver">0</b><span>Savers</span></div>
+      <div class="sd-item" title="Keys upgrade crates"><img src="images/icons/key.png" alt="" width="26" height="26"><b id="sd-n-key">0</b><span>Gold Keys</span></div>
+      <div class="sd-item" title="Spend Drachma in the Shop"><img src="images/icons/tetradrachm.png" alt="" width="26" height="26"><b id="sd-n-drachma">0</b><span>Drachma</span></div>
+    </div>
 
     <div style="text-align:left;margin-top:22px">
       <div style="font-size:11px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Last 12 weeks</div>
@@ -10197,6 +10278,22 @@ let streakSavers=0;
 // markTrainedToday) toward the next banked drop, resetting at the
 // threshold; bronzeDropBank is how many are sitting there ready to open.
 let bronzeDropBank=0;
+let areviaxDropBank=0;   // Areviax Keys (the rare key tier): each opens one Areviax crate from the crate row
+// Typed keys: a key is a crate of its own tier. Every key reward says which one it is (Bronze / Silver / Gold / Diamond / Areviax).
+const KEY_TIER_NAMES={bronze:'Bronze',silver:'Silver',gold:'Gold',diamond:'Diamond',areviax:'Areviax'};
+function addKeyCrates(tier,n){
+  if(tier==='bronze')bronzeDropBank+=n;else if(tier==='silver')silverDropBank+=n;else if(tier==='diamond')diamondDropBank+=n;
+  else if(tier==='areviax')areviaxDropBank+=n;else keyBank+=n;   // a Gold Key is the Gold crate (keyBank)
+}
+// Which key a crate hands out: mostly the lower tiers, Gold now and then, Diamond rarely, Areviax almost never (better crates skew higher).
+function rollKeyTier(crateTier){
+  const W={bronze:{bronze:50,silver:30,gold:16,diamond:3.6,areviax:.4},silver:{bronze:36,silver:34,gold:22,diamond:7,areviax:.6},gold:{bronze:26,silver:32,gold:28,diamond:12.4,areviax:.9},diamond:{bronze:16,silver:28,gold:34,diamond:20,areviax:2},areviax:{bronze:6,silver:20,gold:38,diamond:32,areviax:4}}[crateTier]||{bronze:40,silver:30,gold:20,diamond:9,areviax:1};
+  let x=Math.random()*Object.values(W).reduce((a,b)=>a+b,0);
+  for(const k of Object.keys(W)){x-=W[k];if(x<=0)return k;}
+  return 'gold';
+}
+// Arete Road key checkpoints: the early ones are Bronze Keys, then Silver, Gold, and Diamond far down the road.
+function xpRoadKeyTier(node){return node.keyTier||(node.xp<3000?'bronze':node.xp<15000?'silver':node.xp<200000?'gold':'diamond');}
 let bronzeDropProgress=0;
 const BRONZE_DROP_DAYS=5;
 // Silver and Diamond are new tiers introduced alongside the Daily Spin
@@ -12844,6 +12941,8 @@ function closeWatch(){
 }
 function openStreakDetail(){
   const numEl=document.getElementById('sd-streak-num');if(numEl)numEl.textContent=streak;
+  const setN=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  setN('sd-n-freeze',streakFreezes);setN('sd-n-saver',streakSavers);setN('sd-n-key',keyBank);setN('sd-n-drachma',drachma);
   const subEl=document.getElementById('sd-best-sub');
   if(subEl)subEl.textContent=bestStreak>streak?'Best ever: '+bestStreak+' days':(streak>0?'This is your best streak yet — keep it going.':'Complete a session today to start one.');
   renderStreakCalendar();
@@ -13414,26 +13513,40 @@ const LEGEND_CARDS=[
   {key:'hero_orpheus', name:'Orpheus, the Unrivaled Voice', title:'Discipline precise enough to move even the underworld', icon:'🎵', img:'images/relics/orpheus.png', imgThumb:'images/relics/orpheus.png', rarity:'mythic'},
   {key:'hero_cadmus', name:'Cadmus, Dragon-Slayer', title:'Building something lasting on the ground he had to clear first', icon:'🐉', img:'images/relics/cadmus.png', imgThumb:'images/relics/cadmus.png', rarity:'epic'},
   {key:'hero_oedipus', name:'Oedipus, Riddle-Solver', title:'The answer that was obvious only in hindsight', icon:'🗿', img:'images/relics/oedipus.png', imgThumb:'images/relics/oedipus.png', rarity:'epic'},
+  // The Underworld set — trophies from Hades' realm (the Shade / Ferried Soul / Pardoned ranks live there too).
+  {key:'uw_hades', name:'Hades, Lord of the Underworld', title:'Ruling the depths — the hardest sets are where he is at home', icon:'👑', img:'images/relics/uw_hades.png', imgThumb:'images/relics/uw_hades.png', rarity:'legendary'},
+  {key:'uw_helm', name:'Helm of Darkness', title:'Training unseen, so the first thing anyone notices is the result', icon:'🪖', img:'images/relics/uw_helm.png', imgThumb:'images/relics/uw_helm.png', rarity:'mythic'},
+  {key:'uw_cerberus', name:'Cerberus, Hound of the Gates', title:'Three heads, one rule: nothing skips a session and passes the gate', icon:'🐕', img:'images/relics/uw_cerberus.png', imgThumb:'images/relics/uw_cerberus.png', rarity:'epic'},
+  {key:'uw_lethe', name:'Cup of Lethe', title:'Forgetting the bad session and showing up for the next one', icon:'🏆', img:'images/relics/uw_lethe.png', imgThumb:'images/relics/uw_lethe.png', rarity:'epic'},
+  {key:'uw_pomegranate', name:'Persephone\'s Pomegranate', title:'Rest is a season, not a surrender — you return stronger each spring', icon:'🍎', img:'images/relics/uw_pomegranate.png', imgThumb:'images/relics/uw_pomegranate.png', rarity:'superrare'},
+  {key:'uw_obol', name:'Charon\'s Obol', title:'Every crossing has a price, and the toll is the work you put in', icon:'🪙', img:'images/relics/uw_obol.png', imgThumb:'images/relics/uw_obol.png', rarity:'rare'},
+  // The Sea set — Poseidon's realm, the water between the Underworld and the mortal world.
+  {key:'sea_trident', name:'Trident of Poseidon', title:'The three-pronged force that moves oceans — power you have to learn to steer', icon:'🔱', img:'images/relics/sea_trident.png', imgThumb:'images/relics/sea_trident.png', rarity:'mythic'},
+  {key:'sea_conch', name:'Triton\'s Conch', title:'One blast that calms or raises the sea — knowing when to push and when to ease off', icon:'🐚', img:'images/relics/sea_conch.png', imgThumb:'images/relics/sea_conch.png', rarity:'superrare'},
+  {key:'sea_pearl', name:'Amphitrite\'s Pearl', title:'Beauty made slowly under pressure, one layer at a time', icon:'🦪', img:'images/relics/sea_pearl.png', imgThumb:'images/relics/sea_pearl.png', rarity:'rare'},
+  {key:'sea_hippocampus', name:'Hippocampus, Steed of the Sea', title:'Strength and speed in the same body — the sea-horse that pulls Poseidon\'s chariot', icon:'🐎', img:'images/relics/sea_hippocampus.png', imgThumb:'images/relics/sea_hippocampus.png', rarity:'epic'},
+  {key:'sea_charybdis', name:'Charybdis, the Whirlpool', title:'Pulled under, again and again, and still coming back up', icon:'🌀', img:'images/relics/sea_charybdis.png', imgThumb:'images/relics/sea_charybdis.png', rarity:'epic'},
+  {key:'sea_fleece', name:'The Golden Fleece', title:'The prize at the end of a voyage that tested everyone aboard the Argo', icon:'🐏', img:'images/relics/sea_fleece.png', imgThumb:'images/relics/sea_fleece.png', rarity:'superrare'},
   {key:'aura_breakthrough', name:'Prometheus\'s Fire', title:'Breaking through mental barriers and becoming better than your previous self', icon:'<svg class="lgi-brand-mark" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="tg_aura_breakthrough" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#5c3a1e"/><stop offset="12%" stop-color="#8b5a2b"/><stop offset="30%" stop-color="#cd7f32"/><stop offset="44%" stop-color="#e8c15a"/><stop offset="50%" stop-color="#fff3c4"/><stop offset="56%" stop-color="#e8c15a"/><stop offset="70%" stop-color="#cd7f32"/><stop offset="85%" stop-color="#8b5a2b"/><stop offset="100%" stop-color="#5c3a1e"/></linearGradient></defs><ellipse cx="50" cy="93" rx="22" ry="4" fill="#000" opacity=".22"/><path d="M30 90 L70 90 L65 80 L35 80 Z" fill="url(#tg_aura_breakthrough)" stroke="#3a2410" stroke-width=".6"/><path d="M35 80 L65 80 L62 72 L38 72 Z" fill="url(#tg_aura_breakthrough)" stroke="#3a2410" stroke-width=".5"/><rect x="45" y="64" width="10" height="9" rx="1.5" fill="url(#tg_aura_breakthrough)" stroke="#3a2410" stroke-width=".4"/><path d="M50 10 C44 18 42 24 46 29 C43 27 41 30 43 34 C45 37 49 37 50 33 C51 37 55 37 57 34 C59 30 57 27 54 29 C58 24 56 18 50 10Z" fill="url(#tg_aura_breakthrough)" stroke="#3a2410" stroke-width=".6"/><rect x="47" y="36" width="6" height="28" rx="2" fill="url(#tg_aura_breakthrough)" stroke="#3a2410" stroke-width=".5"/></svg>', img:'images/relics/aura_breakthrough.png', imgThumb:'images/relics/aura_breakthrough.png', rarity:'rare'},
   {key:'aura_patience', name:'Chronos, Keeper of Time', title:'Progress takes time — consistency over weeks and months, not instant results', icon:'⏳', img:'images/relics/hourglass.png', imgThumb:'images/relics/hourglass.png', rarity:'rare'},
   {key:'aura_heart', name:'Thymos, the Fighting Heart', title:'Passion for training — the reason you keep showing up when motivation disappears', icon:'<svg class="lgi-brand-mark" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="tg_aura_heart" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#5c3a1e"/><stop offset="12%" stop-color="#8b5a2b"/><stop offset="30%" stop-color="#cd7f32"/><stop offset="44%" stop-color="#e8c15a"/><stop offset="50%" stop-color="#fff3c4"/><stop offset="56%" stop-color="#e8c15a"/><stop offset="70%" stop-color="#cd7f32"/><stop offset="85%" stop-color="#8b5a2b"/><stop offset="100%" stop-color="#5c3a1e"/></linearGradient></defs><ellipse cx="50" cy="93" rx="22" ry="4" fill="#000" opacity=".22"/><path d="M30 90 L70 90 L65 80 L35 80 Z" fill="url(#tg_aura_heart)" stroke="#3a2410" stroke-width=".6"/><path d="M35 80 L65 80 L62 72 L38 72 Z" fill="url(#tg_aura_heart)" stroke="#3a2410" stroke-width=".5"/><rect x="45" y="64" width="10" height="9" rx="1.5" fill="url(#tg_aura_heart)" stroke="#3a2410" stroke-width=".4"/><path d="M50 62 C28 46 30 24 44 24 C48 24 50 27 50 32 C50 27 52 24 56 24 C70 24 72 46 50 62Z" fill="url(#tg_aura_heart)" stroke="#3a2410" stroke-width=".7"/></svg>', img:'images/relics/aura_heart.png', imgThumb:'images/relics/aura_heart.png', rarity:'rare'},
   {key:'aura_summit', name:'Olympus Ascending', title:'Having a huge goal and being willing to climb toward it one step at a time', icon:'<svg class="lgi-brand-mark" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="tg_aura_summit" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#5c3a1e"/><stop offset="12%" stop-color="#8b5a2b"/><stop offset="30%" stop-color="#cd7f32"/><stop offset="44%" stop-color="#e8c15a"/><stop offset="50%" stop-color="#fff3c4"/><stop offset="56%" stop-color="#e8c15a"/><stop offset="70%" stop-color="#cd7f32"/><stop offset="85%" stop-color="#8b5a2b"/><stop offset="100%" stop-color="#5c3a1e"/></linearGradient></defs><ellipse cx="50" cy="93" rx="22" ry="4" fill="#000" opacity=".22"/><path d="M30 90 L70 90 L65 80 L35 80 Z" fill="url(#tg_aura_summit)" stroke="#3a2410" stroke-width=".6"/><path d="M35 80 L65 80 L62 72 L38 72 Z" fill="url(#tg_aura_summit)" stroke="#3a2410" stroke-width=".5"/><rect x="45" y="64" width="10" height="9" rx="1.5" fill="url(#tg_aura_summit)" stroke="#3a2410" stroke-width=".4"/><path d="M24 62 L42 26 L54 46 L62 32 L76 62 Z" fill="url(#tg_aura_summit)" stroke="#3a2410" stroke-width=".7" stroke-linejoin="round"/><path d="M42 26 L48 38 L36 38 Z" fill="#fff3c4" opacity=".6"/></svg>', img:'images/relics/aura_summit.png', imgThumb:'images/relics/aura_summit.png', rarity:'rare'},
   {key:'aura_strategy', name:'Athena\'s Wisdom', title:'Training intelligently rather than simply training harder', icon:'🦉', img:'images/relics/owl.png', imgThumb:'images/relics/owl.png', rarity:'rare'},
-  {key:'aura_focus', name:'The Oracle\'s Gaze', title:'Blocking out distractions and being completely locked into the task in front of you', icon:'<svg class="lgi-brand-mark" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="tg_aura_focus" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#5c3a1e"/><stop offset="12%" stop-color="#8b5a2b"/><stop offset="30%" stop-color="#cd7f32"/><stop offset="44%" stop-color="#e8c15a"/><stop offset="50%" stop-color="#fff3c4"/><stop offset="56%" stop-color="#e8c15a"/><stop offset="70%" stop-color="#cd7f32"/><stop offset="85%" stop-color="#8b5a2b"/><stop offset="100%" stop-color="#5c3a1e"/></linearGradient></defs><ellipse cx="50" cy="93" rx="22" ry="4" fill="#000" opacity=".22"/><path d="M30 90 L70 90 L65 80 L35 80 Z" fill="url(#tg_aura_focus)" stroke="#3a2410" stroke-width=".6"/><path d="M35 80 L65 80 L62 72 L38 72 Z" fill="url(#tg_aura_focus)" stroke="#3a2410" stroke-width=".5"/><rect x="45" y="64" width="10" height="9" rx="1.5" fill="url(#tg_aura_focus)" stroke="#3a2410" stroke-width=".4"/><path d="M20 42 C34 24 66 24 80 42 C66 60 34 60 20 42Z" fill="url(#tg_aura_focus)" stroke="#3a2410" stroke-width=".7"/><circle cx="50" cy="42" r="10" fill="#241505"/><circle cx="50" cy="42" r="5.5" fill="url(#tg_aura_focus)"/><circle cx="53" cy="39" r="1.8" fill="#fff8e0"/></svg>', rarity:'rare'},
-  {key:'aura_resilience', name:'Antaeus, Son of the Earth', title:'Taking hits, setbacks and bad sessions without letting them stop your progress', icon:'<svg class="lgi-brand-mark" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="tg_aura_resilience" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#5c3a1e"/><stop offset="12%" stop-color="#8b5a2b"/><stop offset="30%" stop-color="#cd7f32"/><stop offset="44%" stop-color="#e8c15a"/><stop offset="50%" stop-color="#fff3c4"/><stop offset="56%" stop-color="#e8c15a"/><stop offset="70%" stop-color="#cd7f32"/><stop offset="85%" stop-color="#8b5a2b"/><stop offset="100%" stop-color="#5c3a1e"/></linearGradient></defs><ellipse cx="50" cy="93" rx="22" ry="4" fill="#000" opacity=".22"/><path d="M30 90 L70 90 L65 80 L35 80 Z" fill="url(#tg_aura_resilience)" stroke="#3a2410" stroke-width=".6"/><path d="M35 80 L65 80 L62 72 L38 72 Z" fill="url(#tg_aura_resilience)" stroke="#3a2410" stroke-width=".5"/><rect x="45" y="64" width="10" height="9" rx="1.5" fill="url(#tg_aura_resilience)" stroke="#3a2410" stroke-width=".4"/><path d="M50 22 L67 30 L70 46 Q70 60 50 66 Q30 60 30 46 L33 30 Z" fill="url(#tg_aura_resilience)" stroke="#3a2410" stroke-width=".7" stroke-linejoin="round"/><path d="M50 30 L42 44 L50 44 L44 58" fill="none" stroke="#3a2410" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" opacity=".55"/></svg>', rarity:'rare'},
-  {key:'aura_mind', name:'Metis, Goddess of Craft', title:'Discipline and learning — physical progress starts with your decisions', icon:'<svg class="lgi-brand-mark" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="tg_aura_mind" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#5c3a1e"/><stop offset="12%" stop-color="#8b5a2b"/><stop offset="30%" stop-color="#cd7f32"/><stop offset="44%" stop-color="#e8c15a"/><stop offset="50%" stop-color="#fff3c4"/><stop offset="56%" stop-color="#e8c15a"/><stop offset="70%" stop-color="#cd7f32"/><stop offset="85%" stop-color="#8b5a2b"/><stop offset="100%" stop-color="#5c3a1e"/></linearGradient></defs><ellipse cx="50" cy="93" rx="22" ry="4" fill="#000" opacity=".22"/><path d="M30 90 L70 90 L65 80 L35 80 Z" fill="url(#tg_aura_mind)" stroke="#3a2410" stroke-width=".6"/><path d="M35 80 L65 80 L62 72 L38 72 Z" fill="url(#tg_aura_mind)" stroke="#3a2410" stroke-width=".5"/><rect x="45" y="64" width="10" height="9" rx="1.5" fill="url(#tg_aura_mind)" stroke="#3a2410" stroke-width=".4"/><path d="M30 26 L70 26 L70 64 L44 64 L44 58 L30 58 Z" fill="url(#tg_aura_mind)" stroke="#3a2410" stroke-width=".7" stroke-linejoin="round"/><line x1="38" y1="34" x2="62" y2="34" stroke="#3a2410" stroke-width="1" opacity=".5"/><line x1="38" y1="41" x2="62" y2="41" stroke="#3a2410" stroke-width="1" opacity=".5"/><line x1="38" y1="48" x2="56" y2="48" stroke="#3a2410" stroke-width="1" opacity=".5"/></svg>', rarity:'rare'},
-  {key:'aura_drive', name:'Ares\' Fire', title:'The internal fire that makes you want to keep improving', icon:'<svg class="lgi-brand-mark" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="tg_aura_drive" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#5c3a1e"/><stop offset="12%" stop-color="#8b5a2b"/><stop offset="30%" stop-color="#cd7f32"/><stop offset="44%" stop-color="#e8c15a"/><stop offset="50%" stop-color="#fff3c4"/><stop offset="56%" stop-color="#e8c15a"/><stop offset="70%" stop-color="#cd7f32"/><stop offset="85%" stop-color="#8b5a2b"/><stop offset="100%" stop-color="#5c3a1e"/></linearGradient></defs><ellipse cx="50" cy="93" rx="22" ry="4" fill="#000" opacity=".22"/><path d="M30 90 L70 90 L65 80 L35 80 Z" fill="url(#tg_aura_drive)" stroke="#3a2410" stroke-width=".6"/><path d="M35 80 L65 80 L62 72 L38 72 Z" fill="url(#tg_aura_drive)" stroke="#3a2410" stroke-width=".5"/><rect x="45" y="64" width="10" height="9" rx="1.5" fill="url(#tg_aura_drive)" stroke="#3a2410" stroke-width=".4"/><path d="M50 10 L56 24 L50 34 L44 24 Z" fill="url(#tg_aura_drive)" stroke="#3a2410" stroke-width=".6"/><rect x="48.4" y="30" width="3.2" height="34" rx="1.2" fill="url(#tg_aura_drive)" stroke="#3a2410" stroke-width=".4"/></svg>', rarity:'rare'},
-  {key:'aura_growth', name:'Demeter\'s Harvest', title:'Long-term development — strong foundations that let progress compound', icon:'<svg class="lgi-brand-mark" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="tg_aura_growth" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#5c3a1e"/><stop offset="12%" stop-color="#8b5a2b"/><stop offset="30%" stop-color="#cd7f32"/><stop offset="44%" stop-color="#e8c15a"/><stop offset="50%" stop-color="#fff3c4"/><stop offset="56%" stop-color="#e8c15a"/><stop offset="70%" stop-color="#cd7f32"/><stop offset="85%" stop-color="#8b5a2b"/><stop offset="100%" stop-color="#5c3a1e"/></linearGradient></defs><ellipse cx="50" cy="93" rx="22" ry="4" fill="#000" opacity=".22"/><path d="M30 90 L70 90 L65 80 L35 80 Z" fill="url(#tg_aura_growth)" stroke="#3a2410" stroke-width=".6"/><path d="M35 80 L65 80 L62 72 L38 72 Z" fill="url(#tg_aura_growth)" stroke="#3a2410" stroke-width=".5"/><rect x="45" y="64" width="10" height="9" rx="1.5" fill="url(#tg_aura_growth)" stroke="#3a2410" stroke-width=".4"/><path d="M50 66 L50 20" stroke="url(#tg_aura_growth)" stroke-width="3" stroke-linecap="round"/><path d="M50 26 Q38 20 34 10 Q46 14 50 26Z" fill="url(#tg_aura_growth)" stroke="#3a2410" stroke-width=".5"/><path d="M50 26 Q62 20 66 10 Q54 14 50 26Z" fill="url(#tg_aura_growth)" stroke="#3a2410" stroke-width=".5"/><path d="M50 38 Q38 32 34 22 Q46 26 50 38Z" fill="url(#tg_aura_growth)" stroke="#3a2410" stroke-width=".5"/><path d="M50 38 Q62 32 66 22 Q54 26 50 38Z" fill="url(#tg_aura_growth)" stroke="#3a2410" stroke-width=".5"/></svg>', rarity:'rare'},
+  {key:'aura_focus', name:'The Oracle\'s Gaze', title:'Blocking out distractions and being completely locked into the task in front of you', icon:'<svg class="lgi-brand-mark" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="tg_aura_focus" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#5c3a1e"/><stop offset="12%" stop-color="#8b5a2b"/><stop offset="30%" stop-color="#cd7f32"/><stop offset="44%" stop-color="#e8c15a"/><stop offset="50%" stop-color="#fff3c4"/><stop offset="56%" stop-color="#e8c15a"/><stop offset="70%" stop-color="#cd7f32"/><stop offset="85%" stop-color="#8b5a2b"/><stop offset="100%" stop-color="#5c3a1e"/></linearGradient></defs><ellipse cx="50" cy="93" rx="22" ry="4" fill="#000" opacity=".22"/><path d="M30 90 L70 90 L65 80 L35 80 Z" fill="url(#tg_aura_focus)" stroke="#3a2410" stroke-width=".6"/><path d="M35 80 L65 80 L62 72 L38 72 Z" fill="url(#tg_aura_focus)" stroke="#3a2410" stroke-width=".5"/><rect x="45" y="64" width="10" height="9" rx="1.5" fill="url(#tg_aura_focus)" stroke="#3a2410" stroke-width=".4"/><path d="M20 42 C34 24 66 24 80 42 C66 60 34 60 20 42Z" fill="url(#tg_aura_focus)" stroke="#3a2410" stroke-width=".7"/><circle cx="50" cy="42" r="10" fill="#241505"/><circle cx="50" cy="42" r="5.5" fill="url(#tg_aura_focus)"/><circle cx="53" cy="39" r="1.8" fill="#fff8e0"/></svg>', rarity:'rare', img:'images/relics/aura_focus.png', imgThumb:'images/relics/aura_focus.png'},
+  {key:'aura_resilience', name:'Antaeus, Son of the Earth', title:'Taking hits, setbacks and bad sessions without letting them stop your progress', icon:'<svg class="lgi-brand-mark" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="tg_aura_resilience" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#5c3a1e"/><stop offset="12%" stop-color="#8b5a2b"/><stop offset="30%" stop-color="#cd7f32"/><stop offset="44%" stop-color="#e8c15a"/><stop offset="50%" stop-color="#fff3c4"/><stop offset="56%" stop-color="#e8c15a"/><stop offset="70%" stop-color="#cd7f32"/><stop offset="85%" stop-color="#8b5a2b"/><stop offset="100%" stop-color="#5c3a1e"/></linearGradient></defs><ellipse cx="50" cy="93" rx="22" ry="4" fill="#000" opacity=".22"/><path d="M30 90 L70 90 L65 80 L35 80 Z" fill="url(#tg_aura_resilience)" stroke="#3a2410" stroke-width=".6"/><path d="M35 80 L65 80 L62 72 L38 72 Z" fill="url(#tg_aura_resilience)" stroke="#3a2410" stroke-width=".5"/><rect x="45" y="64" width="10" height="9" rx="1.5" fill="url(#tg_aura_resilience)" stroke="#3a2410" stroke-width=".4"/><path d="M50 22 L67 30 L70 46 Q70 60 50 66 Q30 60 30 46 L33 30 Z" fill="url(#tg_aura_resilience)" stroke="#3a2410" stroke-width=".7" stroke-linejoin="round"/><path d="M50 30 L42 44 L50 44 L44 58" fill="none" stroke="#3a2410" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" opacity=".55"/></svg>', rarity:'rare', img:'images/relics/aura_resilience.png', imgThumb:'images/relics/aura_resilience.png'},
+  {key:'aura_mind', name:'Metis, Goddess of Craft', title:'Discipline and learning — physical progress starts with your decisions', icon:'<svg class="lgi-brand-mark" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="tg_aura_mind" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#5c3a1e"/><stop offset="12%" stop-color="#8b5a2b"/><stop offset="30%" stop-color="#cd7f32"/><stop offset="44%" stop-color="#e8c15a"/><stop offset="50%" stop-color="#fff3c4"/><stop offset="56%" stop-color="#e8c15a"/><stop offset="70%" stop-color="#cd7f32"/><stop offset="85%" stop-color="#8b5a2b"/><stop offset="100%" stop-color="#5c3a1e"/></linearGradient></defs><ellipse cx="50" cy="93" rx="22" ry="4" fill="#000" opacity=".22"/><path d="M30 90 L70 90 L65 80 L35 80 Z" fill="url(#tg_aura_mind)" stroke="#3a2410" stroke-width=".6"/><path d="M35 80 L65 80 L62 72 L38 72 Z" fill="url(#tg_aura_mind)" stroke="#3a2410" stroke-width=".5"/><rect x="45" y="64" width="10" height="9" rx="1.5" fill="url(#tg_aura_mind)" stroke="#3a2410" stroke-width=".4"/><path d="M30 26 L70 26 L70 64 L44 64 L44 58 L30 58 Z" fill="url(#tg_aura_mind)" stroke="#3a2410" stroke-width=".7" stroke-linejoin="round"/><line x1="38" y1="34" x2="62" y2="34" stroke="#3a2410" stroke-width="1" opacity=".5"/><line x1="38" y1="41" x2="62" y2="41" stroke="#3a2410" stroke-width="1" opacity=".5"/><line x1="38" y1="48" x2="56" y2="48" stroke="#3a2410" stroke-width="1" opacity=".5"/></svg>', rarity:'rare', img:'images/relics/aura_mind.png', imgThumb:'images/relics/aura_mind.png'},
+  {key:'aura_drive', name:'Ares\' Fire', title:'The internal fire that makes you want to keep improving', icon:'<svg class="lgi-brand-mark" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="tg_aura_drive" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#5c3a1e"/><stop offset="12%" stop-color="#8b5a2b"/><stop offset="30%" stop-color="#cd7f32"/><stop offset="44%" stop-color="#e8c15a"/><stop offset="50%" stop-color="#fff3c4"/><stop offset="56%" stop-color="#e8c15a"/><stop offset="70%" stop-color="#cd7f32"/><stop offset="85%" stop-color="#8b5a2b"/><stop offset="100%" stop-color="#5c3a1e"/></linearGradient></defs><ellipse cx="50" cy="93" rx="22" ry="4" fill="#000" opacity=".22"/><path d="M30 90 L70 90 L65 80 L35 80 Z" fill="url(#tg_aura_drive)" stroke="#3a2410" stroke-width=".6"/><path d="M35 80 L65 80 L62 72 L38 72 Z" fill="url(#tg_aura_drive)" stroke="#3a2410" stroke-width=".5"/><rect x="45" y="64" width="10" height="9" rx="1.5" fill="url(#tg_aura_drive)" stroke="#3a2410" stroke-width=".4"/><path d="M50 10 L56 24 L50 34 L44 24 Z" fill="url(#tg_aura_drive)" stroke="#3a2410" stroke-width=".6"/><rect x="48.4" y="30" width="3.2" height="34" rx="1.2" fill="url(#tg_aura_drive)" stroke="#3a2410" stroke-width=".4"/></svg>', rarity:'rare', img:'images/relics/aura_drive.png', imgThumb:'images/relics/aura_drive.png'},
+  {key:'aura_growth', name:'Demeter\'s Harvest', title:'Long-term development — strong foundations that let progress compound', icon:'<svg class="lgi-brand-mark" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="tg_aura_growth" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#5c3a1e"/><stop offset="12%" stop-color="#8b5a2b"/><stop offset="30%" stop-color="#cd7f32"/><stop offset="44%" stop-color="#e8c15a"/><stop offset="50%" stop-color="#fff3c4"/><stop offset="56%" stop-color="#e8c15a"/><stop offset="70%" stop-color="#cd7f32"/><stop offset="85%" stop-color="#8b5a2b"/><stop offset="100%" stop-color="#5c3a1e"/></linearGradient></defs><ellipse cx="50" cy="93" rx="22" ry="4" fill="#000" opacity=".22"/><path d="M30 90 L70 90 L65 80 L35 80 Z" fill="url(#tg_aura_growth)" stroke="#3a2410" stroke-width=".6"/><path d="M35 80 L65 80 L62 72 L38 72 Z" fill="url(#tg_aura_growth)" stroke="#3a2410" stroke-width=".5"/><rect x="45" y="64" width="10" height="9" rx="1.5" fill="url(#tg_aura_growth)" stroke="#3a2410" stroke-width=".4"/><path d="M50 66 L50 20" stroke="url(#tg_aura_growth)" stroke-width="3" stroke-linecap="round"/><path d="M50 26 Q38 20 34 10 Q46 14 50 26Z" fill="url(#tg_aura_growth)" stroke="#3a2410" stroke-width=".5"/><path d="M50 26 Q62 20 66 10 Q54 14 50 26Z" fill="url(#tg_aura_growth)" stroke="#3a2410" stroke-width=".5"/><path d="M50 38 Q38 32 34 22 Q46 26 50 38Z" fill="url(#tg_aura_growth)" stroke="#3a2410" stroke-width=".5"/><path d="M50 38 Q62 32 66 22 Q54 26 50 38Z" fill="url(#tg_aura_growth)" stroke="#3a2410" stroke-width=".5"/></svg>', rarity:'rare', img:'images/relics/aura_growth.png', imgThumb:'images/relics/aura_growth.png'},
   {key:'dumbbell', name:'Halteres of the Palaestra', title:'Every set starts somewhere', icon:'🏋️', img:'images/relics/fist.png', imgThumb:'images/relics/fist.png', rarity:'common'},
-  {key:'kettlebell', name:'The Discus Weight', title:'Old-school conditioning staple', icon:'<svg class="lgi-brand-mark" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="tg_kettlebell" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#5c3a1e"/><stop offset="12%" stop-color="#8b5a2b"/><stop offset="30%" stop-color="#cd7f32"/><stop offset="44%" stop-color="#e8c15a"/><stop offset="50%" stop-color="#fff3c4"/><stop offset="56%" stop-color="#e8c15a"/><stop offset="70%" stop-color="#cd7f32"/><stop offset="85%" stop-color="#8b5a2b"/><stop offset="100%" stop-color="#5c3a1e"/></linearGradient></defs><ellipse cx="50" cy="93" rx="22" ry="4" fill="#000" opacity=".22"/><path d="M30 90 L70 90 L65 80 L35 80 Z" fill="url(#tg_kettlebell)" stroke="#3a2410" stroke-width=".6"/><path d="M35 80 L65 80 L62 72 L38 72 Z" fill="url(#tg_kettlebell)" stroke="#3a2410" stroke-width=".5"/><rect x="45" y="64" width="10" height="9" rx="1.5" fill="url(#tg_kettlebell)" stroke="#3a2410" stroke-width=".4"/><ellipse cx="50" cy="42" rx="24" ry="9" fill="url(#tg_kettlebell)" stroke="#3a2410" stroke-width=".7"/><ellipse cx="50" cy="42" rx="24" ry="9" fill="none" stroke="#fff3c4" stroke-width=".8" opacity=".5" transform="rotate(20 50 42)"/></svg>', rarity:'common'},
-  {key:'plate', name:'Bronze Votive Disc', title:'Load it up', icon:'<svg class="lgi-brand-mark" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="tg_plate" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#5c3a1e"/><stop offset="12%" stop-color="#8b5a2b"/><stop offset="30%" stop-color="#cd7f32"/><stop offset="44%" stop-color="#e8c15a"/><stop offset="50%" stop-color="#fff3c4"/><stop offset="56%" stop-color="#e8c15a"/><stop offset="70%" stop-color="#cd7f32"/><stop offset="85%" stop-color="#8b5a2b"/><stop offset="100%" stop-color="#5c3a1e"/></linearGradient></defs><ellipse cx="50" cy="93" rx="22" ry="4" fill="#000" opacity=".22"/><path d="M30 90 L70 90 L65 80 L35 80 Z" fill="url(#tg_plate)" stroke="#3a2410" stroke-width=".6"/><path d="M35 80 L65 80 L62 72 L38 72 Z" fill="url(#tg_plate)" stroke="#3a2410" stroke-width=".5"/><rect x="45" y="64" width="10" height="9" rx="1.5" fill="url(#tg_plate)" stroke="#3a2410" stroke-width=".4"/><circle cx="50" cy="42" r="24" fill="url(#tg_plate)" stroke="#3a2410" stroke-width=".7"/><circle cx="50" cy="42" r="15" fill="none" stroke="#3a2410" stroke-width=".9" opacity=".45"/><circle cx="50" cy="42" r="5" fill="#3a2410" opacity=".55"/></svg>', rarity:'common'},
-  {key:'jumprope', name:'Hermes\' Cord', title:'Cardio, the old-fashioned way', icon:'<svg class="lgi-brand-mark" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="tg_jumprope" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#5c3a1e"/><stop offset="12%" stop-color="#8b5a2b"/><stop offset="30%" stop-color="#cd7f32"/><stop offset="44%" stop-color="#e8c15a"/><stop offset="50%" stop-color="#fff3c4"/><stop offset="56%" stop-color="#e8c15a"/><stop offset="70%" stop-color="#cd7f32"/><stop offset="85%" stop-color="#8b5a2b"/><stop offset="100%" stop-color="#5c3a1e"/></linearGradient></defs><ellipse cx="50" cy="93" rx="22" ry="4" fill="#000" opacity=".22"/><path d="M30 90 L70 90 L65 80 L35 80 Z" fill="url(#tg_jumprope)" stroke="#3a2410" stroke-width=".6"/><path d="M35 80 L65 80 L62 72 L38 72 Z" fill="url(#tg_jumprope)" stroke="#3a2410" stroke-width=".5"/><rect x="45" y="64" width="10" height="9" rx="1.5" fill="url(#tg_jumprope)" stroke="#3a2410" stroke-width=".4"/><path d="M28 54 Q28 40 42 40 Q54 40 54 50 Q54 58 44 58 Q36 58 36 50 Q36 45 42 45" fill="none" stroke="url(#tg_jumprope)" stroke-width="4" stroke-linecap="round"/><path d="M54 50 Q64 36 76 14" fill="none" stroke="url(#tg_jumprope)" stroke-width="4" stroke-linecap="round"/></svg>', rarity:'common'},
-  {key:'shaker', name:'The Kylix', title:'Post-workout ritual', icon:'<svg class="lgi-brand-mark" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="tg_shaker" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#5c3a1e"/><stop offset="12%" stop-color="#8b5a2b"/><stop offset="30%" stop-color="#cd7f32"/><stop offset="44%" stop-color="#e8c15a"/><stop offset="50%" stop-color="#fff3c4"/><stop offset="56%" stop-color="#e8c15a"/><stop offset="70%" stop-color="#cd7f32"/><stop offset="85%" stop-color="#8b5a2b"/><stop offset="100%" stop-color="#5c3a1e"/></linearGradient></defs><ellipse cx="50" cy="93" rx="22" ry="4" fill="#000" opacity=".22"/><path d="M30 90 L70 90 L65 80 L35 80 Z" fill="url(#tg_shaker)" stroke="#3a2410" stroke-width=".6"/><path d="M35 80 L65 80 L62 72 L38 72 Z" fill="url(#tg_shaker)" stroke="#3a2410" stroke-width=".5"/><rect x="45" y="64" width="10" height="9" rx="1.5" fill="url(#tg_shaker)" stroke="#3a2410" stroke-width=".4"/><path d="M26 26 Q50 20 74 26 L68 34 Q50 39 32 34 Z" fill="url(#tg_shaker)" stroke="#3a2410" stroke-width=".6"/><path d="M20 27 Q14 27 15 34 M80 27 Q86 27 85 34" fill="none" stroke="url(#tg_shaker)" stroke-width="2.6" stroke-linecap="round"/><rect x="47.5" y="36" width="5" height="16" fill="url(#tg_shaker)"/><ellipse cx="50" cy="54" rx="10" ry="3" fill="url(#tg_shaker)" stroke="#3a2410" stroke-width=".5"/></svg>', rarity:'common'},
-  {key:'straps', name:'Charioteer\'s Reins', title:'Grip strength has limits', icon:'<svg class="lgi-brand-mark" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="tg_straps" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#5c3a1e"/><stop offset="12%" stop-color="#8b5a2b"/><stop offset="30%" stop-color="#cd7f32"/><stop offset="44%" stop-color="#e8c15a"/><stop offset="50%" stop-color="#fff3c4"/><stop offset="56%" stop-color="#e8c15a"/><stop offset="70%" stop-color="#cd7f32"/><stop offset="85%" stop-color="#8b5a2b"/><stop offset="100%" stop-color="#5c3a1e"/></linearGradient></defs><ellipse cx="50" cy="93" rx="22" ry="4" fill="#000" opacity=".22"/><path d="M30 90 L70 90 L65 80 L35 80 Z" fill="url(#tg_straps)" stroke="#3a2410" stroke-width=".6"/><path d="M35 80 L65 80 L62 72 L38 72 Z" fill="url(#tg_straps)" stroke="#3a2410" stroke-width=".5"/><rect x="45" y="64" width="10" height="9" rx="1.5" fill="url(#tg_straps)" stroke="#3a2410" stroke-width=".4"/><path d="M50 12 C36 22 36 34 50 40 C64 46 64 58 50 68" fill="none" stroke="url(#tg_straps)" stroke-width="5" stroke-linecap="round"/><circle cx="50" cy="12" r="4.5" fill="url(#tg_straps)" stroke="#3a2410" stroke-width=".5"/><circle cx="50" cy="68" r="4.5" fill="url(#tg_straps)" stroke="#3a2410" stroke-width=".5"/></svg>', rarity:'common'},
-  {key:'abwheel', name:'The Chariot Wheel', title:'Humbling, every time', icon:'<svg class="lgi-brand-mark" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="tg_abwheel" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#5c3a1e"/><stop offset="12%" stop-color="#8b5a2b"/><stop offset="30%" stop-color="#cd7f32"/><stop offset="44%" stop-color="#e8c15a"/><stop offset="50%" stop-color="#fff3c4"/><stop offset="56%" stop-color="#e8c15a"/><stop offset="70%" stop-color="#cd7f32"/><stop offset="85%" stop-color="#8b5a2b"/><stop offset="100%" stop-color="#5c3a1e"/></linearGradient></defs><ellipse cx="50" cy="93" rx="22" ry="4" fill="#000" opacity=".22"/><path d="M30 90 L70 90 L65 80 L35 80 Z" fill="url(#tg_abwheel)" stroke="#3a2410" stroke-width=".6"/><path d="M35 80 L65 80 L62 72 L38 72 Z" fill="url(#tg_abwheel)" stroke="#3a2410" stroke-width=".5"/><rect x="45" y="64" width="10" height="9" rx="1.5" fill="url(#tg_abwheel)" stroke="#3a2410" stroke-width=".4"/><circle cx="50" cy="42" r="22" fill="none" stroke="url(#tg_abwheel)" stroke-width="5"/><circle cx="50" cy="42" r="5" fill="url(#tg_abwheel)"/><line x1="50" y1="24" x2="50" y2="60" stroke="url(#tg_abwheel)" stroke-width="2.4"/><line x1="32" y1="42" x2="68" y2="42" stroke="url(#tg_abwheel)" stroke-width="2.4"/><line x1="37" y1="29" x2="63" y2="55" stroke="url(#tg_abwheel)" stroke-width="2.4"/><line x1="63" y1="29" x2="37" y2="55" stroke="url(#tg_abwheel)" stroke-width="2.4"/></svg>', rarity:'common'},
-  {key:'battlerope', name:'Serpent of the Hydra', title:'Thirty seconds feels like a lifetime', icon:'<svg class="lgi-brand-mark" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="tg_battlerope" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#5c3a1e"/><stop offset="12%" stop-color="#8b5a2b"/><stop offset="30%" stop-color="#cd7f32"/><stop offset="44%" stop-color="#e8c15a"/><stop offset="50%" stop-color="#fff3c4"/><stop offset="56%" stop-color="#e8c15a"/><stop offset="70%" stop-color="#cd7f32"/><stop offset="85%" stop-color="#8b5a2b"/><stop offset="100%" stop-color="#5c3a1e"/></linearGradient></defs><ellipse cx="50" cy="93" rx="22" ry="4" fill="#000" opacity=".22"/><path d="M30 90 L70 90 L65 80 L35 80 Z" fill="url(#tg_battlerope)" stroke="#3a2410" stroke-width=".6"/><path d="M35 80 L65 80 L62 72 L38 72 Z" fill="url(#tg_battlerope)" stroke="#3a2410" stroke-width=".5"/><rect x="45" y="64" width="10" height="9" rx="1.5" fill="url(#tg_battlerope)" stroke="#3a2410" stroke-width=".4"/><path d="M22 30 Q34 30 34 40 Q34 50 46 50 Q58 50 58 40 Q58 30 70 30" fill="none" stroke="url(#tg_battlerope)" stroke-width="5" stroke-linecap="round"/><path d="M65 27 L72 30 L65 34" fill="url(#tg_battlerope)" stroke="#3a2410" stroke-width=".5" stroke-linejoin="round"/></svg>', rarity:'common'},
-  {key:'towel', name:'The Victor\'s Cloth', title:'MVP of leg day', icon:'<svg class="lgi-brand-mark" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="tg_towel" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#5c3a1e"/><stop offset="12%" stop-color="#8b5a2b"/><stop offset="30%" stop-color="#cd7f32"/><stop offset="44%" stop-color="#e8c15a"/><stop offset="50%" stop-color="#fff3c4"/><stop offset="56%" stop-color="#e8c15a"/><stop offset="70%" stop-color="#cd7f32"/><stop offset="85%" stop-color="#8b5a2b"/><stop offset="100%" stop-color="#5c3a1e"/></linearGradient></defs><ellipse cx="50" cy="93" rx="22" ry="4" fill="#000" opacity=".22"/><path d="M30 90 L70 90 L65 80 L35 80 Z" fill="url(#tg_towel)" stroke="#3a2410" stroke-width=".6"/><path d="M35 80 L65 80 L62 72 L38 72 Z" fill="url(#tg_towel)" stroke="#3a2410" stroke-width=".5"/><rect x="45" y="64" width="10" height="9" rx="1.5" fill="url(#tg_towel)" stroke="#3a2410" stroke-width=".4"/><path d="M28 22 Q40 16 50 22 Q60 16 72 22 Q68 40 70 58 Q60 54 50 60 Q40 54 30 58 Q32 40 28 22Z" fill="url(#tg_towel)" stroke="#3a2410" stroke-width=".6" stroke-linejoin="round"/><path d="M34 28 Q50 24 66 28 M33 38 Q50 34 67 38 M34 48 Q50 45 66 48" fill="none" stroke="#3a2410" stroke-width=".8" opacity=".4"/></svg>', rarity:'common'},
-  {key:'ball', name:'The Sphere of Atlas', title:'Slam it out', icon:'<svg class="lgi-brand-mark" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="tg_ball" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#5c3a1e"/><stop offset="12%" stop-color="#8b5a2b"/><stop offset="30%" stop-color="#cd7f32"/><stop offset="44%" stop-color="#e8c15a"/><stop offset="50%" stop-color="#fff3c4"/><stop offset="56%" stop-color="#e8c15a"/><stop offset="70%" stop-color="#cd7f32"/><stop offset="85%" stop-color="#8b5a2b"/><stop offset="100%" stop-color="#5c3a1e"/></linearGradient></defs><ellipse cx="50" cy="93" rx="22" ry="4" fill="#000" opacity=".22"/><path d="M30 90 L70 90 L65 80 L35 80 Z" fill="url(#tg_ball)" stroke="#3a2410" stroke-width=".6"/><path d="M35 80 L65 80 L62 72 L38 72 Z" fill="url(#tg_ball)" stroke="#3a2410" stroke-width=".5"/><rect x="45" y="64" width="10" height="9" rx="1.5" fill="url(#tg_ball)" stroke="#3a2410" stroke-width=".4"/><circle cx="50" cy="40" r="22" fill="url(#tg_ball)" stroke="#3a2410" stroke-width=".7"/><ellipse cx="50" cy="40" rx="22" ry="7" fill="none" stroke="#3a2410" stroke-width=".6" opacity=".4"/><path d="M50 18 L50 62" stroke="#3a2410" stroke-width=".6" opacity=".4"/></svg>', rarity:'superrare'},
+  {key:'kettlebell', name:'The Discus Weight', title:'Old-school conditioning staple', icon:'<svg class="lgi-brand-mark" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="tg_kettlebell" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#5c3a1e"/><stop offset="12%" stop-color="#8b5a2b"/><stop offset="30%" stop-color="#cd7f32"/><stop offset="44%" stop-color="#e8c15a"/><stop offset="50%" stop-color="#fff3c4"/><stop offset="56%" stop-color="#e8c15a"/><stop offset="70%" stop-color="#cd7f32"/><stop offset="85%" stop-color="#8b5a2b"/><stop offset="100%" stop-color="#5c3a1e"/></linearGradient></defs><ellipse cx="50" cy="93" rx="22" ry="4" fill="#000" opacity=".22"/><path d="M30 90 L70 90 L65 80 L35 80 Z" fill="url(#tg_kettlebell)" stroke="#3a2410" stroke-width=".6"/><path d="M35 80 L65 80 L62 72 L38 72 Z" fill="url(#tg_kettlebell)" stroke="#3a2410" stroke-width=".5"/><rect x="45" y="64" width="10" height="9" rx="1.5" fill="url(#tg_kettlebell)" stroke="#3a2410" stroke-width=".4"/><ellipse cx="50" cy="42" rx="24" ry="9" fill="url(#tg_kettlebell)" stroke="#3a2410" stroke-width=".7"/><ellipse cx="50" cy="42" rx="24" ry="9" fill="none" stroke="#fff3c4" stroke-width=".8" opacity=".5" transform="rotate(20 50 42)"/></svg>', rarity:'common', img:'images/relics/kettlebell.png', imgThumb:'images/relics/kettlebell.png'},
+  {key:'plate', name:'Bronze Votive Disc', title:'Load it up', icon:'<svg class="lgi-brand-mark" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="tg_plate" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#5c3a1e"/><stop offset="12%" stop-color="#8b5a2b"/><stop offset="30%" stop-color="#cd7f32"/><stop offset="44%" stop-color="#e8c15a"/><stop offset="50%" stop-color="#fff3c4"/><stop offset="56%" stop-color="#e8c15a"/><stop offset="70%" stop-color="#cd7f32"/><stop offset="85%" stop-color="#8b5a2b"/><stop offset="100%" stop-color="#5c3a1e"/></linearGradient></defs><ellipse cx="50" cy="93" rx="22" ry="4" fill="#000" opacity=".22"/><path d="M30 90 L70 90 L65 80 L35 80 Z" fill="url(#tg_plate)" stroke="#3a2410" stroke-width=".6"/><path d="M35 80 L65 80 L62 72 L38 72 Z" fill="url(#tg_plate)" stroke="#3a2410" stroke-width=".5"/><rect x="45" y="64" width="10" height="9" rx="1.5" fill="url(#tg_plate)" stroke="#3a2410" stroke-width=".4"/><circle cx="50" cy="42" r="24" fill="url(#tg_plate)" stroke="#3a2410" stroke-width=".7"/><circle cx="50" cy="42" r="15" fill="none" stroke="#3a2410" stroke-width=".9" opacity=".45"/><circle cx="50" cy="42" r="5" fill="#3a2410" opacity=".55"/></svg>', rarity:'common', img:'images/relics/plate.png', imgThumb:'images/relics/plate.png'},
+  {key:'jumprope', name:'Hermes\' Cord', title:'Cardio, the old-fashioned way', icon:'<svg class="lgi-brand-mark" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="tg_jumprope" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#5c3a1e"/><stop offset="12%" stop-color="#8b5a2b"/><stop offset="30%" stop-color="#cd7f32"/><stop offset="44%" stop-color="#e8c15a"/><stop offset="50%" stop-color="#fff3c4"/><stop offset="56%" stop-color="#e8c15a"/><stop offset="70%" stop-color="#cd7f32"/><stop offset="85%" stop-color="#8b5a2b"/><stop offset="100%" stop-color="#5c3a1e"/></linearGradient></defs><ellipse cx="50" cy="93" rx="22" ry="4" fill="#000" opacity=".22"/><path d="M30 90 L70 90 L65 80 L35 80 Z" fill="url(#tg_jumprope)" stroke="#3a2410" stroke-width=".6"/><path d="M35 80 L65 80 L62 72 L38 72 Z" fill="url(#tg_jumprope)" stroke="#3a2410" stroke-width=".5"/><rect x="45" y="64" width="10" height="9" rx="1.5" fill="url(#tg_jumprope)" stroke="#3a2410" stroke-width=".4"/><path d="M28 54 Q28 40 42 40 Q54 40 54 50 Q54 58 44 58 Q36 58 36 50 Q36 45 42 45" fill="none" stroke="url(#tg_jumprope)" stroke-width="4" stroke-linecap="round"/><path d="M54 50 Q64 36 76 14" fill="none" stroke="url(#tg_jumprope)" stroke-width="4" stroke-linecap="round"/></svg>', rarity:'common', img:'images/relics/jumprope.png', imgThumb:'images/relics/jumprope.png'},
+  {key:'shaker', name:'The Kylix', title:'Post-workout ritual', icon:'<svg class="lgi-brand-mark" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="tg_shaker" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#5c3a1e"/><stop offset="12%" stop-color="#8b5a2b"/><stop offset="30%" stop-color="#cd7f32"/><stop offset="44%" stop-color="#e8c15a"/><stop offset="50%" stop-color="#fff3c4"/><stop offset="56%" stop-color="#e8c15a"/><stop offset="70%" stop-color="#cd7f32"/><stop offset="85%" stop-color="#8b5a2b"/><stop offset="100%" stop-color="#5c3a1e"/></linearGradient></defs><ellipse cx="50" cy="93" rx="22" ry="4" fill="#000" opacity=".22"/><path d="M30 90 L70 90 L65 80 L35 80 Z" fill="url(#tg_shaker)" stroke="#3a2410" stroke-width=".6"/><path d="M35 80 L65 80 L62 72 L38 72 Z" fill="url(#tg_shaker)" stroke="#3a2410" stroke-width=".5"/><rect x="45" y="64" width="10" height="9" rx="1.5" fill="url(#tg_shaker)" stroke="#3a2410" stroke-width=".4"/><path d="M26 26 Q50 20 74 26 L68 34 Q50 39 32 34 Z" fill="url(#tg_shaker)" stroke="#3a2410" stroke-width=".6"/><path d="M20 27 Q14 27 15 34 M80 27 Q86 27 85 34" fill="none" stroke="url(#tg_shaker)" stroke-width="2.6" stroke-linecap="round"/><rect x="47.5" y="36" width="5" height="16" fill="url(#tg_shaker)"/><ellipse cx="50" cy="54" rx="10" ry="3" fill="url(#tg_shaker)" stroke="#3a2410" stroke-width=".5"/></svg>', rarity:'common', img:'images/relics/shaker.png', imgThumb:'images/relics/shaker.png'},
+  {key:'straps', name:'Charioteer\'s Reins', title:'Grip strength has limits', icon:'<svg class="lgi-brand-mark" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="tg_straps" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#5c3a1e"/><stop offset="12%" stop-color="#8b5a2b"/><stop offset="30%" stop-color="#cd7f32"/><stop offset="44%" stop-color="#e8c15a"/><stop offset="50%" stop-color="#fff3c4"/><stop offset="56%" stop-color="#e8c15a"/><stop offset="70%" stop-color="#cd7f32"/><stop offset="85%" stop-color="#8b5a2b"/><stop offset="100%" stop-color="#5c3a1e"/></linearGradient></defs><ellipse cx="50" cy="93" rx="22" ry="4" fill="#000" opacity=".22"/><path d="M30 90 L70 90 L65 80 L35 80 Z" fill="url(#tg_straps)" stroke="#3a2410" stroke-width=".6"/><path d="M35 80 L65 80 L62 72 L38 72 Z" fill="url(#tg_straps)" stroke="#3a2410" stroke-width=".5"/><rect x="45" y="64" width="10" height="9" rx="1.5" fill="url(#tg_straps)" stroke="#3a2410" stroke-width=".4"/><path d="M50 12 C36 22 36 34 50 40 C64 46 64 58 50 68" fill="none" stroke="url(#tg_straps)" stroke-width="5" stroke-linecap="round"/><circle cx="50" cy="12" r="4.5" fill="url(#tg_straps)" stroke="#3a2410" stroke-width=".5"/><circle cx="50" cy="68" r="4.5" fill="url(#tg_straps)" stroke="#3a2410" stroke-width=".5"/></svg>', rarity:'common', img:'images/relics/straps.png', imgThumb:'images/relics/straps.png'},
+  {key:'abwheel', name:'The Chariot Wheel', title:'Humbling, every time', icon:'<svg class="lgi-brand-mark" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="tg_abwheel" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#5c3a1e"/><stop offset="12%" stop-color="#8b5a2b"/><stop offset="30%" stop-color="#cd7f32"/><stop offset="44%" stop-color="#e8c15a"/><stop offset="50%" stop-color="#fff3c4"/><stop offset="56%" stop-color="#e8c15a"/><stop offset="70%" stop-color="#cd7f32"/><stop offset="85%" stop-color="#8b5a2b"/><stop offset="100%" stop-color="#5c3a1e"/></linearGradient></defs><ellipse cx="50" cy="93" rx="22" ry="4" fill="#000" opacity=".22"/><path d="M30 90 L70 90 L65 80 L35 80 Z" fill="url(#tg_abwheel)" stroke="#3a2410" stroke-width=".6"/><path d="M35 80 L65 80 L62 72 L38 72 Z" fill="url(#tg_abwheel)" stroke="#3a2410" stroke-width=".5"/><rect x="45" y="64" width="10" height="9" rx="1.5" fill="url(#tg_abwheel)" stroke="#3a2410" stroke-width=".4"/><circle cx="50" cy="42" r="22" fill="none" stroke="url(#tg_abwheel)" stroke-width="5"/><circle cx="50" cy="42" r="5" fill="url(#tg_abwheel)"/><line x1="50" y1="24" x2="50" y2="60" stroke="url(#tg_abwheel)" stroke-width="2.4"/><line x1="32" y1="42" x2="68" y2="42" stroke="url(#tg_abwheel)" stroke-width="2.4"/><line x1="37" y1="29" x2="63" y2="55" stroke="url(#tg_abwheel)" stroke-width="2.4"/><line x1="63" y1="29" x2="37" y2="55" stroke="url(#tg_abwheel)" stroke-width="2.4"/></svg>', rarity:'common', img:'images/relics/abwheel.png', imgThumb:'images/relics/abwheel.png'},
+  {key:'battlerope', name:'Serpent of the Hydra', title:'Thirty seconds feels like a lifetime', icon:'<svg class="lgi-brand-mark" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="tg_battlerope" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#5c3a1e"/><stop offset="12%" stop-color="#8b5a2b"/><stop offset="30%" stop-color="#cd7f32"/><stop offset="44%" stop-color="#e8c15a"/><stop offset="50%" stop-color="#fff3c4"/><stop offset="56%" stop-color="#e8c15a"/><stop offset="70%" stop-color="#cd7f32"/><stop offset="85%" stop-color="#8b5a2b"/><stop offset="100%" stop-color="#5c3a1e"/></linearGradient></defs><ellipse cx="50" cy="93" rx="22" ry="4" fill="#000" opacity=".22"/><path d="M30 90 L70 90 L65 80 L35 80 Z" fill="url(#tg_battlerope)" stroke="#3a2410" stroke-width=".6"/><path d="M35 80 L65 80 L62 72 L38 72 Z" fill="url(#tg_battlerope)" stroke="#3a2410" stroke-width=".5"/><rect x="45" y="64" width="10" height="9" rx="1.5" fill="url(#tg_battlerope)" stroke="#3a2410" stroke-width=".4"/><path d="M22 30 Q34 30 34 40 Q34 50 46 50 Q58 50 58 40 Q58 30 70 30" fill="none" stroke="url(#tg_battlerope)" stroke-width="5" stroke-linecap="round"/><path d="M65 27 L72 30 L65 34" fill="url(#tg_battlerope)" stroke="#3a2410" stroke-width=".5" stroke-linejoin="round"/></svg>', rarity:'common', img:'images/relics/battlerope.png', imgThumb:'images/relics/battlerope.png'},
+  {key:'towel', name:'The Victor\'s Cloth', title:'MVP of leg day', icon:'<svg class="lgi-brand-mark" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="tg_towel" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#5c3a1e"/><stop offset="12%" stop-color="#8b5a2b"/><stop offset="30%" stop-color="#cd7f32"/><stop offset="44%" stop-color="#e8c15a"/><stop offset="50%" stop-color="#fff3c4"/><stop offset="56%" stop-color="#e8c15a"/><stop offset="70%" stop-color="#cd7f32"/><stop offset="85%" stop-color="#8b5a2b"/><stop offset="100%" stop-color="#5c3a1e"/></linearGradient></defs><ellipse cx="50" cy="93" rx="22" ry="4" fill="#000" opacity=".22"/><path d="M30 90 L70 90 L65 80 L35 80 Z" fill="url(#tg_towel)" stroke="#3a2410" stroke-width=".6"/><path d="M35 80 L65 80 L62 72 L38 72 Z" fill="url(#tg_towel)" stroke="#3a2410" stroke-width=".5"/><rect x="45" y="64" width="10" height="9" rx="1.5" fill="url(#tg_towel)" stroke="#3a2410" stroke-width=".4"/><path d="M28 22 Q40 16 50 22 Q60 16 72 22 Q68 40 70 58 Q60 54 50 60 Q40 54 30 58 Q32 40 28 22Z" fill="url(#tg_towel)" stroke="#3a2410" stroke-width=".6" stroke-linejoin="round"/><path d="M34 28 Q50 24 66 28 M33 38 Q50 34 67 38 M34 48 Q50 45 66 48" fill="none" stroke="#3a2410" stroke-width=".8" opacity=".4"/></svg>', rarity:'common', img:'images/relics/towel.png', imgThumb:'images/relics/towel.png'},
+  {key:'ball', name:'The Sphere of Atlas', title:'Slam it out', icon:'<svg class="lgi-brand-mark" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="tg_ball" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#5c3a1e"/><stop offset="12%" stop-color="#8b5a2b"/><stop offset="30%" stop-color="#cd7f32"/><stop offset="44%" stop-color="#e8c15a"/><stop offset="50%" stop-color="#fff3c4"/><stop offset="56%" stop-color="#e8c15a"/><stop offset="70%" stop-color="#cd7f32"/><stop offset="85%" stop-color="#8b5a2b"/><stop offset="100%" stop-color="#5c3a1e"/></linearGradient></defs><ellipse cx="50" cy="93" rx="22" ry="4" fill="#000" opacity=".22"/><path d="M30 90 L70 90 L65 80 L35 80 Z" fill="url(#tg_ball)" stroke="#3a2410" stroke-width=".6"/><path d="M35 80 L65 80 L62 72 L38 72 Z" fill="url(#tg_ball)" stroke="#3a2410" stroke-width=".5"/><rect x="45" y="64" width="10" height="9" rx="1.5" fill="url(#tg_ball)" stroke="#3a2410" stroke-width=".4"/><circle cx="50" cy="40" r="22" fill="url(#tg_ball)" stroke="#3a2410" stroke-width=".7"/><ellipse cx="50" cy="40" rx="22" ry="7" fill="none" stroke="#3a2410" stroke-width=".6" opacity=".4"/><path d="M50 18 L50 62" stroke="#3a2410" stroke-width=".6" opacity=".4"/></svg>', rarity:'superrare', img:'images/relics/ball.png', imgThumb:'images/relics/ball.png'},
   // 3D-rendered relics (see the Areviax Bronze Relics case) — real Three.js
   // builds photographed as PNGs rather than flat SVG medallions like the
   // rest of this tier, per the "remove the old trophies, add the new
@@ -13884,6 +13997,27 @@ const XP_ROAD=[
   {xp:22000, type:'key',    amount:5, extra:{type:'silver',amount:1}, name:"The Beggar at the Door", myth:"Unrecognized in his own home, watching, before making a single move.", subtitle:"unrecognizable from where you started"},
   {xp:27000, type:'legend', rarity:'mythic', name:"The Trial of the Bow", myth:"One shot only he could make. Proof, not just a claim.", subtitle:"proving it, not just claiming it"},
   {xp:35000, type:'diamond',amount:3, name:"Reunited",            myth:"Twenty years. The whole point of the journey was never the journey — it was this.", subtitle:"the whole point was never the destination — it was this"},
+  // ── Heroes' Journeys ── the Odyssey is only the first voyage. After it the road follows other heroes of Greek myth,
+  // five stops each (a "world" of the 3D road): Jason's voyage on the sea, then Perseus and Theseus in the mortal world,
+  // Bellerophon in the skies and Orpheus, who goes down to the Underworld and back. Same reward system as above.
+  {xp:45000, type:'key',    amount:5, name:"The Argo Sets Sail",  myth:"Jason gathers the Argonauts and pushes a ship off the beach, toward a prize nobody believes he can win.", subtitle:"setting out with a crew behind you"},
+  {xp:52000, type:'silver', amount:3, name:"The Clashing Rocks",  myth:"Two cliffs that slam shut on anything passing between them. The Argo only makes it by timing, not strength.", subtitle:"getting through by timing, not force"},
+  {xp:61000, type:'key',    amount:4, name:"Harpies of Phineus",  myth:"A blind prophet, robbed of every meal. Help him and he will tell you the way.", subtitle:"helping someone who knows the route"},
+  {xp:72000, type:'legend', rarity:'superrare', name:"Fire-Bulls of Colchis", myth:"Yoke the bronze bulls, plough the field, sow the dragon's teeth. Three impossible jobs in one day.", subtitle:"three hard jobs in a single day"},
+  {xp:85000, type:'diamond',amount:2, name:"The Golden Fleece",   myth:"The prize hangs in a grove guarded by a dragon that never sleeps.", subtitle:"the prize at the end of a long voyage"},
+  {xp:100000,type:'silver', amount:3, name:"Gifts of the Gods",   myth:"Perseus is lent winged sandals, a bright shield and a cap that hides him. Nobody does this alone.", subtitle:"accepting the help on offer"},
+  {xp:115000,type:'key',    amount:5, name:"The Graeae",          myth:"Three sisters share one eye. Take it, and they have to tell you where to go.", subtitle:"finding the one weak point"},
+  {xp:130000,type:'legend', rarity:'epic', name:"Medusa's Gaze",    myth:"Look at her and you turn to stone. He fights with his eyes on a polished shield instead.", subtitle:"facing the thing by looking at it sideways"},
+  {xp:150000,type:'diamond',amount:2, name:"Andromeda and the Sea Monster", myth:"A chained princess on the rocks, a monster rising from the waves. Poseidon's sea again.", subtitle:"going back to the water you feared"},
+  {xp:170000,type:'silver', amount:3, name:"The Road to Athens",  myth:"Theseus takes the dangerous road on purpose, beating every bandit on the way.", subtitle:"choosing the harder road"},
+  {xp:190000,type:'key',    amount:5, name:"Procrustes's Bed",    myth:"A host who stretches or cuts every guest to fit his bed. Fit the work to you, not you to the work.", subtitle:"refusing a plan that doesn't fit"},
+  {xp:215000,type:'legend', rarity:'epic', name:"The Labyrinth",    myth:"No map, just a thread tied at the entrance. Finding the way back is half the quest.", subtitle:"leaving yourself a way home"},
+  {xp:240000,type:'diamond',amount:3, name:"The Minotaur",        myth:"At the centre, the thing everyone sent youths to feed. He walks in anyway.", subtitle:"walking toward the centre anyway"},
+  {xp:270000,type:'silver', amount:3, name:"Taming Pegasus",      myth:"Bellerophon sleeps in a temple until Athena brings the golden bridle. Patience first, flight second.", subtitle:"patience before the breakthrough"},
+  {xp:300000,type:'legend', rarity:'mythic', name:"The Chimera",   myth:"Lion, goat and serpent in one beast. He beats it from the air, with lead on his spear.", subtitle:"beating a many-sided problem from above"},
+  {xp:335000,type:'diamond',amount:3, name:"The Amazons",         myth:"Another impossible task from a king who hopes he fails. He finishes it anyway.", subtitle:"succeeding despite the doubters"},
+  {xp:380000,type:'legend', rarity:'mythic', name:"Orpheus Descends", myth:"He goes down to the Underworld armed only with a lyre, and the dead stop to listen.", subtitle:"a skill so fine it moves the hardest places"},
+  {xp:430000,type:'diamond',amount:4, name:"Eurydice's Return",   myth:"The way back is a single rule: do not look back. The last test is just walking.", subtitle:"trusting the climb without checking behind you"},
 ];
 let claimedXpRoad=[]; // persistent \u2014 xp thresholds already paid out, so crossing one twice (or loading old data) can't double-grant
 // Thresholds crossed but not yet manually opened \u2014 see claimXpRoadReward().
@@ -13891,8 +14025,9 @@ let claimedXpRoad=[]; // persistent \u2014 xp thresholds already paid out, so cr
 // tappable, per direct ask ("make them so you collect them not they are
 // collected automatically").
 let xpRoadReady=[];
-function xpRoadRewardExtraLabel(extra){
+function xpRoadRewardExtraLabel(extra,node){
   if(!extra)return '';
+  if(extra.type==='key')return ' + '+extra.amount+' '+KEY_TIER_NAMES[xpRoadKeyTier(node||{xp:0})]+' Key'+(extra.amount>1?'s':'');
   if(extra.type==='bronze')return ' + '+extra.amount+' Bronze Crate'+(extra.amount>1?'s':'');
   if(extra.type==='silver')return ' + '+extra.amount+' Silver Crate'+(extra.amount>1?'s':'');
   return '';
@@ -13901,7 +14036,7 @@ function xpRoadRewardLabel(node){
   if(node.type==='bronze')return node.amount+' Bronze Crate'+(node.amount>1?'s':'');
   if(node.type==='silver')return node.amount+' Silver Crate'+(node.amount>1?'s':'');
   if(node.type==='diamond')return node.amount+' Diamond Crate'+(node.amount>1?'s':'');
-  if(node.type==='key')return node.amount+' Key'+(node.amount>1?'s':'')+xpRoadRewardExtraLabel(node.extra);
+  if(node.type==='key')return node.amount+' '+KEY_TIER_NAMES[xpRoadKeyTier(node)]+' Key'+(node.amount>1?'s':'')+xpRoadRewardExtraLabel(node.extra,node);
   if(node.type==='legend')return 'Guaranteed '+node.rarity[0].toUpperCase()+node.rarity.slice(1)+' Trophy';
   return '';
 }
@@ -13913,7 +14048,7 @@ function xpRoadRewardLabel(node){
 function xpRoadRewardIcon(node){
   if(node.type==='legend')return node.rarity==='ultralegendary'?'\ud83e\udded':node.rarity==='legendary'?'\ud83d\udc51':node.rarity==='mythic'?'\ud83c\udf11':'\ud83c\udfc6';
   if(node.type==='bronze'||node.type==='silver'||node.type==='diamond')return crateIconHTML(node.type);
-  if(node.type==='key')return '\ud83d\udddd\ufe0f';
+  if(node.type==='key')return '<img src="'+KEY_ICON_IMG[xpRoadKeyTier(node)]+'" alt="" style="width:100%;height:100%;object-fit:contain">';
   return '\ud83e\udded';
 }
 // toast()'s icon is set via textContent, not innerHTML \u2014 it can't render
@@ -13928,7 +14063,7 @@ function grantXpRoadReward(node){
   if(node.type==='bronze'){bronzeDropBank+=node.amount;}
   else if(node.type==='silver'){silverDropBank+=node.amount;}
   else if(node.type==='diamond'){diamondDropBank+=node.amount;}
-  else if(node.type==='key'){keyBank+=node.amount;}
+  else if(node.type==='key'){addKeyCrates(xpRoadKeyTier(node),node.amount);}
   else if(node.type==='legend'){
     // Mythic/epic/superrare have no real cards assigned yet (see
     // RARITY_ORDER's own comment) — filtering straight to node.rarity
@@ -13962,7 +14097,7 @@ function grantXpRoadReward(node){
   if(node.extra){
     if(node.extra.type==='bronze')bronzeDropBank+=node.extra.amount;
     else if(node.extra.type==='silver')silverDropBank+=node.extra.amount;
-    else if(node.extra.type==='key')keyBank+=node.extra.amount;
+    else if(node.extra.type==='key')addKeyCrates(xpRoadKeyTier(node),node.extra.amount);
   }
 }
 // A bright ascending two-note "ding" — reuses the same shared Web Audio
@@ -14213,6 +14348,14 @@ function drawRoadTrail(cont){
 // direction as the journey itself), on a gentle sine-wave wind so the
 // path curves rather than running dead straight, with drawRoadTrail()
 // tracing an actual curve underneath through the live hex positions.
+function roadTileIcon(n){
+  if(n.type==='legend'){
+    const r=['ultralegendary','legendary','mythic','epic','superrare','rare','common'];
+    const want=r.indexOf(n.rarity);
+    for(let k=Math.max(want,0);k<r.length;k++){const c=LEGEND_CARDS.find(l=>l.rarity===r[k]&&l.img);if(c)return '<img src="'+c.img+'" alt="" style="width:100%;height:100%;object-fit:contain">';}
+  }
+  return n.icon;
+}
 function renderRoadPath(containerId,nodes){
   const cont=document.getElementById(containerId);
   if(!cont)return;
@@ -14232,51 +14375,34 @@ function renderRoadPath(containerId,nodes){
   const pageEl=cont.closest('.page');
   if(pageEl&&!pageEl.classList.contains('active'))return;
   const anyClaimed=nodes.some(n=>n.claimed);
-  cont.className='xp-road-track horizontal'+(anyClaimed?' has-progress':'');
+  cont.className='xp-road-track horizontal rd'+(anyClaimed?' has-progress':'');
+  // Brawl-style road: a reward card per checkpoint, one thick progress bar underneath, a number under each tick,
+  // and a medal on the big milestones (numbered I, II, III...) — see .rd-* CSS.
+  const ROMAN=['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV'];
+  let medalNo=0;
   cont.innerHTML=nodes.map((n,i)=>{
-    const state=n.claimed?' claimed':n.ready?' ready':n.isNext?' next':'';
-    const wind=0;
-    // Hex size scales with how big a deal the reward actually is (n.weight,
-    // 0..1 \u2014 see xpRoadNodeWeight/trophyRoadNodeWeight),
-    // not just claimed-vs-next: a locked Mega-Box-tier reward should still
-    // read as visibly bigger than a claimed 25-coin one. "Next" adds a
-    // smaller boost on top of that same scale rather than its own fixed size,
-    // so a low-value next node stays modest and a high-value one reads as
-    // both "you are here" and genuinely big.
-    // Wider, steeper range than the first pass \u2014 adjacent reward tiers
-    // (e.g. a Bronze Crate at weight .32 vs a Key at .18) need
-    // to read as visibly different sizes at a glance, not just a few
-    // px apart. Deliberately allowed to exceed its 104px flex slot at
-    // the top end (the reference's own Mega Box does the same) \u2014 the
-    // node's reserved layout width stays fixed via flex-basis, so an
-    // oversized hex just visually spills into the gap, it never
-    // reflows a neighbor.
+    const state=n.claimed?' claimed':n.ready?' ready':n.isNext?' next':' locked';
     const w=n.weight!=null?n.weight:0.5;
-    const size=Math.round(40+w*80+(n.isNext||n.ready?16:0));
-    const font=Math.round(size*0.42);
-    // Odyssey name (n.name) takes the visible slot a plain reward label
-    // used to occupy \u2014 same length class ("Cyclops's Cave" vs "1 Bronze
-    // Crate"), so the tight per-node width this path already budgeted
-    // still fits. The reward itself never disappears, it's the title
-    // tooltip now, alongside the one-line myth beat \u2014 real narrative on
-    // every checkpoint, not just the ones with room to spare. n.subtitle
-    // (when present) is the real-life-journey parallel \u2014 "Leaving Troy"
-    // reads as "(the beginning of your journey)" alongside the myth.
-    const tip=(n.myth?n.myth+(n.subtitle?' ('+n.subtitle+')':'')+' \u2014 ':'')+(n.ready?'Ready to open! ':'')+n.descLabel;
-    return '<div class="xp-node'+state+'" title="'+tip.replace(/"/g,'&quot;')+'" style="--stagger:'+Math.min(i*45,450)+'ms;--wind:'+wind+'px;--hexsize:'+size+'px;--hexfont:'+font+'px"'+(n.onclick?' onclick="'+n.onclick+'"':'')+'>'+
-      '<div class="xp-node-hexwrap"><div class="xp-node-hex-glow"></div><div class="xp-node-hex">'+(n.claimed||n.isNext||n.ready?n.icon:'\ud83d\udd12')+'</div>'+
-        (n.claimed?'<span class="xp-node-check"><svg viewBox="0 0 24 24" fill="none" stroke="#0D0806" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>':n.ready?'<span class="xp-node-claim-badge">OPEN</span>':'')+
-        '<span class="xp-node-xp">'+n.valueLabel+'</span>'+
+    const tier=w>=.7?'gold':w>=.4?'silver':'bronze';
+    const milestone=w>=.55||i===nodes.length-1;
+    const fill=n.claimed?100:n.ready?100:(n.progressPct!=null?n.progressPct:0);
+    const tip=(n.myth?n.myth+(n.subtitle?' ('+n.subtitle+')':'')+' — ':'')+(n.ready?'Ready to open! ':'')+n.descLabel;
+    const mark=milestone?'<span class="rd-medal '+tier+'"><b>'+(ROMAN[medalNo++]||medalNo)+'</b></span>':'<span class="rd-dot"></span>';
+    return '<div class="rd-node'+state+'" title="'+tip.replace(/"/g,'&quot;')+'" style="--stagger:'+Math.min(i*40,400)+'ms;z-index:'+(nodes.length-i)+'"'+(n.onclick?' onclick="'+n.onclick+'"':'')+'>'+
+      '<div class="rd-card '+tier+'">'+
+        (n.claimed?'<span class="rd-check"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>':n.ready?'<span class="rd-flag">TAP</span>':n.isNext?'':'<span class="rd-lock">🔒</span>')+
+        '<div class="rd-icon">'+roadTileIcon(n)+'</div>'+
+        '<div class="rd-name">'+(n.name||'')+'</div>'+
+        '<div class="rd-pill">'+n.descLabel+'</div>'+
       '</div>'+
-      '<div class="xp-node-body">'+
-        '<div class="xp-node-desc">'+(n.name||n.descLabel)+'</div>'+
-        (n.progressPct!=null?'<div class="xp-node-bar"><div class="xp-node-bar-fill" style="width:'+n.progressPct+'%"></div></div>':'')+
+      '<div class="rd-bar"><i class="rd-fill" style="width:'+fill+'%"></i>'+mark+
+        ((n.isNext||n.ready)?'<span class="rd-you" style="left:'+Math.max(6,Math.min(94,fill))+'%"><em>YOU</em></span>':'')+
       '</div>'+
+      '<div class="rd-num">'+n.valueLabel.replace(' Arete','')+'</div>'+
     '</div>';
   }).join('');
   requestAnimationFrame(()=>{
-    drawRoadTrail(cont);
-    const nextEl=cont.querySelector('.xp-node.next');
+    const nextEl=cont.querySelector('.rd-node.next,.rd-node.ready');
     if(nextEl)nextEl.scrollIntoView({block:'nearest',inline:'center'});
     renderRoadRealmStrip(cont.closest('.road-scenery'),cont);
     // Nodes are still mid-flight through their staggered entrance
@@ -14284,7 +14410,7 @@ function renderRoadPath(containerId,nodes){
     // when the trail above is drawn, so it's measuring transient,
     // not-yet-settled positions. Redraw once everything's actually at
     // rest so the trail always ends up matching the final layout.
-    setTimeout(()=>{drawRoadTrail(cont);renderRoadRealmStrip(cont.closest('.road-scenery'),cont);},1000);
+    setTimeout(()=>{renderRoadRealmStrip(cont.closest('.road-scenery'),cont);},1000);
   });
 }
 // Populates a road page's progress-to-next banner (icon/text/fill) \u2014
@@ -14330,7 +14456,7 @@ function renderRewardRow(prefix,nodes){
     }
     if(boxEl)boxEl.style.opacity='';
     if(iconEl){
-      iconEl.innerHTML=(node.claimed||node.isNext||node.ready)?node.icon:'🔒';
+      iconEl.innerHTML=roadTileIcon(node);
       const w=node.weight!=null?node.weight:0.5;
       const size=Math.round(46+w*36+(isNextBox?10:0));
       iconEl.style.setProperty('--hexsize',size+'px');
@@ -14364,7 +14490,7 @@ function xpRoadNodes(){
     const isNext=!claimed&&!ready&&node===next;
     const prevXp=i===0?0:ascending[i-1].xp;
     const pct=ready?100:isNext?Math.max(0,Math.min(100,Math.round((xp-prevXp)/(node.xp-prevXp)*100))):null;
-    return {claimed,ready,isNext,onclick:ready?'claimXpRoadReward('+node.xp+')':null,icon:xpRoadRewardIcon(node),valueLabel:formatCompactNum(node.xp)+' Arete',descLabel:xpRoadRewardLabel(node),progressPct:pct,weight:xpRoadNodeWeight(node),roadPos:i/(ascending.length-1||1),name:node.name,myth:node.myth,subtitle:node.subtitle};
+    return {claimed,ready,isNext,onclick:ready?'claimXpRoadReward('+node.xp+')':null,icon:xpRoadRewardIcon(node),valueLabel:formatCompactNum(node.xp)+' Arete',descLabel:xpRoadRewardLabel(node),progressPct:pct,weight:xpRoadNodeWeight(node),type:node.type,rarity:node.rarity,roadPos:i/(ascending.length-1||1),name:node.name,myth:node.myth,subtitle:node.subtitle};
   });
 }
 function getXpRoadSummary(){
@@ -14443,11 +14569,11 @@ function renderXpRoadGallery(){
 // this ladder; with only 2 real legendary cards now, expect it to repeat
 // those two often — flag if that needs its own fix.
 const CRATE_TIERS={
-  bronze:{label:'Bronze Crate',odds:{common:77,rare:15,superrare:5.5,epic:1.8,mythic:0.5,legendary:0.2,ultralegendary:0}},
-  silver:{label:'Silver Crate',odds:{common:68,rare:20,superrare:8,epic:2.5,mythic:1,legendary:0.45,ultralegendary:0.05}},
-  gold:{label:'Gold Crate',odds:{common:58,rare:25,superrare:10,epic:4,mythic:1.7,legendary:1.2,ultralegendary:0.1}},
-  diamond:{label:'Diamond Crate',odds:{common:47,rare:28,superrare:14,epic:6.5,mythic:2.5,legendary:1.8,ultralegendary:0.2}},
-  areviax:{label:'Areviax Crate',odds:{common:0,rare:0,superrare:0,epic:0,mythic:0,legendary:95,ultralegendary:5}},
+  bronze:{label:'Bronze Crate',odds:{common:77.37,rare:15,superrare:5.5,epic:1.8,mythic:0.25,legendary:0.08,ultralegendary:0}},
+  silver:{label:'Silver Crate',odds:{common:68.78,rare:20,superrare:8,epic:2.5,mythic:0.5,legendary:0.2,ultralegendary:0.02}},
+  gold:{label:'Gold Crate',odds:{common:59.5,rare:25,superrare:10,epic:4,mythic:0.9,legendary:0.55,ultralegendary:0.05}},
+  diamond:{label:'Diamond Crate',odds:{common:34.4,rare:30,superrare:19,epic:10.5,mythic:3,legendary:2.8,ultralegendary:0.3}},
+  areviax:{label:'Areviax Crate',odds:{common:0,rare:0,superrare:0,epic:0,mythic:55,legendary:41,ultralegendary:4}},
 };
 // KEYS — spend a stack to instantly turn one already-banked crate into
 // the next tier up. Never a requirement to open anything you already
@@ -14459,7 +14585,8 @@ const CRATE_TIERS={
 // diamond has no upgrade path either (nothing above it to upgrade TO
 // other than areviax, which isn't earnable this way on purpose — see
 // openCompassDrop's areviax branch).
-const KEY_UPGRADE_PATH={bronze:'silver',silver:'gold'};
+// Silver → Gold is gone: a Gold crate IS a key, so spending 5 keys to "upgrade" into one key quietly destroyed 4 of them.
+const KEY_UPGRADE_PATH={bronze:'silver'};
 const KEY_UPGRADE_COST={bronze:3,silver:5};
 function crateBankRef(tier){
   if(tier==='bronze')return {get v(){return bronzeDropBank;},set v(n){bronzeDropBank=n;}};
@@ -14623,7 +14750,7 @@ function renderAchievements(){
     const states={
       bronze:{ready:bronzeDropBank>0,label:'Bronze'+(bronzeDropBank>1?' \u00d7'+bronzeDropBank:''),sub:bronzeDropBank>0?'Tap to open':bronzeDropProgress+'/'+BRONZE_DROP_DAYS+' training days'},
       silver:{ready:silverDropBank>0,label:'Silver'+(silverDropBank>1?' \u00d7'+silverDropBank:''),sub:silverDropBank>0?'Tap to open':'Win one from the Daily Spin'},
-      gold:{ready:keyBank>0,label:'Gold'+(keyBank>1?' \u00d7'+keyBank:''),sub:keyBank>0?'Tap to open':'Earn a key with a perfect week'},
+      gold:{ready:keyBank>0,label:'Gold'+(keyBank>1?' \u00d7'+keyBank:''),sub:keyBank>0?'Tap to open':'Earn a Gold Key with a perfect week'},
       diamond:{ready:diamondDropBank>0,label:'Diamond'+(diamondDropBank>1?' \u00d7'+diamondDropBank:''),sub:diamondDropBank>0?'Tap to open':'Win one from the Daily Spin'},
       // Never banked/tap-to-open (see openCompassDrop's areviax branch \u2014
       // it has no bank guard at all, so wiring the tile to it the normal
@@ -14632,7 +14759,7 @@ function renderAchievements(){
       // other tiers use while unready \u2014 it's not something you're saving
       // up for, it's the aspirational tier you're shown what you're
       // chasing. Tapping it opens the odds/how-to-earn info instead.
-      areviax:{ready:false,always:true,label:'Areviax',sub:'Reach the top league, or win it from the Daily Spin'},
+      areviax:{ready:areviaxDropBank>0,always:true,label:'Areviax'+(areviaxDropBank>1?' \u00d7'+areviaxDropBank:''),sub:areviaxDropBank>0?'Tap to open':'Reach the top league, or win it from the Daily Spin'},
     };
     crateRow.innerHTML=Object.keys(states).map(tier=>{
       const s=states[tier];
@@ -14643,7 +14770,7 @@ function renderAchievements(){
       // button per action: an explicit full-width Open button for a ready
       // crate, and the info button (now free to have a much bigger real
       // tap area since nothing below it competes for the same touch anymore).
-      const tileOnclick=s.always?"viewDropInfo('"+tier+"')":'';
+      const tileOnclick=(s.always&&!s.ready)?"viewDropInfo('"+tier+"')":'';
       // Areviax is "always" shown (never bankable, see the comment on its
       // states entry above) but was landing with neither .ready nor
       // .locked — the CSS already has a dedicated ready-state float+aura
@@ -14661,7 +14788,7 @@ function renderAchievements(){
         </div>
         <div class="crate-slot-label">${s.label}</div>
         ${s.ready
-          ? `<button class="crate-open-btn" onclick="openCompassDrop('${tier}')">Open</button>`
+          ? `<button class="crate-open-btn" onclick="openCompassDrop('${tier}',true)">Open</button>`
           : `<div class="crate-slot-sub">${s.sub}</div>`}
         ${(s.ready&&KEY_UPGRADE_PATH[tier]&&keyBank>=KEY_UPGRADE_COST[tier])
           // Just the tier name, not the full "Diamond Crate" label — this
@@ -14700,7 +14827,7 @@ const STREAK_FREEZE_ICON='<img src="images/icons/streak-freeze.png" alt="" class
 const DRACHMA_OFFERS=[
   {id:'bronze3',label:'3 Bronze Crates',sub:'Instant',cost:15,tier:'bronze',render:()=>crateIconHTML('bronze'),grant:()=>{bronzeDropBank+=3;}},
   {id:'silver3',label:'3 Silver Crates',sub:'Instant',cost:30,tier:'silver',render:()=>crateIconHTML('silver'),grant:()=>{silverDropBank+=3;}},
-  {id:'key3',label:'3 Keys',sub:'Opens Gold Crates',cost:40,tier:'gold',render:()=>'<img src="images/icons/key.png" alt="" class="shop-art-img" width="96" height="96" loading="lazy">',grant:()=>{keyBank+=3;}},
+  {id:'key3',label:'3 Gold Keys',sub:'Opens Gold Crates',cost:40,tier:'gold',render:()=>'<img src="images/icons/key.png" alt="" class="shop-art-img" width="96" height="96" loading="lazy">',grant:()=>{keyBank+=3;}},
   {id:'diamond1',label:'1 Diamond Crate',sub:'Instant',cost:60,tier:'diamond',render:()=>crateIconHTML('diamond'),grant:()=>{diamondDropBank+=1;}},
   {id:'streak_freeze1',label:'Streak Freeze',sub:'Auto-protects your next missed day',cost:35,tier:'diamond',badge:'new',render:()=>STREAK_FREEZE_ICON,grant:()=>{streakFreezes+=1;}},
   {id:'streak_saver1',label:'Streak Saver',sub:'Repairs a streak that already broke',cost:50,tier:'areviax',badge:'new',render:()=>STREAK_SAVER_ICON,grant:()=>{streakSavers+=1;}},
@@ -14709,10 +14836,10 @@ const DRACHMA_OFFERS=[
   // currencies or content types invented), priced at a discount off the
   // per-unit rate of their same-tier single/3-pack so buying in bulk
   // actually reads as a deal rather than just a bigger number.
-  {id:'starter_pack',label:'Starter Pack',sub:'2 Bronze + 1 Silver Crate + 1 Key',cost:45,tier:'bronze',badge:'new',render:()=>'<img src="images/icons/starter-pack.png" alt="" class="shop-art-img" width="96" height="96" loading="lazy">',grant:()=>{bronzeDropBank+=2;silverDropBank+=1;keyBank+=1;}},
+  {id:'starter_pack',label:'Starter Pack',sub:'2 Bronze + 1 Silver Crate + 1 Gold Key',cost:45,tier:'bronze',badge:'new',render:()=>'<img src="images/icons/starter-pack.png" alt="" class="shop-art-img" width="96" height="96" loading="lazy">',grant:()=>{bronzeDropBank+=2;silverDropBank+=1;keyBank+=1;}},
   {id:'bronze10',label:'10 Bronze Crates',sub:'Instant · bulk price',cost:45,tier:'bronze',badge:'new',render:()=>crateIconHTML('bronze'),grant:()=>{bronzeDropBank+=10;}},
   {id:'silver10',label:'10 Silver Crates',sub:'Instant · bulk price',cost:90,tier:'silver',badge:'new',render:()=>crateIconHTML('silver'),grant:()=>{silverDropBank+=10;}},
-  {id:'key10',label:'10 Keys',sub:'Opens Gold Crates · bulk price',cost:120,tier:'gold',badge:'new',render:()=>'<img src="images/icons/key.png" alt="" class="shop-art-img" width="96" height="96" loading="lazy">',grant:()=>{keyBank+=10;}},
+  {id:'key10',label:'10 Gold Keys',sub:'Opens Gold Crates · bulk price',cost:120,tier:'gold',badge:'new',render:()=>'<img src="images/icons/key.png" alt="" class="shop-art-img" width="96" height="96" loading="lazy">',grant:()=>{keyBank+=10;}},
   {id:'diamond3',label:'3 Diamond Crates',sub:'Instant · bulk price',cost:165,tier:'diamond',badge:'new',render:()=>crateIconHTML('diamond'),grant:()=>{diamondDropBank+=3;}},
   {id:'streak_freeze3',label:'3 Streak Freezes',sub:'Auto-protects your next 3 missed days',cost:95,tier:'diamond',badge:'new',render:()=>STREAK_FREEZE_ICON,grant:()=>{streakFreezes+=3;}},
   {id:'streak_saver3',label:'3 Streak Savers',sub:'Repairs a streak that already broke',cost:140,tier:'areviax',badge:'new',render:()=>STREAK_SAVER_ICON,grant:()=>{streakSavers+=3;}},
@@ -14964,7 +15091,7 @@ function renderOlympusRoadGallery(nodes){
   galleryEl.innerHTML=nodes.map(n=>{
     const tip=(n.myth?n.myth+' — ':'')+n.valueLabel+' — '+n.descLabel;
     return `<div class="road-trophy-item${n.claimed?' earned':''}" title="${tip.replace(/"/g,'&quot;')}">
-      <div class="road-trophy-item-icon">${n.claimed?n.icon:'🔒'}</div>
+      <div class="road-trophy-item-icon">${n.claimed?roadTileIcon(n):'🔒'}</div>
       <div class="road-trophy-item-name">${n.claimed?(n.name||n.valueLabel):'???'}</div>
     </div>`;
   }).join('');
@@ -15366,10 +15493,10 @@ function grantTestCrates(){
 }
 // ── CRATE REWARD COUNT & EXTRAS ─────────────────────────────────────────────
 // Every crate gives its Arete bonus plus 1-13 more rewards (2-14 in total). Big hauls are rare:
-// CRATE_CUM_BASE is the chance of getting AT LEAST N rewards from a Gold crate (7+ is about 1 crate in 30),
-// and each tier scales that tail (Bronze thinner, Areviax fatter: 11+ is roughly 1 in 50 there).
-const CRATE_CUM_BASE={3:.45,4:.23,5:.12,6:.06,7:.0333,8:.024,9:.0175,10:.0135,11:.01,12:.0065,13:.004,14:.002};
-const CRATE_TAIL_MULT={bronze:.6,silver:.8,gold:1,diamond:1.4,areviax:2.2};
+// CRATE_CUM_BASE is the chance of getting AT LEAST N rewards from a Gold crate (6+ is about 1 crate in 7, 7+ about 1 in 11),
+// and each tier scales that tail (Bronze thinner, Areviax fatter).
+const CRATE_CUM_BASE={3:.58,4:.38,5:.26,6:.19,7:.11,8:.062,9:.045,10:.033,11:.024,12:.016,13:.01,14:.006};
+const CRATE_TAIL_MULT={bronze:.6,silver:.8,gold:1,diamond:1.9,areviax:2.2};
 function rollCrateRewardCount(tier){
   const m=CRATE_TAIL_MULT[tier]||1,u=Math.random();
   for(let n=14;n>=3;n--){if(u<Math.min(1,CRATE_CUM_BASE[n]*m))return n;}
@@ -15384,19 +15511,27 @@ const CRATE_EXTRA_ART={
   starter:'images/icons/starter-pack.png',
 };
 // kind -> {weight by tier, grant() returns descriptor or null if unavailable}
+// Drachma from a crate: usually 5-12, sometimes about 40, and a 400 ceiling that almost never happens (a little better odds in the top crates).
+function crateDrachmaAmount(tier){
+  const tm={bronze:.8,silver:1,gold:1.1,diamond:1.5,areviax:1.8}[tier]||1,u=Math.random();
+  if(u<.001*tm)return 120+Math.floor(Math.random()*281);         // 120-400, very rare
+  if(u<.02*tm)return 20+Math.floor(Math.random()*31);            // 20-50
+  return 3+Math.floor(Math.random()*6);                          // 3-8
+}
 function crateExtraPool(tier){
-  const dr={bronze:10,silver:20,gold:35,diamond:60,areviax:100}[tier]||10;
+  const dr={bronze:6,silver:13,gold:22,diamond:40,areviax:70}[tier]||6;
   const hi=['gold','diamond','areviax'].includes(tier),top=['diamond','areviax'].includes(tier);
   return [
-    {w:10,make:()=>{const n=dr+Math.floor(Math.random()*dr);drachma+=n;return {kind:'drachma',art:CRATE_EXTRA_ART.drachma,label:'+'+n+' Drachma',sub:'Spend it in the Shop',grad:'linear-gradient(160deg,#FFE066,#C9971E)'};}},
-    {w:8,make:()=>{const n=15+Math.floor(Math.random()*(hi?60:25));return {kind:'xp',emoji:'⚡',label:'+'+n+' bonus Arete',sub:'Crate surge',grad:'linear-gradient(160deg,#FFB347,#FF6B1A)',xp:n};}},
-    {w:4,make:()=>{keyBank++;return {kind:'key',art:CRATE_EXTRA_ART.key,label:'+1 Key',sub:'Spend keys to upgrade a crate',grad:'linear-gradient(160deg,#E8E0D0,#8A98A8)'};}},
-    {w:5,make:()=>{bronzeDropBank++;return {kind:'bronze',art:CRATE_ICON_IMG.bronze,label:'+1 Bronze Crate',sub:'Ready in your crates',grad:'linear-gradient(160deg,#C8864E,#6a3f1c)'};}},
-    {w:hi?3:1.5,make:()=>{silverDropBank++;return {kind:'silver',art:CRATE_ICON_IMG.silver,label:'+1 Silver Crate',sub:'Ready in your crates',grad:'linear-gradient(160deg,#DDE3EC,#7f8896)'};}},
+    {w:5,make:()=>{const n=crateDrachmaAmount(tier);drachma+=n;return {kind:'drachma',art:CRATE_EXTRA_ART.drachma,label:'+'+n+' Drachma',sub:'Spend it in the Shop',grad:'linear-gradient(160deg,#FFE066,#C9971E)'};}},
+    {w:8,make:()=>{const n=15+Math.floor(Math.random()*(hi?60:25));return {kind:'xp',art:'images/icons/arete.png',label:'+'+n+' bonus Arete',sub:'Crate surge',grad:'linear-gradient(160deg,#FFB347,#FF6B1A)',xp:n};}},
+    {w:1.6,make:()=>{const kt=rollKeyTier(tier),nm=KEY_TIER_NAMES[kt];addKeyCrates(kt,1);return {kind:'key',keyTier:kt,art:KEY_ICON_IMG[kt],label:'+1 '+nm+' Key',sub:'Opens one '+nm+' crate',grad:'linear-gradient(160deg,#E8E0D0,#8A98A8)'};}},
+    {w:1.6,make:()=>{bronzeDropBank++;return {kind:'bronze',art:CRATE_ICON_IMG.bronze,label:'+1 Bronze Crate',sub:'Ready in your crates',grad:'linear-gradient(160deg,#C8864E,#6a3f1c)'};}},
+    {w:hi?1:.5,make:()=>{silverDropBank++;return {kind:'silver',art:CRATE_ICON_IMG.silver,label:'+1 Silver Crate',sub:'Ready in your crates',grad:'linear-gradient(160deg,#DDE3EC,#7f8896)'};}},
     {w:2.5,make:()=>{streakFreezes++;return {kind:'freeze',art:CRATE_EXTRA_ART.freeze,label:'+1 Streak Freeze',sub:'Protects a missed day',grad:'linear-gradient(160deg,#8fe6ff,#2b7fa6)'};}},
     {w:1.5,make:()=>{streakSavers++;return {kind:'saver',art:CRATE_EXTRA_ART.saver,label:'+1 Streak Saver',sub:'Repairs a broken streak',grad:'linear-gradient(160deg,#FFD24A,#c26a00)'};}},
-    {w:top?1.1:.25,make:()=>{diamondDropBank++;return {kind:'diamond',art:CRATE_ICON_IMG.diamond,label:'+1 Diamond Crate',sub:'Ready in your crates',grad:'linear-gradient(160deg,#9be8ff,#1c7fa8)'};}},
-    {w:1,make:()=>{const t=randomLockedTitle();if(!t)return null;unlockTitle(t,false);return {kind:'title',art:CRATE_EXTRA_ART.title,label:'New Title',sub:'"'+TITLES[t].name+'" — equip it on your Profile',grad:'linear-gradient(160deg,#FFE066,#C9971E)'};}},
+    {w:top?.4:.08,make:()=>{diamondDropBank++;return {kind:'diamond',art:CRATE_ICON_IMG.diamond,label:'+1 Diamond Crate',sub:'Ready in your crates',grad:'linear-gradient(160deg,#9be8ff,#1c7fa8)'};}},
+    {w:2.6,make:()=>{const t=randomLockedTitle();if(!t)return null;unlockTitle(t,false);return {kind:'title',art:CRATE_EXTRA_ART.title,label:'New Title',sub:'"'+TITLES[t].name+'" — equip it on your Profile',grad:'linear-gradient(160deg,#FFE066,#C9971E)'};}},
+    {w:2,make:()=>{const lk=Object.keys(ACCENT_THEMES).filter(k=>!unlockedThemes.includes(k));if(!lk.length)return null;const k=lk[Math.floor(Math.random()*lk.length)];unlockAccentTheme(k,false);return {kind:'theme',art:'images/icons/title-medal.png',label:'New Theme',sub:'"'+ACCENT_THEMES[k].name+'" — equip it in Settings',grad:'linear-gradient(160deg,#c9a0ff,#5b2a9e)'};}},
   ];
 }
 // Picks a trophy the same way the main drop does (rarity from the tier's odds, falling toward commoner ones if a pool is empty).
@@ -15407,6 +15542,17 @@ function pickCrateTrophy(tier){
   let pool=[];
   for(let i=Math.max(startIdx,0);i<RARITY_ORDER.length&&!pool.length;i++){pool=LEGEND_CARDS.filter(l=>l.rarity===RARITY_ORDER[i]);}
   return pool.length?pool[Math.floor(Math.random()*pool.length)]:null;
+}
+const CRATE_DUPE_P={bronze:.25,silver:.3,gold:.36,diamond:.5};
+// A trophy you already own, rarity rolled from the tier's odds (falls toward commoner ones; null if you own none that low).
+function pickOwnedTrophy(tier){
+  const cfg=CRATE_TIERS[tier];if(!cfg)return null;
+  const start=Math.max(RARITY_ORDER.indexOf(rollRarity(cfg.odds)),0);
+  for(let i=start;i<RARITY_ORDER.length;i++){
+    const pool=LEGEND_CARDS.filter(l=>l.rarity===RARITY_ORDER[i]&&unlockedLegends.includes(l.key));
+    if(pool.length)return pool[Math.floor(Math.random()*pool.length)];
+  }
+  return null;
 }
 function crateTrophyDesc(card,isNew,n){
   const rc=(typeof RARITY_RAY!=='undefined'&&RARITY_RAY[card.rarity])||'#9AA0A8';
@@ -15429,7 +15575,16 @@ function rollCrateExtras(tier,want){
   const rank=d=>d.kind==='trophy'?10+(RARITY_ORDER.length-RARITY_ORDER.indexOf(d.rarity)):0;
   return out.sort((a,b)=>rank(a)-rank(b));
 }
-function openCompassDrop(tier){
+// Everything is already granted by the time the reveal starts, so if drawing it ever fails the player still sees what they got.
+function safeReveal(pick,isNew,tier,count,keyWon,titleWon,extras){
+  try{showLegendReveal(pick,isNew,tier,count,keyWon,titleWon,extras);}
+  catch(e){
+    console.error('crate reveal failed',e);
+    try{document.querySelectorAll('.achievement-overlay').forEach(o=>o.remove());}catch(_){}
+    try{toast('🎁','Crate opened: '+[pick?pick.name:null].concat((extras||[]).map(d=>d.label)).filter(Boolean).slice(0,4).join(', ')+' added to your collection','drops');}catch(_){}
+  }
+}
+function openCompassDrop(tier,fromBank){
   const cfg=CRATE_TIERS[tier];
   if(!cfg)return;
   // A fast double-tap on a crate tile (or tapping a second tier before
@@ -15437,6 +15592,9 @@ function openCompassDrop(tier){
   // stack two full-screen overlays — grantXpRoadReward already guards
   // against this the same way, this call path was just missing it.
   if(document.querySelector('.achievement-overlay'))return;
+  // A tap on Continue can fall through onto the crate tile underneath once the overlay is gone, spending another crate
+  // without the player pressing it: ignore opens right after a reveal closes.
+  if(Date.now()-(window.__crateClosedAt||0)<1000)return;
   // iOS Safari only resumes an AudioContext when .resume() runs
   // synchronously inside the original tap handler — a resume from a
   // later setTimeout (where every crate sound in showLegendReveal
@@ -15451,12 +15609,18 @@ function openCompassDrop(tier){
   else if(tier==='silver'){ if(silverDropBank<=0)return; silverDropBank--; }
   else if(tier==='gold'){ if(keyBank<=0)return; keyBank--; }
   else if(tier==='diamond'){ if(diamondDropBank<=0)return; diamondDropBank--; }
-  // areviax: free — only ever granted by the Daily Spin, no bank to spend.
+  else if(tier==='areviax'&&fromBank){ if(areviaxDropBank<=0)return; areviaxDropBank--; }
+  // areviax otherwise: free — the Daily Spin opens it directly; an Areviax Key is the only way to bank one.
   // Trophies are only possible with 6+ rewards: 6+ always holds one, and with 7+ a second (or third) is fairly
   // likely. A duplicate does not get the big treatment: it shows up as a plain tile like any bonus item.
   let total=rollCrateRewardCount(tier);
   if(tier==='areviax')total=Math.max(total,6);   // the free jackpot crate always lands a trophy
   const trophies=[];
+  if(total<6&&unlockedLegends.length&&Math.random()<(CRATE_DUPE_P[tier]||.15)){
+    // under 6 rewards there are no NEW trophies, but a duplicate of one you own can drop (shown as a plain tile)
+    const card=pickOwnedTrophy(tier);
+    if(card){legendCounts[card.key]=(legendCounts[card.key]||0)+1;trophies.push({card,isNew:false,n:legendCounts[card.key]});}
+  }
   if(total>=6){
     let want=1;const p2=total>6?Math.min(.75,.15+.15*(total-6)):0;
     while(want<total-1&&Math.random()<p2*Math.pow(.5,want-1))want++;
@@ -15495,10 +15659,10 @@ function openCompassDrop(tier){
     crateEl.classList.add('opening');
     setTimeout(()=>{
       crateEl.classList.remove('opening');
-      showLegendReveal(pick,isNew,tier,pick?legendCounts[pick.key]:0,keyWon,titleWon,extras);
+      safeReveal(pick,isNew,tier,pick?legendCounts[pick.key]:0,keyWon,titleWon,extras);
     },500);
   }else{
-    showLegendReveal(pick,isNew,tier,pick?legendCounts[pick.key]:0,keyWon,titleWon,extras);
+    safeReveal(pick,isNew,tier,pick?legendCounts[pick.key]:0,keyWon,titleWon,extras);
   }
 }
 // \u2500\u2500 CRATE SOUND \u2014 procedurally synthesized (no audio files), same
@@ -16378,10 +16542,10 @@ function runMysteryReveal(modal,l,isNew,cfg){
       if(isNew)celebrateBurst(['🔥','⭐','🏆'],cfg.burstCount);
     },380);
   }
-  // A player who never taps or drags still gets the reveal — same
-  // "don't gate the reward behind an interaction" rule as the crate tap
-  // itself and the slot auto-advance.
-  setTimeout(lock,1700);
+  // The reveal only happens when the player taps the spinning badge: nothing auto-collects.
+  const tapHint=document.createElement('div');tapHint.className='crate-tap-prompt';tapHint.textContent='Tap to reveal!';tapHint.style.marginTop='10px';
+  try{wrap.insertAdjacentElement('afterend',tapHint);}catch(e){}
+  mystery.addEventListener('click',()=>{try{tapHint.remove();}catch(e){}});
 }
 const RARITY_GLOW={
   common:'rgba(170,176,184,.3)',
@@ -16533,13 +16697,14 @@ function showCrateSummary(btn){
     modal.className='achievement-modal crate-summary show';modal.removeAttribute('style');
     modal.innerHTML='<div class="cs-rays"></div><div class="cs-title">YOU GOT:</div><div class="cs-grid">'+
       sm.items.map((it,i)=>'<div class="cs-item'+(it.hot?' hot':'')+'" style="animation-delay:'+(120+i*70)+'ms">'+
-        '<div class="cs-tile" style="background:'+it.grad+'">'+(it.art?'<img src="'+it.art+'" alt="" width="64" height="64">':'<span>'+it.icon+'</span>')+'</div>'+
+        '<div class="cs-tile'+(it.raw?' raw':'')+'"'+(it.raw?'':' style="background:'+it.grad+'"')+'>'+(it.art?'<img src="'+it.art+'" alt="" width="64" height="64">':'<span>'+it.icon+'</span>')+'</div>'+
         '<b>'+escHtml(it.label)+'</b>'+(it.sub?'<small>'+escHtml(it.sub)+'</small>':'')+'</div>').join('')+
       '</div><button class="achievement-close-btn cs-btn" onclick="closeCrateRevealAndShowcase(this,\'\',false)">Continue</button>';
     try{playRewardSurge(1);}catch(e){}
   }catch(e){closeCrateRevealAndShowcase(btn,'',false);}
 }
 function closeCrateRevealAndShowcase(btn,key,isNew){
+  window.__crateClosedAt=Date.now();   // see openCompassDrop: ignore the tap that lands on the crate underneath
   const overlay=btn.closest('.achievement-overlay');
   // Direct report, still reproducing after the race-condition fix below:
   // tapping Continue while the lock-in celebration is still mid-flight left
@@ -16627,8 +16792,8 @@ function showLegendReveal(l,isNew,tier,count,keyWon,titleWon,extras){
     '</div>';
   }
   function xpSlotHTML(){
-    return '<div class="crate-xp-slot crate-slot-pop">'+
-        '<div class="crate-xp-slot-icon">⭐</div>'+
+    return '<div class="crate-xp-slot crate-slot-pop rw-raw">'+
+        '<div class="crate-xp-slot-icon rw-img"><img src="images/icons/arete.png" alt="" width="120" height="120"></div>'+
         '<div class="crate-xp-slot-label">+'+xpAmount+' Arete</div>'+
         '<div class="crate-xp-slot-sub">'+(!l?'Crate bonus':isNew?'New trophy bonus':'Areviax Crate')+'</div>'+
       '</div>';
@@ -16648,13 +16813,40 @@ function showLegendReveal(l,isNew,tier,count,keyWon,titleWon,extras){
         '<div class="crate-xp-slot-sub">"'+t.name+'" — equip it on your Profile</div>'+
       '</div>';
   }
+  // Currency, duplicates and trophies show their own art with no circle behind it. A NEW trophy starts as a black silhouette
+  // (label hidden) and unlocks a beat later with a shine, light rays and its rarity fanfare (see slotOnShow).
   function extraSlotHTML(d){
+    const raw=d.kind==='dupe'||d.kind==='trophy'||d.kind==='xp'||d.kind==='drachma';
     const icon=d.art?'<img src="'+d.art+'" alt="" width="120" height="120">':d.emoji;
-    return '<div class="crate-xp-slot crate-slot-pop rw-pop">'+
-        '<div class="crate-xp-slot-icon'+(d.art?' rw-img':'')+'" style="background:'+d.grad+'">'+icon+'</div>'+
-        '<div class="crate-xp-slot-label">'+d.label+'</div>'+
-        '<div class="crate-xp-slot-sub">'+d.sub+'</div>'+
+    const sil=d.kind==='trophy',hide=sil?' mystery-hide':'';
+    return '<div class="crate-xp-slot crate-slot-pop rw-pop'+(raw?' rw-raw':'')+(sil?' rw-sil':'')+'">'+
+        '<div class="crate-xp-slot-icon'+(d.art?' rw-img':'')+'"'+(raw?'':' style="background:'+d.grad+'"')+'>'+icon+'</div>'+
+        '<div class="crate-xp-slot-label'+hide+'">'+d.label+'</div>'+
+        '<div class="crate-xp-slot-sub'+hide+'">'+d.sub+'</div>'+
       '</div>';
+  }
+  function slotOnShow(d,m){
+    if(d.kind==='trophy'){
+      if(d.xp)addXP(d.xp,'New trophy');
+      const slot=m.querySelector('.crate-xp-slot');
+      try{ArxFX.shine(m.querySelector('.crate-xp-slot-icon'),'#888',6);}catch(e){}
+      setTimeout(()=>{
+        if(!m.isConnected||!slot)return;
+        slot.classList.remove('rw-sil');slot.classList.add('rw-lit');
+        m.querySelectorAll('.mystery-hide').forEach(e=>e.classList.remove('mystery-hide'));
+        const ic=m.querySelector('.crate-xp-slot-icon')||slot,col=(typeof RARITY_RAY!=='undefined'&&RARITY_RAY[d.rarity])||'#FFD24A',rk=(typeof RARITY_RANK!=='undefined'&&RARITY_RANK[d.rarity])||0;
+        try{lightRayBurst(col,6+rk);}catch(e){}
+        try{ArxFX.rarity(ic,d.rarity);}catch(e){}
+        try{ArxFX.shine(ic,col,22);}catch(e){}
+        try{if(rk>=3)ArxFX.shake(modalEl,3+rk*1.4,.4);}catch(e){}
+        try{spawnUnlockGlyphs(d.rarity);}catch(e){}
+        try{playUnlockFanfare(d.rarity,.9);}catch(e){}
+      },950);
+      return;
+    }
+    if(d.xp)addXP(d.xp,'Crate surge');
+    lightRayBurst('#FFD24A',4);
+    try{ArxFX[d.kind==='drachma'?'coins':'shine'](m.querySelector('.crate-xp-slot-icon'),d.kind==='drachma'?Math.min(40,10+Math.round(parseInt(d.label.replace(/\D/g,''))/4)):'#FFD24A',16);}catch(e){}
   }
   // Order matters for pacing (small beats first, big prize last) — not
   // for economy, every slot always grants exactly what would've been
@@ -16668,16 +16860,19 @@ function showLegendReveal(l,isNew,tier,count,keyWon,titleWon,extras){
   // visibly arrives rather than just popping into place.
   // Brawl-style claim sounds: every reward gets the Tap/Surge/Tally treatment, small for normal items and
   // enormous for trophy unlocks (rarity fanfare). A trophy somewhere in the crate also gets its own hint cue.
-  function playSlotSound(slot){
+  function playSlotSound(slot,final){
     try{
-      const d=slot&&slot.d;
-      if(d&&d.kind==='trophy'){playUnlockFanfare(d.rarity,.9);return;}   // a NEW trophy: the full rarity melody
-      playItemWhing();                                                  // everything else, duplicates included: the airy item swoop
+      const d=slot&&slot.d,k=d&&d.kind;
+      if(k==='trophy')return;                                                                   // a NEW trophy plays its own fanfare when it unlocks (slotOnShow)
+      if(k==='bronze'||k==='silver'||k==='gold'||k==='diamond'||k==='key'){playCrateThud();return;}        // earning a crate: a thump, never the coin sound
+      if(k==='drachma'||k==='xp'||(slot&&slot.isXp)){                                           // only currency counts up
+        if(final)playGrandTally(1100);else playRewardTally(560);return;}
+      playItemWhing();                                                                          // keys, freezes, savers, titles, duplicates
     }catch(e){}
   }
   const slots=multiSlot?[
     {isXp:true,render:xpSlotHTML,onShow:(m)=>{addXP(xpAmount,!l?'Crate bonus':isNew?'New trophy':'Areviax Crate');lightRayBurst('#FFB347',4);try{ArxFX.coins(m.querySelector('.crate-xp-slot-icon'),Math.min(40,12+Math.round(xpAmount/6)));}catch(e){}}},
-    ...extras.map(d=>({d,render:()=>extraSlotHTML(d),onShow:(m)=>{if(d.xp)addXP(d.xp,'Crate surge');lightRayBurst('#FFD24A',4);try{ArxFX[d.kind==='drachma'?'coins':'shine'](m.querySelector('.crate-xp-slot-icon'),d.kind==='drachma'?Math.min(40,10+Math.round(parseInt(d.label.replace(/\D/g,''))/4)):'#FFD24A',16);}catch(e){}}})),
+    ...extras.map(d=>({d,render:()=>extraSlotHTML(d),onShow:(m)=>slotOnShow(d,m)})),
     ...(keyWon?[{render:keySlotHTML,onShow:(m)=>{lightRayBurst('#B9C4CE',4);try{ArxFX.shine(m.querySelector('.crate-xp-slot-icon'),'#DDE6F0',16);}catch(e){}}}]:[]),
     ...(titleWon?[{render:titleSlotHTML,onShow:(m)=>{lightRayBurst('#FFD24A',4);try{ArxFX.shine(m.querySelector('.crate-xp-slot-icon'),'#FFD24A',22);}catch(e){}}}]:[]),
     ...(l?[{render:trophySlotHTML,onShow:(modal)=>runMysteryReveal(modal,l,isNew,cfg)}]:[]),
@@ -16693,8 +16888,8 @@ function showLegendReveal(l,isNew,tier,count,keyWon,titleWon,extras){
 
   // Everything this crate gave, for the "YOU GOT:" screen shown after the last reveal (all items at once).
   window.__crateSummary={items:[
-    {icon:'⭐',grad:'linear-gradient(160deg,#FFB347,#FF6B1A)',label:'+'+xpAmount+' Arete'},
-    ...extras.map(d=>({art:d.art,icon:d.emoji,grad:d.grad,label:d.label,sub:d.kind==='trophy'?'UNLOCKED!':d.kind==='dupe'?'DUPLICATE':'',hot:d.kind==='trophy'})),
+    {art:'images/icons/arete.png',grad:'none',raw:true,label:'+'+xpAmount+' Arete'},
+    ...extras.map(d=>({art:d.art,icon:d.emoji,grad:d.grad,raw:d.kind==='dupe'||d.kind==='trophy'||d.kind==='xp'||d.kind==='drachma',label:d.label,sub:d.kind==='trophy'?'UNLOCKED!':d.kind==='dupe'?'DUPLICATE':'',hot:d.kind==='trophy'})),
     ...(l?[{art:l.img||'',icon:l.img?'':legendIconHTML(l),grad:'linear-gradient(160deg,'+((typeof RARITY_RAY!=='undefined'&&RARITY_RAY[l.rarity])||'#9AA0A8')+',#1a1a2a)',label:l.name,sub:'UNLOCKED!',hot:true}]:[])
   ]};
   const overlay=document.createElement('div');
@@ -16712,7 +16907,7 @@ function showLegendReveal(l,isNew,tier,count,keyWon,titleWon,extras){
     '</div>';
   document.body.appendChild(overlay);
   requestAnimationFrame(()=>overlay.classList.add('show'));
-  setTimeout(()=>{try{if(overlay.isConnected)playCrateThud();}catch(e){}},330);   // the box lands with a heavy thud
+  setTimeout(()=>{try{if(overlay.isConnected)playCrateThud();}catch(e){}},420);   // the box lands with a heavy thud (end of its .45s drop-in)
 
   const wrap=overlay.querySelector('#reveal-crate-wrap');
   const icon=overlay.querySelector('#reveal-crate-icon');
@@ -16761,7 +16956,7 @@ function showLegendReveal(l,isNew,tier,count,keyWon,titleWon,extras){
     // lock-in moment (see runMysteryReveal) so the "successful" sound
     // lands with the actual reveal, not a second early with the "?".
     if(!isLast)playCrateRevealChime('common');
-    else if(!l){try{playGrandTally(1100);}catch(e){}}   // nothing special inside: coins and gems pour in
+    else if(!l)playSlotSound(slot,true);   // nothing special inside: currency pours in, a crate thumps, anything else swooshes
     slot.onShow&&slot.onShow(modal);
     if(!isLast){
       // clearTimeout on both paths — without it, a manual tap that beats
@@ -16773,7 +16968,7 @@ function showLegendReveal(l,isNew,tier,count,keyWon,titleWon,extras){
       modal.addEventListener('advance',()=>{ clearTimeout(autoAdvanceTimer); slotIdx++; showSlot(); },{once:true});
       // Same "don't gate the reward behind a tap" rule as the box open
       // itself — advances on its own if the player doesn't tap.
-      autoAdvanceTimer=setTimeout(()=>{ if(overlay.isConnected&&modal.querySelector('.crate-tap-prompt')){ slotIdx++; showSlot(); } },slots.length>=5?1350:1800);
+      // no auto-advance: each reward waits for a tap
     }
   }
 
@@ -16797,7 +16992,8 @@ function showLegendReveal(l,isNew,tier,count,keyWon,titleWon,extras){
     counter.classList.remove('bx-count-pop');void counter.offsetWidth;counter.classList.add('bx-count-pop');
     counter.classList.toggle('bx-final',n===1);
   }
-  function armIdle(ms){clearTimeout(idleTimer);idleTimer=setTimeout(()=>{if(overlay.isConnected)onTap();},ms);}
+  // The box only opens, and each reward only comes out, when the player taps it: nothing auto-taps any more.
+  function armIdle(){clearTimeout(idleTimer);}
   function lidPeek(ms){icon.classList.add('bx-peek');setTimeout(()=>icon.classList.remove('bx-peek'),ms||160);}
   function firstTap(){
     phase='opening';busy=true;
@@ -16809,6 +17005,7 @@ function showLegendReveal(l,isNew,tier,count,keyWon,titleWon,extras){
     setTimeout(()=>{
       icon.classList.remove('bx-squish');icon.classList.add('bx-jump');
       try{playCrateSpinTicks(300);}catch(e){}
+      setTimeout(()=>{try{if(overlay.isConnected)playCrateThud();}catch(e){}},560);   // touches down at the end of the .56s jump: the very same thud as the first drop
       setTimeout(()=>{            // apex: latches snap, beam escapes
         modalEl.classList.add('bx-beam-on');lidPeek(200);
         try{ArxFX.shine(icon,'#FFD77A',14);ArxFX.ring(innerWidth/2,innerHeight*.62,'rgba(255,214,120,.9)',200,5);}catch(e){}
@@ -20802,7 +20999,7 @@ function renderDashPlanList(){
       <div style="flex:1;min-width:0">
         <div style="display:flex;align-items:center;gap:7px">
           <span style="font-size:13.5px;font-weight:700;color:var(--white);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${e.name}</span>
-          ${isPR?'<span style="flex-shrink:0;font-size:11px;font-weight:800;letter-spacing:.04em;color:#2B1E00;background:linear-gradient(135deg,#FFD24A,#E8B400);border-radius:20px;padding:2px 7px">🏆 PR</span>':''}
+          ${isPR?'<span class="pr-pill" style="flex-shrink:0;font-size:11px;font-weight:800;letter-spacing:.04em;color:#2B1E00;background:linear-gradient(135deg,#FFD24A,#E8B400);border-radius:20px;padding:2px 7px">🏆 PR</span>':''}
         </div>
         <div style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);margin-top:2px">${effectiveSets(e)} × ${e.reps} · ${weightStr}</div>
       </div>
@@ -23439,7 +23636,7 @@ function claimCompassPoint(){
   playShardFlyAnimation(btn);
   renderCompassClaimStatus();
   if(justPerfected){
-    toast('🗝️','Compass point earned — perfect week! +1 Key','drops');
+    toast('🗝️','Compass point earned — perfect week! +1 Gold Key','drops');
     celebrateBurst(['🗝️','✨'],16);
   }else{
     toast('🧭','Compass point earned — '+compassPts+'/7 this week','drops');
@@ -25881,23 +26078,23 @@ const RECIPES_DB=[
     ingredients:['100g dry pasta','1 can drained tuna','2 tbsp olive oil mayo','sweetcorn'],
     steps:['Boil pasta.','Cool down and mix with tuna, mayo, and sweetcorn.'],
     why:'Cheap, repeatable, and easy to scale up in portion size when the target calls for more.'},
-  {name:'Turkey and Hummus Wrap',type:'lunch',cals:640,prot:45,carbs:69,fats:20,effort:'no-cook',
+  {name:'Turkey and Hummus Wrap',type:'lunch',cals:640,prot:45,carbs:69,fats:20,effort:'no-cook',image:'images/recipes/turkey-hummus-wrap.jpg',
     ingredients:['2 large wraps','150g sliced turkey breast','4 tbsp hummus','spinach'],
     steps:['Spread hummus on wraps.','Layer turkey and spinach, roll tightly.'],
     why:'A 640 kcal / 45g protein midday meal built for a genuine surplus, not just filling space.'},
-  {name:'Salmon Sweet Potato Mash',type:'lunch',cals:720,prot:48,carbs:79,fats:23,effort:'quick',
+  {name:'Salmon Sweet Potato Mash',type:'lunch',cals:720,prot:48,carbs:79,fats:23,effort:'quick',image:'images/recipes/salmon-sweet-potato-mash.jpg',
     ingredients:['200g baked salmon','250g mashed sweet potato','10g butter'],
     steps:['Mash sweet potato with butter.','Serve alongside grilled salmon fillets.'],
     why:'Solid enough to fuel an afternoon session without leaving you sluggish.'},
-  {name:'Mexican Burrito Bowl',type:'lunch',cals:840,prot:50,carbs:96,fats:28,effort:'quick',
+  {name:'Mexican Burrito Bowl',type:'lunch',cals:840,prot:50,carbs:96,fats:28,effort:'quick',image:'images/recipes/mexican-burrito-bowl.jpg',
     ingredients:['150g lean beef mince','100g white rice','50g black beans','30g cheese','sour cream'],
     steps:['Layer cooked rice, seasoned beef, beans, cheese, and a dollop of sour cream.'],
     why:'Cheap, repeatable, and easy to scale up in portion size when the target calls for more.'},
-  {name:'Shrimp Fried Rice',type:'lunch',cals:660,prot:42,carbs:74,fats:22,effort:'quick',
+  {name:'Shrimp Fried Rice',type:'lunch',cals:660,prot:42,carbs:74,fats:22,effort:'quick',image:'images/recipes/shrimp-fried-rice.jpg',
     ingredients:['150g shrimp','120g jasmine rice','1 egg','peas','carrots','1 tbsp sesame oil'],
     steps:['Stir-fry cold cooked rice with sesame oil, egg, veggies, and shrimp.'],
     why:'A 660 kcal / 42g protein midday meal built for a genuine surplus, not just filling space.'},
-  {name:'Pesto Chicken Pasta',type:'lunch',cals:780,prot:55,carbs:84,fats:25,effort:'some-effort',
+  {name:'Pesto Chicken Pasta',type:'lunch',cals:780,prot:55,carbs:84,fats:25,effort:'some-effort',image:'images/recipes/pesto-chicken-pasta.jpg',
     ingredients:['100g dry pasta','150g chicken breast','2 tbsp green pesto'],
     steps:['Boil pasta.','Sauté chicken cubes.','Toss pasta and chicken with pesto.'],
     why:'Solid enough to fuel an afternoon session without leaving you sluggish.'},
@@ -25905,11 +26102,11 @@ const RECIPES_DB=[
     ingredients:['200g chicken breast','150g cottage cheese','diced celery','2 slices bread'],
     steps:['Mix shredded chicken with cottage cheese and celery.','Serve on bread.'],
     why:'Cheap, repeatable, and easy to scale up in portion size when the target calls for more.'},
-  {name:'BBQ Pulled Pork Rice Bowl',type:'lunch',cals:690,prot:46,carbs:76,fats:22,effort:'no-cook',
+  {name:'BBQ Pulled Pork Rice Bowl',type:'lunch',cals:690,prot:46,carbs:76,fats:22,effort:'no-cook',image:'images/recipes/bbq-pulled-pork-rice-bowl.jpg',
     ingredients:['200g lean pulled pork','100g white rice','2 tbsp clean BBQ sauce'],
     steps:['Serve tender pulled pork over warm rice, drizzled with BBQ sauce.'],
     why:'A 690 kcal / 46g protein midday meal built for a genuine surplus, not just filling space.'},
-  {name:'Teriyaki Tofu Bowl',type:'lunch',cals:580,prot:28,carbs:70,fats:21,effort:'quick',
+  {name:'Teriyaki Tofu Bowl',type:'lunch',cals:580,prot:28,carbs:70,fats:21,effort:'quick',image:'images/recipes/teriyaki-tofu-bowl.jpg',
     ingredients:['250g extra firm tofu','100g jasmine rice','100g snap peas','teriyaki sauce'],
     steps:['Pan-fry cubed tofu until crispy.','Serve over rice with peas and sauce.'],
     why:'Solid enough to fuel an afternoon session without leaving you sluggish.'},
@@ -25917,11 +26114,11 @@ const RECIPES_DB=[
     ingredients:['180g chicken breast','50g feta','mixed greens','2 tbsp olive oil dressing'],
     steps:['Toss greens, warm grilled chicken, crumbled feta, and olive oil.'],
     why:'Cheap, repeatable, and easy to scale up in portion size when the target calls for more.'},
-  {name:'Lean Burger and Air-Fried Chips',type:'lunch',cals:680,prot:44,carbs:76,fats:22,effort:'some-effort',
+  {name:'Lean Burger and Air-Fried Chips',type:'lunch',cals:680,prot:44,carbs:76,fats:22,effort:'some-effort',image:'images/recipes/lean-burger-air-fried-chips.jpg',
     ingredients:['150g lean beef patty','1 brioche bun','200g potatoes sliced into chips'],
     steps:['Grill patty.','Air-fry potato chips with 1 tsp oil.','Assemble burger.'],
     why:'A 680 kcal / 44g protein midday meal built for a genuine surplus, not just filling space.'},
-  {name:'Honey Mustard Chicken Wrap',type:'lunch',cals:530,prot:42,carbs:54,fats:16,effort:'quick',
+  {name:'Honey Mustard Chicken Wrap',type:'lunch',cals:530,prot:42,carbs:54,fats:16,effort:'quick',image:'images/recipes/honey-mustard-chicken-wrap.jpg',
     ingredients:['1 large wrap','150g chicken breast','1 tbsp honey','1 tbsp mustard','lettuce'],
     steps:['Mix honey and mustard.','Toss with cooked chicken, wrap with lettuce.'],
     why:'Solid enough to fuel an afternoon session without leaving you sluggish.'},
@@ -25933,7 +26130,7 @@ const RECIPES_DB=[
     ingredients:['200g cod loin','250g potato wedges','1 tbsp olive oil'],
     steps:['Season cod and potato wedges.','Bake together at 200C for 25 minutes.'],
     why:'A 550 kcal / 42g protein midday meal built for a genuine surplus, not just filling space.'},
-  {name:'Chili Con Carne',type:'lunch',cals:740,prot:48,carbs:82,fats:24,effort:'quick',
+  {name:'Chili Con Carne',type:'lunch',cals:740,prot:48,carbs:82,fats:24,effort:'quick',image:'images/recipes/chili-con-carne.jpg',
     ingredients:['150g beef mince','100g kidney beans','tomato passata','80g white rice'],
     steps:['Simmer beef, beans, and passata with chili spices.','Serve over rice.'],
     why:'Solid enough to fuel an afternoon session without leaving you sluggish.'},
@@ -25961,7 +26158,7 @@ const RECIPES_DB=[
     ingredients:['250g pre-prepared beef lasagna','extra 50g mozzarella on top'],
     steps:['Bake lasagna with extra mozzarella sprinkled on top for extra calories.'],
     why:'Real food, real portions — built to actually hit the numbers, not just look like a meal.'},
-  {name:'Chicken Alfredo',type:'dinner',cals:870,prot:54,carbs:90,fats:33,effort:'quick',
+  {name:'Chicken Alfredo',type:'dinner',cals:870,prot:54,carbs:90,fats:33,effort:'quick',image:'images/recipes/chicken-alfredo.jpg',
     ingredients:['150g chicken breast','100g fettuccine','40g parmesan','30g butter'],
     steps:['Cook pasta.','Toss with butter, parmesan, pasta water, and grilled chicken.'],
     why:'A 870 kcal / 54g protein dinner that closes out the day\'s targets properly.'},
@@ -25969,7 +26166,7 @@ const RECIPES_DB=[
     ingredients:['180g turkey meatballs','100g spaghetti','marinara sauce','parmesan'],
     steps:['Cook spaghetti.','Simmer meatballs in marinara sauce.','Combine and top with cheese.'],
     why:'Substantial enough to be the day\'s biggest meal without much extra effort.'},
-  {name:'Slow Cooker Beef Stew',type:'dinner',cals:630,prot:48,carbs:60,fats:22,effort:'quick',
+  {name:'Slow Cooker Beef Stew',type:'dinner',cals:630,prot:48,carbs:60,fats:22,effort:'quick',image:'images/recipes/slow-cooker-beef-stew.jpg',
     ingredients:['200g beef chuck cubes','150g potatoes','100g carrots','rich beef broth'],
     steps:['Slow cook beef and vegetables in seasoned broth for 6 hours until tender.'],
     why:'Real food, real portions — built to actually hit the numbers, not just look like a meal.'},
@@ -25997,7 +26194,7 @@ const RECIPES_DB=[
     ingredients:['150g shrimp','100g linguine','2 cloves garlic','50ml cream','10g butter'],
     steps:['Sauté garlic and shrimp in butter, add cream, toss with cooked linguine.'],
     why:'Real food, real portions — built to actually hit the numbers, not just look like a meal.'},
-  {name:'Chicken Katsu Curry',type:'dinner',cals:810,prot:48,carbs:85,fats:31,effort:'quick',
+  {name:'Chicken Katsu Curry',type:'dinner',cals:810,prot:48,carbs:85,fats:31,effort:'quick',image:'images/recipes/chicken-katsu-curry.jpg',
     ingredients:['150g breaded chicken breast','100g white rice','100ml Japanese curry sauce'],
     steps:['Bake breaded chicken, slice, and place over rice.','Pour warm curry sauce over.'],
     why:'A 810 kcal / 48g protein dinner that closes out the day\'s targets properly.'},
@@ -26005,7 +26202,7 @@ const RECIPES_DB=[
     ingredients:['150g beef strips','200g fresh udon noodles','mixed stir-fry veg','dark soy'],
     steps:['High-heat stir-fry beef and veggies.','Toss with udon noodles and soy sauce.'],
     why:'Substantial enough to be the day\'s biggest meal without much extra effort.'},
-  {name:'Mexican Chicken Enchiladas',type:'dinner',cals:750,prot:52,carbs:75,fats:27,effort:'quick',
+  {name:'Mexican Chicken Enchiladas',type:'dinner',cals:750,prot:52,carbs:75,fats:27,effort:'quick',image:'images/recipes/mexican-chicken-enchiladas.jpg',
     ingredients:['2 large tortillas','150g shredded chicken','tomato passata','50g cheese'],
     steps:['Roll chicken in tortillas, top with passata and cheese, bake until golden.'],
     why:'Real food, real portions — built to actually hit the numbers, not just look like a meal.'},
@@ -26292,7 +26489,7 @@ const RECIPES_DB=[
     ingredients:['500g lean lamb mince','1 onion, diced','2 carrots, diced','2 garlic cloves, minced','2 tbsp tomato purée','1 tbsp Worcestershire sauce','300ml stock','800g sweet potato, peeled and chunked','30g butter','40g cheddar, grated'],
     steps:['Boil the sweet potato chunks until tender, then mash with the butter.','Brown the lamb mince, then add the onion, carrots, and garlic and cook 5 minutes to soften.','Stir in the tomato purée, Worcestershire sauce, and stock, then simmer 15-20 minutes until thick and the veg is tender.','Spread the mince into a baking dish, top with the sweet potato mash, and scatter over the cheddar.','Bake at 200°C for 20-25 minutes until the top is golden.'],
     why:'Swapping the usual white potato topping for sweet potato adds real micronutrients on top of the calories, and this batch-cooks + freezes exceptionally well — cook once, eat this four times.'},
-  {name:'Chicken Tikka Masala with Homemade Naan',type:'dinner',cals:800,prot:58,carbs:76,fats:28,effort:'some-effort',
+  {name:'Chicken Tikka Masala with Homemade Naan',type:'dinner',cals:800,prot:58,carbs:76,fats:28,effort:'some-effort',image:'images/recipes/chicken-tikka-masala.jpg',
     ingredients:['500g chicken breast, cubed','150g yogurt, plus extra for the marinade','2 tsp tikka masala spice mix','2 garlic cloves, minced','1 tbsp grated ginger','1 onion, diced','400g tinned tomatoes','100ml cream','250g plain flour','1 tsp baking powder','2 tbsp oil'],
     steps:['Marinate the chicken in yogurt, half the spice mix, garlic, and ginger for at least 30 minutes.','Mix the flour, baking powder, a pinch of salt, and enough water/yogurt to form a soft dough for the naan; rest it while you make the curry.','Grill or pan-sear the marinated chicken until charred at the edges, then set aside.','Soften the onion, add the remaining spice mix, then the tomatoes, and simmer 10 minutes before stirring in the cream and the chicken to finish cooking through.','Roll the naan dough into rounds and cook in a hot dry pan or under the grill 2 minutes a side until puffed and charred.'],
     why:'Making the naan from scratch takes maybe 10 extra minutes of hands-on time and turns this from "curry with rice" into a proper sit-down meal — the char on both the chicken and the naan is where most of the flavour actually comes from.'},
@@ -26300,7 +26497,7 @@ const RECIPES_DB=[
     ingredients:['600g lamb shoulder, diced','1 onion, diced','1 carrot, diced','1 celery stick, diced','3 garlic cloves, minced','150ml red wine (or extra stock)','400g tinned tomatoes','300ml stock','1 bay leaf','1 tsp rosemary','250g pappardelle','parmesan, grated'],
     steps:['Brown the lamb in batches in a hot pan, then set aside — don\'t skip browning, it\'s most of the flavour.','Soften the onion, carrot, celery, and garlic in the same pan for 5-6 minutes.','Return the lamb, add the wine, and let it bubble for 2 minutes to cook off the alcohol.','Add the tomatoes, stock, bay leaf, and rosemary, then cover and simmer low for 2-2.5 hours (or a slow cooker on low for 6-7) until the lamb shreds apart with a fork.','Shred the lamb back into the sauce, cook the pappardelle, and toss together with plenty of parmesan.'],
     why:'This is a genuine low-and-slow braise, not a 20-minute bolognese — the long cook is what breaks the shoulder down into something that falls apart, and it makes a big batch worth freezing in portions.'},
-  {name:'Thai Green Curry Chicken',type:'dinner',cals:710,prot:50,carbs:60,fats:28,effort:'some-effort',
+  {name:'Thai Green Curry Chicken',type:'dinner',cals:710,prot:50,carbs:60,fats:28,effort:'some-effort',image:'images/recipes/thai-green-curry-chicken.jpg',
     ingredients:['500g chicken thigh, sliced','3 tbsp green curry paste (or make your own from chilli, lemongrass, garlic, ginger, coriander root)','400ml coconut milk','1 tbsp fish sauce','1 tsp brown sugar','100g green beans, trimmed','1 red pepper, sliced','handful Thai basil','150g jasmine rice'],
     steps:['Fry the curry paste in a splash of the thick coconut cream from the top of the tin for 2 minutes until fragrant.','Add the chicken and cook 4-5 minutes until sealed on all sides.','Pour in the rest of the coconut milk, fish sauce, and sugar, and simmer 10 minutes.','Add the green beans and pepper and cook a further 5 minutes until the chicken is cooked through and the veg still has some bite.','Stir through the Thai basil at the end and serve over jasmine rice.'],
     why:'Blooming the curry paste in fat before adding liquid is the single biggest difference between a curry that tastes like a jar and one that tastes like it came from a Thai kitchen.'},
@@ -27039,6 +27236,45 @@ function renderRecipeDetailMacros(r){
   const chips=[['🔥',m.cals+' kcal'],['🥩',m.prot+'g protein'],['🌾',m.carbs+'g carbs'],['🫒',m.fats+'g fat']];
   macrosEl.innerHTML=chips.map(([ic,t])=>`<span style="background:rgba(232,214,196,.05);border:1.5px solid var(--border2);border-radius:8px;padding:5px 10px;font-size:11px;font-weight:700;color:rgba(var(--white-rgb),.8)">${ic} ${t}</span>`).join('');
 }
+// FLAVOUR BOOST — sauces and seasonings make a meal taste better, which makes bigger portions easier to finish, and their
+// calories help a bulk. Picks up to three that suit the dish (matched on its name and ingredients).
+const FLAVOUR_RULES=[
+  {re:/salmon|trout|mackerel/,tips:[['Sesame oil','Drizzle 1 tsp over the finished fillet',40],['Soy & honey glaze','1 tbsp brushed on for the last 2 minutes',45],['Lemon & dill butter','A small knob melted on top',70]]},
+  {re:/wrap|burrito|tortilla|taco|fajita|quesadilla/,tips:[['Sriracha mayo','1 tbsp stirred through or spread inside',100],['Chipotle yogurt','2 tbsp, a lighter creamy kick',25],['Hot sauce','A few shakes on top',5]]},
+  {re:/stir.?fry|noodle|fried rice|udon|ramen|teriyaki|bulgogi|katsu/,tips:[['Chilli flakes','A pinch while it cooks, or at the end',0],['Sesame oil','1 tsp at the end for aroma',40],['Hoisin or oyster sauce','1 tbsp tossed through',35]]},
+  {re:/curry|masala|tikka|korma|dhal|dal\b/,tips:[['Coconut cream','2 tbsp swirled in at the end',60],['Mango chutney','1 tbsp on the side',40],['Chilli oil','1 tsp drizzled on top',40]]},
+  {re:/burger|steak|beef|mince|chili|bolognese|lamb|pork/,tips:[['Worcestershire sauce','A splash in the pan — big flavour, almost no calories',5],['BBQ sauce','1-2 tbsp glazed on',45],['Garlic butter','A small knob melted over the top',100]]},
+  {re:/chicken|turkey/,tips:[['Peri-peri or hot honey','1 tbsp brushed on near the end',45],['Pesto','1 tbsp tossed through',80],['Garlic butter','A small knob melted over the top',100]]},
+  {re:/pasta|spaghetti|lasagn|penne|macaroni|meatball|gnocchi/,tips:[['Olive oil & parmesan','1 tsp oil and a handful of cheese at the end',90],['Chilli flakes','A pinch over the top',0],['Pesto','1 tbsp stirred through',80]]},
+  {re:/prawn|shrimp|cod|fish|tuna|sardine|seafood|paella/,tips:[['Garlic butter','A small knob melted over the top',100],['Sweet chilli sauce','1 tbsp on the side or tossed through',30],['Lemon & olive oil','Squeeze of lemon and 1 tsp oil',40]]},
+  {re:/tofu|tempeh|edamame|veggie|vegetarian/,tips:[['Peanut sauce','2 tbsp: peanut butter, soy and lime',90],['Soy & chilli oil','1 tsp of each',45],['Tahini drizzle','1 tbsp thinned with water',90]]},
+  {re:/oat|porridge|pancake|yogurt|yoghurt|granola|cottage cheese|chia|pudding|toast/,tips:[['Peanut or almond butter','1 tbsp drizzled on top',95],['Honey or maple syrup','1 tbsp',60],['Chocolate or caramel sauce','1 tbsp',50]]},
+  {re:/egg|omelette|omelet|scrambled|breakfast/,tips:[['Hot sauce or sriracha','A few shakes on top',5],['Chilli crisp','1 tsp spooned over',40],['Cheese sauce','2 tbsp over the top',60]]},
+  {re:/shake|smoothie|gainer/,tips:[['Peanut butter','1 tbsp blended in',95],['Honey','1 tbsp blended in',60],['Cocoa powder','1 tbsp, almost no calories',15]]},
+  {re:/salad|slaw|bowl/,tips:[['Tahini or yogurt dressing','2 tbsp, thinned with lemon',70],['Olive oil & lemon','1 tbsp oil and a squeeze of lemon',120],['Sriracha mayo','1 tbsp on the side',100]]},
+  {re:/stew|soup|casserole|chili|chilli/,tips:[['Worcestershire sauce','A splash near the end',5],['Chilli flakes','A pinch at the table',0],['Olive oil drizzle','1 tsp on top before serving',40]]},
+  {re:/pizza|flatbread|naan/,tips:[['Chilli oil','1 tsp drizzled on top',40],['Garlic & herb dip','2 tbsp on the side',70],['Hot honey','1 tsp over the crust edge',20]]},
+];
+const FLAVOUR_FALLBACK=[['Olive oil drizzle','1 tsp over the finished dish',40],['Hot sauce','A few shakes to taste',5],['Garlic butter','A small knob melted on top',100]];
+function recipeFlavourTips(r){
+  const text=(r.name+' '+(r.ingredients||[]).join(' ')).toLowerCase(),out=[],seen={};
+  for(const rule of FLAVOUR_RULES){
+    if(!rule.re.test(text))continue;
+    for(const t of rule.tips){if(out.length>=3)break;if(!seen[t[0]]){seen[t[0]]=1;out.push(t);}}
+    if(out.length>=3)break;
+  }
+  for(const t of FLAVOUR_FALLBACK){if(out.length>=3)break;if(!seen[t[0]]){seen[t[0]]=1;out.push(t);}}
+  return out;
+}
+function renderRecipeFlavour(r){
+  const el=document.getElementById('recipe-detail-flavour');if(!el)return;
+  const tips=recipeFlavourTips(r);
+  if(!tips.length){el.style.display='none';return;}
+  el.style.display='block';
+  el.innerHTML='<div class="ex-cue-label" style="margin-bottom:6px">Flavour boost</div>'+
+    '<div style="font-size:11.5px;color:var(--muted);line-height:1.5;margin-bottom:8px">A good sauce makes a bigger meal easier to finish, and the calories help the bulk.</div>'+
+    tips.map(t=>'<div class="flv-tip"><b>'+escHtml(t[0])+'</b><span>'+escHtml(t[1])+'</span><em>'+(t[2]?'+'+t[2]+' kcal':'~0 kcal')+'</em></div>').join('');
+}
 function renderRecipeDetailIngredients(r){
   const ingEl=document.getElementById('recipe-detail-ingredients');
   if(!ingEl)return;
@@ -27095,6 +27331,7 @@ function openRecipeDetail(idx){
   const whyEl=document.getElementById('recipe-detail-why');if(whyEl)whyEl.textContent=r.why;
   renderRecipeSwaps(r);
   renderRecipeDetailIngredients(r);
+  renderRecipeFlavour(r);
   const stepsEl=document.getElementById('recipe-detail-steps');
   if(stepsEl)stepsEl.innerHTML=r.steps.map((s,i)=>`<div style="display:flex;gap:10px;margin-bottom:12px"><div style="flex-shrink:0;width:20px;height:20px;border-radius:50%;background:rgba(243,103,23,.15);color:#FF9A5C;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center">${i+1}</div><div style="font-size:12.5px;color:rgba(var(--white-rgb),.8);line-height:1.55">${escHtml(s)}</div></div>`).join('');
   renderRecipeVariations(r);
@@ -32851,6 +33088,7 @@ function saveToStorage(){
     _ss('arx_streakFreezes', streakFreezes);
     _ss('arx_streakSavers', streakSavers);
     _ss('arx_bronzeDropBank', bronzeDropBank);
+    _ss('arx_areviaxDropBank', areviaxDropBank);
     _ss('arx_silverDropBank', silverDropBank);
     _ss('arx_diamondDropBank', diamondDropBank);
     _ss('arx_keyBank', keyBank);
@@ -33053,6 +33291,7 @@ function loadFromStorage(){
     streakFreezes=parseInt(localStorage.getItem('arx_streakFreezes')||'0');
     streakSavers=parseInt(localStorage.getItem('arx_streakSavers')||'0');
     bronzeDropBank=parseInt(localStorage.getItem('arx_bronzeDropBank')||'0');
+    areviaxDropBank=parseInt(localStorage.getItem('arx_areviaxDropBank')||'0');
     silverDropBank=parseInt(localStorage.getItem('arx_silverDropBank')||'0');
     diamondDropBank=parseInt(localStorage.getItem('arx_diamondDropBank')||'0');
     keyBank=parseInt(localStorage.getItem('arx_keyBank')||'0');
