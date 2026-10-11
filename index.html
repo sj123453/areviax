@@ -16732,7 +16732,7 @@ function showLegendReveal(l,isNew,tier,count,keyWon,titleWon,extras){
     '</div>';
   document.body.appendChild(overlay);
   requestAnimationFrame(()=>overlay.classList.add('show'));
-  setTimeout(()=>{try{if(overlay.isConnected)playCrateThud();}catch(e){}},330);   // the box lands with a heavy thud
+  setTimeout(()=>{try{if(overlay.isConnected)playCrateThud();}catch(e){}},420);   // the box lands with a heavy thud (end of its .45s drop-in)
 
   const wrap=overlay.querySelector('#reveal-crate-wrap');
   const icon=overlay.querySelector('#reveal-crate-icon');
@@ -16829,6 +16829,7 @@ function showLegendReveal(l,isNew,tier,count,keyWon,titleWon,extras){
     setTimeout(()=>{
       icon.classList.remove('bx-squish');icon.classList.add('bx-jump');
       try{playCrateSpinTicks(300);}catch(e){}
+      setTimeout(()=>{try{if(overlay.isConnected)playCrateThud();}catch(e){}},560);   // touches down at the end of the .56s jump: the very same thud as the first drop
       setTimeout(()=>{            // apex: latches snap, beam escapes
         modalEl.classList.add('bx-beam-on');lidPeek(200);
         try{ArxFX.shine(icon,'#FFD77A',14);ArxFX.ring(innerWidth/2,innerHeight*.62,'rgba(255,214,120,.9)',200,5);}catch(e){}
