@@ -3422,7 +3422,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
     .achievement-modal>.crate-slot-counter,
     .crate-slot-counter{position:absolute;top:8px;right:8px;min-width:28px;height:28px;padding:0 7px;border-radius:50%;background:rgba(196,28,28,.95);border:2px solid rgba(255,255,255,.7);display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:800;color:#fff;z-index:3;box-shadow:0 2px 10px rgba(0,0,0,.55);transition:background .2s,border-color .2s,transform .2s}
     .crate-slot-counter.glow-alert{background:rgba(255,60,60,.95);border-color:#fff;animation:crateCounterGlow .5s ease-in-out infinite alternate;transform:scale(1.15)}
-    @keyframes crateCounterGlow{0%{box-shadow:0 0 6px 1px rgba(255,70,70,.7)}100%{box-shadow:0 0 18px 5px rgba(255,70,70,.95)}}
+    @keyframes crateCounterGlow{0%{background:rgba(255,40,40,.95);box-shadow:0 0 6px 1px rgba(255,70,70,.7)}100%{background:rgba(255,120,110,1);box-shadow:0 0 22px 7px rgba(255,70,70,1)}}
     .crate-slot-pop{animation:crateSlotPopIn .35s cubic-bezier(.34,1.56,.64,1) both}
     @keyframes crateSlotPopIn{0%{opacity:0;transform:scale(.5) rotate(-8deg)}70%{opacity:1}100%{opacity:1;transform:scale(1) rotate(0)}}
     .crate-xp-slot{display:flex;flex-direction:column;align-items:center;gap:6px;padding:20px 0}
@@ -4606,7 +4606,12 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
 .box-mode .crate-slot-counter{display:flex;align-items:center;justify-content:center;min-width:44px;height:44px;border-radius:12px;font-size:26px;font-weight:900;top:auto!important;bottom:4px!important;left:auto!important;right:-14px!important;transform:none!important}
 .crate-slot-counter.bx-count-pop{animation:bxCountPop .32s cubic-bezier(.34,1.56,.64,1)}
 @keyframes bxCountPop{0%{transform:scale(.4)}100%{transform:scale(1)}}
-.crate-slot-counter.bx-final{background:#ff2d3d!important;color:#fff;animation:bxFinalPulse .45s ease-in-out infinite alternate!important;box-shadow:0 0 18px 6px rgba(255,45,61,.8)}
+/* Plain white badge unless a trophy is inside: then it flashes red from the first tap to the last */
+.box-mode .crate-slot-counter{background:#fff8ec;color:#2a1a08;border-color:rgba(42,26,8,.35)}
+.box-mode .crate-slot-counter.glow-alert{background:#ff2d3d;color:#fff;border-color:#fff;animation:bxRedFlash .42s ease-in-out infinite alternate}
+@keyframes bxRedFlash{from{background:#ff2d3d;box-shadow:0 0 8px 2px rgba(255,45,61,.6)}to{background:#ff8a80;box-shadow:0 0 28px 10px rgba(255,45,61,1)}}
+.crate-slot-counter.bx-final:not(.glow-alert){box-shadow:0 0 14px 4px rgba(255,236,170,.8)}
+.crate-slot-counter.glow-alert.bx-final{animation:bxRedFlash .28s ease-in-out infinite alternate!important}
 @keyframes bxFinalPulse{from{box-shadow:0 0 10px 2px rgba(255,45,61,.6)}to{box-shadow:0 0 26px 10px rgba(255,45,61,.95)}}
 @media(prefers-reduced-motion:reduce){.compass-crate.bx-jump,.compass-crate.bx-hover,.compass-crate.bx-shake,.compass-crate.bx-charge,.crate-icon-wrap.bx-charging::after,.bx-charging .crate-icon-burst,.box-in{animation:none!important}.bx-beam-on .bx-beamfx{animation:none;opacity:.4}}
 /* BRAWL-STYLE CRATE ENTRANCE + REWARD POP */
@@ -14420,11 +14425,11 @@ function renderXpRoadGallery(){
 // this ladder; with only 2 real legendary cards now, expect it to repeat
 // those two often — flag if that needs its own fix.
 const CRATE_TIERS={
-  bronze:{label:'Bronze Crate',odds:{common:65,rare:22,superrare:9,epic:3,mythic:0.8,legendary:0.2,ultralegendary:0}},
-  silver:{label:'Silver Crate',odds:{common:55,rare:25,superrare:12,epic:5,mythic:2,legendary:0.8,ultralegendary:0.2}},
-  gold:{label:'Gold Crate',odds:{common:45,rare:28,superrare:15,epic:7,mythic:3,legendary:1.8,ultralegendary:0.2}},
-  diamond:{label:'Diamond Crate',odds:{common:35,rare:30,superrare:18,epic:10,mythic:4,legendary:2.7,ultralegendary:0.3}},
-  areviax:{label:'Areviax Crate',odds:{common:0,rare:0,superrare:0,epic:0,mythic:0,legendary:92,ultralegendary:8}},
+  bronze:{label:'Bronze Crate',odds:{common:77,rare:15,superrare:5.5,epic:1.8,mythic:0.5,legendary:0.2,ultralegendary:0}},
+  silver:{label:'Silver Crate',odds:{common:68,rare:20,superrare:8,epic:2.5,mythic:1,legendary:0.45,ultralegendary:0.05}},
+  gold:{label:'Gold Crate',odds:{common:58,rare:25,superrare:10,epic:4,mythic:1.7,legendary:1.2,ultralegendary:0.1}},
+  diamond:{label:'Diamond Crate',odds:{common:47,rare:28,superrare:14,epic:6.5,mythic:2.5,legendary:1.8,ultralegendary:0.2}},
+  areviax:{label:'Areviax Crate',odds:{common:0,rare:0,superrare:0,epic:0,mythic:0,legendary:95,ultralegendary:5}},
 };
 // KEYS — spend a stack to instantly turn one already-banked crate into
 // the next tier up. Never a requirement to open anything you already
@@ -15342,19 +15347,18 @@ function grantTestCrates(){
   toast('🎁','Test crates granted — check Areviax Crates','drops');
 }
 // ── CRATE REWARD COUNT & EXTRAS ─────────────────────────────────────────────
-// Every crate always gives its Arete bonus and a trophy; on top of that it can
-// carry extra rewards, 2-8 rewards in total. The chance of N rewards falls
-// geometrically as N rises (each extra reward is rarer than the last), and
-// better crates keep a fatter tail: ratio per extra reward is bronze .55,
-// silver .60, gold .66, diamond .72, Areviax .80.
-const CRATE_REWARD_RATIO={bronze:.55,silver:.6,gold:.66,diamond:.72,areviax:.8};
+// Every crate gives its Arete bonus plus 1-13 more rewards (2-14 in total). Big hauls are rare:
+// CRATE_CUM_BASE is the chance of getting AT LEAST N rewards from a Gold crate (7+ is about 1 crate in 30),
+// and each tier scales that tail (Bronze thinner, Areviax fatter: 11+ is roughly 1 in 50 there).
+const CRATE_CUM_BASE={3:.45,4:.23,5:.12,6:.06,7:.0333,8:.024,9:.0175,10:.0135,11:.01,12:.0065,13:.004,14:.002};
+const CRATE_TAIL_MULT={bronze:.6,silver:.8,gold:1,diamond:1.4,areviax:2.2};
 function rollCrateRewardCount(tier){
-  const r=CRATE_REWARD_RATIO[tier]||.55;
-  const w=[];for(let k=0;k<13;k++)w.push(Math.pow(r,k));     // N = 2..14, each step less likely than the last
-  const sum=w.reduce((a,b)=>a+b,0);let x=Math.random()*sum;
-  for(let k=0;k<13;k++){x-=w[k];if(x<=0)return k+2;}
+  const m=CRATE_TAIL_MULT[tier]||1,u=Math.random();
+  for(let n=14;n>=3;n--){if(u<Math.min(1,CRATE_CUM_BASE[n]*m))return n;}
   return 2;
 }
+// Not every crate holds a trophy. Up to 5 rewards it is a per-tier chance; 6 or more rewards always includes one.
+const CRATE_MAIN_TROPHY_P={bronze:.22,silver:.3,gold:.4,diamond:.5,areviax:1};
 const CRATE_EXTRA_ART={
   drachma:'mass-app/images/icons/tetradrachm.png',
   key:'mass-app/images/icons/key.png',
@@ -15370,17 +15374,17 @@ function crateExtraPool(tier){
   return [
     {w:10,make:()=>{const n=dr+Math.floor(Math.random()*dr);drachma+=n;return {kind:'drachma',art:CRATE_EXTRA_ART.drachma,label:'+'+n+' Drachma',sub:'Spend it in the Shop',grad:'linear-gradient(160deg,#FFE066,#C9971E)'};}},
     {w:8,make:()=>{const n=15+Math.floor(Math.random()*(hi?60:25));return {kind:'xp',emoji:'⚡',label:'+'+n+' bonus Arete',sub:'Crate surge',grad:'linear-gradient(160deg,#FFB347,#FF6B1A)',xp:n};}},
-    {w:6,make:()=>{keyBank++;return {kind:'key',art:CRATE_EXTRA_ART.key,label:'+1 Key',sub:'Spend keys to upgrade a crate',grad:'linear-gradient(160deg,#E8E0D0,#8A98A8)'};}},
-    {w:6,make:()=>{bronzeDropBank++;return {kind:'bronze',art:CRATE_ICON_IMG.bronze,label:'+1 Bronze Crate',sub:'Ready in your crates',grad:'linear-gradient(160deg,#C8864E,#6a3f1c)'};}},
-    {w:hi?4:2,make:()=>{silverDropBank++;return {kind:'silver',art:CRATE_ICON_IMG.silver,label:'+1 Silver Crate',sub:'Ready in your crates',grad:'linear-gradient(160deg,#DDE3EC,#7f8896)'};}},
-    {w:3,make:()=>{streakFreezes++;return {kind:'freeze',art:CRATE_EXTRA_ART.freeze,label:'+1 Streak Freeze',sub:'Protects a missed day',grad:'linear-gradient(160deg,#8fe6ff,#2b7fa6)'};}},
-    {w:2,make:()=>{streakSavers++;return {kind:'saver',art:CRATE_EXTRA_ART.saver,label:'+1 Streak Saver',sub:'Repairs a broken streak',grad:'linear-gradient(160deg,#FFD24A,#c26a00)'};}},
-    {w:top?1.6:.4,make:()=>{diamondDropBank++;return {kind:'diamond',art:CRATE_ICON_IMG.diamond,label:'+1 Diamond Crate',sub:'Ready in your crates',grad:'linear-gradient(160deg,#9be8ff,#1c7fa8)'};}},
-    {w:1.4,make:()=>{const t=randomLockedTitle();if(!t)return null;unlockTitle(t,false);return {kind:'title',art:CRATE_EXTRA_ART.title,label:'New Title',sub:'"'+TITLES[t].name+'" — equip it on your Profile',grad:'linear-gradient(160deg,#FFE066,#C9971E)'};}},
+    {w:4,make:()=>{keyBank++;return {kind:'key',art:CRATE_EXTRA_ART.key,label:'+1 Key',sub:'Spend keys to upgrade a crate',grad:'linear-gradient(160deg,#E8E0D0,#8A98A8)'};}},
+    {w:5,make:()=>{bronzeDropBank++;return {kind:'bronze',art:CRATE_ICON_IMG.bronze,label:'+1 Bronze Crate',sub:'Ready in your crates',grad:'linear-gradient(160deg,#C8864E,#6a3f1c)'};}},
+    {w:hi?3:1.5,make:()=>{silverDropBank++;return {kind:'silver',art:CRATE_ICON_IMG.silver,label:'+1 Silver Crate',sub:'Ready in your crates',grad:'linear-gradient(160deg,#DDE3EC,#7f8896)'};}},
+    {w:2.5,make:()=>{streakFreezes++;return {kind:'freeze',art:CRATE_EXTRA_ART.freeze,label:'+1 Streak Freeze',sub:'Protects a missed day',grad:'linear-gradient(160deg,#8fe6ff,#2b7fa6)'};}},
+    {w:1.5,make:()=>{streakSavers++;return {kind:'saver',art:CRATE_EXTRA_ART.saver,label:'+1 Streak Saver',sub:'Repairs a broken streak',grad:'linear-gradient(160deg,#FFD24A,#c26a00)'};}},
+    {w:top?1.1:.25,make:()=>{diamondDropBank++;return {kind:'diamond',art:CRATE_ICON_IMG.diamond,label:'+1 Diamond Crate',sub:'Ready in your crates',grad:'linear-gradient(160deg,#9be8ff,#1c7fa8)'};}},
+    {w:1,make:()=>{const t=randomLockedTitle();if(!t)return null;unlockTitle(t,false);return {kind:'title',art:CRATE_EXTRA_ART.title,label:'New Title',sub:'"'+TITLES[t].name+'" — equip it on your Profile',grad:'linear-gradient(160deg,#FFE066,#C9971E)'};}},
   ];
 }
 // Chance that any one bonus slot is another trophy instead of a bonus item, so a big haul can unlock several at once.
-const CRATE_EXTRA_TROPHY_P={bronze:.1,silver:.14,gold:.18,diamond:.24,areviax:.32};
+const CRATE_EXTRA_TROPHY_P={bronze:.06,silver:.08,gold:.1,diamond:.13,areviax:.2};
 // Picks a trophy the same way the main drop does (rarity from the tier's odds, falling toward commoner ones if a pool is empty).
 function pickCrateTrophy(tier){
   const cfg=CRATE_TIERS[tier];if(!cfg)return null;
@@ -15402,8 +15406,8 @@ function rollExtraTrophy(tier){
     label:pick.name,sub:(pick.rarity==='ultralegendary'?'ULTRA LEGENDARY':pick.rarity.toUpperCase())+' · '+(isNew?'NEW':'DUPLICATE'+(n>1?' ×'+n:'')),
     grad:'linear-gradient(160deg,'+rc+',#1a1a2a)',xp:isNew?25:10};
 }
-function rollCrateExtras(tier){
-  const want=rollCrateRewardCount(tier)-2,out=[];       // the Arete slot and the main trophy are always there
+function rollCrateExtras(tier,want){
+  const out=[];       // `want` = bonus slots besides the Arete slot and the main trophy (if any)
   const pT=CRATE_EXTRA_TROPHY_P[tier]||.1;
   let pool=crateExtraPool(tier);
   for(let n=0;n<want;n++){
@@ -15441,28 +15445,21 @@ function openCompassDrop(tier){
   else if(tier==='gold'){ if(keyBank<=0)return; keyBank--; }
   else if(tier==='diamond'){ if(diamondDropBank<=0)return; diamondDropBank--; }
   // areviax: free — only ever granted by the Daily Spin, no bank to spend.
-  const rarity=rollRarity(cfg.odds);
-  // Same empty-pool guard as grantXpRoadReward (XP Road) — odds and
-  // LEGEND_CARDS content are supposed to stay in sync (a tier's odds
-  // should be 0 for any rarity with zero real cards), but this falls
-  // through toward commoner tiers instead of crashing if the two ever
-  // drift apart again, rather than relying on that invariant holding.
-  const startIdx=RARITY_ORDER.indexOf(rarity);
-  let pool=[];
-  for(let i=Math.max(startIdx,0);i<RARITY_ORDER.length&&!pool.length;i++){
-    pool=LEGEND_CARDS.filter(l=>l.rarity===RARITY_ORDER[i]);
+  // Reward count first: 6+ rewards always hold a trophy, otherwise it is a per-tier chance (see CRATE_MAIN_TROPHY_P).
+  const total=rollCrateRewardCount(tier);
+  let pick=null,isNew=false;
+  if(total>=6||Math.random()<(CRATE_MAIN_TROPHY_P[tier]||.2))pick=pickCrateTrophy(tier);
+  if(pick){
+    isNew=!unlockedLegends.includes(pick.key);
+    if(isNew){unlockedLegends.push(pick.key);bumpUnseenReward();}
+    legendCounts[pick.key]=(legendCounts[pick.key]||0)+1;
   }
-  const pick=pool[Math.floor(Math.random()*pool.length)];
-  if(!pick)return;
-  const isNew=!unlockedLegends.includes(pick.key);
-  if(isNew){unlockedLegends.push(pick.key);bumpUnseenReward();}
-  legendCounts[pick.key]=(legendCounts[pick.key]||0)+1;
   if(tier==='areviax')keyBank+=2; // the best drop in the app pays a bonus on top of the guaranteed card
   if(tier==='diamond')unlockAccentTheme('silver',true);
   if(tier==='areviax')unlockAccentTheme('gold',true);
   // 2-14 rewards per crate, any of the bonus slots can be another trophy (see rollCrateRewardCount): the extras are granted
   // right here, the reveal below only shows them.
-  const extras=rollCrateExtras(tier);
+  const extras=rollCrateExtras(tier,total-1-(pick?1:0));
   const keyWon=false,titleWon=null;
   saveToStorage();
   // Anticipation beat on the actual crate tile — a real chest/crystal
@@ -15479,10 +15476,10 @@ function openCompassDrop(tier){
     crateEl.classList.add('opening');
     setTimeout(()=>{
       crateEl.classList.remove('opening');
-      showLegendReveal(pick,isNew,tier,legendCounts[pick.key],keyWon,titleWon,extras);
+      showLegendReveal(pick,isNew,tier,pick?legendCounts[pick.key]:0,keyWon,titleWon,extras);
     },500);
   }else{
-    showLegendReveal(pick,isNew,tier,legendCounts[pick.key],keyWon,titleWon,extras);
+    showLegendReveal(pick,isNew,tier,pick?legendCounts[pick.key]:0,keyWon,titleWon,extras);
   }
 }
 // \u2500\u2500 CRATE SOUND \u2014 procedurally synthesized (no audio files), same
@@ -16335,8 +16332,8 @@ function closeCrateRevealAndShowcase(btn,key,isNew){
 function showLegendReveal(l,isNew,tier,count,keyWon,titleWon,extras){
   extras=extras||[];
   const cfg=CRATE_OPEN_TIMING[tier]||CRATE_OPEN_TIMING.bronze;
-  if(l.img){const _preload=new Image();_preload.src=l.img;}
-  const xpAmount=isNew?25:10;
+  if(l&&l.img){const _preload=new Image();_preload.src=l.img;}
+  const xpAmount=isNew?25:10;   // l is null when the crate held no trophy
   // Areviax used to skip the whole slot sequence (a "single reveal" path
   // that set the XP and rendered the trophy card in one shot, Continue
   // button and all, before the mystery spin even played) — direct
@@ -16383,7 +16380,7 @@ function showLegendReveal(l,isNew,tier,count,keyWon,titleWon,extras){
     return '<div class="crate-xp-slot crate-slot-pop">'+
         '<div class="crate-xp-slot-icon">⭐</div>'+
         '<div class="crate-xp-slot-label">+'+xpAmount+' Arete</div>'+
-        '<div class="crate-xp-slot-sub">'+(isNew?'New trophy bonus':'Areviax Crate')+'</div>'+
+        '<div class="crate-xp-slot-sub">'+(!l?'Crate bonus':isNew?'New trophy bonus':'Areviax Crate')+'</div>'+
       '</div>';
   }
   function keySlotHTML(){
@@ -16420,17 +16417,17 @@ function showLegendReveal(l,isNew,tier,count,keyWon,titleWon,extras){
   // full mystery-spin treatment, but each beat in the sequence now
   // visibly arrives rather than just popping into place.
   const slots=multiSlot?[
-    {render:xpSlotHTML,onShow:(m)=>{addXP(xpAmount,isNew?'New trophy':'Areviax Crate');lightRayBurst('#FFB347',4);try{ArxFX.coins(m.querySelector('.crate-xp-slot-icon'),Math.min(40,12+Math.round(xpAmount/6)));}catch(e){}}},
+    {render:xpSlotHTML,onShow:(m)=>{addXP(xpAmount,!l?'Crate bonus':isNew?'New trophy':'Areviax Crate');lightRayBurst('#FFB347',4);try{ArxFX.coins(m.querySelector('.crate-xp-slot-icon'),Math.min(40,12+Math.round(xpAmount/6)));}catch(e){}}},
     ...extras.map(d=>({render:()=>extraSlotHTML(d),onShow:(m)=>{if(d.xp)addXP(d.xp,'Crate surge');lightRayBurst('#FFD24A',4);try{ArxFX[d.kind==='drachma'?'coins':'shine'](m.querySelector('.crate-xp-slot-icon'),d.kind==='drachma'?Math.min(40,10+Math.round(parseInt(d.label.replace(/\D/g,''))/4)):'#FFD24A',16);}catch(e){}}})),
     ...(keyWon?[{render:keySlotHTML,onShow:(m)=>{lightRayBurst('#B9C4CE',4);try{ArxFX.shine(m.querySelector('.crate-xp-slot-icon'),'#DDE6F0',16);}catch(e){}}}]:[]),
     ...(titleWon?[{render:titleSlotHTML,onShow:(m)=>{lightRayBurst('#FFD24A',4);try{ArxFX.shine(m.querySelector('.crate-xp-slot-icon'),'#FFD24A',22);}catch(e){}}}]:[]),
-    {render:trophySlotHTML,onShow:(modal)=>runMysteryReveal(modal,l,isNew,cfg)},
+    ...(l?[{render:trophySlotHTML,onShow:(modal)=>runMysteryReveal(modal,l,isNew,cfg)}]:[]),
   ]:[];
   // Anything above common counts as "a special item is coming out" for the
   // counter badge — it glows red from the very first slot, not just once
   // the trophy itself is showing, so the badge is advance warning through
   // the whole sequence rather than a retroactive label.
-  const isSpecialPull=isNew||l.rarity!=='common';
+  const isSpecialPull=!!l||extras.some(d=>d.kind==='trophy');   // any trophy inside: the counter flashes red
   function counterBadgeHTML(remaining){
     return '<div class="crate-slot-counter'+(isSpecialPull?' glow-alert':'')+'" id="reveal-slot-counter">'+remaining+'</div>';
   }
@@ -16474,8 +16471,8 @@ function showLegendReveal(l,isNew,tier,count,keyWon,titleWon,extras){
     // how Brawl Stars paces this. Every other slot has no silhouette
     // beat, so they still colour in immediately.
     if(!isLast){
-      modal.style.setProperty('--reveal-glow',RARITY_GLOW[l.rarity]);
-      modal.style.borderColor=RARITY_BORDER[l.rarity];
+      modal.style.setProperty('--reveal-glow',RARITY_GLOW[l?l.rarity:'common']);
+      modal.style.borderColor=RARITY_BORDER[l?l.rarity:'common'];
       modal.classList.add('glow');
     }else{
       modal.classList.remove('glow');
@@ -16492,7 +16489,7 @@ function showLegendReveal(l,isNew,tier,count,keyWon,titleWon,extras){
     const moreAfterThis=slots.length-1-slotIdx;
     modal.innerHTML=(moreAfterThis>0?counterBadgeHTML(moreAfterThis):'')+slot.render()+
       (isLast
-        ? '<button class="achievement-close-btn" onclick="closeCrateRevealAndShowcase(this,\''+l.key+'\','+isNew+')">Continue</button>'
+        ? '<button class="achievement-close-btn" onclick="closeCrateRevealAndShowcase(this,\''+(l?l.key:'')+'\','+isNew+')">Continue</button>'
         : '<div class="crate-tap-prompt" style="margin-top:16px" onclick="this.closest(\'.achievement-modal\').dispatchEvent(new Event(\'advance\'))">Tap to continue</div>');
     // The trophy slot's own chime fires later, at the mystery badge's
     // lock-in moment (see runMysteryReveal) so the "successful" sound
