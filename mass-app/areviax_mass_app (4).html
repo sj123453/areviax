@@ -15358,8 +15358,6 @@ function rollCrateRewardCount(tier){
   for(let n=14;n>=3;n--){if(u<Math.min(1,CRATE_CUM_BASE[n]*m))return n;}
   return 2;
 }
-// Not every crate holds a trophy. Up to 5 rewards it is a per-tier chance; 6 or more rewards always includes one.
-const CRATE_MAIN_TROPHY_P={bronze:.22,silver:.3,gold:.4,diamond:.5,areviax:1};
 const CRATE_EXTRA_ART={
   drachma:'images/icons/tetradrachm.png',
   key:'images/icons/key.png',
@@ -15384,8 +15382,6 @@ function crateExtraPool(tier){
     {w:1,make:()=>{const t=randomLockedTitle();if(!t)return null;unlockTitle(t,false);return {kind:'title',art:CRATE_EXTRA_ART.title,label:'New Title',sub:'"'+TITLES[t].name+'" — equip it on your Profile',grad:'linear-gradient(160deg,#FFE066,#C9971E)'};}},
   ];
 }
-// Chance that any one bonus slot is another trophy instead of a bonus item, so a big haul can unlock several at once.
-const CRATE_EXTRA_TROPHY_P={bronze:.06,silver:.08,gold:.1,diamond:.13,areviax:.2};
 // Picks a trophy the same way the main drop does (rarity from the tier's odds, falling toward commoner ones if a pool is empty).
 function pickCrateTrophy(tier){
   const cfg=CRATE_TIERS[tier];if(!cfg)return null;
@@ -15395,24 +15391,17 @@ function pickCrateTrophy(tier){
   for(let i=Math.max(startIdx,0);i<RARITY_ORDER.length&&!pool.length;i++){pool=LEGEND_CARDS.filter(l=>l.rarity===RARITY_ORDER[i]);}
   return pool.length?pool[Math.floor(Math.random()*pool.length)]:null;
 }
-function rollExtraTrophy(tier){
-  const pick=pickCrateTrophy(tier);if(!pick)return null;
-  const isNew=!unlockedLegends.includes(pick.key);
-  if(isNew){unlockedLegends.push(pick.key);try{bumpUnseenReward();}catch(e){}}
-  legendCounts[pick.key]=(legendCounts[pick.key]||0)+1;
-  const n=legendCounts[pick.key];
-  const rc=(typeof RARITY_RAY!=='undefined'&&RARITY_RAY[pick.rarity])||'#9AA0A8';
-  return {kind:'trophy',card:pick,rarity:pick.rarity,isNew,
-    art:pick.img||'',emoji:pick.img?'':legendIconHTML(pick),
-    label:pick.name,sub:(pick.rarity==='ultralegendary'?'ULTRA LEGENDARY':pick.rarity.toUpperCase())+' · '+(isNew?'NEW':'DUPLICATE'+(n>1?' ×'+n:'')),
-    grad:'linear-gradient(160deg,'+rc+',#1a1a2a)',xp:isNew?25:10};
+function crateTrophyDesc(card,isNew,n){
+  const rc=(typeof RARITY_RAY!=='undefined'&&RARITY_RAY[card.rarity])||'#9AA0A8';
+  const base={card:card,rarity:card.rarity,isNew:isNew,art:card.img||'',emoji:card.img?'':legendIconHTML(card),label:card.name,grad:'linear-gradient(160deg,'+rc+',#1a1a2a)'};
+  if(isNew)return Object.assign(base,{kind:'trophy',sub:(card.rarity==='ultralegendary'?'ULTRA LEGENDARY':card.rarity.toUpperCase())+' · NEW',xp:25});
+  // duplicate: a plain tile, like a bonus item
+  return Object.assign(base,{kind:'dupe',sub:'DUPLICATE'+(n>1?' ×'+n:'')+' · +10 Arete',xp:10});
 }
 function rollCrateExtras(tier,want){
   const out=[];       // `want` = bonus slots besides the Arete slot and the main trophy (if any)
-  const pT=CRATE_EXTRA_TROPHY_P[tier]||.1;
   let pool=crateExtraPool(tier);
-  for(let n=0;n<want;n++){
-    if(Math.random()<pT){const t=rollExtraTrophy(tier);if(t){out.push(t);continue;}}
+  for(let tries=0;out.length<want&&tries<want*8+8;tries++){     // a bonus that can't be given (e.g. no titles left) is simply re-rolled
     if(!pool.length)pool=crateExtraPool(tier);           // big hauls (up to 14) never run out of bonus kinds
     const sum=pool.reduce((a,p)=>a+p.w,0);let x=Math.random()*sum,i=0;
     for(;i<pool.length-1;i++){x-=pool[i].w;if(x<=0)break;}
@@ -15446,21 +15435,33 @@ function openCompassDrop(tier){
   else if(tier==='gold'){ if(keyBank<=0)return; keyBank--; }
   else if(tier==='diamond'){ if(diamondDropBank<=0)return; diamondDropBank--; }
   // areviax: free — only ever granted by the Daily Spin, no bank to spend.
-  // Reward count first: 6+ rewards always hold a trophy, otherwise it is a per-tier chance (see CRATE_MAIN_TROPHY_P).
-  const total=rollCrateRewardCount(tier);
-  let pick=null,isNew=false;
-  if(total>=6||Math.random()<(CRATE_MAIN_TROPHY_P[tier]||.2))pick=pickCrateTrophy(tier);
-  if(pick){
-    isNew=!unlockedLegends.includes(pick.key);
-    if(isNew){unlockedLegends.push(pick.key);bumpUnseenReward();}
-    legendCounts[pick.key]=(legendCounts[pick.key]||0)+1;
+  // Trophies are only possible with 6+ rewards: 6+ always holds one, and with 7+ a second (or third) is fairly
+  // likely. A duplicate does not get the big treatment: it shows up as a plain tile like any bonus item.
+  let total=rollCrateRewardCount(tier);
+  if(tier==='areviax')total=Math.max(total,6);   // the free jackpot crate always lands a trophy
+  const trophies=[];
+  if(total>=6){
+    let want=1;const p2=total>6?Math.min(.75,.15+.15*(total-6)):0;
+    while(want<total-1&&Math.random()<p2*Math.pow(.5,want-1))want++;
+    for(let i=0;i<want;i++){
+      const card=pickCrateTrophy(tier);if(!card)continue;
+      const isNewT=!unlockedLegends.includes(card.key);
+      if(isNewT){unlockedLegends.push(card.key);try{bumpUnseenReward();}catch(e){}}
+      legendCounts[card.key]=(legendCounts[card.key]||0)+1;
+      trophies.push({card,isNew:isNewT,n:legendCounts[card.key]});
+    }
   }
+  // the best NEW trophy gets the full mystery reveal at the end; other new ones come out of the box as fanfare cards
+  const newOnes=trophies.filter(t=>t.isNew).sort((x,y)=>RARITY_ORDER.indexOf(x.card.rarity)-RARITY_ORDER.indexOf(y.card.rarity));
+  const mainT=newOnes[0]||null;
+  const pick=mainT?mainT.card:null,isNew=!!mainT;
   if(tier==='areviax')keyBank+=2; // the best drop in the app pays a bonus on top of the guaranteed card
   if(tier==='diamond')unlockAccentTheme('silver',true);
   if(tier==='areviax')unlockAccentTheme('gold',true);
-  // 2-14 rewards per crate, any of the bonus slots can be another trophy (see rollCrateRewardCount): the extras are granted
-  // right here, the reveal below only shows them.
-  const extras=rollCrateExtras(tier,total-1-(pick?1:0));
+  // 2-14 rewards per crate (see rollCrateRewardCount): everything is granted right here, the reveal below only shows it.
+  const bonusSlots=Math.max(0,total-1-trophies.length);
+  const extras=rollCrateExtras(tier,bonusSlots).concat(trophies.filter(t=>t!==mainT).map(t=>crateTrophyDesc(t.card,t.isNew,t.n)));
+  extras.sort((x,y)=>(x.kind==='trophy'?10+(RARITY_ORDER.length-RARITY_ORDER.indexOf(x.rarity)):0)-(y.kind==='trophy'?10+(RARITY_ORDER.length-RARITY_ORDER.indexOf(y.rarity)):0));
   const keyWon=false,titleWon=null;
   saveToStorage();
   // Anticipation beat on the actual crate tile — a real chest/crystal
@@ -15727,6 +15728,7 @@ function playRewardTap(){
   g.gain.setValueAtTime(.35,t);g.gain.exponentialRampToValueAtTime(.001,t+.04);
   n.connect(f);f.connect(g);g.connect(out);n.start(t);
   sfxTone(ctx,out,{type:'square',f:520,f2:1500,t:t,dur:.07,vol:.14,att:.002,lp:[5000]});
+  sfxTone(ctx,out,{type:'sine',f:2600,f2:1100,t:t,dur:.09,vol:.12,att:.002});   // laser-ish dink
 }
 // THE SURGE — fast ascending arcade scale plus a "schwing" sweep as rewards fly to the counter
 function playRewardSurge(size){
@@ -15764,6 +15766,71 @@ function playTrophyHint(level){
   sfxTone(ctx,out,{type:'sine',f:80,f2:50,t:t,dur:.3,vol:.22,att:.005});
   sfxTone(ctx,out,{type:'sine',f:80,f2:50,t:t+.3,dur:.3,vol:.22,att:.005});
   glint(t+dur*.55,level==='final'?.08:.06);
+}
+// ── Box-sequence sounds: the thud when the box lands, the jiggle, the item swoop, the counter tick,
+// the glassy shatter and the pouring-coins tally.
+function playCrateThud(){
+  const ctx=getCrateAudioCtx();if(!ctx)return;
+  const out=sfxBus(ctx,1.3),t=ctx.currentTime;
+  sfxTone(ctx,out,{type:'sine',f:100,f2:40,t:t,dur:.4,vol:.55,att:.004});
+  sfxTone(ctx,out,{type:'triangle',f:210,f2:90,t:t,dur:.12,vol:.28,att:.003});      // wooden knock
+  const n=sfxNoiseSrc(ctx,.1),f=ctx.createBiquadFilter(),g=ctx.createGain();
+  f.type='lowpass';f.frequency.value=500;g.gain.setValueAtTime(.4,t);g.gain.exponentialRampToValueAtTime(.001,t+.1);
+  n.connect(f);f.connect(g);g.connect(out);n.start(t);
+}
+function playCrateJiggle(){
+  const ctx=getCrateAudioCtx();if(!ctx)return;
+  const out=sfxBus(ctx,1),t=ctx.currentTime;
+  const boing=sfxTone(ctx,out,{type:'sine',f:420,f2:170,t:t,dur:.26,vol:.2,att:.005});   // bouncy squish, wobbling pitch
+  const lfo=ctx.createOscillator(),lg=ctx.createGain();lfo.frequency.value=22;lg.gain.value=60;lfo.connect(lg);lg.connect(boing.frequency);lfo.start(t);lfo.stop(t+.3);
+  for(let i=0;i<5;i++){                                                                   // rattle
+    const n=sfxNoiseSrc(ctx,.03),f=ctx.createBiquadFilter(),g=ctx.createGain(),at=t+i*.04;
+    f.type='bandpass';f.frequency.value=1100+Math.random()*700;f.Q.value=2.2;
+    g.gain.setValueAtTime(.18,at);g.gain.exponentialRampToValueAtTime(.001,at+.03);
+    n.connect(f);f.connect(g);g.connect(out);n.start(at);
+  }
+}
+function playItemWhing(){
+  const ctx=getCrateAudioCtx();if(!ctx)return;
+  const out=sfxBus(ctx,1),t=ctx.currentTime;
+  const n=sfxNoiseSrc(ctx,.28),f=ctx.createBiquadFilter(),g=ctx.createGain();           // airy "shhh"
+  f.type='bandpass';f.Q.value=1.4;f.frequency.setValueAtTime(700,t);f.frequency.exponentialRampToValueAtTime(6500,t+.24);
+  g.gain.setValueAtTime(.001,t);g.gain.exponentialRampToValueAtTime(.22,t+.12);g.gain.exponentialRampToValueAtTime(.001,t+.28);
+  n.connect(f);f.connect(g);g.connect(out);n.start(t);
+  sfxTone(ctx,out,{type:'sine',f:880,f2:2700,t:t+.04,dur:.26,vol:.13,att:.02});          // the "whing"
+  sfxTone(ctx,out,{type:'triangle',f:3520,t:t+.2,dur:.2,vol:.05,att:.004});
+}
+function playCounterTick(){
+  const ctx=getCrateAudioCtx();if(!ctx)return;
+  const out=sfxBus(ctx,1.2),t=ctx.currentTime;
+  const n=sfxNoiseSrc(ctx,.02),f=ctx.createBiquadFilter(),g=ctx.createGain();
+  f.type='highpass';f.frequency.value=3800;g.gain.setValueAtTime(.3,t);g.gain.exponentialRampToValueAtTime(.001,t+.02);
+  n.connect(f);f.connect(g);g.connect(out);n.start(t);
+  sfxTone(ctx,out,{type:'square',f:1900,t:t,dur:.03,vol:.07,att:.001,lp:[5000]});
+  sfxTone(ctx,out,{type:'triangle',f:680,t:t+.012,dur:.05,vol:.1,att:.002});             // metallic typewriter clack
+}
+function playCrateShatter(){
+  const ctx=getCrateAudioCtx();if(!ctx)return;
+  const out=sfxBus(ctx,1.1),t=ctx.currentTime;
+  const n=sfxNoiseSrc(ctx,.45),f=ctx.createBiquadFilter(),g=ctx.createGain();
+  f.type='highpass';f.frequency.value=2800;g.gain.setValueAtTime(.5,t);g.gain.exponentialRampToValueAtTime(.001,t+.42);
+  n.connect(f);f.connect(g);g.connect(out);n.start(t);
+  [3120,4310,5870,7240,2480].forEach((fr,i)=>sfxTone(ctx,out,{type:'sine',f:fr,t:t+i*.018,dur:.3+Math.random()*.2,vol:.07,att:.002}));   // glassy shards
+  sfxTone(ctx,out,{type:'sawtooth',f:2600,f2:180,t:t,dur:.14,vol:.14,att:.002,lp:[6000,800]});   // electronic zap
+  sfxTone(ctx,out,{type:'sine',f:130,f2:45,t:t,dur:.35,vol:.4,att:.003});
+}
+// Pouring coins and gems into the inventory, all at once: dense random clinks that get faster, a few bright gem chinks
+function playGrandTally(ms){
+  const ctx=getCrateAudioCtx();if(!ctx)return;
+  const out=sfxBus(ctx,1.2),t=ctx.currentTime,dur=(ms||1100)/1000,count=Math.round(dur*34);
+  for(let i=0;i<count;i++){
+    const p=Math.pow(i/count,.8),at=t+p*dur;
+    sfxTone(ctx,out,{type:i%2?'triangle':'sine',f:2200+Math.random()*3200,t:at,dur:.05+Math.random()*.05,vol:.06+Math.random()*.03,att:.002});
+    if(i%3===0)sfxTone(ctx,out,{type:'triangle',f:720+Math.random()*260,t:at,dur:.045,vol:.07,att:.002});   // chuckle
+    if(i%6===5)sfxTone(ctx,out,{type:'sine',f:[3520,4186,5274][i%3],t:at,dur:.26,vol:.06,att:.003});         // gem chink
+  }
+  sfxTone(ctx,out,{type:'sine',f:2637,t:t+dur,dur:.45,vol:.12,att:.004});
+  sfxTone(ctx,out,{type:'sine',f:3951,t:t+dur+.07,dur:.5,vol:.09,att:.004});
 }
 // RARITY FANFARES. scale lets a bonus-slot trophy play a slightly smaller version.
 function playUnlockFanfare(rarity,scale){
@@ -16571,10 +16638,8 @@ function showLegendReveal(l,isNew,tier,count,keyWon,titleWon,extras){
   function playSlotSound(slot){
     try{
       const d=slot&&slot.d;
-      if(d&&d.kind==='trophy'){playUnlockFanfare(d.rarity,.9);return;}
-      if(slot&&slot.isXp){playRewardSurge(.8);playRewardTally(480);return;}
-      if(d&&(d.kind==='drachma'||d.kind==='xp')){playRewardSurge(1);playRewardTally(620);return;}
-      playRewardSurge(.6);
+      if(d&&d.kind==='trophy'){playUnlockFanfare(d.rarity,.9);return;}   // a NEW trophy: the full rarity melody
+      playItemWhing();                                                  // everything else, duplicates included: the airy item swoop
     }catch(e){}
   }
   const slots=multiSlot?[
@@ -16608,6 +16673,7 @@ function showLegendReveal(l,isNew,tier,count,keyWon,titleWon,extras){
     '</div>';
   document.body.appendChild(overlay);
   requestAnimationFrame(()=>overlay.classList.add('show'));
+  setTimeout(()=>{try{if(overlay.isConnected)playCrateThud();}catch(e){}},330);   // the box lands with a heavy thud
 
   const wrap=overlay.querySelector('#reveal-crate-wrap');
   const icon=overlay.querySelector('#reveal-crate-icon');
@@ -16656,7 +16722,7 @@ function showLegendReveal(l,isNew,tier,count,keyWon,titleWon,extras){
     // lock-in moment (see runMysteryReveal) so the "successful" sound
     // lands with the actual reveal, not a second early with the "?".
     if(!isLast)playCrateRevealChime('common');
-    else if(!l)playSlotSound(slot);   // no trophy: the last reward is a plain slot, give it its claim sound
+    else if(!l){try{playGrandTally(1100);}catch(e){}}   // nothing special inside: coins and gems pour in
     slot.onShow&&slot.onShow(modal);
     if(!isLast){
       // clearTimeout on both paths — without it, a manual tap that beats
@@ -16700,7 +16766,7 @@ function showLegendReveal(l,isNew,tier,count,keyWon,titleWon,extras){
     if(prompt){prompt.style.transition='opacity .2s';prompt.style.opacity='0';}
     icon.classList.add('bx-squish');
     try{const a=getCrateAudioCtx();if(a)playCrateTick(a,.9);}catch(e){}
-    try{playRewardTap();}catch(e){}
+    try{playRewardTap();playCrateJiggle();}catch(e){}
     setTimeout(()=>{
       icon.classList.remove('bx-squish');icon.classList.add('bx-jump');
       try{playCrateSpinTicks(300);}catch(e){}
@@ -16735,6 +16801,7 @@ function showLegendReveal(l,isNew,tier,count,keyWon,titleWon,extras){
   }
   function itemTap(){
     busy=true;remaining--;setCounter(remaining);
+    try{playRewardTap();playCrateJiggle();playCounterTick();}catch(e){}   // pop + wobble + the counter's metallic tick
     try{const a=getCrateAudioCtx();if(a)playCrateTick(a,.8);}catch(e){}
     icon.classList.remove('bx-hover','bx-shake');void icon.offsetWidth;icon.classList.add('bx-shake');
     lidPeek(190);
@@ -16742,7 +16809,7 @@ function showLegendReveal(l,isNew,tier,count,keyWon,titleWon,extras){
     setTimeout(()=>{
       icon.classList.remove('bx-shake');icon.classList.add('bx-hover');
       ejectCard(slots[itemIdx]);itemIdx++;
-      try{playRewardTap();playSlotSound(slots[itemIdx-1]);if(isSpecialPull&&!(slots[itemIdx-1].d&&slots[itemIdx-1].d.kind==='trophy'))playTrophyHint('tap');}catch(e){}
+      try{playSlotSound(slots[itemIdx-1]);if(isSpecialPull&&!(slots[itemIdx-1].d&&slots[itemIdx-1].d.kind==='trophy'))playTrophyHint('tap');}catch(e){}
       busy=false;
       if(remaining===1){chargeFinal();}
       else armIdle(1500);
@@ -16762,7 +16829,7 @@ function showLegendReveal(l,isNew,tier,count,keyWon,titleWon,extras){
     if(prompt)prompt.style.opacity='0';
     icon.classList.remove('bx-charge');wrap.classList.remove('bx-charging');
     icon.classList.add('crack-out');burst.classList.add('flare');
-    playCrateCrackSound(tier);
+    if(!l)playCrateShatter();   // a flashing (trophy) box skips the standard crate sounds: the rarity melody takes over
     try{ArxFX.crack(icon,tier);ArxFX.shake(modalEl,{bronze:6,silver:8,gold:10,diamond:13,areviax:16}[tier]||8,.55);}catch(e){}
     const fl=document.createElement('div');fl.className='crate-flash'+(tier==='diamond'?' diamond':tier==='areviax'?' areviax':'');
     document.body.appendChild(fl);setTimeout(()=>fl.remove(),550);
