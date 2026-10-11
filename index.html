@@ -5452,6 +5452,11 @@ body[data-goal-theme="cut"] .lv-page{
 .cs-btn{position:relative;margin-top:20px}
 /* the trophy in the gold PR pill was gold-on-gold: draw it black */
 .pr-pill .ico{--c:#000!important}
+
+.flv-tip{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;padding:8px 10px;margin-bottom:6px;border-radius:10px;background:rgba(255,122,46,.07);border:1px solid rgba(255,122,46,.2);font-size:12px;line-height:1.4}
+.flv-tip b{color:var(--white);font-weight:800}
+.flv-tip span{flex:1;min-width:120px;color:rgba(var(--white-rgb),.7)}
+.flv-tip em{font-style:normal;font-weight:800;font-size:11px;color:#FF9A45;white-space:nowrap}
 .sd-item{min-width:74px;padding:8px 10px 7px;border-radius:12px;background:var(--border2);border:1px solid var(--border);display:flex;flex-direction:column;align-items:center;gap:1px}
 .sd-item img{display:block;object-fit:contain}
 .sd-item b{font-size:17px;font-weight:900;color:var(--white);line-height:1.1}
@@ -7454,6 +7459,7 @@ body[data-goal-theme="cut"] .lv-page{
     <div id="recipe-detail-swaps" style="display:none;margin-bottom:18px"></div>
     <div class="ex-cue-label" style="margin-bottom:8px">Ingredients</div>
     <div id="recipe-detail-ingredients" style="margin-bottom:18px"></div>
+    <div id="recipe-detail-flavour" style="display:none;margin-bottom:18px"></div>
     <div class="ex-cue-label" style="margin-bottom:8px">Method</div>
     <div id="recipe-detail-steps"></div>
     <div id="recipe-detail-variations" style="display:none;margin-top:18px"></div>
@@ -16711,11 +16717,14 @@ function showLegendReveal(l,isNew,tier,count,keyWon,titleWon,extras){
   // visibly arrives rather than just popping into place.
   // Brawl-style claim sounds: every reward gets the Tap/Surge/Tally treatment, small for normal items and
   // enormous for trophy unlocks (rarity fanfare). A trophy somewhere in the crate also gets its own hint cue.
-  function playSlotSound(slot){
+  function playSlotSound(slot,final){
     try{
-      const d=slot&&slot.d;
-      if(d&&d.kind==='trophy'){playUnlockFanfare(d.rarity,.9);return;}   // a NEW trophy: the full rarity melody
-      playItemWhing();                                                  // everything else, duplicates included: the airy item swoop
+      const d=slot&&slot.d,k=d&&d.kind;
+      if(k==='trophy'){playUnlockFanfare(d.rarity,.9);return;}                                  // a NEW trophy: the full rarity melody
+      if(k==='bronze'||k==='silver'||k==='gold'||k==='diamond'){playCrateThud();return;}        // earning a crate: a thump, never the coin sound
+      if(k==='drachma'||k==='xp'||(slot&&slot.isXp)){                                           // only currency counts up
+        if(final)playGrandTally(1100);else playRewardTally(560);return;}
+      playItemWhing();                                                                          // keys, freezes, savers, titles, duplicates
     }catch(e){}
   }
   const slots=multiSlot?[
@@ -16804,7 +16813,7 @@ function showLegendReveal(l,isNew,tier,count,keyWon,titleWon,extras){
     // lock-in moment (see runMysteryReveal) so the "successful" sound
     // lands with the actual reveal, not a second early with the "?".
     if(!isLast)playCrateRevealChime('common');
-    else if(!l){try{playGrandTally(1100);}catch(e){}}   // nothing special inside: coins and gems pour in
+    else if(!l)playSlotSound(slot,true);   // nothing special inside: currency pours in, a crate thumps, anything else swooshes
     slot.onShow&&slot.onShow(modal);
     if(!isLast){
       // clearTimeout on both paths — without it, a manual tap that beats
@@ -27083,6 +27092,45 @@ function renderRecipeDetailMacros(r){
   const chips=[['🔥',m.cals+' kcal'],['🥩',m.prot+'g protein'],['🌾',m.carbs+'g carbs'],['🫒',m.fats+'g fat']];
   macrosEl.innerHTML=chips.map(([ic,t])=>`<span style="background:rgba(232,214,196,.05);border:1.5px solid var(--border2);border-radius:8px;padding:5px 10px;font-size:11px;font-weight:700;color:rgba(var(--white-rgb),.8)">${ic} ${t}</span>`).join('');
 }
+// FLAVOUR BOOST — sauces and seasonings make a meal taste better, which makes bigger portions easier to finish, and their
+// calories help a bulk. Picks up to three that suit the dish (matched on its name and ingredients).
+const FLAVOUR_RULES=[
+  {re:/salmon|trout|mackerel/,tips:[['Sesame oil','Drizzle 1 tsp over the finished fillet',40],['Soy & honey glaze','1 tbsp brushed on for the last 2 minutes',45],['Lemon & dill butter','A small knob melted on top',70]]},
+  {re:/wrap|burrito|tortilla|taco|fajita|quesadilla/,tips:[['Sriracha mayo','1 tbsp stirred through or spread inside',100],['Chipotle yogurt','2 tbsp, a lighter creamy kick',25],['Hot sauce','A few shakes on top',5]]},
+  {re:/stir.?fry|noodle|fried rice|udon|ramen|teriyaki|bulgogi|katsu/,tips:[['Chilli flakes','A pinch while it cooks, or at the end',0],['Sesame oil','1 tsp at the end for aroma',40],['Hoisin or oyster sauce','1 tbsp tossed through',35]]},
+  {re:/curry|masala|tikka|korma|dhal|dal\b/,tips:[['Coconut cream','2 tbsp swirled in at the end',60],['Mango chutney','1 tbsp on the side',40],['Chilli oil','1 tsp drizzled on top',40]]},
+  {re:/burger|steak|beef|mince|chili|bolognese|lamb|pork/,tips:[['Worcestershire sauce','A splash in the pan — big flavour, almost no calories',5],['BBQ sauce','1-2 tbsp glazed on',45],['Garlic butter','A small knob melted over the top',100]]},
+  {re:/chicken|turkey/,tips:[['Peri-peri or hot honey','1 tbsp brushed on near the end',45],['Pesto','1 tbsp tossed through',80],['Garlic butter','A small knob melted over the top',100]]},
+  {re:/pasta|spaghetti|lasagn|penne|macaroni|meatball|gnocchi/,tips:[['Olive oil & parmesan','1 tsp oil and a handful of cheese at the end',90],['Chilli flakes','A pinch over the top',0],['Pesto','1 tbsp stirred through',80]]},
+  {re:/prawn|shrimp|cod|fish|tuna|sardine|seafood|paella/,tips:[['Garlic butter','A small knob melted over the top',100],['Sweet chilli sauce','1 tbsp on the side or tossed through',30],['Lemon & olive oil','Squeeze of lemon and 1 tsp oil',40]]},
+  {re:/tofu|tempeh|edamame|veggie|vegetarian/,tips:[['Peanut sauce','2 tbsp: peanut butter, soy and lime',90],['Soy & chilli oil','1 tsp of each',45],['Tahini drizzle','1 tbsp thinned with water',90]]},
+  {re:/oat|porridge|pancake|yogurt|yoghurt|granola|cottage cheese|chia|pudding|toast/,tips:[['Peanut or almond butter','1 tbsp drizzled on top',95],['Honey or maple syrup','1 tbsp',60],['Chocolate or caramel sauce','1 tbsp',50]]},
+  {re:/egg|omelette|omelet|scrambled|breakfast/,tips:[['Hot sauce or sriracha','A few shakes on top',5],['Chilli crisp','1 tsp spooned over',40],['Cheese sauce','2 tbsp over the top',60]]},
+  {re:/shake|smoothie|gainer/,tips:[['Peanut butter','1 tbsp blended in',95],['Honey','1 tbsp blended in',60],['Cocoa powder','1 tbsp, almost no calories',15]]},
+  {re:/salad|slaw|bowl/,tips:[['Tahini or yogurt dressing','2 tbsp, thinned with lemon',70],['Olive oil & lemon','1 tbsp oil and a squeeze of lemon',120],['Sriracha mayo','1 tbsp on the side',100]]},
+  {re:/stew|soup|casserole|chili|chilli/,tips:[['Worcestershire sauce','A splash near the end',5],['Chilli flakes','A pinch at the table',0],['Olive oil drizzle','1 tsp on top before serving',40]]},
+  {re:/pizza|flatbread|naan/,tips:[['Chilli oil','1 tsp drizzled on top',40],['Garlic & herb dip','2 tbsp on the side',70],['Hot honey','1 tsp over the crust edge',20]]},
+];
+const FLAVOUR_FALLBACK=[['Olive oil drizzle','1 tsp over the finished dish',40],['Hot sauce','A few shakes to taste',5],['Garlic butter','A small knob melted on top',100]];
+function recipeFlavourTips(r){
+  const text=(r.name+' '+(r.ingredients||[]).join(' ')).toLowerCase(),out=[],seen={};
+  for(const rule of FLAVOUR_RULES){
+    if(!rule.re.test(text))continue;
+    for(const t of rule.tips){if(out.length>=3)break;if(!seen[t[0]]){seen[t[0]]=1;out.push(t);}}
+    if(out.length>=3)break;
+  }
+  for(const t of FLAVOUR_FALLBACK){if(out.length>=3)break;if(!seen[t[0]]){seen[t[0]]=1;out.push(t);}}
+  return out;
+}
+function renderRecipeFlavour(r){
+  const el=document.getElementById('recipe-detail-flavour');if(!el)return;
+  const tips=recipeFlavourTips(r);
+  if(!tips.length){el.style.display='none';return;}
+  el.style.display='block';
+  el.innerHTML='<div class="ex-cue-label" style="margin-bottom:6px">Flavour boost</div>'+
+    '<div style="font-size:11.5px;color:var(--muted);line-height:1.5;margin-bottom:8px">A good sauce makes a bigger meal easier to finish, and the calories help the bulk.</div>'+
+    tips.map(t=>'<div class="flv-tip"><b>'+escHtml(t[0])+'</b><span>'+escHtml(t[1])+'</span><em>'+(t[2]?'+'+t[2]+' kcal':'~0 kcal')+'</em></div>').join('');
+}
 function renderRecipeDetailIngredients(r){
   const ingEl=document.getElementById('recipe-detail-ingredients');
   if(!ingEl)return;
@@ -27139,6 +27187,7 @@ function openRecipeDetail(idx){
   const whyEl=document.getElementById('recipe-detail-why');if(whyEl)whyEl.textContent=r.why;
   renderRecipeSwaps(r);
   renderRecipeDetailIngredients(r);
+  renderRecipeFlavour(r);
   const stepsEl=document.getElementById('recipe-detail-steps');
   if(stepsEl)stepsEl.innerHTML=r.steps.map((s,i)=>`<div style="display:flex;gap:10px;margin-bottom:12px"><div style="flex-shrink:0;width:20px;height:20px;border-radius:50%;background:rgba(243,103,23,.15);color:#FF9A5C;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center">${i+1}</div><div style="font-size:12.5px;color:rgba(var(--white-rgb),.8);line-height:1.55">${escHtml(s)}</div></div>`).join('');
   renderRecipeVariations(r);
