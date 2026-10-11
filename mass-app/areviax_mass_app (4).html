@@ -15677,6 +15677,155 @@ function playCrateRevealChime(rarity){
     shimmer.start(shimmerStart);shimmer.stop(shimmerStart+1.15);
   }
 }
+// ── BRAWL-STYLE REWARD SOUNDS (all synthesized, no audio files) ─────────────
+// Three layers: the claim sounds every reward gets (Tap pop · Surge scale · Tally ticks),
+// a "something good is in here" cue for crates that hold a trophy, and rarity fanfares for
+// unlocks — a punchy chime + arcade chord for Rare/Super Rare, a brass fanfare for Epic/Mythic,
+// and a drop + stadium synth melody for Legendary and up. Normal items stay small on purpose.
+function sfxBus(ctx,vol){
+  const comp=ctx.createDynamicsCompressor();
+  comp.threshold.value=-16;comp.knee.value=10;comp.ratio.value=8;comp.attack.value=.003;comp.release.value=.25;
+  const g=ctx.createGain();g.gain.value=vol==null?.9:vol;
+  g.connect(comp);comp.connect(ctx.destination);
+  return g;
+}
+function sfxNoiseSrc(ctx,dur){
+  const n=Math.max(1,Math.floor(ctx.sampleRate*dur)),b=ctx.createBuffer(1,n,ctx.sampleRate),d=b.getChannelData(0);
+  for(let i=0;i<n;i++)d[i]=Math.random()*2-1;
+  const s=ctx.createBufferSource();s.buffer=b;return s;
+}
+// one enveloped oscillator: o={type,f,f2,t,dur,vol,att,det,lp,hold}
+function sfxTone(ctx,out,o){
+  const osc=ctx.createOscillator(),g=ctx.createGain();
+  osc.type=o.type||'sine';osc.frequency.setValueAtTime(o.f,o.t);
+  if(o.f2)osc.frequency.exponentialRampToValueAtTime(o.f2,o.t+o.dur);
+  if(o.det)osc.detune.value=o.det;
+  const att=o.att||.01,hold=o.hold||0,v=o.vol==null?.2:o.vol;
+  g.gain.setValueAtTime(0,o.t);
+  g.gain.linearRampToValueAtTime(v,o.t+att);
+  if(hold)g.gain.setValueAtTime(v,o.t+att+hold);
+  g.gain.exponentialRampToValueAtTime(.0008,o.t+att+hold+o.dur);
+  let node=osc;
+  if(o.lp){const f=ctx.createBiquadFilter();f.type='lowpass';f.frequency.setValueAtTime(o.lp[0],o.t);if(o.lp[1])f.frequency.exponentialRampToValueAtTime(o.lp[1],o.t+att+hold+o.dur*.6);osc.connect(f);node=f;}
+  node.connect(g);g.connect(out);
+  osc.start(o.t);osc.stop(o.t+att+hold+o.dur+.05);
+  return osc;
+}
+function sfxKick(ctx,out,t,vol){
+  sfxTone(ctx,out,{type:'sine',f:170,f2:38,t:t,dur:.45,vol:vol,att:.004});
+  const n=sfxNoiseSrc(ctx,.05),f=ctx.createBiquadFilter(),g=ctx.createGain();
+  f.type='highpass';f.frequency.value=1800;g.gain.setValueAtTime(vol*.5,t);g.gain.exponentialRampToValueAtTime(.001,t+.05);
+  n.connect(f);f.connect(g);g.connect(out);n.start(t);
+}
+// THE TAP — crisp digital pop as a container opens
+function playRewardTap(){
+  const ctx=getCrateAudioCtx();if(!ctx)return;
+  const out=sfxBus(ctx,1.7),t=ctx.currentTime;
+  const n=sfxNoiseSrc(ctx,.04),f=ctx.createBiquadFilter(),g=ctx.createGain();
+  f.type='bandpass';f.frequency.value=3200;f.Q.value=.9;
+  g.gain.setValueAtTime(.35,t);g.gain.exponentialRampToValueAtTime(.001,t+.04);
+  n.connect(f);f.connect(g);g.connect(out);n.start(t);
+  sfxTone(ctx,out,{type:'square',f:520,f2:1500,t:t,dur:.07,vol:.14,att:.002,lp:[5000]});
+}
+// THE SURGE — fast ascending arcade scale plus a "schwing" sweep as rewards fly to the counter
+function playRewardSurge(size){
+  const ctx=getCrateAudioCtx();if(!ctx)return;
+  const out=sfxBus(ctx,1.3),t=ctx.currentTime,k=size||1;
+  const scale=[523.25,587.33,659.25,783.99,880,1046.5,1174.66,1318.5];
+  const steps=Math.min(scale.length,4+Math.round(k*3));
+  for(let i=0;i<steps;i++)sfxTone(ctx,out,{type:'square',f:scale[i],t:t+i*.042,dur:.12,vol:.07+.015*k,att:.004,lp:[4200]});
+  sfxTone(ctx,out,{type:'sawtooth',f:260,f2:2400,t:t,dur:.3,vol:.06+.02*k,att:.01,lp:[1500,6000]});
+}
+// THE TALLY — a rapid slot-machine tick/clink run as a total counts up
+function playRewardTally(ms){
+  const ctx=getCrateAudioCtx();if(!ctx)return;
+  const out=sfxBus(ctx,1.2),t=ctx.currentTime,step=.036,count=Math.max(4,Math.round((ms||600)/1000/step));
+  for(let i=0;i<count;i++){
+    const p=i/count,f=1300+p*1500;
+    sfxTone(ctx,out,{type:'triangle',f:f,t:t+i*step,dur:.03,vol:.1,att:.002});
+    if(i%3===2)sfxTone(ctx,out,{type:'sine',f:f*2.4,t:t+i*step,dur:.07,vol:.045,att:.002});
+  }
+  sfxTone(ctx,out,{type:'sine',f:2637,t:t+count*step,dur:.35,vol:.1,att:.004});   // final "ka-ching" ring
+}
+// SOMETHING'S IN HERE — the cue that goes with the red flashing counter when the crate holds a trophy.
+// level: 'start' (first tap) · 'tap' (each item) · 'final' (the charge-up before the last tap)
+function playTrophyHint(level){
+  const ctx=getCrateAudioCtx();if(!ctx)return;
+  const out=sfxBus(ctx,.85),t=ctx.currentTime;
+  const glint=(at,v)=>{[2093,2637,3136,4186].forEach((f,i)=>sfxTone(ctx,out,{type:'sine',f:f,t:at+i*.07,dur:.22,vol:v,att:.004}));};
+  if(level==='tap'){
+    sfxTone(ctx,out,{type:'sine',f:90,f2:55,t:t,dur:.22,vol:.2,att:.005});
+    glint(t,.05);return;
+  }
+  const dur=level==='final'?.95:.6;
+  sfxTone(ctx,out,{type:'sine',f:360,f2:1900,t:t,dur:dur,vol:level==='final'?.15:.1,att:dur*.5});
+  sfxTone(ctx,out,{type:'triangle',f:720,f2:3800,t:t,dur:dur,vol:.04,att:dur*.5});
+  sfxTone(ctx,out,{type:'sine',f:80,f2:50,t:t,dur:.3,vol:.22,att:.005});
+  sfxTone(ctx,out,{type:'sine',f:80,f2:50,t:t+.3,dur:.3,vol:.22,att:.005});
+  glint(t+dur*.55,level==='final'?.08:.06);
+}
+// RARITY FANFARES. scale lets a bonus-slot trophy play a slightly smaller version.
+function playUnlockFanfare(rarity,scale){
+  const ctx=getCrateAudioCtx();if(!ctx)return;
+  const rank=RARITY_RANK[rarity]!=null?RARITY_RANK[rarity]:0;
+  if(rank<=0){playCrateRevealChime('common');return;}
+  const out=sfxBus(ctx,(scale||1)*.95),t=ctx.currentTime;
+  if(rank<=2){            // Rare / Super Rare — punchy chime into an upbeat arcade chord
+    const hi=rank===2?1.122:1;
+    [[1318.5,0],[1975.5,.075]].forEach(([f,d])=>sfxTone(ctx,out,{type:'triangle',f:f*hi,t:t+d,dur:.25,vol:.2,att:.004}));
+    [523.25,659.25,783.99,1046.5].forEach((f,i)=>{
+      sfxTone(ctx,out,{type:'square',f:f*hi,f2:f*hi*1.01,t:t+.2,dur:.42,vol:.07,att:.006,lp:[4200,1800]});
+      sfxTone(ctx,out,{type:'sawtooth',f:f*hi,t:t+.2,dur:.42,vol:.035,att:.006,det:i%2?7:-7,lp:[3000,1500]});
+    });
+    sfxTone(ctx,out,{type:'sine',f:110,f2:50,t:t+.2,dur:.4,vol:.2,att:.005});
+    return;
+  }
+  if(rank<=4){            // Epic / Mythic — triumphant brass with harmonies, sustained high note
+    const m=rank===4?1.122:1;
+    const brass=(f,at,len,v)=>{
+      [-9,0,9].forEach(dt=>sfxTone(ctx,out,{type:'sawtooth',f:f*m,t:t+at,dur:len,vol:v/3,att:.05,det:dt,lp:[500,3200]}));
+      sfxTone(ctx,out,{type:'sawtooth',f:f*m*1.25,t:t+at,dur:len,vol:v/5,att:.06,lp:[400,2400]});    // major third above
+      sfxTone(ctx,out,{type:'sawtooth',f:f*m*1.5,t:t+at,dur:len,vol:v/5,att:.06,lp:[400,2400]});     // fifth above
+    };
+    brass(392,0,.22,.2);brass(392,.2,.2,.2);brass(392,.4,.2,.2);brass(523.25,.6,.5,.24);
+    brass(659.25,1.12,.45,.24);
+    const top=sfxTone(ctx,out,{type:'sawtooth',f:1046.5*m,t:t+1.6,dur:1.4,vol:.2,att:.06,hold:.5,lp:[1200,4200]});
+    const lfo=ctx.createOscillator(),lg=ctx.createGain();lfo.frequency.value=5.5;lg.gain.value=12;lfo.connect(lg);lg.connect(top.detune);lfo.start(t+1.6);lfo.stop(t+3.1);
+    brass(523.25,1.6,1.6,.2);brass(659.25,1.6,1.6,.15);
+    sfxKick(ctx,out,t+.6,.3);sfxKick(ctx,out,t+1.6,.34);
+    return;
+  }
+  // Legendary / Ultra Legendary — explosive whoosh, beat drop, roaring stadium synth melody
+  const ultra=rank>=6,len=ultra?5.6:4.6;
+  const d=ctx.createDelay(1),fb=ctx.createGain(),dl=ctx.createBiquadFilter();    // stadium echo
+  d.delayTime.value=.19;fb.gain.value=.34;dl.type='lowpass';dl.frequency.value=2600;
+  d.connect(dl);dl.connect(fb);fb.connect(d);dl.connect(out);
+  const wet=ctx.createGain();wet.gain.value=.45;wet.connect(d);
+  const nz=sfxNoiseSrc(ctx,.55),nf=ctx.createBiquadFilter(),ng=ctx.createGain();
+  nf.type='bandpass';nf.Q.value=1.2;nf.frequency.setValueAtTime(300,t);nf.frequency.exponentialRampToValueAtTime(7000,t+.5);
+  ng.gain.setValueAtTime(.001,t);ng.gain.exponentialRampToValueAtTime(.55,t+.45);ng.gain.exponentialRampToValueAtTime(.001,t+.58);
+  nz.connect(nf);nf.connect(ng);ng.connect(out);nz.start(t);
+  const drop=t+.5;
+  sfxKick(ctx,out,drop,.55);
+  sfxTone(ctx,out,{type:'sine',f:70,f2:30,t:drop,dur:1.3,vol:.45,att:.005});
+  const cr=sfxNoiseSrc(ctx,1.2),cf=ctx.createBiquadFilter(),cg=ctx.createGain();
+  cf.type='highpass';cf.frequency.value=5000;cg.gain.setValueAtTime(.28,drop);cg.gain.exponentialRampToValueAtTime(.001,drop+1.1);
+  cr.connect(cf);cf.connect(cg);cg.connect(out);cr.start(drop);
+  [drop+.5,drop+1.0,drop+1.5].forEach(x=>sfxKick(ctx,out,x,.3));              // the beat
+  const lead=(f,at,dur,v)=>{
+    [-12,0,12].forEach(dt=>sfxTone(ctx,out,{type:'sawtooth',f:f,t:drop+at,dur:dur,vol:v/3,att:.025,det:dt,lp:[900,5200]}));
+    sfxTone(ctx,out,{type:'square',f:f/2,t:drop+at,dur:dur,vol:v/4,att:.03,lp:[800,2000]});
+    sfxTone(ctx,wet,{type:'triangle',f:f*2,t:drop+at,dur:dur*.8,vol:v/4,att:.02});
+  };
+  // rising stadium hook, then the held victory chord
+  const mel=[[261.63,0,.24],[329.63,.25,.24],[392,.5,.24],[523.25,.75,.34],[392,1.1,.2],[523.25,1.3,.22],[659.25,1.55,.28],[783.99,1.85,.4]];
+  mel.forEach(([f,at,dur])=>lead(f,at,dur,.26));
+  const chordAt=2.4;
+  [523.25,659.25,783.99,1046.5].forEach(f=>lead(f,chordAt,len-3,.2));
+  lead(1567.98,chordAt,len-3,.14);
+  if(ultra){lead(2093,chordAt,len-3,.1);[2.4,2.9,3.4,3.9].forEach(x=>sfxKick(ctx,out,drop+x,.3));}
+  for(let i=0;i<10;i++)sfxTone(ctx,out,{type:'sine',f:2200+Math.random()*3200,t:drop+chordAt+i*.1,dur:.4,vol:.035,att:.004});
+}
 // Shared rarity ranking — 0 (common) through 6 (ultralegendary) — so
 // both the reveal chime above and the intro sting below scale off one
 // number instead of each keeping its own copy of the tier list.
@@ -16125,8 +16274,8 @@ function runMysteryReveal(modal,l,isNew,cfg){
       // silent ("normal to nothing"), which read as less of a reward
       // than opening the crate itself. Superrare+ already had its own
       // intro sting play during the spin-up above, on top of this.
-      playCrateRevealChime(l.rarity);
-      // Epic+ repeats its own victory motif a few beats later — once
+      playUnlockFanfare(l.rarity);   // rarity-scaled fanfare (Common keeps the soft chime)
+      // Epic+ used to repeat its own victory motif a few beats later — once
       // more for Epic/Mythic, twice more for Legendary, three times for
       // Ultra Legendary — so a genuinely rare pull keeps celebrating
       // instead of a single chime that's over as soon as it starts.
@@ -16137,7 +16286,7 @@ function runMysteryReveal(modal,l,isNew,cfg){
       // exact rarities meant to get the extra celebration. modal is
       // already a real parameter and serves the same "did the player
       // already close this reveal" check.
-      const victoryRepeats={epic:1,mythic:1,legendary:2,ultralegendary:3}[l.rarity]||0;
+      const victoryRepeats=0;   // the fanfares are long enough on their own now
       for(let i=1;i<=victoryRepeats;i++){
         setTimeout(()=>{ if(modal.isConnected)playCrateRevealChime(l.rarity); },i*650);
       }
@@ -16416,9 +16565,20 @@ function showLegendReveal(l,isNew,tier,count,keyWon,titleWon,extras){
   // trophy slot having a "moment". Small/quick next to the trophy's own
   // full mystery-spin treatment, but each beat in the sequence now
   // visibly arrives rather than just popping into place.
+  // Brawl-style claim sounds: every reward gets the Tap/Surge/Tally treatment, small for normal items and
+  // enormous for trophy unlocks (rarity fanfare). A trophy somewhere in the crate also gets its own hint cue.
+  function playSlotSound(slot){
+    try{
+      const d=slot&&slot.d;
+      if(d&&d.kind==='trophy'){playUnlockFanfare(d.rarity,.9);return;}
+      if(slot&&slot.isXp){playRewardSurge(.8);playRewardTally(480);return;}
+      if(d&&(d.kind==='drachma'||d.kind==='xp')){playRewardSurge(1);playRewardTally(620);return;}
+      playRewardSurge(.6);
+    }catch(e){}
+  }
   const slots=multiSlot?[
-    {render:xpSlotHTML,onShow:(m)=>{addXP(xpAmount,!l?'Crate bonus':isNew?'New trophy':'Areviax Crate');lightRayBurst('#FFB347',4);try{ArxFX.coins(m.querySelector('.crate-xp-slot-icon'),Math.min(40,12+Math.round(xpAmount/6)));}catch(e){}}},
-    ...extras.map(d=>({render:()=>extraSlotHTML(d),onShow:(m)=>{if(d.xp)addXP(d.xp,'Crate surge');lightRayBurst('#FFD24A',4);try{ArxFX[d.kind==='drachma'?'coins':'shine'](m.querySelector('.crate-xp-slot-icon'),d.kind==='drachma'?Math.min(40,10+Math.round(parseInt(d.label.replace(/\D/g,''))/4)):'#FFD24A',16);}catch(e){}}})),
+    {isXp:true,render:xpSlotHTML,onShow:(m)=>{addXP(xpAmount,!l?'Crate bonus':isNew?'New trophy':'Areviax Crate');lightRayBurst('#FFB347',4);try{ArxFX.coins(m.querySelector('.crate-xp-slot-icon'),Math.min(40,12+Math.round(xpAmount/6)));}catch(e){}}},
+    ...extras.map(d=>({d,render:()=>extraSlotHTML(d),onShow:(m)=>{if(d.xp)addXP(d.xp,'Crate surge');lightRayBurst('#FFD24A',4);try{ArxFX[d.kind==='drachma'?'coins':'shine'](m.querySelector('.crate-xp-slot-icon'),d.kind==='drachma'?Math.min(40,10+Math.round(parseInt(d.label.replace(/\D/g,''))/4)):'#FFD24A',16);}catch(e){}}})),
     ...(keyWon?[{render:keySlotHTML,onShow:(m)=>{lightRayBurst('#B9C4CE',4);try{ArxFX.shine(m.querySelector('.crate-xp-slot-icon'),'#DDE6F0',16);}catch(e){}}}]:[]),
     ...(titleWon?[{render:titleSlotHTML,onShow:(m)=>{lightRayBurst('#FFD24A',4);try{ArxFX.shine(m.querySelector('.crate-xp-slot-icon'),'#FFD24A',22);}catch(e){}}}]:[]),
     ...(l?[{render:trophySlotHTML,onShow:(modal)=>runMysteryReveal(modal,l,isNew,cfg)}]:[]),
@@ -16495,6 +16655,7 @@ function showLegendReveal(l,isNew,tier,count,keyWon,titleWon,extras){
     // lock-in moment (see runMysteryReveal) so the "successful" sound
     // lands with the actual reveal, not a second early with the "?".
     if(!isLast)playCrateRevealChime('common');
+    else if(!l)playSlotSound(slot);   // no trophy: the last reward is a plain slot, give it its claim sound
     slot.onShow&&slot.onShow(modal);
     if(!isLast){
       // clearTimeout on both paths — without it, a manual tap that beats
@@ -16538,13 +16699,14 @@ function showLegendReveal(l,isNew,tier,count,keyWon,titleWon,extras){
     if(prompt){prompt.style.transition='opacity .2s';prompt.style.opacity='0';}
     icon.classList.add('bx-squish');
     try{const a=getCrateAudioCtx();if(a)playCrateTick(a,.9);}catch(e){}
+    try{playRewardTap();}catch(e){}
     setTimeout(()=>{
       icon.classList.remove('bx-squish');icon.classList.add('bx-jump');
       try{playCrateSpinTicks(300);}catch(e){}
       setTimeout(()=>{            // apex: latches snap, beam escapes
         modalEl.classList.add('bx-beam-on');lidPeek(200);
         try{ArxFX.shine(icon,'#FFD77A',14);ArxFX.ring(innerWidth/2,innerHeight*.62,'rgba(255,214,120,.9)',200,5);}catch(e){}
-        try{playCrateRevealChime('common');}catch(e){}
+        try{if(isSpecialPull)playTrophyHint('start');else playCrateRevealChime('common');}catch(e){}
       },300);
       setTimeout(()=>{
         icon.classList.remove('bx-jump');icon.classList.add('bx-hover');
@@ -16579,7 +16741,7 @@ function showLegendReveal(l,isNew,tier,count,keyWon,titleWon,extras){
     setTimeout(()=>{
       icon.classList.remove('bx-shake');icon.classList.add('bx-hover');
       ejectCard(slots[itemIdx]);itemIdx++;
-      try{playCrateRevealChime('common');}catch(e){}
+      try{playRewardTap();playSlotSound(slots[itemIdx-1]);if(isSpecialPull&&!(slots[itemIdx-1].d&&slots[itemIdx-1].d.kind==='trophy'))playTrophyHint('tap');}catch(e){}
       busy=false;
       if(remaining===1){chargeFinal();}
       else armIdle(1500);
@@ -16590,7 +16752,7 @@ function showLegendReveal(l,isNew,tier,count,keyWon,titleWon,extras){
     icon.classList.remove('bx-hover');icon.classList.add('bx-charge');
     wrap.classList.add('bx-charging');
     if(prompt){prompt.textContent='Last tap!';prompt.style.opacity='1';}
-    try{playCrateSpinTicks(cfg.windupMs);}catch(e){}
+    try{playCrateSpinTicks(cfg.windupMs);if(isSpecialPull)playTrophyHint('final');}catch(e){}
     const spark=setInterval(()=>{if(!overlay.isConnected||phase!=='final'){clearInterval(spark);return;}try{ArxFX.tap(icon,tier);}catch(e){}},260);
     armIdle(2600);
   }
