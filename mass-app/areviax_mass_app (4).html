@@ -15389,17 +15389,17 @@ const CRATE_EXTRA_ART={
 };
 // kind -> {weight by tier, grant() returns descriptor or null if unavailable}
 function crateExtraPool(tier){
-  const dr={bronze:10,silver:20,gold:35,diamond:60,areviax:100}[tier]||10;
+  const dr={bronze:6,silver:13,gold:22,diamond:40,areviax:70}[tier]||6;
   const hi=['gold','diamond','areviax'].includes(tier),top=['diamond','areviax'].includes(tier);
   return [
     {w:10,make:()=>{const n=dr+Math.floor(Math.random()*dr);drachma+=n;return {kind:'drachma',art:CRATE_EXTRA_ART.drachma,label:'+'+n+' Drachma',sub:'Spend it in the Shop',grad:'linear-gradient(160deg,#FFE066,#C9971E)'};}},
     {w:8,make:()=>{const n=15+Math.floor(Math.random()*(hi?60:25));return {kind:'xp',emoji:'⚡',label:'+'+n+' bonus Arete',sub:'Crate surge',grad:'linear-gradient(160deg,#FFB347,#FF6B1A)',xp:n};}},
     {w:4,make:()=>{keyBank++;return {kind:'key',art:CRATE_EXTRA_ART.key,label:'+1 Key',sub:'Spend keys to upgrade a crate',grad:'linear-gradient(160deg,#E8E0D0,#8A98A8)'};}},
-    {w:5,make:()=>{bronzeDropBank++;return {kind:'bronze',art:CRATE_ICON_IMG.bronze,label:'+1 Bronze Crate',sub:'Ready in your crates',grad:'linear-gradient(160deg,#C8864E,#6a3f1c)'};}},
-    {w:hi?3:1.5,make:()=>{silverDropBank++;return {kind:'silver',art:CRATE_ICON_IMG.silver,label:'+1 Silver Crate',sub:'Ready in your crates',grad:'linear-gradient(160deg,#DDE3EC,#7f8896)'};}},
+    {w:4,make:()=>{bronzeDropBank++;return {kind:'bronze',art:CRATE_ICON_IMG.bronze,label:'+1 Bronze Crate',sub:'Ready in your crates',grad:'linear-gradient(160deg,#C8864E,#6a3f1c)'};}},
+    {w:hi?2.4:1.2,make:()=>{silverDropBank++;return {kind:'silver',art:CRATE_ICON_IMG.silver,label:'+1 Silver Crate',sub:'Ready in your crates',grad:'linear-gradient(160deg,#DDE3EC,#7f8896)'};}},
     {w:2.5,make:()=>{streakFreezes++;return {kind:'freeze',art:CRATE_EXTRA_ART.freeze,label:'+1 Streak Freeze',sub:'Protects a missed day',grad:'linear-gradient(160deg,#8fe6ff,#2b7fa6)'};}},
     {w:1.5,make:()=>{streakSavers++;return {kind:'saver',art:CRATE_EXTRA_ART.saver,label:'+1 Streak Saver',sub:'Repairs a broken streak',grad:'linear-gradient(160deg,#FFD24A,#c26a00)'};}},
-    {w:top?1.1:.25,make:()=>{diamondDropBank++;return {kind:'diamond',art:CRATE_ICON_IMG.diamond,label:'+1 Diamond Crate',sub:'Ready in your crates',grad:'linear-gradient(160deg,#9be8ff,#1c7fa8)'};}},
+    {w:top?.9:.2,make:()=>{diamondDropBank++;return {kind:'diamond',art:CRATE_ICON_IMG.diamond,label:'+1 Diamond Crate',sub:'Ready in your crates',grad:'linear-gradient(160deg,#9be8ff,#1c7fa8)'};}},
     {w:1,make:()=>{const t=randomLockedTitle();if(!t)return null;unlockTitle(t,false);return {kind:'title',art:CRATE_EXTRA_ART.title,label:'New Title',sub:'"'+TITLES[t].name+'" — equip it on your Profile',grad:'linear-gradient(160deg,#FFE066,#C9971E)'};}},
   ];
 }
