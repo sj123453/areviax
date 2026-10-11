@@ -5457,6 +5457,18 @@ body[data-goal-theme="cut"] .lv-page{
 .flv-tip b{color:var(--white);font-weight:800}
 .flv-tip span{flex:1;min-width:120px;color:rgba(var(--white-rgb),.7)}
 .flv-tip em{font-style:normal;font-weight:800;font-size:11px;color:#FF9A45;white-space:nowrap}
+
+/* crate rewards: art with no circle; new trophies start as a silhouette then light up */
+.crate-xp-slot.rw-raw .crate-xp-slot-icon{background:none!important;box-shadow:none!important;border-radius:0!important}
+.crate-xp-slot.rw-raw .crate-xp-slot-icon img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 6px 10px rgba(0,0,0,.45))}
+.crate-xp-slot.rw-sil .crate-xp-slot-icon img,.crate-xp-slot.rw-sil .crate-xp-slot-icon svg{filter:brightness(0) contrast(1.1) drop-shadow(0 0 14px rgba(255,255,255,.25))!important;opacity:.92}
+.crate-xp-slot.rw-lit .crate-xp-slot-icon{animation:rwUnlock .9s cubic-bezier(.2,.9,.3,1.3)}
+.crate-xp-slot.rw-lit .crate-xp-slot-icon img{filter:drop-shadow(0 0 22px rgba(255,220,120,.85))!important}
+@keyframes rwUnlock{0%{transform:scale(.8);filter:brightness(4) saturate(0)}45%{transform:scale(1.25);filter:brightness(2.2)}100%{transform:scale(1);filter:none}}
+.cs-tile.raw{background:none!important;border:none!important;box-shadow:none!important}
+.cs-tile.raw img{width:76px;height:76px;filter:drop-shadow(0 4px 8px rgba(0,0,0,.45))}
+.cs-item.hot .cs-tile.raw{box-shadow:none!important}
+.cs-item.hot .cs-tile.raw img{filter:drop-shadow(0 0 14px rgba(255,216,74,.85))}
 .sd-item{min-width:74px;padding:8px 10px 7px;border-radius:12px;background:var(--border2);border:1px solid var(--border);display:flex;flex-direction:column;align-items:center;gap:1px}
 .sd-item img{display:block;object-fit:contain}
 .sd-item b{font-size:17px;font-weight:900;color:var(--white);line-height:1.1}
@@ -10119,7 +10131,7 @@ body[data-goal-theme="cut"] .lv-page{
     <div id="sd-items" style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:14px 0 4px">
       <div class="sd-item" title="A Freeze quietly covers a missed day"><img src="images/icons/streak-freeze.png" alt="" width="26" height="26"><b id="sd-n-freeze">0</b><span>Freezes</span></div>
       <div class="sd-item" title="A Saver repairs a streak that already broke"><img src="images/icons/streak-saver.png" alt="" width="26" height="26"><b id="sd-n-saver">0</b><span>Savers</span></div>
-      <div class="sd-item" title="Keys upgrade crates"><img src="images/icons/key.png" alt="" width="26" height="26"><b id="sd-n-key">0</b><span>Keys</span></div>
+      <div class="sd-item" title="Keys upgrade crates"><img src="images/icons/key.png" alt="" width="26" height="26"><b id="sd-n-key">0</b><span>Gold Keys</span></div>
       <div class="sd-item" title="Spend Drachma in the Shop"><img src="images/icons/tetradrachm.png" alt="" width="26" height="26"><b id="sd-n-drachma">0</b><span>Drachma</span></div>
     </div>
 
@@ -10221,6 +10233,22 @@ let streakSavers=0;
 // markTrainedToday) toward the next banked drop, resetting at the
 // threshold; bronzeDropBank is how many are sitting there ready to open.
 let bronzeDropBank=0;
+let areviaxDropBank=0;   // Areviax Keys (the rare key tier): each opens one Areviax crate from the crate row
+// Typed keys: a key is a crate of its own tier. Every key reward says which one it is (Bronze / Silver / Gold / Diamond / Areviax).
+const KEY_TIER_NAMES={bronze:'Bronze',silver:'Silver',gold:'Gold',diamond:'Diamond',areviax:'Areviax'};
+function addKeyCrates(tier,n){
+  if(tier==='bronze')bronzeDropBank+=n;else if(tier==='silver')silverDropBank+=n;else if(tier==='diamond')diamondDropBank+=n;
+  else if(tier==='areviax')areviaxDropBank+=n;else keyBank+=n;   // a Gold Key is the Gold crate (keyBank)
+}
+// Which key a crate hands out: mostly the lower tiers, Gold now and then, Diamond rarely, Areviax almost never (better crates skew higher).
+function rollKeyTier(crateTier){
+  const W={bronze:{bronze:50,silver:30,gold:16,diamond:3.6,areviax:.4},silver:{bronze:36,silver:34,gold:22,diamond:7,areviax:.6},gold:{bronze:26,silver:32,gold:28,diamond:12.4,areviax:.9},diamond:{bronze:16,silver:28,gold:34,diamond:20,areviax:2},areviax:{bronze:6,silver:20,gold:38,diamond:32,areviax:4}}[crateTier]||{bronze:40,silver:30,gold:20,diamond:9,areviax:1};
+  let x=Math.random()*Object.values(W).reduce((a,b)=>a+b,0);
+  for(const k of Object.keys(W)){x-=W[k];if(x<=0)return k;}
+  return 'gold';
+}
+// Arete Road key checkpoints: the early ones are Bronze Keys, then Silver, Gold, and Diamond far down the road.
+function xpRoadKeyTier(node){return node.keyTier||(node.xp<3000?'bronze':node.xp<15000?'silver':node.xp<200000?'gold':'diamond');}
 let bronzeDropProgress=0;
 const BRONZE_DROP_DAYS=5;
 // Silver and Diamond are new tiers introduced alongside the Daily Spin
@@ -13952,8 +13980,9 @@ let claimedXpRoad=[]; // persistent \u2014 xp thresholds already paid out, so cr
 // tappable, per direct ask ("make them so you collect them not they are
 // collected automatically").
 let xpRoadReady=[];
-function xpRoadRewardExtraLabel(extra){
+function xpRoadRewardExtraLabel(extra,node){
   if(!extra)return '';
+  if(extra.type==='key')return ' + '+extra.amount+' '+KEY_TIER_NAMES[xpRoadKeyTier(node||{xp:0})]+' Key'+(extra.amount>1?'s':'');
   if(extra.type==='bronze')return ' + '+extra.amount+' Bronze Crate'+(extra.amount>1?'s':'');
   if(extra.type==='silver')return ' + '+extra.amount+' Silver Crate'+(extra.amount>1?'s':'');
   return '';
@@ -13962,7 +13991,7 @@ function xpRoadRewardLabel(node){
   if(node.type==='bronze')return node.amount+' Bronze Crate'+(node.amount>1?'s':'');
   if(node.type==='silver')return node.amount+' Silver Crate'+(node.amount>1?'s':'');
   if(node.type==='diamond')return node.amount+' Diamond Crate'+(node.amount>1?'s':'');
-  if(node.type==='key')return node.amount+' Key'+(node.amount>1?'s':'')+xpRoadRewardExtraLabel(node.extra);
+  if(node.type==='key')return node.amount+' '+KEY_TIER_NAMES[xpRoadKeyTier(node)]+' Key'+(node.amount>1?'s':'')+xpRoadRewardExtraLabel(node.extra,node);
   if(node.type==='legend')return 'Guaranteed '+node.rarity[0].toUpperCase()+node.rarity.slice(1)+' Trophy';
   return '';
 }
@@ -13974,7 +14003,7 @@ function xpRoadRewardLabel(node){
 function xpRoadRewardIcon(node){
   if(node.type==='legend')return node.rarity==='ultralegendary'?'\ud83e\udded':node.rarity==='legendary'?'\ud83d\udc51':node.rarity==='mythic'?'\ud83c\udf11':'\ud83c\udfc6';
   if(node.type==='bronze'||node.type==='silver'||node.type==='diamond')return crateIconHTML(node.type);
-  if(node.type==='key')return '\ud83d\udddd\ufe0f';
+  if(node.type==='key')return '<img src="images/icons/key-'+xpRoadKeyTier(node)+'.png" alt="" style="width:100%;height:100%;object-fit:contain">';
   return '\ud83e\udded';
 }
 // toast()'s icon is set via textContent, not innerHTML \u2014 it can't render
@@ -13989,7 +14018,7 @@ function grantXpRoadReward(node){
   if(node.type==='bronze'){bronzeDropBank+=node.amount;}
   else if(node.type==='silver'){silverDropBank+=node.amount;}
   else if(node.type==='diamond'){diamondDropBank+=node.amount;}
-  else if(node.type==='key'){keyBank+=node.amount;}
+  else if(node.type==='key'){addKeyCrates(xpRoadKeyTier(node),node.amount);}
   else if(node.type==='legend'){
     // Mythic/epic/superrare have no real cards assigned yet (see
     // RARITY_ORDER's own comment) — filtering straight to node.rarity
@@ -14023,7 +14052,7 @@ function grantXpRoadReward(node){
   if(node.extra){
     if(node.extra.type==='bronze')bronzeDropBank+=node.extra.amount;
     else if(node.extra.type==='silver')silverDropBank+=node.extra.amount;
-    else if(node.extra.type==='key')keyBank+=node.extra.amount;
+    else if(node.extra.type==='key')addKeyCrates(xpRoadKeyTier(node),node.extra.amount);
   }
 }
 // A bright ascending two-note "ding" — reuses the same shared Web Audio
@@ -14507,7 +14536,7 @@ const CRATE_TIERS={
   bronze:{label:'Bronze Crate',odds:{common:77.37,rare:15,superrare:5.5,epic:1.8,mythic:0.25,legendary:0.08,ultralegendary:0}},
   silver:{label:'Silver Crate',odds:{common:68.78,rare:20,superrare:8,epic:2.5,mythic:0.5,legendary:0.2,ultralegendary:0.02}},
   gold:{label:'Gold Crate',odds:{common:59.5,rare:25,superrare:10,epic:4,mythic:0.9,legendary:0.55,ultralegendary:0.05}},
-  diamond:{label:'Diamond Crate',odds:{common:49.1,rare:28,superrare:14,epic:6.5,mythic:1.4,legendary:0.9,ultralegendary:0.1}},
+  diamond:{label:'Diamond Crate',odds:{common:34.4,rare:30,superrare:19,epic:10.5,mythic:3,legendary:2.8,ultralegendary:0.3}},
   areviax:{label:'Areviax Crate',odds:{common:0,rare:0,superrare:0,epic:0,mythic:55,legendary:41,ultralegendary:4}},
 };
 // KEYS — spend a stack to instantly turn one already-banked crate into
@@ -14520,7 +14549,8 @@ const CRATE_TIERS={
 // diamond has no upgrade path either (nothing above it to upgrade TO
 // other than areviax, which isn't earnable this way on purpose — see
 // openCompassDrop's areviax branch).
-const KEY_UPGRADE_PATH={bronze:'silver',silver:'gold'};
+// Silver → Gold is gone: a Gold crate IS a key, so spending 5 keys to "upgrade" into one key quietly destroyed 4 of them.
+const KEY_UPGRADE_PATH={bronze:'silver'};
 const KEY_UPGRADE_COST={bronze:3,silver:5};
 function crateBankRef(tier){
   if(tier==='bronze')return {get v(){return bronzeDropBank;},set v(n){bronzeDropBank=n;}};
@@ -14684,7 +14714,7 @@ function renderAchievements(){
     const states={
       bronze:{ready:bronzeDropBank>0,label:'Bronze'+(bronzeDropBank>1?' \u00d7'+bronzeDropBank:''),sub:bronzeDropBank>0?'Tap to open':bronzeDropProgress+'/'+BRONZE_DROP_DAYS+' training days'},
       silver:{ready:silverDropBank>0,label:'Silver'+(silverDropBank>1?' \u00d7'+silverDropBank:''),sub:silverDropBank>0?'Tap to open':'Win one from the Daily Spin'},
-      gold:{ready:keyBank>0,label:'Gold'+(keyBank>1?' \u00d7'+keyBank:''),sub:keyBank>0?'Tap to open':'Earn a key with a perfect week'},
+      gold:{ready:keyBank>0,label:'Gold'+(keyBank>1?' \u00d7'+keyBank:''),sub:keyBank>0?'Tap to open':'Earn a Gold Key with a perfect week'},
       diamond:{ready:diamondDropBank>0,label:'Diamond'+(diamondDropBank>1?' \u00d7'+diamondDropBank:''),sub:diamondDropBank>0?'Tap to open':'Win one from the Daily Spin'},
       // Never banked/tap-to-open (see openCompassDrop's areviax branch \u2014
       // it has no bank guard at all, so wiring the tile to it the normal
@@ -14693,7 +14723,7 @@ function renderAchievements(){
       // other tiers use while unready \u2014 it's not something you're saving
       // up for, it's the aspirational tier you're shown what you're
       // chasing. Tapping it opens the odds/how-to-earn info instead.
-      areviax:{ready:false,always:true,label:'Areviax',sub:'Reach the top league, or win it from the Daily Spin'},
+      areviax:{ready:areviaxDropBank>0,always:true,label:'Areviax'+(areviaxDropBank>1?' \u00d7'+areviaxDropBank:''),sub:areviaxDropBank>0?'Tap to open':'Reach the top league, or win it from the Daily Spin'},
     };
     crateRow.innerHTML=Object.keys(states).map(tier=>{
       const s=states[tier];
@@ -14704,7 +14734,7 @@ function renderAchievements(){
       // button per action: an explicit full-width Open button for a ready
       // crate, and the info button (now free to have a much bigger real
       // tap area since nothing below it competes for the same touch anymore).
-      const tileOnclick=s.always?"viewDropInfo('"+tier+"')":'';
+      const tileOnclick=(s.always&&!s.ready)?"viewDropInfo('"+tier+"')":'';
       // Areviax is "always" shown (never bankable, see the comment on its
       // states entry above) but was landing with neither .ready nor
       // .locked — the CSS already has a dedicated ready-state float+aura
@@ -14722,7 +14752,7 @@ function renderAchievements(){
         </div>
         <div class="crate-slot-label">${s.label}</div>
         ${s.ready
-          ? `<button class="crate-open-btn" onclick="openCompassDrop('${tier}')">Open</button>`
+          ? `<button class="crate-open-btn" onclick="openCompassDrop('${tier}',true)">Open</button>`
           : `<div class="crate-slot-sub">${s.sub}</div>`}
         ${(s.ready&&KEY_UPGRADE_PATH[tier]&&keyBank>=KEY_UPGRADE_COST[tier])
           // Just the tier name, not the full "Diamond Crate" label — this
@@ -14761,7 +14791,7 @@ const STREAK_FREEZE_ICON='<img src="images/icons/streak-freeze.png" alt="" class
 const DRACHMA_OFFERS=[
   {id:'bronze3',label:'3 Bronze Crates',sub:'Instant',cost:15,tier:'bronze',render:()=>crateIconHTML('bronze'),grant:()=>{bronzeDropBank+=3;}},
   {id:'silver3',label:'3 Silver Crates',sub:'Instant',cost:30,tier:'silver',render:()=>crateIconHTML('silver'),grant:()=>{silverDropBank+=3;}},
-  {id:'key3',label:'3 Keys',sub:'Opens Gold Crates',cost:40,tier:'gold',render:()=>'<img src="images/icons/key.png" alt="" class="shop-art-img" width="96" height="96" loading="lazy">',grant:()=>{keyBank+=3;}},
+  {id:'key3',label:'3 Gold Keys',sub:'Opens Gold Crates',cost:40,tier:'gold',render:()=>'<img src="images/icons/key.png" alt="" class="shop-art-img" width="96" height="96" loading="lazy">',grant:()=>{keyBank+=3;}},
   {id:'diamond1',label:'1 Diamond Crate',sub:'Instant',cost:60,tier:'diamond',render:()=>crateIconHTML('diamond'),grant:()=>{diamondDropBank+=1;}},
   {id:'streak_freeze1',label:'Streak Freeze',sub:'Auto-protects your next missed day',cost:35,tier:'diamond',badge:'new',render:()=>STREAK_FREEZE_ICON,grant:()=>{streakFreezes+=1;}},
   {id:'streak_saver1',label:'Streak Saver',sub:'Repairs a streak that already broke',cost:50,tier:'areviax',badge:'new',render:()=>STREAK_SAVER_ICON,grant:()=>{streakSavers+=1;}},
@@ -14770,10 +14800,10 @@ const DRACHMA_OFFERS=[
   // currencies or content types invented), priced at a discount off the
   // per-unit rate of their same-tier single/3-pack so buying in bulk
   // actually reads as a deal rather than just a bigger number.
-  {id:'starter_pack',label:'Starter Pack',sub:'2 Bronze + 1 Silver Crate + 1 Key',cost:45,tier:'bronze',badge:'new',render:()=>'<img src="images/icons/starter-pack.png" alt="" class="shop-art-img" width="96" height="96" loading="lazy">',grant:()=>{bronzeDropBank+=2;silverDropBank+=1;keyBank+=1;}},
+  {id:'starter_pack',label:'Starter Pack',sub:'2 Bronze + 1 Silver Crate + 1 Gold Key',cost:45,tier:'bronze',badge:'new',render:()=>'<img src="images/icons/starter-pack.png" alt="" class="shop-art-img" width="96" height="96" loading="lazy">',grant:()=>{bronzeDropBank+=2;silverDropBank+=1;keyBank+=1;}},
   {id:'bronze10',label:'10 Bronze Crates',sub:'Instant · bulk price',cost:45,tier:'bronze',badge:'new',render:()=>crateIconHTML('bronze'),grant:()=>{bronzeDropBank+=10;}},
   {id:'silver10',label:'10 Silver Crates',sub:'Instant · bulk price',cost:90,tier:'silver',badge:'new',render:()=>crateIconHTML('silver'),grant:()=>{silverDropBank+=10;}},
-  {id:'key10',label:'10 Keys',sub:'Opens Gold Crates · bulk price',cost:120,tier:'gold',badge:'new',render:()=>'<img src="images/icons/key.png" alt="" class="shop-art-img" width="96" height="96" loading="lazy">',grant:()=>{keyBank+=10;}},
+  {id:'key10',label:'10 Gold Keys',sub:'Opens Gold Crates · bulk price',cost:120,tier:'gold',badge:'new',render:()=>'<img src="images/icons/key.png" alt="" class="shop-art-img" width="96" height="96" loading="lazy">',grant:()=>{keyBank+=10;}},
   {id:'diamond3',label:'3 Diamond Crates',sub:'Instant · bulk price',cost:165,tier:'diamond',badge:'new',render:()=>crateIconHTML('diamond'),grant:()=>{diamondDropBank+=3;}},
   {id:'streak_freeze3',label:'3 Streak Freezes',sub:'Auto-protects your next 3 missed days',cost:95,tier:'diamond',badge:'new',render:()=>STREAK_FREEZE_ICON,grant:()=>{streakFreezes+=3;}},
   {id:'streak_saver3',label:'3 Streak Savers',sub:'Repairs a streak that already broke',cost:140,tier:'areviax',badge:'new',render:()=>STREAK_SAVER_ICON,grant:()=>{streakSavers+=3;}},
@@ -15430,7 +15460,7 @@ function grantTestCrates(){
 // CRATE_CUM_BASE is the chance of getting AT LEAST N rewards from a Gold crate (6+ is about 1 crate in 7, 7+ about 1 in 11),
 // and each tier scales that tail (Bronze thinner, Areviax fatter).
 const CRATE_CUM_BASE={3:.58,4:.38,5:.24,6:.15,7:.09,8:.062,9:.045,10:.033,11:.024,12:.016,13:.01,14:.006};
-const CRATE_TAIL_MULT={bronze:.6,silver:.8,gold:1,diamond:1.4,areviax:2.2};
+const CRATE_TAIL_MULT={bronze:.6,silver:.8,gold:1,diamond:1.9,areviax:2.2};
 function rollCrateRewardCount(tier){
   const m=CRATE_TAIL_MULT[tier]||1,u=Math.random();
   for(let n=14;n>=3;n--){if(u<Math.min(1,CRATE_CUM_BASE[n]*m))return n;}
@@ -15445,13 +15475,20 @@ const CRATE_EXTRA_ART={
   starter:'images/icons/starter-pack.png',
 };
 // kind -> {weight by tier, grant() returns descriptor or null if unavailable}
+// Drachma from a crate: usually 5-12, sometimes about 40, and a 400 ceiling that almost never happens (a little better odds in the top crates).
+function crateDrachmaAmount(tier){
+  const tm={bronze:.8,silver:1,gold:1.2,diamond:1.9,areviax:2}[tier]||1,u=Math.random();
+  if(u<.0015*tm)return 150+Math.floor(Math.random()*251);        // 150-400, very rare
+  if(u<.035*tm)return 25+Math.floor(Math.random()*36);           // 25-60 ("about 40")
+  return 5+Math.floor(Math.random()*8);                          // 5-12
+}
 function crateExtraPool(tier){
   const dr={bronze:6,silver:13,gold:22,diamond:40,areviax:70}[tier]||6;
   const hi=['gold','diamond','areviax'].includes(tier),top=['diamond','areviax'].includes(tier);
   return [
-    {w:10,make:()=>{const n=dr+Math.floor(Math.random()*dr);drachma+=n;return {kind:'drachma',art:CRATE_EXTRA_ART.drachma,label:'+'+n+' Drachma',sub:'Spend it in the Shop',grad:'linear-gradient(160deg,#FFE066,#C9971E)'};}},
-    {w:8,make:()=>{const n=15+Math.floor(Math.random()*(hi?60:25));return {kind:'xp',emoji:'⚡',label:'+'+n+' bonus Arete',sub:'Crate surge',grad:'linear-gradient(160deg,#FFB347,#FF6B1A)',xp:n};}},
-    {w:4,make:()=>{keyBank++;return {kind:'key',art:CRATE_EXTRA_ART.key,label:'+1 Key',sub:'Spend keys to upgrade a crate',grad:'linear-gradient(160deg,#E8E0D0,#8A98A8)'};}},
+    {w:10,make:()=>{const n=crateDrachmaAmount(tier);drachma+=n;return {kind:'drachma',art:CRATE_EXTRA_ART.drachma,label:'+'+n+' Drachma',sub:'Spend it in the Shop',grad:'linear-gradient(160deg,#FFE066,#C9971E)'};}},
+    {w:8,make:()=>{const n=15+Math.floor(Math.random()*(hi?60:25));return {kind:'xp',art:'images/icons/arete.png',label:'+'+n+' bonus Arete',sub:'Crate surge',grad:'linear-gradient(160deg,#FFB347,#FF6B1A)',xp:n};}},
+    {w:4,make:()=>{const kt=rollKeyTier(tier),nm=KEY_TIER_NAMES[kt];addKeyCrates(kt,1);return {kind:'key',keyTier:kt,art:'images/icons/key-'+kt+'.png',label:'+1 '+nm+' Key',sub:'Opens one '+nm+' crate',grad:'linear-gradient(160deg,#E8E0D0,#8A98A8)'};}},
     {w:4,make:()=>{bronzeDropBank++;return {kind:'bronze',art:CRATE_ICON_IMG.bronze,label:'+1 Bronze Crate',sub:'Ready in your crates',grad:'linear-gradient(160deg,#C8864E,#6a3f1c)'};}},
     {w:hi?2.4:1.2,make:()=>{silverDropBank++;return {kind:'silver',art:CRATE_ICON_IMG.silver,label:'+1 Silver Crate',sub:'Ready in your crates',grad:'linear-gradient(160deg,#DDE3EC,#7f8896)'};}},
     {w:2.5,make:()=>{streakFreezes++;return {kind:'freeze',art:CRATE_EXTRA_ART.freeze,label:'+1 Streak Freeze',sub:'Protects a missed day',grad:'linear-gradient(160deg,#8fe6ff,#2b7fa6)'};}},
@@ -15469,7 +15506,7 @@ function pickCrateTrophy(tier){
   for(let i=Math.max(startIdx,0);i<RARITY_ORDER.length&&!pool.length;i++){pool=LEGEND_CARDS.filter(l=>l.rarity===RARITY_ORDER[i]);}
   return pool.length?pool[Math.floor(Math.random()*pool.length)]:null;
 }
-const CRATE_DUPE_P={bronze:.15,silver:.2,gold:.25,diamond:.3};
+const CRATE_DUPE_P={bronze:.15,silver:.2,gold:.25,diamond:.4};
 // A trophy you already own, rarity rolled from the tier's odds (falls toward commoner ones; null if you own none that low).
 function pickOwnedTrophy(tier){
   const cfg=CRATE_TIERS[tier];if(!cfg)return null;
@@ -15501,7 +15538,16 @@ function rollCrateExtras(tier,want){
   const rank=d=>d.kind==='trophy'?10+(RARITY_ORDER.length-RARITY_ORDER.indexOf(d.rarity)):0;
   return out.sort((a,b)=>rank(a)-rank(b));
 }
-function openCompassDrop(tier){
+// Everything is already granted by the time the reveal starts, so if drawing it ever fails the player still sees what they got.
+function safeReveal(pick,isNew,tier,count,keyWon,titleWon,extras){
+  try{showLegendReveal(pick,isNew,tier,count,keyWon,titleWon,extras);}
+  catch(e){
+    console.error('crate reveal failed',e);
+    try{document.querySelectorAll('.achievement-overlay').forEach(o=>o.remove());}catch(_){}
+    try{toast('🎁','Crate opened: '+[pick?pick.name:null].concat((extras||[]).map(d=>d.label)).filter(Boolean).slice(0,4).join(', ')+' added to your collection','drops');}catch(_){}
+  }
+}
+function openCompassDrop(tier,fromBank){
   const cfg=CRATE_TIERS[tier];
   if(!cfg)return;
   // A fast double-tap on a crate tile (or tapping a second tier before
@@ -15509,6 +15555,9 @@ function openCompassDrop(tier){
   // stack two full-screen overlays — grantXpRoadReward already guards
   // against this the same way, this call path was just missing it.
   if(document.querySelector('.achievement-overlay'))return;
+  // A tap on Continue can fall through onto the crate tile underneath once the overlay is gone, spending another crate
+  // without the player pressing it: ignore opens right after a reveal closes.
+  if(Date.now()-(window.__crateClosedAt||0)<1000)return;
   // iOS Safari only resumes an AudioContext when .resume() runs
   // synchronously inside the original tap handler — a resume from a
   // later setTimeout (where every crate sound in showLegendReveal
@@ -15523,7 +15572,8 @@ function openCompassDrop(tier){
   else if(tier==='silver'){ if(silverDropBank<=0)return; silverDropBank--; }
   else if(tier==='gold'){ if(keyBank<=0)return; keyBank--; }
   else if(tier==='diamond'){ if(diamondDropBank<=0)return; diamondDropBank--; }
-  // areviax: free — only ever granted by the Daily Spin, no bank to spend.
+  else if(tier==='areviax'&&fromBank){ if(areviaxDropBank<=0)return; areviaxDropBank--; }
+  // areviax otherwise: free — the Daily Spin opens it directly; an Areviax Key is the only way to bank one.
   // Trophies are only possible with 6+ rewards: 6+ always holds one, and with 7+ a second (or third) is fairly
   // likely. A duplicate does not get the big treatment: it shows up as a plain tile like any bonus item.
   let total=rollCrateRewardCount(tier);
@@ -15572,10 +15622,10 @@ function openCompassDrop(tier){
     crateEl.classList.add('opening');
     setTimeout(()=>{
       crateEl.classList.remove('opening');
-      showLegendReveal(pick,isNew,tier,pick?legendCounts[pick.key]:0,keyWon,titleWon,extras);
+      safeReveal(pick,isNew,tier,pick?legendCounts[pick.key]:0,keyWon,titleWon,extras);
     },500);
   }else{
-    showLegendReveal(pick,isNew,tier,pick?legendCounts[pick.key]:0,keyWon,titleWon,extras);
+    safeReveal(pick,isNew,tier,pick?legendCounts[pick.key]:0,keyWon,titleWon,extras);
   }
 }
 // \u2500\u2500 CRATE SOUND \u2014 procedurally synthesized (no audio files), same
@@ -16455,10 +16505,10 @@ function runMysteryReveal(modal,l,isNew,cfg){
       if(isNew)celebrateBurst(['🔥','⭐','🏆'],cfg.burstCount);
     },380);
   }
-  // A player who never taps or drags still gets the reveal — same
-  // "don't gate the reward behind an interaction" rule as the crate tap
-  // itself and the slot auto-advance.
-  setTimeout(lock,1700);
+  // The reveal only happens when the player taps the spinning badge: nothing auto-collects.
+  const tapHint=document.createElement('div');tapHint.className='crate-tap-prompt';tapHint.textContent='Tap to reveal!';tapHint.style.marginTop='10px';
+  try{wrap.insertAdjacentElement('afterend',tapHint);}catch(e){}
+  mystery.addEventListener('click',()=>{try{tapHint.remove();}catch(e){}});
 }
 const RARITY_GLOW={
   common:'rgba(170,176,184,.3)',
@@ -16610,13 +16660,14 @@ function showCrateSummary(btn){
     modal.className='achievement-modal crate-summary show';modal.removeAttribute('style');
     modal.innerHTML='<div class="cs-rays"></div><div class="cs-title">YOU GOT:</div><div class="cs-grid">'+
       sm.items.map((it,i)=>'<div class="cs-item'+(it.hot?' hot':'')+'" style="animation-delay:'+(120+i*70)+'ms">'+
-        '<div class="cs-tile" style="background:'+it.grad+'">'+(it.art?'<img src="'+it.art+'" alt="" width="64" height="64">':'<span>'+it.icon+'</span>')+'</div>'+
+        '<div class="cs-tile'+(it.raw?' raw':'')+'"'+(it.raw?'':' style="background:'+it.grad+'"')+'>'+(it.art?'<img src="'+it.art+'" alt="" width="64" height="64">':'<span>'+it.icon+'</span>')+'</div>'+
         '<b>'+escHtml(it.label)+'</b>'+(it.sub?'<small>'+escHtml(it.sub)+'</small>':'')+'</div>').join('')+
       '</div><button class="achievement-close-btn cs-btn" onclick="closeCrateRevealAndShowcase(this,\'\',false)">Continue</button>';
     try{playRewardSurge(1);}catch(e){}
   }catch(e){closeCrateRevealAndShowcase(btn,'',false);}
 }
 function closeCrateRevealAndShowcase(btn,key,isNew){
+  window.__crateClosedAt=Date.now();   // see openCompassDrop: ignore the tap that lands on the crate underneath
   const overlay=btn.closest('.achievement-overlay');
   // Direct report, still reproducing after the race-condition fix below:
   // tapping Continue while the lock-in celebration is still mid-flight left
@@ -16704,8 +16755,8 @@ function showLegendReveal(l,isNew,tier,count,keyWon,titleWon,extras){
     '</div>';
   }
   function xpSlotHTML(){
-    return '<div class="crate-xp-slot crate-slot-pop">'+
-        '<div class="crate-xp-slot-icon">⭐</div>'+
+    return '<div class="crate-xp-slot crate-slot-pop rw-raw">'+
+        '<div class="crate-xp-slot-icon rw-img"><img src="images/icons/arete.png" alt="" width="120" height="120"></div>'+
         '<div class="crate-xp-slot-label">+'+xpAmount+' Arete</div>'+
         '<div class="crate-xp-slot-sub">'+(!l?'Crate bonus':isNew?'New trophy bonus':'Areviax Crate')+'</div>'+
       '</div>';
@@ -16725,13 +16776,40 @@ function showLegendReveal(l,isNew,tier,count,keyWon,titleWon,extras){
         '<div class="crate-xp-slot-sub">"'+t.name+'" — equip it on your Profile</div>'+
       '</div>';
   }
+  // Currency, duplicates and trophies show their own art with no circle behind it. A NEW trophy starts as a black silhouette
+  // (label hidden) and unlocks a beat later with a shine, light rays and its rarity fanfare (see slotOnShow).
   function extraSlotHTML(d){
+    const raw=d.kind==='dupe'||d.kind==='trophy'||d.kind==='xp'||d.kind==='drachma';
     const icon=d.art?'<img src="'+d.art+'" alt="" width="120" height="120">':d.emoji;
-    return '<div class="crate-xp-slot crate-slot-pop rw-pop">'+
-        '<div class="crate-xp-slot-icon'+(d.art?' rw-img':'')+'" style="background:'+d.grad+'">'+icon+'</div>'+
-        '<div class="crate-xp-slot-label">'+d.label+'</div>'+
-        '<div class="crate-xp-slot-sub">'+d.sub+'</div>'+
+    const sil=d.kind==='trophy',hide=sil?' mystery-hide':'';
+    return '<div class="crate-xp-slot crate-slot-pop rw-pop'+(raw?' rw-raw':'')+(sil?' rw-sil':'')+'">'+
+        '<div class="crate-xp-slot-icon'+(d.art?' rw-img':'')+'"'+(raw?'':' style="background:'+d.grad+'"')+'>'+icon+'</div>'+
+        '<div class="crate-xp-slot-label'+hide+'">'+d.label+'</div>'+
+        '<div class="crate-xp-slot-sub'+hide+'">'+d.sub+'</div>'+
       '</div>';
+  }
+  function slotOnShow(d,m){
+    if(d.kind==='trophy'){
+      if(d.xp)addXP(d.xp,'New trophy');
+      const slot=m.querySelector('.crate-xp-slot');
+      try{ArxFX.shine(m.querySelector('.crate-xp-slot-icon'),'#888',6);}catch(e){}
+      setTimeout(()=>{
+        if(!m.isConnected||!slot)return;
+        slot.classList.remove('rw-sil');slot.classList.add('rw-lit');
+        m.querySelectorAll('.mystery-hide').forEach(e=>e.classList.remove('mystery-hide'));
+        const ic=m.querySelector('.crate-xp-slot-icon')||slot,col=(typeof RARITY_RAY!=='undefined'&&RARITY_RAY[d.rarity])||'#FFD24A',rk=(typeof RARITY_RANK!=='undefined'&&RARITY_RANK[d.rarity])||0;
+        try{lightRayBurst(col,6+rk);}catch(e){}
+        try{ArxFX.rarity(ic,d.rarity);}catch(e){}
+        try{ArxFX.shine(ic,col,22);}catch(e){}
+        try{if(rk>=3)ArxFX.shake(modalEl,3+rk*1.4,.4);}catch(e){}
+        try{spawnUnlockGlyphs(d.rarity);}catch(e){}
+        try{playUnlockFanfare(d.rarity,.9);}catch(e){}
+      },950);
+      return;
+    }
+    if(d.xp)addXP(d.xp,'Crate surge');
+    lightRayBurst('#FFD24A',4);
+    try{ArxFX[d.kind==='drachma'?'coins':'shine'](m.querySelector('.crate-xp-slot-icon'),d.kind==='drachma'?Math.min(40,10+Math.round(parseInt(d.label.replace(/\D/g,''))/4)):'#FFD24A',16);}catch(e){}
   }
   // Order matters for pacing (small beats first, big prize last) — not
   // for economy, every slot always grants exactly what would've been
@@ -16748,8 +16826,8 @@ function showLegendReveal(l,isNew,tier,count,keyWon,titleWon,extras){
   function playSlotSound(slot,final){
     try{
       const d=slot&&slot.d,k=d&&d.kind;
-      if(k==='trophy'){playUnlockFanfare(d.rarity,.9);return;}                                  // a NEW trophy: the full rarity melody
-      if(k==='bronze'||k==='silver'||k==='gold'||k==='diamond'){playCrateThud();return;}        // earning a crate: a thump, never the coin sound
+      if(k==='trophy')return;                                                                   // a NEW trophy plays its own fanfare when it unlocks (slotOnShow)
+      if(k==='bronze'||k==='silver'||k==='gold'||k==='diamond'||k==='key'){playCrateThud();return;}        // earning a crate: a thump, never the coin sound
       if(k==='drachma'||k==='xp'||(slot&&slot.isXp)){                                           // only currency counts up
         if(final)playGrandTally(1100);else playRewardTally(560);return;}
       playItemWhing();                                                                          // keys, freezes, savers, titles, duplicates
@@ -16757,7 +16835,7 @@ function showLegendReveal(l,isNew,tier,count,keyWon,titleWon,extras){
   }
   const slots=multiSlot?[
     {isXp:true,render:xpSlotHTML,onShow:(m)=>{addXP(xpAmount,!l?'Crate bonus':isNew?'New trophy':'Areviax Crate');lightRayBurst('#FFB347',4);try{ArxFX.coins(m.querySelector('.crate-xp-slot-icon'),Math.min(40,12+Math.round(xpAmount/6)));}catch(e){}}},
-    ...extras.map(d=>({d,render:()=>extraSlotHTML(d),onShow:(m)=>{if(d.xp)addXP(d.xp,'Crate surge');lightRayBurst('#FFD24A',4);try{ArxFX[d.kind==='drachma'?'coins':'shine'](m.querySelector('.crate-xp-slot-icon'),d.kind==='drachma'?Math.min(40,10+Math.round(parseInt(d.label.replace(/\D/g,''))/4)):'#FFD24A',16);}catch(e){}}})),
+    ...extras.map(d=>({d,render:()=>extraSlotHTML(d),onShow:(m)=>slotOnShow(d,m)})),
     ...(keyWon?[{render:keySlotHTML,onShow:(m)=>{lightRayBurst('#B9C4CE',4);try{ArxFX.shine(m.querySelector('.crate-xp-slot-icon'),'#DDE6F0',16);}catch(e){}}}]:[]),
     ...(titleWon?[{render:titleSlotHTML,onShow:(m)=>{lightRayBurst('#FFD24A',4);try{ArxFX.shine(m.querySelector('.crate-xp-slot-icon'),'#FFD24A',22);}catch(e){}}}]:[]),
     ...(l?[{render:trophySlotHTML,onShow:(modal)=>runMysteryReveal(modal,l,isNew,cfg)}]:[]),
@@ -16773,8 +16851,8 @@ function showLegendReveal(l,isNew,tier,count,keyWon,titleWon,extras){
 
   // Everything this crate gave, for the "YOU GOT:" screen shown after the last reveal (all items at once).
   window.__crateSummary={items:[
-    {icon:'⭐',grad:'linear-gradient(160deg,#FFB347,#FF6B1A)',label:'+'+xpAmount+' Arete'},
-    ...extras.map(d=>({art:d.art,icon:d.emoji,grad:d.grad,label:d.label,sub:d.kind==='trophy'?'UNLOCKED!':d.kind==='dupe'?'DUPLICATE':'',hot:d.kind==='trophy'})),
+    {art:'images/icons/arete.png',grad:'none',raw:true,label:'+'+xpAmount+' Arete'},
+    ...extras.map(d=>({art:d.art,icon:d.emoji,grad:d.grad,raw:d.kind==='dupe'||d.kind==='trophy'||d.kind==='xp'||d.kind==='drachma',label:d.label,sub:d.kind==='trophy'?'UNLOCKED!':d.kind==='dupe'?'DUPLICATE':'',hot:d.kind==='trophy'})),
     ...(l?[{art:l.img||'',icon:l.img?'':legendIconHTML(l),grad:'linear-gradient(160deg,'+((typeof RARITY_RAY!=='undefined'&&RARITY_RAY[l.rarity])||'#9AA0A8')+',#1a1a2a)',label:l.name,sub:'UNLOCKED!',hot:true}]:[])
   ]};
   const overlay=document.createElement('div');
@@ -16853,7 +16931,7 @@ function showLegendReveal(l,isNew,tier,count,keyWon,titleWon,extras){
       modal.addEventListener('advance',()=>{ clearTimeout(autoAdvanceTimer); slotIdx++; showSlot(); },{once:true});
       // Same "don't gate the reward behind a tap" rule as the box open
       // itself — advances on its own if the player doesn't tap.
-      autoAdvanceTimer=setTimeout(()=>{ if(overlay.isConnected&&modal.querySelector('.crate-tap-prompt')){ slotIdx++; showSlot(); } },slots.length>=5?1350:1800);
+      // no auto-advance: each reward waits for a tap
     }
   }
 
@@ -16877,7 +16955,8 @@ function showLegendReveal(l,isNew,tier,count,keyWon,titleWon,extras){
     counter.classList.remove('bx-count-pop');void counter.offsetWidth;counter.classList.add('bx-count-pop');
     counter.classList.toggle('bx-final',n===1);
   }
-  function armIdle(ms){clearTimeout(idleTimer);idleTimer=setTimeout(()=>{if(overlay.isConnected)onTap();},ms);}
+  // The box only opens, and each reward only comes out, when the player taps it: nothing auto-taps any more.
+  function armIdle(){clearTimeout(idleTimer);}
   function lidPeek(ms){icon.classList.add('bx-peek');setTimeout(()=>icon.classList.remove('bx-peek'),ms||160);}
   function firstTap(){
     phase='opening';busy=true;
@@ -23520,7 +23599,7 @@ function claimCompassPoint(){
   playShardFlyAnimation(btn);
   renderCompassClaimStatus();
   if(justPerfected){
-    toast('🗝️','Compass point earned — perfect week! +1 Key','drops');
+    toast('🗝️','Compass point earned — perfect week! +1 Gold Key','drops');
     celebrateBurst(['🗝️','✨'],16);
   }else{
     toast('🧭','Compass point earned — '+compassPts+'/7 this week','drops');
@@ -32972,6 +33051,7 @@ function saveToStorage(){
     _ss('arx_streakFreezes', streakFreezes);
     _ss('arx_streakSavers', streakSavers);
     _ss('arx_bronzeDropBank', bronzeDropBank);
+    _ss('arx_areviaxDropBank', areviaxDropBank);
     _ss('arx_silverDropBank', silverDropBank);
     _ss('arx_diamondDropBank', diamondDropBank);
     _ss('arx_keyBank', keyBank);
@@ -33174,6 +33254,7 @@ function loadFromStorage(){
     streakFreezes=parseInt(localStorage.getItem('arx_streakFreezes')||'0');
     streakSavers=parseInt(localStorage.getItem('arx_streakSavers')||'0');
     bronzeDropBank=parseInt(localStorage.getItem('arx_bronzeDropBank')||'0');
+    areviaxDropBank=parseInt(localStorage.getItem('arx_areviaxDropBank')||'0');
     silverDropBank=parseInt(localStorage.getItem('arx_silverDropBank')||'0');
     diamondDropBank=parseInt(localStorage.getItem('arx_diamondDropBank')||'0');
     keyBank=parseInt(localStorage.getItem('arx_keyBank')||'0');
