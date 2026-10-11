@@ -48,6 +48,16 @@
   @media(min-width:901px){.hills img{width:100vw;max-width:none;-webkit-mask-image:linear-gradient(transparent,#000 18%);mask-image:linear-gradient(transparent,#000 18%)}}
   .hills::after{content:'';display:block;height:8vh;background:var(--sea-bot,#79c3d3)}
   .descent{position:relative;height:260px;display:grid;place-items:end center;padding-bottom:30px;background:linear-gradient(180deg,var(--sea-bot,#79c3d3) 0,#3a6f78 28%,#1d1618 62%,#14030a 100%);font:600 12px var(--body);letter-spacing:.2em;text-transform:uppercase;color:#e6b79a;margin-inline:calc(50% - 50vw);width:100vw}
+  /* Poseidon's Sea: the crossing between the living world above and the Underworld below */
+  .descent.sea{height:640px;display:block;padding:0;background:linear-gradient(180deg,var(--sea-bot,#79c3d3) 0,#3b97ac 14%,#1f6783 38%,#123a52 62%,#1d1618 84%,#14030a 100%);overflow:hidden}
+  .sea .seaTitle{position:absolute;top:34px;left:0;right:0;text-align:center;font:700 22px var(--display);letter-spacing:.08em;color:#f4fbff;text-shadow:0 2px 12px rgba(10,60,80,.7)}
+  .sea .seaSub{position:absolute;top:68px;left:0;right:0;text-align:center;font:500 12.5px var(--body);letter-spacing:.14em;text-transform:uppercase;color:#d4eef5}
+  .sea .uwTag{position:absolute;bottom:30px;left:0;right:0;text-align:center;font:600 12px var(--body);letter-spacing:.2em;text-transform:uppercase;color:#e6b79a}
+  .sea .waves{position:absolute;inset:0;pointer-events:none;opacity:.5;background:repeating-linear-gradient(180deg,rgba(255,255,255,.0) 0 26px,rgba(255,255,255,.1) 26px 28px);animation:seaDrift 9s linear infinite}
+  @keyframes seaDrift{from{background-position:0 0}to{background-position:0 56px}}
+  .sea .prop{position:absolute;display:flex;flex-direction:column;align-items:center;gap:2px;width:112px;text-align:center;font:600 10.5px var(--body);letter-spacing:.04em;color:#e8f6fb;text-shadow:0 1px 6px rgba(8,40,56,.8);animation:float 7s ease-in-out infinite}
+  .sea .prop img{width:96px;height:96px;object-fit:contain;filter:drop-shadow(0 10px 12px rgba(5,30,45,.55))}
+  @media(prefers-reduced-motion:reduce){.sea .waves,.sea .prop{animation:none}}
   .uwfloor{height:240px;margin-inline:calc(50% - 50vw);width:100vw;background:radial-gradient(ellipse 60% 100% at 50% 100%,rgba(255,106,42,.55),transparent 70%),linear-gradient(180deg,transparent,#2a0a08)}
   .sheet{position:fixed;z-index:6;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));max-width:500px;margin:0 auto;padding:16px 18px 18px;border-radius:22px;background:var(--glass);border:1px solid var(--glass-line);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);transform:translateY(130%);transition:transform .35s cubic-bezier(.2,.9,.3,1.15)}
   .sheet.open{transform:none}
@@ -603,7 +613,12 @@ function render(){
   const order=[];for(let i=TIER_DATA.length-1;i>=UWN;i--)order.push(i);order.push('harbour');for(let i=UWN-1;i>=0;i--)order.push(i);
   for(const oi of order){
     if(oi==='harbour'){const hills=document.createElement('div');hills.className='hills';hills.innerHTML=`<img alt="A Greek harbour town beneath Mount Olympus" src="${HARBOUR_IMG}">`;climb.appendChild(hills);
-      const ds=document.createElement('div');ds.className='descent';ds.innerHTML='<span>The Underworld</span>';climb.appendChild(ds);window.__hills=hills;continue;}
+      const ds=document.createElement('div');ds.className='descent sea';
+      const SEA=[['sea_hippocampus','Hippocampus','8%','120px','0s'],['sea_conch',"Triton's Conch",'66%','200px','-2s'],['sea_charybdis','Charybdis','14%','340px','-4s'],['sea_trident','Trident of Poseidon','64%','430px','-1s']];
+      ds.innerHTML='<div class="waves"></div><div class="seaTitle">Poseidon\'s Sea</div><div class="seaSub">The crossing between the living and the dead</div>'+
+        SEA.map(([k,n,l,t,d])=>'<div class="prop" style="left:'+l+';top:'+t+';animation-delay:'+d+'"><img alt="" src="../relics/'+k+'.png" loading="lazy"><span>'+n+'</span></div>').join('')+
+        '<span class="uwTag">The Underworld</span>';
+      climb.appendChild(ds);window.__hills=hills;continue;}
     const i=oi;
     const t=TIER_DATA[i],unlocked=TIER_DATA.indexOf(t)<=userRank,current=i===curIdx;
     const stop=document.createElement('section');

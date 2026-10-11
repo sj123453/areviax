@@ -51,9 +51,14 @@ import {OutputPass} from 'three/addons/postprocessing/OutputPass.js';
 
 const WORLDS=[
   {name:'The Underworld',sky:0x2a1210,fog:0x3a1a14,ground:0x3b2a24,tree:0x5a3a2c,glow:0xff6a2a},
+  {name:"Poseidon's Sea",water:1,sky:0x5fa8c8,fog:0xa9d4e0,ground:0x2a7890,tree:0x3a9bb0,glow:0x6fe0ff},
   {name:'The Mortal Realm',sky:0x8fc0e6,fog:0xd9e2d0,ground:0x8aa05a,tree:0x4f7a3a,glow:0xffc060},
   {name:'Elysium',sky:0x9fd0e8,fog:0xcfe6e0,ground:0x6fb86a,tree:0x3f9a5a,glow:0xfff0b0},
+  {name:"The Argo's Voyage",water:1,sky:0x4d9ec2,fog:0x9ccbdc,ground:0x1f6c8a,tree:0x2c8aa8,glow:0x8fe8ff},
+  {name:"Heroes' Road: Perseus",sky:0xe6b878,fog:0xe9d2a8,ground:0xb28a52,tree:0x7a6a3a,glow:0xffd070},
+  {name:"Heroes' Road: Theseus",sky:0xa6a0c4,fog:0xcfcadc,ground:0x7d7488,tree:0x5c5470,glow:0xc8b8ff},
   {name:'Olympus',sky:0xf6ecd8,fog:0xf4ead6,ground:0xe9e2d4,tree:0xcfc7b4,glow:0xffe9a8}];
+const WMAX=WORLDS.length-1;
 const SP=9;             // distance between reward stops
 const PER=5;            // stops per world
 const ROAD_W=7.2;
@@ -69,7 +74,7 @@ const DPR=Math.min(devicePixelRatio||1,innerWidth<700?1.5:2);
 renderer.setPixelRatio(DPR);renderer.setSize(innerWidth,innerHeight,false);
 renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=.9;
 const scene=new THREE.Scene();
-scene.background=new THREE.Color(WORLDS[1].sky);scene.fog=new THREE.Fog(WORLDS[1].fog,70,230);
+scene.background=new THREE.Color(WORLDS[2].sky);scene.fog=new THREE.Fog(WORLDS[2].fog,70,230);
 const camera=new THREE.PerspectiveCamera(innerWidth<innerHeight?62:50,innerWidth/innerHeight,.1,400);
 { // soft warm studio for reflections on gold and marble
   const env=new THREE.Scene();
@@ -202,7 +207,7 @@ function buildWorldGeometry(nNodes){
   const worlds=Math.ceil(nNodes/PER);
   for(let w=0;w<worlds;w++){
     const z0=-(w*PER)*SP+ (w===0?20:-SP*.5),z1=-((w+1)*PER)*SP-SP*.5+ (w===worlds-1?-30:0);
-    const L=Math.abs(z1-z0),m=new THREE.MeshStandardMaterial({color:WORLDS[Math.min(w,3)].ground,roughness:1});groundMats.push(m);
+    const L=Math.abs(z1-z0),m=new THREE.MeshStandardMaterial({color:WORLDS[Math.min(w,WMAX)].ground,roughness:WORLDS[Math.min(w,WMAX)].water?.32:1,metalness:WORLDS[Math.min(w,WMAX)].water?.18:0});groundMats.push(m);
     const gr=new THREE.Mesh(new THREE.PlaneGeometry(260,L),m);gr.rotation.x=-Math.PI/2;gr.position.set(0,-.02,(z0+z1)/2);scene.add(gr);
   }
   // trees / pillars / clouds scattered by world
@@ -211,7 +216,7 @@ function buildWorldGeometry(nNodes){
   const r=rnd(11),m4=new THREE.Matrix4(),col=new THREE.Color(),sc=new THREE.Vector3(),qq=new THREE.Quaternion(),pp=new THREE.Vector3();
   for(let i=0;i<COUNT;i++){
     const side=i%2?1:-1,z=-r()*len+20,x=side*(ROAD_W/2+4+r()*55),s=.7+r()*1.5;
-    const w=Math.min(3,Math.floor(Math.max(0,-z)/(PER*SP)));
+    const w=Math.min(WMAX,Math.floor(Math.max(0,-z)/(PER*SP)));
     pp.set(x,.8*s,z);sc.set(s,s,s);m4.compose(pp,qq,sc);trunks.setMatrixAt(i,m4);
     pp.set(x,2.9*s,z);m4.compose(pp,qq,sc);leaves.setMatrixAt(i,m4);
     col.setHex(WORLDS[w].tree).offsetHSL((r()-.5)*.04,0,(r()-.5)*.1);leaves.setColorAt(i,col);
@@ -259,10 +264,10 @@ function buildNodes(){
 function buildGates(nNodes){
   const worlds=Math.ceil(nNodes/PER);
   for(let w=1;w<worlds;w++){
-    const z=-(w*PER)*SP-SP/2-.5,g=makeGate(WORLDS[Math.min(w,3)].name,WORLDS[Math.min(w,3)].glow);g.position.set(0,0,z);g.scale.setScalar(.8);scene.add(g);gates.push({g,z,w});
+    const z=-(w*PER)*SP-SP/2-.5,g=makeGate(WORLDS[Math.min(w,WMAX)].name,WORLDS[Math.min(w,WMAX)].glow);g.position.set(0,0,z);g.scale.setScalar(.8);scene.add(g);gates.push({g,z,w});
   }
   // start gate
-  const g0=makeGate('The Road Home',WORLDS[1].glow);g0.position.set(0,0,SP*.45);g0.scale.setScalar(.8);scene.add(g0);gates.push({g:g0,z:SP*.45,w:0});
+  const g0=makeGate('The Road Home',WORLDS[2].glow);g0.position.set(0,0,SP*.45);g0.scale.setScalar(.8);scene.add(g0);gates.push({g:g0,z:SP*.45,w:0});
 }
 // marker: a gold pawn with the hero's initial
 let marker;
@@ -288,14 +293,14 @@ const worldAt=z=>Math.max(0,Math.min(Math.ceil(DATA.nodes.length/PER)-1,Math.flo
 let camZ=0,camTarget=0,vel=0,curWorld=-1,muteUntil=0;
 function setHud(){
   const w=worldAt(camTarget<camZ?camZ:camZ);
-  $('hWorld').textContent=WORLDS[Math.min(3,w)].name;
+  $('hWorld').textContent=WORLDS[Math.min(WMAX,w)].name;
   const nx=DATA.nodes.find(n=>n.state==='next'||n.state==='ready');
   $('hSub').textContent=nx?(nx.state==='ready'?'A reward is waiting — tap it':'Next: '+nx.name+' · '+DATA.xp+' / '+nx.xp+' Arete'):'Every stop reached';
   const worlds=Math.ceil(DATA.nodes.length/PER);
-  $('next').innerHTML=w<worlds-1?'<small>Next world</small><b>'+WORLDS[Math.min(3,w+1)].name+'</b><i>›</i>':'<small>At the summit</small><b>Back to the start</b><i>‹</i>';
+  $('next').innerHTML=w<worlds-1?'<small>Next world</small><b>'+WORLDS[Math.min(WMAX,w+1)].name+'</b><i>›</i>':'<small>At the summit</small><b>Back to the start</b><i>‹</i>';
 }
 function showBanner(w){
-  if(reduce)return;const b=$('banner');$('bName').textContent=WORLDS[Math.min(3,w)].name;b.classList.remove('on');void b.offsetWidth;b.classList.add('on');
+  if(reduce)return;const b=$('banner');$('bName').textContent=WORLDS[Math.min(WMAX,w)].name;b.classList.remove('on');void b.offsetWidth;b.classList.add('on');
 }
 function goTo(z){camTarget=Math.max(-(TOTAL-SP*1.5),Math.min(SP*.3,z));}
 $('next').addEventListener('click',()=>{const worlds=Math.ceil(DATA.nodes.length/PER),w=worldAt(camZ);if(w>=worlds-1)goTo(0);else goTo(-((w+1)*PER)*SP+SP*.5);});
@@ -331,7 +336,7 @@ function frame(){
   const cz=camZ,aspect=camera.aspect<1;
   camera.position.set(aspect?17:12.5,aspect?6.8:5.2,cz+(aspect?5:4.5));camera.lookAt(0,1.7,cz-.5);
   // world atmosphere follows the camera
-  const wf=(-cz)/(PER*SP)+.5,w0=Math.max(0,Math.min(3,Math.floor(wf))),w1=Math.min(3,w0+1),k=Math.max(0,Math.min(1,(wf-w0-.62)/.38));
+  const wf=(-cz)/(PER*SP)+.5,w0=Math.max(0,Math.min(WMAX,Math.floor(wf))),w1=Math.min(WMAX,w0+1),k=Math.max(0,Math.min(1,(wf-w0-.62)/.38));
   tmpC.set(WORLDS[w0].sky).lerp(tmpF.set(WORLDS[w1].sky),k);scene.background.copy(tmpC);
   tmpC.set(WORLDS[w0].fog).lerp(tmpF.set(WORLDS[w1].fog),k);scene.fog.color.copy(tmpC);
   const wi=worldAt(cz);if(wi!==curWorld){const first=curWorld<0;curWorld=wi;setHud();if(!first&&performance.now()>muteUntil)showBanner(wi);}
