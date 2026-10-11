@@ -3212,7 +3212,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        purpose). Two classes on one selector so this reliably beats the
        base .achievement-modal card rule regardless of source order. */
     .achievement-modal.crate-reveal-stage{
-      position:fixed;inset:0;width:100vw;height:100dvh;max-width:none;
+      position:fixed;inset:0;width:100%;height:auto;max-width:none;max-height:none;overflow:hidden;
       display:flex;flex-direction:column;align-items:center;justify-content:center;
       background:radial-gradient(circle at 50% 38%,rgba(255,150,60,.14),transparent 62%),
                  linear-gradient(180deg,#0c0a08 0%,#050403 100%);
@@ -4579,11 +4579,11 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
 .box-in{animation:boxIn .45s cubic-bezier(.22,1.2,.36,1) both}
 @keyframes boxIn{from{opacity:0;transform:scale(.8)}to{opacity:1;transform:none}}
 .rw-card-layer{position:absolute;inset:0;pointer-events:none;z-index:6;overflow:hidden}
-.rw-card{position:absolute;left:0;right:0;top:34%;margin-top:-92px;display:flex;justify-content:center;will-change:transform,opacity}
+.rw-card{position:absolute;left:0;right:0;top:calc(env(safe-area-inset-top,0px) + 56px);margin-top:0;display:flex;justify-content:center;will-change:transform,opacity}
 .rw-card .crate-slot-pop::before{display:none}
 .rw-card .crate-slot-pop,.rw-card .crate-slot-pop *{animation:none!important}
 .rw-card .crate-xp-slot-sub{opacity:1}
-.rw-card .crate-xp-slot-icon{width:clamp(100px,30vw,150px);height:clamp(100px,30vw,150px);font-size:clamp(46px,13vw,70px)}
+.rw-card .crate-xp-slot-icon{width:clamp(84px,24vw,120px);height:clamp(84px,24vw,120px);font-size:clamp(40px,11vw,58px)}
 .rw-card .crate-xp-slot-label{font-size:clamp(24px,7vw,34px)}
 .bx-beamfx{position:absolute;left:50%;bottom:62%;width:46%;height:60vh;transform:translateX(-50%);background:linear-gradient(to top,rgba(255,226,140,.85),rgba(255,226,140,0));-webkit-mask-image:linear-gradient(to right,transparent,#000 30%,#000 70%,transparent);mask-image:linear-gradient(to right,transparent,#000 30%,#000 70%,transparent);filter:blur(6px);opacity:0;pointer-events:none;z-index:0;transform-origin:50% 100%}
 .bx-beam-on .bx-beamfx{animation:bxBeam 1s ease-out forwards}
@@ -17180,6 +17180,8 @@ function showLegendReveal(l,isNew,tier,count,keyWon,titleWon,extras){
   }
   // The box only opens, and each reward only comes out, when the player taps it: nothing auto-taps any more.
   function armIdle(){clearTimeout(idleTimer);}
+  // The golden beam/shine marks the box only when the NEXT press brings out something important (a trophy).
+  function syncBeam(){const nx=slots[itemIdx];const imp=phase==='final'?!!l:!!(nx&&nx.d&&nx.d.kind==='trophy');modalEl.classList.toggle('bx-beam-on',imp);}
   function lidPeek(ms){icon.classList.add('bx-peek');setTimeout(()=>icon.classList.remove('bx-peek'),ms||160);}
   function firstTap(){
     phase='opening';busy=true;
@@ -17193,8 +17195,8 @@ function showLegendReveal(l,isNew,tier,count,keyWon,titleWon,extras){
       try{playCrateSpinTicks(300);}catch(e){}
       setTimeout(()=>{try{if(overlay.isConnected)playCrateThud();}catch(e){}},560);   // touches down at the end of the .56s jump: the very same thud as the first drop
       setTimeout(()=>{            // apex: latches snap, beam escapes
-        modalEl.classList.add('bx-beam-on');lidPeek(200);
-        try{ArxFX.shine(icon,'#FFD77A',14);ArxFX.ring(innerWidth/2,innerHeight*.62,'rgba(255,214,120,.9)',200,5);}catch(e){}
+        lidPeek(200);syncBeam();
+        try{if(modalEl.classList.contains('bx-beam-on')){ArxFX.shine(icon,'#FFD77A',14);ArxFX.ring(innerWidth/2,innerHeight*.62,'rgba(255,214,120,.9)',200,5);}}catch(e){}
         try{if(isSpecialPull)playTrophyHint('start');else playCrateRevealChime('common');}catch(e){}
       },300);
       setTimeout(()=>{
@@ -17212,7 +17214,7 @@ function showLegendReveal(l,isNew,tier,count,keyWon,titleWon,extras){
     const card=document.createElement('div');card.className='rw-card';
     card.innerHTML=slot.render();layer.appendChild(card);curCard=card;
     const cr=wrap.getBoundingClientRect(),lr=layer.getBoundingClientRect();
-    const fromX=cr.left+cr.width/2-(lr.left+lr.width/2),fromY=cr.top+cr.height*.25-(lr.top+lr.height*.34);
+    const fromX=cr.left+cr.width/2-(lr.left+lr.width/2),fromY=cr.top+cr.height*.25-(lr.top+lr.height*.22);
     card.animate([
       {transform:'translate('+fromX+'px,'+fromY+'px) scale(.2) rotate(-24deg)',opacity:0,offset:0},
       {transform:'translate('+fromX*.35+'px,'+(fromY*.4-70)+'px) scale(1.15) rotate(8deg)',opacity:1,offset:.55},
@@ -17230,7 +17232,7 @@ function showLegendReveal(l,isNew,tier,count,keyWon,titleWon,extras){
     try{ArxFX.tap(icon,tier);}catch(e){}
     setTimeout(()=>{
       icon.classList.remove('bx-shake');icon.classList.add('bx-hover');
-      ejectCard(slots[itemIdx]);itemIdx++;
+      ejectCard(slots[itemIdx]);itemIdx++;syncBeam();
       try{playSlotSound(slots[itemIdx-1]);if(isSpecialPull&&!(slots[itemIdx-1].d&&slots[itemIdx-1].d.kind==='trophy'))playTrophyHint('tap');}catch(e){}
       busy=false;
       if(remaining===1){chargeFinal();}
@@ -17238,7 +17240,7 @@ function showLegendReveal(l,isNew,tier,count,keyWon,titleWon,extras){
     },300);
   }
   function chargeFinal(){
-    phase='final';
+    phase='final';syncBeam();
     icon.classList.remove('bx-hover');icon.classList.add('bx-charge');
     wrap.classList.add('bx-charging');
     if(prompt){prompt.textContent='Last tap!';prompt.style.opacity='1';}
