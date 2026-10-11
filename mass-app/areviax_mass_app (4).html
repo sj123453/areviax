@@ -5525,6 +5525,29 @@ body[data-goal-theme="cut"] .lv-page{
 body .road-scenery .xp-road-track.horizontal.rd{height:auto;min-height:330px;padding:64px 28px 56px;gap:0;align-items:flex-start}
 @media(prefers-reduced-motion:reduce){.rd-node,.rd-node.ready .rd-card{animation:none!important}}
 </style>
+
+<style>
+.prest-list{display:flex;flex-direction:column;gap:10px;margin-top:10px}
+.prest-card{display:flex;gap:12px;align-items:center;padding:10px 12px;border-radius:14px;background:linear-gradient(180deg,#2a2536,#17141f);box-shadow:inset 0 0 0 2px #8a7a5a,0 6px 12px rgba(0,0,0,.4);cursor:pointer}
+.prest-card.gold{box-shadow:inset 0 0 0 2px #ffcf4d,0 6px 12px rgba(0,0,0,.4)}.prest-card.silver{box-shadow:inset 0 0 0 2px #c9d2de,0 6px 12px rgba(0,0,0,.4)}.prest-card.diamond{box-shadow:inset 0 0 0 2px #8be9ff,0 0 14px rgba(120,220,255,.25),0 6px 12px rgba(0,0,0,.4)}
+.prest-art{position:relative;flex:0 0 76px;height:76px}.prest-art img{width:100%;height:100%;object-fit:contain;filter:brightness(.3) grayscale(1)}.prest-card.earned .prest-art img{filter:drop-shadow(0 4px 8px rgba(255,200,80,.5))}
+.prest-lock{position:absolute;right:0;bottom:0;font-size:16px}
+.prest-body{flex:1;min-width:0}.prest-name{font-weight:800;font-size:14px;color:#ffe9b0}
+.prest-bar{height:8px;border-radius:5px;background:rgba(255,255,255,.1);margin:6px 0;overflow:hidden}.prest-bar i{display:block;height:100%;background:linear-gradient(90deg,#f5b520,#ffe07a)}
+.prest-meta{font-size:11px;color:rgba(255,236,205,.75)}.prest-pct{font-size:10px;color:rgba(255,236,205,.5);margin-top:2px}
+.prest-wall{margin-top:12px}.prest-wall-title{font-weight:800;font-size:12px;letter-spacing:.6px;color:#ffe9b0;margin-bottom:4px}.prest-wall-row{font-size:12px;color:rgba(255,236,205,.8);padding:3px 0}
+.award-overlay{display:flex;align-items:center;justify-content:center;padding:16px}
+.award-card{width:min(360px,100%);max-height:92vh;overflow:auto;text-align:center;padding:22px 18px;border-radius:20px;background:radial-gradient(circle at 50% 0%,rgba(255,210,90,.28),transparent 60%),linear-gradient(180deg,#2b2538,#120f19);box-shadow:inset 0 0 0 2px #ffcf4d,0 0 40px rgba(255,200,70,.35)}
+.award-card.silver{box-shadow:inset 0 0 0 2px #c9d2de,0 0 40px rgba(200,215,235,.3)}.award-card.diamond{box-shadow:inset 0 0 0 2px #8be9ff,0 0 50px rgba(120,225,255,.45)}
+.award-eyebrow{font-size:11px;letter-spacing:1.6px;text-transform:uppercase;color:#ffd86a;font-weight:800}
+.award-art{width:200px;height:200px;margin:8px auto}.award-art img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 8px 16px rgba(255,200,80,.55));animation:awardFloat 3s ease-in-out infinite}
+@keyframes awardFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.award-name{font-family:'Cinzel',Georgia,serif;font-size:22px;font-weight:800;color:#fff3cf}.award-sub{font-size:12.5px;color:rgba(255,240,215,.8);margin:8px 0 10px;line-height:1.45}
+.award-pct{display:inline-block;padding:4px 12px;border-radius:999px;background:rgba(255,255,255,.1);font-size:11px;font-weight:700;color:#ffe9b0;margin-bottom:10px}
+.award-list{list-style:none;padding:0;margin:6px 0 12px;display:grid;grid-template-columns:1fr 1fr;gap:4px;text-align:left;font-size:11px;color:rgba(255,236,205,.45)}.award-list li.got{color:#ffe9b0}.award-list li.got::before{content:"\2713 ";color:#5fd35a}
+.award-code{font-family:'JetBrains Mono',ui-monospace,monospace;font-size:20px;font-weight:800;letter-spacing:2px;color:#fff;background:rgba(0,0,0,.4);border:1.5px dashed #ffcf4d;border-radius:10px;padding:10px;margin:8px 0 12px}
+.award-btn{width:100%;margin-top:8px}.award-btn.ghost{opacity:.8}
+</style>
 </head>
 <body class="onboarding-active">
 <script>
@@ -8270,6 +8293,11 @@ body .road-scenery .xp-road-track.horizontal.rd{height:auto;min-height:330px;pad
   </div>
   </div>
 
+  <div class="cabinet-tier prest-section" style="padding:0 20px">
+    <div class="cabinet-tier-plaque"><span class="cabinet-tier-name">Prestige Awards</span><span class="cabinet-tier-count" id="cabinet-awards-count">0/5</span></div>
+    <div class="cabinet-tier-sub">Complete a set of trophies to earn the highest honours.</div>
+    <div id="cabinet-awards" class="prest-list"></div><div id="cabinet-wall" class="prest-wall"></div>
+  </div>
   <div id="cabinet-tiers" style="padding:0 20px"></div>
 
   <!-- Achievements used to be folded into Road to Olympus (see the comment
@@ -13515,6 +13543,13 @@ const LEGEND_CARDS=[
   {key:'hero_oedipus', name:'Oedipus, Riddle-Solver', title:'The answer that was obvious only in hindsight', icon:'🗿', img:'images/relics/oedipus.png', imgThumb:'images/relics/oedipus.png', rarity:'epic'},
   // The Underworld set — trophies from Hades' realm (the Shade / Ferried Soul / Pardoned ranks live there too).
   {key:'uw_hades', name:'Hades, Lord of the Underworld', title:'Ruling the depths — the hardest sets are where he is at home', icon:'👑', img:'images/relics/uw_hades.png', imgThumb:'images/relics/uw_hades.png', rarity:'legendary'},
+  {key:'olym_hera', name:'Hera, Queen of Olympus', title:'Loyalty that outlasts every storm — you keep your vows to yourself', icon:'👑', img:'images/relics/olym_hera.png', imgThumb:'images/relics/olym_hera.png', rarity:'legendary'},
+  {key:'olym_hestia', name:'Hestia, Keeper of the Hearth', title:'The quiet fire that every great house is built around — your daily habit', icon:'🔥', img:'images/relics/olym_hestia.png', imgThumb:'images/relics/olym_hestia.png', rarity:'epic'},
+  {key:'olym_artemis', name:'Artemis, Lady of the Hunt', title:'Precision and focus — you aim before you fire', icon:'🏹', img:'images/relics/olym_artemis.png', imgThumb:'images/relics/olym_artemis.png', rarity:'epic'},
+  {key:'olym_aphrodite', name:'Aphrodite, Born of the Sea', title:'Loving the process — beauty is a by-product of the work', icon:'🐚', img:'images/relics/olym_aphrodite.png', imgThumb:'images/relics/olym_aphrodite.png', rarity:'epic'},
+  {key:'olym_hephaestus', name:'Hephaestus, Smith of the Gods', title:'Forged, not found — strength built one hammer-strike at a time', icon:'🔨', img:'images/relics/olym_hephaestus.png', imgThumb:'images/relics/olym_hephaestus.png', rarity:'superrare'},
+  {key:'olym_dionysus', name:'Dionysus, Lord of the Feast', title:'Earning the celebration — the party after the hardest session', icon:'🍇', img:'images/relics/olym_dionysus.png', imgThumb:'images/relics/olym_dionysus.png', rarity:'superrare'},
+  {key:'olym_hermes', name:'Hermes, Swift Messenger', title:'Speed, agility and momentum — you arrive first', icon:'🪽', img:'images/relics/olym_hermes.png', imgThumb:'images/relics/olym_hermes.png', rarity:'superrare'},
   {key:'uw_helm', name:'Helm of Darkness', title:'Training unseen, so the first thing anyone notices is the result', icon:'🪖', img:'images/relics/uw_helm.png', imgThumb:'images/relics/uw_helm.png', rarity:'mythic'},
   {key:'uw_cerberus', name:'Cerberus, Hound of the Gates', title:'Three heads, one rule: nothing skips a session and passes the gate', icon:'🐕', img:'images/relics/uw_cerberus.png', imgThumb:'images/relics/uw_cerberus.png', rarity:'epic'},
   {key:'uw_lethe', name:'Cup of Lethe', title:'Forgetting the bad session and showing up for the next one', icon:'🏆', img:'images/relics/uw_lethe.png', imgThumb:'images/relics/uw_lethe.png', rarity:'epic'},
@@ -15302,6 +15337,130 @@ function legendRarityJewelHTML(rarity){
 // in the Cabinet: cutler (Talos, the Bronze Guardian \u2014 legendary), and
 // relic_amphora/relic_wreath/relic_medallion (common) \u2014 found by diffing
 // LEGEND_CARDS against every old shelf's item list.
+// ── PRESTIGE AWARDS ─────────────────────────────────────────────────────────
+// Collection milestones that sit above any single trophy. Earned automatically (checkAwards runs from saveToStorage and
+// the Trophy Cabinet) and stored on-device. Community percentages and the Wall of Champions need a server to count
+// members: set COMMUNITY_API to an endpoint serving /stats.json ({total, awards:{key:count}, trophies:{key:count}, wall:[{name,award,at}]})
+// and accepting POST /award. Until then the app shows no percentages at all — it never invents numbers.
+const COMMUNITY_API='';
+const AWARD_SETS={
+  cronos:['coleman','olym_hera','diamond_olympian','aura_growth','uw_hades','olym_hestia'],
+  twelve:['coleman','olym_hera','diamond_olympian','aura_growth','aura_strategy','diamond_physique','olym_artemis','aura_drive','olym_aphrodite','olym_hephaestus','olym_hermes','olym_dionysus'],
+  heroes:['arnold','diamond_unbreakable','hero_odysseus','hero_perseus','hero_theseus','hero_bellerophon','hero_orpheus','hero_cadmus'],
+};
+const PRESTIGE_AWARDS=[
+  {key:'united',name:'United at Last',tier:'gold',art:'images/relics/olym_united.png',set:'cronos',sub:'All of Cronos’s children, reunited at last — Zeus, Hera, Poseidon, Demeter, Hades and Hestia.'},
+  {key:'heroes',name:'Heroes of Legend',tier:'silver',art:'images/relics/olym_heroes.png',set:'heroes',sub:'Every mortal who earned a place among the gods: Herakles, Achilles, Odysseus, Perseus, Theseus, Bellerophon, Orpheus and Cadmus.'},
+  {key:'twelve',name:'The Twelve Olympians',tier:'gold',art:'images/relics/olym_twelve.png',set:'twelve',sub:'Every god of the high council seated at once: Zeus, Hera, Poseidon, Demeter, Athena, Apollo, Artemis, Ares, Aphrodite, Hephaestus, Hermes and Dionysus.'},
+  {key:'pantheon',name:'The Complete Pantheon',tier:'diamond',art:'images/relics/olym_pantheon.png',set:'all',sub:'Every single trophy in Areviax, in your cabinet.'},
+  {key:'grand',name:'Grand Champion of Olympus',tier:'diamond',art:'images/relics/olym_grand.png',set:'grand',sub:'United at Last, Heroes of Legend, The Twelve Olympians, The Complete Pantheon and every checkpoint on the Road — the highest honour there is. Earns a free gift from Areviax.'},
+];
+let awardsEarned={};
+try{awardsEarned=JSON.parse(localStorage.getItem('arx_awards')||'{}')||{};}catch(e){awardsEarned={};}
+let communityStats=null;
+function awardProgress(a){
+  if(a.set==='grand'){
+    const parts=['united','heroes','twelve','pantheon'].map(k=>!!awardsEarned[k]);
+    const road=typeof XP_ROAD!=='undefined'&&claimedXpRoad.length>=XP_ROAD.length;
+    const have=parts.filter(Boolean).length+(road?1:0);
+    return {have,total:5,done:have===5,missing:[]};
+  }
+  const keys=a.set==='all'?LEGEND_CARDS.map(l=>l.key):AWARD_SETS[a.set];
+  const have=keys.filter(k=>unlockedLegends.includes(k)).length;
+  const missing=keys.filter(k=>!unlockedLegends.includes(k));
+  return {have,total:keys.length,done:have===keys.length,missing};
+}
+function communityPctLabel(kind,key){
+  if(!communityStats||!communityStats.total)return '';
+  const n=((communityStats[kind]||{})[key])||0,pct=n/communityStats.total*100;
+  return (n===0?'No one yet':pct<1?'<1% of members':pct.toFixed(pct<10?1:0)+'% of members')+' have this';
+}
+function fetchCommunityStats(){
+  if(!COMMUNITY_API||communityStats)return;
+  try{fetch(COMMUNITY_API.replace(/\/$/,'')+'/stats.json',{cache:'no-store'}).then(r=>r.json()).then(j=>{communityStats=j;try{if(document.getElementById('page-trophycabinet').classList.contains('active'))renderTrophyCabinet();}catch(e){}}).catch(()=>{});}catch(e){}
+}
+function postAward(a,name){
+  if(!COMMUNITY_API)return;
+  try{
+    let id=localStorage.getItem('arx_member_id');if(!id){id=Math.random().toString(36).slice(2)+Date.now().toString(36);localStorage.setItem('arx_member_id',id);}
+    fetch(COMMUNITY_API.replace(/\/$/,'')+'/award',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,award:a.key,name:name||null,at:Date.now()})}).catch(()=>{});
+  }catch(e){}
+}
+function checkAwards(){
+  let fresh=false;
+  PRESTIGE_AWARDS.forEach(a=>{
+    if(awardsEarned[a.key])return;
+    if(awardProgress(a).done){awardsEarned[a.key]=Date.now();fresh=true;(window.__awardQueue=window.__awardQueue||[]).push(a.key);postAward(a);}
+  });
+  if(fresh){try{localStorage.setItem('arx_awards',JSON.stringify(awardsEarned));}catch(e){}
+    // a later award can depend on an earlier one in the same pass (Grand Champion needs the other four)
+    if(PRESTIGE_AWARDS.some(a=>!awardsEarned[a.key]&&awardProgress(a).done))return checkAwards();
+    setTimeout(showAwardQueue,700);}
+}
+function showAwardQueue(){
+  const q=window.__awardQueue;if(!q||!q.length)return;
+  if(document.querySelector('.achievement-overlay')){clearTimeout(window.__awardRetry);window.__awardRetry=setTimeout(showAwardQueue,1200);return;}
+  const a=PRESTIGE_AWARDS.find(x=>x.key===q.shift());if(!a)return showAwardQueue();
+  const pct=communityPctLabel('awards',a.key),grand=a.key==='grand';
+  const o=document.createElement('div');o.className='achievement-overlay award-overlay';
+  o.innerHTML='<div class="award-card '+a.tier+'"><div class="award-eyebrow">Prestige award unlocked</div>'+
+    '<div class="award-art"><img src="'+a.art+'" alt=""></div><div class="award-name">'+a.name+'</div><div class="award-sub">'+a.sub+'</div>'+
+    (pct?'<div class="award-pct">'+pct+'</div>':'')+
+    (grand?'<button class="btn-g award-btn" onclick="this.closest(\'.achievement-overlay\').remove();openGrandPrize()">Claim your gift</button>':'')+
+    '<button class="btn-g award-btn ghost" onclick="this.closest(\'.achievement-overlay\').remove();document.body.classList.remove(\'overlay-open\');setTimeout(showAwardQueue,500)">'+(grand?'Later':'Continue')+'</button></div>';
+  document.body.appendChild(o);requestAnimationFrame(()=>o.classList.add('show'));
+  try{playUnlockFanfare('ultralegendary',1.4);}catch(e){}
+  try{lightRayBurst(a.tier==='silver'?'#cfd8e6':'#FFD24A',28);}catch(e){}
+}
+function grandCode(){
+  let c=localStorage.getItem('arx_grand_code');
+  if(!c){c='ARX-'+Math.random().toString(36).slice(2,6).toUpperCase()+'-'+Date.now().toString(36).slice(-4).toUpperCase();try{localStorage.setItem('arx_grand_code',c);}catch(e){}}
+  return c;
+}
+function openGrandPrize(){
+  if(!awardsEarned.grand){toast('🔒','Complete every prestige award to unlock the Grand Champion gift.');return;}
+  const code=grandCode(),nm=(typeof profile!=='undefined'&&profile&&profile.name)||'';
+  const mail='mailto:areviaxsupport@gmail.com?subject='+encodeURIComponent('Grand Champion claim '+code)+'&body='+encodeURIComponent('Hi Areviax,\n\nI have earned Grand Champion of Olympus.\nClaim code: '+code+'\nName: '+nm+'\n\nI would like: (free product / discount / gift)\n');
+  const o=document.createElement('div');o.className='achievement-overlay award-overlay';
+  o.innerHTML='<div class="award-card diamond"><div class="award-eyebrow">Grand Champion reward</div><div class="award-art"><img src="images/relics/olym_grand.png" alt=""></div>'+
+    '<div class="award-name">Your gift from Areviax</div><div class="award-sub">Choose one: a free Areviax product, a discount on your next order, or a surprise gift. Send your claim code and we’ll get it to you.</div>'+
+    '<div class="award-code" id="grand-code">'+code+'</div>'+
+    '<button class="btn-g award-btn" onclick="try{navigator.clipboard.writeText(\''+code+'\');toast(\'📋\',\'Claim code copied\')}catch(e){}">Copy claim code</button>'+
+    '<a class="btn-g award-btn" href="'+mail+'" style="text-decoration:none;display:block;text-align:center">Email my claim</a>'+
+    '<a class="btn-g award-btn ghost" href="https://sj123453.github.io/areviax/products_page.html" target="_blank" rel="noopener" style="text-decoration:none;display:block;text-align:center">See the products</a>'+
+    '<button class="btn-g award-btn ghost" onclick="this.closest(\'.achievement-overlay\').remove()">Close</button></div>';
+  document.body.appendChild(o);requestAnimationFrame(()=>o.classList.add('show'));
+}
+function renderPrestigeAwards(){
+  const cont=document.getElementById('cabinet-awards');if(!cont)return;
+  const done=PRESTIGE_AWARDS.filter(a=>awardsEarned[a.key]).length;
+  const cnt=document.getElementById('cabinet-awards-count');if(cnt)cnt.textContent=done+'/'+PRESTIGE_AWARDS.length;
+  cont.innerHTML=PRESTIGE_AWARDS.map(a=>{
+    const pr=awardProgress(a),earned=!!awardsEarned[a.key],pct=communityPctLabel('awards',a.key);
+    return '<div class="prest-card '+a.tier+(earned?' earned':'')+'" onclick="viewAward(\''+a.key+'\')">'+
+      '<div class="prest-art"><img src="'+a.art+'" alt="">'+(earned?'':'<span class="prest-lock">🔒</span>')+'</div>'+
+      '<div class="prest-body"><div class="prest-name">'+a.name+'</div>'+
+      '<div class="prest-bar"><i style="width:'+Math.round(pr.have/pr.total*100)+'%"></i></div>'+
+      '<div class="prest-meta"><b>'+pr.have+'/'+pr.total+'</b>'+(earned?' · Earned':' · In progress')+'</div>'+
+      '<div class="prest-pct">'+(pct||'Community % appears once the member counter is live')+'</div></div></div>';
+  }).join('');
+  const wall=document.getElementById('cabinet-wall');
+  if(wall){
+    const w=communityStats&&communityStats.wall;
+    wall.innerHTML=w&&w.length?'<div class="prest-wall-title">Wall of Champions</div>'+w.slice(0,8).map(x=>'<div class="prest-wall-row"><b>'+String(x.name||'A champion').replace(/</g,'&lt;')+'</b> earned '+String(x.award||'').replace(/</g,'&lt;')+'</div>').join(''):'';
+  }
+}
+function viewAward(key){
+  const a=PRESTIGE_AWARDS.find(x=>x.key===key);if(!a)return;
+  const pr=awardProgress(a),earned=!!awardsEarned[key],pct=communityPctLabel('awards',key);
+  const names=(AWARD_SETS[a.set]||[]).map(k=>{const l=LEGEND_CARDS.find(x=>x.key===k);return l?'<li class="'+(unlockedLegends.includes(k)?'got':'')+'">'+(unlockedLegends.includes(k)?l.name:'???')+'</li>':'';}).join('');
+  const o=document.createElement('div');o.className='achievement-overlay award-overlay';
+  o.innerHTML='<div class="award-card '+a.tier+'"><div class="award-eyebrow">'+(earned?'Prestige award':'Locked — '+pr.have+'/'+pr.total)+'</div><div class="award-art"><img src="'+a.art+'" alt="" style="'+(earned?'':'filter:brightness(.25) grayscale(1)')+'"></div>'+
+    '<div class="award-name">'+a.name+'</div><div class="award-sub">'+a.sub+'</div>'+(pct?'<div class="award-pct">'+pct+'</div>':'')+(names?'<ul class="award-list">'+names+'</ul>':'')+
+    (key==='grand'&&earned?'<button class="btn-g award-btn" onclick="this.closest(\'.achievement-overlay\').remove();openGrandPrize()">Claim your gift</button>':'')+
+    '<button class="btn-g award-btn ghost" onclick="this.closest(\'.achievement-overlay\').remove()">Close</button></div>';
+  document.body.appendChild(o);requestAnimationFrame(()=>o.classList.add('show'));
+}
 const TROPHY_LAYERS=[
   {rarity:'legendary', label:'Legendary',  sub:'The pinnacle \u2014 beyond this, only one thing.',            items:LEGEND_CARDS.filter(l=>l.rarity==='legendary')},
   {rarity:'mythic',    label:'Mythic',     sub:'Where even heroes rarely return from.',                  items:LEGEND_CARDS.filter(l=>l.rarity==='mythic')},
@@ -15393,6 +15552,7 @@ function renderTrophyHeroLovable(){
   const fillEl=document.getElementById('troph-hero-fill');if(fillEl)fillEl.style.width=(total?earned/total*100:0)+'%';
 }
 function renderTrophyCabinet(){
+  try{checkAwards();renderPrestigeAwards();fetchCommunityStats();}catch(e){console.error('awards',e);}
   renderTrophyHeroLovable();
   renderLiftRanks();
   const cont=document.getElementById('cabinet-tiers');
@@ -16742,6 +16902,7 @@ function closeCrateRevealAndShowcase(btn,key,isNew){
     try{overlay&&overlay.querySelectorAll('.arx-shake').forEach(el=>el.classList.remove('arx-shake'));}catch(e){}
     try{if(overlay)overlay.remove();}catch(e){}
     try{ArxFX.clear();}catch(e){}
+    try{setTimeout(showAwardQueue,500);}catch(e){}
   },30));
 }
 function showLegendReveal(l,isNew,tier,count,keyWon,titleWon,extras){
@@ -33059,6 +33220,7 @@ function _ss(key,value){
   try{localStorage.setItem(key,value);}catch(e){_saveFailedKeys.push(key);}
 }
 function saveToStorage(){
+  try{checkAwards();}catch(e){}
   try{checkLabors();}catch(e){}
   _saveFailedKeys=[];
   try{
