@@ -5480,6 +5480,51 @@ body[data-goal-theme="cut"] .lv-page{
 @keyframes csPop{0%{opacity:0;transform:scale(.4) translateY(16px)}100%{opacity:1;transform:none}}
 @media(prefers-reduced-motion:reduce){.cs-item{animation:none;opacity:1}}
 </style>
+
+<style>
+/* BRAWL-STYLE ROAD (renderRoadPath): reward cards over one thick progress bar, ticks + numbers, numbered medals */
+.xp-road-track.rd{display:flex;align-items:flex-start;gap:0;padding:64px 28px 40px;-webkit-mask-image:linear-gradient(to right,transparent,#000 26px,#000 calc(100% - 26px),transparent);mask-image:linear-gradient(to right,transparent,#000 26px,#000 calc(100% - 26px),transparent)}
+.rd-node{position:relative;flex:0 0 118px;width:118px;animation:xpNodeEntrance .5s cubic-bezier(.16,1,.3,1) both;animation-delay:var(--stagger,0ms)}
+.rd-card{position:relative;margin:0 9px;height:142px;border-radius:14px;padding:12px 6px 0;text-align:center;display:flex;flex-direction:column;align-items:center;
+  background:linear-gradient(170deg,rgba(255,255,255,.1),rgba(255,255,255,.02) 40%),linear-gradient(180deg,#2c2a3c,#171521);
+  box-shadow:inset 0 0 0 2px var(--rc,#8a7a5a),inset 0 0 0 4px rgba(0,0,0,.45),0 8px 14px rgba(0,0,0,.45);overflow:visible}
+.rd-card.bronze{--rc:#b07a45}.rd-card.silver{--rc:#c9d2de}.rd-card.gold{--rc:#ffcf4d;background:linear-gradient(170deg,rgba(255,220,120,.22),rgba(255,255,255,.02) 45%),linear-gradient(180deg,#3a3020,#1b1610)}
+.rd-card::after{content:"";position:absolute;left:6px;right:6px;top:4px;height:34%;border-radius:10px 10px 40% 40%;background:linear-gradient(180deg,rgba(255,255,255,.14),transparent);pointer-events:none}
+.rd-icon{width:68px;height:68px;display:flex;align-items:center;justify-content:center;font-size:44px;filter:drop-shadow(0 5px 6px rgba(0,0,0,.6));position:relative;z-index:1}
+.rd-icon img,.rd-icon svg{width:100%;height:100%;object-fit:contain}
+.rd-name{margin-top:4px;font-size:10px;font-weight:700;letter-spacing:.2px;color:rgba(255,244,224,.85);line-height:1.15;max-width:100%;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;position:relative;z-index:1}
+.rd-pill{position:absolute;left:50%;bottom:-11px;transform:translateX(-50%);max-width:112px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:3px 9px;border-radius:999px;font-size:10px;font-weight:800;color:#fff;background:linear-gradient(180deg,#3b3a52,#1f1e2d);border:1.5px solid rgba(255,255,255,.28);box-shadow:0 3px 5px rgba(0,0,0,.5);z-index:2}
+.rd-check{position:absolute;left:-7px;top:-7px;width:26px;height:26px;border-radius:50%;background:linear-gradient(180deg,#5fd35a,#2e9a38);border:2px solid #fff;display:flex;align-items:center;justify-content:center;z-index:3;box-shadow:0 3px 6px rgba(0,0,0,.5)}
+.rd-check svg{width:14px;height:14px}
+.rd-lock{position:absolute;right:5px;top:4px;font-size:12px;opacity:.85;z-index:3}
+.rd-flag{position:absolute;left:50%;top:-12px;transform:translateX(-50%);padding:2px 9px;border-radius:999px;background:linear-gradient(180deg,#ffe27a,#f0a81c);color:#2a1a00;font-size:10px;font-weight:900;letter-spacing:.5px;z-index:3;box-shadow:0 3px 6px rgba(0,0,0,.5)}
+.rd-node.locked .rd-icon{opacity:.8;filter:grayscale(.35) drop-shadow(0 5px 6px rgba(0,0,0,.6))}
+.rd-node.claimed .rd-card{filter:brightness(.78) saturate(.9)}
+.rd-node.next .rd-card{--rc:#ff9a3c;background:linear-gradient(170deg,rgba(255,170,80,.28),rgba(255,255,255,.02) 45%),linear-gradient(180deg,#3d2a1d,#1c1410);box-shadow:inset 0 0 0 2px #ff9a3c,inset 0 0 0 4px rgba(0,0,0,.45),0 0 22px rgba(255,140,50,.45),0 8px 14px rgba(0,0,0,.45);transform:translateY(-6px)}
+.rd-node.ready .rd-card{--rc:#ffe27a;animation:rdReady 1.3s ease-in-out infinite;cursor:pointer;background:linear-gradient(170deg,rgba(255,226,122,.35),rgba(255,255,255,.02) 45%),linear-gradient(180deg,#4a3a18,#1d160a)}
+@keyframes rdReady{0%,100%{box-shadow:inset 0 0 0 2px #ffe27a,inset 0 0 0 4px rgba(0,0,0,.45),0 0 14px rgba(255,220,90,.5),0 8px 14px rgba(0,0,0,.45);transform:translateY(-4px)}50%{box-shadow:inset 0 0 0 2px #fff3b0,inset 0 0 0 4px rgba(0,0,0,.45),0 0 30px rgba(255,220,90,.9),0 8px 14px rgba(0,0,0,.45);transform:translateY(-8px)}}
+.rd-bar{position:relative;height:22px;margin-top:26px;background:linear-gradient(180deg,#3a2a3e,#241a2a);box-shadow:inset 0 3px 5px rgba(0,0,0,.6),inset 0 -2px 0 rgba(255,255,255,.08),0 0 0 2px #120c16}
+.rd-node:first-child .rd-bar{border-radius:11px 0 0 11px}.rd-node:last-child .rd-bar{border-radius:0 11px 11px 0}
+.rd-fill{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(180deg,#ffb25a,#f06a14 55%,#c24a08);box-shadow:inset 0 2px 0 rgba(255,255,255,.35)}
+.rd-node.claimed .rd-fill{background:linear-gradient(180deg,#ffc860,#f08a1c 55%,#c9650a)}
+.road-scenery.theme-trophy .rd-fill{background:linear-gradient(180deg,#ffe07a,#f5b520 55%,#c98a08)}
+.rd-dot{position:absolute;right:-6px;top:50%;width:12px;height:12px;margin-top:-6px;border-radius:50%;background:#e8dcc4;box-shadow:0 0 0 2px #120c16,inset 0 -2px 0 rgba(0,0,0,.25);z-index:2}
+.rd-node.claimed .rd-dot{background:#ffd27a}
+.rd-medal{position:absolute;right:-19px;top:50%;width:38px;height:38px;margin-top:-19px;border-radius:50%;z-index:3;display:flex;align-items:center;justify-content:center;
+  background:conic-gradient(from 210deg,#fff0b0,#c98a1c,#fff0b0,#9a6410,#fff0b0);box-shadow:0 0 0 2px #120c16,0 5px 8px rgba(0,0,0,.6)}
+.rd-medal.silver{background:conic-gradient(from 210deg,#fff,#8e9aab,#fff,#667182,#fff)}.rd-medal.bronze{background:conic-gradient(from 210deg,#ffd9b0,#a8672a,#ffd9b0,#7a4518,#ffd9b0)}
+.rd-medal::before{content:"";position:absolute;inset:4px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#4a3d68,#1b1426);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.35)}
+.rd-medal b{position:relative;font-family:'Cinzel',Georgia,serif;font-size:13px;font-weight:800;color:#ffe9a8;text-shadow:0 1px 2px #000;letter-spacing:.3px}
+.rd-node.locked .rd-medal{filter:saturate(.45) brightness(.8)}
+.rd-num{position:absolute;right:0;transform:translateX(50%);margin-top:14px;font-size:11px;font-weight:700;color:rgba(255,236,205,.55);font-family:'JetBrains Mono',ui-monospace,monospace;white-space:nowrap}
+.rd-node.claimed .rd-num,.rd-node.next .rd-num{color:#ffe2a0}
+.rd-you{position:absolute;top:100%;transform:translateX(-50%);margin-top:36px;z-index:4}
+.rd-you::before{content:"";position:absolute;left:50%;top:-12px;transform:translateX(-50%);border:6px solid transparent;border-bottom-color:#ff7a1c}
+.rd-you em{font-style:normal;display:block;padding:4px 14px;border-radius:7px;background:linear-gradient(180deg,#ff9a3c,#e2610e);color:#fff;font-weight:900;font-size:12px;letter-spacing:.8px;box-shadow:0 3px 8px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.4)}
+.road-scenery.has-realm-art .road-realm-strip::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(8,6,12,.55),rgba(8,6,12,.78))}
+body .road-scenery .xp-road-track.horizontal.rd{height:auto;min-height:330px;padding:64px 28px 56px;gap:0;align-items:flex-start}
+@media(prefers-reduced-motion:reduce){.rd-node,.rd-node.ready .rd-card{animation:none!important}}
+</style>
 </head>
 <body class="onboarding-active">
 <script>
@@ -14003,7 +14048,7 @@ function xpRoadRewardLabel(node){
 function xpRoadRewardIcon(node){
   if(node.type==='legend')return node.rarity==='ultralegendary'?'\ud83e\udded':node.rarity==='legendary'?'\ud83d\udc51':node.rarity==='mythic'?'\ud83c\udf11':'\ud83c\udfc6';
   if(node.type==='bronze'||node.type==='silver'||node.type==='diamond')return crateIconHTML(node.type);
-  if(node.type==='key')return '<img src="images/icons/key-'+xpRoadKeyTier(node)+'.png" alt="" style="width:100%;height:100%;object-fit:contain">';
+  if(node.type==='key')return '<img src="'+KEY_ICON_IMG[xpRoadKeyTier(node)]+'" alt="" style="width:100%;height:100%;object-fit:contain">';
   return '\ud83e\udded';
 }
 // toast()'s icon is set via textContent, not innerHTML \u2014 it can't render
@@ -14303,6 +14348,14 @@ function drawRoadTrail(cont){
 // direction as the journey itself), on a gentle sine-wave wind so the
 // path curves rather than running dead straight, with drawRoadTrail()
 // tracing an actual curve underneath through the live hex positions.
+function roadTileIcon(n){
+  if(n.type==='legend'){
+    const r=['ultralegendary','legendary','mythic','epic','superrare','rare','common'];
+    const want=r.indexOf(n.rarity);
+    for(let k=Math.max(want,0);k<r.length;k++){const c=LEGEND_CARDS.find(l=>l.rarity===r[k]&&l.img);if(c)return '<img src="'+c.img+'" alt="" style="width:100%;height:100%;object-fit:contain">';}
+  }
+  return n.icon;
+}
 function renderRoadPath(containerId,nodes){
   const cont=document.getElementById(containerId);
   if(!cont)return;
@@ -14322,51 +14375,34 @@ function renderRoadPath(containerId,nodes){
   const pageEl=cont.closest('.page');
   if(pageEl&&!pageEl.classList.contains('active'))return;
   const anyClaimed=nodes.some(n=>n.claimed);
-  cont.className='xp-road-track horizontal'+(anyClaimed?' has-progress':'');
+  cont.className='xp-road-track horizontal rd'+(anyClaimed?' has-progress':'');
+  // Brawl-style road: a reward card per checkpoint, one thick progress bar underneath, a number under each tick,
+  // and a medal on the big milestones (numbered I, II, III...) — see .rd-* CSS.
+  const ROMAN=['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV'];
+  let medalNo=0;
   cont.innerHTML=nodes.map((n,i)=>{
-    const state=n.claimed?' claimed':n.ready?' ready':n.isNext?' next':'';
-    const wind=0;
-    // Hex size scales with how big a deal the reward actually is (n.weight,
-    // 0..1 \u2014 see xpRoadNodeWeight/trophyRoadNodeWeight),
-    // not just claimed-vs-next: a locked Mega-Box-tier reward should still
-    // read as visibly bigger than a claimed 25-coin one. "Next" adds a
-    // smaller boost on top of that same scale rather than its own fixed size,
-    // so a low-value next node stays modest and a high-value one reads as
-    // both "you are here" and genuinely big.
-    // Wider, steeper range than the first pass \u2014 adjacent reward tiers
-    // (e.g. a Bronze Crate at weight .32 vs a Key at .18) need
-    // to read as visibly different sizes at a glance, not just a few
-    // px apart. Deliberately allowed to exceed its 104px flex slot at
-    // the top end (the reference's own Mega Box does the same) \u2014 the
-    // node's reserved layout width stays fixed via flex-basis, so an
-    // oversized hex just visually spills into the gap, it never
-    // reflows a neighbor.
+    const state=n.claimed?' claimed':n.ready?' ready':n.isNext?' next':' locked';
     const w=n.weight!=null?n.weight:0.5;
-    const size=Math.round(40+w*80+(n.isNext||n.ready?16:0));
-    const font=Math.round(size*0.42);
-    // Odyssey name (n.name) takes the visible slot a plain reward label
-    // used to occupy \u2014 same length class ("Cyclops's Cave" vs "1 Bronze
-    // Crate"), so the tight per-node width this path already budgeted
-    // still fits. The reward itself never disappears, it's the title
-    // tooltip now, alongside the one-line myth beat \u2014 real narrative on
-    // every checkpoint, not just the ones with room to spare. n.subtitle
-    // (when present) is the real-life-journey parallel \u2014 "Leaving Troy"
-    // reads as "(the beginning of your journey)" alongside the myth.
-    const tip=(n.myth?n.myth+(n.subtitle?' ('+n.subtitle+')':'')+' \u2014 ':'')+(n.ready?'Ready to open! ':'')+n.descLabel;
-    return '<div class="xp-node'+state+'" title="'+tip.replace(/"/g,'&quot;')+'" style="--stagger:'+Math.min(i*45,450)+'ms;--wind:'+wind+'px;--hexsize:'+size+'px;--hexfont:'+font+'px"'+(n.onclick?' onclick="'+n.onclick+'"':'')+'>'+
-      '<div class="xp-node-hexwrap"><div class="xp-node-hex-glow"></div><div class="xp-node-hex">'+(n.claimed||n.isNext||n.ready?n.icon:'\ud83d\udd12')+'</div>'+
-        (n.claimed?'<span class="xp-node-check"><svg viewBox="0 0 24 24" fill="none" stroke="#0D0806" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>':n.ready?'<span class="xp-node-claim-badge">OPEN</span>':'')+
-        '<span class="xp-node-xp">'+n.valueLabel+'</span>'+
+    const tier=w>=.7?'gold':w>=.4?'silver':'bronze';
+    const milestone=w>=.55||i===nodes.length-1;
+    const fill=n.claimed?100:n.ready?100:(n.progressPct!=null?n.progressPct:0);
+    const tip=(n.myth?n.myth+(n.subtitle?' ('+n.subtitle+')':'')+' — ':'')+(n.ready?'Ready to open! ':'')+n.descLabel;
+    const mark=milestone?'<span class="rd-medal '+tier+'"><b>'+(ROMAN[medalNo++]||medalNo)+'</b></span>':'<span class="rd-dot"></span>';
+    return '<div class="rd-node'+state+'" title="'+tip.replace(/"/g,'&quot;')+'" style="--stagger:'+Math.min(i*40,400)+'ms;z-index:'+(nodes.length-i)+'"'+(n.onclick?' onclick="'+n.onclick+'"':'')+'>'+
+      '<div class="rd-card '+tier+'">'+
+        (n.claimed?'<span class="rd-check"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>':n.ready?'<span class="rd-flag">TAP</span>':n.isNext?'':'<span class="rd-lock">🔒</span>')+
+        '<div class="rd-icon">'+roadTileIcon(n)+'</div>'+
+        '<div class="rd-name">'+(n.name||'')+'</div>'+
+        '<div class="rd-pill">'+n.descLabel+'</div>'+
       '</div>'+
-      '<div class="xp-node-body">'+
-        '<div class="xp-node-desc">'+(n.name||n.descLabel)+'</div>'+
-        (n.progressPct!=null?'<div class="xp-node-bar"><div class="xp-node-bar-fill" style="width:'+n.progressPct+'%"></div></div>':'')+
+      '<div class="rd-bar"><i class="rd-fill" style="width:'+fill+'%"></i>'+mark+
+        ((n.isNext||n.ready)?'<span class="rd-you" style="left:'+Math.max(6,Math.min(94,fill))+'%"><em>YOU</em></span>':'')+
       '</div>'+
+      '<div class="rd-num">'+n.valueLabel.replace(' Arete','')+'</div>'+
     '</div>';
   }).join('');
   requestAnimationFrame(()=>{
-    drawRoadTrail(cont);
-    const nextEl=cont.querySelector('.xp-node.next');
+    const nextEl=cont.querySelector('.rd-node.next,.rd-node.ready');
     if(nextEl)nextEl.scrollIntoView({block:'nearest',inline:'center'});
     renderRoadRealmStrip(cont.closest('.road-scenery'),cont);
     // Nodes are still mid-flight through their staggered entrance
@@ -14374,7 +14410,7 @@ function renderRoadPath(containerId,nodes){
     // when the trail above is drawn, so it's measuring transient,
     // not-yet-settled positions. Redraw once everything's actually at
     // rest so the trail always ends up matching the final layout.
-    setTimeout(()=>{drawRoadTrail(cont);renderRoadRealmStrip(cont.closest('.road-scenery'),cont);},1000);
+    setTimeout(()=>{renderRoadRealmStrip(cont.closest('.road-scenery'),cont);},1000);
   });
 }
 // Populates a road page's progress-to-next banner (icon/text/fill) \u2014
@@ -14420,7 +14456,7 @@ function renderRewardRow(prefix,nodes){
     }
     if(boxEl)boxEl.style.opacity='';
     if(iconEl){
-      iconEl.innerHTML=(node.claimed||node.isNext||node.ready)?node.icon:'🔒';
+      iconEl.innerHTML=roadTileIcon(node);
       const w=node.weight!=null?node.weight:0.5;
       const size=Math.round(46+w*36+(isNextBox?10:0));
       iconEl.style.setProperty('--hexsize',size+'px');
@@ -14454,7 +14490,7 @@ function xpRoadNodes(){
     const isNext=!claimed&&!ready&&node===next;
     const prevXp=i===0?0:ascending[i-1].xp;
     const pct=ready?100:isNext?Math.max(0,Math.min(100,Math.round((xp-prevXp)/(node.xp-prevXp)*100))):null;
-    return {claimed,ready,isNext,onclick:ready?'claimXpRoadReward('+node.xp+')':null,icon:xpRoadRewardIcon(node),valueLabel:formatCompactNum(node.xp)+' Arete',descLabel:xpRoadRewardLabel(node),progressPct:pct,weight:xpRoadNodeWeight(node),roadPos:i/(ascending.length-1||1),name:node.name,myth:node.myth,subtitle:node.subtitle};
+    return {claimed,ready,isNext,onclick:ready?'claimXpRoadReward('+node.xp+')':null,icon:xpRoadRewardIcon(node),valueLabel:formatCompactNum(node.xp)+' Arete',descLabel:xpRoadRewardLabel(node),progressPct:pct,weight:xpRoadNodeWeight(node),type:node.type,rarity:node.rarity,roadPos:i/(ascending.length-1||1),name:node.name,myth:node.myth,subtitle:node.subtitle};
   });
 }
 function getXpRoadSummary(){
@@ -15055,7 +15091,7 @@ function renderOlympusRoadGallery(nodes){
   galleryEl.innerHTML=nodes.map(n=>{
     const tip=(n.myth?n.myth+' — ':'')+n.valueLabel+' — '+n.descLabel;
     return `<div class="road-trophy-item${n.claimed?' earned':''}" title="${tip.replace(/"/g,'&quot;')}">
-      <div class="road-trophy-item-icon">${n.claimed?n.icon:'🔒'}</div>
+      <div class="road-trophy-item-icon">${n.claimed?roadTileIcon(n):'🔒'}</div>
       <div class="road-trophy-item-name">${n.claimed?(n.name||n.valueLabel):'???'}</div>
     </div>`;
   }).join('');
@@ -15488,7 +15524,7 @@ function crateExtraPool(tier){
   return [
     {w:5,make:()=>{const n=crateDrachmaAmount(tier);drachma+=n;return {kind:'drachma',art:CRATE_EXTRA_ART.drachma,label:'+'+n+' Drachma',sub:'Spend it in the Shop',grad:'linear-gradient(160deg,#FFE066,#C9971E)'};}},
     {w:8,make:()=>{const n=15+Math.floor(Math.random()*(hi?60:25));return {kind:'xp',art:'mass-app/images/icons/arete.png',label:'+'+n+' bonus Arete',sub:'Crate surge',grad:'linear-gradient(160deg,#FFB347,#FF6B1A)',xp:n};}},
-    {w:1.6,make:()=>{const kt=rollKeyTier(tier),nm=KEY_TIER_NAMES[kt];addKeyCrates(kt,1);return {kind:'key',keyTier:kt,art:'images/icons/key-'+kt+'.png',label:'+1 '+nm+' Key',sub:'Opens one '+nm+' crate',grad:'linear-gradient(160deg,#E8E0D0,#8A98A8)'};}},
+    {w:1.6,make:()=>{const kt=rollKeyTier(tier),nm=KEY_TIER_NAMES[kt];addKeyCrates(kt,1);return {kind:'key',keyTier:kt,art:KEY_ICON_IMG[kt],label:'+1 '+nm+' Key',sub:'Opens one '+nm+' crate',grad:'linear-gradient(160deg,#E8E0D0,#8A98A8)'};}},
     {w:1.6,make:()=>{bronzeDropBank++;return {kind:'bronze',art:CRATE_ICON_IMG.bronze,label:'+1 Bronze Crate',sub:'Ready in your crates',grad:'linear-gradient(160deg,#C8864E,#6a3f1c)'};}},
     {w:hi?1:.5,make:()=>{silverDropBank++;return {kind:'silver',art:CRATE_ICON_IMG.silver,label:'+1 Silver Crate',sub:'Ready in your crates',grad:'linear-gradient(160deg,#DDE3EC,#7f8896)'};}},
     {w:2.5,make:()=>{streakFreezes++;return {kind:'freeze',art:CRATE_EXTRA_ART.freeze,label:'+1 Streak Freeze',sub:'Protects a missed day',grad:'linear-gradient(160deg,#8fe6ff,#2b7fa6)'};}},
