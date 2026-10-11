@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>Road to Olympus</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Outfit:wght@400;500;600;700&display=swap">
@@ -12,6 +12,14 @@
     --display:'Cinzel',Georgia,'Times New Roman',serif;--body:'Outfit',system-ui,-apple-system,'Segoe UI',sans-serif;
   }
   html,body{margin:0;overflow-x:hidden;overflow-x:clip;overscroll-behavior-x:none;touch-action:pan-y;max-width:100%;background:#0b1030;color:var(--paper);font-family:var(--body);-webkit-tap-highlight-color:transparent}
+  /* the sea the lower islands float above: fixed to the bottom of the screen, fades in over the mortal tiers and out as you climb */
+  #sea{position:fixed;left:0;right:0;bottom:0;height:30vh;z-index:0;pointer-events:none;opacity:0;background:linear-gradient(180deg,rgba(60,150,175,0) 0,rgba(52,140,170,.55) 22%,rgba(24,92,128,.9) 60%,#0e3a56 100%);transition:opacity .25s}
+  #sea i{position:absolute;left:0;right:0;height:46px;background-repeat:repeat-x;background-size:240px 46px;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='46' viewBox='0 0 240 46'%3E%3Cpath d='M0 28 Q30 6 60 28 T120 28 T180 28 T240 28 V46 H0Z' fill='%23ffffff' fill-opacity='.22'/%3E%3Cpath d='M0 36 Q30 20 60 36 T120 36 T180 36 T240 36 V46 H0Z' fill='%23ffffff' fill-opacity='.16'/%3E%3C/svg%3E")}
+  #sea .w1{top:0;opacity:.8;animation:seaWave 9s linear infinite}#sea .w2{top:26%;opacity:.7;background-size:300px 58px;animation:seaWave 13s linear infinite reverse}#sea .w3{top:56%;opacity:.55;background-size:200px 40px;animation:seaWave 7s linear infinite}
+  @keyframes seaWave{from{background-position-x:0}to{background-position-x:240px}}
+  @media(prefers-reduced-motion:reduce){#sea i{animation:none}}
+  *{touch-action:pan-y}
   #sky{position:fixed;inset:0;overflow:hidden;z-index:0;background:linear-gradient(var(--sky-top,#f6d9a6),var(--sky-bot,#b9d48f))}
   #stars,#clouds{position:fixed;inset:0;overflow:hidden;z-index:0;pointer-events:none}
   #stars{opacity:0;background-image:radial-gradient(1.2px 1.2px at 12% 18%,#fff,transparent),radial-gradient(1px 1px at 72% 9%,#fff,transparent),radial-gradient(1.4px 1.4px at 38% 42%,#fff,transparent),radial-gradient(1px 1px at 86% 36%,#fff,transparent),radial-gradient(1.2px 1.2px at 24% 70%,#fff,transparent),radial-gradient(1px 1px at 61% 64%,#fff,transparent),radial-gradient(1.3px 1.3px at 92% 82%,#fff,transparent),radial-gradient(1px 1px at 8% 92%,#fff,transparent),radial-gradient(1px 1px at 50% 26%,#fff,transparent);background-size:340px 520px}
@@ -76,7 +84,7 @@
   .embed #closeRoad{display:none}
 </style>
 </head><body>
-<div id="sky"></div><div id="clouds"></div><div id="stars"></div>
+<div id="sky"></div><div id="clouds"></div><div id="stars"></div><div id="sea" aria-hidden="true"><i class="w1"></i><i class="w2"></i><i class="w3"></i></div>
 <div class="bar" role="status">
   <div class="lvl" id="barLvl">3</div>
   <div class="bar-main"><b id="barName">Hero</b><span id="barSub">11,200 of 16,000 kg to Demigod</span><div class="track"><i id="barFill" style="width:30%"></i></div></div>
@@ -654,6 +662,7 @@ function onScroll(){
   const [a,t1,b1]=SKY[k],[b,t2,b2]=SKY[k+1];const t=ss(a,b,f);
   const sky=document.getElementById('sky');sky.style.setProperty('--sky-top',mix(t1,t2,t));sky.style.setProperty('--sky-bot',mix(b1,b2,t));
   document.getElementById('stars').style.opacity=Math.max(ss(.78,.95,f),Math.max(0,1-f/.2)*.5);
+  document.getElementById('sea').style.opacity=(ss(.3,.42,f)*(1-ss(.55,.78,f))).toFixed(3);
   document.getElementById('clouds').style.opacity=Math.max(0,1-Math.abs(f-.5)/.24)*.9;
 }
 addEventListener('scroll',onScroll,{passive:true});addEventListener('resize',onScroll);
@@ -666,6 +675,8 @@ addEventListener('scroll',onScroll,{passive:true});addEventListener('resize',onS
     if(dir===1&&e.cancelable)e.preventDefault();},{passive:false});
   addEventListener('wheel',e=>{if(Math.abs(e.deltaX)>Math.abs(e.deltaY)&&e.cancelable)e.preventDefault();},{passive:false});
   addEventListener('scroll',()=>{if(scrollX!==0)scrollTo(0,scrollY);},{passive:true});
+  ['gesturestart','gesturechange'].forEach(g=>addEventListener(g,e=>e.preventDefault(),{passive:false}));
+  document.documentElement.style.overflowX='hidden';
 })();
 
 // detail sheet
