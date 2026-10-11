@@ -5434,6 +5434,23 @@ body[data-goal-theme="cut"] .lv-page{
     transition-duration:.15s !important;transition-delay:0s !important;scroll-behavior:auto !important;
   }
 }
+
+/* "YOU GOT:" summary */
+.achievement-modal.crate-summary{position:relative;width:min(94vw,560px);max-height:92vh;overflow:auto;padding:22px 14px 18px;display:flex;flex-direction:column;align-items:center;border-radius:20px;background:radial-gradient(circle at 50% 35%,#2a3f86,#101a44 70%);border:2px solid rgba(255,255,255,.55)!important;box-shadow:0 0 60px rgba(60,110,255,.45)!important;-webkit-overflow-scrolling:touch}
+.cs-rays{position:absolute;inset:0;pointer-events:none;opacity:.5;background:repeating-conic-gradient(from 0deg at 50% 38%,rgba(255,255,255,.1) 0 7deg,transparent 7deg 15deg)}
+.cs-title{position:relative;font:900 30px/1 'Outfit',system-ui,sans-serif;letter-spacing:.04em;color:#8ff3ff;-webkit-text-stroke:3px #06204a;paint-order:stroke fill;text-shadow:0 3px 0 #06204a;margin-bottom:18px}
+.cs-grid{position:relative;display:flex;flex-wrap:wrap;justify-content:center;gap:14px 12px;width:100%}
+.cs-item{width:30%;min-width:84px;max-width:120px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:4px;opacity:0;animation:csPop .4s cubic-bezier(.34,1.56,.64,1) forwards}
+.cs-tile{width:78px;height:78px;border-radius:12px;border:3px solid #fff;display:grid;place-items:center;font-size:34px;box-shadow:0 4px 0 rgba(0,0,0,.35);overflow:hidden}
+.cs-tile img{width:64px;height:64px;object-fit:contain;display:block}
+.cs-tile span{display:grid;place-items:center;width:100%;height:100%}
+.cs-tile svg{width:62px;height:62px;display:block}
+.cs-item b{font:800 12px/1.15 'Outfit',system-ui,sans-serif;color:#fff;-webkit-text-stroke:2px #06204a;paint-order:stroke fill;word-break:break-word}
+.cs-item small{font:800 10.5px/1.1 'Outfit',system-ui,sans-serif;letter-spacing:.04em;color:#ffd84a;-webkit-text-stroke:2px #3a2a00;paint-order:stroke fill}
+.cs-item.hot .cs-tile{border-color:#ffd84a;box-shadow:0 0 18px 4px rgba(255,216,74,.7),0 4px 0 rgba(0,0,0,.35)}
+.cs-btn{position:relative;margin-top:20px}
+@keyframes csPop{0%{opacity:0;transform:scale(.4) translateY(16px)}100%{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.cs-item{animation:none;opacity:1}}
 </style>
 </head>
 <body class="onboarding-active">
@@ -16506,6 +16523,22 @@ function buildCrateReelHTML(finalCard){
 // — instead of just dropping the player back on the crate row. That's
 // the "proper intro" a new pull deserves, same beat as Brawl Stars
 // walking you into a new Brawler's own screen the moment you unlock it.
+// "YOU GOT:" — every reward from the crate laid out at once after the last reveal. Falls back to closing if anything is off.
+function showCrateSummary(btn){
+  try{
+    const ov=btn.closest('.achievement-overlay'),modal=ov&&ov.querySelector('.achievement-modal'),sm=window.__crateSummary;
+    if(!modal||!sm||!sm.items||!sm.items.length)return closeCrateRevealAndShowcase(btn,'',false);
+    document.querySelectorAll('.light-ray-shard,.unlock-glyph,.crate-flash').forEach(e=>e.remove());
+    try{ArxFX.clear();}catch(e){}
+    modal.className='achievement-modal crate-summary show';modal.removeAttribute('style');
+    modal.innerHTML='<div class="cs-rays"></div><div class="cs-title">YOU GOT:</div><div class="cs-grid">'+
+      sm.items.map((it,i)=>'<div class="cs-item'+(it.hot?' hot':'')+'" style="animation-delay:'+(120+i*70)+'ms">'+
+        '<div class="cs-tile" style="background:'+it.grad+'">'+(it.art?'<img src="'+it.art+'" alt="" width="64" height="64">':'<span>'+it.icon+'</span>')+'</div>'+
+        '<b>'+escHtml(it.label)+'</b>'+(it.sub?'<small>'+escHtml(it.sub)+'</small>':'')+'</div>').join('')+
+      '</div><button class="achievement-close-btn cs-btn" onclick="closeCrateRevealAndShowcase(this,\'\',false)">Continue</button>';
+    try{playRewardSurge(1);}catch(e){}
+  }catch(e){closeCrateRevealAndShowcase(btn,'',false);}
+}
 function closeCrateRevealAndShowcase(btn,key,isNew){
   const overlay=btn.closest('.achievement-overlay');
   // Direct report, still reproducing after the race-condition fix below:
@@ -16658,6 +16691,12 @@ function showLegendReveal(l,isNew,tier,count,keyWon,titleWon,extras){
     return '<div class="crate-slot-counter'+(isSpecialPull?' glow-alert':'')+'" id="reveal-slot-counter">'+remaining+'</div>';
   }
 
+  // Everything this crate gave, for the "YOU GOT:" screen shown after the last reveal (all items at once).
+  window.__crateSummary={items:[
+    {icon:'⭐',grad:'linear-gradient(160deg,#FFB347,#FF6B1A)',label:'+'+xpAmount+' Arete'},
+    ...extras.map(d=>({art:d.art,icon:d.emoji,grad:d.grad,label:d.label,sub:d.kind==='trophy'?'UNLOCKED!':d.kind==='dupe'?'DUPLICATE':'',hot:d.kind==='trophy'})),
+    ...(l?[{art:l.img||'',icon:l.img?'':legendIconHTML(l),grad:'linear-gradient(160deg,'+((typeof RARITY_RAY!=='undefined'&&RARITY_RAY[l.rarity])||'#9AA0A8')+',#1a1a2a)',label:l.name,sub:'UNLOCKED!',hot:true}]:[])
+  ]};
   const overlay=document.createElement('div');
   overlay.className='achievement-overlay';
   overlay.innerHTML=
@@ -16716,7 +16755,7 @@ function showLegendReveal(l,isNew,tier,count,keyWon,titleWon,extras){
     const moreAfterThis=slots.length-1-slotIdx;
     modal.innerHTML=(moreAfterThis>0?counterBadgeHTML(moreAfterThis):'')+slot.render()+
       (isLast
-        ? '<button class="achievement-close-btn" onclick="closeCrateRevealAndShowcase(this,\''+(l?l.key:'')+'\','+isNew+')">Continue</button>'
+        ? '<button class="achievement-close-btn" onclick="showCrateSummary(this)">Continue</button>'
         : '<div class="crate-tap-prompt" style="margin-top:16px" onclick="this.closest(\'.achievement-modal\').dispatchEvent(new Event(\'advance\'))">Tap to continue</div>');
     // The trophy slot's own chime fires later, at the mystery badge's
     // lock-in moment (see runMysteryReveal) so the "successful" sound
