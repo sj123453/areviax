@@ -12,8 +12,8 @@
     --display:'Cinzel',Georgia,'Times New Roman',serif;--body:'Outfit',system-ui,-apple-system,'Segoe UI',sans-serif;
   }
   html,body{margin:0;overflow-x:hidden;overflow-x:clip;overscroll-behavior-x:none;touch-action:pan-y;max-width:100%;background:#0b1030;color:var(--paper);font-family:var(--body);-webkit-tap-highlight-color:transparent}
-  #sky{position:fixed;inset:0;z-index:0;background:linear-gradient(var(--sky-top,#f6d9a6),var(--sky-bot,#b9d48f))}
-  #stars,#clouds{position:fixed;inset:0;z-index:0;pointer-events:none}
+  #sky{position:fixed;inset:0;overflow:hidden;z-index:0;background:linear-gradient(var(--sky-top,#f6d9a6),var(--sky-bot,#b9d48f))}
+  #stars,#clouds{position:fixed;inset:0;overflow:hidden;z-index:0;pointer-events:none}
   #stars{opacity:0;background-image:radial-gradient(1.2px 1.2px at 12% 18%,#fff,transparent),radial-gradient(1px 1px at 72% 9%,#fff,transparent),radial-gradient(1.4px 1.4px at 38% 42%,#fff,transparent),radial-gradient(1px 1px at 86% 36%,#fff,transparent),radial-gradient(1.2px 1.2px at 24% 70%,#fff,transparent),radial-gradient(1px 1px at 61% 64%,#fff,transparent),radial-gradient(1.3px 1.3px at 92% 82%,#fff,transparent),radial-gradient(1px 1px at 8% 92%,#fff,transparent),radial-gradient(1px 1px at 50% 26%,#fff,transparent);background-size:340px 520px}
   #clouds{opacity:0}
   #clouds i{position:absolute;border-radius:50%;background:rgba(255,255,255,.75);filter:blur(14px)}
@@ -642,6 +642,17 @@ function onScroll(){
   document.getElementById('clouds').style.opacity=Math.max(0,1-Math.abs(f-.5)/.24)*.9;
 }
 addEventListener('scroll',onScroll,{passive:true});addEventListener('resize',onScroll);
+// Vertical only: block sideways swipes/trackpad scrolls outright (iOS can still pan sideways inside an iframe even with overflow hidden).
+(function(){
+  let sx=0,sy=0,dir=0;
+  addEventListener('touchstart',e=>{const t=e.touches[0];sx=t.clientX;sy=t.clientY;dir=0;},{passive:true});
+  addEventListener('touchmove',e=>{const t=e.touches[0],dx=t.clientX-sx,dy=t.clientY-sy;
+    if(!dir&&(Math.abs(dx)>6||Math.abs(dy)>6))dir=Math.abs(dx)>Math.abs(dy)?1:2;
+    if(dir===1&&e.cancelable)e.preventDefault();},{passive:false});
+  addEventListener('wheel',e=>{if(Math.abs(e.deltaX)>Math.abs(e.deltaY)&&e.cancelable)e.preventDefault();},{passive:false});
+  addEventListener('scroll',()=>{if(scrollX!==0)scrollTo(0,scrollY);},{passive:true});
+})();
+
 // detail sheet
 const sheet=document.getElementById('sheet');
 function openSheet(i){
