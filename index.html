@@ -4606,11 +4606,12 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
 .box-mode .crate-slot-counter{display:flex;align-items:center;justify-content:center;min-width:44px;height:44px;border-radius:12px;font-size:26px;font-weight:900;top:auto!important;bottom:4px!important;left:auto!important;right:-14px!important;transform:none!important}
 .crate-slot-counter.bx-count-pop{animation:bxCountPop .32s cubic-bezier(.34,1.56,.64,1)}
 @keyframes bxCountPop{0%{transform:scale(.4)}100%{transform:scale(1)}}
-/* Plain white badge unless a trophy is inside: then it flashes red from the first tap to the last */
-.box-mode .crate-slot-counter{background:#fff8ec;color:#2a1a08;border-color:rgba(42,26,8,.35)}
+/* Solid red badge for normal rewards; it only FLASHES red when a trophy is inside */
+.box-mode .crate-slot-counter{background:#c41c1c;color:#fff;border-color:rgba(255,255,255,.8);animation:none}
+.box-mode .crate-slot-counter.bx-count-pop{animation:bxCountPop .32s cubic-bezier(.34,1.56,.64,1)}
+.crate-slot-counter.bx-final:not(.glow-alert){background:#c41c1c!important;animation:none!important;box-shadow:0 2px 10px rgba(0,0,0,.55)}
 .box-mode .crate-slot-counter.glow-alert{background:#ff2d3d;color:#fff;border-color:#fff;animation:bxRedFlash .42s ease-in-out infinite alternate}
 @keyframes bxRedFlash{from{background:#ff2d3d;box-shadow:0 0 8px 2px rgba(255,45,61,.6)}to{background:#ff8a80;box-shadow:0 0 28px 10px rgba(255,45,61,1)}}
-.crate-slot-counter.bx-final:not(.glow-alert){box-shadow:0 0 14px 4px rgba(255,236,170,.8)}
 .crate-slot-counter.glow-alert.bx-final{animation:bxRedFlash .28s ease-in-out infinite alternate!important}
 @keyframes bxFinalPulse{from{box-shadow:0 0 10px 2px rgba(255,45,61,.6)}to{box-shadow:0 0 26px 10px rgba(255,45,61,.95)}}
 @media(prefers-reduced-motion:reduce){.compass-crate.bx-jump,.compass-crate.bx-hover,.compass-crate.bx-shake,.compass-crate.bx-charge,.crate-icon-wrap.bx-charging::after,.bx-charging .crate-icon-burst,.box-in{animation:none!important}.bx-beam-on .bx-beamfx{animation:none;opacity:.4}}
