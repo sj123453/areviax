@@ -15459,7 +15459,7 @@ function grantTestCrates(){
 // Every crate gives its Arete bonus plus 1-13 more rewards (2-14 in total). Big hauls are rare:
 // CRATE_CUM_BASE is the chance of getting AT LEAST N rewards from a Gold crate (6+ is about 1 crate in 7, 7+ about 1 in 11),
 // and each tier scales that tail (Bronze thinner, Areviax fatter).
-const CRATE_CUM_BASE={3:.58,4:.38,5:.24,6:.15,7:.09,8:.062,9:.045,10:.033,11:.024,12:.016,13:.01,14:.006};
+const CRATE_CUM_BASE={3:.58,4:.38,5:.26,6:.19,7:.11,8:.062,9:.045,10:.033,11:.024,12:.016,13:.01,14:.006};
 const CRATE_TAIL_MULT={bronze:.6,silver:.8,gold:1,diamond:1.9,areviax:2.2};
 function rollCrateRewardCount(tier){
   const m=CRATE_TAIL_MULT[tier]||1,u=Math.random();
@@ -15477,24 +15477,25 @@ const CRATE_EXTRA_ART={
 // kind -> {weight by tier, grant() returns descriptor or null if unavailable}
 // Drachma from a crate: usually 5-12, sometimes about 40, and a 400 ceiling that almost never happens (a little better odds in the top crates).
 function crateDrachmaAmount(tier){
-  const tm={bronze:.8,silver:1,gold:1.2,diamond:1.9,areviax:2}[tier]||1,u=Math.random();
-  if(u<.0015*tm)return 150+Math.floor(Math.random()*251);        // 150-400, very rare
-  if(u<.035*tm)return 25+Math.floor(Math.random()*36);           // 25-60 ("about 40")
-  return 5+Math.floor(Math.random()*8);                          // 5-12
+  const tm={bronze:.8,silver:1,gold:1.1,diamond:1.5,areviax:1.8}[tier]||1,u=Math.random();
+  if(u<.001*tm)return 120+Math.floor(Math.random()*281);         // 120-400, very rare
+  if(u<.02*tm)return 20+Math.floor(Math.random()*31);            // 20-50
+  return 3+Math.floor(Math.random()*6);                          // 3-8
 }
 function crateExtraPool(tier){
   const dr={bronze:6,silver:13,gold:22,diamond:40,areviax:70}[tier]||6;
   const hi=['gold','diamond','areviax'].includes(tier),top=['diamond','areviax'].includes(tier);
   return [
-    {w:10,make:()=>{const n=crateDrachmaAmount(tier);drachma+=n;return {kind:'drachma',art:CRATE_EXTRA_ART.drachma,label:'+'+n+' Drachma',sub:'Spend it in the Shop',grad:'linear-gradient(160deg,#FFE066,#C9971E)'};}},
+    {w:5,make:()=>{const n=crateDrachmaAmount(tier);drachma+=n;return {kind:'drachma',art:CRATE_EXTRA_ART.drachma,label:'+'+n+' Drachma',sub:'Spend it in the Shop',grad:'linear-gradient(160deg,#FFE066,#C9971E)'};}},
     {w:8,make:()=>{const n=15+Math.floor(Math.random()*(hi?60:25));return {kind:'xp',art:'images/icons/arete.png',label:'+'+n+' bonus Arete',sub:'Crate surge',grad:'linear-gradient(160deg,#FFB347,#FF6B1A)',xp:n};}},
-    {w:4,make:()=>{const kt=rollKeyTier(tier),nm=KEY_TIER_NAMES[kt];addKeyCrates(kt,1);return {kind:'key',keyTier:kt,art:'images/icons/key-'+kt+'.png',label:'+1 '+nm+' Key',sub:'Opens one '+nm+' crate',grad:'linear-gradient(160deg,#E8E0D0,#8A98A8)'};}},
-    {w:4,make:()=>{bronzeDropBank++;return {kind:'bronze',art:CRATE_ICON_IMG.bronze,label:'+1 Bronze Crate',sub:'Ready in your crates',grad:'linear-gradient(160deg,#C8864E,#6a3f1c)'};}},
-    {w:hi?2.4:1.2,make:()=>{silverDropBank++;return {kind:'silver',art:CRATE_ICON_IMG.silver,label:'+1 Silver Crate',sub:'Ready in your crates',grad:'linear-gradient(160deg,#DDE3EC,#7f8896)'};}},
+    {w:1.6,make:()=>{const kt=rollKeyTier(tier),nm=KEY_TIER_NAMES[kt];addKeyCrates(kt,1);return {kind:'key',keyTier:kt,art:'images/icons/key-'+kt+'.png',label:'+1 '+nm+' Key',sub:'Opens one '+nm+' crate',grad:'linear-gradient(160deg,#E8E0D0,#8A98A8)'};}},
+    {w:1.6,make:()=>{bronzeDropBank++;return {kind:'bronze',art:CRATE_ICON_IMG.bronze,label:'+1 Bronze Crate',sub:'Ready in your crates',grad:'linear-gradient(160deg,#C8864E,#6a3f1c)'};}},
+    {w:hi?1:.5,make:()=>{silverDropBank++;return {kind:'silver',art:CRATE_ICON_IMG.silver,label:'+1 Silver Crate',sub:'Ready in your crates',grad:'linear-gradient(160deg,#DDE3EC,#7f8896)'};}},
     {w:2.5,make:()=>{streakFreezes++;return {kind:'freeze',art:CRATE_EXTRA_ART.freeze,label:'+1 Streak Freeze',sub:'Protects a missed day',grad:'linear-gradient(160deg,#8fe6ff,#2b7fa6)'};}},
     {w:1.5,make:()=>{streakSavers++;return {kind:'saver',art:CRATE_EXTRA_ART.saver,label:'+1 Streak Saver',sub:'Repairs a broken streak',grad:'linear-gradient(160deg,#FFD24A,#c26a00)'};}},
-    {w:top?.9:.2,make:()=>{diamondDropBank++;return {kind:'diamond',art:CRATE_ICON_IMG.diamond,label:'+1 Diamond Crate',sub:'Ready in your crates',grad:'linear-gradient(160deg,#9be8ff,#1c7fa8)'};}},
-    {w:1,make:()=>{const t=randomLockedTitle();if(!t)return null;unlockTitle(t,false);return {kind:'title',art:CRATE_EXTRA_ART.title,label:'New Title',sub:'"'+TITLES[t].name+'" — equip it on your Profile',grad:'linear-gradient(160deg,#FFE066,#C9971E)'};}},
+    {w:top?.4:.08,make:()=>{diamondDropBank++;return {kind:'diamond',art:CRATE_ICON_IMG.diamond,label:'+1 Diamond Crate',sub:'Ready in your crates',grad:'linear-gradient(160deg,#9be8ff,#1c7fa8)'};}},
+    {w:2.6,make:()=>{const t=randomLockedTitle();if(!t)return null;unlockTitle(t,false);return {kind:'title',art:CRATE_EXTRA_ART.title,label:'New Title',sub:'"'+TITLES[t].name+'" — equip it on your Profile',grad:'linear-gradient(160deg,#FFE066,#C9971E)'};}},
+    {w:2,make:()=>{const lk=Object.keys(ACCENT_THEMES).filter(k=>!unlockedThemes.includes(k));if(!lk.length)return null;const k=lk[Math.floor(Math.random()*lk.length)];unlockAccentTheme(k,false);return {kind:'theme',art:'images/icons/title-medal.png',label:'New Theme',sub:'"'+ACCENT_THEMES[k].name+'" — equip it in Settings',grad:'linear-gradient(160deg,#c9a0ff,#5b2a9e)'};}},
   ];
 }
 // Picks a trophy the same way the main drop does (rarity from the tier's odds, falling toward commoner ones if a pool is empty).
@@ -15506,7 +15507,7 @@ function pickCrateTrophy(tier){
   for(let i=Math.max(startIdx,0);i<RARITY_ORDER.length&&!pool.length;i++){pool=LEGEND_CARDS.filter(l=>l.rarity===RARITY_ORDER[i]);}
   return pool.length?pool[Math.floor(Math.random()*pool.length)]:null;
 }
-const CRATE_DUPE_P={bronze:.15,silver:.2,gold:.25,diamond:.4};
+const CRATE_DUPE_P={bronze:.25,silver:.3,gold:.36,diamond:.5};
 // A trophy you already own, rarity rolled from the tier's odds (falls toward commoner ones; null if you own none that low).
 function pickOwnedTrophy(tier){
   const cfg=CRATE_TIERS[tier];if(!cfg)return null;
