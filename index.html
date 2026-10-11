@@ -5461,6 +5461,8 @@ body[data-goal-theme="cut"] .lv-page{
 /* crate rewards: art with no circle; new trophies start as a silhouette then light up */
 .crate-xp-slot.rw-raw .crate-xp-slot-icon{background:none!important;box-shadow:none!important;border-radius:0!important}
 .crate-xp-slot.rw-raw .crate-xp-slot-icon img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 6px 10px rgba(0,0,0,.45))}
+.crate-xp-slot.rw-sil .crate-xp-slot-icon{position:relative}
+.crate-xp-slot.rw-sil .crate-xp-slot-icon::after{content:'?';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:clamp(48px,14vw,72px);font-weight:900;color:#fff;text-shadow:0 0 18px rgba(255,255,255,.7),0 3px 0 rgba(0,0,0,.5)}
 .crate-xp-slot.rw-sil .crate-xp-slot-icon img,.crate-xp-slot.rw-sil .crate-xp-slot-icon svg{filter:brightness(0) contrast(1.1) drop-shadow(0 0 14px rgba(255,255,255,.25))!important;opacity:.92}
 .crate-xp-slot.rw-lit .crate-xp-slot-icon{animation:rwUnlock .9s cubic-bezier(.2,.9,.3,1.3)}
 .crate-xp-slot.rw-lit .crate-xp-slot-icon img{filter:drop-shadow(0 0 22px rgba(255,220,120,.85))!important}
@@ -5572,6 +5574,12 @@ body .road-scenery .xp-road-track.horizontal.rd{height:auto;min-height:330px;pad
 .award-btn.ghost,.btn-g.ghost{background:linear-gradient(180deg,#3d3850,#241f33);border-color:#0c0a12;color:#f1e6cf;text-shadow:none;box-shadow:inset 0 2px 0 rgba(255,255,255,.22),0 5px 0 #0c0a12,0 9px 14px rgba(0,0,0,.4)}
 .btn:disabled,.btn[disabled]{filter:grayscale(.7) brightness(.75);cursor:not-allowed}
 @media(prefers-reduced-motion:reduce){.btn,.btn-g,.btn-o,.btn-out,.btn-ghost{transition:none}}
+</style>
+
+<style>
+#reveal-mystery-icon{position:relative}
+#reveal-mystery-icon::after{content:'?';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:clamp(70px,22vw,110px);font-weight:900;color:#fff;text-shadow:0 0 24px rgba(255,255,255,.8),0 4px 0 rgba(0,0,0,.55);pointer-events:none}
+.achievement-modal:has(#reveal-mystery-icon) .achievement-close-btn{opacity:0;pointer-events:none}
 </style>
 </head>
 <body class="onboarding-active">
@@ -16727,10 +16735,9 @@ function runMysteryReveal(modal,l,isNew,cfg){
       if(isNew)celebrateBurst(['🔥','⭐','🏆'],cfg.burstCount);
     },380);
   }
-  // The reveal only happens when the player taps the spinning badge: nothing auto-collects.
-  const tapHint=document.createElement('div');tapHint.className='crate-tap-prompt';tapHint.textContent='Tap to reveal!';tapHint.style.marginTop='10px';
-  try{wrap.insertAdjacentElement('afterend',tapHint);}catch(e){}
-  mystery.addEventListener('click',()=>{try{tapHint.remove();}catch(e){}});
+  // The badge comes up blanked out with a "?", spins for a beat, then bursts open with light on its own (a tap just skips the wait).
+  const autoLock=setTimeout(()=>{if(wrap.isConnected)lock();},1500);
+  mystery.addEventListener('click',()=>clearTimeout(autoLock));
 }
 const RARITY_GLOW={
   common:'rgba(170,176,184,.3)',
