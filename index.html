@@ -5870,7 +5870,11 @@ body .road-scenery .xp-road-track.horizontal.rd{height:auto;min-height:330px;pad
     <div class="rest-time" id="rest-time">90</div>
     <div class="rest-lbl">Rest</div>
   </div>
-  <div style="font-size:12px;color:var(--muted)">Take a breath. Next set coming.</div>
+  <div style="font-size:12px;color:var(--muted);text-align:center;max-width:300px;line-height:1.5" id="rest-next">Take a breath. Next set coming.</div>
+  <div style="display:flex;gap:8px">
+    <button class="btn btn-ghost btn-sm" onclick="adjustRest(-15)" aria-label="Rest 15 seconds less">−15s</button>
+    <button class="btn btn-ghost btn-sm" onclick="adjustRest(15)" aria-label="Rest 15 seconds more">+15s</button>
+  </div>
   <button class="btn btn-out btn-sm" onclick="skipRest()">Skip</button>
 </div>
 
@@ -6976,6 +6980,18 @@ body .road-scenery .xp-road-track.horizontal.rd{height:auto;min-height:330px;pad
       <button class="btn btn-ghost btn-sm" onclick="startRest(180)">3 min</button>
     </div>
     <div style="font-size:12px;color:var(--muted);line-height:1.55">Tap after each set. A timer pops up so you can rest properly between sets.</div>
+  </div>
+  <div class="card lv-surface" style="margin-bottom:14px" id="plate-calc-card">
+    <div style="font-size:11px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px">Plate calculator</div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <input type="number" inputmode="decimal" id="plate-target" aria-label="Target weight on the bar" placeholder="Target weight" oninput="renderPlateCalc()" style="flex:1;min-width:110px">
+      <div style="display:flex;gap:4px" id="plate-unit-toggle">
+        <button type="button" class="equip-chip active" data-u="kg" onclick="setPlateUnit('kg')">kg</button>
+        <button type="button" class="equip-chip" data-u="lb" onclick="setPlateUnit('lb')">lb</button>
+      </div>
+    </div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px" id="plate-bar-chips"></div>
+    <div id="plate-result" style="margin-top:10px;font-size:13px;line-height:1.6;color:rgba(var(--white-rgb),.9)">Enter the weight you want on the bar.</div>
   </div>
   <div class="card lv-surface" style="margin-bottom:14px">
     <div class="ch"><span class="ct" style="display:flex;align-items:center;gap:7px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0118 0v6"/><path d="M21 19a2 2 0 01-2 2h-1v-8h3zM3 19a2 2 0 002 2h1v-8H3z"/></svg>Focus sounds</span></div>
@@ -24889,7 +24905,9 @@ function logSet(ei,si,name,muscle){
   }
   loggedSetMeta[ei+'-'+si]=meta;
   const focusRest={strength:120,hypertrophy:90,pump:45}[sessionFocus]||90;
-  startRest(focusRest);addXP(3,'Set logged');saveToStorage();
+  const _totalSets=document.querySelectorAll('[id^="sc-'+ei+'-"]').length;
+  const _nextText=si<_totalSets-1?('Next: set '+(si+2)+' of '+_totalSets+' · '+name+(wRaw>0?' · last set '+wRaw+'×'+r:'')):'That was the last set of '+name+'. Next exercise up.';
+  startRest(focusRest,_nextText);addXP(3,'Set logged');saveToStorage();
   renderCompassClaimStatus();
   const total=document.querySelectorAll('[id^="sc-'+ei+'-"]').length;
   if(si===total-1){
@@ -25082,9 +25100,44 @@ function speakCoach(text){
   if(!voiceCoachEnabled)return;
   speakCoachRaw(text);
 }
-function startRest(s){
+// PLATE CALCULATOR — greedy per-side loading from the plates a normal gym
+// has. Its own kg/lb toggle (workout weights aren't tied to bodyweight's unit).
+let plateUnit='kg',plateBar=20;
+const PLATE_SETS={kg:[25,20,15,10,5,2.5,1.25],lb:[45,35,25,10,5,2.5]};
+const PLATE_BARS={kg:[20,15,10],lb:[45,35,15]};
+function setPlateUnit(u){
+  if(u===plateUnit)return;
+  plateUnit=u;plateBar=PLATE_BARS[u][0];
+  document.querySelectorAll('#plate-unit-toggle .equip-chip').forEach(b=>b.classList.toggle('active',b.dataset.u===u));
+  renderPlateCalc();
+}
+function setPlateBar(w){plateBar=w;renderPlateCalc();}
+function renderPlateCalc(){
+  const chips=document.getElementById('plate-bar-chips');
+  const out=document.getElementById('plate-result');
+  const inp=document.getElementById('plate-target');
+  if(!chips||!out||!inp)return;
+  chips.innerHTML='<span style="font-size:11px;color:var(--muted);align-self:center">Bar</span>'+PLATE_BARS[plateUnit].map(b=>'<button type="button" class="equip-chip'+(b===plateBar?' active':'')+'" onclick="setPlateBar('+b+')">'+b+plateUnit+'</button>').join('');
+  const target=parseFloat(inp.value);
+  if(!target||target<=0){out.textContent='Enter the weight you want on the bar.';return;}
+  if(target<plateBar){out.textContent='That is lighter than the bar ('+plateBar+plateUnit+').';return;}
+  let side=(target-plateBar)/2;const plates=[];
+  PLATE_SETS[plateUnit].forEach(p=>{while(side>=p-1e-9){plates.push(p);side-=p;}});
+  const loaded=plateBar+plates.reduce((a,b)=>a+b,0)*2;
+  const exact=Math.abs(loaded-target)<0.01;
+  out.innerHTML=(plates.length?'<b>Each side:</b> '+plates.join(' + ')+' '+plateUnit:'Just the bar.')+(exact?'':'<br><span style="color:var(--orange)">Closest you can load: '+(Math.round(loaded*100)/100)+plateUnit+'</span>');
+}
+// ±15s while resting: a set that went badly needs longer, a quick one less.
+function adjustRest(delta){
+  if(!restInt)return;
+  restEndsAt=Math.max(Date.now()+1000,restEndsAt+delta*1000);
+  updateRestDisplay();
+}
+function startRest(s,nextText){
   clearInterval(restInt);
   restEndsAt=Date.now()+s*1000;
+  const rn=document.getElementById('rest-next');
+  if(rn)rn.textContent=nextText||'Take a breath. Next set coming.';
   const ro=document.getElementById('rest-overlay');if(ro)ro.classList.add('show');
   updateRestDisplay();
   restInt=setInterval(updateRestDisplay,1000);
@@ -34421,6 +34474,6 @@ window.arxIcons=scan;
 @keyframes seIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 @media(prefers-reduced-motion:reduce){.se-flame{display:none}.se-title,.se-sub,.se-quote,.se-btn{animation:none;opacity:1}.se-puff,.se-spark{display:none}.se-ember{animation:none;opacity:.25}}
 </style>
-<script>document.addEventListener('keydown',function(e){var t=e.target;if((e.key==='Enter'||e.key===' ')&&t&&t.getAttribute&&t.getAttribute('role')==='button'&&t.tagName!=='BUTTON'){e.preventDefault();t.click();}});</script>
+<script>try{renderPlateCalc();}catch(e){}document.addEventListener('keydown',function(e){var t=e.target;if((e.key==='Enter'||e.key===' ')&&t&&t.getAttribute&&t.getAttribute('role')==='button'&&t.tagName!=='BUTTON'){e.preventDefault();t.click();}});</script>
 </body>
 </html>
