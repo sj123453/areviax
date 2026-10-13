@@ -7865,6 +7865,20 @@ body .road-scenery .xp-road-track.horizontal.rd{height:auto;min-height:330px;pad
     <div id="prog-bw-chart" style="margin-top:8px"></div>
   </div>
 
+  <!-- WEEKLY CHECK-IN — trend rate vs a sensible gain band for the goal,
+       what the app has done with the target, and a one-tap nudge. -->
+  <div id="prog-checkin-card" class="lv-surface" style="display:none;padding:20px;margin-bottom:12px">
+    <div style="display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:4px 12px">
+      <h2 class="lv-section-title" style="font-size:1.2rem">Weekly check-in</h2>
+      <span style="font-family:var(--lv-mono);font-size:11px;color:var(--lv-muted-fg)" id="prog-checkin-meta"></span>
+    </div>
+    <p class="lv-stat-huge" style="margin-top:8px" id="prog-checkin-rate">—</p>
+    <div id="prog-checkin-band" style="margin-top:12px"></div>
+    <p style="margin-top:10px;font-size:12px;line-height:1.55;color:rgba(var(--white-rgb),.8)" id="prog-checkin-msg"></p>
+    <p style="margin-top:6px;font-size:11px;line-height:1.5;color:var(--lv-muted-fg)" id="prog-checkin-auto"></p>
+    <div id="prog-checkin-actions" style="margin-top:10px"></div>
+  </div>
+
   <!-- CONSISTENCY — 4-week heatmap, real trainingCompletedDates. -->
   <div class="lv-surface" style="padding:20px;margin-bottom:12px">
     <div style="display:flex;align-items:baseline;justify-content:space-between">
@@ -10430,7 +10444,7 @@ let profile={name:'',weight:0,goal:'bulk',equip:'full',days:4,struggle:'eating',
 // muscle (recomp sits at maintenance, 0), 'cut' is the one goal that runs
 // a genuine deficit. Kept as one function so onboarding and the Settings
 // recalculation path can't drift apart on the actual numbers.
-function goalSurplus(goal){return goal==='bulk'?600:goal==='lean'?350:goal==='cut'?-500:0;}
+function goalSurplus(goal){return (goal==='bulk'?600:goal==='lean'?350:goal==='cut'?-500:0)+(goal===profile.goal?(profile.surplusAdj||0):0);} // surplusAdj = the user's own manual nudge from the weekly check-in
 // Swaps the whole .lv-page ported design language (Dashboard/Nutrition/
 // Progress/Workout/Trophy/Labors) from the default orange "Forge" ember
 // palette to the green "Olive Grove" palette when the user's actual goal
@@ -20038,6 +20052,79 @@ function renderProgressRecords(){
     </div>`;
   }).join('');
 }
+// WEEKLY CHECK-IN — trend rate (regression over the last ~3 weeks of
+// weigh-ins) against a sensible band for the goal: 0.25–0.5% of bodyweight
+// per week for a bulk (the pace that adds muscle rather than mostly fat),
+// -0.5 to -1% for a cut. weightLog / profile.weight are stored in lbs.
+function weeklyCheckinData(){
+  const cutoff=Date.now()-21*86400000;
+  const pts=weightLog.map(e=>({w:e.w,t:parseLogDate(e).getTime()})).filter(e=>e.t>=cutoff).sort((a,b)=>a.t-b.t);
+  if(pts.length<3)return {ok:false,reason:'Log your weight at least 3 times over 10+ days to unlock this.'};
+  const span=(pts[pts.length-1].t-pts[0].t)/86400000;
+  if(span<10)return {ok:false,reason:'Keep weighing in — a trend needs about 10 days of data.'};
+  const t0=pts[0].t,xs=pts.map(p=>(p.t-t0)/86400000),ys=pts.map(p=>p.w);
+  const n=xs.length,sx=xs.reduce((a,b)=>a+b,0),sy=ys.reduce((a,b)=>a+b,0);
+  const sxy=xs.reduce((a,x,i)=>a+x*ys[i],0),sxx=xs.reduce((a,x)=>a+x*x,0);
+  const den=n*sxx-sx*sx;
+  const perWeek=den?((n*sxy-sx*sy)/den)*7:0;
+  const bw=pts[pts.length-1].w;
+  let lo,hi;
+  if(profile.goal==='cut'){lo=-0.01*bw;hi=-0.005*bw;}
+  else if(profile.goal==='recomp'){lo=-0.0015*bw;hi=0.0015*bw;}
+  else {lo=0.0025*bw;hi=0.005*bw;}
+  return {ok:true,perWeek,lo,hi,bw,n,span};
+}
+function nudgeSurplus(delta){
+  profile.surplusAdj=Math.max(-600,Math.min(600,(profile.surplusAdj||0)+delta));
+  try{refreshAdaptiveTDEE();}catch(e){}
+  toast('✅','Target updated to '+(profile.cals||0).toLocaleString()+' kcal');
+  saveToStorage();
+  renderWeeklyCheckin();
+}
+function renderWeeklyCheckin(){
+  const card=document.getElementById('prog-checkin-card');
+  if(!card)return;
+  if(!weightLog.length){card.style.display='none';return;}
+  card.style.display='block';
+  const d=weeklyCheckinData();
+  const rateEl=document.getElementById('prog-checkin-rate'),bandEl=document.getElementById('prog-checkin-band'),msgEl=document.getElementById('prog-checkin-msg'),autoEl=document.getElementById('prog-checkin-auto'),actEl=document.getElementById('prog-checkin-actions'),metaEl=document.getElementById('prog-checkin-meta');
+  const kg=weightUnit==='kg',cv=v=>kg?v*0.453592:v,u=kg?'kg':'lb';
+  const fmt=v=>(v>0?'+':'')+(Math.round(cv(v)*100)/100);
+  // what the app is doing with the calorie target
+  if(autoEl){
+    if(profile.tdeeMode==='adaptive')autoEl.textContent='Your target ('+(profile.cals||0).toLocaleString()+' kcal) is auto-adjusted from what you log and how your weight moves ('+(profile.tdeeConfidencePct||0)+'% confidence, '+(profile.tdeeDataDays||0)+' days of data).'+((profile.surplusAdj||0)?' Includes your manual '+((profile.surplusAdj>0)?'+':'')+profile.surplusAdj+' kcal nudge.':'');
+    else autoEl.textContent='Your target is a formula estimate for now. Log meals on 7+ days and weigh in a few times and it starts adjusting itself to you.';
+  }
+  if(!d.ok){
+    if(rateEl)rateEl.textContent='—';
+    if(bandEl)bandEl.innerHTML='';
+    if(msgEl)msgEl.textContent=d.reason;
+    if(actEl)actEl.innerHTML='';
+    if(metaEl)metaEl.textContent='';
+    return;
+  }
+  if(metaEl)metaEl.textContent=d.n+' weigh-ins · '+Math.round(d.span)+' days';
+  if(rateEl)rateEl.innerHTML=fmt(d.perWeek)+'<span style="margin-left:6px;font-family:var(--lv-mono);font-size:11px;color:var(--lv-muted-fg)">'+u+' / week</span>';
+  // band bar: scale from (lo - span) to (hi + span)
+  const lo=d.lo,hi=d.hi,spanB=(hi-lo)||0.5;
+  const min=Math.min(lo-spanB,d.perWeek-0.1),max=Math.max(hi+spanB,d.perWeek+0.1);
+  const pos=v=>Math.max(0,Math.min(100,(v-min)/(max-min)*100));
+  if(bandEl)bandEl.innerHTML='<div style="position:relative;height:10px;border-radius:5px;background:rgba(var(--white-rgb),.08)"><div style="position:absolute;left:'+pos(lo)+'%;width:'+(pos(hi)-pos(lo))+'%;top:0;bottom:0;border-radius:5px;background:rgba(var(--lv-fuel-rgb),.45)"></div><div style="position:absolute;left:calc('+pos(d.perWeek)+'% - 6px);top:-3px;width:12px;height:16px;border-radius:4px;background:var(--lv-primary);border:2px solid #000"></div></div><div style="display:flex;justify-content:space-between;margin-top:6px;font-family:var(--lv-mono);font-size:10px;color:var(--lv-muted-fg)"><span>target band</span><span>'+fmt(lo)+' to '+fmt(hi)+' '+u+'/wk</span></div>';
+  let msg='',actions='';
+  if(profile.goal==='cut'){
+    if(d.perWeek>hi+0.1*spanB){msg='Weight is dropping slower than your band. Check logging is complete first, then consider trimming ~150 kcal.';actions='<button type="button" class="btn btn-g" onclick="nudgeSurplus(-150)">Lower target by 150 kcal</button>';}
+    else if(d.perWeek<lo-0.1*spanB){msg='Dropping faster than needed — risk of losing muscle. Add some calories back.';actions='<button type="button" class="btn btn-g" onclick="nudgeSurplus(150)">Raise target by 150 kcal</button>';}
+    else msg='On track — keep going.';
+  } else if(d.perWeek<lo-0.1*spanB){
+    msg=d.perWeek<=0.05?'Weight is flat or falling, so you are eating at or below maintenance. First check you are logging everything. If you are, a bigger surplus is the fix.':'Gaining a bit slower than the band. Add a little more food — a glass of whole milk is about 150 kcal.';
+    actions='<button type="button" class="btn btn-g" onclick="nudgeSurplus(200)">Raise target by 200 kcal</button>';
+  } else if(d.perWeek>hi+0.1*spanB){
+    msg='Gaining faster than the band — more of it is likely to be fat than muscle. You can ease the target slightly.';
+    actions='<button type="button" class="btn btn-out" onclick="nudgeSurplus(-150)">Lower target by 150 kcal</button>';
+  } else msg='In the band. Keep the target and keep training hard.';
+  if(msgEl)msgEl.textContent=msg;
+  if(actEl)actEl.innerHTML=actions;
+}
 // BODYWEIGHT — real weightLog, delta vs the entry closest to 8 weeks ago.
 function renderProgressBodyweight(){
   const card=document.getElementById('prog-bodyweight-card');
@@ -20045,15 +20132,18 @@ function renderProgressBodyweight(){
   const deltaEl=document.getElementById('prog-bw-delta');
   const chartEl=document.getElementById('prog-bw-chart');
   if(!card||!numEl)return;
+  try{renderWeeklyCheckin();}catch(e){console.error('renderWeeklyCheckin:',e.message);}
   if(!weightLog.length){card.style.display='none';return;}
   card.style.display='block';
   const latest=weightLog[weightLog.length-1];
-  numEl.innerHTML=(Math.round(latest.w*10)/10)+'<span style="font-family:var(--lv-mono);font-size:11px;color:var(--lv-muted-fg)">kg</span>';
+  // weightLog is stored in lbs; show it in the unit the user picked.
+  const _kg=weightUnit==='kg',_cv=v=>_kg?v*0.453592:v;
+  numEl.innerHTML=(Math.round(_cv(latest.w)*10)/10)+'<span style="font-family:var(--lv-mono);font-size:11px;color:var(--lv-muted-fg)">'+(_kg?'kg':'lbs')+'</span>';
   const eightWeeksAgo=new Date();eightWeeksAgo.setDate(eightWeeksAgo.getDate()-56);
   const refEntry=weightLog.find(e=>parseLocalDate(e.date)>=eightWeeksAgo)||weightLog[0];
   const delta=Math.round((latest.w-refEntry.w)*10)/10;
   if(deltaEl){
-    deltaEl.textContent=(delta>0?'+':'')+delta+' lbs / 8w';
+    deltaEl.textContent=(delta>0?'+':'')+(Math.round(_cv(delta)*10)/10)+(_kg?' kg':' lbs')+' / 8w';
     deltaEl.style.color=delta<0?'var(--lv-fuel)':delta>0?'var(--lv-xp)':'var(--lv-muted-fg)';
   }
   if(chartEl&&weightLog.length>=2){
