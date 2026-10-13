@@ -2389,6 +2389,7 @@ input.ob-range:disabled{opacity:.35;cursor:not-allowed}
        metal glass-case frame (bevelled border, diagonal glass sheen)
        every row briefly had — it's the single 1-of-1 hero slot, so it
        staying boxed off from the rest of the cabinet is the point. */
+    #cabinet-peak-slot:not(.unlocked)::after,#cabinet-peak-slot:not(.unlocked)::before{content:none!important}
     .cabinet-row-peak{
       overflow:hidden;padding:16px 10px 22px;border-radius:5px;
       border:3px solid #16110b;
@@ -8362,10 +8363,10 @@ body .road-scenery .xp-road-track.horizontal.rd{height:auto;min-height:330px;pad
        actually appear. -->
   <div class="cabinet-tier" style="padding:0 20px">
     <div class="cabinet-tier-plaque">
-      <span class="cabinet-tier-name">The Areviax Trophy</span>
-      <span class="cabinet-tier-count">1-of-1</span>
+      <span class="cabinet-tier-name" id="cabinet-peak-name">?</span>
+      <span class="cabinet-tier-count" id="cabinet-peak-count">?</span>
     </div>
-    <div class="cabinet-tier-sub">Ultralegendary — the single rarest pull in the game</div>
+    <div class="cabinet-tier-sub" id="cabinet-peak-sub">A mystery. Nobody knows what it looks like until it's pulled.</div>
     <div class="cabinet-row cabinet-row-peak">
       <div id="cabinet-peak-slot" class="legend-card cabinet-slot rarity-ultralegendary"></div>
     </div>
@@ -15697,6 +15698,7 @@ const TROPHY_LAYERS=[
   {rarity:'common',    label:'Common',     sub:'You begin your journey.',                                items:LEGEND_CARDS.filter(l=>l.rarity==='common')},
 ].map(layer=>({...layer,count:layer.items.length}));
 function viewCabinetLocked(label){
+  if(label==='?'){toast('?','A mystery trophy. You\u2019ll know it when you pull it.');return;}
   toast('\ud83d\udd12',label+' \u2014 coming soon.');
 }
 // Same laurel wreath markup as the Trophy Cabinet's legend cards (see
@@ -15824,16 +15826,23 @@ function renderTrophyCabinet(){
     const trophy=LEGEND_CARDS.find(l=>l.key==='areviax_trophy');
     const unlocked=trophy&&unlockedLegends.includes('areviax_trophy');
     peak.classList.toggle('unlocked',!!unlocked);
-    peak.setAttribute('onclick',unlocked?"viewLegendCard('areviax_trophy')":"viewCabinetLocked('The Areviax Trophy')");
+    peak.setAttribute('onclick',unlocked?"viewLegendCard('areviax_trophy')":"viewCabinetLocked('?')");
+    // Hidden until pulled: no name, no art, no hint of what it is.
+    const pn=document.getElementById('cabinet-peak-name'),pc=document.getElementById('cabinet-peak-count'),ps=document.getElementById('cabinet-peak-sub');
+    if(pn)pn.textContent=unlocked?'The Areviax Trophy':'?';
+    if(pc)pc.textContent=unlocked?'1-of-1':'?';
+    if(ps)ps.textContent=unlocked?'Ultralegendary — the single rarest pull in the game':"A mystery. Nobody knows what it looks like until it's pulled.";
     // No medallion frame here (no hexagon, glow, burst, crown, or
     // wreath) — this is the one hero slot in the whole cabinet, and a
     // real trophy render of the compass mark already reads as a
     // complete object; the frame built for flat rarity badges just
     // boxed it in. Just the info badge, the plain image, and the label.
-    peak.innerHTML=`${legendInfoBadgeHTML('areviax_trophy')}
-      ${unlocked?'<div class="peak-rainbow-halo"></div>':''}
-      <div class="legend-card-icon peak-bare">${unlocked?legendIconHTML(trophy):'🔒'}</div>
-      <div class="legend-card-name">1-of-1</div>`;
+    peak.innerHTML=unlocked?`${legendInfoBadgeHTML('areviax_trophy')}
+      <div class="peak-rainbow-halo"></div>
+      <div class="legend-card-icon peak-bare">${legendIconHTML(trophy)}</div>
+      <div class="legend-card-name">1-of-1</div>`
+      :`<div class="legend-card-icon peak-bare" aria-label="Mystery trophy" style="font-family:var(--lv-serif,Georgia,serif);font-size:84px;font-weight:700;color:rgba(255,255,255,.55);line-height:1">?</div>
+      <div class="legend-card-name" style="visibility:hidden">?</div>`;
   }
   const legendsRow=document.getElementById('cabinet-legends-row');
   if(legendsRow){
