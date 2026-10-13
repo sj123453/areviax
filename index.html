@@ -19501,8 +19501,40 @@ function updateStreakFromActivity(){
       toast('🔥',streak+' day streak — keep it going!','streak');
       celebrateBurst(['🔥'],14);
     }
+    // Tiered milestone: the bigger the round number, the bigger the moment.
+    const _ms=STREAK_MILESTONES[streak];
+    if(_ms){
+      toast('🔥',_ms.msg,'streak');
+      celebrateBurst(_ms.burst,_ms.n);
+    }
   }
   checkAchievements();
+}
+// Round-number streaks get their own, escalating celebration (Duolingo's
+// own tests found milestone animations measurably lift retention).
+const STREAK_MILESTONES={
+  7:  {msg:'7 days in a row — a full week. Well earned.',burst:['🔥','⭐'],n:26},
+  14: {msg:'14 days — two weeks of showing up.',burst:['🔥','⭐','💪'],n:32},
+  30: {msg:'30 days — that is a habit, not a streak.',burst:['🔥','🏆','⭐','💥'],n:40},
+  50: {msg:'50 days. Few people ever get here.',burst:['🔥','🏆','⭐','💥'],n:46},
+  100:{msg:'100 days. Legendary.',burst:['👑','🔥','🏆','⭐','💥'],n:60},
+  200:{msg:'200 days. You are the standard now.',burst:['👑','🔥','🏆','⭐','💥'],n:66},
+  365:{msg:'A full year. Immortal.',burst:['👑','🔥','🏆','⭐','💥'],n:80}
+};
+// One free Streak Freeze each calendar month (only if none is banked), so a
+// missed day — illness, travel, a bad week — never has to mean losing
+// everything and never costs real or earned currency. Idempotent.
+function grantMonthlyFreeFreeze(){
+  try{
+    const m=localDateKey(new Date()).slice(0,7);
+    if(localStorage.getItem('arx_freeFreezeMonth')===m)return;
+    localStorage.setItem('arx_freeFreezeMonth',m);
+    if(streakFreezes<1){
+      streakFreezes=1;
+      toast('❄️','Your free monthly Streak Freeze is ready — it covers one missed day.','streak');
+      saveToStorage();
+    }
+  }catch(e){}
 }
 
 // ── NAV ──
@@ -25302,6 +25334,7 @@ function tryAutoConsumeStreakFreeze(){
 function checkStreakBroken(){
   const banner=document.getElementById('streak-repair-banner');
   if(!banner)return;
+  grantMonthlyFreeFreeze();
   if(tryAutoConsumeStreakFreeze()){banner.style.display='none';return;}
   const today=localDateKey(new Date());
   if(streakRepairDismissedDate===today||!lastActiveDate||lastActiveDate===today){banner.style.display='none';return;}
