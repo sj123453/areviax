@@ -245,6 +245,10 @@ input,input:focus,input:active,
    cut off partway down rather than a deliberately short page. */
 .page.active{display:flex;opacity:1;min-height:100dvh;animation:pageIn .34s cubic-bezier(.22,1,.36,1)}
 @keyframes pageIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* a11y: visible keyboard focus (WCAG 2.4.7) + role=button keyboard activation */
+:focus-visible{outline:2px solid #d4af37;outline-offset:2px;border-radius:4px}
+input:focus-visible,select:focus-visible,textarea:focus-visible{outline-offset:1px}
 @media (prefers-reduced-motion: reduce){.page.active{animation:none}}
 /* page transition: instant, no animation — avoids cross-element animation-restart bugs */
 /* View Transitions API picks this back up where the comment above left
@@ -5894,7 +5898,7 @@ body .road-scenery .xp-road-track.horizontal.rd{height:auto;min-height:330px;pad
       <div class="ob-input-group">
         <div class="ob-input-label-row">
           <div class="ob-input-label"><span class="ob-input-icon">⚖️</span>Current bodyweight</div>
-          <div id="weight-unit-toggle" style="display:flex;gap:4px"><button type="button" class="equip-chip active" data-u="lbs" onclick="setWeightUnit('lbs')" style="padding:3px 10px;font-size:11px">lbs</button><button type="button" class="equip-chip" data-u="kg" onclick="setWeightUnit('kg')" style="padding:3px 10px;font-size:11px">kg</button></div>
+          <div id="weight-unit-toggle" style="display:flex;gap:4px"><button type="button" class="equip-chip active" data-u="lbs" onclick="setWeightUnit('lbs')" style="padding:3px 10px;font-size:11px;min-height:28px;min-width:40px">lbs</button><button type="button" class="equip-chip" data-u="kg" onclick="setWeightUnit('kg')" style="padding:3px 10px;font-size:11px;min-height:28px;min-width:40px">kg</button></div>
         </div>
         <input type="number" id="ob-weight" placeholder="e.g. 145">
       </div>
@@ -5902,7 +5906,7 @@ body .road-scenery .xp-road-track.horizontal.rd{height:auto;min-height:330px;pad
       <div class="ob-input-group">
         <div class="ob-input-label-row">
           <div class="ob-input-label"><span class="ob-input-icon">📏</span>Height</div>
-          <div id="height-unit-toggle" style="display:flex;gap:4px"><button type="button" class="equip-chip active" data-u="cm" onclick="setHeightUnit('cm')" style="padding:3px 10px;font-size:11px">cm</button><button type="button" class="equip-chip" data-u="ftin" onclick="setHeightUnit('ftin')" style="padding:3px 10px;font-size:11px">ft/in</button></div>
+          <div id="height-unit-toggle" style="display:flex;gap:4px"><button type="button" class="equip-chip active" data-u="cm" onclick="setHeightUnit('cm')" style="padding:3px 10px;font-size:11px;min-height:28px;min-width:40px">cm</button><button type="button" class="equip-chip" data-u="ftin" onclick="setHeightUnit('ftin')" style="padding:3px 10px;font-size:11px;min-height:28px;min-width:40px">ft/in</button></div>
         </div>
         <div id="ob-height-cm-wrap"><input type="number" id="ob-height" placeholder="e.g. 178"></div>
         <div id="ob-height-ftin-wrap" style="display:none">
@@ -6146,7 +6150,7 @@ body .road-scenery .xp-road-track.horizontal.rd{height:auto;min-height:330px;pad
      bugs are well documented), but this is the strongest available fix
      without wrapping the app as a native shell. -->
 <audio id="sleep-bg-audio" loop playsinline style="display:none"></audio>
-<div class="app" id="main-app" style="display:none">
+<div class="app" id="main-app" role="main" style="display:none">
   <!-- CORNER BRAND WATERMARK — the same 8-point compass-star emblem the
        sidebar/dashboard/session headers already use, now faintly present
        in all four viewport corners app-wide (lives here once, outside any
@@ -6231,7 +6235,7 @@ body .road-scenery .xp-road-track.horizontal.rd{height:auto;min-height:330px;pad
       <span class="lv-road-alert" aria-hidden="true">!</span>
           </button>
           <div class="tb-pill tp-rank" onclick="openRankUp(event)" title="Rank" style="cursor:pointer;background:rgba(230,190,109,.12);border:1.5px solid rgba(230,190,109,.35);color:#E6BE6D"><img src="images/icons/rank-temple.png" alt="" style="width:16px;height:16px;vertical-align:-3px"> Rank</div>
-          <div class="tb-profile-btn" onclick="showPage('shop')" title="Marketplace" aria-label="Marketplace"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 01-8 0"/></svg></div>
+          <div class="tb-profile-btn" role="button" tabindex="0" onclick="showPage('shop')" title="Marketplace" aria-label="Marketplace"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 01-8 0"/></svg></div>
           <div class="tb-profile-btn" onclick="showPage('profile')" title="Profile"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
         </div>
       </div>
@@ -6759,7 +6763,7 @@ body .road-scenery .xp-road-track.horizontal.rd{height:auto;min-height:330px;pad
       <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;margin-bottom:14px">
         <div>
           <div class="lbl" style="margin-bottom:5px">Type</div>
-          <select id="wb-type" onchange="renderExercises()">
+          <select id="wb-type" aria-label="Workout type" onchange="renderExercises()">
             <option value="upper-push">Push Upper</option>
             <option value="upper-pull">Pull Upper</option>
             <option value="upper-full">Upper Full</option>
@@ -6770,7 +6774,7 @@ body .road-scenery .xp-road-track.horizontal.rd{height:auto;min-height:330px;pad
         </div>
         <div>
           <div class="lbl" style="margin-bottom:5px">Time</div>
-          <select id="wb-time" onchange="renderExercises()">
+          <select id="wb-time" aria-label="Workout length" onchange="renderExercises()">
             <option value="min">15–20 min</option>
             <option value="30">30 min</option>
             <option value="short">45 min</option>
@@ -7908,7 +7912,7 @@ body .road-scenery .xp-road-track.horizontal.rd{height:auto;min-height:330px;pad
   </div><!-- /.prog-top-grid -->
 
   <div class="nutr-carousel-label">‹ Swipe for more ›</div>
-  <div class="nutr-carousel" id="progress-carousel">
+  <div class="nutr-carousel" id="progress-carousel" tabindex="0" role="region" aria-label="Progress cards">
 
   <div class="nutr-carousel-card">
   <!-- DATA TERMINAL — Personal Records / Body Measurements / Weight Log /
@@ -8141,7 +8145,7 @@ body .road-scenery .xp-road-track.horizontal.rd{height:auto;min-height:330px;pad
             <span class="shop-grid-card-title">Areviax Crates</span>
             <span class="key-bank-badge" title="Spend Keys to upgrade a banked crate to the next tier"><img src="images/icons/key-gold.png" alt="" width="16" height="16" style="object-fit:contain;vertical-align:-3px"> <span id="key-bank-count">0</span></span>
           </div>
-          <div class="crate-row" id="crate-row"></div>
+          <div class="crate-row" id="crate-row" tabindex="0" role="region" aria-label="Your crates"></div>
         </div>
       </div>
     </div>
@@ -9763,10 +9767,10 @@ body .road-scenery .xp-road-track.horizontal.rd{height:auto;min-height:330px;pad
   <div class="card lv-surface" style="margin-bottom:14px">
     <div class="ch"><span class="ct">Your Details</span></div>
     <label class="lbl" style="margin-top:0">Name</label>
-    <input type="text" id="set-name">
+    <input type="text" id="set-name" aria-label="Your name" autocomplete="name">
     <div class="g2">
-      <div><div style="display:flex;align-items:center;justify-content:space-between"><label class="lbl" style="margin:0">Weight</label><div id="set-weight-unit-toggle" style="display:flex;gap:4px"><button type="button" class="equip-chip active" data-u="lbs" onclick="setWeightUnit('lbs',true)" style="padding:3px 10px;font-size:11px">lbs</button><button type="button" class="equip-chip" data-u="kg" onclick="setWeightUnit('kg',true)" style="padding:3px 10px;font-size:11px">kg</button></div></div><input type="number" id="set-weight"></div>
-      <div><div style="display:flex;align-items:center;justify-content:space-between"><label class="lbl" style="margin:0">Height</label><div id="set-height-unit-toggle" style="display:flex;gap:4px"><button type="button" class="equip-chip active" data-u="cm" onclick="setHeightUnit('cm',true)" style="padding:3px 10px;font-size:11px">cm</button><button type="button" class="equip-chip" data-u="ftin" onclick="setHeightUnit('ftin',true)" style="padding:3px 10px;font-size:11px">ft/in</button></div></div>
+      <div><div style="display:flex;align-items:center;justify-content:space-between"><label class="lbl" style="margin:0">Weight</label><div id="set-weight-unit-toggle" style="display:flex;gap:4px"><button type="button" class="equip-chip active" data-u="lbs" onclick="setWeightUnit('lbs',true)" style="padding:3px 10px;font-size:11px;min-height:28px;min-width:40px">lbs</button><button type="button" class="equip-chip" data-u="kg" onclick="setWeightUnit('kg',true)" style="padding:3px 10px;font-size:11px;min-height:28px;min-width:40px">kg</button></div></div><input type="number" id="set-weight"></div>
+      <div><div style="display:flex;align-items:center;justify-content:space-between"><label class="lbl" style="margin:0">Height</label><div id="set-height-unit-toggle" style="display:flex;gap:4px"><button type="button" class="equip-chip active" data-u="cm" onclick="setHeightUnit('cm',true)" style="padding:3px 10px;font-size:11px;min-height:28px;min-width:40px">cm</button><button type="button" class="equip-chip" data-u="ftin" onclick="setHeightUnit('ftin',true)" style="padding:3px 10px;font-size:11px;min-height:28px;min-width:40px">ft/in</button></div></div>
         <div id="set-height-cm-wrap"><input type="number" id="set-height"></div>
         <div id="set-height-ftin-wrap" style="display:none">
           <input type="number" id="set-height-ftin">
@@ -9784,8 +9788,8 @@ body .road-scenery .xp-road-track.horizontal.rd{height:auto;min-height:330px;pad
     <div style="display:flex;align-items:center;justify-content:space-between">
       <label class="lbl" style="margin:0">Theme</label>
       <div id="set-theme-toggle" style="display:flex;gap:4px">
-        <button type="button" class="equip-chip" data-u="dark" onclick="setTheme('dark')" style="padding:3px 10px;font-size:11px">🌙 Dark</button>
-        <button type="button" class="equip-chip" data-u="light" onclick="setTheme('light')" style="padding:3px 10px;font-size:11px">☀️ Light</button>
+        <button type="button" class="equip-chip" data-u="dark" onclick="setTheme('dark')" style="padding:3px 10px;font-size:11px;min-height:28px;min-width:40px">🌙 Dark</button>
+        <button type="button" class="equip-chip" data-u="light" onclick="setTheme('light')" style="padding:3px 10px;font-size:11px;min-height:28px;min-width:40px">☀️ Light</button>
       </div>
     </div>
     <div style="display:flex;align-items:center;justify-content:space-between;margin-top:14px">
@@ -9846,14 +9850,14 @@ body .road-scenery .xp-road-track.horizontal.rd{height:auto;min-height:330px;pad
   <div class="card lv-surface" style="margin-bottom:14px">
     <div class="ch"><span class="ct">Goal & Training</span></div>
     <label class="lbl" style="margin-top:0">Goal</label>
-    <select id="set-goal">
+    <select id="set-goal" aria-label="Goal">
       <option value="bulk">Bulk — build size, some fat gain is fine</option>
       <option value="lean">Lean bulk — slower, stay leaner</option>
       <option value="recomp">Recomp — build muscle and lose fat at maintenance</option>
       <option value="cut">Lose fat — keep your strength, run a deficit</option>
     </select>
     <label class="lbl">Equipment access</label>
-    <select id="set-equip" onchange="onSetEquipChange(this.value)">
+    <select id="set-equip" aria-label="Equipment" onchange="onSetEquipChange(this.value)">
       <option value="full">Full gym</option>
       <option value="dumbbells">Dumbbells only</option>
       <option value="home">Home / minimal equipment</option>
@@ -9865,7 +9869,7 @@ body .road-scenery .xp-road-track.horizontal.rd{height:auto;min-height:330px;pad
       <button class="btn btn-ghost" style="width:100%" onclick="openCustomEquipChecklist()">🧩 Edit custom equipment list</button>
     </div>
     <label class="lbl">Days per week you can realistically train</label>
-    <select id="set-days">
+    <select id="set-days" aria-label="Training days per week">
       <option value="3">3 days</option><option value="4">4 days</option>
       <option value="5">5 days</option><option value="6">6 days</option>
     </select>
@@ -34244,5 +34248,6 @@ window.arxIcons=scan;
 @keyframes seIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 @media(prefers-reduced-motion:reduce){.se-flame{display:none}.se-title,.se-sub,.se-quote,.se-btn{animation:none;opacity:1}.se-puff,.se-spark{display:none}.se-ember{animation:none;opacity:.25}}
 </style>
+<script>document.addEventListener('keydown',function(e){var t=e.target;if((e.key==='Enter'||e.key===' ')&&t&&t.getAttribute&&t.getAttribute('role')==='button'&&t.tagName!=='BUTTON'){e.preventDefault();t.click();}});</script>
 </body>
 </html>
