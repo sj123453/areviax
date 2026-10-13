@@ -5310,7 +5310,7 @@ body[data-goal-theme="cut"] .lv-page{
    crops nothing; cover is what keeps the frame full on a shorter phone
    where that height gets clamped below the card's natural ratio instead of
    leaving dead space down the sides. */
-.exwalk-card{flex:0 0 100%;width:100%;height:100%;object-fit:cover;scroll-snap-align:center}
+.exwalk-card{flex:0 0 100%;width:100%;height:100%;object-fit:contain;background:#04060b;scroll-snap-align:center}
 /* Quick scale+fade "pop" on whichever card becomes active, restarted every
    time by exwalkCardScroll()/exwalkCardAutoStart() removing then re-adding
    this class — direct ask: keep the hard stop-motion cut (no sliding) but
@@ -12614,11 +12614,11 @@ const EXERCISE_INFO_CARDS={
     {src:'mass-app/images/misc/exwalk-pullup-card5-lowering.jpg',alt:'Pull-ups — 5. Lowering',ratio:'273/725'},
   ],
   'Barbell Bench Press':[
-    {src:'mass-app/images/misc/exwalk-bench-card-setup.jpg',alt:'Barbell Bench Press — 1. Setup',ratio:'342/600'},
-    {src:'mass-app/images/misc/exwalk-bench-card-lowering.jpg',alt:'Barbell Bench Press — 2. Lowering',ratio:'286/600'},
-    {src:'mass-app/images/misc/exwalk-bench-card-bottom.jpg',alt:'Barbell Bench Press — 3. Bottom Position',ratio:'288/600'},
-    {src:'mass-app/images/misc/exwalk-bench-card-pressup.jpg',alt:'Barbell Bench Press — 4. Press Up',ratio:'296/600'},
-    {src:'mass-app/images/misc/exwalk-bench-card-top.jpg',alt:'Barbell Bench Press — 5. Top Position',ratio:'288/600'},
+    {src:'mass-app/images/misc/exwalk-bench-card-setup.jpg',alt:'Barbell Bench Press — 1. Setup',ratio:'337/597'},
+    {src:'mass-app/images/misc/exwalk-bench-card-lowering.jpg',alt:'Barbell Bench Press — 2. Lowering',ratio:'282/597'},
+    {src:'mass-app/images/misc/exwalk-bench-card-bottom.jpg',alt:'Barbell Bench Press — 3. Bottom Position',ratio:'286/597'},
+    {src:'mass-app/images/misc/exwalk-bench-card-pressup.jpg',alt:'Barbell Bench Press — 4. Press Up',ratio:'293/597'},
+    {src:'mass-app/images/misc/exwalk-bench-card-top.jpg',alt:'Barbell Bench Press — 5. Top Position',ratio:'283/597'},
   ],
   'Romanian Deadlift':[
     {src:'mass-app/images/misc/exwalk-rdl-card1-start.jpg',alt:'Romanian Deadlift — 1. Starting Position',ratio:'323/635'},
@@ -12787,7 +12787,11 @@ function exwalkCardSyncHeight(el){
   if(!ratio)return;
   const parts=ratio.split('/').map(s=>parseFloat(s.trim()));
   if(parts.length!==2||!parts[0]||!parts[1])return;
-  el.style.height=(el.clientWidth*parts[1]/parts[0])+'px';
+  // Never taller than the modal body, so a whole card always fits in frame
+  // (object-fit:contain shrinks it to fit, no cropping).
+  const body=el.closest('#watch-body');
+  const maxH=body&&body.clientHeight?Math.max(160,body.clientHeight-12):1e9;
+  el.style.height=Math.min(el.clientWidth*parts[1]/parts[0],maxH)+'px';
 }
 // Restarts the pop animation on whichever card is now active by removing
 // the class, forcing a reflow (so the browser forgets it ever played), then
