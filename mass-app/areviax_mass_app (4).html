@@ -245,6 +245,12 @@ input,input:focus,input:active,
    cut off partway down rather than a deliberately short page. */
 .page.active{display:flex;opacity:1;min-height:100dvh;animation:pageIn .34s cubic-bezier(.22,1,.36,1)}
 @keyframes pageIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* a11y: comfortable tap targets (>=36px) for the small controls the audit flagged */
+.equip-chip,.log-date-pill,.ex-fav-btn,.ex-order-btn,.ex-action-btn,.carousel-fs-btn,.crate-info-btn,.offer-card-buy,.lv-profile-btn{min-height:36px;min-width:36px;display:inline-flex;align-items:center;justify-content:center}
+/* a11y: visible keyboard focus (WCAG 2.4.7) + role=button keyboard activation */
+:focus-visible{outline:2px solid #d4af37;outline-offset:2px;border-radius:4px}
+input:focus-visible,select:focus-visible,textarea:focus-visible{outline-offset:1px}
 @media (prefers-reduced-motion: reduce){.page.active{animation:none}}
 /* page transition: instant, no animation — avoids cross-element animation-restart bugs */
 /* View Transitions API picks this back up where the comment above left
@@ -5894,7 +5900,7 @@ body .road-scenery .xp-road-track.horizontal.rd{height:auto;min-height:330px;pad
       <div class="ob-input-group">
         <div class="ob-input-label-row">
           <div class="ob-input-label"><span class="ob-input-icon">⚖️</span>Current bodyweight</div>
-          <div id="weight-unit-toggle" style="display:flex;gap:4px"><button type="button" class="equip-chip active" data-u="lbs" onclick="setWeightUnit('lbs')" style="padding:3px 10px;font-size:11px">lbs</button><button type="button" class="equip-chip" data-u="kg" onclick="setWeightUnit('kg')" style="padding:3px 10px;font-size:11px">kg</button></div>
+          <div id="weight-unit-toggle" style="display:flex;gap:4px"><button type="button" class="equip-chip active" data-u="lbs" onclick="setWeightUnit('lbs')" style="padding:3px 10px;font-size:11px;min-height:28px;min-width:40px">lbs</button><button type="button" class="equip-chip" data-u="kg" onclick="setWeightUnit('kg')" style="padding:3px 10px;font-size:11px;min-height:28px;min-width:40px">kg</button></div>
         </div>
         <input type="number" id="ob-weight" placeholder="e.g. 145">
       </div>
@@ -5902,7 +5908,7 @@ body .road-scenery .xp-road-track.horizontal.rd{height:auto;min-height:330px;pad
       <div class="ob-input-group">
         <div class="ob-input-label-row">
           <div class="ob-input-label"><span class="ob-input-icon">📏</span>Height</div>
-          <div id="height-unit-toggle" style="display:flex;gap:4px"><button type="button" class="equip-chip active" data-u="cm" onclick="setHeightUnit('cm')" style="padding:3px 10px;font-size:11px">cm</button><button type="button" class="equip-chip" data-u="ftin" onclick="setHeightUnit('ftin')" style="padding:3px 10px;font-size:11px">ft/in</button></div>
+          <div id="height-unit-toggle" style="display:flex;gap:4px"><button type="button" class="equip-chip active" data-u="cm" onclick="setHeightUnit('cm')" style="padding:3px 10px;font-size:11px;min-height:28px;min-width:40px">cm</button><button type="button" class="equip-chip" data-u="ftin" onclick="setHeightUnit('ftin')" style="padding:3px 10px;font-size:11px;min-height:28px;min-width:40px">ft/in</button></div>
         </div>
         <div id="ob-height-cm-wrap"><input type="number" id="ob-height" placeholder="e.g. 178"></div>
         <div id="ob-height-ftin-wrap" style="display:none">
@@ -6146,7 +6152,7 @@ body .road-scenery .xp-road-track.horizontal.rd{height:auto;min-height:330px;pad
      bugs are well documented), but this is the strongest available fix
      without wrapping the app as a native shell. -->
 <audio id="sleep-bg-audio" loop playsinline style="display:none"></audio>
-<div class="app" id="main-app" style="display:none">
+<div class="app" id="main-app" role="main" style="display:none">
   <!-- CORNER BRAND WATERMARK — the same 8-point compass-star emblem the
        sidebar/dashboard/session headers already use, now faintly present
        in all four viewport corners app-wide (lives here once, outside any
@@ -6231,7 +6237,7 @@ body .road-scenery .xp-road-track.horizontal.rd{height:auto;min-height:330px;pad
       <span class="lv-road-alert" aria-hidden="true">!</span>
           </button>
           <div class="tb-pill tp-rank" onclick="openRankUp(event)" title="Rank" style="cursor:pointer;background:rgba(230,190,109,.12);border:1.5px solid rgba(230,190,109,.35);color:#E6BE6D"><img src="images/icons/rank-temple.png" alt="" style="width:16px;height:16px;vertical-align:-3px"> Rank</div>
-          <div class="tb-profile-btn" onclick="showPage('shop')" title="Marketplace" aria-label="Marketplace"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 01-8 0"/></svg></div>
+          <div class="tb-profile-btn" role="button" tabindex="0" onclick="showPage('shop')" title="Marketplace" aria-label="Marketplace"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 01-8 0"/></svg></div>
           <div class="tb-profile-btn" onclick="showPage('profile')" title="Profile"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
         </div>
       </div>
@@ -6759,7 +6765,7 @@ body .road-scenery .xp-road-track.horizontal.rd{height:auto;min-height:330px;pad
       <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;margin-bottom:14px">
         <div>
           <div class="lbl" style="margin-bottom:5px">Type</div>
-          <select id="wb-type" onchange="renderExercises()">
+          <select id="wb-type" aria-label="Workout type" onchange="renderExercises()">
             <option value="upper-push">Push Upper</option>
             <option value="upper-pull">Pull Upper</option>
             <option value="upper-full">Upper Full</option>
@@ -6770,7 +6776,7 @@ body .road-scenery .xp-road-track.horizontal.rd{height:auto;min-height:330px;pad
         </div>
         <div>
           <div class="lbl" style="margin-bottom:5px">Time</div>
-          <select id="wb-time" onchange="renderExercises()">
+          <select id="wb-time" aria-label="Workout length" onchange="renderExercises()">
             <option value="min">15–20 min</option>
             <option value="30">30 min</option>
             <option value="short">45 min</option>
@@ -7908,7 +7914,7 @@ body .road-scenery .xp-road-track.horizontal.rd{height:auto;min-height:330px;pad
   </div><!-- /.prog-top-grid -->
 
   <div class="nutr-carousel-label">‹ Swipe for more ›</div>
-  <div class="nutr-carousel" id="progress-carousel">
+  <div class="nutr-carousel" id="progress-carousel" tabindex="0" role="region" aria-label="Progress cards">
 
   <div class="nutr-carousel-card">
   <!-- DATA TERMINAL — Personal Records / Body Measurements / Weight Log /
@@ -8141,7 +8147,7 @@ body .road-scenery .xp-road-track.horizontal.rd{height:auto;min-height:330px;pad
             <span class="shop-grid-card-title">Areviax Crates</span>
             <span class="key-bank-badge" title="Spend Keys to upgrade a banked crate to the next tier"><img src="images/icons/key-gold.png" alt="" width="16" height="16" style="object-fit:contain;vertical-align:-3px"> <span id="key-bank-count">0</span></span>
           </div>
-          <div class="crate-row" id="crate-row"></div>
+          <div class="crate-row" id="crate-row" tabindex="0" role="region" aria-label="Your crates"></div>
         </div>
       </div>
     </div>
@@ -9763,10 +9769,10 @@ body .road-scenery .xp-road-track.horizontal.rd{height:auto;min-height:330px;pad
   <div class="card lv-surface" style="margin-bottom:14px">
     <div class="ch"><span class="ct">Your Details</span></div>
     <label class="lbl" style="margin-top:0">Name</label>
-    <input type="text" id="set-name">
+    <input type="text" id="set-name" aria-label="Your name" autocomplete="name">
     <div class="g2">
-      <div><div style="display:flex;align-items:center;justify-content:space-between"><label class="lbl" style="margin:0">Weight</label><div id="set-weight-unit-toggle" style="display:flex;gap:4px"><button type="button" class="equip-chip active" data-u="lbs" onclick="setWeightUnit('lbs',true)" style="padding:3px 10px;font-size:11px">lbs</button><button type="button" class="equip-chip" data-u="kg" onclick="setWeightUnit('kg',true)" style="padding:3px 10px;font-size:11px">kg</button></div></div><input type="number" id="set-weight"></div>
-      <div><div style="display:flex;align-items:center;justify-content:space-between"><label class="lbl" style="margin:0">Height</label><div id="set-height-unit-toggle" style="display:flex;gap:4px"><button type="button" class="equip-chip active" data-u="cm" onclick="setHeightUnit('cm',true)" style="padding:3px 10px;font-size:11px">cm</button><button type="button" class="equip-chip" data-u="ftin" onclick="setHeightUnit('ftin',true)" style="padding:3px 10px;font-size:11px">ft/in</button></div></div>
+      <div><div style="display:flex;align-items:center;justify-content:space-between"><label class="lbl" style="margin:0">Weight</label><div id="set-weight-unit-toggle" style="display:flex;gap:4px"><button type="button" class="equip-chip active" data-u="lbs" onclick="setWeightUnit('lbs',true)" style="padding:3px 10px;font-size:11px;min-height:28px;min-width:40px">lbs</button><button type="button" class="equip-chip" data-u="kg" onclick="setWeightUnit('kg',true)" style="padding:3px 10px;font-size:11px;min-height:28px;min-width:40px">kg</button></div></div><input type="number" id="set-weight"></div>
+      <div><div style="display:flex;align-items:center;justify-content:space-between"><label class="lbl" style="margin:0">Height</label><div id="set-height-unit-toggle" style="display:flex;gap:4px"><button type="button" class="equip-chip active" data-u="cm" onclick="setHeightUnit('cm',true)" style="padding:3px 10px;font-size:11px;min-height:28px;min-width:40px">cm</button><button type="button" class="equip-chip" data-u="ftin" onclick="setHeightUnit('ftin',true)" style="padding:3px 10px;font-size:11px;min-height:28px;min-width:40px">ft/in</button></div></div>
         <div id="set-height-cm-wrap"><input type="number" id="set-height"></div>
         <div id="set-height-ftin-wrap" style="display:none">
           <input type="number" id="set-height-ftin">
@@ -9784,8 +9790,8 @@ body .road-scenery .xp-road-track.horizontal.rd{height:auto;min-height:330px;pad
     <div style="display:flex;align-items:center;justify-content:space-between">
       <label class="lbl" style="margin:0">Theme</label>
       <div id="set-theme-toggle" style="display:flex;gap:4px">
-        <button type="button" class="equip-chip" data-u="dark" onclick="setTheme('dark')" style="padding:3px 10px;font-size:11px">🌙 Dark</button>
-        <button type="button" class="equip-chip" data-u="light" onclick="setTheme('light')" style="padding:3px 10px;font-size:11px">☀️ Light</button>
+        <button type="button" class="equip-chip" data-u="dark" onclick="setTheme('dark')" style="padding:3px 10px;font-size:11px;min-height:28px;min-width:40px">🌙 Dark</button>
+        <button type="button" class="equip-chip" data-u="light" onclick="setTheme('light')" style="padding:3px 10px;font-size:11px;min-height:28px;min-width:40px">☀️ Light</button>
       </div>
     </div>
     <div style="display:flex;align-items:center;justify-content:space-between;margin-top:14px">
@@ -9846,14 +9852,14 @@ body .road-scenery .xp-road-track.horizontal.rd{height:auto;min-height:330px;pad
   <div class="card lv-surface" style="margin-bottom:14px">
     <div class="ch"><span class="ct">Goal & Training</span></div>
     <label class="lbl" style="margin-top:0">Goal</label>
-    <select id="set-goal">
+    <select id="set-goal" aria-label="Goal">
       <option value="bulk">Bulk — build size, some fat gain is fine</option>
       <option value="lean">Lean bulk — slower, stay leaner</option>
       <option value="recomp">Recomp — build muscle and lose fat at maintenance</option>
       <option value="cut">Lose fat — keep your strength, run a deficit</option>
     </select>
     <label class="lbl">Equipment access</label>
-    <select id="set-equip" onchange="onSetEquipChange(this.value)">
+    <select id="set-equip" aria-label="Equipment" onchange="onSetEquipChange(this.value)">
       <option value="full">Full gym</option>
       <option value="dumbbells">Dumbbells only</option>
       <option value="home">Home / minimal equipment</option>
@@ -9865,7 +9871,7 @@ body .road-scenery .xp-road-track.horizontal.rd{height:auto;min-height:330px;pad
       <button class="btn btn-ghost" style="width:100%" onclick="openCustomEquipChecklist()">🧩 Edit custom equipment list</button>
     </div>
     <label class="lbl">Days per week you can realistically train</label>
-    <select id="set-days">
+    <select id="set-days" aria-label="Training days per week">
       <option value="3">3 days</option><option value="4">4 days</option>
       <option value="5">5 days</option><option value="6">6 days</option>
     </select>
@@ -12607,6 +12613,13 @@ const EXERCISE_INFO_CARDS={
     {src:'images/misc/exwalk-pullup-card4-top.jpg',alt:'Pull-ups — 4. Top Position',ratio:'288/725'},
     {src:'images/misc/exwalk-pullup-card5-lowering.jpg',alt:'Pull-ups — 5. Lowering',ratio:'273/725'},
   ],
+  'Barbell Bench Press':[
+    {src:'images/misc/exwalk-bench-card-setup.jpg',alt:'Barbell Bench Press — 1. Setup',ratio:'337/597'},
+    {src:'images/misc/exwalk-bench-card-lowering.jpg',alt:'Barbell Bench Press — 2. Lowering',ratio:'282/597'},
+    {src:'images/misc/exwalk-bench-card-bottom.jpg',alt:'Barbell Bench Press — 3. Bottom Position',ratio:'286/597'},
+    {src:'images/misc/exwalk-bench-card-pressup.jpg',alt:'Barbell Bench Press — 4. Press Up',ratio:'293/597'},
+    {src:'images/misc/exwalk-bench-card-top.jpg',alt:'Barbell Bench Press — 5. Top Position',ratio:'283/597'},
+  ],
   'Romanian Deadlift':[
     {src:'images/misc/exwalk-rdl-card1-start.jpg',alt:'Romanian Deadlift — 1. Starting Position',ratio:'323/635'},
     {src:'images/misc/exwalk-rdl-card2-hinge.jpg',alt:'Romanian Deadlift — 2. Hinge Back',ratio:'333/635'},
@@ -12644,6 +12657,15 @@ const EXERCISE_WALKTHROUGH_INTRO={
   // 5 pro tips — mistakes list below is written directly from this app's
   // own troubleshoot entries for Romanian Deadlift, same as Push-ups/Squat,
   // so every exercise in this system gets the same complete overview.
+  'Barbell Bench Press':{
+    subtitle:'UPPER PUSH — CHEST FOCUS',
+    desc:'Lie on a flat bench with a barbell, grip slightly wider than shoulder-width, and press it up until your arms are nearly straight. Keep your body tight, feet planted, and control the movement throughout.',
+    mistakes:['Flaring the elbows too wide','Bouncing the bar off your chest','Lifting your feet or hips to cheat the rep','Letting the wrists bend back under the bar'],
+    muscleImg:'images/misc/exwalk-bench-muscles.jpg',
+    primary:'Chest (pectorals)',
+    secondary:'Triceps, shoulders (deltoids)',
+    proTips:['Keep your back tight and retracted into the bench.','Use your leg drive (keep feet planted).','Bar path: slightly towards your mid-chest, not your neck.','Keep your back flat on the bench with a slight natural arch and wrists straight.'],
+  },
   'Romanian Deadlift':{
     subtitle:'HIP HINGE — HAMSTRINGS & GLUTES',
     desc:'The Romanian Deadlift (RDL) is a hip hinge movement that focuses on the hamstrings and glutes. Unlike the conventional deadlift, your knees stay slightly bent and the bar moves in a straight line close to your legs, not the floor.',
@@ -26484,7 +26506,7 @@ const RECIPES_DB=[
     ingredients:['40g oats','1 scoop vanilla whey','15g chocolate chips','300ml whole milk'],
     steps:['Blend oats, whey, and milk.','Stir in chocolate chips at the very end.'],
     why:'A fast, no-fuss way to add 560 kcal and 35g protein when solid food isn\'t practical.'},
-  {name:'Vanilla Honey Malt',type:'snack',cals:670,prot:56,carbs:76,fats:16,effort:'no-cook',
+  {name:'Vanilla Honey Malt',type:'snack',image:'images/recipes/vanilla-honey-malt.jpg',cals:670,prot:56,carbs:76,fats:16,effort:'no-cook',
     ingredients:['2 scoops vanilla whey','2 tbsp honey','350ml whole milk'],
     steps:['High-glycemic simple carbs mixed with premium whey and whole milk.'],
     why:'Blend-and-go — useful for closing a calorie gap late in the day with minimal effort.'},
@@ -26500,115 +26522,115 @@ const RECIPES_DB=[
     ingredients:['3 large hard-boiled eggs','30g whole almonds'],
     steps:['Peel eggs and enjoy alongside a handful of crunchy almonds.'],
     why:'Grab-and-go — no prep beyond opening a wrapper or portioning it out.'},
-  {name:'Biltong / Beef Jerky Pack',type:'snack',cals:220,prot:35,carbs:10,fats:4,effort:'no-cook',
+  {name:'Biltong / Beef Jerky Pack',type:'snack',image:'images/recipes/biltong-beef-jerky-pack.jpg',cals:220,prot:35,carbs:10,fats:4,effort:'no-cook',
     ingredients:['70g beef biltong or high-quality beef jerky'],
     steps:['Eat straight from the pack for pure portable lean muscle protein.'],
     why:'Small enough to fit anywhere in the day, but still carries real protein, not just empty calories.'},
-  {name:'Cottage Cheese & Pineapple',type:'snack',cals:280,prot:24,carbs:23,fats:10,effort:'no-cook',
+  {name:'Cottage Cheese & Pineapple',type:'snack',image:'images/recipes/cottage-cheese-and-pineapple.jpg',cals:280,prot:24,carbs:23,fats:10,effort:'no-cook',
     ingredients:['200g full-fat cottage cheese','100g pineapple chunks'],
     steps:['Mix pineapple into the cottage cheese bowl for a sweet and savory snack.'],
     why:'An easy top-up for closing out a calorie or protein gap without a full meal.'},
-  {name:'Cheddar Cheese & Rice Crackers',type:'snack',cals:340,prot:15,carbs:35,fats:16,effort:'quick',
+  {name:'Cheddar Cheese & Rice Crackers',type:'snack',image:'images/recipes/cheddar-cheese-and-rice-crackers.jpg',cals:340,prot:15,carbs:35,fats:16,effort:'quick',
     ingredients:['50g cheddar cheese blocks','10 rice crackers'],
     steps:['Slice cheese and eat together with crispy rice crackers.'],
     why:'Grab-and-go — no prep beyond opening a wrapper or portioning it out.'},
-  {name:'Protein Bar & Apple',type:'snack',cals:310,prot:21,carbs:28,fats:13,effort:'no-cook',
+  {name:'Protein Bar & Apple',type:'snack',image:'images/recipes/protein-bar-and-apple.jpg',cals:310,prot:21,carbs:28,fats:13,effort:'no-cook',
     ingredients:['1 high-protein bar (60g)','1 medium apple'],
     steps:['Unwrap protein bar and enjoy with a fresh apple for fiber.'],
     why:'Small enough to fit anywhere in the day, but still carries real protein, not just empty calories.'},
-  {name:'Mixed Nuts & Raisins',type:'snack',cals:410,prot:10,carbs:46,fats:21,effort:'no-cook',
+  {name:'Mixed Nuts & Raisins',type:'snack',image:'images/recipes/mixed-nuts-and-raisins.jpg',cals:410,prot:10,carbs:46,fats:21,effort:'no-cook',
     ingredients:['50g mixed nuts','30g raisins'],
     steps:['Mix together in a bag for a high-calorie trail mix on the go.'],
     why:'An easy top-up for closing out a calorie or protein gap without a full meal.'},
-  {name:'Tuna Can & Crackers',type:'snack',cals:360,prot:26,carbs:32,fats:14,effort:'no-cook',
+  {name:'Tuna Can & Crackers',type:'snack',image:'images/recipes/tuna-can-and-crackers.jpg',cals:360,prot:26,carbs:32,fats:14,effort:'no-cook',
     ingredients:['1 pre-flavored tuna can (in sunflower oil)','6 cream crackers'],
     steps:['Eat tuna directly from the can using crackers to scoop it up.'],
     why:'Grab-and-go — no prep beyond opening a wrapper or portioning it out.'},
-  {name:'Hummus & Wholemeal Pitta',type:'snack',cals:330,prot:11,carbs:36,fats:16,effort:'quick',
+  {name:'Hummus & Wholemeal Pitta',type:'snack',image:'images/recipes/hummus-and-wholemeal-pitta.jpg',cals:330,prot:11,carbs:36,fats:16,effort:'quick',
     ingredients:['1 wholemeal pitta bread','4 tbsp classic hummus'],
     steps:['Toast pitta bread, slice into strips, and dip into rich hummus.'],
     why:'Small enough to fit anywhere in the day, but still carries real protein, not just empty calories.'},
-  {name:'Pumpkin Seeds Pocket',type:'snack',cals:340,prot:18,carbs:34,fats:15,effort:'no-cook',
+  {name:'Pumpkin Seeds Pocket',type:'snack',image:'images/recipes/pumpkin-seeds-pocket.jpg',cals:340,prot:18,carbs:34,fats:15,effort:'no-cook',
     ingredients:['60g roasted pumpkin seeds (pepitas)'],
     steps:['An excellent source of magnesium, zinc, fats, and clean calories.'],
     why:'An easy top-up for closing out a calorie or protein gap without a full meal.'},
-  {name:'Greek Yogurt Cup',type:'snack',cals:260,prot:20,carbs:22,fats:10,effort:'no-cook',
+  {name:'Greek Yogurt Cup',type:'snack',image:'images/recipes/greek-yogurt-cup.jpg',cals:260,prot:20,carbs:22,fats:10,effort:'no-cook',
     ingredients:['200g 5% Greek yogurt','15g honey'],
     steps:['Stir honey into a single-serve Greek yogurt tub.'],
     why:'Grab-and-go — no prep beyond opening a wrapper or portioning it out.'},
-  {name:'Turkey Breast Roll-Ups',type:'snack',cals:270,prot:32,carbs:18,fats:8,effort:'no-cook',
+  {name:'Turkey Breast Roll-Ups',type:'snack',image:'images/recipes/turkey-breast-roll-ups.jpg',cals:270,prot:32,carbs:18,fats:8,effort:'no-cook',
     ingredients:['150g deli turkey slices','2 cheese strings'],
     steps:['Roll turkey slices around the cheese strings for a quick snack.'],
     why:'Small enough to fit anywhere in the day, but still carries real protein, not just empty calories.'},
-  {name:'Dark Chocolate & Almonds',type:'snack',cals:310,prot:7,carbs:35,fats:16,effort:'no-cook',
+  {name:'Dark Chocolate & Almonds',type:'snack',image:'images/recipes/dark-chocolate-and-almonds.jpg',cals:310,prot:7,carbs:35,fats:16,effort:'no-cook',
     ingredients:['30g 85% dark chocolate','20g almonds'],
     steps:['Eat together for a clean antioxidant-rich fat and calorie boost.'],
     why:'An easy top-up for closing out a calorie or protein gap without a full meal.'},
-  {name:'Guacamole & Tortilla Chips',type:'snack',cals:420,prot:6,carbs:50,fats:22,effort:'no-cook',
+  {name:'Guacamole & Tortilla Chips',type:'snack',image:'images/recipes/guacamole-and-tortilla-chips.jpg',cals:420,prot:6,carbs:50,fats:22,effort:'no-cook',
     ingredients:['100g fresh guacamole','50g corn tortilla chips'],
     steps:['Dip corn tortilla chips straight into fresh calorie-dense guacamole.'],
     why:'Grab-and-go — no prep beyond opening a wrapper or portioning it out.'},
-  {name:'Edamame Pods salted',type:'snack',cals:190,prot:17,carbs:15,fats:7,effort:'no-cook',
+  {name:'Edamame Pods salted',type:'snack',image:'images/recipes/edamame-pods-salted.jpg',cals:190,prot:17,carbs:15,fats:7,effort:'no-cook',
     ingredients:['150g steamed edamame pods','sea salt flakes'],
     steps:['Pop edamame out of pods for a clean plant-based protein snack.'],
     why:'Small enough to fit anywhere in the day, but still carries real protein, not just empty calories.'},
-  {name:'Protein Chia Pudding',type:'snack',cals:390,prot:32,carbs:29,fats:16,effort:'no-cook',
+  {name:'Protein Chia Pudding',type:'snack',image:'images/recipes/protein-chia-pudding.jpg',cals:390,prot:32,carbs:29,fats:16,effort:'no-cook',
     ingredients:['3 tbsp chia seeds','200ml milk','1 scoop vanilla whey','10g honey'],
     steps:['Whisk ingredients thoroughly.','Let sit in fridge for 2 hours to thicken.'],
     why:'A dessert-style way to bank extra calories that still carries real protein, not just sugar.'},
-  {name:'Chocolate Avocado Pudding',type:'snack',cals:430,prot:6,carbs:46,fats:25,effort:'no-cook',
+  {name:'Chocolate Avocado Pudding',type:'snack',image:'images/recipes/chocolate-avocado-pudding.jpg',cals:430,prot:6,carbs:46,fats:25,effort:'no-cook',
     ingredients:['1 ripe avocado','2 tbsp cocoa powder','2 tbsp maple syrup','30ml milk'],
     steps:['Blend all ingredients until completely thick and smooth like pudding.'],
     why:'Feels like a treat, but the macros still count toward the day\'s actual targets.'},
-  {name:'Casein Fluff Nightcap',type:'snack',cals:380,prot:42,carbs:24,fats:13,effort:'no-cook',
+  {name:'Casein Fluff Nightcap',type:'snack',image:'images/recipes/casein-fluff-nightcap.jpg',cals:380,prot:42,carbs:24,fats:13,effort:'no-cook',
     ingredients:['1.5 scoops micellar casein','150ml milk','1 tbsp peanut butter'],
     steps:['Whisk aggressively in a bowl with a fork until fluffy.','Eat with spoon.'],
     why:'Useful for a day that\'s behind on calories and needs something genuinely enjoyable to close the gap.'},
-  {name:'Greek Yogurt Cheesecake Pot',type:'snack',cals:410,prot:20,carbs:37,fats:20,effort:'no-cook',
+  {name:'Greek Yogurt Cheesecake Pot',type:'snack',image:'images/recipes/greek-yogurt-cheesecake-pot.jpg',cals:410,prot:20,carbs:37,fats:20,effort:'no-cook',
     ingredients:['150g Greek yogurt','50g light cream cheese','2 crushed digestive biscuits'],
     steps:['Put crushed biscuits at the bottom.','Mix yogurt and cream cheese, layer on top.'],
     why:'A dessert-style way to bank extra calories that still carries real protein, not just sugar.'},
-  {name:'Warm Berry Compote & Yogurt',type:'snack',cals:320,prot:21,carbs:27,fats:14,effort:'quick',
+  {name:'Warm Berry Compote & Yogurt',type:'snack',image:'images/recipes/warm-berry-compote-and-yogurt.jpg',cals:320,prot:21,carbs:27,fats:14,effort:'quick',
     ingredients:['150g frozen berries heated up','200g Greek yogurt','10g honey'],
     steps:['Microwave berries until juicy.','Pour hot berries over cold Greek yogurt.'],
     why:'Feels like a treat, but the macros still count toward the day\'s actual targets.'},
-  {name:'High-Protein Rice Pudding',type:'snack',cals:580,prot:34,carbs:50,fats:27,effort:'no-cook',
+  {name:'High-Protein Rice Pudding',type:'snack',image:'images/recipes/high-protein-rice-pudding.jpg',cals:580,prot:34,carbs:50,fats:27,effort:'no-cook',
     ingredients:['1 can commercial rice pudding (400g)','1 scoop vanilla whey protein'],
     steps:['Warm up the rice pudding, stir in whey protein until fully incorporated.'],
     why:'Useful for a day that\'s behind on calories and needs something genuinely enjoyable to close the gap.'},
-  {name:'Peanut Butter Mud Pot',type:'snack',cals:360,prot:32,carbs:26,fats:14,effort:'no-cook',
+  {name:'Peanut Butter Mud Pot',type:'snack',image:'images/recipes/peanut-butter-mud-pot.jpg',cals:360,prot:32,carbs:26,fats:14,effort:'no-cook',
     ingredients:['1 scoop chocolate whey','2 tbsp peanut butter','2 tbsp milk'],
     steps:['Mix ingredients in a mug until a thick, cake-batter sludge forms.'],
     why:'A dessert-style way to bank extra calories that still carries real protein, not just sugar.'},
-  {name:'Banana Custard Bowl',type:'snack',cals:340,prot:8,carbs:35,fats:19,effort:'no-cook',
+  {name:'Banana Custard Bowl',type:'snack',image:'images/recipes/banana-custard-bowl.jpg',cals:340,prot:8,carbs:35,fats:19,effort:'no-cook',
     ingredients:['200ml ready-to-eat custard','1 sliced banana'],
     steps:['Warm custard up and top with sliced sweet banana.'],
     why:'Feels like a treat, but the macros still count toward the day\'s actual targets.'},
-  {name:'Baked Cinnamon Apples',type:'snack',cals:260,prot:3,carbs:28,fats:15,effort:'quick',
+  {name:'Baked Cinnamon Apples',type:'snack',image:'images/recipes/baked-cinnamon-apples.jpg',cals:260,prot:3,carbs:28,fats:15,effort:'quick',
     ingredients:['1 core apple','1 tsp cinnamon','10g butter','15g walnuts'],
     steps:['Fill apple center with butter, cinnamon, and walnuts.','Bake at 180C for 20m.'],
     why:'Useful for a day that\'s behind on calories and needs something genuinely enjoyable to close the gap.'},
-  {name:'Cottage Cheese Cocoa Whip',type:'snack',cals:310,prot:25,carbs:24,fats:13,effort:'no-cook',
+  {name:'Cottage Cheese Cocoa Whip',type:'snack',image:'images/recipes/cottage-cheese-cocoa-whip.jpg',cals:310,prot:25,carbs:24,fats:13,effort:'no-cook',
     ingredients:['200g cottage cheese','1 tbsp cocoa powder','2 tbsp honey'],
     steps:['Blend cottage cheese until silky smooth, stir in cocoa and honey.'],
     why:'A dessert-style way to bank extra calories that still carries real protein, not just sugar.'},
-  {name:'Dark Chocolate Rice Cake Stack',type:'snack',cals:390,prot:8,carbs:40,fats:22,effort:'no-cook',
+  {name:'Dark Chocolate Rice Cake Stack',type:'snack',image:'images/recipes/dark-chocolate-rice-cake-stack.jpg',cals:390,prot:8,carbs:40,fats:22,effort:'no-cook',
     ingredients:['2 rice cakes','40g melted dark chocolate','1 tbsp peanut butter'],
     steps:['Spread peanut butter, cover with melted chocolate, freeze for 10 minutes.'],
     why:'Feels like a treat, but the macros still count toward the day\'s actual targets.'},
-  {name:'Protein Mug Cake',type:'snack',cals:290,prot:30,carbs:19,fats:10,effort:'quick',
+  {name:'Protein Mug Cake',type:'snack',image:'images/recipes/protein-mug-cake.jpg',cals:290,prot:30,carbs:19,fats:10,effort:'quick',
     ingredients:['1 egg','1 scoop whey','1 tbsp cocoa','2 tbsp milk','1/2 tsp baking powder'],
     steps:['Mix in a mug and microwave on high for 50-60 seconds.'],
     why:'Useful for a day that\'s behind on calories and needs something genuinely enjoyable to close the gap.'},
-  {name:'Silken Tofu Chocolate Mousse',type:'snack',cals:380,prot:18,carbs:35,fats:19,effort:'no-cook',
+  {name:'Silken Tofu Chocolate Mousse',type:'snack',image:'images/recipes/silken-tofu-chocolate-mousse.jpg',cals:380,prot:18,carbs:35,fats:19,effort:'no-cook',
     ingredients:['200g silken tofu','50g melted dark chocolate','1 tbsp maple syrup'],
     steps:['Blend silken tofu, melted chocolate, and maple syrup until smooth.'],
     why:'A dessert-style way to bank extra calories that still carries real protein, not just sugar.'},
-  {name:'Strawberries and Whipped Cream',type:'snack',cals:240,prot:2,carbs:26,fats:14,effort:'no-cook',
+  {name:'Strawberries and Whipped Cream',type:'snack',image:'images/recipes/strawberries-and-whipped-cream.jpg',cals:240,prot:2,carbs:26,fats:14,effort:'no-cook',
     ingredients:['150g strawberries','50g heavy whipping cream'],
     steps:['Whip cream until thick.','Serve with fresh whole sweet strawberries.'],
     why:'Feels like a treat, but the macros still count toward the day\'s actual targets.'},
-  {name:'Proats Cookie Bowl',type:'snack',cals:410,prot:34,carbs:31,fats:17,effort:'quick',
+  {name:'Proats Cookie Bowl',type:'snack',image:'images/recipes/proats-cookie-bowl.jpg',cals:410,prot:34,carbs:31,fats:17,effort:'quick',
     ingredients:['40g oats','1 scoop whey','10g chocolate chips','milk'],
     steps:['Cook oats in milk, mix in whey, top with chocolate chips to melt.'],
     why:'Useful for a day that\'s behind on calories and needs something genuinely enjoyable to close the gap.'},
@@ -26616,43 +26638,43 @@ const RECIPES_DB=[
   // — Bodybuilder Classics — old-school, meal-prep-friendly staples built
   // around the same principle every bulking bodybuilder has used for
   // decades: a reliable lean-protein + starchy-carb base, eaten on repeat.
-  {name:'Old-School Oats & Egg Whites',type:'breakfast',cals:520,prot:40,carbs:55,fats:12,effort:'quick',
+  {name:'Old-School Oats & Egg Whites',type:'breakfast',image:'images/recipes/old-school-oats-and-egg-whites.jpg',cals:520,prot:40,carbs:55,fats:12,effort:'quick',
     ingredients:['80g oats','6 egg whites + 1 whole egg','1 banana, sliced','1 tsp cinnamon','1 tbsp honey'],
     steps:['Cook the oats in water or milk on medium heat, stirring, for about 5 minutes until thick.','In a separate pan, scramble the egg whites and whole egg together with a pinch of salt until just set.','Stir the cinnamon through the oats.','Serve the eggs alongside the oats, topped with sliced banana and a drizzle of honey.'],
     why:'The classic old-school bulking breakfast — high-volume oats plus a mostly-egg-white scramble keeps the protein high without stacking on excess fat, a combo bodybuilders have leaned on for decades because it\'s cheap and endlessly repeatable.'},
-  {name:'Mass Gainer Shake Bowl',type:'breakfast',cals:650,prot:45,carbs:80,fats:16,effort:'no-cook',
+  {name:'Mass Gainer Shake Bowl',type:'breakfast',image:'images/recipes/mass-gainer-shake-bowl.jpg',cals:650,prot:45,carbs:80,fats:16,effort:'no-cook',
     ingredients:['40g oats','1 banana','2 scoops whey protein','300ml whole milk','1 tbsp peanut butter'],
     steps:['Blend the oats, banana, whey, milk, and peanut butter together until smooth.','Pour into a bowl or large glass and eat straight away.'],
     why:'A liquid-leaning meal for when appetite is the bottleneck to gaining weight — blending calorie-dense ingredients into a shake is the standard bodybuilder trick for hitting a surplus without forcing down more solid food than you can stomach.'},
-  {name:'Classic Chicken, Rice & Broccoli',type:'lunch',cals:580,prot:50,carbs:60,fats:10,effort:'some-effort',
+  {name:'Classic Chicken, Rice & Broccoli',type:'lunch',image:'images/recipes/classic-chicken-rice-and-broccoli.jpg',cals:580,prot:50,carbs:60,fats:10,effort:'some-effort',
     ingredients:['200g chicken breast, grilled','150g rice, cooked','150g broccoli','1 tsp olive oil','salt, pepper, garlic powder to taste'],
     steps:['Cook the rice according to the packet.','Season the chicken with salt, pepper and garlic powder, then grill or pan-fry on medium-high for 6-7 minutes per side until cooked through.','Steam the broccoli for 4-5 minutes until just tender.','Plate the chicken over rice with broccoli on the side, drizzled with olive oil.'],
     why:'The definitive bodybuilding meal-prep plate — plain, macro-predictable, and boring on purpose, which is exactly why it\'s survived as the default: it\'s the easiest thing to cook in bulk and eat five days in a row without getting sick of it.'},
-  {name:'Tuna Rice Cake Stack',type:'lunch',cals:430,prot:38,carbs:45,fats:8,effort:'no-cook',
+  {name:'Tuna Rice Cake Stack',type:'lunch',image:'images/recipes/tuna-rice-cake-stack.jpg',cals:430,prot:38,carbs:45,fats:8,effort:'no-cook',
     ingredients:['1 can tuna in spring water, drained','4 rice cakes','1 tbsp light mayo or Greek yogurt','1 tsp mustard','black pepper'],
     steps:['Mix the drained tuna with the mayo or yogurt, mustard, and a good crack of black pepper.','Spoon evenly across the rice cakes and eat straight away.'],
     why:'A no-cook, no-fridge-needed lunch that\'s been a bodybuilding staple for years — tuna is cheap, near-fat-free protein, and rice cakes give a clean, light carb base without weighing the meal down.'},
-  {name:'Lean Beef & Sweet Potato Mash',type:'dinner',cals:640,prot:46,carbs:55,fats:20,effort:'some-effort',
+  {name:'Lean Beef & Sweet Potato Mash',type:'dinner',image:'images/recipes/lean-beef-and-sweet-potato-mash.jpg',cals:640,prot:46,carbs:55,fats:20,effort:'some-effort',
     ingredients:['200g lean beef mince (5% fat)','1 large sweet potato','handful spinach','1 tbsp butter','salt, pepper, paprika'],
     steps:['Peel and chop the sweet potato, boil for 15-18 minutes until soft.','While it boils, brown the beef mince in a hot pan with salt, pepper, and paprika, breaking it up as it cooks (about 8 minutes).','Wilt the spinach into the pan for the last minute.','Drain and mash the sweet potato with the butter.','Serve the beef and spinach over the mash.'],
     why:'Red meat and a slow-digesting starchy carb is a long-standing bulking-dinner combo — the iron and B12 in beef complement a diet that\'s often chicken-heavy, and sweet potato holds fullness better than white rice at the end of the day.'},
-  {name:'Baked Cod with Quinoa & Asparagus',type:'dinner',cals:480,prot:42,carbs:40,fats:12,effort:'some-effort',
+  {name:'Baked Cod with Quinoa & Asparagus',type:'dinner',image:'images/recipes/baked-cod-with-quinoa-and-asparagus.jpg',cals:480,prot:42,carbs:40,fats:12,effort:'some-effort',
     ingredients:['200g cod fillet','80g quinoa, uncooked','8-10 asparagus spears','1 tbsp olive oil','lemon wedge'],
     steps:['Cook the quinoa according to the packet, about 15 minutes.','Season the cod with salt, pepper, and a drizzle of olive oil, then bake at 200C for 12-15 minutes until it flakes easily.','Toss the asparagus in a little oil and roast or pan-fry for 5-6 minutes until tender.','Serve the cod over quinoa with asparagus and a squeeze of lemon.'],
     why:'A lighter, near-fat-free white fish option for evenings when a heavy dinner sits badly — still hits a serious protein number, which is the actual goal, not just calories for their own sake.'},
-  {name:'Turkey Meatballs & Sweet Potato',type:'dinner',cals:560,prot:44,carbs:50,fats:16,effort:'some-effort',
+  {name:'Turkey Meatballs & Sweet Potato',type:'dinner',image:'images/recipes/turkey-meatballs-and-sweet-potato.jpg',cals:560,prot:44,carbs:50,fats:16,effort:'some-effort',
     ingredients:['200g lean turkey mince','1 egg','30g breadcrumbs','1 sweet potato, cubed','marinara sauce','italian herbs'],
     steps:['Preheat the oven to 200C.','Mix the turkey mince with the egg, breadcrumbs, and herbs, then roll into 8-10 meatballs.','Toss the sweet potato cubes in oil and spread on one tray, meatballs on another.','Roast both for 18-20 minutes until the meatballs are cooked through and the sweet potato is soft.','Warm the marinara sauce and serve over the meatballs with sweet potato on the side.'],
     why:'Turkey keeps the fat down while the breadcrumb-and-egg binding makes these genuinely batch-cookable — a full tray freezes well, which matters more for consistency than any single meal\'s macros.'},
-  {name:'Bison Burger Bowl',type:'lunch',cals:610,prot:48,carbs:52,fats:20,effort:'some-effort',
+  {name:'Bison Burger Bowl',type:'lunch',image:'images/recipes/bison-burger-bowl.jpg',cals:610,prot:48,carbs:52,fats:20,effort:'some-effort',
     ingredients:['200g lean bison or beef mince','120g rice, cooked','1/2 avocado','handful lettuce, shredded','salsa'],
     steps:['Form the mince into a patty, season with salt and pepper.','Cook in a hot pan for 3-4 minutes per side until done to preference.','Break the patty up over a bowl of rice and shredded lettuce.','Top with sliced avocado and salsa.'],
     why:'Deconstructing a burger into a bowl keeps the same satisfying flavour without the extra bun calories, leaving more room in the day\'s budget for the actual food that builds muscle.'},
-  {name:'Bodybuilder\'s Tuna & Crackers',type:'snack',cals:320,prot:30,carbs:28,fats:10,effort:'no-cook',
+  {name:'Bodybuilder\'s Tuna & Crackers',type:'snack',image:'images/recipes/bodybuilders-tuna-and-crackers.jpg',cals:320,prot:30,carbs:28,fats:10,effort:'no-cook',
     ingredients:['1 can tuna in spring water','8-10 whole wheat crackers','black pepper','hot sauce (optional)'],
     steps:['Drain the tuna and season with black pepper and hot sauce if using.','Scoop onto crackers and eat.'],
     why:'A gym-bag-friendly, zero-effort protein top-up for whenever a meal is running late — this exact combo has been a prep-day staple for as long as bodybuilders have been carrying tupperware around.'},
-  {name:'Cottage Cheese Bulking Bowl',type:'snack',cals:400,prot:36,carbs:34,fats:14,effort:'no-cook',
+  {name:'Cottage Cheese Bulking Bowl',type:'snack',image:'images/recipes/cottage-cheese-bulking-bowl.jpg',cals:400,prot:36,carbs:34,fats:14,effort:'no-cook',
     ingredients:['250g full-fat cottage cheese','30g granola','1 tbsp honey','handful walnuts'],
     steps:['Spoon the cottage cheese into a bowl.','Top with granola, walnuts, and a drizzle of honey.'],
     why:'Cottage cheese is slow-digesting casein-heavy protein — eaten before bed or as a late top-up, it\'s a well-worn bodybuilding trick for feeding muscle overnight instead of just before a workout.'},
@@ -26663,35 +26685,35 @@ const RECIPES_DB=[
   // to cook rather than microwave. Still built the same way as every
   // recipe above: real macros, a genuine step list, and a "why" that
   // isn't just marketing copy.
-  {name:'Butter Chicken with Basmati Rice',type:'dinner',cals:780,prot:52,carbs:70,fats:30,effort:'some-effort',
+  {name:'Butter Chicken with Basmati Rice',type:'dinner',image:'images/recipes/butter-chicken-with-basmati-rice.jpg',cals:780,prot:52,carbs:70,fats:30,effort:'some-effort',
     ingredients:['500g chicken thigh, diced','200g plain yogurt','2 tbsp butter','1 onion, diced','3 garlic cloves, minced','1 tbsp fresh ginger, grated','2 tsp garam masala','1 tsp turmeric','400g tinned tomatoes','100ml double cream','150g basmati rice'],
     steps:['Marinate the chicken in half the yogurt with a pinch of the garam masala and turmeric for at least 20 minutes.','Melt the butter in a pan, soften the onion, garlic, and ginger for 5 minutes.','Stir in the remaining spices and cook 1 minute until fragrant, then add the tomatoes and simmer 10 minutes, blending smooth if you want it silky.','Sear the marinated chicken in a separate hot pan until browned, then add it to the sauce and simmer 12-15 minutes until cooked through.','Stir in the cream and remaining yogurt off the heat.','Serve over cooked basmati rice.'],
     why:'A genuinely restraint-tested curry that still lands at a real protein number thanks to the chicken thigh and dairy — this is the "I actually want to cook tonight" dinner, not a 10-minute bowl.'},
-  {name:'Korean Beef Bulgogi Rice Bowl',type:'dinner',cals:720,prot:48,carbs:68,fats:24,effort:'some-effort',
+  {name:'Korean Beef Bulgogi Rice Bowl',type:'dinner',image:'images/recipes/korean-beef-bulgogi-rice-bowl.jpg',cals:720,prot:48,carbs:68,fats:24,effort:'some-effort',
     ingredients:['400g sirloin or ribeye, thinly sliced','3 tbsp soy sauce','1 tbsp brown sugar','1 tbsp sesame oil','2 garlic cloves, minced','1 tsp grated ginger','1 pear or apple, grated (tenderiser)','150g rice, cooked','1 carrot, julienned','1 spring onion, sliced','sesame seeds'],
     steps:['Whisk the soy sauce, brown sugar, sesame oil, garlic, ginger, and grated pear into a marinade.','Marinate the beef for at least 20 minutes (longer if you have time).','Heat a pan or wok until very hot, then sear the beef in batches for 1-2 minutes a side — don\'t crowd the pan or it\'ll steam instead of caramelising.','Quickly stir-fry the carrot for a minute in the same pan.','Serve the beef and carrot over rice, scattered with spring onion and sesame seeds.'],
     why:'The grated pear is doing real work here, not just flavour — its enzymes tenderise the beef, so a cheaper cut still eats like a much pricier one, which matters when you\'re eating this much meat regularly.'},
-  {name:'Chicken Shawarma Plate with Tzatziki',type:'lunch',cals:690,prot:56,carbs:52,fats:26,effort:'some-effort',
+  {name:'Chicken Shawarma Plate with Tzatziki',type:'lunch',image:'images/recipes/chicken-shawarma-plate-with-tzatziki.jpg',cals:690,prot:56,carbs:52,fats:26,effort:'some-effort',
     ingredients:['500g chicken thigh','2 tsp cumin','2 tsp paprika','1 tsp cinnamon','1 tsp turmeric','3 garlic cloves, minced','2 tbsp olive oil','juice of 1 lemon','200g Greek yogurt','half a cucumber, grated and squeezed dry','1 tbsp fresh mint or dill','2 flatbreads','pickled red onion, optional'],
     steps:['Mix the spices, garlic, olive oil, and half the lemon juice into a paste and rub over the chicken. Marinate at least 30 minutes.','Meanwhile make the tzatziki: mix the yogurt, grated cucumber, remaining lemon juice, and herbs with a pinch of salt.','Sear the chicken thighs in a hot pan 5-6 minutes a side until charred and cooked through, then rest and slice.','Warm the flatbreads.','Build the plate: flatbread, sliced chicken, a generous spoon of tzatziki, and pickled onion if using.'],
     why:'The spice rub is what actually makes this taste like a shawarma stand rather than "plain chicken with cumin sprinkled on" — worth the 30-minute marinade if you\'re going to bother cooking from scratch at all.'},
-  {name:'Seafood Paella',type:'dinner',cals:640,prot:44,carbs:72,fats:16,effort:'some-effort',
+  {name:'Seafood Paella',type:'dinner',image:'images/recipes/seafood-paella.jpg',cals:640,prot:44,carbs:72,fats:16,effort:'some-effort',
     ingredients:['200g paella or arborio rice','300g mixed seafood (prawns, mussels, squid)','1 onion, diced','1 red pepper, sliced','2 garlic cloves, minced','1 tsp smoked paprika','pinch saffron (or turmeric)','500ml hot stock','100g frozen peas','1 lemon, cut into wedges'],
     steps:['Soften the onion, pepper, and garlic in a wide pan for 5 minutes.','Stir in the rice, paprika, and saffron so every grain gets coated.','Pour in the hot stock, bring to a simmer, then stop stirring — let it cook undisturbed for 15 minutes so a crust (socarrat) can form on the bottom.','Nestle the seafood and peas into the rice for the last 5-6 minutes, covering loosely, until the seafood is just cooked and the mussels have opened.','Rest 5 minutes off the heat, then serve with lemon wedges.'],
     why:'Letting the rice sit undisturbed instead of stirring it like a risotto is the actual technique that makes this a paella — worth getting right once and you\'ll never make it the "wrong", stodgy way again.'},
-  {name:'Moussaka',type:'dinner',cals:760,prot:46,carbs:44,fats:42,effort:'some-effort',
+  {name:'Moussaka',type:'dinner',image:'images/recipes/moussaka.jpg',cals:760,prot:46,carbs:44,fats:42,effort:'some-effort',
     ingredients:['2 aubergines, sliced','500g lean lamb or beef mince','1 onion, diced','2 garlic cloves, minced','400g tinned tomatoes','1 tsp cinnamon','2 tbsp olive oil','40g butter','40g flour','400ml milk','60g parmesan, grated'],
     steps:['Salt the aubergine slices and leave 15 minutes to draw out moisture, then pat dry and grill or pan-fry until golden on both sides.','Brown the mince with the onion and garlic, then stir in the tomatoes and cinnamon and simmer 15 minutes into a thick ragu.','Make a béchamel: melt the butter, whisk in the flour, then gradually whisk in the milk over medium heat until it thickens. Stir in half the parmesan.','Layer in a baking dish: aubergine, meat sauce, aubergine, meat sauce, then top with the béchamel and remaining parmesan.','Bake at 190°C for 30-35 minutes until golden and bubbling. Rest 10 minutes before cutting — it holds together much better once rested.'],
     why:'This is the one genuinely "weekend project" recipe in here — three components built separately then layered — but it batch-cooks and reheats brilliantly, so one afternoon of effort covers several dinners.'},
-  {name:'Shoyu Chicken Ramen',type:'dinner',cals:700,prot:50,carbs:74,fats:20,effort:'some-effort',
+  {name:'Shoyu Chicken Ramen',type:'dinner',image:'images/recipes/shoyu-chicken-ramen.jpg',cals:700,prot:50,carbs:74,fats:20,effort:'some-effort',
     ingredients:['1L chicken stock','3 tbsp soy sauce','1 tbsp mirin','2 garlic cloves','1 thumb ginger, sliced','2 chicken thighs','2 nests ramen noodles','2 soft-boiled eggs, halved','1 spring onion, sliced','sheet of nori','chilli oil, optional'],
     steps:['Simmer the stock with the soy sauce, mirin, garlic, and ginger for 15 minutes to build the broth.','Poach the chicken thighs in the broth for 12-15 minutes until cooked through, then remove, slice, and set aside.','Cook the ramen noodles separately according to the pack, then drain.','Strain the broth if you want it clear (optional).','Build the bowls: noodles, hot broth poured over, sliced chicken, a halved soft-boiled egg, spring onion, nori, and chilli oil if using.'],
     why:'A real dashi-style broth built from actual aromatics beats an instant seasoning sachet by miles, and poaching the chicken directly in it means nothing goes to waste — the broth does double duty as the cooking liquid.'},
-  {name:'Steak au Poivre with Garlic Mash',type:'dinner',cals:820,prot:54,carbs:50,fats:44,effort:'some-effort',
+  {name:'Steak au Poivre with Garlic Mash',type:'dinner',image:'images/recipes/steak-au-poivre-with-garlic-mash.jpg',cals:820,prot:54,carbs:50,fats:44,effort:'some-effort',
     ingredients:['2 sirloin or ribeye steaks','2 tbsp black peppercorns, crushed','1 tbsp oil','2 tbsp butter','2 garlic cloves','60ml brandy or beef stock','100ml double cream','500g potatoes','1 garlic clove, extra, for the mash','splash of milk'],
     steps:['Boil the potatoes with the extra garlic clove until tender, then mash with milk and a knob of butter.','Press the crushed peppercorns firmly into both sides of the steaks.','Sear the steaks in hot oil 2-3 minutes a side for medium-rare, then rest on a plate.','Deglaze the same pan with the brandy (carefully, it may flame) or stock, scraping up the browned bits, then stir in the cream and simmer 2 minutes into a sauce.','Slice the steaks, spoon over the pepper sauce, and serve with the garlic mash.'],
     why:'Deglazing the pan is the whole trick — all the flavour from searing the steak is sitting in those browned bits, and the sauce is what turns "steak and potatoes" into an actual restaurant-style plate.'},
-  {name:'Shepherd\'s Pie with Sweet Potato Mash',type:'dinner',cals:680,prot:44,carbs:60,fats:26,effort:'some-effort',
+  {name:'Shepherd\'s Pie with Sweet Potato Mash',type:'dinner',image:'images/recipes/shepherds-pie-with-sweet-potato-mash.jpg',cals:680,prot:44,carbs:60,fats:26,effort:'some-effort',
     ingredients:['500g lean lamb mince','1 onion, diced','2 carrots, diced','2 garlic cloves, minced','2 tbsp tomato purée','1 tbsp Worcestershire sauce','300ml stock','800g sweet potato, peeled and chunked','30g butter','40g cheddar, grated'],
     steps:['Boil the sweet potato chunks until tender, then mash with the butter.','Brown the lamb mince, then add the onion, carrots, and garlic and cook 5 minutes to soften.','Stir in the tomato purée, Worcestershire sauce, and stock, then simmer 15-20 minutes until thick and the veg is tender.','Spread the mince into a baking dish, top with the sweet potato mash, and scatter over the cheddar.','Bake at 200°C for 20-25 minutes until the top is golden.'],
     why:'Swapping the usual white potato topping for sweet potato adds real micronutrients on top of the calories, and this batch-cooks + freezes exceptionally well — cook once, eat this four times.'},
@@ -26699,7 +26721,7 @@ const RECIPES_DB=[
     ingredients:['500g chicken breast, cubed','150g yogurt, plus extra for the marinade','2 tsp tikka masala spice mix','2 garlic cloves, minced','1 tbsp grated ginger','1 onion, diced','400g tinned tomatoes','100ml cream','250g plain flour','1 tsp baking powder','2 tbsp oil'],
     steps:['Marinate the chicken in yogurt, half the spice mix, garlic, and ginger for at least 30 minutes.','Mix the flour, baking powder, a pinch of salt, and enough water/yogurt to form a soft dough for the naan; rest it while you make the curry.','Grill or pan-sear the marinated chicken until charred at the edges, then set aside.','Soften the onion, add the remaining spice mix, then the tomatoes, and simmer 10 minutes before stirring in the cream and the chicken to finish cooking through.','Roll the naan dough into rounds and cook in a hot dry pan or under the grill 2 minutes a side until puffed and charred.'],
     why:'Making the naan from scratch takes maybe 10 extra minutes of hands-on time and turns this from "curry with rice" into a proper sit-down meal — the char on both the chicken and the naan is where most of the flavour actually comes from.'},
-  {name:'Slow-Braised Lamb Ragu Pappardelle',type:'dinner',cals:790,prot:48,carbs:68,fats:32,effort:'some-effort',
+  {name:'Slow-Braised Lamb Ragu Pappardelle',type:'dinner',image:'images/recipes/slow-braised-lamb-ragu-pappardelle.jpg',cals:790,prot:48,carbs:68,fats:32,effort:'some-effort',
     ingredients:['600g lamb shoulder, diced','1 onion, diced','1 carrot, diced','1 celery stick, diced','3 garlic cloves, minced','150ml red wine (or extra stock)','400g tinned tomatoes','300ml stock','1 bay leaf','1 tsp rosemary','250g pappardelle','parmesan, grated'],
     steps:['Brown the lamb in batches in a hot pan, then set aside — don\'t skip browning, it\'s most of the flavour.','Soften the onion, carrot, celery, and garlic in the same pan for 5-6 minutes.','Return the lamb, add the wine, and let it bubble for 2 minutes to cook off the alcohol.','Add the tomatoes, stock, bay leaf, and rosemary, then cover and simmer low for 2-2.5 hours (or a slow cooker on low for 6-7) until the lamb shreds apart with a fork.','Shred the lamb back into the sauce, cook the pappardelle, and toss together with plenty of parmesan.'],
     why:'This is a genuine low-and-slow braise, not a 20-minute bolognese — the long cook is what breaks the shoulder down into something that falls apart, and it makes a big batch worth freezing in portions.'},
@@ -26707,7 +26729,7 @@ const RECIPES_DB=[
     ingredients:['500g chicken thigh, sliced','3 tbsp green curry paste (or make your own from chilli, lemongrass, garlic, ginger, coriander root)','400ml coconut milk','1 tbsp fish sauce','1 tsp brown sugar','100g green beans, trimmed','1 red pepper, sliced','handful Thai basil','150g jasmine rice'],
     steps:['Fry the curry paste in a splash of the thick coconut cream from the top of the tin for 2 minutes until fragrant.','Add the chicken and cook 4-5 minutes until sealed on all sides.','Pour in the rest of the coconut milk, fish sauce, and sugar, and simmer 10 minutes.','Add the green beans and pepper and cook a further 5 minutes until the chicken is cooked through and the veg still has some bite.','Stir through the Thai basil at the end and serve over jasmine rice.'],
     why:'Blooming the curry paste in fat before adding liquid is the single biggest difference between a curry that tastes like a jar and one that tastes like it came from a Thai kitchen.'},
-  {name:'Prawn & Chorizo Jambalaya',type:'dinner',cals:660,prot:46,carbs:64,fats:20,effort:'some-effort',
+  {name:'Prawn & Chorizo Jambalaya',type:'dinner',image:'images/recipes/prawn-and-chorizo-jambalaya.jpg',cals:660,prot:46,carbs:64,fats:20,effort:'some-effort',
     ingredients:['200g raw prawns','100g chorizo, sliced','1 onion, diced','1 red pepper, diced','2 garlic cloves, minced','200g long-grain rice','400g tinned tomatoes','400ml stock','1 tsp smoked paprika','1 tsp cayenne (optional, to taste)','spring onion, to finish'],
     steps:['Fry the chorizo in a dry pan until it releases its oil, then remove and set aside, leaving the oil in the pan.','Soften the onion, pepper, and garlic in the chorizo oil for 5 minutes.','Stir in the rice, paprika, and cayenne, then add the tomatoes and stock. Bring to a simmer, cover, and cook 15 minutes.','Stir in the prawns and cooked chorizo for the last 4-5 minutes until the prawns turn pink and the rice is tender.','Scatter with spring onion and serve straight from the pan.'],
     why:'The chorizo oil left in the pan is the shortcut that makes this taste properly seasoned throughout instead of just having chorizo chunks sitting on top of plain rice — nothing here gets a separate pan.'},
@@ -34244,5 +34266,6 @@ window.arxIcons=scan;
 @keyframes seIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 @media(prefers-reduced-motion:reduce){.se-flame{display:none}.se-title,.se-sub,.se-quote,.se-btn{animation:none;opacity:1}.se-puff,.se-spark{display:none}.se-ember{animation:none;opacity:.25}}
 </style>
+<script>document.addEventListener('keydown',function(e){var t=e.target;if((e.key==='Enter'||e.key===' ')&&t&&t.getAttribute&&t.getAttribute('role')==='button'&&t.tagName!=='BUTTON'){e.preventDefault();t.click();}});</script>
 </body>
 </html>
