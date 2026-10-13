@@ -31354,11 +31354,30 @@ function relogLoggedItem(idx){
   checkProteinQuest();
   saveToStorage();
 }
+// One tap to copy every item from an earlier day into today — the main
+// shortcut for people who eat roughly the same thing most days (the
+// hardgainer default). Pays Arete once for the batch, not per item.
+function dayItemsFor(dateKey){return (foodLogByDate&&foodLogByDate[dateKey])||[];}
+function yesterdayKey(){const d=new Date();d.setDate(d.getDate()-1);return localDateKey(d);}
+function repeatDayToToday(dateKey){
+  const items=dayItemsFor(dateKey);
+  if(!items.length){toast('ℹ️','Nothing logged on that day to copy');return;}
+  let cals=0;
+  items.forEach(it=>{logItem(it.name,it.cals||0,it.prot||0,it.carbs||0,it.fats||0,it.alcohol||0);cals+=it.cals||0;});
+  addXP(5,'Meals repeated');
+  toast('↻','Copied '+items.length+(items.length===1?' item':' items')+' ('+Math.round(cals).toLocaleString()+' kcal) to today');
+  try{checkProteinQuest();}catch(e){}
+  saveToStorage();
+}
 function renderTodayLog(){
   const list=document.getElementById('today-log-list');
   if(!list)return;
   if(!todayLog.length){
-    list.innerHTML='<div class="today-log-empty">Nothing logged yet today.</div>';
+    const yKey=yesterdayKey();
+    const yItems=dayItemsFor(yKey);
+    const yCals=yItems.reduce((n,it)=>n+(it.cals||0),0);
+    list.innerHTML='<div class="today-log-empty">Nothing logged yet today.</div>'+
+      (yItems.length?'<button type="button" class="btn btn-out" style="width:100%;margin-top:10px" onclick="repeatDayToToday(\''+yKey+'\')">↻ Repeat yesterday · '+yItems.length+(yItems.length===1?' item':' items')+' · '+Math.round(yCals).toLocaleString()+' kcal</button>':'');
     return;
   }
   list.innerHTML=todayLog.map((item,i)=>
@@ -31433,6 +31452,7 @@ function renderPastDayLog(){
   box.innerHTML='<div class="past-day-log-card"><div class="pdl-title">Already logged for '+relativeDayLabel(pendingLogDate)+'</div>'+
     (items.length?items.map(it=>`<div class="pdl-item"><span>${escHtml(it.name)}</span><span>${it.cals} kcal</span></div>`).join(''):'<div class="pdl-item"><span>Nothing yet</span></div>')+
     (items.length?'':'<button type="button" class="btn btn-out" style="width:100%;margin-top:10px" onclick="markDayHitOutsideApp()">I hit my targets — tracked outside the app</button>')+
+    (items.length?'<button type="button" class="btn btn-out" style="width:100%;margin-top:10px" onclick="repeatDayToToday(\''+pendingLogDate+'\')">↻ Copy these to today</button>':'')+
     '<button type="button" class="btn btn-g" style="width:100%;margin-top:8px" onclick="finishBackdatedLogging()">Finish logging — back to today</button>'+
     '</div>';
 }
