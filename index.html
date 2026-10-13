@@ -7929,6 +7929,7 @@ body .road-scenery .xp-road-track.horizontal.rd{height:auto;min-height:330px;pad
     </div>
     <div id="prog-consistency-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:6px;margin-bottom:8px"></div>
     <div style="text-align:right;font-family:var(--lv-mono);font-size:11px;color:var(--lv-muted-fg)">today</div>
+    <div id="prog-consistency-empty" style="display:none;margin-top:12px;text-align:center"><div style="font-size:12px;color:var(--lv-muted-fg);line-height:1.5;margin-bottom:10px">No sessions yet. Each trained day lights up a square.</div><button class="btn btn-g btn-sm" onclick="showPage('workout')">Plan your first session</button></div>
   </div>
 
   <!-- BALANCE — real tonnageLog bucketed by muscle into push/pull/legs/core
@@ -8495,6 +8496,7 @@ body .road-scenery .xp-road-track.horizontal.rd{height:auto;min-height:330px;pad
       <div class="lv-rail-track" style="height:3px"><div class="lv-rail-fill" id="rec-stat-cns-fill" style="background:var(--lv-xp);width:0%"></div></div>
     </div>
   </section>
+  <div id="rec-stats-hint" style="display:none;margin:-6px 0 16px;text-align:center;font-size:12px;color:var(--lv-muted-fg);line-height:1.5">These fill in once you log sleep and a session. Use the check-in below to start.</div>
 
   <!-- QUICK CHECK-IN — honesty over guilt. Once per day (guarded in JS) so
        it's a real check-in, not a way to farm Arete by tapping repeatedly.
@@ -15765,6 +15767,7 @@ function renderLiftRanks(){
       </div>
       <div class="lrk-tier-label unranked">Unranked</div>
       <div class="lrk-percentile">Log a set to get ranked</div>
+      <button class="btn btn-g btn-sm" style="margin-top:10px" onclick="event.stopPropagation();showPage('workout')">Start a session</button>
     </div>`;
     return;
   }
@@ -19771,7 +19774,13 @@ function showPage(id){
     doShowPage(id);
   }
 }
+function updateRecEmptyHint(){
+  const h=document.getElementById('rec-stats-hint');if(!h)return;
+  const t=id=>{const e=document.getElementById(id);return e?e.textContent.trim():'—';};
+  h.style.display=(t('rec-stat-sleep')==='—'&&t('rec-stat-ready')==='—'&&t('rec-stat-cns')==='—')?'':'none';
+}
 function doShowPage(id){
+  if(id==='recovery')setTimeout(updateRecEmptyHint,250);
   try{updateMobileNav(id);}catch(e){}
   syncPageChrome(id);
   if(id==='rank')loadRankPage();
@@ -20434,6 +20443,7 @@ function renderProgressConsistencyGrid(){
   }
   gridEl.innerHTML=cells.join('');
   if(countEl)countEl.textContent='4 weeks · '+trainedCount+'/28';
+  const emptyC=document.getElementById('prog-consistency-empty');if(emptyC)emptyC.style.display=trainedCount?'none':'';
 }
 // BALANCE — tonnageLog's own muscle field, bucketed into push/pull/legs/
 // core (one tonnageLog entry = one logged set), last 8 weeks.
