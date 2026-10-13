@@ -7082,8 +7082,9 @@ body .road-scenery .xp-road-track.horizontal.rd{height:auto;min-height:330px;pad
 
       <div style="margin-top:12px;display:flex;align-items:flex-end;justify-content:space-between">
         <div>
-          <p class="lv-label-eyebrow">Remaining today</p>
+          <p class="lv-label-eyebrow" id="nutr-left-label">Left to eat today</p>
           <p class="lv-stat-huge" style="margin-top:6px" id="nutr-remaining-num">0<span style="margin-left:4px;font-family:var(--lv-mono);font-size:11px;color:var(--lv-muted-fg)">kcal</span></p>
+          <p id="nutr-left-sub" style="margin-top:4px;font-family:var(--lv-mono);font-size:11px;color:var(--lv-muted-fg)"></p>
         </div>
         <p style="font-family:var(--lv-mono);font-size:11px;color:var(--lv-muted-fg)" id="nutr-pct-text">0% of 0</p>
       </div>
@@ -28163,6 +28164,14 @@ function renderNutrition(){
     const pct=Math.min(100,profile.cals?(dayMacros.cals||0)/profile.cals*100:0);
     if(nPct)nPct.textContent=Math.round(pct)+'% of '+profile.cals.toLocaleString();
     if(nFill)nFill.style.width=pct+'%';
+    // Surplus-first framing: this is a target to HIT, not a budget to stay
+    // under. Show how much protein is still to go, and a clear "hit" state.
+    const nLeftLbl=document.getElementById('nutr-left-label');
+    const nLeftSub=document.getElementById('nutr-left-sub');
+    const protLeft=Math.max(0,Math.round((profile.protein||0)-(dayMacros.prot||0)));
+    const hit=(dayMacros.cals||0)>=profile.cals;
+    if(nLeftLbl)nLeftLbl.textContent=hit?'Target hit ✓':'Left to eat today';
+    if(nLeftSub)nLeftSub.textContent=profile.protein?(protLeft>0?protLeft+' g protein still to go':'Protein target hit ✓'):'';
   }else if(nRemaining){
     // No calorie target set yet (fresh account, before Settings has ever
     // been saved) — "0% of 0" read as broken math rather than an actual
@@ -28170,6 +28179,7 @@ function renderNutrition(){
     // leaves the markup's literal placeholder text showing.
     nRemaining.innerHTML='—<span style="margin-left:4px;font-family:var(--lv-mono);font-size:11px;color:var(--lv-muted-fg)">kcal</span>';
     if(nPct)nPct.textContent='Set your calorie target in Settings';
+    const nLeftSub0=document.getElementById('nutr-left-sub');if(nLeftSub0)nLeftSub0.textContent='';
     if(nFill)nFill.style.width='0%';
   }
   renderTodayLog();
