@@ -181,7 +181,7 @@ function confettiBurst(x,y,n){
 window.confettiBurst=confettiBurst;
 
 /* referral capture + form */
-const ENDPOINT='REPLACE_WITH_REAL_FORMSPREE_ENDPOINT';   // set to a real Formspree (or equivalent) URL to collect emails
+const ENDPOINT='https://formspree.io/f/mwlvrbkw';   // set to a real Formspree (or equivalent) URL to collect emails
 const SUPPORT='areviaxsupport@gmail.com';
 let ref=null;try{const u=new URLSearchParams(location.search).get('ref');if(u)localStorage.setItem('arx_ref',u.slice(0,60));ref=localStorage.getItem('arx_ref');}catch(e){ref=new URLSearchParams(location.search).get('ref');}
 const rb=$('#ref');if(rb&&ref){rb.textContent='👋 Invited by '+ref.slice(0,60);rb.style.display='inline-flex';}
