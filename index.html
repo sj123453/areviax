@@ -9468,6 +9468,14 @@ body .road-scenery .xp-road-track.horizontal.rd{height:auto;min-height:330px;pad
     </div>
   </div>
 
+  <!-- SHARE CARD — a postable 9:16 image of your rank, streak and sessions.
+       No name or personal data on it. See openShareCard(). -->
+  <div class="card lv-surface" style="margin-bottom:14px">
+    <div class="ch"><span class="ct">Share your rank</span></div>
+    <div style="font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:10px">A story-sized card with your rank statue, streak and session count. No name, no personal details.</div>
+    <button type="button" class="btn btn-g" style="width:100%" onclick="openShareCard('rank')">Create my card</button>
+  </div>
+
   <!-- CONSISTENCY HEATMAP -->
   <div class="card lv-surface" style="margin-bottom:14px">
     <div class="ch"><span class="ct">Consistency</span></div>
@@ -13563,7 +13571,7 @@ function showAchievementUnlock(a){
       '<div class="achievement-unlocked-label">'+(isAnniv?'THANK YOU':'ACHIEVEMENT UNLOCKED')+'</div>'+
       '<div class="achievement-title">'+a.label+'</div>'+
       '<div class="achievement-desc">'+a.desc+'</div>'+
-      '<button class="achievement-share-btn" onclick="shareAchievement()">Share this \ud83d\udcf2</button>'+
+      '<button class="achievement-share-btn" onclick="openShareCard(\'trophy\')">Share this card \ud83d\udcf2</button>'+
       '<button class="achievement-close-btn" onclick="closeAchievementModal(this)">Continue</button>'+
     '</div>';
   document.body.appendChild(overlay);
@@ -13572,6 +13580,76 @@ function showAchievementUnlock(a){
 }
 
 let _currentAchievement=null;
+// ── SHARE CARDS — real images (not just text) people can post. Drawn on a
+// canvas at story size (1080x1920), previewed in a modal, shared through the
+// native share sheet when it can take files, otherwise saved as a PNG. Cards
+// carry NO name or personal data. Arete for sharing is paid once per kind per
+// day so it can't be farmed.
+function _scImg(src){return new Promise(res=>{const i=new Image();i.onload=()=>res(i);i.onerror=()=>res(null);i.src=src;});}
+function _scWrap(ctx,text,x,y,maxW,lineH,maxLines){
+  const words=String(text||'').split(/\s+/);let line='',lines=[];
+  words.forEach(w=>{const t=line?line+' '+w:w;if(ctx.measureText(t).width>maxW&&line){lines.push(line);line=w;}else line=t;});
+  if(line)lines.push(line);
+  lines=lines.slice(0,maxLines||6);
+  lines.forEach((l,i)=>ctx.fillText(l,x,y+i*lineH));
+  return y+lines.length*lineH;
+}
+async function drawShareCard(kind){
+  const W=1080,H=1920,c=document.createElement('canvas');c.width=W;c.height=H;const ctx=c.getContext('2d');
+  const tier=getRank();const col=tier.col||'#D4AF37';
+  const disp='"Cinzel","Cormorant Garamond",Georgia,serif',sans='"Outfit","Helvetica Neue",Arial,sans-serif';
+  // background
+  let g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'#0b0705');g.addColorStop(.55,'#120a06');g.addColorStop(1,'#050302');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  g=ctx.createRadialGradient(W/2,780,40,W/2,780,760);g.addColorStop(0,col+'55');g.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  // double border
+  ctx.strokeStyle='#D4AF37';ctx.lineWidth=4;ctx.strokeRect(46,46,W-92,H-92);ctx.lineWidth=1.5;ctx.strokeRect(64,64,W-128,H-128);
+  ctx.textAlign='center';ctx.fillStyle='#D4AF37';ctx.font='600 40px '+sans;
+  try{ctx.letterSpacing='10px';}catch(e){}
+  ctx.fillText('AREVIAX MASS',W/2,150);
+  try{ctx.letterSpacing='0px';}catch(e){}
+  if(kind==='trophy'&&_currentAchievement){
+    const a=_currentAchievement;
+    ctx.fillStyle='#EBDDC6';ctx.font='500 44px '+sans;try{ctx.letterSpacing='8px';}catch(e){}
+    ctx.fillText('ACHIEVEMENT UNLOCKED',W/2,300);try{ctx.letterSpacing='0px';}catch(e){}
+    ctx.font='360px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';ctx.fillText(a.icon||'🏆',W/2,900);
+    ctx.fillStyle='#fff';ctx.font='700 96px '+disp;
+    let y=_scWrap(ctx,a.label,W/2,1130,W-220,112,3);
+    ctx.fillStyle='rgba(235,221,198,.8)';ctx.font='400 50px '+sans;
+    _scWrap(ctx,a.desc,W/2,y+40,W-260,70,5);
+  }else{
+    ctx.fillStyle='#EBDDC6';ctx.font='500 44px '+sans;try{ctx.letterSpacing='8px';}catch(e){}
+    ctx.fillText('MY RANK',W/2,300);try{ctx.letterSpacing='0px';}catch(e){}
+    const im=await _scImg(tier.cut||tier.photo);
+    if(im){const maxH=980,maxW=860;const k=Math.min(maxW/im.width,maxH/im.height);const w=im.width*k,h=im.height*k;ctx.drawImage(im,(W-w)/2,400,w,h);}
+    ctx.fillStyle=col;ctx.font='700 130px '+disp;ctx.fillText((tier.name||'Unranked').toUpperCase(),W/2,1530);
+    ctx.fillStyle='#fff';ctx.font='600 62px '+sans;
+    ctx.fillText((streak||0)+'-day streak   ·   '+(totalSess||0)+' session'+(totalSess===1?'':'s'),W/2,1650);
+  }
+  ctx.fillStyle='rgba(212,175,55,.85)';ctx.font='500 40px '+sans;ctx.fillText('Making Success Real',W/2,1800);
+  return c;
+}
+async function openShareCard(kind){
+  if(kind==='trophy'&&!_currentAchievement){toast('ℹ️','Nothing to share yet');return;}
+  let canvas;try{canvas=await drawShareCard(kind);}catch(e){toast('⚠️','Could not make the card');return;}
+  const url=canvas.toDataURL('image/png');
+  const old=document.getElementById('share-card-overlay');if(old)old.remove();
+  const ov=document.createElement('div');ov.id='share-card-overlay';
+  ov.style.cssText='position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.88);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:16px';
+  ov.innerHTML='<img alt="Your share card" src="'+url+'" style="max-height:72vh;max-width:90vw;border-radius:12px;box-shadow:0 8px 40px rgba(0,0,0,.6)"><div style="display:flex;gap:8px;width:min(92vw,420px)"><button type="button" class="btn btn-g" style="flex:1" id="sc-share-btn">Share</button><button type="button" class="btn btn-out" style="flex:1" id="sc-save-btn">Save image</button></div><button type="button" class="btn btn-ghost btn-sm" id="sc-close-btn">Close</button>';
+  document.body.appendChild(ov);
+  const close=()=>ov.remove();
+  const awardOnce=()=>{try{const k='arx_sharexp_'+kind;const d=localDateKey(new Date());if(localStorage.getItem(k)!==d){localStorage.setItem(k,d);addXP(kind==='trophy'?25:10,'Shared a card');}}catch(e){}};
+  document.getElementById('sc-close-btn').onclick=close;
+  document.getElementById('sc-save-btn').onclick=()=>{const a=document.createElement('a');a.href=url;a.download='areviax-'+kind+'-card.png';document.body.appendChild(a);a.click();a.remove();awardOnce();};
+  document.getElementById('sc-share-btn').onclick=()=>{
+    canvas.toBlob(blob=>{
+      const f=blob?new File([blob],'areviax-'+kind+'-card.png',{type:'image/png'}):null;
+      if(f&&navigator.canShare&&navigator.canShare({files:[f]})){navigator.share({files:[f],text:'Making Success Real — Areviax'}).then(awardOnce).catch(()=>{});}
+      else{document.getElementById('sc-save-btn').click();toast('📥','Saved — post it from your photos');}
+    },'image/png');
+  };
+}
+
 function shareAchievement(){
   const a=_currentAchievement;
   if(!a)return;
