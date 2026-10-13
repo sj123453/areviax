@@ -6446,7 +6446,7 @@ body .road-scenery .xp-road-track.horizontal.rd{height:auto;min-height:330px;pad
     <div id="d-next-last" style="display:none">last · —</div>
 
     <div>
-      <p class="lv-label-eyebrow" style="margin-bottom:8px">Week so far</p>
+      <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:8px"><p class="lv-label-eyebrow" style="margin:0">Week so far</p><span id="d-week-streak" style="font-family:var(--lv-mono);font-size:11px;color:var(--lv-muted-fg)"></span></div>
       <div id="d-next-daypicker" style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px"></div>
     </div>
 
@@ -18824,6 +18824,34 @@ function updateAvatar(){
 }
 
 // ── WEEKLY QUESTS ──
+// WEEKLY STREAK — a gentler streak for people who train 3-4 days a week:
+// consecutive Mon-Sun weeks in which you hit your weekly goal (your planned
+// training days, capped at 4). The current week never breaks it while it's
+// still in progress; it only adds once the goal is met. Missing a day inside
+// a week is fine — only a whole missed week ends it.
+function computeWeeklyStreak(){
+  const goal=Math.min(4,Math.max(1,profile.days||3));
+  const count={};
+  trainingCompletedDates.forEach(d=>{const k=getMonday(parseLocalDate(d));count[k]=(count[k]||0)+1;});
+  const thisMon=getMonday(new Date());
+  const thisCount=count[thisMon]||0;
+  let weeks=thisCount>=goal?1:0;
+  const cur=parseLocalDate(thisMon);
+  for(let i=1;i<200;i++){
+    const d=new Date(cur);d.setDate(d.getDate()-7*i);
+    const k=getMonday(d);
+    if((count[k]||0)>=goal)weeks++;else break;
+  }
+  return {weeks,goal,thisCount};
+}
+function renderWeeklyStreak(){
+  const el=document.getElementById('d-week-streak');
+  if(!el)return;
+  const w=computeWeeklyStreak();
+  const done=w.thisCount>=w.goal;
+  el.textContent=(w.weeks>0?w.weeks+(w.weeks===1?' week':' weeks')+' in a row · ':'')+Math.min(w.thisCount,w.goal)+'/'+w.goal+' this week'+(done?' ✓':'');
+  el.style.color=done?'var(--lv-gold,#D4AF37)':'';
+}
 function getMonday(d){
   const date=new Date(d);
   const day=date.getDay();
@@ -29843,6 +29871,7 @@ function renderWeeklyRecap(){
   // rendered as capsule pills (today filled solid, trained days a ✓,
   // untrained days their letter) so it reads like a real weekly picker
   // rather than the flame-box streak strip this reuses data from.
+  try{renderWeeklyStreak();}catch(e){}
   const heroDaysEl=document.getElementById('d-next-daypicker');
   if(heroDaysEl){
     heroDaysEl.innerHTML=thisWeekDates.map((dStr)=>{
