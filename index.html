@@ -13735,6 +13735,16 @@ function shareAchievement(){
   addXP(25,'Shared an achievement');
 }
 
+// Early Joiner: anyone whose join date is on or before the cutoff gets the trophy once, automatically.
+const EARLY_JOINER_CUTOFF='2027-01-31';
+function grantEarlyJoiner(){
+  if(!joinDate||joinDate>EARLY_JOINER_CUTOFF)return;
+  if(unlockedLegends.includes('early_joiner'))return;
+  unlockedLegends.push('early_joiner');
+  try{legendCounts.early_joiner=(legendCounts.early_joiner||0)+1;}catch(e){}
+  achievementQueue.push({key:'early_joiner',label:'Early Joiner',desc:'You were here in the first months. This trophy can never be earned again.',icon:'\ud83d\udd25'});
+  saveToStorage();
+}
 function checkAnniversary(){
   if(!joinDate)return;
   const join=parseLocalDate(joinDate);
@@ -13853,6 +13863,8 @@ const LEGEND_CARDS=[
   // visibly higher-fidelity second wave.
   {key:'relic_amphora', name:'Amphora of the Unbowed', title:'Awarded to those who do not miss the work', icon:'🏺', img:'mass-app/images/relics/amphora.png', imgThumb:'mass-app/images/relics/amphora.png', rarity:'common'},
   {key:'relic_wreath', name:"Victor's Laurel", title:'Worn by those who finished first — or finished at all', icon:'🌿', img:'mass-app/images/relics/wreath.png', imgThumb:'mass-app/images/relics/wreath.png', rarity:'common'},
+  // Early Joiner \u2014 earned, never dropped: everyone whose joinDate is on or before EARLY_JOINER_CUTOFF gets it automatically.
+  {key:'early_joiner', name:'Early Joiner', title:'Here before the temple had doors \u2014 you joined in the first months', icon:'\ud83d\udd25', img:'mass-app/images/relics/early_joiner.png', imgThumb:'mass-app/images/relics/early_joiner.png', rarity:'legendary', earned:true},
   {key:'relic_medallion', name:'The Discobolus Medallion', title:'Form is temporary. Discipline is not', icon:'🥏', img:'mass-app/images/relics/medallion.png', imgThumb:'mass-app/images/relics/medallion.png', rarity:'common'},
   {key:'relic_trident', name:"Poseidon's Reach", title:'For those who go deep, not just often', icon:'🔱', img:'mass-app/images/relics/trident.png', imgThumb:'mass-app/images/relics/trident.png', rarity:'superrare'},
   {key:'relic_cornucopia', name:'Horn of Abundance', title:'What you build compounds — this is the proof', icon:'🌽', img:'mass-app/images/relics/cornucopia.png', imgThumb:'mass-app/images/relics/cornucopia.png', rarity:'superrare'},
@@ -14373,7 +14385,7 @@ function grantXpRoadReward(node){
     const startIdx=RARITY_ORDER.indexOf(node.rarity);
     let pool=[];
     for(let i=Math.max(startIdx,0);i<RARITY_ORDER.length&&!pool.length;i++){
-      pool=LEGEND_CARDS.filter(l=>l.rarity===RARITY_ORDER[i]);
+      pool=LEGEND_CARDS.filter(l=>l.rarity===RARITY_ORDER[i]&&!l.earned);
     }
     const pick=pool[Math.floor(Math.random()*pool.length)];
     if(!pick)return;
@@ -15629,7 +15641,7 @@ function awardProgress(a){
     const have=parts.filter(Boolean).length+(road?1:0);
     return {have,total:5,done:have===5,missing:[]};
   }
-  const keys=a.set==='all'?LEGEND_CARDS.map(l=>l.key):AWARD_SETS[a.set];
+  const keys=a.set==='all'?LEGEND_CARDS.filter(l=>!l.earned).map(l=>l.key):AWARD_SETS[a.set];
   const have=keys.filter(k=>unlockedLegends.includes(k)).length;
   const missing=keys.filter(k=>!unlockedLegends.includes(k));
   return {have,total:keys.length,done:have===keys.length,missing};
@@ -15726,7 +15738,7 @@ function viewAward(key){
   document.body.appendChild(o);requestAnimationFrame(()=>o.classList.add('show'));
 }
 const TROPHY_LAYERS=[
-  {rarity:'legendary', label:'Legendary',  sub:'The pinnacle \u2014 beyond this, only one thing.',            items:LEGEND_CARDS.filter(l=>l.rarity==='legendary')},
+  {rarity:'legendary', label:'Legendary',  sub:'The pinnacle \u2014 beyond this, only one thing.',            items:LEGEND_CARDS.filter(l=>l.rarity==='legendary'&&!l.earned)},
   {rarity:'mythic',    label:'Mythic',     sub:'Where even heroes rarely return from.',                  items:LEGEND_CARDS.filter(l=>l.rarity==='mythic')},
   {rarity:'epic',      label:'Epic',       sub:'Not every test is a monster.',                           items:LEGEND_CARDS.filter(l=>l.rarity==='epic')},
   {rarity:'superrare', label:'Superrare',  sub:'Favoured by the gods, not yet legend.',                  items:LEGEND_CARDS.filter(l=>l.rarity==='superrare')},
@@ -15812,7 +15824,7 @@ function renderTrophyHeroLovable(){
   const total=legendTotal,earned=legendEarned;
   const en=document.getElementById('troph-earned-num');if(en)en.textContent=earned;
   const tn=document.getElementById('troph-total-num');if(tn)tn.textContent=total;
-  const goldLocked=LEGEND_CARDS.filter(l=>(l.rarity==='legendary'||l.rarity==='ultralegendary')&&!unlockedLegends.includes(l.key)).length;
+  const goldLocked=LEGEND_CARDS.filter(l=>(l.rarity==='legendary'||l.rarity==='ultralegendary')&&!l.earned&&!unlockedLegends.includes(l.key)).length;
   const gl=document.getElementById('troph-gold-locked');if(gl)gl.textContent=goldLocked;
   const xb=document.getElementById('troph-xp-banked');if(xb)xb.textContent=xp;
   const fillEl=document.getElementById('troph-hero-fill');if(fillEl)fillEl.style.width=(total?earned/total*100:0)+'%';
@@ -15825,7 +15837,9 @@ function renderTrophyCabinet(){
   if(!cont)return;
   renderCabinetAchievements();
   cont.innerHTML=TROPHY_LAYERS.map(layer=>{
-    const slots=layer.items?layer.items.map(l=>{
+    // earned-only trophies (e.g. Early Joiner) join their rarity row only once you own them
+    const shownItems=layer.items?layer.items.concat(LEGEND_CARDS.filter(l=>l.earned&&l.rarity===layer.rarity&&unlockedLegends.includes(l.key))):null;
+    const slots=shownItems?shownItems.map(l=>{
       const unlocked=unlockedLegends.includes(l.key);
       return `<div class="legend-card cabinet-slot rarity-${l.rarity}${unlocked?' unlocked':''}" onclick="viewLegendCard('${l.key}')">
         ${legendInfoBadgeHTML(l.key)}
@@ -15887,7 +15901,7 @@ function renderTrophyCabinet(){
     // the locked-placeholder TROPHY_LAYERS grid above — currently the
     // Main Four (Classic, Monarch, Machine, Grit) plus the Diamond Six,
     // all legendary; mythic is empty until real art exists for it again.
-    const legends=LEGEND_CARDS.filter(l=>l.rarity==='legendary'||l.rarity==='mythic');
+    const legends=LEGEND_CARDS.filter(l=>(l.rarity==='legendary'||l.rarity==='mythic')&&(!l.earned||unlockedLegends.includes(l.key)));
     legendsRow.innerHTML=legends.map(l=>{
       const unlocked=unlockedLegends.includes(l.key);
       return `<div class="legend-card cabinet-slot rarity-${l.rarity}${unlocked?' unlocked':''}" onclick="viewLegendCard('${l.key}')">
@@ -15973,7 +15987,7 @@ function pickCrateTrophy(tier){
   const rarity=rollRarity(cfg.odds);
   const startIdx=RARITY_ORDER.indexOf(rarity);
   let pool=[];
-  for(let i=Math.max(startIdx,0);i<RARITY_ORDER.length&&!pool.length;i++){pool=LEGEND_CARDS.filter(l=>l.rarity===RARITY_ORDER[i]);}
+  for(let i=Math.max(startIdx,0);i<RARITY_ORDER.length&&!pool.length;i++){pool=LEGEND_CARDS.filter(l=>l.rarity===RARITY_ORDER[i]&&!l.earned);}
   return pool.length?pool[Math.floor(Math.random()*pool.length)]:null;
 }
 const CRATE_DUPE_P={bronze:.25,silver:.3,gold:.36,diamond:.5};
@@ -17069,7 +17083,7 @@ function rollCrateReelFiller(){
   return 'common';
 }
 function crateReelTileHTML(rarity,forceCard){
-  const pool=LEGEND_CARDS.filter(l=>l.rarity===rarity);
+  const pool=LEGEND_CARDS.filter(l=>l.rarity===rarity&&!l.earned);
   const card=forceCard||pool[Math.floor(Math.random()*pool.length)];
   if(!card)return crateReelTileHTML('common'); // safety net \u2014 should never hit, every filler rarity above has real cards
   // imgThumb (~15-30KB) instead of the full card art (some are 1MB+) \u2014
@@ -20135,6 +20149,7 @@ function finishOnboarding(){
   const maEl=document.getElementById('main-app');if(maEl)maEl.style.display='flex';
   document.body.classList.remove('onboarding-active');
   if(!joinDate)joinDate=localDateKey(new Date()); // set once, on first real use
+  try{grantEarlyJoiner();}catch(e){}
   // First win: everyone starts with one Bronze Crate to open straight away,
   // so the first minute ends on a reward instead of an empty dashboard.
   try{
@@ -21624,6 +21639,7 @@ function initApp(){
   if(typeof profile==='undefined')return;
   if(!document.getElementById('dash-name'))return;
   if(!joinDate)joinDate=localDateKey(new Date());
+  try{grantEarlyJoiner();}catch(e){}
   applyGoalTheme();
   // Both entry points into initApp (finishOnboarding, and a returning
   // user's page load) show the dashboard directly without going through
@@ -21707,6 +21723,7 @@ function initApp(){
   try{renderQuests();}catch(e){console.error('renderQuests:',e.message);}
   try{renderTemplateList();}catch(e){console.error('renderTemplateList:',e.message);}
   try{checkAnniversary();}catch(e){console.error('checkAnniversary:',e.message);}
+  try{grantEarlyJoiner();}catch(e){console.error('grantEarlyJoiner:',e.message);}
   try{checkAchievements();}catch(e){console.error('checkAchievements:',e.message);}
   try{checkBackupReminder();}catch(e){console.error('checkBackupReminder:',e.message);}
   try{checkWeeklyAssessment();}catch(e){console.error('checkWeeklyAssessment:',e.message);}
